@@ -148,7 +148,7 @@ export class InlineCommandController {
       // V1 matches whitespace-delimited words, not substrings within one
       // word. Scanning for unanchored fragments converted URL suffixes such
       // as "https://host/#fff" into widgets and could convert one token twice.
-      for (const token of text.matchAll(/\\S+/g)) {
+      for (const token of text.matchAll(/\S+/g)) {
         const value = token[0]
         let matchedWord = false
         for (const type of this.#registry.inlineTypes) {
