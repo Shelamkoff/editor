@@ -623,12 +623,12 @@ test('a retired Clipboard paste listener cannot claim a later event after destru
 
 for (const [name, clipboardText] of [
   ['local text', 'Hello'],
-  ['multiline text', 'Hello\\nWorld'],
+  ['multiline text', 'Hello\nWorld'],
 ]) {
   test('committed ' + name + ' paste cannot read or reconcile destroyed editor UI', () => {
     const h = clipboardHarness({
       formats: ['text/plain'],
-      read: () => clipboardText,
+      read: type => type === 'text/plain' ? clipboardText : '',
       accepts: () => false,
     })
     let committed = 0
