@@ -197,3 +197,26 @@ test('a captured selection mousedown callback is inert after editor destruction'
   assert.equal(hitTests, 0, 'retired selection owner still performed DOM hit testing')
   assert.equal(controller.dragging, false)
 })
+
+
+for (const action of ['removeWholeBlocks', 'replace']) {
+  test(`whole-block ${action} skips detached DOM after synchronous commit observer destruction`, () => {
+    const h = harness()
+    h.controller.selectBlocks(['a'])
+    let reconciled = 0
+    let focused = 0
+    h.view.reconcileInteraction = () => { reconciled++; throw new Error('retired view reconciled') }
+    h.view.setCurrent = () => { focused++; throw new Error('retired view focused') }
+    h.runtime.interact = () => {
+      h.controller.destroy()
+      return action === 'replace' ? { blockId: 'a', fieldKey: 'text', offset: 1 } : 'a'
+    }
+    const commit = () => action === 'replace'
+      ? h.controller.replace({ kind: 'text', text: 'X' })
+      : h.controller.removeWholeBlocks()
+    assert.equal(commit(), true, 'completed canonical action was incorrectly reported as failed')
+    assert.equal(reconciled, 0)
+    assert.equal(focused, 0)
+    assert.deepEqual(h.view.selectedIds, [], 'destruction did not clear the previous logical selection')
+  })
+}
