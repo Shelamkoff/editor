@@ -238,6 +238,34 @@ async function run() {
 
   const baseline = tracker.snapshot()
 
+  // A ready event listener is permitted to destroy the editor synchronously.
+  // Its retained onReady callback must never observe a dead public handle.
+  for (const destroyDuringReady of [false, true]) {
+    const holder = document.createElement('section')
+    sandbox.appendChild(holder)
+    const order = []
+    const editor = createEditor({
+      holder,
+      plugins: [createParagraphPlugin({ injectStyles: false })],
+      injectStyles: false,
+      onReady() { order.push('onReady') },
+    })
+    editor.on('editor:ready', () => {
+      order.push('editor:ready')
+      if (destroyDuringReady) editor.destroy()
+    })
+    await Promise.resolve()
+    assert(
+      JSON.stringify(order) === JSON.stringify(
+        destroyDuringReady ? ['editor:ready'] : ['editor:ready', 'onReady']
+      ),
+      `ready notification crossed teardown boundary: ${JSON.stringify(order)}`,
+    )
+    if (!destroyDuringReady) editor.destroy()
+    holder.remove()
+    assertSnapshot(tracker.snapshot(), baseline, tracker, 'ready observer lifecycle retained resources')
+  }
+
   for (let cycle = 0; cycle < 5; cycle++) {
     const definitions = pluginFactories.map(factory => factory({ injectStyles: false }))
     const blocks = definitions.map((definition, index) => ({
