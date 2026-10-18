@@ -1573,7 +1573,10 @@ test('read-only selection capture cannot reenter host mutation or mode transitio
     registry: registry([paragraphDefinition()]),
     data: { version: '2.0.0', blocks: [block('a', { text: 'Committed' })] },
     selection,
-    projector: { setReadOnly() { projectionTransitions++ } },
+    projector: {
+      setReadOnly() { projectionTransitions++ },
+      prepare() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    },
   })
   const before = runtime.save().blocks
   const revision = runtime.revision
