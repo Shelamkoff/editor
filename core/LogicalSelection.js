@@ -150,6 +150,13 @@ export class LogicalSelection {
         || !this.#sameCurrentOwners(bookmark,anchor,focus)) return false
       if(typeof selection.setBaseAndExtent==='function'){
         selection.setBaseAndExtent(a.node,a.offset,f.node,f.offset)
+      }else if(typeof selection.collapse==='function'
+        &&typeof selection.extend==='function'){
+        // A DOM Range always orders its endpoints; with a backward anchor
+        // the old setStart/setEnd fallback collapsed the user's selection.
+        // Native collapse + extend retains anchor/focus direction.
+        selection.collapse(a.node,a.offset)
+        selection.extend(f.node,f.offset)
       }else{
         const range=document.createRange()
         range.setStart(a.node,a.offset)
