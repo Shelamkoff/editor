@@ -47,7 +47,7 @@ The registered block type is `columns`. Its factory is also exported by the comp
 
 Empty column strings are valid. Changing the layout preserves columns in order. Expanding from two to three columns adds an empty final column. Reducing from three to two columns appends the removed column's non-blank rich text to the second column, separated by `<br>`, so changing the layout does not discard content. Every column supports the editor's enabled inline tools and persistent inline widgets.
 
-During import, surplus columns are appended to the last supported column using the same non-blank rich-text merge policy. Missing columns are padded with empty strings; an unknown layout uses `1-1` without discarding surplus content.
+The v2 data schema strictly rejects unknown layouts, missing column IDs, and a column count different from the chosen layout. Layout changes initiated through the plugin's settings use the non-blank merge policy above; they are distinct from document loading. Legacy or malformed document payloads are **not** silently repaired at import.
 
 ## Configuration
 
