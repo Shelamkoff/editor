@@ -124,14 +124,47 @@ export class ClipboardController {
     previous?.abort()
   }
 
+  /** The diagnostics sink is an observer, never an authoring or lifecycle controller.
+   * @template T
+   * @param {(sink: import('./types').DiagnosticsSink) => T} operation
+   * @returns {T | undefined}
+   */
+  #observeDiagnostics(operation) {
+    if (!this.#diagnostics) return undefined
+    try {
+      const observe = this.#runtime?.observeExtension
+      return typeof observe === 'function'
+        ? this.#runtime.observeExtension(() => operation(this.#diagnostics))
+        : operation(this.#diagnostics)
+    } catch { return undefined }
+  }
+
+  /** @param {'paste.failed' | 'cut.failed'} code
+   * @param {string} operation
+   * @param {unknown} error
+   */
+  #reportDiagnosticError(code, operation, error) {
+    this.#observeDiagnostics(sink => sink.emit(code, {
+      operation, errorName: sink.errorName(error),
+    }))
+  }
+
+  /** @param {number | undefined} startedAt */
+  #emitSlowDiagnostic(startedAt) {
+    if (typeof startedAt !== 'number' || !Number.isFinite(startedAt)) return
+    this.#observeDiagnostics(sink => {
+      const durationMs = sink.now() - startedAt
+      if (Number.isFinite(durationMs) && durationMs >= sink.threshold('pasteMs')) {
+        sink.emit('paste.slow', { operation: 'clipboard.paste', durationMs })
+      }
+    })
+  }
+
   // Cleanup must be independent of host diagnostics; reporting an error
   // while revoking one URL cannot leave later media leases unreleased.
   #reportResourceReleaseError(error) {
     try {
-      this.#diagnostics?.emit('paste.failed', {
-        operation: 'clipboard.object-url-release',
-        errorName: this.#diagnostics.errorName(error),
-      })
+      this.#reportDiagnosticError('paste.failed', 'clipboard.object-url-release', error)
     } catch {}
   }
 
@@ -378,10 +411,7 @@ export class ClipboardController {
     this.#view.reconcileInteraction()
     if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
     } catch (error) {
-      this.#diagnostics?.emit('cut.failed', {
-        operation: 'clipboard.cut',
-        errorName: this.#diagnostics.errorName(error),
-      })
+      this.#reportDiagnosticError('cut.failed', 'clipboard.cut', error)
     }
 
   }
@@ -412,25 +442,18 @@ export class ClipboardController {
     if (!this.#canPaste(modeEpoch,turn,event) || owner?.mode === 'plain-text') return
     this.cancelPendingTask()
     if (!this.#canPaste(modeEpoch,turn,event)) return
-    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
+    const startedAt = this.#observeDiagnostics(sink => sink.now())
+    if (!this.#canPaste(modeEpoch,turn,event)) return
     try {
       return this.#applyPaste(event,modeEpoch,turn)
     } catch (error) {
       // A failed owned Paste stays consumed while this owner is live, but a
       // callback that destroyed the editor cannot claim detached DOM events.
       if (this.#canPaste(modeEpoch,turn,event)) event.preventDefault()
-      this.#diagnostics?.emit('paste.failed', {
-        operation: 'clipboard.paste',
-        errorName: this.#diagnostics.errorName(error),
-      })
+      this.#reportDiagnosticError('paste.failed', 'clipboard.paste', error)
       return
     } finally {
-      if (startedAt && this.#diagnostics && !this.#task) {
-        const durationMs = this.#diagnostics.now() - startedAt
-        if (durationMs >= this.#diagnostics.threshold('pasteMs')) {
-          this.#diagnostics.emit('paste.slow', { operation: 'clipboard.paste', durationMs })
-        }
-      }
+      if (!this.#task) this.#emitSlowDiagnostic(startedAt)
     }
   }
 
@@ -452,10 +475,7 @@ export class ClipboardController {
         fragment = decodeClipboardFragment(privatePayload)
         if (!this.#canPaste(modeEpoch,turn,event)) return
       } catch (error) {
-        this.#diagnostics?.emit('paste.failed', {
-          operation: 'clipboard.private-fragment',
-          errorName: this.#diagnostics.errorName(error),
-        })
+        this.#reportDiagnosticError('paste.failed', 'clipboard.private-fragment', error)
         return
       }
 
@@ -470,10 +490,7 @@ export class ClipboardController {
             if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
           }
         } catch (error) {
-          this.#diagnostics?.emit('paste.failed', {
-            operation: 'clipboard.private-composite',
-            errorName: this.#diagnostics.errorName(error),
-          })
+          this.#reportDiagnosticError('paste.failed', 'clipboard.private-composite', error)
         }
         return
       }
@@ -493,10 +510,7 @@ export class ClipboardController {
         if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
         if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
       } catch (error) {
-        this.#diagnostics?.emit('paste.failed', {
-          operation: 'clipboard.private-fragment',
-          errorName: this.#diagnostics.errorName(error),
-        })
+        this.#reportDiagnosticError('paste.failed', 'clipboard.private-fragment', error)
       }
       return
     }
@@ -525,10 +539,7 @@ export class ClipboardController {
           }
         }catch(error){
           if(this.#canPaste(modeEpoch,turn,event))event.preventDefault()
-          this.#diagnostics?.emit('paste.failed',{
-            operation:'clipboard.html-selection',
-            errorName:this.#diagnostics.errorName(error),
-          })
+          this.#reportDiagnosticError('paste.failed', 'clipboard.html-selection', error)
           return
         }
       }
@@ -549,10 +560,7 @@ export class ClipboardController {
           if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
         }
       }catch(error){
-        this.#diagnostics?.emit('paste.failed',{
-          operation:'clipboard.selection-paste',
-          errorName:this.#diagnostics.errorName(error),
-        })
+        this.#reportDiagnosticError('paste.failed', 'clipboard.selection-paste', error)
       }
       return
     }
@@ -601,10 +609,7 @@ export class ClipboardController {
         if (!this.#canPaste(modeEpoch,turn,event)) return
       } catch (error) {
         event.preventDefault()
-        this.#diagnostics?.emit('paste.failed', {
-          operation: 'clipboard.html-import',
-          errorName: this.#diagnostics.errorName(error),
-        })
+        this.#reportDiagnosticError('paste.failed', 'clipboard.html-import', error)
         return
       }
 
@@ -693,7 +698,7 @@ export class ClipboardController {
       if(result?.blockId)this.#scheduleFocus(result.blockId,result.focus??{offset:'start'})
       return result
     } catch(error) {
-      this.#diagnostics?.emit('cut.failed',{operation:'clipboard.cut',errorName:this.#diagnostics.errorName(error)})
+      this.#reportDiagnosticError('cut.failed', 'clipboard.cut', error)
       return null
     }
   }
@@ -821,7 +826,8 @@ export class ClipboardController {
   #beginAsync(owner, range, items) {
     if (this.#destroyed || this.#controller.signal.aborted) return
     this.cancelPendingTask()
-    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
+    const startedAt = this.#observeDiagnostics(sink => sink.now())
+    if (this.#destroyed || this.#controller.signal.aborted) return
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
     this.#task = task
@@ -910,10 +916,7 @@ export class ClipboardController {
         } catch (error) {
           if (stillOwned()) {
             if (this.#diagnostics) {
-              this.#diagnostics.emit('paste.failed', {
-                operation: 'clipboard.paste',
-                errorName: this.#diagnostics.errorName(error),
-              })
+              this.#reportDiagnosticError('paste.failed', 'clipboard.paste', error)
             } else {
               console.warn('[Clipboard] paste resolver failed', error)
             }
@@ -950,10 +953,7 @@ export class ClipboardController {
         persisted ||= this.#runtime.revision !== revision
 
         if(!task.signal.aborted){
-          this.#diagnostics?.emit('paste.failed',{
-            operation:'clipboard.paste-commit',
-            errorName:this.#diagnostics.errorName(error),
-          })
+          this.#reportDiagnosticError('paste.failed', 'clipboard.paste-commit', error)
         }
       }finally {
         applying = false
@@ -965,12 +965,7 @@ export class ClipboardController {
       task.signal.removeEventListener('abort', releasePending)
       this.#controller.signal.removeEventListener('abort', abort)
       releasePending()
-      if (startedAt && this.#diagnostics) {
-        const durationMs = this.#diagnostics.now() - startedAt
-        if (durationMs >= this.#diagnostics.threshold('pasteMs')) {
-          this.#diagnostics.emit('paste.slow', { operation: 'clipboard.paste', durationMs })
-        }
-      }
+      this.#emitSlowDiagnostic(startedAt)
       if (this.#task === task) {
         this.#task = null
       }
