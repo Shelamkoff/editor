@@ -93,13 +93,16 @@ export class InlineTriggerController {
       this.#cancel()
       return false
     }
+    const modeEpoch=this.#modeEpoch
     const bookmark=this.#selection.capture()
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return false
     const point=bookmark?.focus
     if(!bookmark||!point){
       this.#cancel()
       return false
     }
     const field=this.#reconciler.getEditableField(point.blockId,point.fieldKey)
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return false
     if(!field||field.mode!=='rich-text'){
       this.#cancel()
       return false
@@ -120,18 +123,24 @@ export class InlineTriggerController {
 
   #onInput(event){
     if(this.#controller.signal.aborted||this.#isReadOnly())return
+    const modeEpoch=this.#modeEpoch
     const route=this.#nativeInputRoute(event)
+    // Routing may synchronously destroy this owner or round-trip edit mode.
+    // Never reconstruct a query using authority acquired before that call.
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
     if(route&&(route.status==='stale'||route.status==='failed'||route.inside===true))return
     if(event.isComposing||this.#isComposing()){
       this.#cancel()
       return
     }
     const owner=this.#reconciler.resolveEditableTarget(event.target)
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
     if(!owner||owner.mode!=='rich-text'){
       this.#cancel()
       return
     }
     const bookmark=this.#selection.capture()
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
     if(!bookmark||!this.#collapsedIn(bookmark,owner)){
       this.#cancel()
       return
@@ -140,7 +149,9 @@ export class InlineTriggerController {
   }
 
   #refreshOwner(owner,bookmark){
+    const modeEpoch=this.#modeEpoch
     const text=this.#textBeforeCaret(owner.element)
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
     if(text===null){
       this.#cancel()
       return
@@ -189,7 +200,11 @@ export class InlineTriggerController {
   }
 
   #publish(active,query,focusOffset){
-    active.textPrefix=this.#textBeforeCaret(active.anchor)
+    const modeEpoch=this.#modeEpoch
+    const textPrefix=this.#textBeforeCaret(active.anchor)
+    if(this.#controller.signal.aborted||this.#isReadOnly()
+      ||modeEpoch!==this.#modeEpoch||this.#active!==active)return
+    active.textPrefix=textPrefix
     const session=Object.freeze({
       blockId:active.blockId,
       fieldKey:active.fieldKey,
@@ -224,8 +239,11 @@ export class InlineTriggerController {
     if(event.defaultPrevented||event.isComposing||event.keyCode===229||this.#isComposing())return
     const active=this.#active
     if(!active?.session)return
-    if(!this.#liveRange(active)){
-      this.#cancel()
+    const modeEpoch=this.#modeEpoch
+    const liveRange=this.#liveRange(active)
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
+    if(!liveRange){
+      if(this.#active===active)this.#cancel()
       return
     }
     const session=active.session
@@ -239,6 +257,10 @@ export class InlineTriggerController {
         throw new TypeError('Inline onTriggerKeydown() must return "handled" or "pass"')
       }
     } catch (error) {
+      if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch){
+        try {this.#reportError(error)} catch {}
+        return
+      }
       // The active query owns this key. An invalid plugin result must not
       // fall through to native editing or a generic Enter/Tab block command.
       event.preventDefault?.()
@@ -247,6 +269,9 @@ export class InlineTriggerController {
       try {this.#reportError(error)} catch {}
       return
     }
+    // The plug-in callback can synchronously retire this controller. Do not
+    // consume a captured DOM key after losing that event's owner.
+    if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
     if(result==='handled'){
       event.preventDefault()
       event.stopPropagation()
@@ -267,12 +292,15 @@ export class InlineTriggerController {
 
   #liveRange(active){
     const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
+    if(this.#controller.signal.aborted||this.#isReadOnly())return null
     if(field?.element!==active.anchor||!active.anchor.isConnected||!this.#root.contains(active.anchor)
       ||active.textPrefix===null||!(active.anchor.textContent??'').startsWith(active.textPrefix))return null
     const bookmark=this.#selection.capture()
+    if(this.#controller.signal.aborted||this.#isReadOnly())return null
     const owner={blockId:active.blockId,fieldKey:active.fieldKey}
     if(!bookmark?.anchor||!bookmark?.focus||!this.#collapsedIn(bookmark,owner))return null
     const text=this.#textBeforeCaret(active.anchor)
+    if(this.#controller.signal.aborted||this.#isReadOnly())return null
     if(text===null)return null
     const index=text.lastIndexOf(active.trigger)
     if(index!==active.textStart
