@@ -39,7 +39,7 @@ export class LogicalSelection {
       const startOffset=active.selectionStart
       const endOffset=active.selectionEnd
       const direction=active.selectionDirection
-      if(document.activeElement !== active)return null
+      if(document.activeElement !== active || !this.#isMountedOwner(activeOwner))return null
       if(typeof startOffset === 'number' && typeof endOffset === 'number'){
         const start = Math.max(0, startOffset)
         const end = Math.max(start, endOffset)
@@ -67,6 +67,11 @@ export class LogicalSelection {
 
     const anchor=this.#point(anchorOwner,getTextOffset(anchorOwner.element,anchorNode,anchorOffset))
     const focus=this.#point(focusOwner,getTextOffset(focusOwner.element,focusNode,focusOffset))
+    // An endpoint can retain its old node and block/field key after a plugin
+    // silently remounts the field during owner resolution or text traversal.
+    // Native range identity alone is not proof of mounted field ownership.
+    if(!unchanged() || !this.#isMountedOwner(anchorOwner)
+      || !this.#isMountedOwner(focusOwner)) return null
     return unchanged()?{anchor,focus}:null
   }
 
@@ -233,6 +238,14 @@ export class LogicalSelection {
       &&getTextOffset(point.owner.element,node,offset)===point.offset)
     return matches(selection.anchorNode,selection.anchorOffset,anchor)
       &&matches(selection.focusNode,selection.focusOffset,focus)
+  }
+
+  #isMountedOwner(owner){
+    if(!owner || !owner.element) return false
+    return this.#reconciler.getEditableFields(owner.blockId)
+      .some(field=>field.key===owner.fieldKey
+        &&field.mode===owner.mode
+        &&field.element===owner.element)
   }
 
   #sameCurrentOwners(bookmark,anchor,focus){
