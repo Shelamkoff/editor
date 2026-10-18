@@ -852,3 +852,81 @@ test('destroy inside a no-op command cannot report successful completion', () =>
   assert.equal(history.canUndo, false)
   assert.equal(engine.phase, 'idle')
 })
+
+
+test('command diagnostic clock cannot author a nested transaction before dispatch', () => {
+  let engine, armed = true, nestedWrites = 0, denial = null
+  const diagnostics = {
+    now() {
+      if (armed) {
+        armed = false
+        try {
+          engine.execute({ origin: 'external', name: 'hidden-metric-write' }, tx => {
+            nestedWrites++
+            tx.update('a', block('a', 'Unexpected'))
+          })
+        } catch (error) { denial = error }
+      }
+      return 1
+    },
+    threshold() { return Infinity },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit() {},
+  }
+  const { engine: created, store, history } = harness({ diagnostics })
+  engine = created
+  engine.execute({ origin: 'user', name: 'intended' },
+    tx => tx.update('a', block('a', 'Accepted')))
+  assert.equal(nestedWrites, 0, 'diagnostic timestamp callback started a second canonical command')
+  assert.match(String(denial?.message), /diagnostic-observation/)
+  assert.equal(store.get('a').data.text, 'Accepted')
+  assert.equal(store.revision, 1)
+  assert.equal(history.undoDepth, 1)
+})
+
+test('slow-operation diagnostics cannot reenter authoring after the command commits', () => {
+  let engine, injected = 0, denial = null, clock = 1
+  const diagnostics = {
+    now() { return clock++ },
+    threshold() { return 0 },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit(code) {
+      if (code !== 'command.slow') return
+      try {
+        engine.execute({ origin: 'external', name: 'metric-injection' }, tx => {
+          injected++
+          tx.update('a', block('a', 'Unexpected'))
+        })
+      } catch (error) { denial = error }
+    },
+  }
+  const { engine: created, store, history } = harness({ diagnostics })
+  engine = created
+  engine.execute({ origin: 'user', name: 'intended' },
+    tx => tx.update('a', block('a', 'Accepted')))
+  assert.equal(injected, 0, 'slow diagnostic event synchronously authored a nested command')
+  assert.match(String(denial?.message), /diagnostic-observation/)
+  assert.equal(store.get('a').data.text, 'Accepted')
+  assert.equal(store.revision, 1)
+  assert.equal(history.undoDepth, 1)
+})
+
+test('throwing slow diagnostic cannot override an already committed transaction result', () => {
+  let clock = 1
+  const { engine, store, history } = harness({
+    diagnostics: {
+      now() { return clock++ },
+      threshold() { return 0 },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+      emit(code) { if (code === 'command.slow') throw Error('metrics observer is offline') },
+    },
+  })
+  assert.equal(engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'Accepted'))
+    return 'committed'
+  }), 'committed', 'diagnostic emission replaced a successful canonical command result')
+  assert.equal(store.get('a').data.text, 'Accepted')
+  assert.equal(store.revision, 1)
+  assert.equal(history.undoDepth, 1)
+  assert.equal(engine.health, 'ready')
+})
