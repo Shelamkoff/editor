@@ -273,10 +273,10 @@ export class KeyboardRouter {
 
   #convertTypedPattern(owner, range, key) {
     const native = this.#root.ownerDocument.defaultView?.getSelection?.()
-    const node = native?.anchorNode
+    const node = /** @type {Text | null | undefined} */ (native?.anchorNode)
     const offset = native?.anchorOffset
     if (!native?.isCollapsed || node?.nodeType !== 3
-      || typeof node.data !== 'string' || !Number.isInteger(offset)
+      || typeof node.data !== 'string' || typeof offset !== 'number' || !Number.isInteger(offset)
       || offset <= 0 || offset > node.data.length
       || !owner.element.contains?.(node)
       || node.parentElement?.closest?.('[data-inline-plugin]')
@@ -289,7 +289,7 @@ export class KeyboardRouter {
     while (start > 0 && node.data[start - 1] !== ' ' && node.data[start - 1] !== '\u00a0') start--
     const word = node.data.slice(start, offset)
     if (!word || word.length > range.end) return false
-    return this.#inlineCommands.commitTypedPattern(word, {
+    return this.#inlineCommands?.commitTypedPattern?.(word, {
       blockId: owner.blockId,
       fieldKey: owner.fieldKey,
       range: { start: range.end - word.length, end: range.end },
