@@ -6,6 +6,7 @@ function fixture({ onChange, onError, focus } = {}) {
   const ids = ['a', 'b']
   const runtime = {
     generation: 1,
+    revision: 1,
     modeEpoch: 0,
     readOnly: false,
     health: 'ready',
@@ -202,3 +203,17 @@ for (const health of ['destroyed', 'failed']) {
     assert.equal(h.interaction.currentId, 'a')
   })
 }
+
+
+test('plugin focus cannot claim an earlier document revision after a native author edit', () => {
+  const h = fixture({
+    focus(_id, _target, _interaction, source) {
+      source.revision++
+      return true
+    },
+  })
+  assert.equal(h.interaction.focus('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(h.interaction.currentId, 'a',
+    'old focus claimed a block after a newer canonical edit')
+  assert.deepEqual(h.calls.map(call => call.id), ['b'])
+})
