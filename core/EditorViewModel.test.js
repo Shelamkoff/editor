@@ -10,6 +10,7 @@ function harness({ insertCommit = null, removeCommit = null, caret = () => true 
   let interaction
   const runtime = {
     generation: 1,
+    revision: 1,
     health: 'ready',
     modeEpoch: 0,
     readOnly: false,
@@ -309,3 +310,30 @@ for (const health of ['destroyed', 'failed']) {
     assert.deepEqual(h.events, [])
   })
 }
+
+
+test('focus cannot publish an old keyed caret after callback authored a newer revision', () => {
+  let h
+  h = harness({
+    caret() {
+      h.runtime.revision++
+      return true
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(h.view.currentId, 'a')
+  assert.deepEqual(h.events, [])
+})
+
+test('setCaret does not claim current block when its native callback changes the document revision', () => {
+  let h
+  h = harness({
+    caret() {
+      h.runtime.revision++
+      return true
+    },
+  })
+  assert.equal(h.view.setCaret('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(h.view.currentId, 'a')
+  assert.deepEqual(h.events, [])
+})
