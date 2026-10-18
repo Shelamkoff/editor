@@ -121,9 +121,13 @@ export class LogicalSelection {
         // a newer editing host. Never setSelectionRange on retired inputs.
         if (this.#root.ownerDocument.activeElement !== element
           || !this.#sameCurrentOwners(bookmark,anchor,focus)) return false
-        element.setSelectionRange(Math.min(a,f),Math.max(a,f),a<=f?'forward':'backward')
-        return this.#sameCurrentOwners(bookmark,anchor,focus)
-          && this.#root.ownerDocument.activeElement === element
+        const start=Math.min(a,f),end=Math.max(a,f)
+        element.setSelectionRange(start,end,a<=f?'forward':'backward')
+        // Some native input controls silently ignore selection setters.
+        // Do not report success unless the intended UTF-16 range is present.
+        return element.selectionStart===start && element.selectionEnd===end
+          && this.#sameCurrentOwners(bookmark,anchor,focus)
+          && this.#root.ownerDocument.activeElement===element
       } catch {
         return false
       }
@@ -171,6 +175,7 @@ export class LogicalSelection {
         && bookmark.anchor.fieldKey === bookmark.focus.fieldKey
         && bookmark.anchor.offset === bookmark.focus.offset
       return this.#sameCurrentOwners(bookmark,anchor,focus)
+        && this.#nativeRangeMatches(selection,anchor,focus)
         && (!collapsed || document.activeElement === anchor.owner.element)
     }catch{
       return false
@@ -216,6 +221,18 @@ export class LogicalSelection {
       fieldKey:owner.fieldKey,
       offset:Math.max(0,Math.trunc(offset)||0),
     }
+  }
+
+  #nativeRangeMatches(selection,anchor,focus){
+    // A browser Selection API may return without throwing, or a synchronous
+    // selectionchange/focus handler may move the caret inside the same host.
+    // Verify logical offsets rather than exact DOM boundary node identity:
+    // equivalent offsets around inline widgets or BRs are valid.
+    const matches=(node,offset,point)=>Boolean(node
+      &&point.owner.element.contains(node)
+      &&getTextOffset(point.owner.element,node,offset)===point.offset)
+    return matches(selection.anchorNode,selection.anchorOffset,anchor)
+      &&matches(selection.focusNode,selection.focusOffset,focus)
   }
 
   #sameCurrentOwners(bookmark,anchor,focus){
