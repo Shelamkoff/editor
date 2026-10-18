@@ -384,15 +384,21 @@ export class ClipboardController {
 
   #onPaste(event) {
     if (this.#destroyed || this.#controller.signal.aborted || this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
+    // Event ownership lookup, field resolution and abort listeners can invoke
+    // host callbacks that synchronously destroy this editor. Each boundary
+    // must revoke the old Paste before inspecting clipboard data.
+    if (!this.#canPresent()) return
     const owner = this.#reconciler.resolveEditableTarget(event.target)
-    if (owner?.mode === 'plain-text') return
+    if (!this.#canPresent() || owner?.mode === 'plain-text') return
     this.cancelPendingTask()
+    if (!this.#canPresent()) return
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       return this.#applyPaste(event)
     } catch (error) {
-      // A proven owned Paste failure must never fall through to native insertion.
-      event.preventDefault()
+      // A failed owned Paste stays consumed while this owner is live, but a
+      // callback that destroyed the editor cannot claim detached DOM events.
+      if (this.#canPresent()) event.preventDefault()
       this.#diagnostics?.emit('paste.failed', {
         operation: 'clipboard.paste',
         errorName: this.#diagnostics.errorName(error),
@@ -409,6 +415,7 @@ export class ClipboardController {
   }
 
   #applyPaste(event) {
+    if (!this.#canPresent()) return
     const data = event.clipboardData
     if (!data) return
 
@@ -539,7 +546,9 @@ export class ClipboardController {
     }
 
     const html = data.getData('text/html')
+    if (!this.#canPresent()) return
     const text = data.getData('text/plain')
+    if (!this.#canPresent()) return
     // An owned Paste with no author content is a no-op. In particular it
     // must not turn a selected rich-text range into an empty replacement.
     if (!html && !text) {
@@ -551,14 +560,16 @@ export class ClipboardController {
       fieldKey: owner.fieldKey,
       range,
     })) {
-      event.preventDefault()
+      if (this.#canPresent()) event.preventDefault()
       return
     }
+    if (!this.#canPresent()) return
 
     if (html) {
       let plan
       try {
         plan = this.#runtime.prepareHtmlImport(html, owner.blockId)
+        if (!this.#canPresent()) return
       } catch (error) {
         event.preventDefault()
         this.#diagnostics?.emit('paste.failed', {
@@ -603,6 +614,7 @@ export class ClipboardController {
 
     const input = { kind: /** @type {'text'} */ ('text'), text }
     const route = this.#route(input, owner.blockId)
+    if (!this.#canPresent()) return
     event.preventDefault()
     if (route) {
       this.#beginAsync(owner, range, [{ input, route }])
