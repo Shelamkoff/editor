@@ -6,6 +6,8 @@
 let runtime = null
 /** @type {Promise<HighlightRuntime> | null} */
 let loadPromise = null
+// A stale lazy import must not supersede a later user-selected runtime.
+let selectionRevision = 0
 
 /**
  * @returns {HighlightRuntime | null}
@@ -20,10 +22,14 @@ export function getHighlightRuntime() {
 
 /**
  * Preserve dependency injection for consumers that provide their own build.
- * @param {HighlightRuntime} value
+ * @param {HighlightRuntime | null} value
  */
 export function setHighlightRuntime(value) {
   runtime = value
+  selectionRevision++
+  // Retire the old pending/resolved import lease. Previous awaiters retain
+  // their promise, but later calls must follow the newest runtime decision.
+  loadPromise = null
 }
 
 /**
@@ -35,18 +41,29 @@ export function loadHighlightRuntime() {
   if (current) return Promise.resolve(current)
   if (loadPromise) return loadPromise
 
-  loadPromise = import('highlight.js')
+  const revision = selectionRevision
+  const pending = import('highlight.js')
     .then(module => {
       const loaded = /** @type {HighlightRuntime} */ (module.default || module)
+      // Both explicit injection and a newly discovered ambient provider own
+      // newer highlighting authority than this earlier import request.
+      const selected = getHighlightRuntime()
+      if (revision !== selectionRevision || selected) return selected ?? loaded
       runtime = loaded
       return loaded
     })
     .catch(error => {
-      loadPromise = null
+      // An abandoned import must not fail a consumer that has since chosen a
+      // valid alternate highlighter. Real active import failures still reject.
+      const selected = getHighlightRuntime()
+      if (revision !== selectionRevision && selected) return selected
       throw error
     })
-
-  return loadPromise
+    .finally(() => {
+      if (loadPromise === pending) loadPromise = null
+    })
+  loadPromise = pending
+  return pending
 }
 
 /**
