@@ -484,3 +484,58 @@ test('getData refuses a scope revoked by its health callback before reading auth
   assert.throws(() => context.getData(), error => error?.name === 'AbortError')
   assert.equal(reads, 0, 'revoked scope exposed data after the health check')
 })
+test('a data task cannot commit after generation or phase callbacks revoke its owner', () => {
+  for (const stage of ['generation', 'phase']) {
+    const scope = new InstanceScope({ staged: false, generation: 2 })
+    scope.configure({
+      currentRevision: () => 3,
+      currentGeneration: () => 2,
+      health: () => 'ready',
+      phase: () => 'idle',
+    })
+    let writes = 0
+    const context = scope.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData(producer) { writes++; producer({ value: 1 }) },
+    })
+    const task = context.beginTask()
+    const revoke = () => scope.revoke()
+    scope.configure(stage === 'generation'
+      ? { currentGeneration() { revoke(); return 2 } }
+      : { phase() { revoke(); return 'idle' } })
+    let producerCalls = 0
+    assert.equal(task.commit(current => {
+      producerCalls++
+      return { ...current, value: 2 }
+    }), false, stage + ' revoked the owner but task.commit still reported success')
+    assert.equal(task.signal.aborted, true)
+    assert.equal(writes, 0)
+    assert.equal(producerCalls, 0)
+  }
+})
+
+test('retired instance callbacks cannot return data or identifiers after revocation', () => {
+  for (const operation of ['getData', 'createId']) {
+    const scope = new InstanceScope({ staged: false })
+    let callbackCalls = 0
+    const context = scope.createAuthority({
+      readData() {
+        callbackCalls++
+        scope.revoke()
+        return { value: 'private' }
+      },
+      updateData() {},
+      createId() {
+        callbackCalls++
+        scope.revoke()
+        return 'generated-but-retired'
+      },
+    })
+    assert.throws(
+      () => operation === 'getData' ? context.getData() : context.createId('item'),
+      error => error?.name === 'AbortError',
+      operation + ' returned a value from an already revoked owner',
+    )
+    assert.equal(callbackCalls, 1)
+  }
+})
