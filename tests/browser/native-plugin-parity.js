@@ -2143,4 +2143,38 @@ test('List Enter on trailing visually empty markup inserts a new paragraph in on
   equal(editor.save().blocks, after)
 })
 
+
+test('destroyed block and inline toolbar buttons do not consume late browser events', () => {
+  const editor = make([para('a', 'Alpha')], { plugins: [createParagraphPlugin()] })
+  const root = editorRoot(editor)
+  const blockButton = root.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)')
+  const settingsButton = root.querySelector('.oe-toolbar__drag')
+  const inlineTypeButton = root.querySelector('.oe-inline-toolbar__type-select')
+  const inlineControlButton = root.querySelector('.oe-inline-toolbar__level-select')
+  assert(blockButton && settingsButton && inlineTypeButton && inlineControlButton,
+    'all toolbar controls must mount before the owner is destroyed')
+  editor.destroy()
+  for (const button of [blockButton, settingsButton, inlineTypeButton, inlineControlButton]) {
+    const mousedown = new MouseEvent('mousedown', {
+      bubbles: true, cancelable: true, button: 0,
+    })
+    button.dispatchEvent(mousedown)
+    assert(!mousedown.defaultPrevented,
+      'retired toolbar mousedown consumed native browser input')
+    const click = new MouseEvent('click', {
+      bubbles: true, cancelable: true,
+    })
+    button.dispatchEvent(click)
+    assert(!click.defaultPrevented && !click.cancelBubble,
+      'retired toolbar button stole a later click from its host')
+  }
+  const arrow = new KeyboardEvent('keydown', {
+    key: 'ArrowDown', bubbles: true, cancelable: true,
+  })
+  inlineControlButton.dispatchEvent(arrow)
+  assert(!arrow.defaultPrevented && !arrow.cancelBubble,
+    'retired inline dropdown intercepted a native ArrowDown key')
+})
+
+
 await run()
