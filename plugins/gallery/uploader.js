@@ -97,6 +97,13 @@ export class GalleryUploader {
       const pendingAborts = new Set()
       try {
         files.forEach((file, index) => {
+          if (signal?.aborted) {
+            // A reader can synchronously revoke the batch while being
+            // constructed. Do not allocate readers for the remaining files.
+            remaining--
+            if (remaining === 0) finish()
+            return
+          }
           const reader = new FileReaderCtor()
           let readerComplete = false
           const completeReader = () => {
