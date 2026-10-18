@@ -534,3 +534,36 @@ test('a live conversion caret is published only after native collapse succeeds',
   assert.equal(h.controller.bookmark.conversionCaret, true)
   h.controller.destroy()
 })
+
+
+test('conversion caret silent native collapse failure cannot publish selected blocks', () => {
+  const h = mountedRestoreFixture()
+  h.native.collapse = () => {}
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2), conversionCaret: true,
+  }), false)
+  assert.equal(h.calls.selected, 0)
+  assert.equal(h.calls.current ?? 0, 0)
+  assert.equal(h.controller.active, false)
+  h.controller.destroy()
+})
+
+test('conversion caret transferred native focus cannot claim stale current block', () => {
+  let h
+  const outsideFocus = { name: 'a newer author focus' }
+  h = mountedRestoreFixture()
+  h.native.collapse = (node, offset) => {
+    h.native.anchorNode = node
+    h.native.focusNode = node
+    h.native.anchorOffset = offset
+    h.native.focusOffset = offset
+    h.document.activeElement = outsideFocus
+  }
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2), conversionCaret: true,
+  }), false)
+  assert.equal(h.calls.selected, 0)
+  assert.equal(h.calls.current ?? 0, 0)
+  assert.equal(h.document.activeElement, outsideFocus)
+  h.controller.destroy()
+})
