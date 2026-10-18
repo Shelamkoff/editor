@@ -578,3 +578,42 @@ test('inline caret restoration stops if capturing post-commit selection destroys
   assert.equal(captures, 2, 'did not inspect the post-commit author caret')
   assert.deepEqual(carets, [], 'selection capture retired the owner but old code restored focus')
 })
+
+
+test('inline Paste never converts a color pattern embedded in a longer nonwhitespace word', () => {
+  const { controller, calls, carets } = harness()
+  assert.equal(controller.pasteText('prefix#fff'), false,
+    'a URL or identifier containing a color-like substring was partially converted')
+  assert.deepEqual(calls, [])
+  assert.deepEqual(carets, [])
+  assert.equal(controller.pasteText('https://example.test/#fff #f00'), true)
+  assert.deepEqual(calls[0].segments, [
+    { kind: 'text', text: 'https://example.test/#fff ' },
+    { kind: 'widget', type: 'color', data: { value: '#f00' } },
+  ])
+})
+
+test('unanchored inline Paste pattern replaces the entire v1 word, not its substring', () => {
+  const { controller, definition, calls } = harness()
+  definition.paste.patterns = [/foo/]
+  assert.equal(controller.pasteText('prefixfoosuffix tail'), true)
+  assert.deepEqual(calls[0].segments, [
+    { kind: 'widget', type: 'color', data: { value: 'prefixfoosuffix' } },
+    { kind: 'text', text: ' tail' },
+  ])
+})
+
+test('a pasted word satisfying multiple patterns creates only its first registered widget', () => {
+  const { controller, definition, calls } = harness()
+  definition.paste.patterns = [/foo/, /bar/]
+  assert.equal(controller.pasteText('foobar'), true)
+  assert.deepEqual(calls[0].segments, [
+    { kind: 'widget', type: 'color', data: { value: 'foobar' } },
+  ], 'the same source word created multiple overlapping inline widgets')
+})
+
+test('inline Paste matches only complete whitespace-delimited tokens, including punctuation', () => {
+  const { controller, calls } = harness()
+  assert.equal(controller.pasteText('#fff,#f00'), false)
+  assert.deepEqual(calls, [])
+})
