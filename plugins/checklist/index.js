@@ -66,7 +66,7 @@ export function createChecklistPlugin(config = {}) {
         if(index<0)return null
         if(input.key==='Enter'&&!input.shiftKey){
           const current=data.items[index]
-          if(!current.text.trim()){
+          if(isRichTextEmpty(current.text,context)){
             if(data.items.length===1)return {kind:'exit'}
             const remaining={items:data.items.filter(item=>item.id!==id)}
             if(index===data.items.length-1)return {kind:'exit',data:remaining}
