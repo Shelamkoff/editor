@@ -520,3 +520,45 @@ test('a later claimed beforeinput retires an earlier native-inline pending envel
     isTrusted:false})
   assert.deepEqual(actions,[])
 })
+
+test('retired NativeInputController cannot process captured browser input or history events', () => {
+  const { calls, child, controller } = harness()
+  controller.destroy()
+  let prevented = 0
+  const event = {
+    target: child,
+    inputType: 'historyUndo',
+    isComposing: false,
+    preventDefault() { prevented++ },
+  }
+  controller.handleBeforeInput(event)
+  controller.handleInput({ target: child, inputType: 'insertText' })
+  assert.equal(prevented, 0, 'destroyed controller claimed native browser history')
+  assert.deepEqual(calls, [], 'destroyed controller updated canonical state')
+})
+
+test('retired NativeInputController cannot schedule IME completion after teardown', async () => {
+  const { calls, child, controller } = harness()
+  controller.destroy()
+  controller.handleCompositionStart({ target: child })
+  controller.handleCompositionEnd({ target: child, data: 'late' })
+  controller.handleCompositionKey({ target: child, keyCode: 229 })
+  await Promise.resolve()
+  assert.equal(controller.isComposing, false)
+  assert.deepEqual(calls, [])
+})
+
+test('retired NativeInputController ignores retained beforeinput cross-selection callbacks', () => {
+  const replacements = []
+  const { controller, child } = harness({ crossSelection: {
+    active: true,
+    replace(value) { replacements.push(value) },
+  } })
+  controller.destroy()
+  controller.handleBeforeInput({
+    target: child, inputType: 'insertText', data: 'X',
+    preventDefault() { throw new Error('retired listener prevented native input') },
+  })
+  assert.deepEqual(replacements, [],
+    'detached editor replaced a cross-block selection after controller destruction')
+})
