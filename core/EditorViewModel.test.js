@@ -386,7 +386,7 @@ function nativePlainFocusHarness({ onPluginFocus = null } = {}) {
   })
   const selection = new LogicalSelection({ root, reconciler })
   const view = new EditorViewModel({ runtime, reconciler, interaction, selection })
-  return { view, interaction, runtime, fields, ownerDocument, events }
+  return { view, interaction, runtime, fields, ownerDocument, events, selection, reconciler }
 }
 
 test('failed native keyed focus restores the previously owned DOM focus and caret', () => {
@@ -432,4 +432,58 @@ test('keyed focus may reveal a dynamic editable field after plugin focus', () =>
   assert.equal(h.view.currentId, 'b')
   assert.equal(h.ownerDocument.activeElement, h.fields.get('b').element)
   assert.deepEqual(h.events, ['b'])
+})
+
+
+test('keyed focus does not run plugin focus after selection capture accepts a newer owner', () => {
+  const h = nativePlainFocusHarness()
+  const previousCapture = h.selection.capture.bind(h.selection)
+  let targetFocuses = 0
+  const oldFocus = h.reconciler.focus.bind(h.reconciler)
+  h.reconciler.focus = (id, target) => {
+    if (id === 'b') targetFocuses++
+    return oldFocus(id, target)
+  }
+  h.selection.capture = () => {
+    const bookmark = previousCapture()
+    h.interaction.setCurrent('c')
+    h.fields.get('c').element.focus()
+    return bookmark
+  }
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(targetFocuses, 0, 'stale focus moved DOM after capture already chose another block')
+  assert.equal(h.view.currentId, 'c')
+  assert.equal(h.ownerDocument.activeElement, h.fields.get('c').element)
+  assert.deepEqual(h.events, ['c'])
+})
+
+test('keyed focus cannot invoke a plugin after selection capture changes control epoch', () => {
+  const h = nativePlainFocusHarness()
+  let focusCalls = 0
+  const oldFocus = h.reconciler.focus.bind(h.reconciler)
+  h.reconciler.focus = (id, target) => { focusCalls++; return oldFocus(id, target) }
+  h.selection.capture = () => {
+    h.runtime.readOnly = true
+    h.runtime.modeEpoch++
+    h.runtime.readOnly = false
+    h.runtime.modeEpoch++
+    return null
+  }
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(focusCalls, 0, 'a control-mode callback revoked focus before plugin dispatch')
+  assert.equal(h.view.currentId, 'a')
+  assert.equal(h.ownerDocument.activeElement, h.fields.get('a').element)
+})
+
+test('keyed focus cannot invoke a plugin after selection capture destroys its owner', () => {
+  const h = nativePlainFocusHarness()
+  let focusCalls = 0
+  h.reconciler.focus = () => { focusCalls++;return true }
+  h.selection.capture = () => {
+    h.runtime.health = 'destroyed'
+    return null
+  }
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(focusCalls, 0)
+  assert.equal(h.view.currentId, 'a')
 })
