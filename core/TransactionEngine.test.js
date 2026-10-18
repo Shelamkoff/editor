@@ -815,3 +815,40 @@ test('transaction command name is an owned one-read snapshot for history and eve
   assert.equal(store.get('a').data.text, 'Next')
   assert.equal(history.undoDepth, 1)
 })
+
+
+test('destroy inside a command prevents projector preparation and commit', () => {
+  let engine, prepares = 0
+  const { store, history, engine: created } = harness({
+    projector: {
+      prepare() {
+        prepares++
+        return { apply() {}, recover() {}, finalize() {}, discard() {} }
+      },
+    },
+  })
+  engine = created
+  assert.throws(() => engine.execute({ origin: 'user', name: 'terminal-command' }, tx => {
+    tx.update('a', block('a', 'Uncommitted'))
+    engine.destroy()
+  }), /destroyed/)
+  assert.equal(prepares, 0, 'destroyed command invoked detached projector preparation')
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+  assert.equal(engine.phase, 'idle')
+})
+
+test('destroy inside a no-op command cannot report successful completion', () => {
+  let engine
+  const { store, history, engine: created } = harness()
+  engine = created
+  assert.throws(() => engine.execute({ origin: 'user', name: 'terminal-no-op' }, () => {
+    engine.destroy()
+    return 'misleading-success'
+  }), /destroyed/)
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+  assert.equal(engine.phase, 'idle')
+})
