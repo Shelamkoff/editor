@@ -328,3 +328,36 @@ test('destroy during timer registration releases the returned unowned timer', ()
   assert.deepEqual([...liveTimers], [],
     'destroy invoked during registration left a timer holding a retired editor')
 })
+test('reentrant timer cancellation does not clear the same lease twice', () => {
+  const pending = new Set()
+  const cancelled = []
+  let created = 0
+  let nested = false
+  let notifier
+  const host = {
+    setTimeout() {
+      const id = ++created
+      pending.add(id)
+      return id
+    },
+    clearTimeout(id) {
+      cancelled.push(id)
+      pending.delete(id)
+      if (!nested) {
+        nested = true
+        notifier.schedule()
+      }
+    },
+  }
+  notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }), () => {}, 100, host,
+  )
+  notifier.schedule()
+  notifier.schedule()
+  assert.equal(created, 2, 'superseded scheduler allocated a stale extra timer')
+  assert.deepEqual(cancelled, [1], 'the old timer was canceled more than once')
+  assert.deepEqual([...pending], [2])
+  notifier.destroy()
+  assert.deepEqual(cancelled, [1, 2])
+  assert.deepEqual([...pending], [])
+})
