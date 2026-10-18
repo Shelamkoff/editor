@@ -294,6 +294,7 @@ function mountedRestoreFixture({ onFocus, onSelection, blocks = ['a','b'] } = {}
       selections.push([...ids])
     },
     clearSelection() { this.selectedIds = [] },
+    setCurrent(id) { this.currentId = id; calls.current = (calls.current ?? 0) + 1 },
   }
   const runtime = {
     generation: 1, revision: 1, modeEpoch: 0, health: 'ready',
@@ -477,5 +478,59 @@ test('cross-block native selection callback changing offsets supersedes old rest
   }), false, 'an old selection command reported success after a newer native caret')
   assert.equal(h.calls.selected, 0)
   assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [4,4])
+  h.controller.destroy()
+})
+
+
+test('conversion caret collapse failure does not publish a partially owned selection', () => {
+  const h = mountedRestoreFixture()
+  h.native.collapse = () => { throw new Error('native collapse no longer available') }
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2), conversionCaret: true,
+  }), false)
+  assert.equal(h.calls.selected, 0,
+    'failed conversion caret published cross-block logical selection before native collapse')
+  assert.equal(h.controller.active, false)
+  assert.equal(h.view.selectedIds.length, 0)
+  assert.equal(h.calls.current ?? 0, 0)
+  h.controller.destroy()
+})
+
+test('conversion caret focus remount cannot leave a stale selected range behind', () => {
+  let replacing = false
+  const h = mountedRestoreFixture({
+    onFocus(ctx,id) {
+      if (id === 'b' && replacing) ctx.replace('b')
+    },
+  })
+  replacing = true
+  h.native.collapse = () => { throw Error('old focus field should not reach collapse') }
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2), conversionCaret: true,
+  }), false)
+  assert.equal(h.calls.selected, 0)
+  assert.equal(h.controller.active, false)
+  assert.equal(h.calls.current ?? 0, 0)
+  h.controller.destroy()
+})
+
+test('a live conversion caret is published only after native collapse succeeds', () => {
+  const h = mountedRestoreFixture()
+  let collapseCount = 0
+  h.native.collapse = (node, offset) => {
+    collapseCount++
+    h.native.anchorNode = node
+    h.native.focusNode = node
+    h.native.anchorOffset = offset
+    h.native.focusOffset = offset
+    h.native.rangeCount = 1
+  }
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2), conversionCaret: true,
+  }), true)
+  assert.equal(collapseCount, 1)
+  assert.deepEqual(h.view.selectedIds, ['a','b'])
+  assert.equal(h.view.currentId, 'b')
+  assert.equal(h.controller.bookmark.conversionCaret, true)
   h.controller.destroy()
 })
