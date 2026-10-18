@@ -2495,4 +2495,63 @@ test('Public keyed focus publishes current block only after its native caret is 
   } finally { unsubscribe() }
 })
 
+
+test('Native cross-block SelectionController restore preserves backward author direction', () => {
+  const root=document.createElement('div')
+  root.className='oe-test-cross-selection-root'
+  document.body.append(root)
+  const ids=['a','b']
+  const fields=new Map()
+  for(const id of ids){
+    const element=document.createElement('p')
+    element.contentEditable='true'
+    element.textContent=id==='a'?'Alpha':'Bravo'
+    root.append(element)
+    fields.set(id,{key:'text',mode:'rich-text',element})
+  }
+  const runtime={
+    generation:1,revision:1,modeEpoch:0,health:'ready',readOnly:false,
+    ids:()=>[...ids],has:id=>ids.includes(id),indexOf:id=>ids.indexOf(id),
+  }
+  const reconciler={
+    getEditableField(id,key){
+      const current=fields.get(id)
+      return current?.key===key?current:null
+    },
+    getEditableFields:id=>fields.has(id)?[fields.get(id)]:[],
+    resolveEditableTarget(node){
+      for(const [blockId,field] of fields){
+        if(field.element.contains(node))
+          return {blockId,fieldKey:field.key,mode:field.mode,element:field.element}
+      }
+      return null
+    },
+  }
+  let selected=[]
+  const view={
+    get selectedIds(){return selected},
+    select(ids){selected=[...ids]},
+    clearSelection(){selected=[]},
+  }
+  const controller=new SelectionController({root,runtime,reconciler,view})
+  const selection=window.getSelection()
+  try{
+    const bookmark={
+      anchor:{blockId:'b',fieldKey:'text',offset:4},
+      focus:{blockId:'a',fieldKey:'text',offset:1},
+    }
+    check(controller.restore(bookmark),'native backward cross-block restore was rejected')
+    check(fields.get('b').element.contains(selection.anchorNode),'backward anchor owner changed')
+    check(fields.get('a').element.contains(selection.focusNode),'backward focus owner changed')
+    equal(getTextOffset(fields.get('b').element,selection.anchorNode,selection.anchorOffset),4)
+    equal(getTextOffset(fields.get('a').element,selection.focusNode,selection.focusOffset),1)
+    equal(selected,['a','b'])
+    equal(runtime.revision,1,'selection-only restoration wrote a model revision')
+  }finally{
+    controller.destroy()
+    root.remove()
+  }
+})
+
+
 await run()
