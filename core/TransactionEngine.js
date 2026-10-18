@@ -95,6 +95,7 @@ export class TransactionEngine {
   #diagnostics
   #phase = 'idle'
   #health = 'ready'
+  #destroyed = false
   /** @type {{ draft: any, context: any, hasFailed: boolean, failed: unknown } | null} */
   #current = null
 
@@ -112,8 +113,13 @@ export class TransactionEngine {
 
   get phase() { return this.#phase }
   get health() { return this.#health }
-  get canUndo() { return this.#history.canUndo }
-  get canRedo() { return this.#history.canRedo }
+  get canUndo() { return !this.#destroyed && this.#history.canUndo }
+  get canRedo() { return !this.#destroyed && this.#history.canRedo }
+
+  /** End this engine's authority. In-flight committed history is retained,
+   * but callbacks queued by a prior Undo/Redo must not restore a dead editor.
+   */
+  destroy() { this.#destroyed = true }
 
   /** Narrow read access for preparation outside an execute callback. */
   get currentReadSource() {
@@ -318,7 +324,8 @@ export class TransactionEngine {
       if (selection) {
         queueMicrotask(() => {
           if (
-            this.#health !== 'ready'
+            this.#destroyed
+            || this.#health !== 'ready'
             || this.#phase !== 'idle'
             || this.#store.generation !== committedGeneration
             || this.#store.revision !== committedRevision
@@ -390,6 +397,7 @@ export class TransactionEngine {
   }
 
   #assertHealthy() {
+    if (this.#destroyed) throw new Error('TransactionEngine is destroyed')
     if (this.#health !== 'ready') throw new Error('TransactionEngine is failed')
   }
 
