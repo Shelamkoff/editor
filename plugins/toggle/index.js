@@ -75,7 +75,8 @@ export function createTogglePlugin(config = {}) {
         }
         return {
           parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:selected}],
-          remaining:(!remaining.title.trim()&&!remaining.content.trim())?null:remaining,
+          remaining:isRichTextEmpty(remaining.title,context)&&isRichTextEmpty(remaining.content,context)
+            ?null:remaining,
           focus:null,
         }
       },
