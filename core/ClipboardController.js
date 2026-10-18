@@ -87,6 +87,9 @@ export class ClipboardController {
   #controller
   #task = null
   #taskAnchorId = null
+  // Persisted blob-backed Paste results can be restored by Redo; own their
+  // temporary resources until this editor's clipboard lifetime ends.
+  #ownedObjectUrls = new Map()
   #diagnostics
 
   constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null, inlineCommands = null, diagnostics = null, isComposing = () => false }) {
@@ -123,6 +126,14 @@ export class ClipboardController {
   destroy() {
     this.cancelPendingTask()
     this.#controller.abort()
+    for (const [url, owner] of this.#ownedObjectUrls) {
+      try { owner.revokeObjectURL(url) }
+      catch (error) { this.#diagnostics?.emit('paste.failed', {
+        operation: 'clipboard.object-url-release',
+        errorName: this.#diagnostics.errorName(error),
+      }) }
+    }
+    this.#ownedObjectUrls.clear()
   }
 
   handleTransaction(event) {
@@ -733,6 +744,24 @@ export class ClipboardController {
     const selectionKey=JSON.stringify(this.#selection.capture())
     const abort = () => task.abort(this.#controller.signal.reason)
     this.#controller.signal.addEventListener('abort', abort, { once: true, signal: task.signal })
+    const pendingObjectUrls = []
+    const releasePending = () => {
+      for (const { url, owner } of pendingObjectUrls.splice(0)) {
+        try { owner.revokeObjectURL(url) }
+        catch (error) { this.#diagnostics?.emit('paste.failed', {
+          operation: 'clipboard.object-url-release',
+          errorName: this.#diagnostics.errorName(error),
+        }) }
+      }
+    }
+    task.signal.addEventListener('abort', releasePending, { once: true })
+    const retainPersisted = () => {
+      if (this.#controller.signal.aborted) {
+        releasePending()
+        return
+      }
+      for (const { url, owner } of pendingObjectUrls.splice(0)) this.#ownedObjectUrls.set(url, owner)
+    }
 
     void (async () => {
       const resolved=[]
@@ -743,6 +772,30 @@ export class ClipboardController {
           result = await route.resolve({
             signal: task.signal,
             ownerDocument: this.#root.ownerDocument,
+            createObjectURL: file => {
+              if (task.signal.aborted || this.#controller.signal.aborted || this.#task !== task
+                || this.#runtime.readOnly) throw new Error('Clipboard Paste resource owner is retired')
+              const owner = this.#root.ownerDocument.defaultView?.URL ?? URL
+              if (typeof owner?.createObjectURL !== 'function'
+                || typeof owner?.revokeObjectURL !== 'function') {
+                throw new TypeError('Clipboard Paste needs an owning-document blob URL API')
+              }
+              const url = owner.createObjectURL(file)
+              // URL creation can synchronously invoke app code that removes
+              // the editor. A lease acquired after destruction must be
+              // revoked immediately, not retained by the retired controller.
+              if (task.signal.aborted || this.#controller.signal.aborted
+                || this.#task !== task || this.#runtime.readOnly) {
+                try { owner.revokeObjectURL(url) } catch {}
+                throw new Error('Clipboard Paste resource owner was revoked during acquisition')
+              }
+              if (typeof url !== 'string' || !url) {
+                try { owner.revokeObjectURL(url) } catch {}
+                throw new TypeError('Clipboard Paste object URL must be a non-empty string')
+              }
+              pendingObjectUrls.push({ url, owner })
+              return url
+            },
             createId: prefix => {
               if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly) {
                 throw new Error('Clipboard paste task is no longer active')
@@ -777,21 +830,32 @@ export class ClipboardController {
         ||!this.#runtime.get(owner.blockId)
       )return
 
+      let persisted = false
       try{
         const applied=this.#mutatePaste(() => this.#runtime.applyPasteResults(
           owner.blockId,owner.fieldKey,range,resolved,
         ))
+        persisted = this.#runtime.revision !== revision
         this.#view.reconcileInteraction()
         this.#view.setCurrent(applied.blockId)
       }catch(error){
+        // A committed transaction can still encounter a presentation error.
+        // If canonical revision advanced, the document already owns the blob.
+        persisted ||= this.#runtime.revision !== revision
+
         if(!task.signal.aborted){
           this.#diagnostics?.emit('paste.failed',{
             operation:'clipboard.paste-commit',
             errorName:this.#diagnostics.errorName(error),
           })
         }
+      }finally {
+        if (persisted) retainPersisted()
       }
     })().finally(() => {
+      task.signal.removeEventListener('abort', releasePending)
+      this.#controller.signal.removeEventListener('abort', abort)
+      releasePending()
       if (startedAt && this.#diagnostics) {
         const durationMs = this.#diagnostics.now() - startedAt
         if (durationMs >= this.#diagnostics.threshold('pasteMs')) {
