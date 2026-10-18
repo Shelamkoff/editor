@@ -58,6 +58,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
       },
     }),
   }
+  const view = { reconcileInteraction() {}, setCurrent() {}, focus() {} }
   const controller = new ClipboardController({
     root,
     runtime,
@@ -69,7 +70,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     selection: { capture: () => bookmark },
     crossSelection,
     isComposing,
-    view: { reconcileInteraction() {}, setCurrent() {}, focus() {} },
+    view,
   })
   const reads = []
   const event = {
@@ -89,7 +90,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
   const paste = () => handlers.get('paste')(event)
   const cut = () => handlers.get('cut')(event)
   const copy = () => handlers.get('copy')(event)
-  return { controller, runtime, event, paste, cut, copy, reads, bookmark }
+  return { controller, runtime, view, event, paste, cut, copy, reads, bookmark }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {
@@ -618,3 +619,48 @@ test('a retired Clipboard paste listener cannot claim a later event after destru
   assert.equal(fixture.event.defaultPrevented, false,
     'destroyed Clipboard controller claimed a new native paste event')
 })
+
+
+for (const [name, clipboardText] of [
+  ['local text', 'Hello'],
+  ['multiline text', 'Hello\\nWorld'],
+]) {
+  test('committed ' + name + ' paste cannot read or reconcile destroyed editor UI', () => {
+    const h = clipboardHarness({
+      formats: ['text/plain'],
+      read: () => clipboardText,
+      accepts: () => false,
+    })
+    let committed = 0
+    let deadViewReads = 0
+    let retired = false
+    const failIfDead = () => {
+      if (retired) {
+        deadViewReads++
+        throw new Error('committed paste touched detached editor UI')
+      }
+    }
+    h.view.element = () => { failIfDead(); return null }
+    h.view.reconcileInteraction = failIfDead
+    h.view.setCurrent = failIfDead
+    h.runtime.replaceLogicalRange = () => {
+      committed++
+      return { blockId: 'a', fieldKey: 'text', offset: 5 }
+    }
+    h.runtime.insertClipboardParts = () => {
+      committed++
+      return { blockId: 'a', focus: { fieldKey: 'text', offset: 5 } }
+    }
+    h.runtime.interact = (_name, operation, selectionAfter) => {
+      const result = operation()
+      selectionAfter?.(result)
+      h.controller.destroy()
+      retired = true
+      return result
+    }
+    h.paste()
+    assert.equal(h.event.defaultPrevented, true, 'committed paste fell through to native insertion')
+    assert.equal(committed, 1, 'paste did not commit exactly once')
+    assert.equal(deadViewReads, 0, 'paste retained presentation after owner destruction')
+  })
+}
