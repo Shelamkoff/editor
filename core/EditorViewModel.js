@@ -45,9 +45,14 @@ export class EditorViewModel {
   clearSelection() { this.#interaction.clearSelection() }
 
   insert(type, data, index, authority = 'interaction') {
+    const decision = this.#interaction.explicitCurrentVersion
     const id = this.#runtime.insert(type, data, index, {}, authority)
     this.#interaction.reconcile()
-    if (this.#runtime.has(id)) this.#interaction.setCurrent(id)
+    // A commit observer may have accepted a newer author current-block
+    // decision while the model inserted the block. Preserve it instead of
+    // reclaiming focus for the old insertion continuation.
+    if (this.#interaction.explicitCurrentVersion === decision
+      && this.#runtime.has(id)) this.#interaction.setCurrent(id)
     return id
   }
 
@@ -55,9 +60,14 @@ export class EditorViewModel {
 
   remove(id, authority = 'interaction') {
     const wasCurrent = this.#interaction.currentId === id
+    const decision = this.#interaction.explicitCurrentVersion
     const nextId = this.#runtime.remove(id, authority)
     this.#interaction.reconcile()
-    if (wasCurrent && nextId && this.#runtime.has(nextId)) this.#interaction.setCurrent(nextId)
+    // Reconciliation may automatically choose the first surviving block;
+    // that fallback is not a newer user decision. An explicit focus during
+    // the commit is, and must win over this removed-block continuation.
+    if (wasCurrent && nextId && this.#interaction.explicitCurrentVersion === decision
+      && this.#runtime.has(nextId)) this.#interaction.setCurrent(nextId)
   }
 
   move(id, to, authority = 'interaction') {
@@ -84,8 +94,23 @@ export class EditorViewModel {
   }
 
   setCaret(id, target) {
+    const decision = this.#interaction.explicitCurrentVersion
+    const generation = this.#runtime.generation
+    const modeEpoch = this.#runtime.modeEpoch
+    // The native/logical caret must accept the target before claiming the
+    // corresponding current block. A missing keyed field returns false
+    // without altering author focus or publishing current-block events.
+    if (this.#selection.setCaret(id, target) !== true) return false
+    if (this.#runtime.health === 'destroyed' || this.#runtime.health === 'failed'
+      || generation !== this.#runtime.generation
+      || modeEpoch !== this.#runtime.modeEpoch
+      || !this.#runtime.has(id)) return false
+    // Native focus itself may dispatch a newer current-block decision.
+    if (this.#interaction.explicitCurrentVersion !== decision) {
+      return this.#interaction.currentId === id
+    }
     this.#interaction.setCurrent(id)
-    return this.#selection.setCaret(id, target)
+    return this.#interaction.currentId === id
   }
 
   reconcileInteraction() { this.#interaction.reconcile() }
