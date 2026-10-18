@@ -467,3 +467,42 @@ test('stable fieldless capture and focus remain supported', () => {
   assert.equal(logical.restore(bookmark), true)
   assert.equal(document.activeElement, shell)
 })
+
+
+test('unsupported backward Range fallback must preserve the existing native selection', () => {
+  const h = fixture()
+  const native = h.native
+  const oldNode = h.field().child
+  native.anchorNode = oldNode
+  native.focusNode = oldNode
+  native.anchorOffset = 1
+  native.focusOffset = 3
+  native.setBaseAndExtent = undefined
+  native.collapse = undefined
+  native.extend = undefined
+  let clearCount = 0, rangeCount = 0
+  native.removeAllRanges = () => { clearCount++ }
+  h.ownerDocument.createRange = () => {
+    rangeCount++
+    return {
+      startNode: oldNode, endNode: oldNode, startOffset: 0, endOffset: 0,
+      setStart(node, offset) { this.startNode = node; this.startOffset = offset },
+      setEnd(node, offset) {
+        this.endNode = node
+        this.endOffset = offset
+        if (offset < this.startOffset) this.startOffset = offset
+      },
+    }
+  }
+  native.addRange = range => {
+    native.anchorNode = range.startNode
+    native.focusNode = range.endNode
+    native.anchorOffset = range.startOffset
+    native.focusOffset = range.endOffset
+  }
+  const point = offset => ({ blockId: 'a', fieldKey: 'text', offset })
+  assert.equal(h.selection.restore({ anchor: point(4), focus: point(1) }), false)
+  assert.equal(clearCount, 0, 'unsupported backward restore destroyed the previous native selection')
+  assert.equal(rangeCount, 0, 'unsupported backward restore attempted a forward-only DOM Range')
+  assert.deepEqual([native.anchorOffset, native.focusOffset], [1, 3])
+})
