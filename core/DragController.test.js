@@ -426,3 +426,36 @@ test('DragController cannot reacquire click suppression or commit after a reentr
   assert.deepEqual(h.focusCalls(), [])
   controller.destroy()
 })
+
+test('drag commit observer can destroy editor without post-commit presentation on detached DOM', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  let reconciled = 0, changedFocus = 0
+  h.view.reconcileInteraction = () => {
+    reconciled++
+    throw new Error('destroyed view must not be reconciled')
+  }
+  h.view.setCurrent = () => {
+    changedFocus++
+    throw new Error('destroyed view must not be focused')
+  }
+  const move = h.runtime.move.bind(h.runtime)
+  h.runtime.move = (id, to) => {
+    move(id, to)
+    controller.destroy()
+  }
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  assert.doesNotThrow(
+    () => h.document.dispatch('pointerup', pointerEvent(7, 55, { x: 10 })),
+    'canonical drag completion published an operation into an editor already destroyed by its commit',
+  )
+  assert.deepEqual(h.moves, [['A', 2]], 'reentrant teardown undid the completed drag')
+  assert.equal(reconciled, 0)
+  assert.equal(changedFocus, 0)
+  await Promise.resolve()
+  assert.deepEqual(h.focusCalls(), [])
+})
