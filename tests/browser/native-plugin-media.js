@@ -566,4 +566,57 @@ test('Gallery Settings remains clickable above a previously focused neighboring 
   } finally { await window.__testInput('Viewport.reset') }
 })
 
+
+test('Carousel local video Paste retains its blob through Undo/Redo and revokes it on editor destruction', async () => {
+  const editor = mount(createCarouselPlugin(), {
+    slides: [{ id: 'first', type: 'image', src: pixel, caption: 'Alpha', alt: '' }],
+  })
+  const originalCreate = URL.createObjectURL
+  const originalRevoke = URL.revokeObjectURL
+  const created = [], revoked = []
+  try {
+    URL.createObjectURL = file => {
+      const url = originalCreate.call(URL, file)
+      created.push(url)
+      return url
+    }
+    URL.revokeObjectURL = url => {
+      revoked.push(url)
+      return originalRevoke.call(URL, url)
+    }
+    const before = editor.save().blocks
+    const field = blockElement(editor, 'a').querySelector('.oe-carousel-block__caption')
+    assert(field instanceof HTMLElement && field.contentEditable === 'true',
+      'Carousel video Paste needs a live editable authoring host')
+    editor.blocks.focus('a', { fieldKey: 'slide:first:caption', offset: 'start' })
+    const clipboardData = new DataTransfer()
+    clipboardData.items.add(new File(['video'], 'local.mp4', { type: 'video/mp4' }))
+    const event = new ClipboardEvent('paste', {
+      clipboardData, bubbles: true, cancelable: true,
+    })
+    field.dispatchEvent(event)
+    assert(event.defaultPrevented, 'Carousel did not consume the local video Paste')
+    await pause(70)
+    const after = editor.save().blocks
+    equal(after.map(block => block.type), ['carousel', 'carousel'])
+    assert(created.length === 1, 'Carousel did not allocate one managed blob URL')
+    equal(after[1].data.slides[0].type, 'video')
+    equal(after[1].data.slides[0].src, created[0])
+    equal(revoked, [], 'committed Paste revoked media before it could be played')
+    equal(editor.undo(), true)
+    equal(editor.save().blocks, before)
+    equal(revoked, [], 'Undo invalidated the media still needed by Redo')
+    equal(editor.redo(), true)
+    equal(editor.save().blocks, after)
+    equal(revoked, [])
+    editor.destroy()
+    equal(revoked, created, 'destroy failed to release committed clipboard media')
+  } finally {
+    editor.destroy()
+    URL.createObjectURL = originalCreate
+    URL.revokeObjectURL = originalRevoke
+  }
+})
+
+
 await run()
