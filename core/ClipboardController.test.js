@@ -710,3 +710,46 @@ for (const retirement of ['ownership lookup', 'second owner lookup', 'clipboard 
     h.controller.destroy()
   })
 }
+
+
+test('whole-block Cut does not reconcile a view destroyed by its commit observer', () => {
+  let active = true
+  const crossSelection = {
+    get active() { return active },
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+    clear() { active = false },
+  }
+  const h = clipboardHarness({ crossSelection, accepts: () => false })
+  const clipboard = new Map()
+  h.event.clipboardData.setData = (type, value) => clipboard.set(type, value)
+  h.event.clipboardData.getData = type => clipboard.get(type) ?? ''
+  h.reconciler.getElement = () => null
+  h.runtime.prepareLogicalClipboardSlice = () => ({
+    parts: [{ kind: 'block', block: { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'A' } } }],
+  })
+  let committed = 0
+  let retired = false, staleViews = 0
+  h.runtime.applyPreparedClipboardCut = () => {
+    committed++
+    return { blockId: 'a', focus: { fieldKey: 'text', offset: 0 } }
+  }
+  const readView = () => {
+    if (retired) staleViews++
+  }
+  h.view.element = readView
+  h.view.reconcileInteraction = readView
+  h.view.setCurrent = readView
+  h.runtime.interact = (_name, operation, selectionAfter) => {
+    const result = operation()
+    selectionAfter?.(result)
+    h.controller.destroy()
+    retired = true
+    return result
+  }
+  h.cut()
+  assert.equal(committed, 1, 'owned Cut did not persist exactly once')
+  assert.equal(h.event.defaultPrevented, true, 'owned Cut fell back to native deletion')
+  assert.equal(staleViews, 0, 'committed Cut reconciled a detached editor')
+})
