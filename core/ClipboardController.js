@@ -181,9 +181,13 @@ export class ClipboardController {
 
   #onCopy(event) {
     if (this.#destroyed || this.#controller.signal.aborted || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    // Copy is available in read-only mode, but the old event is never owned
+    // after an application's target/ownership callback destroyed this editor.
+    if(!this.#isAlive())return
     // Registered plain-text controls own their native Copy as well as Cut and
     // Paste. A stale cross-block selection must not export document fragments.
-    if(this.#reconciler.resolveEditableTarget(event.target)?.mode==='plain-text')return
+    const inputOwner=this.#reconciler.resolveEditableTarget(event.target)
+    if(!this.#isAlive()||inputOwner?.mode==='plain-text')return
     const ownerDocument = this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
@@ -258,10 +262,11 @@ export class ClipboardController {
 
   #onCut(event) {
     if (this.#destroyed || this.#controller.signal.aborted || this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    if(!this.#canPresent())return
     // An auxiliary text field owns its own clipboard even when a stale
     // cross-block selection still exists elsewhere in the editor.
     const inputOwner = this.#reconciler.resolveEditableTarget(event.target)
-    if (inputOwner?.mode === 'plain-text') return
+    if(!this.#canPresent()||inputOwner?.mode === 'plain-text')return
     if (event.isComposing || this.#isComposing()) {
       // Native IME preedit is not a committed canonical selection. Never
       // export it as a structural Cut or let the browser delete model-owned
@@ -721,14 +726,17 @@ export class ClipboardController {
   }
 
 
-  #canPresent() {
-    // A committed Paste may synchronously notify a host that destroys its
-    // editor. Preserve the canonical result while retiring all old view,
-    // selection and deferred-focus work before it can touch detached fields.
+  #isAlive() {
     return !this.#destroyed && !this.#controller.signal.aborted
-      && !this.#runtime.readOnly
       && this.#runtime.health !== 'destroyed'
       && this.#runtime.health !== 'failed'
+  }
+
+  #canPresent() {
+    // A committed Cut/Paste may synchronously notify a host that destroys its
+    // editor. Preserve the canonical result while retiring old view, selection
+    // and deferred focus work before it can touch detached fields.
+    return this.#isAlive() && !this.#runtime.readOnly
   }
 
   #route(input, blockId) {
