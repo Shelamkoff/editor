@@ -829,3 +829,42 @@ test('cross-block IME focus callback cannot recursively open another composition
   assert.deepEqual(h.controller.bookmark, bookmark)
   h.controller.destroy()
 })
+
+
+test('whole-block IME retained cancel never reselects blocks after a new author selection', () => {
+  const h = harness()
+  h.runtime.ids = () => ['a','b']
+  h.runtime.has = id => id === 'a' || id === 'b'
+  h.reconciler.getEditableFields = id => id === 'a'
+    ? [{key:'text',mode:'rich-text',element:{}}] : []
+  h.controller.selectBlocks(['a'])
+  const pending = h.controller.beginComposition()
+  assert.ok(pending)
+  h.controller.selectBlocks(['b'])
+  assert.deepEqual(h.view.selectedIds,['b'])
+  assert.equal(pending.cancel(),false,
+    'retired IME cancel reselected the superseded author block')
+  assert.deepEqual(h.view.selectedIds,['b'])
+  assert.equal(h.mutations(),0)
+  h.controller.destroy()
+})
+
+test('cross-block IME retained cancel refuses to replace a newer native focus owner', () => {
+  const h = mountedRestoreFixture()
+  const bookmark = { anchor:h.point('a',1), focus:h.point('b',3) }
+  assert.equal(h.controller.restore(bookmark),true)
+  const pending = h.controller.beginComposition()
+  assert.ok(pending)
+  h.fields.get('b').element.focus()
+  const newer = h.fields.get('b').child
+  h.native.anchorNode = newer
+  h.native.focusNode = newer
+  h.native.anchorOffset = 2
+  h.native.focusOffset = 2
+  assert.equal(pending.cancel(),false,
+    'retired IME cancellation reclaimed a previous cross-block selection')
+  assert.equal(h.controller.active,false)
+  assert.deepEqual(h.view.selectedIds,[])
+  assert.equal(h.document.activeElement,h.fields.get('b').element)
+  h.controller.destroy()
+})
