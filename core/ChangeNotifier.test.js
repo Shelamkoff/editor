@@ -384,3 +384,22 @@ test('an already-fired synchronous timer does not remain pending', async () => {
   assert.deepEqual(cleared, [],
     'an already-completed callback must not leave a cancellable timer lease')
 })
+test('reentrant destruction through timer cancellation is idempotent', () => {
+  const cleared = []
+  let notifier
+  const host = {
+    setTimeout() { return 1 },
+    clearTimeout(id) {
+      cleared.push(id)
+      if (cleared.length === 1) notifier.destroy()
+    },
+  }
+  notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }), () => {}, 100, host,
+  )
+  notifier.schedule()
+  notifier.destroy()
+  notifier.destroy()
+  assert.deepEqual(cleared, [1],
+    'the reentrant destructor canceled the same timer more than once')
+})
