@@ -527,3 +527,23 @@ test('Paste diagnostic hooks cannot author another insertion before routing', as
     assert.equal(f.applied.length, 1, 'only the authorized Paste committed')
   } finally { f.controller.destroy() }
 })
+test('asynchronous Paste reports valid zero-origin timing without leaking resources', async () => {
+  const events = []
+  let calls = 0
+  const f = fixture({
+    diagnostics: {
+      now() { return calls++ < 2 ? 0 : 5 },
+      threshold(name) { return name === 'pasteMs' ? 0 : Infinity },
+      emit(code, metadata) { events.push({ code, ...metadata }) },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+    },
+  })
+  try {
+    f.paste()
+    await f.settle()
+    assert.equal(f.applied.length, 1)
+    assert.equal(events.filter(event => event.code === 'paste.slow').length, 1)
+    assert.equal(events.find(event => event.code === 'paste.slow').durationMs, 5)
+  } finally { f.controller.destroy() }
+  assert.deepEqual(f.revoked, f.created)
+})
