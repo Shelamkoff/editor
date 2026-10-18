@@ -20,15 +20,17 @@ export class InlineCommandController {
 
   insert(type, explicitData) {
     if (this.#runtime.readOnly) return false
+    const caretLease = this.#caretLease()
     const definition = this.#registry.getInlineDefinition(type)
-    if (!definition) return false
+    if (!definition || !this.#canRestoreCaret(caretLease)) return false
     const target = this.#currentRange()
-    if (!target) return false
+    if (!target || !this.#canRestoreCaret(caretLease)) return false
 
     if (explicitData !== undefined) {
       const trailingText = this.#runtime.prepareExtensionValue(
         () => definition.insertion?.trailingText ?? '',
       )
+      if (!this.#canRestoreCaret(caretLease)) return false
       return this.#insertWidget(type, target, explicitData, trailingText)
     }
 
@@ -47,6 +49,9 @@ export class InlineCommandController {
       const defaultData = fresh ? null : cloneEditorData(synchronousResult(definition.schema.createDefault()))
       return { fresh, defaultData, trailingText }
     })
+    // Extension factories can revoke this editor through host callbacks while
+    // preparation is running. Do not enter an obsolete canonical command.
+    if (!this.#canRestoreCaret(caretLease)) return false
 
     if (!insertion.fresh) {
       return this.#insertWidget(type, target, insertion.defaultData, insertion.trailingText)
@@ -112,7 +117,7 @@ export class InlineCommandController {
       }
       return null
     })
-    if (!prepared) return false
+    if (!prepared || !this.#canRestoreCaret(caretLease)) return false
 
     const segments = [
       { kind: 'widget', type: prepared.type, data: prepared.data },
@@ -216,7 +221,7 @@ export class InlineCommandController {
       if (textStart < text.length) prepared.push({ kind: 'text', text: text.slice(textStart) })
       return prepared.some(segment => segment.kind === 'widget') ? prepared : null
     })
-    if (!segments) return false
+    if (!segments || !this.#canRestoreCaret(caretLease)) return false
 
     const result = this.#runtime.interact('inline.paste', () => this.#runtime.replaceRichTextWithInlineSegments(
       target.blockId,
@@ -234,12 +239,14 @@ export class InlineCommandController {
 
   commitTrigger(type, session, data, options = {}) {
     if (this.#runtime.readOnly) return false
+    const caretLease = this.#caretLease()
     const definition = this.#registry.getInlineDefinition(type)
-    if (!definition) return false
+    if (!definition || !this.#canRestoreCaret(caretLease)) return false
     const prepared = this.#runtime.prepareExtensionValue(() => ({
       encoded: cloneEditorData(synchronousResult(definition.schema.encode(data))),
       trailingText: options.trailingText ?? definition.insertion?.trailingText ?? '',
     }))
+    if (!this.#canRestoreCaret(caretLease)) return false
     return this.#insertWidget(type, session, prepared.encoded.data, prepared.trailingText)
   }
 
@@ -252,6 +259,7 @@ export class InlineCommandController {
 
   #withCaret(target, offset, operation) {
     const caretLease = this.#caretLease()
+    if (!this.#canRestoreCaret(caretLease)) return false
     const point = { blockId: target.blockId, fieldKey: target.fieldKey, offset }
     const result = this.#runtime.interact('inline.insert', operation, () => ({ anchor: point, focus: { ...point } }))
     if (!result) return false
