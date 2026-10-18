@@ -15,6 +15,15 @@ const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 const liveRenderedElements = new WeakMap()
 
+/** Error reporting is a best-effort side effect, never a replacement for the
+ * rejected renderer data or an unhandled async validation-observer failure.
+ * @param {unknown} error
+ */
+function warnValidationObserverFailure(error) {
+  try { console.warn('[EditorRenderer] Validation observer failed:', error) }
+  catch {}
+}
+
 /** Restore prior DOM order after an aborted commit while preserving
  * unchanged connected elements whenever possible.
  * @param {HTMLElement} parent
@@ -224,19 +233,19 @@ export class EditorRenderer {
         result = observer(issue)
       } catch (failure) {
         this.#reportingValidation.delete(validationSource)
-        console.warn('[EditorRenderer] Validation observer failed:', failure)
+        warnValidationObserverFailure(failure)
       }
       let then
       try {
         then = result && /** @type {any} */ (result).then
       } catch (failure) {
         this.#reportingValidation.delete(validationSource)
-        console.warn('[EditorRenderer] Validation observer failed:', failure)
+        warnValidationObserverFailure(failure)
         then = null
       }
       if (typeof then === 'function') {
         new Promise((resolve, reject) => Reflect.apply(then, result, [resolve, reject]))
-          .catch(failure => console.warn('[EditorRenderer] Validation observer failed:', failure))
+          .catch(failure => warnValidationObserverFailure(failure))
           .finally(() => this.#reportingValidation.delete(validationSource))
       } else {
         this.#reportingValidation.delete(validationSource)
