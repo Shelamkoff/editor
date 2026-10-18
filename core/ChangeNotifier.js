@@ -54,7 +54,9 @@ export class ChangeNotifier {
     this.#timer = null
     if (previousTimer !== null) this.#timerHost.clearTimeout(previousTimer)
     if (this.#destroyed || generation !== this.#generation) return
+    let fired = false
     const nextTimer = this.#timerHost.setTimeout(async () => {
+      fired = true
       // A retired timer may still be queued by the host. It must not clear
       // a newer pending timer or invoke save after replacement/destroy.
       if (this.#destroyed || generation !== this.#generation || !this.#onChange) return
@@ -80,6 +82,9 @@ export class ChangeNotifier {
       this.#timerHost.clearTimeout(nextTimer)
       return
     }
+    // Some supplied timer hosts invoke a callback during registration.
+    // Its finished callback must not become a phantom pending handle.
+    if (fired) return
     this.#timer = nextTimer
   }
 
