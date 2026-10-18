@@ -190,6 +190,7 @@ export class SelectionController {
     if (!built || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
     const native = this.#window?.getSelection?.()
     if (!native || !canRestore()) return false
+    if (bookmark.conversionCaret && typeof native.collapse !== 'function') return false
     try {
       const field = this.#reconciler.getEditableField(bookmark.anchor.blockId,bookmark.anchor.fieldKey)
       if (!field || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
@@ -216,17 +217,22 @@ export class SelectionController {
       }
       if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)
         || !this.#nativeSelectionMatches(bookmark,native)) return false
-      if (!canRestore()) return false
-      this.#activate(bookmark,built.range)
-      if (!canRestore()) return false
       if(bookmark.conversionCaret){
-        this.#conversionCaret=true
+        // Conversion's final native collapsed caret is part of the same
+        // successful author gesture. Publishing highlight/current blocks
+        // before this callback would leak a retired cross-selection if it
+        // throws, remounts the field or hands focus to another editor.
         const last=this.#reconciler.getEditableField(bookmark.focus.blockId,bookmark.focus.fieldKey)
         if (!last || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
         last.element.focus({preventScroll:true})
         if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
         native.collapse(built.focus.node,built.focus.offset)
         if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+      }
+      this.#activate(bookmark,built.range)
+      if (!canRestore()) return false
+      if(bookmark.conversionCaret){
+        this.#conversionCaret=true
         this.#view.setCurrent(bookmark.focus.blockId)
       }
       return canRestore()
