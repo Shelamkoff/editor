@@ -83,14 +83,26 @@ export class EditorViewModel {
 
   focus(id = this.#interaction.currentId, target) {
     if (!id) return false
-    // InteractionState now claims the current block only after the owning
-    // plugin successfully focuses; do not pre-claim a failed focus attempt.
+    // InteractionState first validates the mounted plugin focus owner and
+    // claims the current block. The subsequent native caret callback can
+    // itself publish a newer current-block decision or change edit mode.
     const focused = this.#interaction.focus(id, target)
-    // A disabled or stale instance can refuse focus. Do not re-point the
-    // document selection after that refusal, or report a missing caret as
-    // successfully focused.
-    if (!focused) return false
-    return target ? this.#selection.setCaret(id, target) === true : true
+    if (!focused || !target) return focused
+    const decision = this.#interaction.explicitCurrentVersion
+    const generation = this.#runtime.generation
+    const modeEpoch = this.#runtime.modeEpoch
+    const readOnly = this.#runtime.readOnly
+    if (this.#selection.setCaret(id, target) !== true) return false
+    // An accepted caret is not sufficient proof of success after a focus or
+    // mode switch inside selection callbacks. Never report ownership of the
+    // stale request while a newer author gesture owns current focus.
+    return decision === this.#interaction.explicitCurrentVersion
+      && this.#interaction.currentId === id
+      && generation === this.#runtime.generation
+      && modeEpoch === this.#runtime.modeEpoch
+      && readOnly === this.#runtime.readOnly
+      && this.#runtime.health === 'ready'
+      && this.#runtime.has(id)
   }
 
   setCaret(id, target) {
