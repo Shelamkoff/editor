@@ -341,3 +341,27 @@ test('trigger callback that synchronously destroys owner cannot consume detached
   assert.deepEqual(h.calls,['query','keydown','cancel'])
   assert.equal(h.controller.isActive,false)
 })
+
+
+for (const hook of ['capture', 'getEditableField', 'nativeInputRoute']) {
+  test('reentrant trigger refresh from ' + hook + ' publishes only the successor query',()=>{
+    let h,reentered=false
+    const hooks = {
+      [hook](){
+        if(!reentered){
+          reentered=true
+          assert.equal(h.controller.refresh(),true,'nested query did not publish')
+        }
+        return null
+      },
+    }
+    h=triggerScenario(null,()=> 'pass',()=>false,hooks)
+    if(hook==='nativeInputRoute')h.input()
+    else assert.equal(h.controller.refresh(),true)
+    assert.deepEqual(h.calls,['query'],
+      'older outer refresh duplicated a newer trigger query')
+    assert.equal(h.controller.isActive,true)
+    h.controller.destroy()
+    assert.deepEqual(h.calls,['query','cancel'])
+  })
+}
