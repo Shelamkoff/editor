@@ -2554,4 +2554,37 @@ test('Native cross-block SelectionController restore preserves backward author d
 })
 
 
+
+test('post-commit event fanout survives a failing change debounce timer', () => {
+  const editor = make([para('a', 'Original')], {
+    onChange() {},
+    changeDebounceMs: 997,
+  })
+  const notifications = []
+  for (const type of ['transaction:committed', 'document:changed', 'history:changed']) {
+    editor.on(type, value => notifications.push({ type, value }))
+  }
+  const nativeSetTimeout = window.setTimeout
+  let attempted = 0
+  window.setTimeout = function (callback, delay, ...args) {
+    if (delay === 997) {
+      attempted++
+      throw new Error('synthetic change notification scheduling failure')
+    }
+    return Reflect.apply(nativeSetTimeout, this, [callback, delay, ...args])
+  }
+  try {
+    editor.blocks.update('a', () => ({ data: { text: 'Committed' } }))
+  } finally {
+    window.setTimeout = nativeSetTimeout
+  }
+  assert.equal(attempted, 1, 'the targeted change notifier failure was not exercised')
+  assert.equal(editor.save().blocks[0].data.text, 'Committed')
+  assert.deepEqual(notifications.map(({ type }) => type), [
+    'transaction:committed', 'document:changed', 'history:changed',
+  ], 'post-commit notification failure suppressed independent committed events')
+  assert.equal(notifications[0].value.changes[0].kind, 'block.update')
+  assert.equal(notifications[2].value.canUndo, true)
+})
+
 await run()
