@@ -45,7 +45,7 @@ Inline tools and widgets; blockquote paste; merge; export for conversion.
 
 ## Undo, lifecycle, and styles
 
-Native input in registered editable fields and data changes through `context.updateData()` or `context.commitDomMutation()` enter the editor's canonical transaction pipeline. One completed document edit is one undo/redo step; view-only controls do not create history. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
+A Cut that removes all visible quote and caption text also removes an otherwise empty Quote block, including when its remaining HTML contains only formatting marks. Native input in registered editable fields and data changes through `context.updateData()` or `context.commitDomMutation()` enter the editor's canonical transaction pipeline. One completed document edit is one undo/redo step; view-only controls do not create history. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
 
 Do not remove the editor holder without first calling `editor.destroy()`.
 
