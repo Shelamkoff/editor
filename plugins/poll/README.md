@@ -84,6 +84,8 @@ const poll = createPollPlugin({
 
 Question and option editing; result visibility; option ordering; local voting; cancellable load/vote; live subscriptions; revision ordering; voter summaries; duplicate-submission protection and deterministic cleanup.
 
+Deleting a visually empty Poll option with Backspace treats markup-only content (such as `<br>` or an empty formatting mark) as empty, while retaining the required minimum of two options.
+
 ## Undo, lifecycle, and styles
 
 Native input in registered editable fields and data changes through `context.updateData()` or `context.commitDomMutation()` enter the editor's canonical transaction pipeline. One completed document edit is one undo/redo step; view-only controls do not create history. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
