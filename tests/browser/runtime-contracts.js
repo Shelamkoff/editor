@@ -2456,6 +2456,7 @@ test('Public conversion target getter cannot reenter canonical update during pla
 test('Public keyed focus does not publish current block when its field is missing', () => {
   const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
   assert.equal(editor.blocks.focus('a', { fieldKey: 'text', offset: 2 }), true)
+  const previousField = editableField(editor, 'a')
   const events = []
   const unsubscribe = editor.on('currentBlock:changed', event => events.push(event.currentId))
   const snapshot = editor.save().blocks
@@ -2463,6 +2464,13 @@ test('Public keyed focus does not publish current block when its field is missin
     assert.equal(editor.blocks.focus('b', { fieldKey: 'missing-title', offset: 1 }), false)
     equal(editor.blocks.currentId, 'a')
     equal(events, [], 'Rejected keyed focus published a current block that never got its caret')
+    assert(document.activeElement === previousField,
+      'Rejected keyed focus left native DOM focus in the destination block')
+    const native = window.getSelection()
+    assert(native?.isCollapsed && previousField.contains(native.anchorNode),
+      'Rejected keyed focus lost its previous native selection owner')
+    equal(getTextOffset(previousField, native.anchorNode, native.anchorOffset), 2,
+      'Rejected keyed focus moved the original author caret')
     equal(editor.save().blocks, snapshot)
     assert.equal(editor.canUndo, false)
   } finally { unsubscribe() }
