@@ -347,3 +347,58 @@ test('reentrant editor destruction cannot revoke a committed media URL twice', a
   assert.deepEqual(f.revoked, f.created,
     'idempotent destroy revoked a lease a second time')
 })
+
+test('reentrant newer Paste cannot revoke blob media already committed by the first Paste', async () => {
+  let fixtureInstance
+  let resolves = 0
+  let settleNext
+  fixtureInstance = fixture({
+    resolve(_input, context) {
+      if (++resolves === 1) {
+        return { kind: 'block', data: {
+          src: context.createObjectURL({ name: 'video.mp4' }),
+        } }
+      }
+      return new Promise(resolve => { settleNext = resolve })
+    },
+    apply(_args, runtime) {
+      runtime.revision++
+      if (resolves === 1) {
+        // A user callback can start a new Paste during the commit's
+        // synchronous publication, before the old operation unwinds.
+        fixtureInstance.paste()
+      }
+      return { blockId: 'a', inserted: ['video-1'] }
+    },
+  })
+  try {
+    fixtureInstance.paste()
+    await fixtureInstance.settle()
+    assert.equal(fixtureInstance.applied.length, 1)
+    assert.deepEqual(fixtureInstance.created, ['blob:clipboard-owned-1'])
+    assert.deepEqual(fixtureInstance.revoked, [],
+      'reentrant Paste revoked media referenced by a committed author document')
+    fixtureInstance.controller.cancelPendingTask()
+    settleNext(null)
+    await fixtureInstance.settle()
+    assert.deepEqual(fixtureInstance.revoked, [])
+  } finally { fixtureInstance.controller.destroy() }
+  assert.deepEqual(fixtureInstance.revoked, fixtureInstance.created)
+})
+
+test('reentrant editor destruction during a successful Paste commit releases blob once', async () => {
+  let fixtureInstance
+  fixtureInstance = fixture({
+    apply(_args, runtime) {
+      runtime.revision++
+      fixtureInstance.controller.destroy()
+      return { blockId: 'a', inserted: ['video-1'] }
+    },
+  })
+  fixtureInstance.paste()
+  await fixtureInstance.settle()
+  assert.equal(fixtureInstance.runtime.revision, 1)
+  assert.deepEqual(fixtureInstance.revoked, ['blob:clipboard-owned-1'])
+  fixtureInstance.controller.destroy()
+  assert.deepEqual(fixtureInstance.revoked, ['blob:clipboard-owned-1'])
+})
