@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { ClipboardController } from './ClipboardController.js'
 
-function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = null, diagnostics = null } = {}) {
+function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = null, onRevoke = null, diagnostics = null } = {}) {
   const events = new Map()
   const created = [], revoked = [], applied = []
   const URLCtor = {
@@ -16,6 +16,7 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
     },
     revokeObjectURL(url) {
       revoked.push(url)
+      onRevoke?.(url)
       if (revokeFailure?.(url)) throw new Error('revoke failed')
     },
   }
@@ -319,4 +320,30 @@ test('canceling media Paste releases remaining pending resources when diagnostic
     await f.settle()
     assert.equal(f.applied.length, 0)
   } finally { f.controller.destroy() }
+})
+
+test('reentrant editor destruction cannot revoke a committed media URL twice', async () => {
+  let f
+  let onRevokeCalls = 0
+  f = fixture({
+    resolve: (_input, context) => ({
+      kind: 'block',
+      data: {
+        first: context.createObjectURL({ name: 'one.mp4' }),
+        second: context.createObjectURL({ name: 'two.mp4' }),
+      },
+    }),
+    onRevoke() {
+      if (++onRevokeCalls === 1) f.controller.destroy()
+    },
+  })
+  f.paste()
+  await f.settle()
+  assert.deepEqual(f.created, ['blob:clipboard-owned-1', 'blob:clipboard-owned-2'])
+  f.controller.destroy()
+  assert.deepEqual(f.revoked, f.created,
+    'reentrant destroy revoked a lease more than once')
+  f.controller.destroy()
+  assert.deepEqual(f.revoked, f.created,
+    'idempotent destroy revoked a lease a second time')
 })
