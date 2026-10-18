@@ -1385,6 +1385,10 @@ export class DocumentRuntime {
   destroy() {
     if (this.#destroyed) return
     this.#destroyed = true
+    // Revoke pending Undo/Redo microtasks before teardown of mounted fields.
+    // A successful immediate history restore remains committed, but its
+    // deferred selection callback must not access this retired DOM owner.
+    this.#engine?.destroy()
     this.#clipboardHandles = new WeakMap()
     this.#projector?.destroy?.()
   }
