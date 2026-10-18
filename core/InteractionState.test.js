@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { InteractionState } from './InteractionState.js'
 
-function fixture({ onChange, focus } = {}) {
+function fixture({ onChange, onError, focus } = {}) {
   const ids = ['a', 'b']
   const runtime = {
     generation: 1,
@@ -21,7 +21,7 @@ function fixture({ onChange, focus } = {}) {
       return focus ? focus(id, target, interaction, runtime) : true
     },
   }
-  interaction = new InteractionState({ runtime, reconciler, onChange })
+  interaction = new InteractionState({ runtime, reconciler, onChange, onError })
   return { interaction, runtime, calls }
 }
 
@@ -115,4 +115,28 @@ test('a rejecting change observer is assimilated once after interaction has sett
   assert.equal(interaction.currentId, 'b')
   for (let i = 0; i < 4; i++) await Promise.resolve()
   assert.equal(thenCalls, 1)
+})
+
+
+test('a throwing interaction observer reports an error without reverting current block', () => {
+  const errors = []
+  const { interaction } = fixture({
+    onChange() { throw new TypeError('current block callback failed') },
+    onError(error) { errors.push(error.name, error.message) },
+  })
+  assert.doesNotThrow(() => interaction.setCurrent('b'))
+  assert.equal(interaction.currentId, 'b')
+  assert.deepEqual(errors, ['TypeError', 'current block callback failed'])
+})
+
+test('a rejected interaction observer reports asynchronously without leaking into control commands', async () => {
+  const errors = []
+  const { interaction } = fixture({
+    onChange() { return Promise.reject(new RangeError('late selection event failed')) },
+    onError(error) { errors.push(error.name, error.message) },
+  })
+  assert.doesNotThrow(() => interaction.select(['b']))
+  assert.deepEqual(interaction.selectedIds, ['b'])
+  for (let step = 0; step < 5; step++) await Promise.resolve()
+  assert.deepEqual(errors, ['RangeError', 'late selection event failed'])
 })
