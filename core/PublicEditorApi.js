@@ -82,13 +82,13 @@ export class EditorBlocksApi {
         inline: inline === undefined ? undefined : cloneEditorData(inline),
       }
     })
-    const id = this.#runtime.insert(captured.type, captured.data, index, {
+    // Share the same current-block ownership lease as user-driven inserts.
+    // A synchronous commit observer may publish a newer explicit selection;
+    // the public API must not reclaim it after the transaction returns.
+    return this.#view.insert(captured.type, captured.data, index, 'host', {
       tunes: captured.tunes,
       inline: captured.inline,
-    }, 'host')
-    this.#view.reconcileInteraction()
-    if (this.#runtime.has(id)) this.#view.setCurrent(id)
-    return id
+    })
   }
 
   update(id, producer) {
