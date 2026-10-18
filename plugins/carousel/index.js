@@ -336,8 +336,13 @@ export function createCarouselPlugin(config={}){
           const result=await snapshot.uploadFile(input.file,{signal:context.signal})
           src=sanitizeMediaUrl(result?.url||'')
           poster=sanitizeMediaUrl(result?.poster||'')
-        }else{
+        }else if(type==='image'){
           src=sanitizeMediaUrl(String(await readCarouselDataUrl(input.file,context.signal,context.ownerDocument)))
+        }else{
+          // Local video data: URLs are deliberately forbidden by the media
+          // policy. Use a host-owned blob resource so canceled/failed Paste
+          // revokes it, while committed Undo/Redo can still display the file.
+          src=sanitizeMediaUrl(context.createObjectURL(input.file))
         }
         if(context.signal.aborted||!src)return null
         return {
