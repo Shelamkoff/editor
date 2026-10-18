@@ -87,7 +87,7 @@ export class InteractionState {
     this.#notify(previousCurrentId, previousSelectedIds)
   }
 
-  focus(id = this.#currentId, target) {
+  focus(id = this.#currentId, target, { deferCurrent = false } = {}) {
     if (!id || !this.#runtime.has(id)) return false
     const claimVersion = this.#currentClaimVersion
     const generation = this.#runtime.generation
@@ -103,6 +103,9 @@ export class InteractionState {
       || this.#runtime.health === 'destroyed'
       || this.#runtime.health === 'failed'
       || !this.#runtime.has(id)) return false
+    // The ViewModel must also secure an explicit logical caret before
+    // publishing currentId. Keep ordinary plugin-only focus unchanged.
+    if (deferCurrent) return true
     this.setCurrent(id)
     return this.#currentId === id
       && modeEpoch === this.#runtime.modeEpoch
