@@ -72,7 +72,9 @@ export class KeyboardRouter {
   }
 
   handleKeydown(event) {
-    if (this.#runtime.readOnly || event?.defaultPrevented || event?.isComposing || event?.keyCode === 229 || this.#isComposing()) return
+    // Captured DOM callbacks can still arrive after their listener signal
+    // is revoked. A terminal keyboard owner may not consume native keys.
+    if (this.#controller.signal.aborted || this.#runtime.readOnly || event?.defaultPrevented || event?.isComposing || event?.keyCode === 229 || this.#isComposing()) return
 
     const ownership = this.#ownership(event)
     if (ownership.kind === 'outside' || ownership.kind === 'auxiliary-native') return
@@ -281,7 +283,7 @@ export class KeyboardRouter {
   }
 
   split(blockId, fieldKey, range) {
-    if (this.#runtime.readOnly) return false
+    if (this.#controller.signal.aborted || this.#runtime.readOnly) return false
     const bookmark = range
       ? { start: range.start, end: range.end ?? range.start }
       : sameEditableRange(
@@ -300,7 +302,7 @@ export class KeyboardRouter {
   }
 
   exit(blockId, data = undefined) {
-    if (this.#runtime.readOnly) return false
+    if (this.#controller.signal.aborted || this.#runtime.readOnly) return false
     const nextId=this.#mutate('block.exit',()=>this.#runtime.exitBlock(blockId,data),id=>id?({blockId:id,offset:'start'}):null)
     if(!nextId)return false
     this.#view.reconcileInteraction()
@@ -314,7 +316,8 @@ export class KeyboardRouter {
   }
 
   appendDefault() {
-    if (this.#runtime.readOnly || this.#runtime.health !== 'ready') return false
+    if (this.#controller.signal.aborted || this.#runtime.readOnly
+      || this.#runtime.health !== 'ready') return false
     const lastId = this.#runtime.idAt(this.#runtime.size - 1)
     const last = lastId ? this.#runtime.get(lastId) : null
     this.#crossSelection?.clear()
