@@ -81,6 +81,7 @@ export class InlineCommandController {
 
     // Match, validate and detach every candidate under one preparation boundary.
     // A failed candidate is not a plain-text fallback after Paste is owned.
+    const caretLease = this.#caretLease()
     const segments = this.#runtime.prepareExtensionValue(() => {
       const matches = []
       let order = 0
@@ -167,7 +168,7 @@ export class InlineCommandController {
       segments,
     ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
-    this.#selection.setCaret(result.blockId, {
+    if (this.#canRestoreCaret(caretLease)) this.#selection.setCaret(result.blockId, {
       fieldKey: result.fieldKey,
       offset: result.offset,
     })
@@ -193,11 +194,27 @@ export class InlineCommandController {
   }
 
   #withCaret(target, offset, operation) {
+    const caretLease = this.#caretLease()
     const point = { blockId: target.blockId, fieldKey: target.fieldKey, offset }
     const result = this.#runtime.interact('inline.insert', operation, () => ({ anchor: point, focus: { ...point } }))
     if (!result) return false
-    this.#selection.setCaret(target.blockId, { fieldKey: target.fieldKey, offset })
+    if (this.#canRestoreCaret(caretLease)) this.#selection.setCaret(target.blockId, { fieldKey: target.fieldKey, offset })
     return true
+  }
+
+  #caretLease() {
+    return { generation: this.#runtime.generation, modeEpoch: this.#runtime.modeEpoch }
+  }
+
+  #canRestoreCaret(lease) {
+    // The transaction is already committed when user observers run. They may
+    // synchronously destroy the editor or revoke its input mode. The old
+    // command must not focus detached fields or reclaim a retired caret.
+    return this.#runtime.health !== 'destroyed'
+      && this.#runtime.health !== 'failed'
+      && !this.#runtime.readOnly
+      && this.#runtime.generation === lease.generation
+      && this.#runtime.modeEpoch === lease.modeEpoch
   }
 
   #currentRange() {
