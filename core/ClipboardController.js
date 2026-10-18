@@ -122,15 +122,23 @@ export class ClipboardController {
     previous?.abort()
   }
 
+  // Cleanup must be independent of host diagnostics; reporting an error
+  // while revoking one URL cannot leave later media leases unreleased.
+  #reportResourceReleaseError(error) {
+    try {
+      this.#diagnostics?.emit('paste.failed', {
+        operation: 'clipboard.object-url-release',
+        errorName: this.#diagnostics.errorName(error),
+      })
+    } catch {}
+  }
+
   destroy() {
     this.cancelPendingTask()
     this.#controller.abort()
     for (const [url, owner] of this.#ownedObjectUrls) {
       try { owner.revokeObjectURL(url) }
-      catch (error) { this.#diagnostics?.emit('paste.failed', {
-        operation: 'clipboard.object-url-release',
-        errorName: this.#diagnostics.errorName(error),
-      }) }
+      catch (error) { this.#reportResourceReleaseError(error) }
     }
     this.#ownedObjectUrls.clear()
   }
@@ -741,10 +749,7 @@ export class ClipboardController {
     const releasePending = () => {
       for (const { url, owner } of pendingObjectUrls.splice(0)) {
         try { owner.revokeObjectURL(url) }
-        catch (error) { this.#diagnostics?.emit('paste.failed', {
-          operation: 'clipboard.object-url-release',
-          errorName: this.#diagnostics.errorName(error),
-        }) }
+        catch (error) { this.#reportResourceReleaseError(error) }
       }
     }
     task.signal.addEventListener('abort', releasePending, { once: true })
