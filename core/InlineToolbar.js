@@ -151,10 +151,12 @@ export class InlineToolbar {
     this.#element.append(this.#controlDropdown)
 
     this.#typeSelect.addEventListener('mousedown', event => {
+      if (this.#destroyed) return
       event.preventDefault()
       if (this.#typeDropdown.style.display === 'none') this.#typeBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
     })
     this.#typeSelect.addEventListener('click', event => {
+      if (this.#destroyed) return
       event.preventDefault()
       event.stopPropagation()
       if (this.#typeDropdown.style.display === 'none') this.#openTypeDropdown()
@@ -165,6 +167,7 @@ export class InlineToolbar {
       }
     })
     this.#typeDropdown.addEventListener('keydown', event => {
+      if (this.#destroyed) return
       handleMenuKeydown(event, this.#typeDropdown, {
         onEscape: () => {
           const bookmark = this.#typeBookmark
@@ -177,10 +180,12 @@ export class InlineToolbar {
     })
 
     this.#controlSelect.addEventListener('mousedown', event => {
+      if (this.#destroyed) return
       event.preventDefault()
       if (this.#controlDropdown.style.display === 'none') this.#controlBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
     })
     this.#controlSelect.addEventListener('click', event => {
+      if (this.#destroyed) return
       event.preventDefault()
       event.stopPropagation()
       if (this.#controlDropdown.style.display === 'none') this.#openControlDropdown()
@@ -191,6 +196,7 @@ export class InlineToolbar {
       }
     })
     this.#controlSelect.addEventListener('keydown', event => {
+      if (this.#destroyed) return
       if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
       event.preventDefault()
       event.stopPropagation()
@@ -200,6 +206,7 @@ export class InlineToolbar {
       target?.focus()
     })
     this.#controlDropdown.addEventListener('keydown', event => {
+      if (this.#destroyed) return
       handleMenuKeydown(event, this.#controlDropdown, {
         onEscape: () => {
           const bookmark = this.#controlBookmark
@@ -222,10 +229,12 @@ export class InlineToolbar {
       setTrustedHtml(button, tool.icon)
       this.#buttonIcons.set(tool.type, tool.icon)
       button.addEventListener('mousedown', event => {
+        if (this.#destroyed) return
         event.preventDefault()
         event.stopPropagation()
       })
       button.addEventListener('click', event => {
+        if (this.#destroyed) return
         event.preventDefault()
         event.stopPropagation()
         this.openTool(tool.type)
@@ -292,6 +301,7 @@ export class InlineToolbar {
     }
 
     this.#onSelectionChange = () => {
+      if (this.#destroyed) return
       if (this.#element.contains(document.activeElement)) return
       // Native selectionchange is queued. A notification for the range we
       // just restored as the result of our own action must not retire it.
@@ -305,12 +315,13 @@ export class InlineToolbar {
     }
     document.addEventListener('selectionchange', this.#onSelectionChange)
     this.#onMouseUp = () => {
-      if (!this.#pendingDragSelection) return
+      if (this.#destroyed || !this.#pendingDragSelection) return
       this.#pendingDragSelection = false
       this.#refreshFromSelection()
     }
     document.addEventListener('mouseup', this.#onMouseUp)
     this.#documentClick = event => {
+      if (this.#destroyed) return
       if (this.#element.contains(event.target)) return
       this.#closeTypeDropdown()
       this.#closeControlDropdown()
@@ -327,6 +338,7 @@ export class InlineToolbar {
   }
 
   setReadOnly(value) {
+    if (this.#destroyed) return
     this.#readOnly = value === true
     this.#selectionVersion++
     this.#typeVersion++
@@ -335,7 +347,7 @@ export class InlineToolbar {
   }
 
   handleShortcut(event) {
-    if (this.#readOnly || event.defaultPrevented) return false
+    if (this.#destroyed || this.#readOnly || event.defaultPrevented) return false
     const tool = this.#tools.find(candidate => matchesShortcut(candidate.shortcut, event))
     if (!tool || this.#buttons.get(tool.type)?.disabled) return false
     if (!this.#resolveFormattingSelection()) {
@@ -496,11 +508,13 @@ export class InlineToolbar {
   }
 
   show() {
+    if (this.#destroyed) return
     const selection = this.#resolveSelection()
     if (selection) this.#show(selection)
   }
 
   hide() {
+    if (this.#destroyed) return
     this.#tooltip.hide()
     this.#expectedOwnSelection = null
     this.#range = null
