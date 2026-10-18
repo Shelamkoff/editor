@@ -33,6 +33,7 @@ function harness({ reportError } = {}) {
     get: id => records.find(record => record.id === id),
     isEmpty: id => id === 'empty',
     splitBlock(id, fieldKey, range) { calls.push(['split', id, fieldKey, range]); return 'new' },
+    exitBlock(id, data) { calls.push(['exit', id, data]); return 'new' },
     mergeAdjacent(left, right) { calls.push(['merge', left, right]); return true },
     remove(id) { calls.push(['remove', id]) },
     convert(id, target) { calls.push(['convert', id, target]) },
