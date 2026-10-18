@@ -701,6 +701,12 @@ export class ClipboardController {
 
   #route(input, blockId) {
     return this.#runtime.prepareExtensionValue(() => {
+      // Matchers are independently evaluated against the same event-owned
+      // envelope. A rejected plugin may mutate its argument, but must not
+      // influence later candidates or the winning resolver's input.
+      const original = input.kind === 'file'
+        ? { kind: 'file', file: input.file }
+        : { kind: 'text', text: input.text }
       const current = this.#runtime.get(blockId)
       const ordered = current
         ? [current.type, ...this.#registry.blockTypes.filter(type => type !== current.type)]
@@ -714,7 +720,7 @@ export class ClipboardController {
         if (typeof accepts !== 'function') {
           throw new TypeError(`Paste accepts() for "${type}" must be a function`)
         }
-        const accepted = synchronousResult(Reflect.apply(accepts, paste, [input]))
+        const accepted = synchronousResult(Reflect.apply(accepts, paste, [{ ...original }]))
         if (typeof accepted !== 'boolean') {
           throw new TypeError(`Paste accepts() for "${type}" must return a boolean`)
         }
@@ -726,7 +732,7 @@ export class ClipboardController {
           // Own the selected hook with its original receiver before resolution awaits.
           return Object.freeze({
             type,
-            resolve: context => Reflect.apply(resolve, paste, [input, context]),
+            resolve: context => Reflect.apply(resolve, paste, [{ ...original }, context]),
           })
         }
       }
