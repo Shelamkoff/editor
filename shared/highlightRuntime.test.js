@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   getHighlightRuntime,
   highlightCode,
+  loadHighlightRuntime,
   setHighlightRuntime,
 } from './highlightRuntime.js'
 
@@ -43,4 +44,41 @@ test('highlight runtime falls back to automatic language detection', () => {
     value: 'auto:const value: number = 1',
     language: 'typescript',
   })
+})
+test('explicit highlighter remains authoritative after an earlier lazy load resolves', async () => {
+  const original = getHighlightRuntime()
+  const preferred = {
+    getLanguage: () => true,
+    highlight: () => ({ value: 'from-explicit-provider' }),
+    highlightAuto: () => ({ value: 'from-explicit-provider' }),
+  }
+  try {
+    setHighlightRuntime(null)
+    const pending = loadHighlightRuntime()
+    // Module import settles asynchronously; this assignment is the newest
+    // explicit user choice even if the old import resolves later.
+    setHighlightRuntime(preferred)
+    assert.equal(await pending, preferred)
+    assert.equal(getHighlightRuntime(), preferred)
+    assert.deepEqual(highlightCode('test', 'javascript'), {
+      value: 'from-explicit-provider', language: 'javascript',
+    })
+  } finally {
+    setHighlightRuntime(original)
+  }
+})
+
+test('clearing a completed lazy highlighter allows it to be loaded again', async () => {
+  const original = getHighlightRuntime()
+  try {
+    setHighlightRuntime(null)
+    const first = await loadHighlightRuntime()
+    assert.equal(getHighlightRuntime(), first)
+    setHighlightRuntime(null)
+    const second = await loadHighlightRuntime()
+    assert.equal(getHighlightRuntime(), second)
+    assert.equal(typeof second.highlightAuto, 'function')
+  } finally {
+    setHighlightRuntime(original)
+  }
 })
