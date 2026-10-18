@@ -1115,3 +1115,61 @@ test('non-owned nested clipboard event does not cancel the active authored Paste
   assert.equal(h.event.defaultPrevented, true, 'document Paste lost its own native-event ownership')
   h.controller.destroy()
 })
+
+
+test('async Paste leases expire across read-only round trips without manual cancellation', async () => {
+  let resolveFile
+  let applied = 0
+  const h = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'file.txt' }],
+    accepts: () => true,
+    resolve: () => new Promise(resolve => { resolveFile = resolve }),
+  })
+  h.runtime.modeEpoch = 0
+  h.runtime.applyPasteResults = () => {
+    applied++
+    return { blockId: 'a', focus: { fieldKey: 'text', offset: 1 } }
+  }
+  try {
+    h.paste()
+    assert.equal(h.event.defaultPrevented, true)
+    assert.equal(typeof resolveFile, 'function')
+    // The runtime epoch is an independent revocation signal: host cleanup
+    // might not have reached this ClipboardController before the resolver.
+    h.runtime.readOnly = true
+    h.runtime.modeEpoch++
+    h.runtime.readOnly = false
+    h.runtime.modeEpoch++
+    resolveFile({ kind: 'rich-text', replacement: { kind: 'text', text: 'late' } })
+    for (let i = 0; i < 8; i++) await Promise.resolve()
+    assert.equal(applied, 0, 'retired async Paste committed after a read-only round trip')
+  } finally { h.controller.destroy() }
+})
+
+test('async Paste resolver cannot allocate data IDs under a revoked mode epoch', () => {
+  let context
+  let ids = 0
+  const h = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'asset.dat' }],
+    accepts: () => true,
+    resolve(_input, provided) {
+      context = provided
+      return new Promise(() => {})
+    },
+  })
+  h.runtime.modeEpoch = 0
+  h.runtime.createDataId = () => { ids++; return 'new-id' }
+  try {
+    h.paste()
+    assert.equal(typeof context?.createId, 'function')
+    h.runtime.readOnly = true
+    h.runtime.modeEpoch++
+    h.runtime.readOnly = false
+    h.runtime.modeEpoch++
+    assert.throws(() => context.createId('asset'), /no longer active|retired|mode/i,
+      'the old resolver retained data-ID allocation authority')
+    assert.equal(ids, 0)
+  } finally { h.controller.destroy() }
+})
