@@ -626,3 +626,68 @@ test('whole-block IME staging cannot be retained after focus changes the canonic
   assert.equal(h.mutations(), 0)
   h.controller.destroy()
 })
+
+
+test('cross-block IME staging refuses a throwing native caret setter without losing author selection', () => {
+  const h = mountedRestoreFixture()
+  const bookmark = { anchor: h.point('a', 1), focus: h.point('b', 3) }
+  assert.equal(h.controller.restore(bookmark), true)
+  assert.deepEqual(h.view.selectedIds, ['a','b'])
+  const before = h.controller.bookmark
+  h.native.setBaseAndExtent = () => { throw Error('native IME stage rejected') }
+  assert.equal(h.controller.beginComposition(), null,
+    'a failed native preedit stage leaked an active composition session')
+  assert.deepEqual(h.controller.bookmark, before,
+    'failed IME stage dropped an existing author cross-block bookmark')
+  assert.deepEqual(h.view.selectedIds, ['a','b'])
+  assert.equal(h.controller.active, true)
+  h.controller.destroy()
+})
+
+test('cross-block IME staging refuses a silent native caret failure without discarding selection', () => {
+  const h = mountedRestoreFixture()
+  const bookmark = { anchor: h.point('a', 1), focus: h.point('b', 3) }
+  assert.equal(h.controller.restore(bookmark), true)
+  const nativeBefore = [h.native.anchorNode,h.native.anchorOffset,h.native.focusNode,h.native.focusOffset]
+  h.native.setBaseAndExtent = () => {}
+  assert.equal(h.controller.beginComposition(), null,
+    'a silent no-op native Selection setter cannot start composition')
+  assert.deepEqual([h.native.anchorNode,h.native.anchorOffset,h.native.focusNode,h.native.focusOffset],nativeBefore)
+  assert.deepEqual(h.view.selectedIds, ['a','b'])
+  assert.equal(h.controller.active, true)
+  h.controller.destroy()
+})
+
+test('cross-block IME staging prevents a retained handle if focus remounts its field', () => {
+  let armed=false
+  const h = mountedRestoreFixture({
+    onFocus(ctx,id) {
+      if (armed && id === 'a') ctx.replace('a')
+    },
+  })
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 3),
+  }), true)
+  const beforeNative = h.calls.native
+  armed = true
+  assert.equal(h.controller.beginComposition(), null)
+  assert.equal(h.calls.native, beforeNative,
+    'old text node reached IME native Selection after focus remounted anchor field')
+  h.controller.destroy()
+})
+
+test('successful cross-block IME stage can cancel and restore original selected range', () => {
+  const h = mountedRestoreFixture()
+  const bookmark = { anchor: h.point('a', 1), focus: h.point('b', 3) }
+  assert.equal(h.controller.restore(bookmark), true)
+  const handle = h.controller.beginComposition()
+  assert.ok(handle)
+  assert.equal(handle.blockId,'a')
+  assert.equal(handle.fieldKey,'text')
+  assert.equal(h.controller.active,false,'IME stage left old cross-block highlight active')
+  assert.equal(handle.cancel(),true)
+  assert.deepEqual(h.controller.bookmark,bookmark)
+  assert.deepEqual(h.view.selectedIds,['a','b'])
+  assert.equal(handle.cancel(),false,'settled composition restored old range again')
+  h.controller.destroy()
+})
