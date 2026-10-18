@@ -12,18 +12,22 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
  */
 function highlightElement(element, text, language) {
   const apply = () => {
+    // The lazy highlighter may settle after another render or author action
+    // has repurposed this node. Never rewrite newer code with an old snapshot.
+    if (element.textContent !== text) return false
     const result = highlightCode(text, language)
-    if (!result) return false
+    if (!result || element.textContent !== text) return false
     // highlight.js escapes source text and returns library-owned markup.
     setTrustedHtml(element, result.value)
     return true
   }
 
   if (apply()) return
+  if (element.textContent !== text) return
   element.textContent = text
-  void loadHighlightRuntime().then(apply).catch(() => {
-    element.textContent = text
-  })
+  // Plain source text is already available. Failed loading must not restore
+  // this obsolete snapshot over a newer owner of the same DOM node.
+  void loadHighlightRuntime().then(apply).catch(() => {})
 }
 
 /**
