@@ -89,11 +89,13 @@ export class EditorViewModel {
     // A missing field must not emit a false current-block change.
     const decision = this.#interaction.explicitCurrentVersion
     const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
     const modeEpoch = this.#runtime.modeEpoch
     const readOnly = this.#runtime.readOnly
     if (!this.#interaction.focus(id, target, { deferCurrent: true })) return false
     if (decision !== this.#interaction.explicitCurrentVersion
       || generation !== this.#runtime.generation
+      || revision !== this.#runtime.revision
       || modeEpoch !== this.#runtime.modeEpoch
       || readOnly !== this.#runtime.readOnly
       || this.#runtime.health !== 'ready'
@@ -103,6 +105,7 @@ export class EditorViewModel {
     // generation or control mode. The older request never reclaims it.
     if (decision !== this.#interaction.explicitCurrentVersion
       || generation !== this.#runtime.generation
+      || revision !== this.#runtime.revision
       || modeEpoch !== this.#runtime.modeEpoch
       || readOnly !== this.#runtime.readOnly
       || this.#runtime.health !== 'ready'
@@ -110,6 +113,7 @@ export class EditorViewModel {
     this.#interaction.setCurrent(id)
     return this.#interaction.currentId === id
       && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
       && modeEpoch === this.#runtime.modeEpoch
       && readOnly === this.#runtime.readOnly
       && this.#runtime.health === 'ready'
@@ -121,6 +125,7 @@ export class EditorViewModel {
     if (this.#runtime.health !== 'ready' || !this.#runtime.has(id)) return false
     const decision = this.#interaction.explicitCurrentVersion
     const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
     const modeEpoch = this.#runtime.modeEpoch
     // The native/logical caret must accept the target before claiming the
     // corresponding current block. A missing keyed field returns false
@@ -128,6 +133,7 @@ export class EditorViewModel {
     if (this.#selection.setCaret(id, target) !== true) return false
     if (this.#runtime.health === 'destroyed' || this.#runtime.health === 'failed'
       || generation !== this.#runtime.generation
+      || revision !== this.#runtime.revision
       || modeEpoch !== this.#runtime.modeEpoch
       || !this.#runtime.has(id)) return false
     // Native focus itself may dispatch a newer current-block decision.
@@ -136,6 +142,10 @@ export class EditorViewModel {
     }
     this.#interaction.setCurrent(id)
     return this.#interaction.currentId === id
+      && this.#runtime.health === 'ready'
+      && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch
   }
 
   reconcileInteraction() { this.#interaction.reconcile() }
