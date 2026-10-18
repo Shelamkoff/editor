@@ -177,3 +177,55 @@ test('public focus without a target remains supported', () => {
   assert.deepEqual(controls, [['focus']])
   handle.destroy()
 })
+
+
+test('public conversion target getter cannot mutate a building transaction', () => {
+  const { api, runtime, handle, view } = setup()
+  view.convert = (id, target, authority) => runtime.convert(id, target, authority)
+  let reads = 0, mutations = 0
+  const target = {
+    get type() {
+      reads++
+      assert.throws(() => runtime.update('a', () => {
+        mutations++
+        return { data: { text: 'Unwanted nested update' } }
+      }, 'host'), /prepar/i, 'a conversion getter ran nested model commands while a draft was building')
+      return 'paragraph'
+    },
+    toolboxItemId: undefined,
+  }
+  const record = api.convert('a', target)
+  assert.equal(reads, 1)
+  assert.equal(mutations, 0)
+  assert.equal(record.data.text, 'A')
+  assert.equal(runtime.get('a').data.text, 'A')
+  assert.equal(runtime.canUndo, false)
+  handle.destroy()
+})
+
+test('public conversion target getter cannot destroy editor during draft planning', () => {
+  const { api, runtime, handle, view } = setup()
+  view.convert = (id, target, authority) => runtime.convert(id, target, authority)
+  const target = {
+    get type() {
+      handle.destroy()
+      return 'paragraph'
+    },
+  }
+  assert.throws(() => api.convert('a', target), /prepar|destroy/i)
+  assert.equal(handle.isReady, true, 'conversion getter destroyed editor during protected capture')
+  assert.equal(runtime.get('a').data.text, 'A')
+  handle.destroy()
+})
+
+test('public conversion snapshots ordinary target fields while retaining optional undefined', () => {
+  const { api, runtime, handle, view } = setup()
+  view.convert = (id, target, authority) => runtime.convert(id, target, authority)
+  const target = { type: 'paragraph', toolboxItemId: undefined }
+  const result = api.convert('a', target)
+  target.type = 'other'
+  assert.equal(result.type, 'paragraph')
+  assert.equal(result.data.text, 'A')
+  assert.equal(runtime.canUndo, false)
+  handle.destroy()
+})
