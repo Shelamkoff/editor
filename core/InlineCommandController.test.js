@@ -408,3 +408,60 @@ test('inline insertion preparation that retires the editor cannot mutate a detac
   assert.equal(attempts, 0)
   assert.deepEqual(carets, [])
 })
+
+
+test('explicit inline insertion data cannot outlive reentrant trailing-text preparation',()=>{
+  const {controller,runtime,definition,carets}=harness()
+  runtime.health='ready'
+  runtime.generation=1
+  runtime.modeEpoch=0
+  definition.insertion={
+    get trailingText(){
+      runtime.health='destroyed'
+      return ' '
+    },
+  }
+  let transactions=0
+  runtime.interact=()=>{transactions++;throw new Error('retired explicit insertion invoked model')}
+  assert.equal(controller.insert('color',{value:'#fff'}),false)
+  assert.equal(transactions,0)
+  assert.deepEqual(carets,[])
+})
+
+test('trigger encoding teardown prevents a stale inline widget transaction',()=>{
+  const {controller,runtime,definition,carets}=harness()
+  runtime.health='ready'
+  runtime.generation=1
+  runtime.modeEpoch=0
+  definition.schema={
+    encode(data){
+      runtime.health='destroyed'
+      return {dataVersion:1,data}
+    },
+  }
+  let transactions=0
+  runtime.interact=()=>{transactions++;throw new Error('retired trigger invoked model')}
+  assert.equal(controller.commitTrigger('color',{
+    blockId:'a',fieldKey:'text',range:{start:0,end:2},
+  },{value:'#fff'}),false)
+  assert.equal(transactions,0)
+  assert.deepEqual(carets,[])
+})
+
+test('typed matcher cannot claim an edit after a control-mode round trip during preparation',()=>{
+  const {controller,runtime,definition,carets}=harness()
+  runtime.health='ready'
+  runtime.generation=1
+  runtime.modeEpoch=0
+  definition.paste.fromMatch=word=>{
+    runtime.modeEpoch+=2
+    return {value:word}
+  }
+  let transactions=0
+  runtime.interact=()=>{transactions++;throw new Error('stale typed command invoked model')}
+  assert.equal(controller.commitTypedPattern('#fff',{
+    blockId:'a',fieldKey:'text',range:{start:0,end:4},
+  },' '),false)
+  assert.equal(transactions,0)
+  assert.deepEqual(carets,[])
+})
