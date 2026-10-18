@@ -969,3 +969,33 @@ test('renderer rejects legacy Paragraph dataVersion through the shared schema', 
   }), /current schema/)
   renderer.destroy()
 })
+test('renderer validation error remains canonical when the warning sink itself fails', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({
+    blockTypes: [], injectStyles: false,
+    onValidationError() { throw new Error('application validation callback failed') },
+  })
+  renderer.registerRenderer({
+    type: 'validation-observer-failure',
+    schema: passthroughSchema,
+    render() { return document.createElement('article') },
+  })
+  const previousWarn = console.warn
+  try {
+    console.warn = () => { throw new Error('logging infrastructure failed') }
+    assert.throws(
+      () => renderer.renderBlock({
+        id: 'current-a',
+        type: 'validation-observer-failure',
+        dataVersion: 2,
+        data: {},
+      }),
+      error => error?.name === 'InvalidBlockDataError'
+        && error.cause?.name === 'RangeError',
+      'application diagnostics replaced the primary rejected-format error',
+    )
+  } finally {
+    console.warn = previousWarn
+    renderer.destroy()
+  }
+})
