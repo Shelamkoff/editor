@@ -786,3 +786,46 @@ test('whole-block IME staging can still return a handle for unchanged selected b
   assert.deepEqual(h.view.selectedIds, ['a'])
   h.controller.destroy()
 })
+
+
+test('whole-block IME focus callback cannot recursively open another composition handle', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  let nested = 'not-called', ready = false
+  h.view.focus = () => {
+    if (!ready) {
+      ready = true
+      nested = h.controller.beginComposition()
+    }
+    return true
+  }
+  const pending = h.controller.beginComposition()
+  assert.equal(nested, null,
+    'nested focus callback independently opened a second composition session')
+  assert.ok(pending, 'outer valid composition lost its focus ownership')
+  assert.equal(pending.cancel(), true)
+  assert.deepEqual(h.view.selectedIds, ['a'])
+  h.controller.destroy()
+})
+
+test('cross-block IME focus callback cannot recursively open another composition handle', () => {
+  let armed = false, nested = 'not-called'
+  const h = mountedRestoreFixture({
+    onFocus(context, id) {
+      if (id === 'a' && armed) {
+        armed = false
+        nested = context.controller.beginComposition()
+      }
+    },
+  })
+  const bookmark = { anchor: h.point('a',1), focus: h.point('b',3) }
+  assert.equal(h.controller.restore(bookmark), true)
+  armed = true
+  const pending = h.controller.beginComposition()
+  assert.equal(nested, null,
+    'native focus reentry created another IME session while the first was staging')
+  assert.ok(pending)
+  assert.equal(pending.cancel(), true)
+  assert.deepEqual(h.controller.bookmark, bookmark)
+  h.controller.destroy()
+})
