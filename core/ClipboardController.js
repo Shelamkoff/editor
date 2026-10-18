@@ -827,7 +827,23 @@ export class ClipboardController {
     this.#task = task
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
     const selectionKey=JSON.stringify(this.#selection.capture())
+    // The async resolver owns both its task token and the control epoch. A
+    // read-only round trip revokes this lease even if a caller missed the
+    // synchronous task-cancellation notification.
+    const stillOwned=()=>!this.#destroyed
+      &&!this.#controller.signal.aborted
+      &&!task.signal.aborted
+      &&this.#task===task
+      &&!this.#runtime.readOnly
+      &&this.#runtime.health!=='destroyed'
+      &&this.#runtime.health!=='failed'
+      &&this.#runtime.modeEpoch===modeEpoch
+    if(!stillOwned()){
+      if(this.#task===task)this.cancelPendingTask()
+      return
+    }
     const abort = () => task.abort(this.#controller.signal.reason)
     this.#controller.signal.addEventListener('abort', abort, { once: true, signal: task.signal })
     const pendingObjectUrls = []
@@ -854,15 +870,14 @@ export class ClipboardController {
     void (async () => {
       const resolved=[]
       for (const { input, route } of items) {
-        if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly || !this.#runtime.get(owner.blockId)) return
+        if (!stillOwned() || !this.#runtime.get(owner.blockId) || !stillOwned()) return
         let result
         try {
           result = await route.resolve({
             signal: task.signal,
             ownerDocument: this.#root.ownerDocument,
             createObjectURL: file => {
-              if (task.signal.aborted || this.#controller.signal.aborted || this.#task !== task
-                || this.#runtime.readOnly) throw new Error('Clipboard Paste resource owner is retired')
+              if (!stillOwned()) throw new Error('Clipboard Paste resource owner is retired')
               const owner = this.#root.ownerDocument.defaultView?.URL ?? URL
               if (typeof owner?.createObjectURL !== 'function'
                 || typeof owner?.revokeObjectURL !== 'function') {
@@ -872,8 +887,7 @@ export class ClipboardController {
               // URL creation can synchronously invoke app code that removes
               // the editor. A lease acquired after destruction must be
               // revoked immediately, not retained by the retired controller.
-              if (task.signal.aborted || this.#controller.signal.aborted
-                || this.#task !== task || this.#runtime.readOnly) {
+              if (!stillOwned()) {
                 try { owner.revokeObjectURL(url) } catch {}
                 throw new Error('Clipboard Paste resource owner was revoked during acquisition')
               }
@@ -885,14 +899,12 @@ export class ClipboardController {
               return url
             },
             createId: prefix => {
-              if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly) {
-                throw new Error('Clipboard paste task is no longer active')
-              }
+              if (!stillOwned()) throw new Error('Clipboard paste task is no longer active')
               return this.#runtime.createDataId(prefix)
             },
           })
         } catch (error) {
-          if (!task.signal.aborted) {
+          if (stillOwned()) {
             if (this.#diagnostics) {
               this.#diagnostics.emit('paste.failed', {
                 operation: 'clipboard.paste',
@@ -904,18 +916,18 @@ export class ClipboardController {
           }
           return
         }
-        if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly || !result) return
+        if (!stillOwned() || !result) return
         resolved.push({type:route.type,result})
       }
 
       if(
-        task.signal.aborted
-        ||this.#task!==task
-        ||this.#runtime.readOnly
+        !stillOwned()
         ||this.#runtime.generation!==generation
         ||this.#runtime.revision!==revision
         ||JSON.stringify(this.#selection.capture())!==selectionKey
+        ||!stillOwned()
         ||!this.#runtime.get(owner.blockId)
+        ||!stillOwned()
       )return
 
       let persisted = false
