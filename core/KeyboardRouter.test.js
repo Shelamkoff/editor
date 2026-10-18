@@ -392,3 +392,14 @@ test('block shortcut commit observer teardown cannot reconcile a detached view',
   assert.equal(key.prevented, true)
   assert.deepEqual(h.viewCalls, [], 'a successful shortcut updated presentation after destroy')
 })
+
+
+test('cancelled shortcut preparation cannot fall through to another structural command', () => {
+  const h = harness()
+  h.runtime.prepareShortcutAction = () => { h.router.destroy(); return null }
+  h.runtime.isEmpty = () => { throw new Error('retired key must not inspect a block') }
+  const event = h.event('Enter')
+  assert.doesNotThrow(() => h.router.handleKeydown(event))
+  assert.equal(event.prevented, false, 'unowned native key was consumed after editor teardown')
+  assert.deepEqual(h.calls, [])
+})
