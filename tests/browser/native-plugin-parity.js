@@ -63,6 +63,25 @@ test('Poll Enter in an option inserts a following empty option as one action', a
   caret(next(), 0)
 })
 
+
+test('Poll Backspace removes visually empty markup and restores it with Undo', async () => {
+  const editor = poll([
+    { id: 'first', text: 'Alpha' },
+    { id: 'empty', text: '<strong></strong>' },
+    { id: 'last', text: 'Bravo' },
+  ])
+  const before = editor.save().blocks
+  editor.blocks.focus('a', { fieldKey: 'option:empty', offset: 'start' })
+  await dispatchKey('Backspace', 'Backspace', 8)
+  const after = editor.save().blocks
+  equal(after[0].data.options.map(item => item.id), ['first', 'last'],
+    'Poll regarded empty rich-text markup as a real option value')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, after)
+})
+
 test('Poll Backspace removes an empty option and focuses the previous text at its end', async () => {
   const editor = poll([{ id: 'first', text: 'Alpha' }, { id: 'empty', text: '' }, { id: 'last', text: 'Bravo' }])
   const before = editor.save().blocks
