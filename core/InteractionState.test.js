@@ -189,3 +189,16 @@ test('a nested current-block change from the interaction observer wins over earl
   assert.equal(interaction.currentId, 'a')
   assert.deepEqual(events, ['b', 'a'])
 })
+
+
+for (const health of ['destroyed', 'failed']) {
+  test('retired ' + health + ' InteractionState never invokes plugin focus before rejecting', () => {
+    const h = fixture({
+      focus() { throw Error('retired plugin focus was invoked') },
+    })
+    h.runtime.health = health
+    assert.equal(h.interaction.focus('b', { fieldKey: 'text' }), false)
+    assert.deepEqual(h.calls, [])
+    assert.equal(h.interaction.currentId, 'a')
+  })
+}
