@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { ClipboardController } from './ClipboardController.js'
 
-function fixture({ resolve, apply, createObjectURL } = {}) {
+function fixture({ resolve, apply, createObjectURL, reconcile } = {}) {
   const events = new Map()
   const created = [], revoked = [], applied = []
   const URLCtor = {
@@ -74,7 +74,7 @@ function fixture({ resolve, apply, createObjectURL } = {}) {
     selection: { capture: () => bookmark },
     view: {
       currentId: 'a',
-      reconcileInteraction() {}, setCurrent() {}, focus() {},
+      reconcileInteraction() { reconcile?.() }, setCurrent() {}, focus() {},
     },
   })
   const paste = () => {
@@ -166,4 +166,31 @@ test('reentrant editor destruction during object-URL creation immediately revoke
   await f.settle()
   assert.deepEqual(f.revoked, ['blob:reentrant-destroy'])
   assert.equal(f.applied.length, 0)
+})
+
+test('an accepted video Paste keeps its blob when a post-commit view observer fails', async () => {
+  const f = fixture({ reconcile: () => { throw new Error('presentation observer failed') } })
+  try {
+    f.paste()
+    await f.settle()
+    assert.equal(f.runtime.revision, 1, 'canonical media was never committed')
+    assert.deepEqual(f.revoked, [], 'observer failure destroyed media referenced by canonical history')
+  } finally { f.controller.destroy() }
+  assert.deepEqual(f.revoked, ['blob:clipboard-owned-1'])
+})
+
+test('a Paste resolver that declines after allocating a temporary URL releases it', async () => {
+  const f = fixture({
+    resolve: (_input, context) => {
+      context.createObjectURL({ name: 'ignored.mp4' })
+      return null
+    },
+  })
+  try {
+    f.paste()
+    await f.settle()
+    assert.equal(f.applied.length, 0)
+    assert.deepEqual(f.revoked, ['blob:clipboard-owned-1'])
+  } finally { f.controller.destroy() }
+  assert.deepEqual(f.revoked, ['blob:clipboard-owned-1'])
 })
