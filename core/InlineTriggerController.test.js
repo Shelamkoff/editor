@@ -447,3 +447,45 @@ test('a throwing trigger commit releases its in-flight guard without retiring a 
   assert.equal(h.controller.isActive, false)
   h.controller.destroy()
 })
+
+
+test('successor trigger query remains independently committable after predecessor success', () => {
+  let h, first = null, successor = null, commits = 0
+  h = triggerScenario(session => {
+    if (!first) first = session
+    else successor = session
+  }, () => 'pass', () => {
+    commits++
+    if (commits === 1) {
+      first.cancel()
+      assert.equal(h.controller.refresh(), true, 'next trigger session failed to acquire ownership')
+      assert.equal(successor !== null, true)
+    }
+    return true
+  })
+  assert.equal(h.controller.refresh(), true)
+  assert.equal(first.commit({ id: 'first', name: 'First' }), true)
+  assert.equal(first.commit({ id: 'duplicate', name: 'Duplicate' }), false)
+  assert.equal(h.controller.isActive, true)
+  assert.equal(successor.commit({ id: 'second', name: 'Second' }), true)
+  assert.equal(commits, 2, 'successor session was blocked by predecessor commit lease')
+  assert.equal(h.controller.isActive, false)
+  h.controller.destroy()
+})
+
+test('trigger commit must not mutate after live-range lookup synchronously destroys its owner', () => {
+  let h, session = null, retire = false, mutations = 0
+  h = triggerScenario(value => { session = value }, () => 'pass', () => {
+    mutations++
+    return true
+  }, {
+    getEditableField() {
+      if (retire) h.controller.destroy()
+    },
+  })
+  assert.equal(h.controller.refresh(), true)
+  retire = true
+  assert.equal(session.commit({ id: 'stale', name: 'Stale' }), false)
+  assert.equal(mutations, 0, 'retired trigger reached a canonical write after detached DOM read')
+  assert.equal(h.controller.isActive, false)
+})
