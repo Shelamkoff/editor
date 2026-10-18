@@ -355,3 +355,42 @@ test('failed drop gap insertion cleans pointer capture and half-inserted DOM', a
   assert.equal(h.document.body.classList.contains('oe-editor-dragging'), false)
   controller.destroy()
 })
+
+test('DragController cannot commit after releasing pointer capture retires its owner', async () => {
+  const { DragController } = await import('./DragController.js')
+  for (const retirement of ['destroy', 'readOnly', 'generation', 'replacement']) {
+    const h = dragHarness()
+    const controller = new DragController({
+      runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+    })
+    h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+    h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+    const release = h.handle.releasePointerCapture.bind(h.handle)
+    let releases = 0
+    h.handle.releasePointerCapture = id => {
+      releases++
+      release(id)
+      // Browsers synchronously dispatch lostpointercapture here, and host
+      // subscribers may destroy the editor or change the author document.
+      if (retirement === 'destroy') controller.destroy()
+      if (retirement === 'readOnly') {
+        h.setReadOnly(true)
+        controller.setReadOnly(true)
+      }
+      if (retirement === 'generation') h.setGeneration(h.runtime.generation + 1)
+      if (retirement === 'replacement') {
+        const prior = h.view.element.bind(h.view)
+        const replacement = new FakeEventTarget()
+        h.view.element = id => id === 'A' ? replacement : prior(id)
+      }
+    }
+    h.document.dispatch('pointerup', pointerEvent(7, 55, { x: 10 }))
+    assert.equal(releases, 1, retirement + ': pointer capture was never released')
+    assert.deepEqual(h.moves, [],
+      retirement + ': drag committed after its owner was retired synchronously during capture release')
+    assert.equal(h.captured(), null, retirement + ': stale pointer still captured')
+    await Promise.resolve()
+    assert.deepEqual(h.focusCalls(), [], retirement + ': canceled drag stole focus')
+    controller.destroy()
+  }
+})
