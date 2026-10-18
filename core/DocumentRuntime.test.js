@@ -1501,3 +1501,46 @@ test('shortcut capability receives the owning editor document rather than ambien
     assert.strictEqual(received, ownerDocument)
   } finally { runtime.destroy() }
 })
+
+test('destroying runtime after Undo prevents deferred selection restoration into a retired editor', async () => {
+  const point = { anchor: { blockId: 'a', fieldKey: 'text', offset: 2 },
+    focus: { blockId: 'a', fieldKey: 'text', offset: 2 } }
+  const restored = []
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
+    selection: { capture: () => point, restore(value) { restored.push(value) } },
+  })
+  runtime.update('a', () => ({ data: { text: 'AlXpha' } }), 'host')
+  assert.equal(runtime.undo(), true)
+  const immediate = restored.length
+  assert.ok(immediate > 0, 'Undo did not perform its immediate restore')
+  runtime.destroy()
+  await Promise.resolve()
+  assert.equal(restored.length, immediate,
+    'queued Undo replay restored selection after DocumentRuntime destruction')
+  assert.equal(runtime.health, 'destroyed')
+})
+
+test('destroy during Undo publication prevents its deferred selection callback', async () => {
+  const point = { anchor: { blockId: 'a', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'a', fieldKey: 'text', offset: 1 } }
+  const restored = []
+  let runtime
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'A' })] },
+    selection: { capture: () => point, restore(value) { restored.push(value) } },
+    onCommit(event) {
+      if (event.action === 'undo') runtime.destroy()
+    },
+  })
+  runtime.update('a', () => ({ data: { text: 'B' } }), 'host')
+  assert.equal(runtime.undo(), true)
+  const immediate = restored.length
+  assert.ok(immediate > 0)
+  await Promise.resolve()
+  assert.equal(restored.length, immediate,
+    'deferred Undo callback ran after reentrant editor teardown')
+  assert.equal(runtime.health, 'destroyed')
+})
