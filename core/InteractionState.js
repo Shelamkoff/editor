@@ -1,4 +1,5 @@
 // @ts-check
+import { invokeObserver } from '../shared/invokeObserver.js'
 
 export class InteractionState {
   #runtime
@@ -7,6 +8,7 @@ export class InteractionState {
   #selected = new Set()
   #onChange
   #generation
+  #currentClaimVersion = 0
 
   constructor({ runtime, reconciler, onChange }) {
     if (!runtime?.list) throw new TypeError('InteractionState requires a DocumentRuntime')
@@ -35,11 +37,16 @@ export class InteractionState {
     const previousCurrentId = this.#currentId
     const previousSelectedIds = this.selectedIds
     if (id === null) {
+      this.#currentClaimVersion++
       this.#currentId = null
       this.#notify(previousCurrentId, previousSelectedIds)
       return
     }
     if (!this.#runtime.has(id)) throw new Error(`Unknown block id: ${id}`)
+    // Even a claim of the same block represents a newer focus/selection
+    // decision. An older focus call must not overwrite it when its plug-in
+    // callback returns after a reentrant interaction.
+    this.#currentClaimVersion++
     this.#currentId = id
     this.#notify(previousCurrentId, previousSelectedIds)
   }
@@ -73,11 +80,20 @@ export class InteractionState {
 
   focus(id = this.#currentId, target) {
     if (!id || !this.#runtime.has(id)) return false
-    // The plugin may refuse focus (retired source, missing field, read-only).
-    // Do not claim that block as current until the actual DOM owner accepts.
+    const claimVersion = this.#currentClaimVersion
+    const generation = this.#runtime.generation
+    // The plug-in focus callback may synchronously cause a newer focus,
+    // render a replacement occurrence, or revoke the editor entirely.
     if (!this.#reconciler.focus(id, target)) return false
+    if (claimVersion !== this.#currentClaimVersion
+      || generation !== this.#runtime.generation
+      || this.#runtime.health === 'destroyed'
+      || this.#runtime.health === 'failed'
+      || !this.#runtime.has(id)) return false
     this.setCurrent(id)
-    return true
+    return this.#currentId === id
+      && this.#runtime.health !== 'destroyed'
+      && this.#runtime.health !== 'failed'
   }
 
   resolveBlockTarget(target) {
@@ -93,7 +109,9 @@ export class InteractionState {
     const known = new Set(ids)
     this.#selected = new Set([...this.#selected].filter(id => known.has(id)))
     if (!this.#currentId || !known.has(this.#currentId)) {
-      this.#currentId = ids[0] ?? null
+      const nextId = ids[0] ?? null
+      if (this.#currentId !== nextId) this.#currentClaimVersion++
+      this.#currentId = nextId
     }
     if (notify) this.#notify(previousCurrentId, previousSelectedIds)
   }
@@ -105,11 +123,11 @@ export class InteractionState {
     const selectionChanged = previousSelectedIds.length !== selectedIds.length
       || previousSelectedIds.some((id, index) => id !== selectedIds[index])
     if (!currentChanged && !selectionChanged) return
-    this.#onChange(Object.freeze({
+    invokeObserver(this.#onChange, [Object.freeze({
       currentId: this.#currentId,
       selectedIds: Object.freeze([...selectedIds]),
       previousCurrentId,
       previousSelectedIds: Object.freeze([...previousSelectedIds]),
-    }))
+    })])
   }
 }
