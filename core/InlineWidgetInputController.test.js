@@ -79,7 +79,7 @@ function fixture(handle = () => null) {
     return {event,get canceled(){return canceled},get stopped(){return stopped}}
   }
   return {
-    emit,field,foreign,widget,root,runtime,projection,registry,selection,controller,writes,diagnostics,claimed,
+    emit,field,foreign,widget,root,runtime,reconciler,projection,registry,selection,controller,writes,diagnostics,claimed,
     get invokes(){return invokes},
   }
 }
