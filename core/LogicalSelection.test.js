@@ -346,3 +346,63 @@ test('plain-text setSelectionRange that silently fails does not claim a caret', 
     'plain-text DOM input never changed its selection but restore returned true')
   assert.deepEqual([h.field().element.selectionStart, h.field().element.selectionEnd], [0, 0])
 })
+
+
+test('plain-text capture refuses a field remounted under the same block and key during selection read', () => {
+  const doc = { activeElement: null, defaultView: { getSelection() { return null } } }
+  let current
+  const oldInput = {
+    get selectionStart() {
+      current = { key: 'code', mode: 'plain-text', element: {
+        value: 'Successor', selectionStart: 0, selectionEnd: 0,
+      } }
+      return 2
+    },
+    selectionEnd: 2, selectionDirection: 'forward',
+  }
+  current = { key: 'code', mode: 'plain-text', element: oldInput }
+  doc.activeElement = oldInput
+  const reconciler = {
+    resolveEditableTarget(element) {
+      return element === oldInput
+        ? { blockId: 'a', fieldKey: 'code', ...{ mode: 'plain-text', element: oldInput } }
+        : null
+    },
+    getEditableFields(id) { return id === 'a' ? [current] : [] },
+  }
+  const selection = new LogicalSelection({ root: { ownerDocument: doc }, reconciler })
+  assert.equal(selection.capture(), null,
+    'old input retained logical capture even after its field owner was replaced')
+})
+
+test('rich-text capture refuses a native range whose mounted field changed during owner lookup', () => {
+  const ownerDocument = { activeElement: null, defaultView: {} }
+  const original = { nodeType: 1, childNodes: [], textContent: 'Alpha',
+    hasAttribute() { return false },
+    contains(node) { return node === this || node === text },
+  }
+  const text = { nodeType: 3, textContent: 'Alpha', data: 'Alpha', parentNode: original }
+  original.childNodes = [text]
+  ownerDocument.activeElement = original
+  const successor = { nodeType: 1, childNodes: [], textContent: 'New',
+    hasAttribute() { return false },
+  }
+  let mounted = original
+  const native = { anchorNode: text, focusNode: text, anchorOffset: 2, focusOffset: 2 }
+  ownerDocument.defaultView.getSelection = () => native
+  const reconciler = {
+    resolveEditableTarget(node) {
+      if (node === text) {
+        mounted = successor
+        return { blockId: 'a', fieldKey: 'text', mode: 'rich-text', element: original }
+      }
+      return null
+    },
+    getEditableFields(id) {
+      return id === 'a' ? [{ key: 'text', mode: 'rich-text', element: mounted }] : []
+    },
+  }
+  const selection = new LogicalSelection({ root: { ownerDocument }, reconciler })
+  assert.equal(selection.capture(), null,
+    'native bookmark used a text node from a retired same-ID mounted field')
+})
