@@ -358,7 +358,7 @@ test('failed drop gap insertion cleans pointer capture and half-inserted DOM', a
 
 test('DragController cannot commit after releasing pointer capture retires its owner', async () => {
   const { DragController } = await import('./DragController.js')
-  for (const retirement of ['destroy', 'readOnly', 'generation', 'replacement']) {
+  for (const retirement of ['destroy', 'readOnly', 'generation', 'replacement', 'modeRoundTrip']) {
     const h = dragHarness()
     const controller = new DragController({
       runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
@@ -378,6 +378,10 @@ test('DragController cannot commit after releasing pointer capture retires its o
         controller.setReadOnly(true)
       }
       if (retirement === 'generation') h.setGeneration(h.runtime.generation + 1)
+      if (retirement === 'modeRoundTrip') {
+        h.setReadOnly(true)
+        h.setReadOnly(false)
+      }
       if (retirement === 'replacement') {
         const prior = h.view.element.bind(h.view)
         const replacement = new FakeEventTarget()
@@ -393,4 +397,32 @@ test('DragController cannot commit after releasing pointer capture retires its o
     assert.deepEqual(h.focusCalls(), [], retirement + ': canceled drag stole focus')
     controller.destroy()
   }
+})
+
+test('DragController cannot reacquire click suppression or commit after a reentrant timer callback destroys it', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  let timers = 0
+  h.document.defaultView.setTimeout = () => {
+    timers++
+    controller.destroy()
+    return timers
+  }
+  h.document.dispatch('pointerup', pointerEvent(7, 55, { x: 10 }))
+  assert.equal(timers, 1)
+  assert.deepEqual(h.moves, [],
+    'destroying the editor during click-suppression setup still committed a block move')
+  const click = pointerEvent(7, 55)
+  h.handle.dispatch('click', click)
+  assert.equal(click.prevented, false,
+    'retired drag left an orphan click suppression listener on its old handle')
+  assert.equal(h.captured(), null)
+  await Promise.resolve()
+  assert.deepEqual(h.focusCalls(), [])
+  controller.destroy()
 })
