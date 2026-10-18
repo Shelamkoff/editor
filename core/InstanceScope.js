@@ -175,8 +175,19 @@ export class InstanceScope{
     }
     const update=(producer,options)=>{
       if(typeof producer!=='function')throw new TypeError('updateData() requires a producer')
-      if(!this.#canMutate())return
-      updateData(current=>producer(snapshot(current)),options)
+      const epoch=this.#interactionEpoch
+      const generation=this.#generation
+      if(!this.#canMutate()||!this.#stillOwnInteraction(epoch,generation))return
+      updateData(current=>{
+        const owned=snapshot(current)
+        // The canonical input can include getter-backed values, and both
+        // snapshotting and the producer can retire this occurrence. Never
+        // forward an obsolete result into the owning document transaction.
+        if(!this.#stillOwnInteraction(epoch,generation))throw createAbortError()
+        const next=producer(owned)
+        if(!this.#stillOwnInteraction(epoch,generation))throw createAbortError()
+        return next
+      },options)
     }
     const commitDom=operation=>{
       if(typeof operation!=='function')throw new TypeError('commitDomMutation() requires an operation')
@@ -312,7 +323,15 @@ export class InstanceScope{
           const continuation=field!==undefined&&Number.isSafeInteger(task.baseRevision)&&task.baseRevision>0
             ?{historyContinuation:{baseRevision:task.baseRevision,fieldKey:field}}
             :undefined
-          updateData(current=>producer(snapshot(current)),continuation)
+          updateData(current=>{
+            const owned=snapshot(current)
+            if(task.closed||controller.signal.aborted
+              ||!this.#stillOwnInteraction(task.epoch,task.generation))throw createAbortError()
+            const next=producer(owned)
+            if(task.closed||controller.signal.aborted
+              ||!this.#stillOwnInteraction(task.epoch,task.generation))throw createAbortError()
+            return next
+          },continuation)
           close(false)
           return true
         }catch(error){
