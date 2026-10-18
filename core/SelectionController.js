@@ -193,10 +193,23 @@ export class SelectionController {
     try {
       const field = this.#reconciler.getEditableField(bookmark.anchor.blockId,bookmark.anchor.fieldKey)
       if (!field || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+      // A DOM Range is inherently ordered and cannot represent a backward
+      // native anchor/focus. Reject that unsupported gesture before touching
+      // the previous author selection.
+      const hasBaseAndExtent=typeof native.setBaseAndExtent==='function'
+      const hasCollapseExtend=typeof native.collapse==='function'
+        &&typeof native.extend==='function'
+      if (!hasBaseAndExtent && !hasCollapseExtend
+        && this.#comparePoints(bookmark.anchor,bookmark.focus)>0) return false
+      if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
       field.element.focus()
       if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
-      if (typeof native.setBaseAndExtent === 'function') {
+      if (hasBaseAndExtent) {
         native.setBaseAndExtent(built.anchor.node,built.anchor.offset,built.focus.node,built.focus.offset)
+      } else if (hasCollapseExtend) {
+        native.collapse(built.anchor.node,built.anchor.offset)
+        if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+        native.extend(built.focus.node,built.focus.offset)
       } else {
         native.removeAllRanges()
         native.addRange(built.range)
