@@ -316,4 +316,30 @@ test('Native unmatched color-like word and selected text retain their normal spa
   }
 })
 
+
+test('Inline Paste does not convert a color-like fragment inside a URL', async () => {
+  const editor = make([para('a', '')], { inlinePlugins: [createColorSwatchPlugin()] })
+  const field = editableField(editor, 'a')
+  select(field, 0)
+  await paste(field, { 'text/plain': 'https://example.test/#fff #f00' })
+  const after = editor.save().blocks
+  equal(Object.values(after[0].inline ?? {}).map(widget => widget.data.value), ['#f00'],
+    'Paste matched a color substring within the URL instead of a complete word')
+  equal(decodeInline(editor), ['https://example.test/#fff #f00'])
+  editor.undo()
+  equal(editor.save().blocks, [para('a', '')])
+  editor.redo()
+  equal(editor.save().blocks, after)
+})
+
+test('Inline Paste leaves color-like substrings in a longer identifier untouched', async () => {
+  const editor = make([para('a', '')], { inlinePlugins: [createColorSwatchPlugin()] })
+  const field = editableField(editor, 'a')
+  select(field, 0)
+  await paste(field, { 'text/plain': 'prefix#fff suffix#f00' })
+  equal(texts(editor), ['prefix#fff suffix#f00'])
+  equal(Object.values(editor.save().blocks[0].inline ?? {}), [],
+    'Substrings inside identifiers were incorrectly persisted as inline widgets')
+})
+
 await run()
