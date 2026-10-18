@@ -88,3 +88,25 @@ test('ImageUploader abort settles and releases callbacks when FileReader emits n
   captured?.()
   assert.equal(applied, 0)
 })
+
+test('ImageUploader settles cancellation triggered during FileReader construction', async () => {
+  const { readers, document, file, controller } = controlledFileReader()
+  const BaseReader = document.defaultView.FileReader
+  document.defaultView.FileReader = class extends BaseReader {
+    constructor() {
+      super()
+      // A browser-side adapter or editor teardown can revoke the owning
+      // instance while its reader is being acquired.
+      controller.abort()
+    }
+  }
+  let delivered = 0
+  const pending = new ImageUploader({}).handle(file, () => { delivered++ }, controller.signal, document)
+  const result = await observeCompletion(pending, () => {})
+  assert.deepEqual(result, { status: 'fulfilled', rejection: undefined, eventError: undefined },
+    'synchronously revoked reader acquired a listener after its abort event')
+  assert.equal(readers.length, 1)
+  assert.equal(delivered, 0)
+  assert.equal(getEventListeners(controller.signal, 'abort').length, 0)
+  assert.deepEqual([readers[0].onload, readers[0].onerror, readers[0].onabort], [null, null, null])
+})
