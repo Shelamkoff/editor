@@ -624,3 +624,70 @@ test('native rejected commit observer Promise is contained after success', async
   ])
   assert.equal(engine.health, 'ready')
 })
+
+
+test('selection capture before a command cannot author a second transaction', () => {
+  let engine, armed = true, nestedWrites = 0, denied = null
+  const { store, history, engine: created } = harness({
+    selection: {
+      capture() {
+        if (armed) {
+          armed = false
+          try {
+            engine.execute({ origin: 'external', name: 'unexpected-capture-write' }, tx => {
+              nestedWrites++
+              tx.update('a', block('a', 'Unexpected'))
+            })
+          } catch (error) { denied = error }
+        }
+        return null
+      },
+    },
+  })
+  engine = created
+  engine.execute({ origin: 'user', name: 'ordinary-update' }, tx => tx.update('a', block('a', 'Accepted')))
+  assert.equal(nestedWrites, 0, 'capture authored an independent committed edit before the command')
+  assert.match(String(denied?.message), /capturing-selection/)
+  assert.equal(store.get('a').data.text, 'Accepted')
+  assert.equal(store.revision, 1)
+  assert.equal(history.undoDepth, 1)
+  engine.undo()
+  assert.equal(store.get('a').data.text, 'a', 'Undo did not restore the actual pre-command document')
+  assert.equal(engine.phase, 'idle')
+})
+
+for (const action of ['undo', 'redo']) {
+  test('selection capture before ' + action + ' cannot change the history cursor or model', () => {
+    let engine, armed = false, nestedWrites = 0, denied = null
+    const { store, history, engine: created } = harness({
+      selection: {
+        capture() {
+          if (armed) {
+            armed = false
+            try {
+              engine.execute({ origin: 'external', name: 'unexpected-history-capture-write' }, tx => {
+                nestedWrites++
+                tx.update('a', block('a', 'Unexpected'))
+              })
+            } catch (error) { denied = error }
+          }
+          return null
+        },
+      },
+    })
+    engine = created
+    engine.execute({ origin: 'user', name: 'ordinary-update' },
+      tx => tx.update('a', block('a', 'Accepted')))
+    if (action === 'redo') engine.undo()
+    armed = true
+    const beforeRevision = store.revision
+    assert.equal(engine[action](), true)
+    assert.equal(nestedWrites, 0, action + ' capture performed a second canonical authoring command')
+    assert.match(String(denied?.message), /capturing-selection/)
+    assert.equal(store.revision, beforeRevision + 1)
+    assert.equal(store.get('a').data.text, action === 'undo' ? 'a' : 'Accepted')
+    assert.equal(history.undoDepth, action === 'undo' ? 0 : 1)
+    assert.equal(history.redoDepth, action === 'undo' ? 1 : 0)
+    assert.equal(engine.phase, 'idle')
+  })
+}
