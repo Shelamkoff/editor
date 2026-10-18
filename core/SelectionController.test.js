@@ -32,7 +32,7 @@ function harness() {
   }
   const controller=new SelectionController({root,runtime,reconciler,view})
   return {
-    runtime,view,controller,selections,
+    runtime,view,controller,reconciler,selections,
     mutations:()=>mutations,
     begin(){
       controller.selectBlocks(['a'])
@@ -124,4 +124,45 @@ test('queued cross-block focus never overwrites a later caret inside the same re
       'retired cross-block focus overwrote a newer native caret')
     controller.destroy()
   }
+})
+
+test('destroyed SelectionController cannot reselect blocks through retained public authority', () => {
+  const h = harness()
+  h.controller.destroy()
+  assert.deepEqual(h.view.selectedIds, [])
+  assert.equal(h.controller.selectBlocks(['a']), false)
+  assert.deepEqual(h.view.selectedIds, [],
+    'retired selection controller republished selected block IDs')
+})
+
+test('destroyed SelectionController rejects stale range restoration before probing DOM ownership', () => {
+  const h = harness()
+  let ownershipReads = 0
+  h.reconciler.getEditableField = () => {
+    ownershipReads++
+    throw new Error('destroyed reconciler must not be consulted')
+  }
+  const bookmark = {
+    anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+    focus: { blockId: 'a', fieldKey: 'text', offset: 0 },
+  }
+  h.controller.destroy()
+  assert.equal(h.controller.restore(bookmark), false)
+  assert.equal(ownershipReads, 0)
+})
+
+test('destroyed SelectionController cannot extend or activate a detached author selection', () => {
+  const h = harness()
+  let touched = 0
+  h.reconciler.resolveEditableTarget = () => {
+    touched++
+    throw new Error('stale ownership read')
+  }
+  h.controller.destroy()
+  assert.equal(h.controller.extend('forward'), false)
+  assert.equal(h.controller.activate({
+    collapsed: false, startContainer: {}, endContainer: {},
+    startOffset: 0, endOffset: 0,
+  }), false)
+  assert.equal(touched, 0)
 })
