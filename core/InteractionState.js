@@ -10,6 +10,7 @@ export class InteractionState {
   #onError
   #generation
   #currentClaimVersion = 0
+  #explicitCurrentVersion = 0
 
   constructor({ runtime, reconciler, onChange, onError }) {
     if (!runtime?.list) throw new TypeError('InteractionState requires a DocumentRuntime')
@@ -25,6 +26,10 @@ export class InteractionState {
     return this.#currentId
   }
 
+  // Auto-reconcile can pick a fallback after block deletion. Only an explicit
+  // current-block decision supersedes an outer insert/remove continuation.
+  get explicitCurrentVersion() { return this.#explicitCurrentVersion }
+
   get selectedIds() {
     const selected = this.#selected
     return this.#runtime.ids().filter(id => selected.has(id))
@@ -39,12 +44,14 @@ export class InteractionState {
     const previousCurrentId = this.#currentId
     const previousSelectedIds = this.selectedIds
     if (id === null) {
+      this.#explicitCurrentVersion++
       this.#currentClaimVersion++
       this.#currentId = null
       this.#notify(previousCurrentId, previousSelectedIds)
       return
     }
     if (!this.#runtime.has(id)) throw new Error(`Unknown block id: ${id}`)
+    this.#explicitCurrentVersion++
     // Even a claim of the same block represents a newer focus/selection
     // decision. An older focus call must not overwrite it when its plug-in
     // callback returns after a reentrant interaction.
