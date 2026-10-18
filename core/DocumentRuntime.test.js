@@ -1622,3 +1622,76 @@ test('read-only selection capture keeps committed queries available and leaves n
   assert.equal(runtime.get('a').data.text, 'Writable again')
   runtime.destroy()
 })
+test('save and render telemetry failures never replace canonical operations', () => {
+  for (const failureStage of ['clock', 'threshold', 'emit']) {
+    let tick = 0
+    const telemetryError = new Error('synthetic diagnostic ' + failureStage)
+    const diagnostics = {
+      now() {
+        if (failureStage === 'clock') throw telemetryError
+        return ++tick
+      },
+      threshold() {
+        if (failureStage === 'threshold') throw telemetryError
+        return 0
+      },
+      emit() {
+        if (failureStage === 'emit') throw telemetryError
+      },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+    }
+    const runtime = new DocumentRuntime({
+      registry: registry([paragraphDefinition()]),
+      diagnostics,
+      data: { version: '2.0.0', blocks: [block('a', { text: 'Initial' })] },
+    })
+    try {
+      assert.equal(runtime.save().blocks[0].data.text, 'Initial', failureStage + ' save')
+      assert.doesNotThrow(() => runtime.render({
+        version: '2.0.0',
+        blocks: [block('a', { text: 'Updated' })],
+      }), failureStage + ' render')
+      assert.equal(runtime.get('a').data.text, 'Updated', failureStage + ' persisted document')
+      assert.equal(runtime.health, 'ready')
+    } finally { runtime.destroy() }
+  }
+})
+
+test('save and render diagnostic callbacks cannot author a second transaction', () => {
+  let runtime
+  let clock = 0
+  let attempts = 0
+  let unauthorizedWrites = 0
+  const denials = []
+  const attempt = () => {
+    if (!runtime) return
+    attempts++
+    try {
+      runtime.update('a', () => {
+        unauthorizedWrites++
+        return { data: { text: 'Unwanted diagnostic edit' } }
+      }, 'host')
+    } catch (error) { denials.push(error) }
+  }
+  const diagnostics = {
+    now() { attempt(); return ++clock },
+    threshold() { attempt(); return 0 },
+    emit() { attempt() },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+  }
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    diagnostics,
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Initial' })] },
+  })
+  try {
+    assert.equal(runtime.save().blocks[0].data.text, 'Initial')
+    assert.equal(runtime.get('a').data.text, 'Initial')
+    runtime.render({ version: '2.0.0', blocks: [block('a', { text: 'Updated' })] })
+    assert.equal(runtime.get('a').data.text, 'Updated')
+    assert.ok(attempts >= 3, 'actual diagnostic callbacks were invoked')
+    assert.equal(unauthorizedWrites, 0, 'diagnostic callbacks authored a nested command')
+    assert.equal(denials.length, attempts, 'each diagnostic attempt was rejected')
+    assert.ok(denials.every(error => /diagnostic observation/i.test(String(error))))
+  } finally { runtime.destroy() }
+})
