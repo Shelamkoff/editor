@@ -92,7 +92,7 @@ interface BlockPluginDefinition<Data> {
 
 `HtmlImportCapability` содержит `matchesRoot(element)`, `importRoot(element, context)` и необязательный `inlineWhenSingleRoot: boolean`. Контекст предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного кодирования форматированного текста. Встроенный Paragraph использует флаг для совместимой с первой версией вставки единственного абзаца внутрь текста; сторонний импортёр без явного согласия сохраняет подготовленный блок. Ядро безопасно разбирает весь HTML и строит полный план; ошибка любого принятого элемента отклоняет импорт до изменения документа.
 
-`PasteCapability` содержит `accepts(input)` и `resolve(input, context)` только для текста и файлов. Обработчик получает `AbortSignal`, `ownerDocument` и `createId()`.
+`PasteCapability` содержит `accepts(input)` и `resolve(input, context)` только для текста и файлов. Обработчик получает `AbortSignal`, `ownerDocument`, `createId()` и `createObjectURL(file)`. Для локальных видео и других временных `blob:`-ресурсов используйте этот метод, а не глобальный `URL.createObjectURL`: владелец Clipboard освобождает URL при отмене или ошибке и сохраняет его после успешной транзакции для Undo/Redo до уничтожения редактора. Временный URL не переживает перезагрузку страницы; для постоянного хранения нужен загрузчик.
 
 `ShortcutCapability` содержит `handle(input, data, context)`. Он возвращает `native`, `consume`, `exit`, `focus` или `update`; структурную транзакцию выполняет ядро.
 
