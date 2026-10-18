@@ -15,6 +15,9 @@ function setup() {
   })
   const controls = []
   const view = {
+    insert(type, data, index, authority, options) {
+      return runtime.insert(type, data, index, options, authority)
+    },
     setCurrent: value => controls.push(['current', value]),
     select: value => controls.push(['select', value]),
     clearSelection: () => controls.push(['clear']),
