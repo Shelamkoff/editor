@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { ClipboardController } from './ClipboardController.js'
 import { CLIPBOARD_FRAGMENT_MIME } from './ClipboardFragment.js'
 
-function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text', isComposing = () => false, auxiliaryControl = null } = {}) {
+function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text', isComposing = () => false, auxiliaryControl = null, definitions = null } = {}) {
   const handlers = new Map()
   const host = { contains: () => true }
   const target = {
@@ -44,7 +44,10 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
       finally { preparing = false }
     },
   }
-  const registry = {
+  const registry = definitions ? {
+    blockTypes: Object.keys(definitions),
+    getBlockDefinition: type => definitions[type],
+  } : {
     blockTypes: ['paragraph'],
     getBlockDefinition: () => ({
       capabilities: {
@@ -533,4 +536,66 @@ test('editor toolbar buttons and locked widgets do not steal native clipboard ev
       }finally{h.controller.destroy()}
     }
   }
+})
+
+test('rejected Paste candidate cannot rewrite the file seen by a later registered candidate', async () => {
+  const observed = []
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'original.mp4', type: 'video/mp4' }],
+    accepts: () => true,
+    definitions: {
+      paragraph: { capabilities: { paste: {
+        accepts(input) {
+          input.kind = 'text'
+          input.file = { name: 'spoofed.mp4' }
+          return false
+        },
+        resolve() { throw new Error('rejected Paste route resolved') },
+      } } },
+      video: { capabilities: { paste: {
+        accepts(input) {
+          observed.push(['matches', input.kind, input.file?.name])
+          return input.kind === 'file' && input.file?.name === 'original.mp4'
+        },
+        resolve(input) {
+          observed.push(['resolves', input.kind, input.file?.name])
+          return null
+        },
+      } } },
+    },
+  })
+  try {
+    fixture.paste()
+    for (let index = 0; index < 6; index++) await Promise.resolve()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.deepEqual(observed, [
+      ['matches', 'file', 'original.mp4'],
+      ['resolves', 'file', 'original.mp4'],
+    ])
+  } finally { fixture.controller.destroy() }
+})
+
+test('accepted Paste matcher cannot rewrite its own later resolver input', async () => {
+  let resolvedName
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'original.mp4', type: 'video/mp4' }],
+    accepts: () => true,
+    capability: {
+      accepts(input) {
+        input.file = { name: 'spoofed.mp4', type: 'video/mp4' }
+        return true
+      },
+      resolve(input) {
+        resolvedName = input.file.name
+        return null
+      },
+    },
+  })
+  try {
+    fixture.paste()
+    for (let index = 0; index < 6; index++) await Promise.resolve()
+    assert.equal(resolvedName, 'original.mp4')
+  } finally { fixture.controller.destroy() }
 })
