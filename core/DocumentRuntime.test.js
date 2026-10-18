@@ -1692,6 +1692,6 @@ test('save and render diagnostic callbacks cannot author a second transaction', 
     assert.ok(attempts >= 3, 'actual diagnostic callbacks were invoked')
     assert.equal(unauthorizedWrites, 0, 'diagnostic callbacks authored a nested command')
     assert.equal(denials.length, attempts, 'each diagnostic attempt was rejected')
-    assert.ok(denials.every(error => /diagnostic observation/i.test(String(error))))
+    assert.ok(denials.every(error => /diagnostic[- ]observation/i.test(String(error))))
   } finally { runtime.destroy() }
 })
