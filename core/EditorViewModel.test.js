@@ -115,3 +115,76 @@ test('successful keyed setCaret claims the block after native selection accepts'
   assert.deepEqual(seen, [['b', { fieldKey: 'text', offset: 1 }]])
   assert.deepEqual(h.events, ['b'])
 })
+
+
+test('focus with a target does not claim success after newer caret ownership', () => {
+  let h
+  h = harness({
+    caret() {
+      h.interaction.setCurrent('c')
+      return true
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false,
+    'an old focus reported success after a newer current-block decision')
+  assert.equal(h.view.currentId, 'c')
+  assert.deepEqual(h.events, ['b', 'c'])
+})
+
+test('focus with a target does not claim success after read-only round trip in caret callback', () => {
+  let h
+  h = harness({
+    caret() {
+      h.runtime.readOnly = true
+      h.runtime.modeEpoch++
+      h.runtime.readOnly = false
+      h.runtime.modeEpoch++
+      return true
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+  assert.equal(h.runtime.readOnly, false)
+})
+
+test('focus with a target does not claim success after caret callback destroys the editor', () => {
+  let h
+  h = harness({
+    caret() {
+      h.runtime.health = 'destroyed'
+      return true
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+})
+
+test('focus with a stable caret target returns success and makes the focused block current', () => {
+  const h = harness({ caret: () => true })
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 'end' }), true)
+  assert.equal(h.view.currentId, 'b')
+})
+
+test('a retained setCaret result does not reclaim a newer current-block decision', () => {
+  let h
+  h = harness({
+    caret() {
+      h.interaction.setCurrent('c')
+      return true
+    },
+  })
+  assert.equal(h.view.setCaret('b', { fieldKey: 'text', offset: 0 }), false)
+  assert.equal(h.view.currentId, 'c')
+  assert.deepEqual(h.events, ['c'])
+})
+
+test('setCaret refuses a callback that retires its owning runtime', () => {
+  let h
+  h = harness({
+    caret() {
+      h.runtime.health = 'destroyed'
+      return true
+    },
+  })
+  assert.equal(h.view.setCaret('b', { fieldKey: 'text', offset: 0 }), false)
+  assert.equal(h.view.currentId, 'a')
+  assert.deepEqual(h.events, [])
+})
