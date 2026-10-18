@@ -2405,4 +2405,51 @@ test('queued whole-block replacement respects a later caret inside its resulting
     'Old replacement modified settled history')
 })
 
+
+test('Public selection iterable cannot clear document while being captured', () => {
+  const editor = make([para('a', 'Alpha')])
+  const before = editor.save().blocks
+  const selected = {
+    *[Symbol.iterator]() {
+      editor.clear()
+      yield 'a'
+    },
+  }
+  assert.throws(() => editor.blocks.select(selected), /prepar/i)
+  equal(editor.save().blocks, before,
+    'a selected-ID iterator replaced canonical data before permission revalidation')
+  equal(editor.blocks.selectedIds(), [],
+    'a failed public selection still changed author-selected block IDs')
+})
+
+test('Public focus uses one stable getter snapshot for the plugin and logical caret', () => {
+  const editor = make([para('a', 'Alpha')])
+  let reads = 0
+  const target = {
+    get offset() { return ++reads === 1 ? 'start' : 'end' },
+  }
+  assert.equal(editor.blocks.focus('a', target), true)
+  assert.equal(reads, 1, 'plugin focus and logical selection read different user options')
+  const field = editableField(editor, 'a')
+  const selection = window.getSelection()
+  check(selection?.isCollapsed && field.contains(selection.anchorNode),
+    'focus snapshot did not leave a collapsed caret in the editing host')
+  equal(getTextOffset(field, selection.anchorNode, selection.anchorOffset), 0)
+})
+
+test('Public conversion target getter cannot reenter canonical update during planning', () => {
+  const editor = make([para('a', 'Alpha')])
+  const before = editor.save().blocks
+  const target = {
+    get type() {
+      editor.blocks.update('a', () => ({ data: { text: 'Unwanted nested update' } }))
+      return 'paragraph'
+    },
+  }
+  assert.throws(() => editor.blocks.convert('a', target), /prepar/i,
+    'conversion target accessor entered canonical model building with authoring rights')
+  equal(editor.save().blocks, before)
+  assert.equal(editor.canUndo, false)
+})
+
 await run()
