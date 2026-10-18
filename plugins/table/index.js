@@ -41,6 +41,9 @@ export function createTablePlugin(config = {}) {
       handle(input,data,context){
         if(input.key==='Enter'&&!input.shiftKey){
           const parts=context.splitField(input.fieldKey,input.selection)
+          // The nullable shortcut contract rejects a stale/foreign field.
+          // Do not dereference a missing DOM-owned rich-text selection.
+          if(!parts)return null
           return {
             kind:'update',
             data:{...data,rows:data.rows.map(row=>({...row,cells:row.cells.map(cell=>
