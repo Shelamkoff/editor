@@ -1,6 +1,6 @@
 // @ts-check
 import { editingHostForEvent } from '../shared/editableFields.js'
-import { getTextLength } from '../shared/textOffset.js'
+import { getTextLength, getTextOffset } from '../shared/textOffset.js'
 import { shortcutKey } from '../shared/shortcutKey.js'
 
 function sameEditableRange(bookmark, owner) {
@@ -43,10 +43,11 @@ export class KeyboardRouter {
   #crossSelection
   #controller
   #inlineToolbar
+  #inlineCommands
   #isComposing
   #reportError
 
-  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, crossSelection = null, isComposing = () => false,
+  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, inlineCommands = null, crossSelection = null, isComposing = () => false,
     reportError = error => console.error('Keyboard shortcut failed', error) }) {
     if (!root?.addEventListener) throw new TypeError('KeyboardRouter requires an event root')
     if (!runtime?.splitBlock || !runtime?.mergeAdjacent) throw new TypeError('KeyboardRouter requires a DocumentRuntime')
@@ -63,6 +64,7 @@ export class KeyboardRouter {
     this.#view = view
     this.#crossSelection = crossSelection
     this.#inlineToolbar = inlineToolbar
+    this.#inlineCommands = inlineCommands
     this.#isComposing = typeof isComposing === 'function' ? isComposing : () => false
     this.#reportError = reportError
 
@@ -185,6 +187,30 @@ export class KeyboardRouter {
     if(this.#handleShortcut(owner,event,range,keys))return
     if (!this.#canPresent()) return
 
+    // V1 recognized a typed inline pattern on Space/Enter before allowing
+    // native space insertion or a structural Enter split. The word replacement
+    // and trailing space are one canonical history action.
+    if ((key === ' ' || (key === 'Enter' && !keys.shiftKey))
+      && owner.mode === 'rich-text' && range.start === range.end
+      && this.#inlineCommands?.commitTypedPattern) {
+      let converted
+      try {
+        converted = this.#convertTypedPattern(owner, range, key)
+      } catch (error) {
+        // A recognized pattern whose plugin preparation fails is owned by
+        // this key; never let native input or a block split mutate outside
+        // the failed atomic canonical command.
+        event.preventDefault?.()
+        try { this.#reportError(error) } catch {}
+        return
+      }
+      if (converted) {
+        event.preventDefault?.()
+        return
+      }
+      if (!this.#canPresent()) return
+    }
+
     if (key === 'Enter' && !keys.shiftKey) {
       const handled=this.#handleStructuralKey(event,()=>this.#runtime.isEmpty(owner.blockId)
         ?this.exit(owner.blockId):this.split(owner.blockId,owner.fieldKey,range))
@@ -243,6 +269,31 @@ export class KeyboardRouter {
         event.preventDefault?.()
       }
     }
+  }
+
+  #convertTypedPattern(owner, range, key) {
+    const native = this.#root.ownerDocument.defaultView?.getSelection?.()
+    const node = native?.anchorNode
+    const offset = native?.anchorOffset
+    if (!native?.isCollapsed || node?.nodeType !== 3
+      || typeof node.data !== 'string' || !Number.isInteger(offset)
+      || offset <= 0 || offset > node.data.length
+      || !owner.element.contains?.(node)
+      || node.parentElement?.closest?.('[data-inline-plugin]')
+      || this.#reconciler.resolveInlineWidgetElement?.(node)
+      || getTextOffset(owner.element, node, offset) !== range.end) return false
+
+    // Match only the current native text node, as the v1 word matcher did;
+    // never consume a widget label, sibling editing host or selected range.
+    let start = offset - 1
+    while (start > 0 && node.data[start - 1] !== ' ' && node.data[start - 1] !== '\u00a0') start--
+    const word = node.data.slice(start, offset)
+    if (!word || word.length > range.end) return false
+    return this.#inlineCommands.commitTypedPattern(word, {
+      blockId: owner.blockId,
+      fieldKey: owner.fieldKey,
+      range: { start: range.end - word.length, end: range.end },
+    }, key) === true
   }
 
   #ownership(event) {
