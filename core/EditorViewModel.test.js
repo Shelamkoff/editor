@@ -337,3 +337,99 @@ test('setCaret does not claim current block when its native callback changes the
   assert.equal(h.view.currentId, 'a')
   assert.deepEqual(h.events, [])
 })
+
+
+function nativePlainFocusHarness({ onPluginFocus = null } = {}) {
+  const events = []
+  const ownerDocument = {
+    activeElement: null,
+    defaultView: { getSelection() { return { anchorNode: null } } },
+  }
+  const fields = new Map()
+  for (const id of ['a', 'b', 'c']) {
+    const input = {
+      value: id + '-text', selectionStart: 2, selectionEnd: 2, selectionDirection: 'forward',
+      focus() { ownerDocument.activeElement = this },
+      setSelectionRange(start, end, direction) {
+        this.selectionStart = start
+        this.selectionEnd = end
+        this.selectionDirection = direction
+      },
+    }
+    fields.set(id, { key: 'text', mode: 'plain-text', element: input })
+  }
+  fields.get('a').element.focus()
+  const runtime = {
+    health: 'ready', generation: 1, revision: 1, modeEpoch: 0, readOnly: false,
+    ids: () => ['a', 'b', 'c'], indexOf: id => ['a', 'b', 'c'].indexOf(id),
+    has: id => fields.has(id), list: () => [{id:'a'},{id:'b'},{id:'c'}],
+  }
+  let interaction
+  const reconciler = {
+    getElement(id) { return { ownerDocument } },
+    getEditableFields(id) { return fields.get(id) ? [fields.get(id)] : [] },
+    resolveEditableTarget(element) {
+      for (const [blockId, field] of fields) {
+        if (field.element === element) return { blockId, fieldKey: field.key, ...field }
+      }
+      return null
+    },
+    focus(id, target) {
+      fields.get(id)?.element.focus()
+      onPluginFocus?.(id, target, interaction, ownerDocument, fields)
+      return true
+    },
+  }
+  const root = { ownerDocument }
+  interaction = new InteractionState({
+    runtime, reconciler, onChange: event => events.push(event.currentId),
+  })
+  const selection = new LogicalSelection({ root, reconciler })
+  const view = new EditorViewModel({ runtime, reconciler, interaction, selection })
+  return { view, interaction, runtime, fields, ownerDocument, events }
+}
+
+test('failed native keyed focus restores the previously owned DOM focus and caret', () => {
+  const h = nativePlainFocusHarness()
+  const previous = h.fields.get('a').element
+  const requested = h.fields.get('b').element
+  assert.equal(h.ownerDocument.activeElement, previous)
+  assert.equal(h.view.focus('b', { fieldKey: 'retired-title', offset: 1 }), false)
+  assert.equal(h.view.currentId, 'a')
+  assert.equal(h.ownerDocument.activeElement, previous,
+    'the rejected focus left the native active element on another block')
+  assert.deepEqual([previous.selectionStart, previous.selectionEnd], [2, 2])
+  assert.notEqual(h.ownerDocument.activeElement, requested)
+  assert.deepEqual(h.events, [])
+})
+
+test('a newer explicit focus during a rejected keyed focus must not be rolled back', () => {
+  const h = nativePlainFocusHarness({
+    onPluginFocus(id, _target, interaction, document, fields) {
+      if (id === 'b') {
+        interaction.setCurrent('c')
+        fields.get('c').element.focus()
+      }
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'retired-title', offset: 1 }), false)
+  assert.equal(h.ownerDocument.activeElement, h.fields.get('c').element,
+    'older focus rollback stole a newer accepted native focus')
+  assert.equal(h.view.currentId, 'c')
+  assert.deepEqual(h.events, ['c'])
+})
+
+test('keyed focus may reveal a dynamic editable field after plugin focus', () => {
+  const h = nativePlainFocusHarness({
+    onPluginFocus(id, _target, _interaction, _document, fields) {
+      if (id === 'b') fields.set(id, {
+        key: 'dynamic', mode: 'plain-text',
+        element: Object.assign(fields.get('b').element, { value: 'revealed' }),
+      })
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'dynamic', offset: 2 }), true)
+  assert.equal(h.view.currentId, 'b')
+  assert.equal(h.ownerDocument.activeElement, h.fields.get('b').element)
+  assert.deepEqual(h.events, ['b'])
+})
