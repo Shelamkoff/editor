@@ -94,8 +94,10 @@ export class InlineTriggerController {
       return false
     }
     const modeEpoch=this.#modeEpoch
+    const activeBefore=this.#active, sessionBefore=activeBefore?.session??null
     const bookmark=this.#selection.capture()
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return false
+    if(this.#queryReplaced(activeBefore,sessionBefore))return this.#active!==null
     const point=bookmark?.focus
     if(!bookmark||!point){
       this.#cancel()
@@ -103,6 +105,7 @@ export class InlineTriggerController {
     }
     const field=this.#reconciler.getEditableField(point.blockId,point.fieldKey)
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return false
+    if(this.#queryReplaced(activeBefore,sessionBefore))return this.#active!==null
     if(!field||field.mode!=='rich-text'){
       this.#cancel()
       return false
@@ -124,10 +127,12 @@ export class InlineTriggerController {
   #onInput(event){
     if(this.#controller.signal.aborted||this.#isReadOnly())return
     const modeEpoch=this.#modeEpoch
+    const activeBefore=this.#active, sessionBefore=activeBefore?.session??null
     const route=this.#nativeInputRoute(event)
     // Routing may synchronously destroy this owner or round-trip edit mode.
     // Never reconstruct a query using authority acquired before that call.
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
+    if(this.#queryReplaced(activeBefore,sessionBefore))return
     if(route&&(route.status==='stale'||route.status==='failed'||route.inside===true))return
     if(event.isComposing||this.#isComposing()){
       this.#cancel()
@@ -135,12 +140,14 @@ export class InlineTriggerController {
     }
     const owner=this.#reconciler.resolveEditableTarget(event.target)
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
+    if(this.#queryReplaced(activeBefore,sessionBefore))return
     if(!owner||owner.mode!=='rich-text'){
       this.#cancel()
       return
     }
     const bookmark=this.#selection.capture()
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
+    if(this.#queryReplaced(activeBefore,sessionBefore))return
     if(!bookmark||!this.#collapsedIn(bookmark,owner)){
       this.#cancel()
       return
@@ -150,8 +157,10 @@ export class InlineTriggerController {
 
   #refreshOwner(owner,bookmark){
     const modeEpoch=this.#modeEpoch
+    const activeBefore=this.#active, sessionBefore=activeBefore?.session??null
     const text=this.#textBeforeCaret(owner.element)
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
+    if(this.#queryReplaced(activeBefore,sessionBefore))return
     if(text===null){
       this.#cancel()
       return
@@ -200,10 +209,11 @@ export class InlineTriggerController {
   }
 
   #publish(active,query,focusOffset){
-    const modeEpoch=this.#modeEpoch
+    const modeEpoch=this.#modeEpoch, sessionBefore=active.session
     const textPrefix=this.#textBeforeCaret(active.anchor)
     if(this.#controller.signal.aborted||this.#isReadOnly()
-      ||modeEpoch!==this.#modeEpoch||this.#active!==active)return
+      ||modeEpoch!==this.#modeEpoch||this.#active!==active
+      ||active.session!==sessionBefore)return
     active.textPrefix=textPrefix
     const session=Object.freeze({
       blockId:active.blockId,
@@ -239,14 +249,15 @@ export class InlineTriggerController {
     if(event.defaultPrevented||event.isComposing||event.keyCode===229||this.#isComposing())return
     const active=this.#active
     if(!active?.session)return
+    const session=active.session
     const modeEpoch=this.#modeEpoch
     const liveRange=this.#liveRange(active)
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
+    if(this.#queryReplaced(active,session))return
     if(!liveRange){
       if(this.#active===active)this.#cancel()
       return
     }
-    const session=active.session
     let result
     try {
       result=synchronousResult(
@@ -313,6 +324,13 @@ export class InlineTriggerController {
     const active=this.#active
     this.#active=null
     if(active)this.#observe(()=>invokeObserver(()=>synchronousResult(active.runtime.onTriggerCancel?.()),[],this.#reportError))
+  }
+
+  #queryReplaced(active,session) {
+    // A nested capture/route/DOM callback can install a successor without
+    // changing the document revision or control mode. The older invocation
+    // must not publish a second callback for that newer query.
+    return this.#active!==active||(active?.session??null)!==session
   }
 
   #collapsedIn(bookmark,owner){
