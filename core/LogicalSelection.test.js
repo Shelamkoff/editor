@@ -132,3 +132,111 @@ test('collapsed native selection callback cannot report an older editor focus as
     'native selection callback transferred author focus but old restore reported success')
   assert.equal(h.ownerDocument.activeElement, newer)
 })
+
+
+test('fieldless block focus cannot claim a replaced shell with the same ID', () => {
+  const doc = { activeElement: null, defaultView: { getSelection() { return null } } }
+  let current
+  const original = {
+    focus() {
+      doc.activeElement = this
+      current = { focus() { doc.activeElement = this } }
+    },
+  }
+  current = original
+  const reconciler = {
+    resolveEditableTarget() { return null },
+    getEditableFields() { return [] },
+    getElement(id) { return id === 'a' ? current : null },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: doc }, reconciler })
+  const point = { blockId: 'a', fieldKey: '', offset: 0 }
+  assert.equal(logical.restore({ anchor: point, focus: { ...point } }), false,
+    'fieldless focus accepted a detached shell that reused the original block ID')
+  assert.notEqual(current, original)
+})
+
+test('fieldless block focus failure is reported without leaking an exception', () => {
+  const doc = { activeElement: null, defaultView: { getSelection() { return null } } }
+  const reconciler = {
+    resolveEditableTarget() { return null },
+    getEditableFields() { return [] },
+    getElement() { return { focus() { throw new Error('host was detached') } } },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: doc }, reconciler })
+  const point = { blockId: 'a', fieldKey: '', offset: 0 }
+  assert.equal(logical.restore({ anchor: point, focus: { ...point } }), false)
+})
+
+test('plain-text capture does not return an owner retired during target resolution', () => {
+  const doc = { activeElement: null, defaultView: { getSelection() { return null } } }
+  const original = { selectionStart: 1, selectionEnd: 1, selectionDirection: 'forward' }
+  const newer = { selectionStart: 3, selectionEnd: 3 }
+  doc.activeElement = original
+  const reconciler = {
+    resolveEditableTarget(element) {
+      if (element === original) {
+        doc.activeElement = newer
+        return { blockId: 'a', fieldKey: 'text', mode: 'plain-text', element: original }
+      }
+      return null
+    },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: doc }, reconciler })
+  assert.equal(logical.capture(), null,
+    'selection snapshot retained the old plain-text field after a newer focus')
+})
+
+test('plain-text selection getters cannot return a bookmark after focus changes', () => {
+  const doc = { activeElement: null, defaultView: { getSelection() { return null } } }
+  const newer = { value: 'newer' }
+  const original = {
+    get selectionStart() {
+      doc.activeElement = newer
+      return 2
+    },
+    selectionEnd: 4,
+    selectionDirection: 'forward',
+  }
+  doc.activeElement = original
+  const reconciler = {
+    resolveEditableTarget(element) {
+      return element === original
+        ? { blockId: 'a', fieldKey: 'code', mode: 'plain-text', element: original }
+        : null
+    },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: doc }, reconciler })
+  assert.equal(logical.capture(), null,
+    'selection getter switched active field but old field was still captured')
+})
+
+test('rich-text capture rejects native selection changed during endpoint resolution', () => {
+  const text = { nodeType: 3, textContent: 'Alpha', data: 'Alpha' }
+  const rootField = {
+    nodeType: 1, childNodes: [text],
+    contains(node) { return node === this || node === text },
+    hasAttribute() { return false },
+  }
+  text.parentNode = rootField
+  const native = {
+    anchorNode: text, focusNode: text, anchorOffset: 1, focusOffset: 1,
+  }
+  const doc = {
+    activeElement: rootField,
+    defaultView: { getSelection() { return native } },
+  }
+  let resolutions = 0
+  const reconciler = {
+    resolveEditableTarget(node) {
+      if (node === text) {
+        if (++resolutions === 1) native.focusOffset = 4
+        return { blockId: 'a', fieldKey: 'text', mode: 'rich-text', element: rootField }
+      }
+      return null
+    },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: doc }, reconciler })
+  assert.equal(logical.capture(), null,
+    'mixed native endpoints from different selection moments became one bookmark')
+})
