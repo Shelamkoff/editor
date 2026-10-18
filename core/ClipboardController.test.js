@@ -961,3 +961,81 @@ test('private clipboard formats getter cannot make a retired Paste consume its o
   assert.equal(reads, 0, 'retired owner read clipboard after types getter callback')
   assert.equal(mutations, 0)
 })
+
+
+test('clipboard matcher mode-epoch round trip invalidates original Paste', () => {
+  let modeFlips = 0, mutations = 0
+  const h = clipboardHarness({
+    accepts() {
+      modeFlips++
+      h.runtime.readOnly = true
+      h.runtime.modeEpoch++
+      h.runtime.readOnly = false
+      h.runtime.modeEpoch++
+      return false
+    },
+    formats: ['text/plain'],
+    read: type => type === 'text/plain' ? 'Hello' : '',
+  })
+  h.runtime.modeEpoch = 0
+  h.runtime.replaceLogicalRange = () => {
+    mutations++
+    return { blockId: 'a', fieldKey: 'text', offset: 5 }
+  }
+  h.paste()
+  assert.equal(modeFlips, 1, 'route was never evaluated')
+  assert.equal(mutations, 0,
+    'a mode-revoked Paste performed canonical authoring on restored editability')
+  assert.equal(h.event.defaultPrevented, false,
+    'old Paste took native event ownership after a control-mode round trip')
+  h.controller.destroy()
+})
+
+test('clipboard final field resolution that destroys editor cannot author a Paste', () => {
+  let calls = 0, mutations = 0
+  const h = clipboardHarness({
+    accepts: () => false,
+    formats: ['text/plain'],
+    read: type => type === 'text/plain' ? 'Hello' : '',
+  })
+  const resolve = h.reconciler.resolveEditableTarget.bind(h.reconciler)
+  h.reconciler.resolveEditableTarget = target => {
+    calls++
+    if (calls === 3) h.controller.destroy()
+    return resolve(target)
+  }
+  h.runtime.replaceLogicalRange = () => {
+    mutations++
+    return { blockId: 'a', fieldKey: 'text', offset: 5 }
+  }
+  h.paste()
+  assert.equal(calls, 3, 'did not reach final owned-field lookup')
+  assert.equal(mutations, 0, 'final field lookup retired Paste before canonical action')
+  assert.equal(h.event.defaultPrevented, false,
+    'destroyed Paste listener stole the event after final field lookup')
+})
+
+test('clipboard ingress mode-epoch switch revokes a captured Paste before reading data', () => {
+  let reads = 0, queries = 0
+  const h = clipboardHarness({
+    accepts: () => false,
+    formats: ['text/plain'],
+    read() { reads++; return 'Hello' },
+  })
+  h.runtime.modeEpoch = 0
+  const resolve = h.reconciler.resolveEditableTarget.bind(h.reconciler)
+  h.reconciler.resolveEditableTarget = target => {
+    queries++
+    if (queries === 1) {
+      h.runtime.readOnly = true
+      h.runtime.modeEpoch++
+      h.runtime.readOnly = false
+      h.runtime.modeEpoch++
+    }
+    return resolve(target)
+  }
+  h.paste()
+  assert.equal(queries, 1, 'old Paste continued after mode switch in ownership lookup')
+  assert.equal(reads, 0)
+  assert.equal(h.event.defaultPrevented, false)
+})
