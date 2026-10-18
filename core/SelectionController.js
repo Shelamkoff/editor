@@ -20,6 +20,7 @@ export class SelectionController {
   #range = null
   #wholeBlocks = false
   #conversionCaret = false
+  #stagingComposition = false
   #generation = 0
   #navigationX = null
   #highlight = null
@@ -383,25 +384,57 @@ export class SelectionController {
   }
 
   beginComposition() {
-    if (this.#controller.signal.aborted || !this.active || this.#runtime.readOnly) return null
-    const bookmark = this.bookmark
-    if (!bookmark && this.wholeBlockIds.length) return this.#beginWholeComposition(this.wholeBlockIds)
-    const built = this.#buildRange(bookmark)
-    const native = this.#window?.getSelection?.()
-    if (!built || !native) return null
-    const start = this.#comparePoints(bookmark.anchor, bookmark.focus) <= 0 ? bookmark.anchor : bookmark.focus
-    const field = this.#reconciler.getEditableField(start.blockId, start.fieldKey)
-    if (!field || field.mode === 'plain-text') return null
+    if (this.#controller.signal.aborted || this.#runtime.readOnly
+      || this.#runtime.health !== 'ready' || !this.active) return null
     const generation = this.#runtime.generation
     const revision = this.#runtime.revision
     const modeEpoch = this.#runtime.modeEpoch
+    const canStage = () => !this.#controller.signal.aborted
+      && !this.#runtime.readOnly
+      && this.#runtime.health === 'ready'
+      && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch
+    const bookmark = this.bookmark
+    if (!canStage()) return null
+    if (!bookmark && this.wholeBlockIds.length) return this.#beginWholeComposition(this.wholeBlockIds)
+    const built = this.#buildRange(bookmark)
+    const native = this.#window?.getSelection?.()
+    if (!built || !native || !canStage() || typeof native.setBaseAndExtent !== 'function'
+      || !this.#ownsRangeEndpoints(bookmark,built)) return null
+    const start = this.#comparePoints(bookmark.anchor, bookmark.focus) <= 0 ? bookmark.anchor : bookmark.focus
+    const field = this.#reconciler.getEditableField(start.blockId, start.fieldKey)
+    if (!field || field.mode === 'plain-text' || !canStage()
+      || !this.#ownsRangeEndpoints(bookmark,built)) return null
     const whole = this.#wholeBlocks
     let settled = false
-    // Chrome cannot compose into a Range spanning independent editing hosts.
-    // Preserve the logical intent while letting its preedit live in one host.
+    // Stage the preedit caret before retiring the existing author-selected
+    // range. Focus/native selection callbacks can throw, remount the field,
+    // move to another editor or revoke the control epoch. In all such cases
+    // retain the old logical range rather than leaking an IME session.
+    const stagingCaret={blockId:start.blockId,fieldKey:start.fieldKey,offset:start.offset}
+    let staged=false
+    this.#stagingComposition=true
+    try {
+      field.element.focus({ preventScroll: true })
+      if (canStage() && this.#document.activeElement===field.element
+        && this.#ownsRangeEndpoints(bookmark,built)) {
+        native.setBaseAndExtent(
+          built.range.startContainer,built.range.startOffset,
+          built.range.startContainer,built.range.startOffset,
+        )
+        const collapsed={anchor:stagingCaret,focus:stagingCaret}
+        staged=canStage() && this.#document.activeElement===field.element
+          && this.#ownsRangeEndpoints(bookmark,built)
+          && this.#nativeSelectionMatches(collapsed,native)
+      }
+    } catch {
+      staged=false
+    } finally {
+      this.#stagingComposition=false
+    }
+    if (!staged) return null
     this.#deactivate()
-    field.element.focus({ preventScroll: true })
-    native.setBaseAndExtent(built.range.startContainer, built.range.startOffset, built.range.startContainer, built.range.startOffset)
     const restore = () => {
       if (settled || this.#controller.signal.aborted || this.#runtime.readOnly
         || this.#runtime.health !== 'ready' || this.#runtime.modeEpoch !== modeEpoch
@@ -563,7 +596,10 @@ export class SelectionController {
   }
 
   #ensureCurrent() {
-    if (!this.#bookmark) return
+    // Native focus/selectionchange may fire while the IME preedit is being
+    // staged. Until its caret has been proven valid, preserve the original
+    // cross-block author bookmark rather than clearing it reentrantly.
+    if (this.#stagingComposition || !this.#bookmark) return
     if (this.#generation !== this.#runtime.generation) {
       this.clear()
       return
