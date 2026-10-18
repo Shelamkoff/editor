@@ -94,7 +94,7 @@ export class SelectionController {
   }
 
   extend(direction, granularity = 'character') {
-    if (this.#wholeBlocks || this.#runtime.readOnly) return false
+    if (this.#controller.signal.aborted || this.#wholeBlocks || this.#runtime.readOnly) return false
     const native = this.#window?.getSelection?.()
     let bookmark = this.bookmark
     if (!this.active) {
@@ -161,6 +161,7 @@ export class SelectionController {
   }
 
   selectBlocks(ids) {
+    if (this.#controller.signal.aborted) return false
     if (!Array.isArray(ids)) throw new TypeError('Selected block ids must be an array')
     for (const id of ids) {
       if (typeof id !== 'string' || !this.#runtime.has(id)) throw new Error(`Unknown block id: ${id}`)
@@ -172,6 +173,8 @@ export class SelectionController {
   }
 
   restore(bookmark) {
+    // Deferred history restoration may outlive its editor and projection.
+    if (this.#controller.signal.aborted) return false
     const built = this.#buildRange(bookmark)
     if (!built) return false
     const native = this.#window?.getSelection?.()
@@ -196,7 +199,7 @@ export class SelectionController {
   }
 
   activate(range) {
-    if (!range || range.collapsed) return false
+    if (this.#controller.signal.aborted || !range || range.collapsed) return false
     const start = this.#logicalPoint(range.startContainer, range.startOffset)
     const end = this.#logicalPoint(range.endContainer, range.endOffset)
     if (
@@ -265,6 +268,7 @@ export class SelectionController {
   }
 
   removeWholeBlocks() {
+    if (this.#controller.signal.aborted) return false
     const ids = this.wholeBlockIds
     if (!ids.length) return false
     const currentId = this.#runtime.interact('selection.remove', () => this.#runtime.removeBlocks(ids), blockId => {
@@ -284,6 +288,7 @@ export class SelectionController {
   }
 
   replace(replacement = { kind: 'text', text: '' }) {
+    if (this.#controller.signal.aborted) return false
     const bookmark = this.bookmark
     const whole = this.wholeBlockIds
     if (!bookmark && !whole.length) return false
@@ -306,7 +311,7 @@ export class SelectionController {
   }
 
   beginComposition() {
-    if (!this.active || this.#runtime.readOnly) return null
+    if (this.#controller.signal.aborted || !this.active || this.#runtime.readOnly) return null
     const bookmark = this.bookmark
     if (!bookmark && this.wholeBlockIds.length) return this.#beginWholeComposition(this.wholeBlockIds)
     const built = this.#buildRange(bookmark)
@@ -344,6 +349,7 @@ export class SelectionController {
   }
 
   split() {
+    if (this.#controller.signal.aborted) return false
     const bookmark=this.bookmark
     if(!bookmark||this.#wholeBlocks||this.#runtime.readOnly)return false
     const nextId=this.#runtime.interact('selection.split',()=>{
@@ -391,7 +397,7 @@ export class SelectionController {
   }
 
   selectAllBlocks() {
-    if(!this.#runtime.size)return false
+    if(this.#controller.signal.aborted || !this.#runtime.size)return false
     const firstId=this.#runtime.idAt(0)
     const lastId=this.#runtime.idAt(this.#runtime.size-1)
     if(!firstId||!lastId)return false
@@ -442,6 +448,7 @@ export class SelectionController {
   }
 
   destroy() {
+    if (this.#controller.signal.aborted) return
     this.clear()
     this.#controller.abort()
   }
