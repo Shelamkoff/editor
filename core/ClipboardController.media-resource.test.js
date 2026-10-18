@@ -422,3 +422,66 @@ test('abort during a rejected canonical Paste releases the blob after rollback',
   } finally { fixtureInstance.controller.destroy() }
   assert.deepEqual(fixtureInstance.revoked, fixtureInstance.created)
 })
+test('Paste diagnostic clock failure does not prevent an owned asynchronous file insertion', async () => {
+  const f = fixture({
+    diagnostics: {
+      now() { throw new Error('telemetry clock unavailable') },
+      threshold() { return 0 },
+      emit() {},
+      errorName(error) { return error?.name ?? 'UnknownError' },
+    },
+  })
+  try {
+    assert.doesNotThrow(() => f.paste(), 'telemetry stopped native Paste before file resolution')
+    await f.settle()
+    assert.equal(f.applied.length, 1)
+    assert.equal(f.created.length, 1)
+  } finally { f.controller.destroy() }
+})
+
+test('Paste telemetry failure cannot interrupt a completed asynchronous Paste', async () => {
+  let tick = 0
+  const f = fixture({
+    diagnostics: {
+      now() { return ++tick },
+      threshold() { throw new Error('broken telemetry threshold') },
+      emit() { throw new Error('broken telemetry emission') },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+    },
+  })
+  try {
+    assert.equal(f.paste().defaultPrevented, true)
+    await f.settle()
+    assert.equal(f.applied.length, 1)
+    assert.deepEqual(f.revoked, [], 'successful async Paste lost its persisted media lease')
+    // A second Paste must remain possible after the previous task's finally.
+    assert.equal(f.paste().defaultPrevented, true)
+    await f.settle()
+    assert.equal(f.applied.length, 2)
+  } finally { f.controller.destroy() }
+  assert.deepEqual(f.revoked, f.created, 'all retained media URLs must release on destroy')
+})
+
+test('Paste resolver rejection with throwing diagnostics is contained and a later Paste still works', async () => {
+  let resolves = 0
+  const f = fixture({
+    resolve: (_input, context) => {
+      if (++resolves === 1) throw new Error('resolver rejected')
+      return { kind: 'block', data: { src: context.createObjectURL({ name: 'sample.mp4' }) } }
+    },
+    diagnostics: {
+      now() { return 1 },
+      threshold() { return Infinity },
+      emit() { throw new Error('diagnostics transport unavailable') },
+      errorName() { return 'Error' },
+    },
+  })
+  try {
+    f.paste()
+    await f.settle()
+    assert.equal(f.applied.length, 0)
+    f.paste()
+    await f.settle()
+    assert.equal(f.applied.length, 1)
+  } finally { f.controller.destroy() }
+})
