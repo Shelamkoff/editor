@@ -145,32 +145,24 @@ export class InlineCommandController {
     const segments = this.#runtime.prepareExtensionValue(() => {
       const matches = []
       let order = 0
-      for (const type of this.#registry.inlineTypes) {
-        const definition = this.#registry.getInlineDefinition(type)
-        const paste = definition?.paste
-        if (!paste?.patterns?.length || typeof paste.fromMatch !== 'function') continue
+      // V1 matches whitespace-delimited words, not substrings within one
+      // word. Scanning for unanchored fragments converted URL suffixes such
+      // as "https://host/#fff" into widgets and could convert one token twice.
+      for (const token of text.matchAll(/\\S+/g)) {
+        const value = token[0]
+        let matchedWord = false
+        for (const type of this.#registry.inlineTypes) {
+          const definition = this.#registry.getInlineDefinition(type)
+          const paste = definition?.paste
+          if (!paste?.patterns?.length || typeof paste.fromMatch !== 'function') continue
 
-        for (const pattern of paste.patterns) {
-          if (!(pattern instanceof RegExp)) continue
-          let source = pattern.source
-          if (source.startsWith('^')) source = source.slice(1)
-          if (source.endsWith('$')) source = source.slice(0, -1)
-          if (!source) continue
-
-          const flags = [...pattern.flags]
-            .filter(flag => flag !== 'g' && flag !== 'y')
-            .join('') + 'g'
-          const search = new RegExp(source, flags)
-          // RegExp.test with /g or /y mutates lastIndex. Never run it on
-          // extension-owned RegExp objects, which may be frozen or reused by
-          // another editor. Keep the original full-pattern validation rules.
-          const validator = new RegExp(pattern.source, pattern.flags)
-          const validate = pattern.test
-
-          for (const match of text.matchAll(search)) {
-            const value = match[0]
-            if (!value) continue
-
+          for (const pattern of paste.patterns) {
+            if (!(pattern instanceof RegExp)) continue
+            // Run the extension's acceptance predicate against the *whole*
+            // token with the original flags, without changing its own
+            // RegExp.lastIndex (shared patterns may be frozen or reused).
+            const validator = new RegExp(pattern.source, pattern.flags)
+            const validate = pattern.test
             validator.lastIndex = 0
             let accepted
             try { accepted = synchronousResult(Reflect.apply(validate, validator, [value])) }
@@ -187,13 +179,14 @@ export class InlineCommandController {
             }
             const data = cloneEditorData(candidate)
             matches.push({
-              start: match.index ?? 0,
-              end: (match.index ?? 0) + value.length,
-              type,
-              data,
-              order: order++,
+              start: token.index ?? 0,
+              end: (token.index ?? 0) + value.length,
+              type, data, order: order++,
             })
+            matchedWord = true
+            break
           }
+          if (matchedWord) break
         }
       }
 
