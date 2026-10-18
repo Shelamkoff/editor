@@ -539,3 +539,53 @@ test('retired instance callbacks cannot return data or identifiers after revocat
     assert.equal(callbackCalls, 1)
   }
 })
+test('revoked instance cannot run a producer after canonical input snapshot callback', () => {
+  const scope = new InstanceScope({ staged: false, generation: 1 })
+  let persisted = 0, producers = 0
+  const input = {}
+  Object.defineProperty(input, 'value', {
+    enumerable: true,
+    get() { scope.revoke(); return 1 },
+  })
+  const context = scope.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData(produce) {
+      produce(input)
+      persisted++
+    },
+  })
+  assert.throws(
+    () => context.updateData(current => {
+      producers++
+      return { ...current, value: 2 }
+    }),
+    error => error?.name === 'AbortError',
+    'retired source snapshot allowed the author producer to run',
+  )
+  assert.equal(producers, 0)
+  assert.equal(persisted, 0)
+})
+
+test('instance cannot persist a producer result after the producer retires its owner', () => {
+  const scope = new InstanceScope({ staged: false, generation: 2 })
+  let persisted = 0, producers = 0
+  const context = scope.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData(produce) {
+      produce({ value: 1 })
+      persisted++
+    },
+  })
+  assert.throws(
+    () => context.updateData(current => {
+      producers++
+      scope.setReadOnly(true)
+      scope.setReadOnly(false)
+      return { ...current, value: 2 }
+    }),
+    error => error?.name === 'AbortError',
+    'read-only round trip inside the producer allowed an old patch to persist',
+  )
+  assert.equal(producers, 1, 'test did not exercise the producer callback')
+  assert.equal(persisted, 0, 'retired update result crossed into committed author data')
+})
