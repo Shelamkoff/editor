@@ -123,3 +123,24 @@ test('GalleryUploader releases earlier FileReaders if later construction fails',
     'failed gallery setup leaked a live FileReader through AbortSignal')
   assert.deepEqual([readers[0].onload, readers[0].onerror, readers[0].onabort], [null, null, null])
 })
+
+test('GalleryUploader does not construct the rest of a batch after synchronous owner cancellation', async () => {
+  const { readers, document, file, controller } = controlledFileReader()
+  const BaseReader = document.defaultView.FileReader
+  document.defaultView.FileReader = class extends BaseReader {
+    constructor() {
+      super()
+      if (readers.length === 1) controller.abort()
+    }
+  }
+  let committed = 0
+  const result = await observeCompletion(
+    new GalleryUploader({}).handle([file, file, file], () => { committed++ }, controller.signal, document),
+    () => {},
+  )
+  assert.deepEqual(result, { status: 'fulfilled', rejection: undefined, eventError: undefined })
+  assert.equal(readers.length, 1, 'canceled batch kept constructing readers for remaining files')
+  assert.equal(committed, 0)
+  assert.equal(getEventListeners(controller.signal, 'abort').length, 0)
+  assert.deepEqual([readers[0].onload, readers[0].onerror, readers[0].onabort], [null, null, null])
+})
