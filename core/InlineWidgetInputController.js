@@ -85,12 +85,17 @@ export class InlineWidgetInputController {
     })
   }
 
-  destroy(){this.#controller.abort()}
+  destroy(){
+    if(this.#controller.signal.aborted)return
+    this.#controller.abort()
+    this.#nativeEventRoutes=new WeakMap()
+  }
 
   /** Keep event-local routing distinct from the pending input envelope.
    * Other native input observers continue to receive the event.
    */
   markNativeInputEvent(event,result){
+    if(this.#controller.signal.aborted)return
     if(event&&typeof event==='object'){
       this.#nativeEventRoutes.set(event,Object.freeze({
         status:result?.status??'failed',
@@ -100,6 +105,7 @@ export class InlineWidgetInputController {
   }
 
   nativeInputRoute(event){
+    if(this.#controller.signal.aborted)return null
     return event&&typeof event==='object'
       ?this.#nativeEventRoutes.get(event)??null:null
   }
@@ -109,6 +115,7 @@ export class InlineWidgetInputController {
    * This uses the existing NativeInputController pending envelope.
    */
   captureNativeDeletion(owner,event,native){
+    if(this.#controller.signal.aborted)return null
     if(!owner||owner.mode!=='rich-text'||this.#runtime.readOnly
       ||this.#runtime.canAccessFormattingSelection?.()!==true
       ||event?.defaultPrevented||event?.isComposing
@@ -178,7 +185,7 @@ export class InlineWidgetInputController {
    * A stale event remains owned and must not enter generic field persistence.
    */
   completeNativeDeletion(snapshot,event){
-    if(!snapshot)return {status:'stale'}
+    if(this.#controller.signal.aborted||!snapshot)return {status:'stale'}
     const field=this.#reconciler.getEditableField(snapshot.blockId,snapshot.fieldKey)
     if(this.#runtime.readOnly||!field||field.element!==snapshot.fieldElement
       ||snapshot.generation!==this.#runtime.generation
@@ -245,7 +252,7 @@ export class InlineWidgetInputController {
 
   /** Discard only current committed projection drift, never a replacement. */
   discardStaleNativeDeletion(snapshot){
-    if(!snapshot||this.#runtime.readOnly)return
+    if(this.#controller.signal.aborted||!snapshot||this.#runtime.readOnly)return
     const field=this.#reconciler.getEditableField(snapshot.blockId,snapshot.fieldKey)
     const current=this.#runtime.get(snapshot.blockId)
     if(field?.element!==snapshot.fieldElement
@@ -372,7 +379,8 @@ export class InlineWidgetInputController {
   }
 
   #beforeInput(event){
-    if(this.#runtime.readOnly||event.defaultPrevented||event.isComposing
+    if(this.#controller.signal.aborted||this.#runtime.readOnly
+      ||event.defaultPrevented||event.isComposing
       ||event.cancelable!==true)return
     const eventTarget=event.target
     if(!eventTarget||!this.#root.contains(eventTarget)
@@ -440,7 +448,8 @@ export class InlineWidgetInputController {
     if(action===null)return
     this.#claimBeforeInput(event)
 
-    if(this.#runtime.readOnly||this.#runtime.generation!==startGeneration
+    if(this.#controller.signal.aborted||this.#runtime.readOnly
+      ||this.#runtime.generation!==startGeneration
       ||this.#runtime.revision!==startRevision
       ||this.#projection.resolveWidgetElement(target.element)!==target.element)return
 
@@ -458,6 +467,7 @@ export class InlineWidgetInputController {
   }
 
   #withCaret(target,action,operation){
+    if(this.#controller.signal.aborted)return
     const inside=action.kind==='update'
     const localCaret=Number.isInteger(action.caret)?action.caret:null
     const offset=inside
