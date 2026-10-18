@@ -29,6 +29,12 @@ export class LogicalSelection {
       const fields=this.#reconciler.getEditableFields(focusedBlock)
       if(document.activeElement !== active)return null
       if(!fields.length){
+        // A fieldless owner may be a block shell or an auxiliary control
+        // inside it. The current shell must still contain that exact active
+        // node after field discovery (which can synchronously remount it).
+        const shell=this.#reconciler.getElement(focusedBlock)
+        if(!shell || (shell!==active && !shell.contains?.(active))
+          || document.activeElement!==active) return null
         const point={blockId:focusedBlock,fieldKey:'',offset:0}
         return {anchor:point,focus:{...point}}
       }
@@ -90,7 +96,13 @@ export class LogicalSelection {
         if(this.#reconciler.getElement(blockId)!==block)return false
         block.tabIndex=-1
         block.focus({preventScroll:true})
+        // Plugin focus can reveal an editable field without changing the
+        // block ID or shell. An old fieldless history bookmark no longer
+        // addresses that newly available authoring surface.
         return this.#root.ownerDocument.activeElement===block
+          &&this.#reconciler.getElement(blockId)===block
+          &&!this.#reconciler.getEditableFields(blockId).length
+          &&this.#root.ownerDocument.activeElement===block
           &&this.#reconciler.getElement(blockId)===block
       }catch{
         return false
