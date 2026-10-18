@@ -771,3 +771,47 @@ test('selectionAfter teardown before commit leaves canonical model and history u
   assert.equal(store.revision, 0)
   assert.equal(history.canUndo, false)
 })
+
+
+test('transaction metadata accessors cannot author a second transaction before dispatch', () => {
+  const { engine, store, history } = harness()
+  let reads = 0, nestedWrites = 0, denial = null
+  const metadata = {
+    origin: 'user',
+    get name() {
+      reads++
+      try {
+        engine.execute({ origin: 'external', name: 'hidden-meta-edit' }, tx => {
+          nestedWrites++
+          tx.update('a', block('a', 'Injected'))
+        })
+      } catch (error) { denial = error }
+      return 'visible-edit'
+    },
+  }
+  engine.execute(metadata, tx => tx.update('a', block('a', 'Accepted')))
+  assert.equal(reads, 1, 'the command metadata name getter was read more than once')
+  assert.equal(nestedWrites, 0, 'metadata getter committed an unrelated command')
+  assert.match(String(denial?.message), /preparing-metadata/)
+  assert.equal(store.get('a').data.text, 'Accepted')
+  assert.equal(store.revision, 1)
+  assert.equal(history.undoDepth, 1)
+  engine.undo()
+  assert.equal(store.get('a').data.text, 'a')
+})
+
+test('transaction command name is an owned one-read snapshot for history and events', () => {
+  const emitted = []
+  const { engine, store, history } = harness({ onCommit: event => emitted.push(event) })
+  let reads = 0
+  const metadata = {
+    origin: 'user',
+    get name() { return ++reads === 1 ? 'first-name' : 'changed-name' },
+  }
+  engine.execute(metadata, tx => tx.update('a', block('a', 'Next')))
+  assert.equal(reads, 1, 'one command observed multiple names from external accessor')
+  assert.equal(emitted.length, 1)
+  assert.equal(emitted[0].name, 'first-name')
+  assert.equal(store.get('a').data.text, 'Next')
+  assert.equal(history.undoDepth, 1)
+})
