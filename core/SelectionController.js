@@ -460,9 +460,22 @@ export class SelectionController {
     if (!staged) return null
     this.#deactivate()
     const restore = () => {
-      if (settled || this.#controller.signal.aborted || this.#runtime.readOnly
+      if (settled) return false
+      // IME may alter the provisional caret within its current host, but a
+      // newer focus on another host, or remount of the original field, is a
+      // different author gesture and permanently revokes this old session.
+      let ownsNativeHost=false
+      try {
+        const currentField=this.#reconciler.getEditableField(start.blockId,start.fieldKey)
+        ownsNativeHost=currentField?.element===field.element
+          &&this.#document.activeElement===field.element
+      } catch {}
+      if (!ownsNativeHost || this.#controller.signal.aborted || this.#runtime.readOnly
         || this.#runtime.health !== 'ready' || this.#runtime.modeEpoch !== modeEpoch
-        || this.#runtime.generation !== generation || this.#runtime.revision !== revision) return false
+        || this.#runtime.generation !== generation || this.#runtime.revision !== revision) {
+        settled=true
+        return false
+      }
       settled = true
       if (!this.restore(bookmark)) return false
       this.#wholeBlocks = whole
@@ -537,10 +550,25 @@ export class SelectionController {
     // Untouched blocks must never retain provisional preedit DOM after the
     // canonical commit. The old selection is retired only after stage succeeds.
     this.#deactivate()
+    const stagedSelection=[...this.#view.selectedIds]
+    const stagedCurrent=this.#view.currentId
+    const stagedFocus=this.#document.activeElement
     const restore = () => {
-      if (settled || this.#controller.signal.aborted || this.#runtime.readOnly
+      if (settled) return false
+      let sameAuthorSelection=false
+      try {
+        const currentSelected=[...this.#view.selectedIds]
+        sameAuthorSelection=currentSelected.length===stagedSelection.length
+          &&currentSelected.every((id,index)=>id===stagedSelection[index])
+          &&this.#view.currentId===stagedCurrent
+          &&this.#document.activeElement===stagedFocus
+      } catch {}
+      if (!sameAuthorSelection || this.#controller.signal.aborted || this.#runtime.readOnly
         || this.#runtime.health !== 'ready' || this.#runtime.modeEpoch !== modeEpoch
-        || this.#runtime.generation !== generation || this.#runtime.revision !== revision) return false
+        || this.#runtime.generation !== generation || this.#runtime.revision !== revision) {
+        settled=true
+        return false
+      }
       settled = true
       this.selectBlocks(ids)
       return true
