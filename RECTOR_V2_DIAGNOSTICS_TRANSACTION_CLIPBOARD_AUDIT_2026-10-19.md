@@ -50,6 +50,7 @@ Before the fix, both save/render timing checks used `if (startedAt && ...)`; a l
 | Zero-origin save/render latency | Expected `save.slow` and `render.slow` emitted with finite durations | Minimal isolated V8 adapter |
 | `ClipboardController.js` | Actual entire class parsed/evaluated with synthetic clipboard/DOM/AbortController | Not native Chrome clipboard |
 | `ClipboardController.media-resource.test.js` | **21/21 test bodies passed** against actual fetched class in isolated V8 with Node-style assertion and AbortController adapters | Not the project's Node test runner |
+| `ClipboardController.test.js` | **50/50 expanded cases passed** using the current real ClipboardController, ClipboardFragment, JSON clone and selected supporting utilities | V8 synthetic DOM/Abort and Node assertion adapters, not actual Node/Chromium |
 | Full `core/DocumentRuntime.test.js`, typecheck, browser, docs and package gates | **Not run** | Must run locally against final HEAD |
 
 ## Required acceptance commands
