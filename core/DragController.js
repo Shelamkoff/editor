@@ -253,6 +253,15 @@ export class DragController {
 
     if(currentIndex<0||targetIndex===currentIndex)return
     this.#runtime.move(state.sourceId,targetIndex)
+    // Publishing the completed move can synchronously invoke host callbacks
+    // that destroy the editor or focus another block. Canonical commit stays
+    // valid, but its old drag owner has no further presentation authority.
+    if(this.#destroyed||this.#runtime.readOnly
+      ||this.#runtime.generation!==state.generation
+      ||this.#runtime.modeEpoch!==state.modeEpoch
+      ||!this.#runtime.has(state.sourceId)
+      ||this.#view.element(state.sourceId)!==state.element
+      ||this.#view.currentId!==state.sourceId)return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(state.sourceId)
     // A drag's deferred caret belongs to this committed revision, mounted
