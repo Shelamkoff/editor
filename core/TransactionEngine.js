@@ -42,47 +42,57 @@ function normalizeMetadata(metadata) {
   if (!metadata || typeof metadata !== 'object') {
     throw new TypeError('Transaction metadata must be an object')
   }
-  if (!EXECUTE_ORIGINS.has(metadata.origin)) {
+  // Metadata is caller-owned, potentially accessor-backed input. Observe
+  // each supported field once before authoring; neither validation nor
+  // history/event assembly may sample a different name or origin later.
+  const origin = metadata.origin
+  if (!EXECUTE_ORIGINS.has(origin)) {
     throw new TypeError('Transaction origin must be user, native-input, plugin, or external')
   }
-  if (typeof metadata.name !== 'string' || !metadata.name) {
+  const name = metadata.name
+  if (typeof name !== 'string' || !name) {
     throw new TypeError('Transaction name must be a non-empty string')
   }
   const result = {
-    origin: metadata.origin,
-    name: metadata.name,
+    origin,
+    name,
     coalesce: metadata.coalesce === true,
   }
-  if (metadata.selectionAfter !== undefined) {
-    if (typeof metadata.selectionAfter !== 'function') throw new TypeError('selectionAfter must resolve a prepared logical bookmark')
-    result.selectionAfter = metadata.selectionAfter
+  const selectionAfter = metadata.selectionAfter
+  if (selectionAfter !== undefined) {
+    if (typeof selectionAfter !== 'function') throw new TypeError('selectionAfter must resolve a prepared logical bookmark')
+    result.selectionAfter = selectionAfter
   }
-  if (metadata.selectionBefore !== undefined) result.selectionBefore = cloneEditorData(metadata.selectionBefore)
-  if (metadata.historyGroup !== undefined) {
-    if (typeof metadata.historyGroup !== 'string' || !metadata.historyGroup) {
+  const selectionBefore = metadata.selectionBefore
+  if (selectionBefore !== undefined) result.selectionBefore = cloneEditorData(selectionBefore)
+  const historyGroup = metadata.historyGroup
+  if (historyGroup !== undefined) {
+    if (typeof historyGroup !== 'string' || !historyGroup) {
       throw new TypeError('historyGroup must be a non-empty string when provided')
     }
-    result.historyGroup = metadata.historyGroup
+    result.historyGroup = historyGroup
   }
-  if (metadata.sourceBlockId !== undefined) {
-    if (typeof metadata.sourceBlockId !== 'string' || !metadata.sourceBlockId) {
+  const sourceBlockId = metadata.sourceBlockId
+  if (sourceBlockId !== undefined) {
+    if (typeof sourceBlockId !== 'string' || !sourceBlockId) {
       throw new TypeError('sourceBlockId must be a non-empty string when provided')
     }
-    result.sourceBlockId = metadata.sourceBlockId
+    result.sourceBlockId = sourceBlockId
   }
-  if (metadata.continuation !== undefined) {
-    const token = metadata.continuation
-    if (!token || typeof token !== 'object' || Array.isArray(token)
-      || !Number.isSafeInteger(token.baseRevision) || token.baseRevision < 1
-      || typeof token.blockId !== 'string' || !token.blockId
-      || typeof token.fieldKey !== 'string' || !token.fieldKey || token.fieldKey.length > 128) {
+  const continuation = metadata.continuation
+  if (continuation !== undefined) {
+    if (!continuation || typeof continuation !== 'object' || Array.isArray(continuation)) {
       throw new TypeError('Async history continuation requires a revision, blockId and fieldKey')
     }
-    result.continuation = {
-      baseRevision: token.baseRevision,
-      blockId: token.blockId,
-      fieldKey: token.fieldKey,
+    const baseRevision = continuation.baseRevision
+    const blockId = continuation.blockId
+    const fieldKey = continuation.fieldKey
+    if (!Number.isSafeInteger(baseRevision) || baseRevision < 1
+      || typeof blockId !== 'string' || !blockId
+      || typeof fieldKey !== 'string' || !fieldKey || fieldKey.length > 128) {
+      throw new TypeError('Async history continuation requires a revision, blockId and fieldKey')
     }
+    result.continuation = { baseRevision, blockId, fieldKey }
   }
   return result
 }
@@ -147,7 +157,13 @@ export class TransactionEngine {
     }
     if (this.#phase !== 'idle') throw new Error(`Cannot mutate document during ${this.#phase} phase`)
 
-    const metadata = normalizeMetadata(metadataInput)
+    // Caller metadata getters are executable code. They must not reenter
+    // commands while a prior authority check still sees an idle engine.
+    this.#phase = 'preparing-metadata'
+    let metadata
+    try { metadata = normalizeMetadata(metadataInput) }
+    finally { this.#phase = 'idle' }
+    this.#assertHealthy()
     return this.#observeCommand(metadata.name, () => this.#executeOuter(metadata, operation))
   }
 
