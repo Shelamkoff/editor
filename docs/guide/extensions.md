@@ -92,7 +92,7 @@ Shortcut decisions run under the shared preparation guard with detached input/da
 
 `HtmlImportCapability` has `matchesRoot(element)`, `importRoot(element, context)`, and optional `inlineWhenSingleRoot: boolean`. Its context exposes `ownerDocument`, `createId()`, and `serializeRichText(element)` using the normal rich-text codec. The built-in Paragraph importer opts in to v1's single-paragraph inline Paste; custom importers must opt in explicitly or their prepared block remains authoritative. Core sanitizes and plans the complete HTML input first; if any accepted root fails, the entire import is rejected before mutation.
 
-`PasteCapability` has `accepts(input)` and `resolve(input, context)` for text/file input only. The resolver receives `AbortSignal`, `ownerDocument`, and `createId()`.
+`PasteCapability` has `accepts(input)` and `resolve(input, context)` for text/file input only. The resolver receives `AbortSignal`, `ownerDocument`, `createId()` and `createObjectURL(file)`. Use the latter for local blob-backed media (such as pasted videos) instead of calling the global URL API: the clipboard transaction revokes uncommitted URLs after cancellation/failure and retains committed URLs for Undo/Redo until editor disposal. Object URLs are temporary; persist videos through an application uploader to support reload.
 
 `ShortcutCapability` has one `handle(input, data, context)` method. Return `native`, `consume`, `exit`, `focus`, or `update`; core owns the actual structural transaction.
 
