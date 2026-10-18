@@ -539,3 +539,63 @@ test('Undo observer focus change survives deferred selection restoration', async
   assert.equal(active.focus.offset, 1)
   assert.deepEqual(restored, [5])
 })
+
+
+test('asynchronous transaction commit observers are assimilated exactly once and failures are contained', async () => {
+  const reported = []
+  let assimilations = 0
+  const { store, history, engine } = harness({
+    diagnostics: {
+      now() { return 1 },
+      threshold() { return Infinity },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+      emit(code, details) { reported.push({ code, ...details }) },
+    },
+    onCommit() {
+      return {
+        then(_resolve, reject) {
+          assimilations++
+          reject(new TypeError('late commit observer rejected'))
+        },
+      }
+    },
+  })
+  engine.execute({ origin: 'external', name: 'block.update' },
+    tx => tx.update('a', block('a', 'Committed')))
+  assert.equal(store.get('a').data.text, 'Committed')
+  assert.equal(history.canUndo, true)
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(assimilations, 1,
+    'thenable observer rejection was ignored or the observer then method was read repeatedly')
+  assert.deepEqual(reported.filter(event => event.operation === 'transaction.observer'), [
+    { code: 'command.failed', operation: 'transaction.observer', errorName: 'TypeError' },
+  ])
+  assert.equal(engine.health, 'ready')
+})
+
+test('throwing observer then-accessor is contained after a committed transaction', async () => {
+  const reported = []
+  const { store, engine } = harness({
+    diagnostics: {
+      now() { return 1 },
+      threshold() { return Infinity },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+      emit(code, details) { reported.push({ code, ...details }) },
+    },
+    onCommit() {
+      return {
+        get then() { throw new Error('then getter failed') },
+      }
+    },
+  })
+  engine.execute({ origin: 'user', name: 'block.update' },
+    tx => tx.update('a', block('a', 'Kept')))
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(store.get('a').data.text, 'Kept')
+  assert.equal(engine.health, 'ready')
+  assert.deepEqual(reported.filter(event => event.operation === 'transaction.observer'), [
+    { code: 'command.failed', operation: 'transaction.observer', errorName: 'Error' },
+  ])
+})
