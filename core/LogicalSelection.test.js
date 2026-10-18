@@ -9,6 +9,10 @@ function fixture({ mode = 'rich-text', onFocus = null, onSelection = null } = {}
     focusNode: null,
     setBaseAndExtent(startNode, startOffset, endNode, endOffset) {
       nativeEvents.push({ startNode, startOffset, endNode, endOffset })
+      this.anchorNode = startNode
+      this.focusNode = endNode
+      this.anchorOffset = startOffset
+      this.focusOffset = endOffset
       onSelection?.()
     },
     removeAllRanges() {},
@@ -305,4 +309,40 @@ test('forward rich-text Range fallback still restores text when Selection.extend
     anchor: point(1), focus: point(4),
   }), true)
   assert.deepEqual([native.anchorOffset, native.focusOffset], [1, 4])
+})
+
+test('rich-text restore must reject a native setter that silently fails', () => {
+  const h = fixture()
+  h.native.setBaseAndExtent = () => {
+    // Native selection APIs can return without a throw even when the DOM
+    // selection cannot be installed in a disconnected/detached host.
+  }
+  assert.equal(h.selection.restore(h.bookmark), false,
+    'restore reported successful caret ownership without a native selection')
+  assert.equal(h.native.anchorNode, null)
+  assert.equal(h.native.focusNode, null)
+})
+
+test('native selection callback moving the caret inside the same host supersedes restore', () => {
+  let h
+  h = fixture({
+    onSelection() {
+      h.native.anchorOffset = 4
+      h.native.focusOffset = 4
+    },
+  })
+  assert.equal(h.selection.restore(h.bookmark), false,
+    'restore claimed an old offset after a newer same-field native caret move')
+  assert.equal(h.ownerDocument.activeElement, h.field().element)
+  assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [4, 4])
+})
+
+test('plain-text setSelectionRange that silently fails does not claim a caret', () => {
+  const h = fixture({ mode: 'plain-text' })
+  h.field().element.selectionStart = 0
+  h.field().element.selectionEnd = 0
+  h.field().element.setSelectionRange = () => {}
+  assert.equal(h.selection.restore(h.bookmark), false,
+    'plain-text DOM input never changed its selection but restore returned true')
+  assert.deepEqual([h.field().element.selectionStart, h.field().element.selectionEnd], [0, 0])
 })
