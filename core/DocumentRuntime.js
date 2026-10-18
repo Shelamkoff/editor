@@ -456,6 +456,7 @@ export class DocumentRuntime {
       const ownerDocument=this.#ownerDocument
       const inline=cloneInline(current.inline)??{}
       const context=Object.freeze({
+        ownerDocument,
         createId:prefix=>this.#allocateId(prefix),
         fieldLength:key=>lengths.get(key)??0,
         splitField:(key,range)=>this.prepareExtensionValue(()=>fields.has(key)&&ownerDocument
