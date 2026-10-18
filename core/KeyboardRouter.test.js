@@ -536,3 +536,18 @@ test('a failing typed pattern consumes Enter without a partial model split', () 
   assert.deepEqual(h.errors, ['typed pattern preparation failed'])
   h.router.destroy()
 })
+
+
+test('typed inline pattern retains v1 Shift+Enter recognition without a native line break', () => {
+  const h = typedPatternHarness()
+  const event = h.event('Enter', { shiftKey: true })
+  h.router.handleKeydown(event)
+  assert.equal(event.prevented, true)
+  assert.deepEqual(h.commands, [{
+    value: '#f00',
+    target: { blockId: 'b', fieldKey: 'text', range: { start: 0, end: 4 } },
+    delimiter: 'Enter',
+  }])
+  assert.deepEqual(h.calls, [])
+  h.router.destroy()
+})
