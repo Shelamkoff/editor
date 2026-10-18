@@ -278,6 +278,7 @@ export class SelectionController {
       return { anchor: point, focus: { ...point } }
     })
     if (!currentId) return false
+    if (!this.#canPresentCommitted()) return true
     this.#deactivate()
     this.#view.reconcileInteraction()
     if(currentId){
@@ -300,6 +301,7 @@ export class SelectionController {
         return { anchor: caret, focus: { ...caret } }
       })
     if (!result) return false
+    if (!this.#canPresentCommitted()) return true
     this.#deactivate()
     this.#view.reconcileInteraction()
     this.#view.setCurrent(result.blockId)
@@ -362,6 +364,7 @@ export class SelectionController {
       return {anchor:caret,focus:{...caret}}
     })
     if(!nextId)return false
+    if(!this.#canPresentCommitted())return true
     this.#deactivate()
     this.#view.reconcileInteraction()
     this.#view.setCurrent(nextId)
@@ -451,6 +454,16 @@ export class SelectionController {
     if (this.#controller.signal.aborted) return
     this.clear()
     this.#controller.abort()
+  }
+
+  #canPresentCommitted() {
+    // A successful model transaction may synchronously publish to a host
+    // callback that destroys this selection owner. Its canonical result
+    // remains committed, but the old selection cannot touch detached DOM.
+    return !this.#controller.signal.aborted
+      && !this.#runtime.readOnly
+      && this.#runtime.health !== 'destroyed'
+      && this.#runtime.health !== 'failed'
   }
 
   #deactivate({ clearBlocks = true } = {}) {
