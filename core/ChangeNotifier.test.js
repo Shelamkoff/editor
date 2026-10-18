@@ -280,3 +280,51 @@ test('rejected asynchronous error sink is observed without rejecting timer task'
     console.warn = previousWarn
   }
 })
+test('reentrant timer registration cannot orphan the newer debounce', () => {
+  const liveTimers = new Map()
+  const cleared = []
+  let issued = 0
+  let notifier
+  const host = {
+    setTimeout(callback) {
+      const id = ++issued
+      liveTimers.set(id, callback)
+      if (id === 1) notifier.schedule()
+      return id
+    },
+    clearTimeout(id) {
+      cleared.push(id)
+      liveTimers.delete(id)
+    },
+  }
+  notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }), () => {}, 100, host,
+  )
+  notifier.schedule()
+  assert.deepEqual([...liveTimers.keys()], [2],
+    'outer timer registration retained an obsolete timer after a newer schedule')
+  notifier.destroy()
+  assert.deepEqual([...liveTimers.keys()], [],
+    'destroy must release the latest timer even after synchronous reentry')
+  assert.deepEqual(cleared, [1, 2],
+    'stale outer timer and current inner timer must each be released once')
+})
+
+test('destroy during timer registration releases the returned unowned timer', () => {
+  const liveTimers = new Set()
+  let notifier
+  const host = {
+    setTimeout() {
+      liveTimers.add(1)
+      notifier.destroy()
+      return 1
+    },
+    clearTimeout(id) { liveTimers.delete(id) },
+  }
+  notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }), () => {}, 100, host,
+  )
+  notifier.schedule()
+  assert.deepEqual([...liveTimers], [],
+    'destroy invoked during registration left a timer holding a retired editor')
+})
