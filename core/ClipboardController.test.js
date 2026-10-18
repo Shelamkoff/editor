@@ -1079,3 +1079,39 @@ test('nested owned Paste supersedes its predecessor without a second authoring t
     'superseded Paste fell back to native DOM insertion outside canonical history')
   h.controller.destroy()
 })
+
+
+test('non-owned nested clipboard event does not cancel the active authored Paste', () => {
+  let h, nested = false, authored = 0
+  h = clipboardHarness({
+    formats: ['text/plain'],
+    accepts: () => false,
+    read(type) {
+      if (type !== 'text/plain') return ''
+      if (!nested) {
+        nested = true
+        const auxiliary = {
+          closest(selector) { return selector.includes('input') ? this : null },
+        }
+        const ignored = {
+          ...h.event, target: auxiliary,
+          defaultPrevented: false,
+          composedPath() { return [auxiliary] },
+          preventDefault() { this.defaultPrevented = true },
+        }
+        h.dispatchPaste(ignored)
+        assert.equal(ignored.defaultPrevented, false,
+          'auxiliary input Paste was incorrectly captured by the editor')
+      }
+      return 'Alpha'
+    },
+  })
+  h.runtime.replaceLogicalRange = () => {
+    authored++
+    return { blockId: 'a', fieldKey: 'text', offset: 5 }
+  }
+  h.paste()
+  assert.equal(authored, 1, 'an auxiliary event revoked the active document Paste')
+  assert.equal(h.event.defaultPrevented, true, 'document Paste lost its own native-event ownership')
+  h.controller.destroy()
+})
