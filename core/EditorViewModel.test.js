@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { EditorViewModel } from './EditorViewModel.js'
 import { InteractionState } from './InteractionState.js'
+import { LogicalSelection } from './LogicalSelection.js'
 
 function harness({ insertCommit = null, removeCommit = null, caret = () => true } = {}) {
   const ids = ['a', 'b', 'c']
@@ -217,4 +218,23 @@ test('a same-fallback explicit focus during block removal wins over the returned
   h.view.remove('b')
   assert.equal(h.view.currentId, 'a')
   assert.deepEqual(h.events, ['b', 'a'])
+})
+
+test('actual LogicalSelection missing keyed field cannot silently select another block', () => {
+  const h = harness()
+  const reconciler = {
+    getElement() { return {} },
+    resolveEditableTarget() { return null },
+    getEditableFields() {
+      return [{ key: 'text', mode: 'rich-text', element: { textContent: 'Hello' } }]
+    },
+  }
+  const root = { ownerDocument: {} }
+  const selection = new LogicalSelection({ root, reconciler })
+  const view = new EditorViewModel({
+    runtime: h.runtime, reconciler, interaction: h.interaction, selection,
+  })
+  assert.equal(view.setCaret('b', { fieldKey: 'retired-title', offset: 3 }), false)
+  assert.equal(view.currentId, 'a')
+  assert.deepEqual(h.events, [])
 })
