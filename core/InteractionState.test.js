@@ -6,6 +6,8 @@ function fixture({ onChange, onError, focus } = {}) {
   const ids = ['a', 'b']
   const runtime = {
     generation: 1,
+    modeEpoch: 0,
+    readOnly: false,
     health: 'ready',
     list() { return ids.map(id => ({ id })) },
     ids() { return [...ids] },
@@ -139,4 +141,51 @@ test('a rejected interaction observer reports asynchronously without leaking int
   assert.deepEqual(interaction.selectedIds, ['b'])
   for (let step = 0; step < 5; step++) await Promise.resolve()
   assert.deepEqual(errors, ['RangeError', 'late selection event failed'])
+})
+
+
+test('a read-only round trip during plugin focus revokes the old focus claim', () => {
+  const { interaction, runtime } = fixture({
+    focus(_id, _target, _controller, source) {
+      source.readOnly = true
+      source.modeEpoch++
+      source.readOnly = false
+      source.modeEpoch++
+      return true
+    },
+  })
+  interaction.setCurrent('b')
+  assert.equal(interaction.focus('a'), false,
+    'the retired focus claimed a newer read-only control epoch')
+  assert.equal(interaction.currentId, 'b')
+  assert.equal(runtime.readOnly, false)
+})
+
+test('a focus callback that enters read-only cannot claim another current block', () => {
+  const { interaction, runtime } = fixture({
+    focus(_id, _target, _controller, source) {
+      source.readOnly = true
+      source.modeEpoch++
+      return true
+    },
+  })
+  interaction.setCurrent('b')
+  assert.equal(interaction.focus('a'), false)
+  assert.equal(interaction.currentId, 'b')
+  assert.equal(runtime.readOnly, true)
+})
+
+test('a nested current-block change from the interaction observer wins over earlier focus', () => {
+  let interaction
+  const events = []
+  const h = fixture({
+    onChange(change) {
+      events.push(change.currentId)
+      if (change.currentId === 'b') interaction.setCurrent('a')
+    },
+  })
+  interaction = h.interaction
+  assert.equal(interaction.focus('b'), false)
+  assert.equal(interaction.currentId, 'a')
+  assert.deepEqual(events, ['b', 'a'])
 })
