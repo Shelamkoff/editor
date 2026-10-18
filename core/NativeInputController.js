@@ -87,6 +87,9 @@ export class NativeInputController {
   }
 
   handleBeforeInput(event) {
+    // A browser may have captured this handler before teardown. Terminal
+    // owners must not claim native editing/history events after destruction.
+    if (this.#controller.signal.aborted) return
     this.#pendingInput = null
     if (this.#runtime.readOnly || event?.defaultPrevented) return
     if (event?.isComposing || this.#composition) return
@@ -201,6 +204,7 @@ export class NativeInputController {
   }
 
   handleInput(event) {
+    if (this.#controller.signal.aborted) return
     // The pending inline envelope must be classified before read-only,
     // composition, widget targeting or ordinary field-owner early returns.
     // A matching stale native input stays consumed: it may never enter the
@@ -271,7 +275,7 @@ export class NativeInputController {
   }
 
   handleCompositionStart(event) {
-    if (this.#runtime.readOnly) return
+    if (this.#controller.signal.aborted || this.#runtime.readOnly) return
     const owner = this.#resolve(event?.target)
     if (!owner) return
     let replacement = this.#preparedComposition
@@ -293,7 +297,8 @@ export class NativeInputController {
   }
 
   handleCompositionKey(event) {
-    if (this.#runtime.readOnly || this.#composition || event?.defaultPrevented) return
+    if (this.#controller.signal.aborted || this.#runtime.readOnly
+      || this.#composition || event?.defaultPrevented) return
     if (event?.keyCode !== 229) {
       this.#preparedComposition = null
       return
@@ -305,6 +310,7 @@ export class NativeInputController {
   }
 
   handleCompositionEnd(event) {
+    if (this.#controller.signal.aborted) return
     if (this.#runtime.readOnly) {
       this.#composition = null
       this.#preparedComposition = null
@@ -395,6 +401,7 @@ export class NativeInputController {
   }
 
   #commit(owner, { group, preserveSourceProjection, selectionBefore = undefined }) {
+    if (this.#controller.signal.aborted) return
     // Paste/cut can rebuild the authoring host after decoding its native edit.
     // Keep the logical caret without retaining untrusted clipboard markup.
     const captured = !preserveSourceProjection ? this.#selection?.capture() : null
