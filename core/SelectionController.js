@@ -21,6 +21,7 @@ export class SelectionController {
   #wholeBlocks = false
   #conversionCaret = false
   #stagingComposition = false
+  #openingComposition = false
   #generation = 0
   #navigationX = null
   #highlight = null
@@ -401,6 +402,12 @@ export class SelectionController {
   }
 
   beginComposition() {
+    if (this.#openingComposition) return null
+    // User focus and native selection callbacks can recursively attempt to
+    // begin IME on the same selection. Only the outer staging turn may issue
+    // a composition handle; the flag is cleared even after a native throw.
+    this.#openingComposition = true
+    try {
     if (this.#controller.signal.aborted || this.#runtime.readOnly
       || this.#runtime.health !== 'ready' || !this.active) return null
     const generation = this.#runtime.generation
@@ -467,6 +474,9 @@ export class SelectionController {
       fieldKey: start.fieldKey,
       commit: text => restore() && this.replace({ kind: 'text', text }),
       cancel: restore,
+    }
+    } finally {
+      this.#openingComposition = false
     }
   }
 
