@@ -386,22 +386,25 @@ export class ClipboardController {
   }
 
   #onPaste(event) {
+    // An event is owned by the control epoch at its ingress. A callback may
+    // synchronously round-trip read-only mode without an author revision.
+    const modeEpoch=this.#runtime.modeEpoch
     if (this.#destroyed || this.#controller.signal.aborted || this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
     // Event ownership lookup, field resolution and abort listeners can invoke
     // host callbacks that synchronously destroy this editor. Each boundary
     // must revoke the old Paste before inspecting clipboard data.
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
     const owner = this.#reconciler.resolveEditableTarget(event.target)
-    if (!this.#canPresent() || owner?.mode === 'plain-text') return
+    if (!this.#canPaste(modeEpoch) || owner?.mode === 'plain-text') return
     this.cancelPendingTask()
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
-      return this.#applyPaste(event)
+      return this.#applyPaste(event,modeEpoch)
     } catch (error) {
       // A failed owned Paste stays consumed while this owner is live, but a
       // callback that destroyed the editor cannot claim detached DOM events.
-      if (this.#canPresent()) event.preventDefault()
+      if (this.#canPaste(modeEpoch)) event.preventDefault()
       this.#diagnostics?.emit('paste.failed', {
         operation: 'clipboard.paste',
         errorName: this.#diagnostics.errorName(error),
@@ -417,23 +420,23 @@ export class ClipboardController {
     }
   }
 
-  #applyPaste(event) {
-    if (!this.#canPresent()) return
+  #applyPaste(event,modeEpoch) {
+    if (!this.#canPaste(modeEpoch)) return
     const data = event.clipboardData
-    if (!data || !this.#canPresent()) return
+    if (!data || !this.#canPaste(modeEpoch)) return
 
     // Reading a ClipboardData implementation's formats may run host code.
     // A retired owner cannot claim that event, even if its MIME remains valid.
     const privateFormatPresent = Array.from(data.types ?? []).includes(CLIPBOARD_FRAGMENT_MIME)
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
     if (privateFormatPresent) {
       event.preventDefault()
       let fragment
       try {
         const privatePayload = data.getData(CLIPBOARD_FRAGMENT_MIME)
-        if (!this.#canPresent()) return
+        if (!this.#canPaste(modeEpoch)) return
         fragment = decodeClipboardFragment(privatePayload)
-        if (!this.#canPresent()) return
+        if (!this.#canPaste(modeEpoch)) return
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
           operation: 'clipboard.private-fragment',
@@ -444,13 +447,13 @@ export class ClipboardController {
 
       if (this.#crossSelection?.active) {
         const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark, this.#crossSelection.wholeBlockIds)
-        if(!plan||!this.#canPresent())return
+        if(!plan||!this.#canPaste(modeEpoch))return
         try {
           const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts))
-          if(result&&this.#canPresent()){
+          if(result&&this.#canPaste(modeEpoch)){
             this.#crossSelection.clear()
-            if(this.#canPresent())this.#view.reconcileInteraction()
-            if(this.#canPresent())this.#view.setCurrent(result.blockId)
+            if(this.#canPaste(modeEpoch))this.#view.reconcileInteraction()
+            if(this.#canPaste(modeEpoch))this.#view.setCurrent(result.blockId)
           }
         } catch (error) {
           this.#diagnostics?.emit('paste.failed', {
@@ -462,9 +465,9 @@ export class ClipboardController {
       }
 
       const owner = this.#reconciler.resolveEditableTarget(event.target)
-      if (!owner||!this.#canPresent()) return
+      if (!owner||!this.#canPaste(modeEpoch)) return
       const range = selectionRange(this.#selection.capture(), owner)
-      if (!range||!this.#canPresent()) return
+      if (!range||!this.#canPaste(modeEpoch)) return
 
       try {
         const result = this.#mutatePaste(() => this.#runtime.insertClipboardParts(
@@ -473,8 +476,8 @@ export class ClipboardController {
           range,
           fragment.parts,
         ))
-        if(this.#canPresent())this.#view.reconcileInteraction()
-        if(this.#canPresent())this.#view.setCurrent(result.blockId)
+        if(this.#canPaste(modeEpoch))this.#view.reconcileInteraction()
+        if(this.#canPaste(modeEpoch))this.#view.setCurrent(result.blockId)
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
           operation: 'clipboard.private-fragment',
@@ -486,17 +489,17 @@ export class ClipboardController {
 
     if (this.#crossSelection?.active) {
       const html=data.getData('text/html')
-      if(!this.#canPresent())return
+      if(!this.#canPaste(modeEpoch))return
       const text=data.getData('text/plain')
-      if(!this.#canPresent())return
+      if(!this.#canPaste(modeEpoch))return
       const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark, this.#crossSelection.wholeBlockIds)
-      if(!plan||!this.#canPresent())return
+      if(!plan||!this.#canPaste(modeEpoch))return
 
       let parts=null
       if(html){
         try{
           const imported=this.#runtime.prepareHtmlImport(html,plan.focus.blockId)
-          if(!this.#canPresent())return
+          if(!this.#canPaste(modeEpoch))return
           if(imported?.kind==='inline'){
             parts=[{kind:'rich-text',html:imported.html}]
           }else if(imported?.kind==='blocks'){
@@ -507,7 +510,7 @@ export class ClipboardController {
             }))
           }
         }catch(error){
-          if(this.#canPresent())event.preventDefault()
+          if(this.#canPaste(modeEpoch))event.preventDefault()
           this.#diagnostics?.emit('paste.failed',{
             operation:'clipboard.html-selection',
             errorName:this.#diagnostics.errorName(error),
@@ -521,15 +524,15 @@ export class ClipboardController {
           html:escapeHtml(text).replace(/\r\n?|\n/g,'<br>'),
         }]
       }
-      if(!parts?.length||!this.#canPresent())return
+      if(!parts?.length||!this.#canPaste(modeEpoch))return
 
       event.preventDefault()
       try{
         const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,parts))
-        if(result&&this.#canPresent()){
+        if(result&&this.#canPaste(modeEpoch)){
           this.#crossSelection.clear()
-          if(this.#canPresent())this.#view.reconcileInteraction()
-          if(this.#canPresent())this.#view.setCurrent(result.blockId)
+          if(this.#canPaste(modeEpoch))this.#view.reconcileInteraction()
+          if(this.#canPaste(modeEpoch))this.#view.setCurrent(result.blockId)
         }
       }catch(error){
         this.#diagnostics?.emit('paste.failed',{
@@ -541,25 +544,26 @@ export class ClipboardController {
     }
 
     const owner = this.#reconciler.resolveEditableTarget(event.target)
-    if (!owner) return
+    if (!owner||!this.#canPaste(modeEpoch)) return
     const range = selectionRange(this.#selection.capture(), owner)
-    if (!range) return
+    if (!range||!this.#canPaste(modeEpoch)) return
 
     const files = [...(data.files ?? [])]
+    if (!this.#canPaste(modeEpoch)) return
     if (files.length) {
       const routed = files
         .map(file => ({ input: { kind: /** @type {'file'} */ ('file'), file }, route: this.#route({ kind: 'file', file }, owner.blockId) }))
         .filter(item => item.route)
-      if (!routed.length) return
+      if (!routed.length || !this.#canPaste(modeEpoch)) return
       event.preventDefault()
       this.#beginAsync(owner, range, routed)
       return
     }
 
     const html = data.getData('text/html')
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
     const text = data.getData('text/plain')
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
     // An owned Paste with no author content is a no-op. In particular it
     // must not turn a selected rich-text range into an empty replacement.
     if (!html && !text) {
@@ -571,16 +575,16 @@ export class ClipboardController {
       fieldKey: owner.fieldKey,
       range,
     })) {
-      if (this.#canPresent()) event.preventDefault()
+      if (this.#canPaste(modeEpoch)) event.preventDefault()
       return
     }
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
 
     if (html) {
       let plan
       try {
         plan = this.#runtime.prepareHtmlImport(html, owner.blockId)
-        if (!this.#canPresent()) return
+        if (!this.#canPaste(modeEpoch)) return
       } catch (error) {
         event.preventDefault()
         this.#diagnostics?.emit('paste.failed', {
@@ -606,8 +610,8 @@ export class ClipboardController {
           const result=this.#mutatePaste(() => this.#runtime.insertClipboardParts(
             owner.blockId,owner.fieldKey,range,parts,
           ))
-          if(this.#canPresent())this.#view.reconcileInteraction()
-          if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
+          if(this.#canPaste(modeEpoch))this.#view.reconcileInteraction()
+          if(result?.blockId&&this.#canPaste(modeEpoch))this.#view.setCurrent(result.blockId)
           return
         }
         // A structural first root (table, image, etc.) is inserted after
@@ -616,16 +620,16 @@ export class ClipboardController {
         const inserted=this.#mutatePaste(() => this.#runtime.insertLocalBlocks(
           owner.blockId,plan.blocks,{replaceEmpty:range.start===range.end,name:'clipboard.html-import'},
         ))
-        if(this.#canPresent())this.#view.reconcileInteraction()
+        if(this.#canPaste(modeEpoch))this.#view.reconcileInteraction()
         const last=inserted.at(-1)
-        if(last&&this.#canPresent())this.#view.setCurrent(last)
+        if(last&&this.#canPaste(modeEpoch))this.#view.setCurrent(last)
         return
       }
     }
 
     const input = { kind: /** @type {'text'} */ ('text'), text }
     const route = this.#route(input, owner.blockId)
-    if (!this.#canPresent()) return
+    if (!this.#canPaste(modeEpoch)) return
     event.preventDefault()
     if (route) {
       this.#beginAsync(owner, range, [{ input, route }])
@@ -641,8 +645,8 @@ export class ClipboardController {
         owner.blockId, owner.fieldKey, range,
         lines.map(line => ({ kind: 'rich-text', html: escapeHtml(line) })),
       ))
-      if(this.#canPresent())this.#view.reconcileInteraction()
-      if(this.#canPresent())this.#view.setCurrent(result.blockId)
+      if(this.#canPaste(modeEpoch))this.#view.reconcileInteraction()
+      if(this.#canPaste(modeEpoch))this.#view.setCurrent(result.blockId)
       return
     }
     // v1 pastes one meaningful line without leading/trailing empty lines.
@@ -745,6 +749,12 @@ export class ClipboardController {
     // editor. Preserve the canonical result while retiring old view, selection
     // and deferred focus work before it can touch detached fields.
     return this.#isAlive() && !this.#runtime.readOnly
+  }
+
+  #canPaste(modeEpoch) {
+    // Read-only round trips revoke the old event even if the editor is
+    // editable again and its canonical document revision is unchanged.
+    return this.#canPresent() && this.#runtime.modeEpoch === modeEpoch
   }
 
   #route(input, blockId) {
