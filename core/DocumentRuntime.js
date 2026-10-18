@@ -809,9 +809,12 @@ export class DocumentRuntime {
     // Invalidate queued commands even if the mode changes back before their
     // microtask runs, or a fallible transition later needs recovery.
     this.#modeEpoch++
-    const selectionBefore = this.#captureSelection()
+    // Selection capture may invoke application-owned DOM/selection callbacks.
+    // Guard the entire transition *before* that first external boundary so
+    // nested host writes and mode changes cannot get an unprotected window.
     this.#changingReadOnly = true
     try {
+      const selectionBefore = this.#captureSelection()
       try {
         this.#projector?.setReadOnly?.(next)
         this.#readOnly = next
