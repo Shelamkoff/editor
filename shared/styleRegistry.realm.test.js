@@ -183,3 +183,23 @@ test('failed stylesheet append does not remove a link adopted during the callbac
   later.destroy()
   assert.equal(links[1].removed, true)
 })
+test('stylesheet URL acquisition captures all entries before a host append callback', () => {
+  const { doc, links } = fakeDocument('snapshot')
+  const urls = ['/first.css', '/second.css']
+  const append = doc.head.appendChild
+  doc.head.appendChild = link => {
+    append(link)
+    if (link.href === '/first.css') urls[1] = '/redirected.css'
+  }
+
+  const lease = acquireStyleUrls(urls, doc)
+  try {
+    assert.deepEqual(links.map(link => link.href), ['/first.css', '/second.css'],
+      'a style insertion callback changed a later URL before the registry owned it')
+    assert.deepEqual(urls, ['/first.css', '/redirected.css'],
+      'the hostile append callback did not mutate the fixture')
+  } finally {
+    lease.destroy()
+  }
+  assert.equal(links.every(link => link.removed), true)
+})
