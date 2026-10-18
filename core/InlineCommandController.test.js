@@ -223,3 +223,45 @@ test('inline Paste does not reset or advance extension-owned RegExp lastIndex', 
     'subsequent matches depend on a mutable extension pattern cursor')
   assert.equal(pattern.lastIndex, 2)
 })
+
+
+for (const action of ['insert', 'pasteText']) {
+  test(`${action} keeps a committed command but never restores caret after editor teardown in the commit observer`, () => {
+    const { controller, runtime, definition, carets } = harness()
+    runtime.health = 'ready'
+    runtime.modeEpoch = 0
+    runtime.generation = 1
+    definition.schema = { createDefault: () => ({ value: '#fff' }) }
+    runtime.insertInlineWidget = () => 'inline-1'
+    runtime.interact = (_name, operation) => {
+      const result = operation()
+      runtime.health = 'destroyed'
+      return result
+    }
+
+    assert.equal(action === 'insert' ? controller.insert('color') : controller.pasteText('#fff'), true)
+    assert.deepEqual(carets, [],
+      'an already committed inline action restored selection inside a destroyed editor')
+  })
+
+  test(`${action} does not restore a prior author caret after read-only mode changes in the commit observer`, () => {
+    const { controller, runtime, definition, carets } = harness()
+    runtime.health = 'ready'
+    runtime.modeEpoch = 0
+    runtime.generation = 1
+    definition.schema = { createDefault: () => ({ value: '#fff' }) }
+    runtime.insertInlineWidget = () => 'inline-1'
+    runtime.interact = (_name, operation) => {
+      const result = operation()
+      runtime.readOnly = true
+      runtime.modeEpoch++
+      runtime.readOnly = false
+      runtime.modeEpoch++
+      return result
+    }
+
+    assert.equal(action === 'insert' ? controller.insert('color') : controller.pasteText('#fff'), true)
+    assert.deepEqual(carets, [],
+      'an outdated inline command reclaimed the caret after a read-only round trip')
+  })
+}
