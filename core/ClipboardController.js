@@ -86,6 +86,7 @@ export class ClipboardController {
   #isComposing
   #controller
   #task = null
+  #destroyed = false
   #applyingPasteTask = null
   // Persisted blob-backed Paste results can be restored by Redo; own their
   // temporary resources until this editor's clipboard lifetime ends.
@@ -134,13 +135,21 @@ export class ClipboardController {
   }
 
   destroy() {
-    this.cancelPendingTask()
-    this.#controller.abort()
-    for (const [url, owner] of this.#ownedObjectUrls) {
+    if (this.#destroyed) return
+    // Revoke authority and detach the resource ledger before invoking
+    // reentrant abort hooks or external URL providers.
+    this.#destroyed = true
+    const owned = this.#ownedObjectUrls
+    this.#ownedObjectUrls = new Map()
+    try { this.cancelPendingTask() }
+    catch (error) { this.#reportResourceReleaseError(error) }
+    try { this.#controller.abort() }
+    catch (error) { this.#reportResourceReleaseError(error) }
+    for (const [url, owner] of owned) {
       try { owner.revokeObjectURL(url) }
       catch (error) { this.#reportResourceReleaseError(error) }
     }
-    this.#ownedObjectUrls.clear()
+    owned.clear()
   }
 
   handleTransaction(event) {
@@ -171,7 +180,7 @@ export class ClipboardController {
   }
 
   #onCopy(event) {
-    if (event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    if (this.#destroyed || this.#controller.signal.aborted || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
     // Registered plain-text controls own their native Copy as well as Cut and
     // Paste. A stale cross-block selection must not export document fragments.
     if(this.#reconciler.resolveEditableTarget(event.target)?.mode==='plain-text')return
@@ -248,7 +257,7 @@ export class ClipboardController {
   }
 
   #onCut(event) {
-    if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    if (this.#destroyed || this.#controller.signal.aborted || this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
     // An auxiliary text field owns its own clipboard even when a stale
     // cross-block selection still exists elsewhere in the editor.
     const inputOwner = this.#reconciler.resolveEditableTarget(event.target)
@@ -374,7 +383,7 @@ export class ClipboardController {
   }
 
   #onPaste(event) {
-    if (this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
+    if (this.#destroyed || this.#controller.signal.aborted || this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (owner?.mode === 'plain-text') return
     this.cancelPendingTask()
@@ -741,6 +750,7 @@ export class ClipboardController {
   }
 
   #beginAsync(owner, range, items) {
+    if (this.#destroyed || this.#controller.signal.aborted) return
     this.cancelPendingTask()
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
