@@ -71,7 +71,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 ## Capabilities
 
-Inline formatting; row/column editing; heading-row setting; table paste; export for conversion.
+Inline formatting; row/column editing; heading-row setting; table paste; export for conversion. Enter inserts a line break in the current cell as one undoable edit; Tab and Shift+Tab navigate adjacent cells in row-major order. A stale cell field with no valid rich-text slice does not trigger a structural edit.
 
 ## Undo, lifecycle, and styles
 
