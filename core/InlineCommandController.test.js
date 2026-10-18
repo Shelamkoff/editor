@@ -265,3 +265,97 @@ for (const action of ['insert', 'pasteText']) {
       'an outdated inline command reclaimed the caret after a read-only round trip')
   })
 }
+
+
+test('typed color word followed by space becomes an inline widget in one canonical command', () => {
+  const { controller, calls, carets } = harness()
+  const target = { blockId: 'a', fieldKey: 'text', range: { start: 2, end: 6 } }
+  assert.equal(controller.commitTypedPattern('#fff', target, ' '), true)
+  assert.equal(calls.length, 1)
+  assert.deepEqual(calls[0], {
+    blockId: 'a', fieldKey: 'text', range: { start: 2, end: 6 },
+    segments: [
+      { kind: 'widget', type: 'color', data: { value: '#fff' } },
+      { kind: 'text', text: ' ' },
+    ],
+  })
+  assert.deepEqual(carets, [{
+    blockId: 'a', target: { fieldKey: 'text', offset: 4 },
+  }])
+})
+
+test('typed color word followed by Enter converts without inserting newline or splitting the block', () => {
+  const { controller, calls, carets } = harness()
+  assert.equal(controller.commitTypedPattern('#ff0000', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 7 },
+  }, 'Enter'), true)
+  assert.deepEqual(calls[0].segments, [
+    { kind: 'widget', type: 'color', data: { value: '#ff0000' } },
+  ])
+  assert.deepEqual(carets, [{
+    blockId: 'a', target: { fieldKey: 'text', offset: 1 },
+  }])
+})
+
+test('typed unmatched or partial color word leaves native delimiter ownership unchanged', () => {
+  const { controller, calls, carets } = harness()
+  for (const word of ['plain', 'prefix#fff', '#ggg']) {
+    assert.equal(controller.commitTypedPattern(word, {
+      blockId: 'a', fieldKey: 'text', range: { start: 0, end: word.length },
+    }, ' '), false)
+  }
+  assert.deepEqual(calls, [])
+  assert.deepEqual(carets, [])
+})
+
+test('a partial matching custom pattern still converts the entire typed word, as in v1', () => {
+  const { controller, definition, calls } = harness()
+  definition.paste.patterns = [/foo/]
+  assert.equal(controller.commitTypedPattern('prefixfoosuffix', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 15 },
+  }, 'Enter'), true)
+  assert.deepEqual(calls[0].segments, [
+    { kind: 'widget', type: 'color', data: { value: 'prefixfoosuffix' } },
+  ])
+})
+
+test('typed word conversion never writes to extension-owned RegExp lastIndex', () => {
+  const { controller, definition, calls } = harness()
+  const pattern = /^#[0-9a-f]{3}$/gi
+  pattern.lastIndex = 2
+  definition.paste.patterns = [pattern]
+  assert.equal(controller.commitTypedPattern('#f00', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 4 },
+  }, ' '), true)
+  assert.equal(pattern.lastIndex, 2)
+  assert.equal(calls.length, 1)
+})
+
+test('typed pattern matcher failures are atomic and never author a half-converted word', () => {
+  const { controller, definition, calls, isPreparing } = harness()
+  definition.paste.fromMatch = () => {
+    assert.equal(isPreparing(), true)
+    throw new Error('invalid typed matcher')
+  }
+  assert.throws(() => controller.commitTypedPattern('#fff', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 4 },
+  }, ' '), /invalid typed matcher/)
+  assert.deepEqual(calls, [])
+})
+
+test('committed typed conversion does not restore a caret in a synchronously destroyed editor', () => {
+  const { controller, runtime, calls, carets } = harness()
+  runtime.health = 'ready'
+  runtime.generation = 1
+  runtime.modeEpoch = 0
+  runtime.interact = (_name, operation) => {
+    const result = operation()
+    runtime.health = 'destroyed'
+    return result
+  }
+  assert.equal(controller.commitTypedPattern('#fff', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 4 },
+  }, ' '), true)
+  assert.equal(calls.length, 1)
+  assert.deepEqual(carets, [])
+})
