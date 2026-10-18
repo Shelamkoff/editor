@@ -402,3 +402,23 @@ test('reentrant editor destruction during a successful Paste commit releases blo
   fixtureInstance.controller.destroy()
   assert.deepEqual(fixtureInstance.revoked, ['blob:clipboard-owned-1'])
 })
+
+test('abort during a rejected canonical Paste releases the blob after rollback', async () => {
+  let fixtureInstance
+  fixtureInstance = fixture({
+    apply() {
+      // Cancellation arrives while the prepared author edit is still
+      // executing, but no canonical commit will take ownership.
+      fixtureInstance.controller.cancelPendingTask()
+      throw new Error('projection rejected')
+    },
+  })
+  try {
+    fixtureInstance.paste()
+    await fixtureInstance.settle()
+    assert.equal(fixtureInstance.runtime.revision, 0)
+    assert.deepEqual(fixtureInstance.revoked, fixtureInstance.created,
+      'deferred revocation leaked a blob after the canceled transaction rolled back')
+  } finally { fixtureInstance.controller.destroy() }
+  assert.deepEqual(fixtureInstance.revoked, fixtureInstance.created)
+})
