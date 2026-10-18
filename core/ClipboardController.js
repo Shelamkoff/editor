@@ -900,7 +900,11 @@ export class ClipboardController {
             },
             createId: prefix => {
               if (!stillOwned()) throw new Error('Clipboard paste task is no longer active')
-              return this.#runtime.createDataId(prefix)
+              const id=this.#runtime.createDataId(prefix)
+              // A host-supplied ID allocator is a synchronous extension
+              // callback and can revoke this resolver while it runs.
+              if (!stillOwned()) throw new Error('Clipboard paste task is no longer active')
+              return id
             },
           })
         } catch (error) {
