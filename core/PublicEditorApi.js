@@ -46,8 +46,15 @@ export class EditorBlocksApi {
   select(ids) {
     this.#assertLive()
     this.#runtime.assertControlAuthority()
-    if (this.#selection) this.#selection.selectBlocks([...ids])
-    else this.#view.select([...ids])
+    // Iterable input is caller-owned code: its iterator/getters may attempt
+    // render, read-only changes or even editor destruction. Capture it under
+    // the same protected preparation boundary as other public inputs, and
+    // do not dispatch a selection from a revoked control owner.
+    const selected = this.#runtime.prepareExtensionValue(() => [...ids])
+    this.#assertLive()
+    this.#runtime.assertControlAuthority()
+    if (this.#selection) this.#selection.selectBlocks(selected)
+    else this.#view.select(selected)
   }
   clearSelection() {
     this.#assertLive()
