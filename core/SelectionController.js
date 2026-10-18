@@ -312,28 +312,45 @@ export class SelectionController {
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
+    const ownsFocus=()=>!this.#controller.signal.aborted&&!this.#runtime.readOnly
+      &&this.#runtime.health!=='destroyed'
+      &&this.#runtime.health!=='failed'
+      &&generation===this.#runtime.generation
+      &&revision===this.#runtime.revision
+      &&modeEpoch===this.#runtime.modeEpoch
+      &&this.#runtime.has(blockId)
+    if(!ownsFocus())return
     const mounted=this.#view.element(blockId)
+    if(!ownsFocus()||!mounted)return
     const native=this.#window?.getSelection?.()
+    if(!ownsFocus())return
     const focused=this.#document.activeElement
     const nativePosition=native?{
       anchorNode:native.anchorNode,anchorOffset:native.anchorOffset,
       focusNode:native.focusNode,focusOffset:native.focusOffset,
     }:null
+    if(!ownsFocus())return
     queueMicrotask(()=>{
-      // A later author caret movement does not advance the document revision
-      // or current block. Do not let this completed operation reclaim it.
+      if(!ownsFocus())return
+      // A later author caret movement does not advance document revision.
+      // Recheck ownership AFTER reading each externally observable view/DOM
+      // getter: a reentrant callback can retire this editor while returning
+      // the same mounted element or current-block ID.
       const current=this.#window?.getSelection?.()
+      if(!ownsFocus())return
       const nativeMoved=nativePosition&&(
         current?.anchorNode!==nativePosition.anchorNode
         ||current?.anchorOffset!==nativePosition.anchorOffset
         ||current?.focusNode!==nativePosition.focusNode
         ||current?.focusOffset!==nativePosition.focusOffset
       )
-      if(this.#controller.signal.aborted||this.#runtime.readOnly
-        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
-        ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)||!mounted
-        ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId
-        ||nativeMoved||this.#document.activeElement!==focused)return
+      if(!ownsFocus()||nativeMoved)return
+      const currentMounted=this.#view.element(blockId)
+      if(!ownsFocus()||currentMounted!==mounted)return
+      const currentId=this.#view.currentId
+      if(!ownsFocus()||currentId!==blockId)return
+      const active=this.#document.activeElement
+      if(!ownsFocus()||active!==focused)return
       this.#view.focus(blockId,target)
     })
   }
