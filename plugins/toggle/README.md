@@ -44,6 +44,8 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 Inline formatting; editable title/content; merge; persistent disclosure state; keyboard-accessible renderer.
 
+Cut removes the source Toggle when no visible title or content remains, including formatting-only HTML such as an empty bold tag. Its authored `open` value is preserved whenever visible text remains.
+
 ## Undo, lifecycle, and styles
 
 Native input in registered editable fields and data changes through `context.updateData()` or `context.commitDomMutation()` enter the editor's canonical transaction pipeline. One completed document edit is one undo/redo step; view-only controls do not create history. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
