@@ -173,29 +173,59 @@ export class SelectionController {
   }
 
   restore(bookmark) {
-    // Deferred history restoration may outlive its editor and projection.
+    // A native selection callback may synchronously replace a mounted field,
+    // switch the editor's control mode, or retire this controller. Validate
+    // the two range endpoints across every external DOM ownership boundary.
     if (this.#controller.signal.aborted) return false
+    const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch
+    const canRestore = () => !this.#controller.signal.aborted
+      && this.#runtime.health !== 'destroyed'
+      && this.#runtime.health !== 'failed'
+      && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch
     const built = this.#buildRange(bookmark)
-    if (!built) return false
+    if (!built || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
     const native = this.#window?.getSelection?.()
-    if (!native) return false
-    this.#reconciler.getEditableField(bookmark.anchor.blockId, bookmark.anchor.fieldKey)?.element.focus()
+    if (!native || !canRestore()) return false
     try {
+      const field = this.#reconciler.getEditableField(bookmark.anchor.blockId,bookmark.anchor.fieldKey)
+      if (!field || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+      field.element.focus()
+      if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
       if (typeof native.setBaseAndExtent === 'function') {
-        native.setBaseAndExtent(built.anchor.node, built.anchor.offset, built.focus.node, built.focus.offset)
+        native.setBaseAndExtent(built.anchor.node,built.anchor.offset,built.focus.node,built.focus.offset)
       } else {
         native.removeAllRanges()
         native.addRange(built.range)
       }
+      if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+      this.#activate(bookmark,built.range)
+      if (!canRestore()) return false
+      if(bookmark.conversionCaret){
+        this.#conversionCaret=true
+        const last=this.#reconciler.getEditableField(bookmark.focus.blockId,bookmark.focus.fieldKey)
+        if (!last || !canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+        last.element.focus({preventScroll:true})
+        if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+        native.collapse(built.focus.node,built.focus.offset)
+        if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+        this.#view.setCurrent(bookmark.focus.blockId)
+      }
+      return canRestore()
     } catch { return false }
-    this.#activate(bookmark, built.range)
-    if(bookmark.conversionCaret){
-      this.#conversionCaret=true
-      this.#reconciler.getEditableField(bookmark.focus.blockId,bookmark.focus.fieldKey)?.element.focus({preventScroll:true})
-      native.collapse(built.focus.node,built.focus.offset)
-      this.#view.setCurrent(bookmark.focus.blockId)
-    }
-    return true
+  }
+
+  #ownsRangeEndpoints(bookmark,built) {
+    if (!bookmark?.anchor || !bookmark?.focus) return false
+    const anchor=this.#reconciler.getEditableField(bookmark.anchor.blockId,bookmark.anchor.fieldKey)
+    const focus=this.#reconciler.getEditableField(bookmark.focus.blockId,bookmark.focus.fieldKey)
+    return Boolean(anchor&&focus
+      &&anchor.mode!=='plain-text' &&focus.mode!=='plain-text'
+      &&anchor.element.contains(built.anchor.node)
+      &&focus.element.contains(built.focus.node))
   }
 
   activate(range) {
