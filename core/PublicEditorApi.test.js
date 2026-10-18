@@ -229,3 +229,39 @@ test('public conversion snapshots ordinary target fields while retaining optiona
   assert.equal(runtime.canUndo, false)
   handle.destroy()
 })
+test('public iterator refuses stale reads after editor teardown', () => {
+  const { api, handle } = setup()
+  api.insert({ type: 'paragraph', data: { text: 'B' } }, 1)
+  const iterator = api[Symbol.iterator]()
+  assert.equal(iterator.next().value.id, 'a')
+  handle.destroy()
+
+  assert.throws(
+    () => iterator.next(),
+    /Editor is destroyed/,
+    'a retained iterator must not expose another block after its editor is destroyed',
+  )
+})
+
+test('public iterator checks teardown on completion after its final yielded block', () => {
+  const { api, handle } = setup()
+  const iterator = api[Symbol.iterator]()
+  assert.equal(iterator.next().value.id, 'a')
+  handle.destroy()
+
+  assert.throws(
+    () => iterator.next(),
+    /Editor is destroyed/,
+    'finishing a previously live iterator must observe terminal editor ownership',
+  )
+})
+
+test('public block iterator still returns independent snapshots while editor is live', () => {
+  const { api, handle } = setup()
+  api.insert({ type: 'paragraph', data: { text: 'B' } }, 1)
+  const blocks = [...api]
+  assert.deepEqual(blocks.map(block => block.data.text), ['A', 'B'])
+  blocks[0].data.text = 'changed only in caller snapshot'
+  assert.equal(api.get('a').data.text, 'A')
+  handle.destroy()
+})
