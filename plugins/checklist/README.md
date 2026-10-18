@@ -40,7 +40,7 @@ The registered block type is `checklist`. Its factory is also exported by the co
 | --- | --- | --- |
 | `items` | yes | A non-empty array of objects. Each object requires string `text` and boolean `checked`. Text supports sanitized inline markup and inline widgets. |
 
-The document validator permits an empty `text` string, because an empty item is a valid editing state. Enter in an empty last item removes it and creates the default block after the checklist; Enter in the sole empty item converts the checklist itself. Each transition is one undoable action.
+The document validator permits an empty `text` string, because an empty item is a valid editing state. Visually empty HTML (such as `<br>` or an empty formatting tag) behaves like an empty string. Enter in an empty last item removes it and creates the default block after the checklist; Enter in the sole empty item converts the checklist itself. Each transition is one undoable action.
 
 ## Configuration
 
