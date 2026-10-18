@@ -898,3 +898,66 @@ test('cross-block clipboard read that destroys editor cannot subsequently author
   assert.equal(committed, 0, 'clipboard callback revoked ownership before preparation')
   assert.equal(h.event.defaultPrevented, false, 'retired clipboard handler claimed the old Paste event')
 })
+
+
+test('private clipboard read that retires Paste cannot start a canonical edit', () => {
+  let h, mutations = 0
+  const data = JSON.stringify({ version: 2, parts: [{ kind: 'rich-text', html: 'Alpha' }] })
+  h = clipboardHarness({
+    formats: [CLIPBOARD_FRAGMENT_MIME],
+    accepts: () => false,
+    read(type) {
+      if (type === CLIPBOARD_FRAGMENT_MIME) h.controller.destroy()
+      return data
+    },
+  })
+  h.runtime.insertClipboardParts = () => { mutations++; return { blockId: 'a' } }
+  h.paste()
+  assert.equal(h.event.defaultPrevented, true, 'present private format should remain owned')
+  assert.equal(mutations, 0, 'private clipboard data callback authorized a post-destroy edit')
+})
+
+test('private composite Paste cannot commit after prepared-slice callback retires owner', () => {
+  let mutations = 0
+  const h = clipboardHarness({
+    crossSelection: {
+      active: true,
+      wholeBlockIds: [],
+      bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+        focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+      clear() { throw Error('retired private Paste cleared selection') },
+    },
+    formats: [CLIPBOARD_FRAGMENT_MIME],
+    accepts: () => false,
+    read: () => JSON.stringify({ version: 2, parts: [{ kind: 'rich-text', html: 'Alpha' }] }),
+  })
+  h.runtime.prepareLogicalClipboardSlice = () => {
+    h.controller.destroy()
+    return { focus: { blockId: 'a' } }
+  }
+  h.runtime.replacePreparedClipboardSlice = () => { mutations++; return { blockId: 'a' } }
+  h.paste()
+  assert.equal(h.event.defaultPrevented, true, 'private fragment ownership was not claimed')
+  assert.equal(mutations, 0, 'retired composite Paste proceeded to mutate canonical data')
+})
+
+test('private clipboard formats getter cannot make a retired Paste consume its old event', () => {
+  let reads = 0, mutations = 0
+  const h = clipboardHarness({
+    formats: [CLIPBOARD_FRAGMENT_MIME],
+    accepts: () => false,
+    read() { reads++; return '' },
+  })
+  Object.defineProperty(h.event.clipboardData, 'types', {
+    get() {
+      h.controller.destroy()
+      return [CLIPBOARD_FRAGMENT_MIME]
+    },
+  })
+  h.runtime.insertClipboardParts = () => { mutations++; return { blockId: 'a' } }
+  h.paste()
+  assert.equal(h.event.defaultPrevented, false,
+    'retired owner consumed a private Paste based on a stale formats snapshot')
+  assert.equal(reads, 0, 'retired owner read clipboard after types getter callback')
+  assert.equal(mutations, 0)
+})
