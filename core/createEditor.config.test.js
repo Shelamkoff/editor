@@ -158,3 +158,34 @@ test('createEditor observes accessor-backed plugin array entries once', () => {
     globalThis.HTMLElement = previous
   }
 })
+test('createEditor reports early failure through its shared diagnostics boundary', async () => {
+  const events = []
+  const previous = globalThis.HTMLElement
+  globalThis.HTMLElement = FakeHolder
+  try {
+    assert.throws(
+      () => createEditor({
+        holder: {},
+        plugins: [{}],
+        onDiagnostic: diagnostic => events.push(diagnostic),
+      }),
+      /requires an HTMLElement holder/,
+    )
+    assert.equal(events.length, 0, 'diagnostic callbacks must be deferred')
+  } finally {
+    globalThis.HTMLElement = previous
+  }
+
+  await Promise.resolve()
+  assert.equal(events.length, 1)
+  assert.equal(events[0].code, 'editor.create.failed')
+  assert.equal(events[0].operation, 'createEditor')
+  assert.equal(events[0].errorName, 'TypeError')
+  assert.equal(typeof events[0].timestamp, 'number')
+  assert.equal(Object.isFrozen(events[0]), true)
+  assert.deepEqual(
+    Object.keys(events[0]).sort(),
+    ['code', 'timestamp', 'operation', 'errorName'].sort(),
+    'early creation diagnostics must contain only their declared metadata',
+  )
+})
