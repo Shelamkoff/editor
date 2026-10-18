@@ -112,3 +112,23 @@ test('stable plain-text field restores its selection start and end', () => {
   assert.equal(h.selection.restore(h.bookmark), true)
   assert.deepEqual([h.field().element.selectionStart, h.field().element.selectionEnd], [2, 2])
 })
+
+
+test('rich-text restore reports retirement during native selection application', () => {
+  let h
+  h = fixture({ onSelection() { h.replaceField() } })
+  const original = h.field().element
+  assert.equal(h.selection.restore(h.bookmark), false,
+    'native selection callback replaced the field but old restore reported success')
+  assert.notEqual(h.field().element, original)
+  assert.equal(h.nativeEvents.length, 1)
+})
+
+test('collapsed native selection callback cannot report an older editor focus as accepted', () => {
+  let h
+  const newer = { id: 'newer-native-focus' }
+  h = fixture({ onSelection() { h.ownerDocument.activeElement = newer } })
+  assert.equal(h.selection.restore(h.bookmark), false,
+    'native selection callback transferred author focus but old restore reported success')
+  assert.equal(h.ownerDocument.activeElement, newer)
+})
