@@ -46,10 +46,18 @@ export class Diagnostics {
    */
   emit(code, details = {}) {
     if (!this.#report) return
+    // A diagnostics event is deliberately content-free. Types alone cannot
+    // stop a JavaScript caller accidentally forwarding document/plugin data.
+    // Read each permitted field once, without spreading arbitrary payloads.
+    const { durationMs, operation, pluginType, blockType, errorName } = details
     const diagnostic = Object.freeze({
       code,
       timestamp: Date.now(),
-      ...details,
+      ...(typeof durationMs === 'number' && Number.isFinite(durationMs) ? { durationMs } : {}),
+      ...(typeof operation === 'string' ? { operation } : {}),
+      ...(typeof pluginType === 'string' ? { pluginType } : {}),
+      ...(typeof blockType === 'string' ? { blockType } : {}),
+      ...(typeof errorName === 'string' ? { errorName } : {}),
     })
     queueMicrotask(() => invokeObserver(this.#report, [diagnostic]))
   }
