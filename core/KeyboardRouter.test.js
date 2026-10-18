@@ -332,3 +332,63 @@ test('retired KeyboardRouter public structural entry points cannot modify docume
   assert.equal(router.appendDefault(), false)
   assert.deepEqual(calls, [])
 })
+
+
+test('undo publication that destroys its keyboard owner does not reconcile retired UI', () => {
+  const h = harness()
+  h.runtime.undo = () => { h.router.destroy(); return true }
+  const key = h.event('z', { ctrlKey: true })
+  assert.doesNotThrow(() => h.router.handleKeydown(key))
+  assert.equal(key.prevented, true)
+  assert.deepEqual(h.viewCalls, [], 'undo accessed the view after editor destruction')
+})
+
+for (const method of ['split', 'exit']) {
+  test(`${method} keeps a committed block operation but skips UI after synchronous owner teardown`, () => {
+    const h = harness()
+    if (method === 'split') h.runtime.splitBlock = () => { h.router.destroy(); return 'new' }
+    else h.runtime.exitBlock = () => { h.router.destroy(); return 'new' }
+    const apply = () => method === 'split'
+      ? h.router.split('b', 'text', { start: 1, end: 1 })
+      : h.router.exit('b')
+    assert.equal(apply(), true)
+    assert.deepEqual(h.viewCalls, [], 'retired block command reconciled or focused a detached view')
+  })
+}
+
+test('appendDefault does not focus a destroyed editor after a successful insertion', () => {
+  const h = harness()
+  h.runtime.health = 'ready'
+  h.runtime.size = h.records.length
+  h.runtime.insert = () => { h.router.destroy(); return 'new' }
+  assert.equal(h.router.appendDefault(), true)
+  assert.deepEqual(h.viewCalls, [], 'retired append tried to focus the unmounted editor')
+})
+
+for (const key of ['Backspace', 'Delete']) {
+  test(`${key} canonical merge does not reconcile after commit observer destroys editor`, () => {
+    const h = harness()
+    h.setBookmark({
+      anchor: { blockId: 'b', fieldKey: 'text', offset: key === 'Delete' ? 1 : 0 },
+      focus: { blockId: 'b', fieldKey: 'text', offset: key === 'Delete' ? 1 : 0 },
+    })
+    if (key === 'Delete') h.field.value = 'B'
+    let merges = 0
+    h.runtime.mergeAdjacent = () => { merges++; h.router.destroy(); return true }
+    const event = h.event(key)
+    assert.doesNotThrow(() => h.router.handleKeydown(event))
+    assert.equal(event.prevented, true)
+    assert.equal(merges, 1)
+    assert.deepEqual(h.viewCalls, [], 'committed merge reached a retired view')
+  })
+}
+
+test('block shortcut commit observer teardown cannot reconcile a detached view', () => {
+  const h = harness()
+  h.runtime.prepareShortcutAction = () => ({ kind: 'update', data: { text: 'updated' } })
+  h.runtime.update = () => { h.router.destroy(); return true }
+  const key = h.event('x')
+  assert.doesNotThrow(() => h.router.handleKeydown(key))
+  assert.equal(key.prevented, true)
+  assert.deepEqual(h.viewCalls, [], 'a successful shortcut updated presentation after destroy')
+})
