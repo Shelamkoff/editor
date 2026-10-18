@@ -354,6 +354,7 @@ export function createEditorRuntime(input){
         emit('selection:changed',{selectedIds:selected})
       }
     },
+    onError:error=>reportDiagnostic('command.failed','interaction.change',error),
   })
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
