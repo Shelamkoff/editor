@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { ClipboardController } from './ClipboardController.js'
 
-function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = null, onRevoke = null, diagnostics = null } = {}) {
+function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = null, onRevoke = null, diagnostics = null, capture = null, AbortControllerCtor = AbortController } = {}) {
   const events = new Map()
   const created = [], revoked = [], applied = []
   const URLCtor = {
@@ -27,7 +27,7 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
     },
   }
   const root = {
-    ownerDocument: { defaultView: { AbortController, URL: URLCtor } },
+    ownerDocument: { defaultView: { AbortController: AbortControllerCtor, URL: URLCtor } },
     contains: () => true,
     addEventListener(type, callback) { events.set(type, callback) },
   }
@@ -75,7 +75,7 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
       resolveEditableTarget: () => owner,
       getEditableFields: () => [{ key: 'text', mode: 'rich-text', element: {} }],
     },
-    selection: { capture: () => bookmark },
+    selection: { capture: () => typeof capture === 'function' ? capture(bookmark) : bookmark },
     view: {
       currentId: 'a',
       reconcileInteraction() { reconcile?.() }, setCurrent() {}, focus() {},
@@ -544,6 +544,75 @@ test('asynchronous Paste reports valid zero-origin timing without leaking resour
     assert.equal(f.applied.length, 1)
     assert.equal(events.filter(event => event.code === 'paste.slow').length, 1)
     assert.equal(events.find(event => event.code === 'paste.slow').durationMs, 5)
+  } finally { f.controller.destroy() }
+  assert.deepEqual(f.revoked, f.created)
+})
+
+test('async Paste preflight selection throw retires the half-open task lease', async () => {
+  const controllers = []
+  class TrackedAbortController extends AbortController {
+    constructor() {
+      super()
+      controllers.push(this)
+    }
+  }
+  let captures = 0
+  const diagnosticEvents = []
+  const f = fixture({
+    AbortControllerCtor: TrackedAbortController,
+    capture(bookmark) {
+      if (++captures === 2) throw new Error('staging native selection unavailable')
+      return bookmark
+    },
+    diagnostics: {
+      now: () => 1,
+      threshold: () => Infinity,
+      emit(code, details) { diagnosticEvents.push({ code, ...details }) },
+      errorName: error => error?.name ?? 'UnknownError',
+    },
+  })
+  try {
+    const first = f.paste()
+    assert.equal(first.defaultPrevented, true)
+    assert.equal(controllers.length, 2, 'one lifetime controller and one staged task')
+    assert.equal(controllers[1].signal.aborted, true,
+      'selection failure left a live task registered without a finalizer')
+    assert.equal(f.applied.length, 0)
+    assert.equal(f.created.length, 0)
+    assert.ok(diagnosticEvents.some(event => event.code === 'paste.failed'))
+    f.paste()
+    await f.settle()
+    assert.equal(f.applied.length, 1, 'new author Paste could not replace failed staging')
+  } finally { f.controller.destroy() }
+})
+
+test('async Paste final selection recheck failure releases blob and reports without rejection', async () => {
+  let captures = 0
+  const diagnosticEvents = []
+  const f = fixture({
+    capture(bookmark) {
+      if (++captures === 3) throw new Error('native selection became unavailable')
+      return bookmark
+    },
+    diagnostics: {
+      now: () => 1,
+      threshold: () => Infinity,
+      emit(code, details) { diagnosticEvents.push({ code, ...details }) },
+      errorName: error => error?.name ?? 'UnknownError',
+    },
+  })
+  try {
+    assert.equal(f.paste().defaultPrevented, true)
+    await f.settle()
+    assert.equal(f.applied.length, 0, 'failed selection recheck committed stale Paste')
+    assert.deepEqual(f.revoked, f.created, 'Paste blob URL survived failed final preflight')
+    assert.ok(diagnosticEvents.some(event =>
+      event.code === 'paste.failed' && event.operation === 'clipboard.paste-task' &&
+      event.errorName === 'Error'),
+    'unhandled selection failure was not routed through async Paste diagnostics')
+    assert.equal(f.paste().defaultPrevented, true)
+    await f.settle()
+    assert.equal(f.applied.length, 1, 'a later owned Paste remained blocked by rejected task')
   } finally { f.controller.destroy() }
   assert.deepEqual(f.revoked, f.created)
 })
