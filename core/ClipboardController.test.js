@@ -774,3 +774,59 @@ for (const action of ['copy', 'cut']) {
       'retired ' + action + ' consumed a native clipboard event')
   })
 }
+
+
+test('read-only Copy still exports an owned whole-block clipboard fragment', () => {
+  const crossSelection = {
+    active: true,
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+  }
+  const h = clipboardHarness({ crossSelection, accepts: () => false })
+  h.runtime.readOnly = true
+  h.reconciler.getElement = () => null
+  h.runtime.prepareLogicalClipboardSlice = () => ({
+    parts: [{ kind: 'block', block: {
+      id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'A' },
+    } }],
+  })
+  const clipboard = new Map()
+  h.event.clipboardData.setData = (kind, value) => clipboard.set(kind, value)
+  h.event.clipboardData.getData = kind => clipboard.get(kind) ?? ''
+  h.copy()
+  assert.equal(h.event.defaultPrevented, true,
+    'read-only Copy lost its canonical fragment ownership')
+  assert.equal(clipboard.has(CLIPBOARD_FRAGMENT_MIME), true,
+    'read-only Copy did not publish the structured fragment')
+  h.controller.destroy()
+})
+
+test('clipboard data writer teardown cancels an uncommitted Cut before model mutation', () => {
+  let active = true
+  const crossSelection = {
+    get active() { return active },
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+    clear() { active = false },
+  }
+  const h = clipboardHarness({ crossSelection, accepts: () => false })
+  h.reconciler.getElement = () => null
+  h.runtime.prepareLogicalClipboardSlice = () => ({
+    parts: [{ kind: 'block', block: {
+      id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'A' },
+    } }],
+  })
+  let commits = 0
+  h.runtime.applyPreparedClipboardCut = () => { commits++; return { blockId: 'a' } }
+  const clipboard = new Map()
+  h.event.clipboardData.setData = (kind, value) => {
+    clipboard.set(kind, value)
+    if (kind === 'text/plain') h.controller.destroy()
+  }
+  h.event.clipboardData.getData = kind => clipboard.get(kind) ?? ''
+  h.cut()
+  assert.equal(commits, 0, 'Cut attempted a canonical edit after clipboard writer retired the editor')
+  assert.equal(active, true, 'retired Cut cleared author selection')
+})
