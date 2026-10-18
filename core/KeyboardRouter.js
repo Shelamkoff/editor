@@ -193,22 +193,27 @@ export class KeyboardRouter {
     if ((key === ' ' || key === 'Enter')
       && owner.mode === 'rich-text' && range.start === range.end
       && this.#inlineCommands?.commitTypedPattern) {
+      const modeEpoch = this.#runtime.modeEpoch
       let converted
       try {
         converted = this.#convertTypedPattern(owner, range, key)
       } catch (error) {
         // A recognized pattern whose plugin preparation fails is owned by
-        // this key; never let native input or a block split mutate outside
-        // the failed atomic canonical command.
-        event.preventDefault?.()
+        // this key, unless the callback itself revoked that event owner.
+        if (this.#canPresent() && this.#runtime.modeEpoch === modeEpoch) {
+          event.preventDefault?.()
+        }
         try { this.#reportError(error) } catch {}
         return
       }
+      // A matched command may synchronously destroy the editor in its commit
+      // observer. A failed matcher may round-trip control mode without
+      // changing the document. Neither can consume or continue the old key.
+      if (!this.#canPresent() || this.#runtime.modeEpoch !== modeEpoch) return
       if (converted) {
         event.preventDefault?.()
         return
       }
-      if (!this.#canPresent()) return
     }
 
     if (key === 'Enter' && !keys.shiftKey) {
