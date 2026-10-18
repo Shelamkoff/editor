@@ -70,7 +70,7 @@ test('deferred inline trigger refresh and input never reactivate after read-only
   assert.equal(h.inputRoutes(), 1, 'destroyed input entered trigger dispatch')
 })
 
-function triggerScenario(query,keydown,commitTrigger=()=>false) {
+function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
   const events=new Map(),calls=[],errors=[]
   let readOnly=false
   const label={nodeType:3,textContent:'@'}
@@ -104,11 +104,12 @@ function triggerScenario(query,keydown,commitTrigger=()=>false) {
       getInlineRuntime(){return runtime},
     },
     reconciler:{
-      getEditableField(){return {mode:'rich-text',element:field}},
-      resolveEditableTarget(){return {mode:'rich-text',element:field,blockId:'a',fieldKey:'text'}},
+      getEditableField(){hooks.getEditableField?.();return {mode:'rich-text',element:field}},
+      resolveEditableTarget(){hooks.resolveEditableTarget?.();return {mode:'rich-text',element:field,blockId:'a',fieldKey:'text'}},
     },
-    selection:{capture(){return {anchor:point,focus:{...point}}}},
+    selection:{capture(){hooks.capture?.();return {anchor:point,focus:{...point}}}},
     commands:{commitTrigger},
+    nativeInputRoute(event){return hooks.nativeInputRoute?.(event)??null},
     isReadOnly:()=>readOnly,
     reportError(error){errors.push(error)},
   })
@@ -123,6 +124,7 @@ function triggerScenario(query,keydown,commitTrigger=()=>false) {
   }
   return {
     controller,calls,errors,press,events,
+    input(){events.get('input')({target:field,isComposing:false})},
     setReadOnly(value){
       readOnly=value
       controller.setReadOnly(value)
@@ -274,4 +276,68 @@ test('async inline trigger keydown consumes its key and reports its late rejecti
   assert.equal(assimilated,1,'async keydown result was never awaited or contained')
   assert.equal(h.errors.some(error=>/late keydown rejection/.test(error.message)),true)
   h.controller.destroy()
+})
+
+
+test('native input route cannot continue into a revoked trigger owner',()=>{
+  let h,fieldReads=0,selectionReads=0
+  h=triggerScenario(null,()=> 'pass',()=>false,{
+    nativeInputRoute(){h.controller.destroy();return null},
+    resolveEditableTarget(){fieldReads++},
+    capture(){selectionReads++},
+  })
+  h.input()
+  assert.equal(fieldReads,0,'input continued resolving detached field after routing teardown')
+  assert.equal(selectionReads,0,'input continued reading selection after routing teardown')
+  assert.equal(h.controller.isActive,false)
+  assert.deepEqual(h.calls,[])
+})
+
+test('native input route read-only round trip cannot reacquire the old trigger session',()=>{
+  let h,fieldReads=0
+  h=triggerScenario(null,()=> 'pass',()=>false,{
+    nativeInputRoute(){h.setReadOnly(true);h.setReadOnly(false);return null},
+    resolveEditableTarget(){fieldReads++},
+  })
+  h.input()
+  assert.equal(fieldReads,0,'old input continued after control epoch changed')
+  assert.equal(h.controller.isActive,false)
+  assert.deepEqual(h.calls,[])
+  h.controller.destroy()
+})
+
+test('refresh cannot publish an inline query when selection capture destroys its owner',()=>{
+  let h,fieldReads=0
+  h=triggerScenario(null,()=> 'pass',()=>false,{
+    capture(){h.controller.destroy()},
+    getEditableField(){fieldReads++},
+  })
+  assert.equal(h.controller.refresh(),false)
+  assert.equal(fieldReads,0,'refresh accessed reconciler after selection callback destroyed the editor')
+  assert.equal(h.controller.isActive,false,'retired refresh resurrected an inline query')
+  assert.deepEqual(h.calls,[])
+})
+
+test('captured trigger key cannot call plugin keydown if live range check retires owner',()=>{
+  let h,retire=false
+  h=triggerScenario(null,()=> 'handled',()=>false,{
+    getEditableField(){if(retire)h.controller.destroy()},
+  })
+  assert.equal(h.controller.refresh(),true)
+  retire=true
+  assert.deepEqual(h.press('Enter'),{prevented:false,stopped:false},
+    'retired owner consumed the old key while checking its live range')
+  assert.equal(h.calls.filter(call=>call==='keydown').length,0,
+    'plugin received a key after its trigger owner was destroyed')
+  assert.equal(h.controller.isActive,false)
+})
+
+test('trigger callback that synchronously destroys owner cannot consume detached key afterward',()=>{
+  let h
+  h=triggerScenario(null,()=>{h.controller.destroy();return 'handled'})
+  assert.equal(h.controller.refresh(),true)
+  assert.deepEqual(h.press('Enter'),{prevented:false,stopped:false},
+    'trigger owner consumed the key after its own destruction')
+  assert.deepEqual(h.calls,['query','keydown','cancel'])
+  assert.equal(h.controller.isActive,false)
 })
