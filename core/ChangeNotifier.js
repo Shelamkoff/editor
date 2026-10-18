@@ -89,11 +89,13 @@ export class ChangeNotifier {
   }
 
   destroy() {
+    if (this.#destroyed) return
     this.#destroyed = true
     this.#generation++
-    if (this.#timer !== null) {
-      this.#timerHost.clearTimeout(this.#timer)
-      this.#timer = null
-    }
+    // Detach the lease before the host cancellation callback: a timer host
+    // can synchronously reenter destroy() and must never cancel it twice.
+    const timer = this.#timer
+    this.#timer = null
+    if (timer !== null) this.#timerHost.clearTimeout(timer)
   }
 }
