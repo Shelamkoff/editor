@@ -106,7 +106,19 @@ export class EditorBlocksApi {
 
   remove(id) { this.#assertLive(); this.#view.remove(id, 'host') }
   move(id, to) { this.#assertLive(); this.#view.move(id, to, 'host') }
-  convert(id, target) { this.#assertLive(); return snapshot(this.#runtime,this.#view.convert(id, target, 'host'),'active') }
+  convert(id, target) {
+    this.#assertLive()
+    this.#runtime.assertCommandAuthority('host')
+    // Conversion target accessors run before entering the canonical draft.
+    // Otherwise a type/toolbox getter can reenter host mutations while the
+    // transaction is building, or destroy the owner before commit.
+    const captured = target && typeof target === 'object'
+      ? this.#runtime.prepareExtensionValue(() => ({ ...target }))
+      : target
+    this.#assertLive()
+    this.#runtime.assertCommandAuthority('host')
+    return snapshot(this.#runtime, this.#view.convert(id, captured, 'host'), 'active')
+  }
   focus(id, target) {
     this.#assertLive()
     this.#runtime.assertControlAuthority()
