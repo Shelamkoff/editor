@@ -1474,3 +1474,30 @@ test('block instance DataTask inherits plugin authoring provenance through Docum
   scope.revoke()
   runtime.destroy()
 })
+
+test('shortcut capability receives the owning editor document rather than ambient document', () => {
+  const ownerDocument = Object.freeze({ kind: 'owning-editor-realm' })
+  let received = null
+  const definition = paragraphDefinition()
+  definition.capabilities.shortcuts = {
+    handle(_input, _data, context) {
+      received = context.ownerDocument
+      assert.ok(Object.isFrozen(context), 'capability context is not a frozen authority')
+      return null
+    },
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    ownerDocument,
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
+  })
+  try {
+    runtime.interact('test.shortcut-owner', tx => {
+      runtime.prepareShortcutAction(tx, 'a', {
+        key: 'Enter', shiftKey: false, altKey: false, ctrlKey: false, metaKey: false,
+        fieldKey: 'text', selection: { start: 0, end: 0 }, fieldLength: 5,
+      }, new Map([['text', 5]]))
+    })
+    assert.strictEqual(received, ownerDocument)
+  } finally { runtime.destroy() }
+})
