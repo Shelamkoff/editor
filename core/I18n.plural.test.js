@@ -50,3 +50,25 @@ test('late English fallback plugin translations retain English plural grammar af
   assert.equal(i18n.plural('plugin.count', 1), 'One (1)')
   assert.equal(i18n.plural('existing', 21), 'one:21')
 })
+test('regional and case-insensitive Russian locale tags select Russian plural rules', () => {
+  for (const tag of ['ru-RU', 'ru_RU', 'RU', 'RU-ru']) {
+    const i18n = new I18n({ amount: forms }, undefined, tag)
+    for (const value of [1, 2, 5, 11, 21, 22, 101]) {
+      assert.equal(
+        i18n.plural('amount', value),
+        `${new Intl.PluralRules('ru').select(value)}:${value}`,
+        `plural form for ${tag}, count ${value}`,
+      )
+    }
+  }
+})
+
+test('regional Russian primary and English fallback follow their respective language rules', () => {
+  const i18n = new I18n(
+    { native: forms },
+    { fallback: { one: 'one', other: 'other' } },
+    'ru-RU',
+  )
+  assert.equal(i18n.plural('native', 21), 'one:21')
+  assert.equal(i18n.plural('fallback', 21), 'other')
+})
