@@ -24,7 +24,7 @@ After a resolver produced a blob-backed result, final validation directly ran `J
 - [RED test commit `180fd274`](https://github.com/Shelamkoff/editor/commit/180fd2749aa5b57039724e01821f2aef31c217c2)
 - [Fix commit `65cf9a20`](https://github.com/Shelamkoff/editor/commit/65cf9a208e7b6b87951fe1f9e7f653a0503b9529)
 
-**Focused verification:** 23/23 `ClipboardController.media-resource.test.js` test bodies passed after the fix, using actual fetched class source in an isolated V8 runner with synthetic DOM and `AbortController`. The other 50/50 `ClipboardController.test.js` test bodies also passed against actual support classes under the same limited runner. The old source's unhandled-rejection path is established by code inspection; this is **not** a claim of a complete Node.js RED run or real-browser clipboard acceptance.
+**Focused verification:** the new half-open task regression was run against the original `74a13b2b` source in isolated V8 and **failed for its intended contract** (task `signal.aborted === false` after staging failure). After the fix, 23/23 `ClipboardController.media-resource.test.js` test bodies passed, using actual fetched class source in an isolated V8 runner with synthetic DOM and `AbortController`. The other 50/50 `ClipboardController.test.js` test bodies also passed against actual support classes under the same limited runner. The old source's unhandled-rejection path after resolver completion is established by code inspection; this is **not** a claim of a complete Node.js RED run or real-browser clipboard acceptance.
 
 ## Finding PUBLIC-INSERT-1 — public insertion overwrote newer author focus (P2)
 
