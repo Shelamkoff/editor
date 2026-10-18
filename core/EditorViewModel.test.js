@@ -129,7 +129,8 @@ test('focus with a target does not claim success after newer caret ownership', (
   assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false,
     'an old focus reported success after a newer current-block decision')
   assert.equal(h.view.currentId, 'c')
-  assert.deepEqual(h.events, ['b', 'c'])
+  assert.deepEqual(h.events, ['c'],
+    'the superseded keyed focus must not publish an intermediate current-block event')
 })
 
 test('focus with a target does not claim success after read-only round trip in caret callback', () => {
