@@ -59,14 +59,15 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     }),
   }
   const view = { reconcileInteraction() {}, setCurrent() {}, focus() {} }
+  const reconciler = {
+    resolveEditableTarget: () => owner,
+    getEditableFields: () => [{ key: 'text', mode: 'rich-text', element: {} }],
+  }
   const controller = new ClipboardController({
     root,
     runtime,
     registry,
-    reconciler: {
-      resolveEditableTarget: () => owner,
-      getEditableFields: () => [{ key: 'text', mode: 'rich-text', element: {} }],
-    },
+    reconciler,
     selection: { capture: () => bookmark },
     crossSelection,
     isComposing,
@@ -90,7 +91,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
   const paste = () => handlers.get('paste')(event)
   const cut = () => handlers.get('cut')(event)
   const copy = () => handlers.get('copy')(event)
-  return { controller, runtime, view, event, paste, cut, copy, reads, bookmark }
+  return { controller, runtime, view, reconciler, event, paste, cut, copy, reads, bookmark }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {
@@ -662,5 +663,50 @@ for (const [name, clipboardText] of [
     assert.equal(h.event.defaultPrevented, true, 'committed paste fell through to native insertion')
     assert.equal(committed, 1, 'paste did not commit exactly once')
     assert.equal(deadViewReads, 0, 'paste retained presentation after owner destruction')
+  })
+}
+
+
+for (const retirement of ['ownership lookup', 'second owner lookup', 'clipboard text getter', 'pending task cancellation']) {
+  test('retired clipboard Paste cannot read or author after ' + retirement, () => {
+    let fixture
+    const h = clipboardHarness({
+      formats: ['text/plain'],
+      read(type) {
+        if (type === 'text/plain' && retirement === 'clipboard text getter') fixture.controller.destroy()
+        return type === 'text/plain' ? 'Hello' : ''
+      },
+      accepts: () => false,
+    })
+    fixture = h
+    let attempts = 0
+    h.runtime.replaceLogicalRange = () => {
+      attempts++
+      return { blockId: 'a', fieldKey: 'text', offset: 5 }
+    }
+    const resolve = h.reconciler.resolveEditableTarget.bind(h.reconciler)
+    let reads = 0
+    h.reconciler.resolveEditableTarget = target => {
+      reads++
+      if (retirement === 'ownership lookup' && reads === 1) h.controller.destroy()
+      if (retirement === 'second owner lookup' && reads === 2) h.controller.destroy()
+      return resolve(target)
+    }
+    if (retirement === 'pending task cancellation') {
+      const cancel = h.controller.cancelPendingTask.bind(h.controller)
+      let shouldDestroy = true
+      h.controller.cancelPendingTask = () => {
+        cancel()
+        if (shouldDestroy) {
+          shouldDestroy = false
+          h.controller.destroy()
+        }
+      }
+    }
+    h.paste()
+    assert.equal(attempts, 0, 'a revoked clipboard listener attempted a new canonical edit')
+    assert.equal(h.event.defaultPrevented, false,
+      'a clipboard listener that lost event ownership suppressed the native Paste')
+    h.controller.destroy()
   })
 }
