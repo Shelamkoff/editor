@@ -406,12 +406,15 @@ test('cancelled shortcut preparation cannot fall through to another structural c
 })
 
 
-function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false } = {}) {
+function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false, failed = false } = {}) {
   const commands = []
+  const errors = []
   const h = harness({
+    reportError: error => errors.push(error.message),
     inlineCommands: {
       commitTypedPattern(value, target, delimiter) {
         commands.push({ value, target, delimiter })
+        if (failed) throw new Error('typed pattern preparation failed')
         return converted
       },
     },
@@ -437,7 +440,7 @@ function typedPatternHarness({ converted = true, nativeCollapsed = true, word = 
     anchor: { blockId: 'b', fieldKey: 'text', offset: nativeCollapsed ? word.length : 0 },
     focus: { blockId: 'b', fieldKey: 'text', offset: word.length },
   })
-  return { ...h, commands }
+  return { ...h, commands, errors }
 }
 
 test('typed inline color before Space replaces exactly the preceding word and suppresses native space', () => {
@@ -502,5 +505,34 @@ test('typed pattern conversion does not hijack control shortcuts or non-text nat
   h.router.handleKeydown(e)
   assert.equal(e.prevented, false)
   assert.deepEqual(h.commands, [])
+  h.router.destroy()
+})
+
+
+test('typed word recognition respects the last ordinary or nonbreaking space in its text node', () => {
+  for (const separator of [' ', '\u00a0']) {
+    const h = typedPatternHarness({ word: 'prefix' + separator + '#f00' })
+    const event = h.event(' ')
+    h.router.handleKeydown(event)
+    assert.equal(event.prevented, true)
+    assert.deepEqual(h.commands, [{
+      value: '#f00',
+      target: {
+        blockId: 'b', fieldKey: 'text',
+        range: { start: 7, end: 11 },
+      },
+      delimiter: ' ',
+    }])
+    h.router.destroy()
+  }
+})
+
+test('a failing typed pattern consumes Enter without a partial model split', () => {
+  const h = typedPatternHarness({ failed: true })
+  const event = h.event('Enter')
+  h.router.handleKeydown(event)
+  assert.equal(event.prevented, true)
+  assert.deepEqual(h.calls, [])
+  assert.deepEqual(h.errors, ['typed pattern preparation failed'])
   h.router.destroy()
 })
