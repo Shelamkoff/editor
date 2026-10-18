@@ -153,6 +153,9 @@ export class TransactionEngine {
 
   #executeOuter(metadata, operation) {
     const selectionBefore = metadata.selectionBefore !== undefined ? metadata.selectionBefore : this.#captureSelection()
+    // A selection callback can explicitly destroy the owner even though it
+    // cannot reenter a mutation. Never start a new draft after that teardown.
+    this.#assertHealthy()
     const draft = this.#store.createDraft()
     const context = this.#createContext(draft)
     const current = { draft, context, hasFailed: false, failed: undefined }
@@ -194,13 +197,16 @@ export class TransactionEngine {
         generation: storeCommit.generation,
         revision: storeCommit.revision,
       })
+      this.#assertHealthy()
 
       this.#phase = 'applying-projection'
       prepared.apply()
+      this.#assertHealthy()
 
       const selectionAfter = metadata.selectionAfter
         ? cloneEditorData(metadata.selectionAfter(result) ?? null)
         : this.#captureSelection()
+      this.#assertHealthy()
       const record = {
         id: storeCommit.revision,
         origin: metadata.origin,
@@ -274,6 +280,7 @@ export class TransactionEngine {
 
   #replayObserved(action) {
     const selectionBeforeReplay = this.#captureSelection()
+    this.#assertHealthy()
     const historyCommit = this.#history.prepareReplay(action)
     if (!historyCommit) return false
     const record = historyCommit.record
@@ -298,9 +305,11 @@ export class TransactionEngine {
         generation: storeCommit.generation,
         revision: storeCommit.revision,
       })
+      this.#assertHealthy()
 
       this.#phase = 'applying-projection'
       prepared.apply()
+      this.#assertHealthy()
 
       const event = this.#event({
         sequence: storeCommit.revision,
