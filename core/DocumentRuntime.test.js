@@ -1695,3 +1695,26 @@ test('save and render diagnostic callbacks cannot author a second transaction', 
     assert.ok(denials.every(error => /diagnostic[- ]observation/i.test(String(error))))
   } finally { runtime.destroy() }
 })
+test('save and render diagnostics accept a valid zero-valued clock origin', () => {
+  const events = []
+  let clock = 0
+  const diagnostics = {
+    now() { const result = clock; clock += 5; return result },
+    threshold() { return 1 },
+    emit(code, metadata) { events.push({ code, ...metadata }) },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    diagnostics,
+    data: { version: '2.0.0', blocks: [block('a')] },
+  })
+  try {
+    runtime.save()
+    runtime.render({ version: '2.0.0', blocks: [block('a', { text: 'Changed' })] })
+    assert.equal(events.filter(event => event.code === 'save.slow').length, 1,
+      'monotonic clock starting at zero still qualifies for timing')
+    assert.equal(events.filter(event => event.code === 'render.slow').length, 1)
+    assert.ok(events.every(event => Number.isFinite(event.durationMs)))
+  } finally { runtime.destroy() }
+})
