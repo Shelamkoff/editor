@@ -831,10 +831,18 @@ export class ClipboardController {
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
     this.#task = task
-    const generation=this.#runtime.generation
-    const revision=this.#runtime.revision
-    const modeEpoch=this.#runtime.modeEpoch
-    const selectionKey=JSON.stringify(this.#selection.capture())
+    let generation, revision, modeEpoch, selectionKey
+    try {
+      generation=this.#runtime.generation
+      revision=this.#runtime.revision
+      modeEpoch=this.#runtime.modeEpoch
+      selectionKey=JSON.stringify(this.#selection.capture())
+    } catch (error) {
+      // Failed staging must not leave a half-open task behind. A reentrant
+      // newer Paste may already own #task; never cancel its lease.
+      if (this.#task === task) this.cancelPendingTask()
+      throw error
+    }
     // The async resolver owns both its task token and the control epoch. A
     // read-only round trip revokes this lease even if a caller missed the
     // synchronous task-cancellation notification.
@@ -961,7 +969,20 @@ export class ClipboardController {
         if (persisted) retainPersisted()
         else releasePending()
       }
-    })().finally(() => {
+    })().catch(error => {
+      // Host/DOM selection and runtime getters after await are fallible,
+      // independently of the resolver and canonical commit try/catch blocks.
+      // Contain these failures so the finalizer can release provisional URLs
+      // and retire this task without surfacing an unhandled rejection.
+      let owned = false
+      try { owned = stillOwned() } catch {}
+      if (!owned) return
+      if (this.#diagnostics) {
+        this.#reportDiagnosticError('paste.failed', 'clipboard.paste-task', error)
+      } else {
+        try { console.warn('[Clipboard] paste task failed', error) } catch {}
+      }
+    }).finally(() => {
       task.signal.removeEventListener('abort', releasePending)
       this.#controller.signal.removeEventListener('abort', abort)
       releasePending()
