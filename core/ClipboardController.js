@@ -481,14 +481,17 @@ export class ClipboardController {
 
     if (this.#crossSelection?.active) {
       const html=data.getData('text/html')
+      if(!this.#canPresent())return
       const text=data.getData('text/plain')
+      if(!this.#canPresent())return
       const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark, this.#crossSelection.wholeBlockIds)
-      if(!plan)return
+      if(!plan||!this.#canPresent())return
 
       let parts=null
       if(html){
         try{
           const imported=this.#runtime.prepareHtmlImport(html,plan.focus.blockId)
+          if(!this.#canPresent())return
           if(imported?.kind==='inline'){
             parts=[{kind:'rich-text',html:imported.html}]
           }else if(imported?.kind==='blocks'){
@@ -499,7 +502,7 @@ export class ClipboardController {
             }))
           }
         }catch(error){
-          event.preventDefault()
+          if(this.#canPresent())event.preventDefault()
           this.#diagnostics?.emit('paste.failed',{
             operation:'clipboard.html-selection',
             errorName:this.#diagnostics.errorName(error),
@@ -513,15 +516,15 @@ export class ClipboardController {
           html:escapeHtml(text).replace(/\r\n?|\n/g,'<br>'),
         }]
       }
-      if(!parts?.length)return
+      if(!parts?.length||!this.#canPresent())return
 
       event.preventDefault()
       try{
         const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,parts))
-        if(result){
+        if(result&&this.#canPresent()){
           this.#crossSelection.clear()
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(result.blockId)
+          if(this.#canPresent())this.#view.reconcileInteraction()
+          if(this.#canPresent())this.#view.setCurrent(result.blockId)
         }
       }catch(error){
         this.#diagnostics?.emit('paste.failed',{
