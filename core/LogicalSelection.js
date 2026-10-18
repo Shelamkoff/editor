@@ -94,13 +94,22 @@ export class LogicalSelection {
       && typeof anchor.owner.element.setSelectionRange === 'function'
     ) {
       const element = anchor.owner.element
-      this.#clearNativeSelection()
-      const length = typeof element.value === 'string' ? element.value.length : 0
-      const a = clamp(anchor.offset,0,length)
-      const f = clamp(focus.offset,0,length)
-      element.focus()
-      element.setSelectionRange(Math.min(a,f),Math.max(a,f),a<=f?'forward':'backward')
-      return true
+      try {
+        this.#clearNativeSelection()
+        const length = typeof element.value === 'string' ? element.value.length : 0
+        const a = clamp(anchor.offset,0,length)
+        const f = clamp(focus.offset,0,length)
+        element.focus()
+        // A native focus event may remount the same block ID or move focus to
+        // a newer editing host. Never setSelectionRange on retired inputs.
+        if (this.#root.ownerDocument.activeElement !== element
+          || !this.#sameCurrentOwners(bookmark,anchor,focus)) return false
+        element.setSelectionRange(Math.min(a,f),Math.max(a,f),a<=f?'forward':'backward')
+        return this.#sameCurrentOwners(bookmark,anchor,focus)
+          && this.#root.ownerDocument.activeElement === element
+      } catch {
+        return false
+      }
     }
 
     const document=this.#root.ownerDocument
@@ -117,6 +126,11 @@ export class LogicalSelection {
       // focused editing host was removed and recreated by undo/redo.
       // Focus the anchor host first, then restore the logical range.
       anchor.owner.element.focus?.({ preventScroll: true })
+      // The focus callback may replace the mounted host without changing its
+      // logical block/field address, or synchronously focus another editor.
+      // Do not write the old text node boundaries into the successor DOM.
+      if (document.activeElement !== anchor.owner.element
+        || !this.#sameCurrentOwners(bookmark,anchor,focus)) return false
       if(typeof selection.setBaseAndExtent==='function'){
         selection.setBaseAndExtent(a.node,a.offset,f.node,f.offset)
       }else{
@@ -171,6 +185,16 @@ export class LogicalSelection {
       fieldKey:owner.fieldKey,
       offset:Math.max(0,Math.trunc(offset)||0),
     }
+  }
+
+  #sameCurrentOwners(bookmark,anchor,focus){
+    const nowAnchor=this.#resolvePoint(bookmark.anchor)
+    const nowFocus=this.#resolvePoint(bookmark.focus)
+    return Boolean(nowAnchor&&nowFocus
+      &&nowAnchor.owner.element===anchor.owner.element
+      &&nowAnchor.owner.mode===anchor.owner.mode
+      &&nowFocus.owner.element===focus.owner.element
+      &&nowFocus.owner.mode===focus.owner.mode)
   }
 
   #resolvePoint(point){
