@@ -310,3 +310,24 @@ for(const key of ['Enter','Backspace','Delete']){
     h.router.destroy()
   })
 }
+
+test('retired KeyboardRouter ignores captured editor shortcuts and does not intercept native keys', () => {
+  const { router, calls, event } = harness()
+  router.destroy()
+  const history = event('z', { ctrlKey: true })
+  const split = event('Enter')
+  router.handleKeydown(history)
+  router.handleKeydown(split)
+  assert.equal(history.prevented, false)
+  assert.equal(split.prevented, false)
+  assert.deepEqual(calls, [], 'destroyed key listener mutated or replayed canonical history')
+})
+
+test('retired KeyboardRouter public structural entry points cannot modify document', () => {
+  const { router, calls } = harness()
+  router.destroy()
+  assert.equal(router.split('b', 'text', { start: 0, end: 0 }), false)
+  assert.equal(router.exit('b'), false)
+  assert.equal(router.appendDefault(), false)
+  assert.deepEqual(calls, [])
+})
