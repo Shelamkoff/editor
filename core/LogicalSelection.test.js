@@ -406,3 +406,64 @@ test('rich-text capture refuses a native range whose mounted field changed durin
   assert.equal(selection.capture(), null,
     'native bookmark used a text node from a retired same-ID mounted field')
 })
+
+
+test('fieldless capture cannot preserve retired shell identity after field discovery', () => {
+  const document = { activeElement: null, defaultView: { getSelection() { return null } } }
+  const oldShell = { id: 'old' }, newShell = { id: 'new' }
+  document.activeElement = oldShell
+  let mounted = oldShell
+  const reconciler = {
+    resolveEditableTarget() { return null },
+    resolveBlockTarget() { return 'a' },
+    getEditableFields(id) {
+      if (id === 'a') mounted = newShell
+      return []
+    },
+    getElement() { return mounted },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: document }, reconciler })
+  assert.equal(logical.capture(), null,
+    'retired fieldless shell could create a bookmark after a same-ID remount')
+})
+
+test('fieldless restore refuses success if focus reveals a new editable host', () => {
+  const document = { activeElement: null, defaultView: { getSelection() { return null } } }
+  let fields = []
+  const shell = {
+    focus() {
+      document.activeElement = this
+      fields = [{ key: 'text', mode: 'rich-text', element: { textContent: 'New' } }]
+    },
+  }
+  const reconciler = {
+    resolveEditableTarget() { return null },
+    getEditableFields() { return fields },
+    getElement() { return shell },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: document }, reconciler })
+  const point = { blockId: 'a', fieldKey: '', offset: 0 }
+  assert.equal(logical.restore({ anchor: point, focus: { ...point } }), false,
+    'retired fieldless bookmark incorrectly claimed an editor with new fields')
+  assert.equal(fields.length, 1)
+})
+
+test('stable fieldless capture and focus remain supported', () => {
+  const document = { activeElement: null, defaultView: { getSelection() { return null } } }
+  const shell = { focus() { document.activeElement = this } }
+  document.activeElement = shell
+  const reconciler = {
+    resolveEditableTarget() { return null },
+    resolveBlockTarget(element) { return element === shell ? 'a' : null },
+    getEditableFields() { return [] },
+    getElement() { return shell },
+  }
+  const logical = new LogicalSelection({ root: { ownerDocument: document }, reconciler })
+  const bookmark = logical.capture()
+  assert.deepEqual(bookmark, {
+    anchor: { blockId: 'a', fieldKey: '', offset: 0 },
+    focus: { blockId: 'a', fieldKey: '', offset: 0 },
+  })
+  assert.equal(logical.restore(bookmark), true)
+  assert.equal(document.activeElement, shell)
+})
