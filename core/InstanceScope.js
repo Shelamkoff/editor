@@ -163,8 +163,15 @@ export class InstanceScope{
     if(typeof updateData!=='function')throw new TypeError('Instance authority requires updateData()')
 
     const getData=()=>{
+      const epoch=this.#interactionEpoch
+      const generation=this.#generation
       this.assertReadable()
-      return snapshot(readData())
+      const owned=snapshot(readData())
+      // The read callback and its JSON snapshot are synchronous external
+      // boundaries. A retired occurrence must not return its author data.
+      if(epoch!==this.#interactionEpoch||generation!==this.#generation)throw createAbortError()
+      this.assertReadable()
+      return owned
     }
     const update=(producer,options)=>{
       if(typeof producer!=='function')throw new TypeError('updateData() requires a producer')
@@ -177,9 +184,16 @@ export class InstanceScope{
       return commitDomMutation?.(operation)
     }
     const allocate=prefix=>{
+      const epoch=this.#interactionEpoch
+      const generation=this.#generation
       this.assertReadable()
       if(typeof createId!=='function')throw new Error('Instance context has no id allocator')
-      return createId(prefix)
+      const id=createId(prefix)
+      // An allocator may synchronously destroy the editor or complete a
+      // read-only round trip before returning its proposed identifier.
+      if(epoch!==this.#interactionEpoch||generation!==this.#generation)throw createAbortError()
+      this.assertReadable()
+      return id
     }
 
     return Object.freeze({
@@ -278,11 +292,20 @@ export class InstanceScope{
           ||this.#generation!==task.generation
           ||this.#currentGeneration()!==task.generation
           ||(this.#parent&&!this.#parent.#canMutate())
+          ||!this.#stillOwnInteraction(task.epoch,task.generation)
+          ||task.closed||controller.signal.aborted
         ){
           close(true)
           return false
         }
         const currentPhase=this.#phase()
+        // The phase check is itself a callback. A plugin can synchronously
+        // revoke this task while claiming that the old phase was still idle.
+        if(!this.#stillOwnInteraction(task.epoch,task.generation)
+          ||task.closed||controller.signal.aborted){
+          close(true)
+          return false
+        }
         if(currentPhase!=='idle')throw new Error(`Cannot commit a data task during ${currentPhase} phase`)
         task.committing=true
         try{
