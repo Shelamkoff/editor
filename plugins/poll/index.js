@@ -59,7 +59,7 @@ export function createPollPlugin(config={}){
         }
         if(input.fieldKey.startsWith('option:')&&input.key==='Backspace'&&data.options.length>2){
           const index=data.options.findIndex(option=>'option:'+option.id===input.fieldKey)
-          if(index>=0&&!data.options[index].text.trim()){
+          if(index>=0&&isRichTextEmpty(data.options[index].text,context)){
             const previous=data.options[Math.max(0,index-1)]
             const next=index===0?data.options[1]:previous
             return {
