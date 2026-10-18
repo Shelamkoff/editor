@@ -599,3 +599,28 @@ test('throwing observer then-accessor is contained after a committed transaction
     { code: 'command.failed', operation: 'transaction.observer', errorName: 'Error' },
   ])
 })
+
+
+test('native rejected commit observer Promise is contained after success', async () => {
+  const diagnostics = []
+  const { store, history, engine } = harness({
+    diagnostics: {
+      now() { return 1 },
+      threshold() { return Infinity },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+      emit(code, details) { diagnostics.push({ code, ...details }) },
+    },
+    async onCommit() {
+      throw new RangeError('rejected after canonical commit')
+    },
+  })
+  engine.execute({ origin: 'user', name: 'block.update' },
+    tx => tx.update('a', block('a', 'Saved')))
+  assert.equal(store.get('a').data.text, 'Saved')
+  assert.equal(history.canUndo, true)
+  for (let step = 0; step < 4; step++) await Promise.resolve()
+  assert.deepEqual(diagnostics.filter(event => event.operation === 'transaction.observer'), [
+    { code: 'command.failed', operation: 'transaction.observer', errorName: 'RangeError' },
+  ])
+  assert.equal(engine.health, 'ready')
+})
