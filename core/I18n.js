@@ -224,7 +224,8 @@ export class I18n {
     // An English fallback key must use English grammar even when the primary
     // editor locale is Russian (21 -> "other" in English, "one" in Russian).
     const sourceLang = Object.hasOwn(this.#messages, key) ? this.#lang : 'en'
-    const rule = Object.hasOwn(PLURAL_RULES, sourceLang) ? PLURAL_RULES[sourceLang] : PLURAL_RULES.en
+    const language = sourceLang.split(/[-_]/, 1)[0].toLowerCase()
+    const rule = Object.hasOwn(PLURAL_RULES, language) ? PLURAL_RULES[language] : PLURAL_RULES.en
     const category = /** @type {(n: number) => keyof PluralForms} */ (rule)(count)
     const form = value[category] ?? value.other ?? Object.values(value)[0] ?? ''
     return interpolate(form, merged)
