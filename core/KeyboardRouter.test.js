@@ -406,7 +406,7 @@ test('cancelled shortcut preparation cannot fall through to another structural c
 })
 
 
-function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false, failed = false } = {}) {
+function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false, failed = false, retire = null } = {}) {
   const commands = []
   const errors = []
   const h = harness({
@@ -414,6 +414,11 @@ function typedPatternHarness({ converted = true, nativeCollapsed = true, word = 
     inlineCommands: {
       commitTypedPattern(value, target, delimiter) {
         commands.push({ value, target, delimiter })
+        if (retire === 'destroy' || retire === 'throw') h.router.destroy()
+        if (retire === 'mode') {
+          h.runtime.modeEpoch = (h.runtime.modeEpoch ?? 0) + 2
+        }
+        if (retire === 'throw') throw new Error('matcher failed after teardown')
         if (failed) throw new Error('typed pattern preparation failed')
         return converted
       },
@@ -549,5 +554,30 @@ test('typed inline pattern retains v1 Shift+Enter recognition without a native l
     delimiter: 'Enter',
   }])
   assert.deepEqual(h.calls, [])
+  h.router.destroy()
+})
+
+
+for (const retire of ['destroy','throw']) {
+  test('retired typed-pattern owner never consumes a key after ' + retire,()=>{
+    const h=typedPatternHarness({retire})
+    h.runtime.health='ready'
+    const event=h.event('Enter')
+    h.router.handleKeydown(event)
+    assert.equal(event.prevented,false,'destroyed keyboard owner consumed a captured Enter')
+    assert.deepEqual(h.calls,[],'destroyed keyboard owner performed a structural edit')
+    if(retire==='throw')assert.deepEqual(h.errors,['matcher failed after teardown'])
+    h.router.destroy()
+  })
+}
+
+test('typed-pattern callback mode epoch change cannot fall through into Enter structural edit',()=>{
+  const h=typedPatternHarness({retire:'mode',converted:false})
+  h.runtime.health='ready'
+  h.runtime.modeEpoch=0
+  const event=h.event('Enter')
+  h.router.handleKeydown(event)
+  assert.equal(event.prevented,false)
+  assert.deepEqual(h.calls,[],'old key ran after author edit mode was replaced')
   h.router.destroy()
 })
