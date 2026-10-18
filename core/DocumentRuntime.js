@@ -99,6 +99,7 @@ export class DocumentRuntime {
   #changingReadOnly = false
   #preparationDepth = 0
   #observationDepth = 0
+  #diagnosticObservationDepth = 0
   #requestSplit
   #requestExit
   #diagnostics
@@ -275,23 +276,18 @@ export class DocumentRuntime {
   }
 
   save() {
-    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
+    const startedAt = this.#observeDiagnostics(sink => sink.now())
     try {
       const document = this.#store.export()
       document.time = Date.now()
       return document
     } catch (error) {
-      this.#diagnostics?.emit('save.failed', {
-        errorName: this.#diagnostics.errorName(error),
-      })
+      this.#observeDiagnostics(sink => sink.emit('save.failed', {
+        errorName: sink.errorName(error),
+      }))
       throw error
     } finally {
-      if (startedAt && this.#diagnostics) {
-        const durationMs = this.#diagnostics.now() - startedAt
-        if (durationMs >= this.#diagnostics.threshold('saveMs')) {
-          this.#diagnostics.emit('save.slow', { durationMs })
-        }
-      }
+      this.#emitSlowDiagnostic(startedAt, 'saveMs', 'save.slow')
     }
   }
 
@@ -311,9 +307,7 @@ export class DocumentRuntime {
     this.#preparationDepth++
     try {
       return synchronousResult(operation(), error => {
-        this.#diagnostics?.emit('command.failed', {
-          operation: 'extension.prepare', errorName: this.#diagnostics.errorName(error),
-        })
+        this.#reportDiagnosticError('extension.prepare', error)
       })
     } finally { this.#preparationDepth-- }
   }
@@ -784,18 +778,13 @@ export class DocumentRuntime {
 
   render(input) {
     this.#assertHostMutation()
-    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
+    const startedAt = this.#observeDiagnostics(sink => sink.now())
     try {
       this.#engine.execute({ origin: 'external', name: 'document.render' }, tx => {
         tx.replace(this.#prepareDocument(() => prepareCurrentDocument(input, this.#ingestionServices())))
       })
     } finally {
-      if (startedAt && this.#diagnostics) {
-        const durationMs = this.#diagnostics.now() - startedAt
-        if (durationMs >= this.#diagnostics.threshold('renderMs')) {
-          this.#diagnostics.emit('render.slow', { durationMs })
-        }
-      }
+      this.#emitSlowDiagnostic(startedAt, 'renderMs', 'render.slow')
     }
   }
 
@@ -1258,9 +1247,7 @@ export class DocumentRuntime {
     this.#editingProjection = true
     try {
       const result = synchronousResult(operation(), error => {
-        this.#diagnostics?.emit('command.failed', {
-          operation: 'projection.edit', errorName: this.#diagnostics.errorName(error),
-        })
+        this.#reportDiagnosticError('projection.edit', error)
       })
 
       const updates = []
@@ -1465,10 +1452,7 @@ export class DocumentRuntime {
     this.#observationDepth++
     try {
       invokeObserver(this.#onValidationError, [issue], observerError => {
-        this.#diagnostics?.emit('command.failed', {
-          operation: 'onValidationError',
-          errorName: this.#diagnostics.errorName(observerError),
-        })
+        this.#reportDiagnosticError('onValidationError', observerError)
       })
     } finally { this.#observationDepth-- }
   }
@@ -1530,7 +1514,7 @@ export class DocumentRuntime {
   #captureSelection() {
     try { return cloneEditorData(this.#selection?.capture?.() ?? null) }
     catch (error) {
-      this.#diagnostics?.emit('command.failed', { operation: 'projection.selection.capture', errorName: this.#diagnostics.errorName(error) })
+      this.#reportDiagnosticError('projection.selection.capture', error)
       return null
     }
   }
@@ -1539,11 +1523,47 @@ export class DocumentRuntime {
     if (!bookmark || !this.#selection?.restore) return
     try { this.#selection.restore(cloneEditorData(bookmark)) }
     catch (error) {
-      this.#diagnostics?.emit('command.failed', { operation: 'projection.selection.restore', errorName: this.#diagnostics.errorName(error) })
+      this.#reportDiagnosticError('projection.selection.restore', error)
     }
   }
 
+  /** Only observe telemetry; a fallible sink has no document or control authority.
+   * @template T
+   * @param {(sink: import('./types').DiagnosticsSink) => T} operation
+   * @returns {T | undefined}
+   */
+  #observeDiagnostics(operation) {
+    if (!this.#diagnostics || this.#diagnosticObservationDepth) return undefined
+    this.#diagnosticObservationDepth++
+    try { return operation(this.#diagnostics) }
+    catch { return undefined }
+    finally { this.#diagnosticObservationDepth-- }
+  }
+
+  /** @param {string} operation @param {unknown} error */
+  #reportDiagnosticError(operation, error) {
+    this.#observeDiagnostics(sink => sink.emit('command.failed', {
+      operation, errorName: sink.errorName(error),
+    }))
+  }
+
+  /** @param {number | undefined} startedAt
+   * @param {'saveMs' | 'renderMs'} threshold
+   * @param {'save.slow' | 'render.slow'} code
+   */
+  #emitSlowDiagnostic(startedAt, threshold, code) {
+    // A clock returning exactly zero is a valid start, unlike a missing clock.
+    if (typeof startedAt !== 'number' || !Number.isFinite(startedAt)) return
+    this.#observeDiagnostics(sink => {
+      const durationMs = sink.now() - startedAt
+      if (Number.isFinite(durationMs) && durationMs >= sink.threshold(threshold)) {
+        sink.emit(code, { durationMs })
+      }
+    })
+  }
+
   #mutationPhase() {
+    if (this.#diagnosticObservationDepth) return 'diagnostic-observation'
     if (this.#observationDepth) return 'validation-observation'
     if (this.#projectingPresentation) return 'presentation-projection'
     if (this.#preparationDepth) return 'extension-preparation'
@@ -1553,6 +1573,7 @@ export class DocumentRuntime {
   }
 
   #assertHostMutation() {
+    if (this.#diagnosticObservationDepth) throw new Error('Cannot mutate document during diagnostic observation')
     if (this.#observationDepth) throw new Error('Cannot mutate document during validation observation')
     if (this.#projectingPresentation) throw new Error('Cannot mutate document during presentation projection')
     if (this.#preparationDepth) throw new Error('Cannot mutate document during extension preparation')
