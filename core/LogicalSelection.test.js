@@ -240,3 +240,69 @@ test('rich-text capture rejects native selection changed during endpoint resolut
   assert.equal(logical.capture(), null,
     'mixed native endpoints from different selection moments became one bookmark')
 })
+
+
+test('backward rich-text selection uses native collapse and extend when setBaseAndExtent is missing', () => {
+  const h = fixture()
+  const native = h.native
+  native.setBaseAndExtent = undefined
+  native.collapse = (node, offset) => {
+    native.anchorNode = node
+    native.focusNode = node
+    native.anchorOffset = offset
+    native.focusOffset = offset
+  }
+  native.extend = (node, offset) => {
+    native.focusNode = node
+    native.focusOffset = offset
+  }
+  // Mimic DOM Range's forward-only behavior: setting an end before a start
+  // collapses the range to the new end, losing backwards selection.
+  h.ownerDocument.createRange = () => ({
+    startNode: null, endNode: null, startOffset: 0, endOffset: 0,
+    setStart(node, offset) { this.startNode = node; this.startOffset = offset },
+    setEnd(node, offset) {
+      this.endNode = node
+      this.endOffset = offset
+      if (offset < this.startOffset) this.startOffset = offset
+    },
+  })
+  native.addRange = range => {
+    native.anchorNode = range.startNode
+    native.focusNode = range.endNode
+    native.anchorOffset = range.startOffset
+    native.focusOffset = range.endOffset
+  }
+  const point = offset => ({ blockId: 'a', fieldKey: 'text', offset })
+  assert.equal(h.selection.restore({
+    anchor: point(4), focus: point(1),
+  }), true)
+  assert.equal(native.anchorOffset, 4, 'backward selection lost its original anchor')
+  assert.equal(native.focusOffset, 1, 'backward selection collapsed instead of selecting text')
+  assert.equal(native.anchorNode, h.field().child)
+  assert.equal(native.focusNode, h.field().child)
+})
+
+test('forward rich-text Range fallback still restores text when Selection.extend is unavailable', () => {
+  const h = fixture()
+  const native = h.native
+  native.setBaseAndExtent = undefined
+  native.collapse = undefined
+  native.extend = undefined
+  h.ownerDocument.createRange = () => ({
+    startNode: null, endNode: null, startOffset: 0, endOffset: 0,
+    setStart(node, offset) { this.startNode = node; this.startOffset = offset },
+    setEnd(node, offset) { this.endNode = node; this.endOffset = offset },
+  })
+  native.addRange = range => {
+    native.anchorNode = range.startNode
+    native.focusNode = range.endNode
+    native.anchorOffset = range.startOffset
+    native.focusOffset = range.endOffset
+  }
+  const point = offset => ({ blockId: 'a', fieldKey: 'text', offset })
+  assert.equal(h.selection.restore({
+    anchor: point(1), focus: point(4),
+  }), true)
+  assert.deepEqual([native.anchorOffset, native.focusOffset], [1, 4])
+})
