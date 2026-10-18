@@ -589,3 +589,38 @@ test('instance cannot persist a producer result after the producer retires its o
   assert.equal(producers, 1, 'test did not exercise the producer callback')
   assert.equal(persisted, 0, 'retired update result crossed into committed author data')
 })
+test('data task rejects revocation during its input snapshot or producer callback', () => {
+  for (const interruption of ['snapshot', 'producer']) {
+    const scope = new InstanceScope({ staged: false, generation: 1 })
+    scope.configure({ currentGeneration: () => 1, currentRevision: () => 5 })
+    let persisted = 0, producers = 0
+    const source = {}
+    Object.defineProperty(source, 'value', {
+      enumerable: true,
+      get() {
+        if (interruption === 'snapshot') scope.revoke()
+        return 1
+      },
+    })
+    const context = scope.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData(operation) {
+        operation(source)
+        persisted++
+      },
+    })
+    const task = context.beginTask()
+    assert.throws(
+      () => task.commit(current => {
+        producers++
+        if (interruption === 'producer') scope.setReadOnly(true)
+        return { ...current, value: 2 }
+      }),
+      error => error?.name === 'AbortError',
+      interruption + ' allowed an already-revoked task to publish a result',
+    )
+    assert.equal(task.signal.aborted, true)
+    assert.equal(persisted, 0)
+    assert.equal(producers, interruption === 'snapshot' ? 0 : 1)
+  }
+})
