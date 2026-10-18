@@ -227,7 +227,11 @@ export class SelectionController {
         last.element.focus({preventScroll:true})
         if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
         native.collapse(built.focus.node,built.focus.offset)
-        if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+        const collapsed={anchor:bookmark.focus,focus:bookmark.focus}
+        if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)
+          || this.#document.activeElement!==last.element
+          || !this.#nativeSelectionMatches(collapsed,native)) return false
+        if (!canRestore()) return false
       }
       this.#activate(bookmark,built.range)
       if (!canRestore()) return false
