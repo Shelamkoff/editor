@@ -278,7 +278,11 @@ test('editor disposal releases all owned blobs even if one revoke and diagnostic
       },
     }),
     revokeFailure: url => url.endsWith('-1'),
-    diagnostics: { emit() { throw new Error('diagnostic transport failed') }, errorName: () => 'Error' },
+    diagnostics: {
+      now: () => 0, threshold: () => Infinity,
+      emit() { throw new Error('diagnostic transport failed') },
+      errorName: () => 'Error',
+    },
   })
   f.paste()
   await f.settle()
@@ -299,7 +303,11 @@ test('canceling media Paste releases remaining pending resources when diagnostic
       return { kind: 'block', data: { first, second } }
     },
     revokeFailure: url => url.endsWith('-1'),
-    diagnostics: { emit() { throw new Error('diagnostic transport failed') }, errorName: () => 'Error' },
+    diagnostics: {
+      now: () => 0, threshold: () => Infinity,
+      emit() { throw new Error('diagnostic transport failed') },
+      errorName: () => 'Error',
+    },
   })
   try {
     f.paste()
