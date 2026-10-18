@@ -220,3 +220,172 @@ for (const action of ['removeWholeBlocks', 'replace']) {
     assert.deepEqual(h.view.selectedIds, [], 'destruction did not clear the previous logical selection')
   })
 }
+
+
+function mountedRestoreFixture({ onFocus, onSelection, blocks = ['a','b'] } = {}) {
+  const calls = { native: 0, selection: 0, focus: 0, selected: 0 }
+  const fields = new Map()
+  const native = {
+    anchorNode: null, focusNode: null, anchorOffset: 0, focusOffset: 0,
+    rangeCount: 0,
+    setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset) {
+      calls.native++
+      this.anchorNode = anchorNode
+      this.anchorOffset = anchorOffset
+      this.focusNode = focusNode
+      this.focusOffset = focusOffset
+      this.rangeCount = 1
+      onSelection?.(context)
+    },
+    removeAllRanges() { this.rangeCount = 0 },
+    addRange(range) {
+      calls.native++
+      this.anchorNode = range.startContainer
+      this.anchorOffset = range.startOffset
+      this.focusNode = range.endContainer
+      this.focusOffset = range.endOffset
+      this.rangeCount = 1
+      onSelection?.(context)
+    },
+  }
+  const document = {
+    activeElement: null,
+    defaultView: { AbortController, getSelection: () => native },
+    addEventListener() {},
+    createRange() {
+      const range = {
+        startContainer: null, endContainer: null,
+        startOffset: 0, endOffset: 0,
+        setStart(node, offset) { this.startContainer = node; this.startOffset = offset },
+        setEnd(node, offset) { this.endContainer = node; this.endOffset = offset },
+        cloneRange() { return { ...this, cloneRange: this.cloneRange } },
+        toString() { return 'selected' },
+      }
+      return range
+    },
+  }
+  function field(id) {
+    const element = {
+      nodeType: 1, tagName: 'DIV', childNodes: [],
+      hasAttribute() { return false },
+      textContent: 'Alpha',
+      contains(node) { return node === this || node === this.childNodes[0] },
+      focus() {
+        calls.focus++
+        document.activeElement = this
+        onFocus?.(context, id, this)
+      },
+    }
+    const child = {
+      nodeType: 3, textContent: 'Alpha', data: 'Alpha',
+      parentNode: element,
+    }
+    element.childNodes = [child]
+    return { key: 'text', mode: 'rich-text', element, child }
+  }
+  for (const id of blocks) fields.set(id, field(id))
+  document.activeElement = fields.get('a').element
+  const selections = []
+  const view = {
+    selectedIds: [],
+    select(ids) {
+      calls.selected++
+      this.selectedIds = [...ids]
+      selections.push([...ids])
+    },
+    clearSelection() { this.selectedIds = [] },
+  }
+  const runtime = {
+    generation: 1, revision: 1, modeEpoch: 0, health: 'ready',
+    readOnly: false,
+    indexOf(id) { return blocks.indexOf(id) },
+    ids() { return [...blocks] },
+    has(id) { return blocks.includes(id) },
+  }
+  const reconciler = {
+    getEditableField(id, key) {
+      const current = fields.get(id)
+      return current?.key === key ? current : null
+    },
+    getEditableFields(id) { return fields.has(id) ? [fields.get(id)] : [] },
+    resolveEditableTarget(node) {
+      for (const [blockId, candidate] of fields) {
+        if (candidate.element.contains(node)) {
+          return { blockId, fieldKey: candidate.key, mode: candidate.mode, element: candidate.element }
+        }
+      }
+      return null
+    },
+  }
+  const root = {
+    ownerDocument: document,
+    addEventListener() {},
+    classList: { add() {}, remove() {} },
+    contains() { return true },
+  }
+  const controller = new SelectionController({ root, runtime, reconciler, view })
+  const context = {
+    controller, document, runtime, reconciler, view, fields, native, selections, calls,
+    replace(id) { fields.set(id, field(id)); return fields.get(id) },
+  }
+  const point = (id, offset) => ({ blockId: id, fieldKey: 'text', offset })
+  return { ...context, point }
+}
+
+test('cross-block restore never uses text nodes after focus remount', () => {
+  let retire = false
+  const h = mountedRestoreFixture({
+    onFocus(ctx, id) {
+      if (id === 'a' && retire) ctx.replace('a')
+    },
+  })
+  h.document.activeElement = h.fields.get('b').element
+  retire = true
+  const original = h.fields.get('a').child
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 2), focus: h.point('b', 3),
+  }), false, 'old cross-block range was accepted after a focus remounted its anchor field')
+  assert.equal(h.calls.native, 0, 'old text node was passed into native selection')
+  assert.notEqual(h.fields.get('a').child, original)
+  assert.equal(h.calls.selected, 0, 'stale selection published selected blocks')
+  h.controller.destroy()
+})
+
+test('cross-block restore cannot publish range after native selection retires owner', () => {
+  let h
+  h = mountedRestoreFixture({
+    onSelection() { h.controller.destroy() },
+  })
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2),
+  }), false)
+  assert.equal(h.calls.native, 1)
+  assert.equal(h.calls.selected, 0, 'destroyed selection published selected blocks')
+  assert.equal(h.controller.active, false)
+})
+
+test('cross-block focus error rejects restoration without throwing to the editor host', () => {
+  const h = mountedRestoreFixture({
+    onFocus() { throw new Error('plugin focus failed on a detached host') },
+  })
+  h.document.activeElement = h.fields.get('b').element
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2),
+  }), false)
+  assert.equal(h.calls.native, 0)
+  assert.equal(h.calls.selected, 0)
+  h.controller.destroy()
+})
+
+test('ordinary cross-block range restores the owned native endpoints once', () => {
+  const h = mountedRestoreFixture()
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 4),
+  }), true)
+  assert.equal(h.calls.native, 1)
+  assert.equal(h.native.anchorNode, h.fields.get('a').child)
+  assert.equal(h.native.focusNode, h.fields.get('b').child)
+  assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [1, 4])
+  assert.deepEqual(h.view.selectedIds, ['a', 'b'])
+  h.controller.destroy()
+})
