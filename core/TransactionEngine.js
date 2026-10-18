@@ -404,11 +404,19 @@ export class TransactionEngine {
 
   #captureSelection() {
     if (!this.#selection?.capture) return null
+    // Before execute/Undo/Redo has acquired a draft or replay plan, the
+    // engine is still idle. Selection is an external callback and must not
+    // reenter model/history commands while that preflight snapshot is read.
+    // Preserve the existing projection/commit phase for later captures.
+    const preflight = this.#phase === 'idle'
+    if (preflight) this.#phase = 'capturing-selection'
     try {
       return cloneEditorData(this.#selection.capture() ?? null)
     } catch (error) {
       this.#diagnostic(error)
       return null
+    } finally {
+      if (preflight) this.#phase = 'idle'
     }
   }
 
