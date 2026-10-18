@@ -361,3 +361,26 @@ test('reentrant timer cancellation does not clear the same lease twice', () => {
   assert.deepEqual(cancelled, [1, 2])
   assert.deepEqual([...pending], [])
 })
+test('an already-fired synchronous timer does not remain pending', async () => {
+  const cleared = []
+  const timerHost = {
+    setTimeout(callback) {
+      callback()
+      return 1
+    },
+    clearTimeout(id) { cleared.push(id) },
+  }
+  let notifications = 0
+  const notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }),
+    () => { notifications++ },
+    0,
+    timerHost,
+  )
+  notifier.schedule()
+  for (let index = 0; index < 3; index++) await Promise.resolve()
+  assert.equal(notifications, 1)
+  notifier.destroy()
+  assert.deepEqual(cleared, [],
+    'an already-completed callback must not leave a cancellable timer lease')
+})
