@@ -76,6 +76,63 @@ export class InlineCommandController {
     return this.#insertWidget(type, target, insertion.fresh.data, insertion.trailingText)
   }
 
+  /** Match one already-typed word before a native Space/Enter delimiter.
+   * Unlike a Paste scan, the v1 delimiter contract replaces the entire word
+   * once a registered expression accepts it, even for unanchored patterns.
+   */
+  commitTypedPattern(word, target, delimiter) {
+    if (this.#runtime.readOnly || typeof word !== 'string' || !word
+      || !target?.range || target.range.end - target.range.start !== word.length
+      || (delimiter !== ' ' && delimiter !== 'Enter')) return false
+
+    const caretLease = this.#caretLease()
+    const prepared = this.#runtime.prepareExtensionValue(() => {
+      for (const type of this.#registry.inlineTypes) {
+        const definition = this.#registry.getInlineDefinition(type)
+        const paste = definition?.paste
+        if (!paste?.patterns?.length || typeof paste.fromMatch !== 'function') continue
+        for (const pattern of paste.patterns) {
+          if (!(pattern instanceof RegExp)) continue
+          // Reuse the plugin's test behavior without modifying its RegExp
+          // lastIndex; the same definition may be shared by other editors.
+          const validator = new RegExp(pattern.source, pattern.flags)
+          const validate = pattern.test
+          const accepted = synchronousResult(Reflect.apply(validate, validator, [word]))
+          if (typeof accepted !== 'boolean') {
+            throw new TypeError(`Inline typed pattern for "${type}" must return a boolean`)
+          }
+          if (!accepted) continue
+          const candidate = synchronousResult(paste.fromMatch(word))
+          if (candidate === null) continue
+          if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+            throw new TypeError(`Inline typed matcher for "${type}" must return an object or null`)
+          }
+          return { type, data: cloneEditorData(candidate) }
+        }
+      }
+      return null
+    })
+    if (!prepared) return false
+
+    const segments = [
+      { kind: 'widget', type: prepared.type, data: prepared.data },
+      ...(delimiter === ' ' ? [{ kind: 'text', text: ' ' }] : []),
+    ]
+    const result = this.#runtime.interact('inline.typed-pattern', () => (
+      this.#runtime.replaceRichTextWithInlineSegments(
+        target.blockId, target.fieldKey, target.range, segments,
+      )
+    ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
+    if (!result) return false
+    if (this.#canRestoreCaret(caretLease)) {
+      this.#selection.setCaret(result.blockId, {
+        fieldKey: result.fieldKey,
+        offset: result.offset,
+      })
+    }
+    return true
+  }
+
   pasteText(text, target = this.#currentRange()) {
     if (this.#runtime.readOnly || !target || typeof text !== 'string' || !text) return false
 
