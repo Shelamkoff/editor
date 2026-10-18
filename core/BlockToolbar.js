@@ -113,6 +113,7 @@ export class BlockToolbar {
     this.#backdrop.className = 'oe-offcanvas-backdrop'
     this.#backdrop.setAttribute('aria-hidden', 'true')
     this.#backdrop.addEventListener('click', () => {
+      if (this.#destroyed) return
       this.closeToolbox()
       this.closeSettings()
     })
@@ -128,22 +129,24 @@ export class BlockToolbar {
     }
 
     this.#plus.addEventListener('mousedown', event => {
-      if (event.button !== 0) return
+      if (this.#destroyed || event.button !== 0) return
       this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
       this.#menuSelectionPending = true
     })
     this.#settingsButton.addEventListener('mousedown', event => {
-      if (event.button !== 0) return
+      if (this.#destroyed || event.button !== 0) return
       this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
       this.#menuSelectionPending = true
     })
     this.#plus.addEventListener('click', event => {
+      if (this.#destroyed) return
       if (event.detail === 0) this.#menuSelectionPending = false
       event.stopPropagation()
       if (this.#toolbox.style.display === 'none') this.openToolbox()
       else this.closeToolbox()
     })
     this.#settingsButton.addEventListener('click', event => {
+      if (this.#destroyed) return
       if (event.detail === 0) this.#menuSelectionPending = false
       event.stopPropagation()
       if (this.#settings.style.display === 'none') this.openSettings()
@@ -152,9 +155,10 @@ export class BlockToolbar {
 
     // A capture belongs only to its completing pointer click. A later gesture
     // or keyboard activation must read the author's current selection.
-    this.#documentMouseDown = () => { this.#menuSelectionPending = false }
+    this.#documentMouseDown = () => { if (!this.#destroyed) this.#menuSelectionPending = false }
     document.addEventListener('mousedown', this.#documentMouseDown, true)
     this.#documentClick = event => {
+      if (this.#destroyed) return
       const target = event.target
       if (!target || typeof target !== 'object') return
       if (this.#toolbar.contains(target) || this.#toolbox.contains(target) || this.#settings.contains(target)) return
@@ -223,6 +227,7 @@ export class BlockToolbar {
   }
 
   setReadOnly(value) {
+    if (this.#destroyed) return
     if (value) {
       this.hide()
       return
@@ -231,6 +236,7 @@ export class BlockToolbar {
   }
 
   hide() {
+    if (this.#destroyed) return
     this.#cancelPositionFrame()
     this.#tooltip.hide()
     const current = this.#currentId ? this.#view.element(this.#currentId) : null
@@ -241,7 +247,7 @@ export class BlockToolbar {
   }
 
   openToolbox() {
-    if (this.#runtime.readOnly) return
+    if (this.#destroyed || this.#runtime.readOnly) return
     if(!this.#menuSelectionPending)this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture() ?? this.#bookmark
     this.#menuSelectionPending = false
     this.closeSettings()
@@ -264,7 +270,7 @@ export class BlockToolbar {
   }
 
   openSettings() {
-    if (this.#runtime.readOnly || !this.#currentId) return
+    if (this.#destroyed || this.#runtime.readOnly || !this.#currentId) return
     if(!this.#menuSelectionPending)this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture() ?? this.#bookmark
     this.#menuSelectionPending = false
     this.closeToolbox()
@@ -324,6 +330,7 @@ export class BlockToolbar {
       input.placeholder = this.#t('toolbox.search', 'Search')
       input.value = this.#toolboxQuery
       input.addEventListener('input', () => {
+        if (this.#destroyed) return
         this.#toolboxQuery = input.value
         this.#filterToolbox(input.value)
       })
@@ -409,9 +416,10 @@ export class BlockToolbar {
     const ownerId = this.#currentId
     const owner = ownerId ? this.#view.element(ownerId) : null
     item.addEventListener('click', event => {
+      if (this.#destroyed) return
       event.preventDefault()
       event.stopPropagation()
-      if (this.#destroyed || this.#runtime.readOnly || version !== this.#toolboxVersion || generation !== this.#runtime.generation) return
+      if (this.#runtime.readOnly || version !== this.#toolboxVersion || generation !== this.#runtime.generation) return
       if (ownerId && owner !== this.#view.element(ownerId)) return
       action()
     })
@@ -711,9 +719,10 @@ export class BlockToolbar {
     const ownerId = this.#currentId
     const owner = ownerId ? this.#view.element(ownerId) : null
     if (!disabled) item.addEventListener('click', event => {
+      if (this.#destroyed) return
       event.preventDefault()
       event.stopPropagation()
-      if (this.#destroyed || this.#runtime.readOnly || version !== this.#settingsVersion || generation !== this.#runtime.generation) return
+      if (this.#runtime.readOnly || version !== this.#settingsVersion || generation !== this.#runtime.generation) return
       if (ownerId && owner !== this.#view.element(ownerId)) return
       action()
     })
@@ -831,6 +840,7 @@ export class BlockToolbar {
   }
 
   #menuKeydown(event, menu) {
+    if (this.#destroyed) return
     if (event.target?.closest?.('input, textarea, select') && !['ArrowDown', 'ArrowUp', 'Escape'].includes(event.key)) return
     const items = [...menu.querySelectorAll('[role^="menuitem"]:not([aria-disabled="true"])')].filter(item => item.style.display !== 'none')
     if (!items.length && event.key !== 'Escape') return
