@@ -70,7 +70,10 @@ export class InlineCommandController {
         return result === undefined ? true : result
       })
       if (!inserted) return false
-      this.#onFreshText?.({
+      // Commit observers or the native focus restoration can synchronously
+      // destroy the editor. A successful canonical edit must not enqueue a
+      // fresh trigger query from that now-retired owner.
+      if (this.#canRestoreCaret(caretLease)) this.#onFreshText?.({
         type,
         blockId: target.blockId,
         fieldKey: target.fieldKey,
