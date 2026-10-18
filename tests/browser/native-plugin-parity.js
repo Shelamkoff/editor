@@ -1,6 +1,6 @@
 import { test, make, para, editorRoot, blockElement, editableField, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
-import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
+import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createChecklistPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { pluginParityFixtures, readPath, writePath, pixel } from './plugin-parity-fixtures.js'
 
@@ -2084,6 +2084,44 @@ test('Gallery retired settings controls cannot mutate refreshed canonical data',
   equal(editor.save().blocks[0].data.layout, '2')
   equal(editor.undo(), true)
   equal(editor.save().blocks[0].data.layout, afterHostUpdate[0].data.layout)
+})
+
+
+test('Checklist Enter on visually empty markup exits to default block and Undo restores it', async () => {
+  const definition = createChecklistPlugin()
+  const editor = make([{
+    id: 'a', type: definition.type, dataVersion: definition.schema.currentVersion,
+    data: { items: [{ id: 'only', text: '<strong></strong>', checked: false }] },
+  }], { plugins: [createParagraphPlugin(), definition] })
+  const before = editor.save().blocks
+  editor.blocks.focus('a', { fieldKey: 'item:only', offset: 'start' })
+  await dispatchKey('Enter', 'Enter', 13)
+  equal(editor.save().blocks.length, 1)
+  equal(editor.save().blocks[0].type, 'paragraph',
+    'Checklist treated markup-only text as content and split instead of exiting')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+})
+
+test('List Enter on trailing visually empty markup inserts a new paragraph in one history action', async () => {
+  const definition = createListPlugin()
+  const editor = make([{
+    id: 'a', type: definition.type, dataVersion: definition.schema.currentVersion,
+    data: { style: 'ordered', items: [
+      { id: 'first', text: 'Alpha' },
+      { id: 'last', text: '<br>' },
+    ] },
+  }], { plugins: [createParagraphPlugin(), definition] })
+  const before = editor.save().blocks
+  editor.blocks.focus('a', { fieldKey: 'item:last', offset: 'start' })
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks
+  equal(after.map(block => block.type), ['list', 'paragraph'])
+  equal(after[0].data.items, [{ id: 'first', text: 'Alpha' }])
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, after)
 })
 
 await run()
