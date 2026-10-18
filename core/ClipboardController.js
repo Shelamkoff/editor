@@ -762,7 +762,12 @@ export class ClipboardController {
     const abort = () => task.abort(this.#controller.signal.reason)
     this.#controller.signal.addEventListener('abort', abort, { once: true, signal: task.signal })
     const pendingObjectUrls = []
+    let applying = false
     const releasePending = () => {
+      // Abort may be dispatched reentrantly by onCommit or a new Paste during
+      // the current synchronous transaction. Until that transaction settles,
+      // the blob may already be canonical and needed for Undo/Redo.
+      if (applying) return
       for (const { url, owner } of pendingObjectUrls.splice(0)) {
         try { owner.revokeObjectURL(url) }
         catch (error) { this.#reportResourceReleaseError(error) }
@@ -846,6 +851,7 @@ export class ClipboardController {
 
       let persisted = false
       this.#applyingPasteTask = task
+      applying = true
       try{
         const applied=this.#mutatePaste(() => this.#runtime.applyPasteResults(
           owner.blockId,owner.fieldKey,range,resolved,
@@ -865,8 +871,10 @@ export class ClipboardController {
           })
         }
       }finally {
+        applying = false
         this.#applyingPasteTask = null
         if (persisted) retainPersisted()
+        else releasePending()
       }
     })().finally(() => {
       task.signal.removeEventListener('abort', releasePending)
