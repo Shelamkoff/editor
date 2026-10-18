@@ -73,7 +73,7 @@ export class InlineCommandController {
       // Commit observers or the native focus restoration can synchronously
       // destroy the editor. A successful canonical edit must not enqueue a
       // fresh trigger query from that now-retired owner.
-      if (this.#canRestoreCaret(caretLease)) this.#onFreshText?.({
+      if (this.#canRestoreCaretTo(caretLease, target.blockId, target.fieldKey)) this.#onFreshText?.({
         type,
         blockId: target.blockId,
         fieldKey: target.fieldKey,
@@ -132,12 +132,7 @@ export class InlineCommandController {
       )
     ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
-    if (this.#canRestoreCaret(caretLease)) {
-      this.#selection.setCaret(result.blockId, {
-        fieldKey: result.fieldKey,
-        offset: result.offset,
-      })
-    }
+    this.#restoreCaretIfOwned(caretLease, result.blockId, result.fieldKey, result.offset)
     return true
   }
 
@@ -233,10 +228,7 @@ export class InlineCommandController {
       segments,
     ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
-    if (this.#canRestoreCaret(caretLease)) this.#selection.setCaret(result.blockId, {
-      fieldKey: result.fieldKey,
-      offset: result.offset,
-    })
+    this.#restoreCaretIfOwned(caretLease, result.blockId, result.fieldKey, result.offset)
     return true
   }
 
@@ -266,8 +258,28 @@ export class InlineCommandController {
     const point = { blockId: target.blockId, fieldKey: target.fieldKey, offset }
     const result = this.#runtime.interact('inline.insert', operation, () => ({ anchor: point, focus: { ...point } }))
     if (!result) return false
-    if (this.#canRestoreCaret(caretLease)) this.#selection.setCaret(target.blockId, { fieldKey: target.fieldKey, offset })
+    this.#restoreCaretIfOwned(caretLease, target.blockId, target.fieldKey, offset)
     return true
+  }
+
+  #restoreCaretIfOwned(lease, blockId, fieldKey, offset) {
+    if (!this.#canRestoreCaretTo(lease, blockId, fieldKey)) return
+    this.#selection.setCaret(blockId, { fieldKey, offset })
+  }
+
+  #canRestoreCaretTo(lease, blockId, fieldKey) {
+    if (!this.#canRestoreCaret(lease)) return false
+    // A synchronous commit observer may move the author's caret to another
+    // block/field without changing document revision or control mode. Never
+    // reclaim a different logical editing host after this command completed.
+    let current
+    try { current = this.#selection.capture() }
+    catch { return false }
+    if (!this.#canRestoreCaret(lease)) return false
+    const inDifferentField = point => point && (
+      point.blockId !== blockId || point.fieldKey !== fieldKey
+    )
+    return !inDifferentField(current?.anchor) && !inDifferentField(current?.focus)
   }
 
   #caretLease() {
