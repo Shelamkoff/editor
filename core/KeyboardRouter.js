@@ -190,7 +190,7 @@ export class KeyboardRouter {
     // V1 recognized a typed inline pattern on Space/Enter before allowing
     // native space insertion or a structural Enter split. The word replacement
     // and trailing space are one canonical history action.
-    if ((key === ' ' || (key === 'Enter' && !keys.shiftKey))
+    if ((key === ' ' || key === 'Enter')
       && owner.mode === 'rich-text' && range.start === range.end
       && this.#inlineCommands?.commitTypedPattern) {
       let converted
