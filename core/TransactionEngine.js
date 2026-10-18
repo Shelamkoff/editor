@@ -182,6 +182,10 @@ export class TransactionEngine {
     try {
       result = synchronousResult(operation(context))
       if (current.hasFailed) throw current.failed
+      // An operation can synchronously revoke this engine, even without
+      // producing document changes. Never prepare a projection or report
+      // a successful no-op after the owner has been destroyed.
+      this.#assertHealthy()
     } catch (error) {
       this.#current = null
       this.#phase = 'idle'
