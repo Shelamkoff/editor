@@ -359,3 +359,52 @@ test('committed typed conversion does not restore a caret in a synchronously des
   assert.equal(calls.length, 1)
   assert.deepEqual(carets, [])
 })
+
+
+for (const operation of ['commitTypedPattern', 'pasteText']) {
+  test(operation + ' cannot start a canonical transaction if its matcher retires the editor during preparation', () => {
+    const { controller, runtime, definition, calls, carets } = harness()
+    runtime.health = 'ready'
+    runtime.generation = 1
+    runtime.modeEpoch = 0
+    let attempts = 0
+    definition.paste.fromMatch = word => {
+      runtime.health = 'destroyed'
+      return { value: word }
+    }
+    runtime.interact = () => {
+      attempts++
+      throw new Error('dead runtime was invoked after matcher')
+    }
+    const target = { blockId: 'a', fieldKey: 'text', range: { start: 0, end: 4 } }
+    const result = operation === 'commitTypedPattern'
+      ? controller.commitTypedPattern('#fff', target, ' ')
+      : controller.pasteText('#fff', target)
+    assert.equal(result, false)
+    assert.equal(attempts, 0, 'retired command tried to begin a new authoring transaction')
+    assert.deepEqual(calls, [])
+    assert.deepEqual(carets, [])
+  })
+}
+
+test('inline insertion preparation that retires the editor cannot mutate a detached owner', () => {
+  const { controller, runtime, definition, carets } = harness()
+  runtime.health = 'ready'
+  runtime.generation = 1
+  runtime.modeEpoch = 0
+  definition.schema = { createDefault: () => ({ value: '#fff' }) }
+  definition.insertion = {
+    createInitial() {
+      runtime.health = 'destroyed'
+      return null
+    },
+  }
+  let attempts = 0
+  runtime.interact = () => {
+    attempts++
+    throw new Error('dead runtime reached through insertion')
+  }
+  assert.equal(controller.insert('color'), false)
+  assert.equal(attempts, 0)
+  assert.deepEqual(carets, [])
+})
