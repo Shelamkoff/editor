@@ -753,3 +753,24 @@ test('whole-block Cut does not reconcile a view destroyed by its commit observer
   assert.equal(h.event.defaultPrevented, true, 'owned Cut fell back to native deletion')
   assert.equal(staleViews, 0, 'committed Cut reconciled a detached editor')
 })
+
+
+for (const action of ['copy', 'cut']) {
+  test(action + ' cannot continue after ownership lookup destroys Clipboard controller', () => {
+    const h = clipboardHarness({
+      formats: ['text/plain'],
+      accepts: () => false,
+    })
+    const resolve = h.reconciler.resolveEditableTarget.bind(h.reconciler)
+    let reads = 0
+    h.reconciler.resolveEditableTarget = target => {
+      reads++
+      if (reads === 1) h.controller.destroy()
+      return resolve(target)
+    }
+    h[action]()
+    assert.equal(reads, 1, 'retired ' + action + ' continued resolving detached editing owners')
+    assert.equal(h.event.defaultPrevented, false,
+      'retired ' + action + ' consumed a native clipboard event')
+  })
+}
