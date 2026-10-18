@@ -86,7 +86,7 @@ export class ClipboardController {
   #isComposing
   #controller
   #task = null
-  #taskAnchorId = null
+  #applyingPasteTask = null
   // Persisted blob-backed Paste results can be restored by Redo; own their
   // temporary resources until this editor's clipboard lifetime ends.
   #ownedObjectUrls = new Map()
@@ -119,7 +119,6 @@ export class ClipboardController {
     // A listener can synchronously start a newer Paste task; it must retain
     // its own controller and anchor instead of being cleared by this call.
     this.#task = null
-    this.#taskAnchorId = null
     previous?.abort()
   }
 
@@ -137,23 +136,18 @@ export class ClipboardController {
   }
 
   handleTransaction(event) {
-    if (!this.#task) return
+    if (!this.#task || this.#applyingPasteTask === this.#task) return
     const name = event?.name
-    if (
-      event?.origin === 'history'
+    // The async Paste captured one document revision. Any other committed
+    // change makes that lease stale, even when another block was edited.
+    // Abort immediately so a resolver that ignores cancellation cannot keep
+    // uncommitted local video URLs alive until it eventually completes.
+    if (event?.origin === 'history'
       || name === 'document.render'
       || name === 'document.clear'
-    ) {
-      this.#task.abort()
-      return
+      || (Array.isArray(event?.changes) && event.changes.length > 0)) {
+      this.cancelPendingTask()
     }
-    const anchorId = this.#taskAnchorId
-    if (!anchorId) return
-    const changes = event?.changes ?? []
-    if (changes.some(change => (
-      change.kind === 'document.replace'
-      || (change.kind === 'block.remove' && change.block?.id === anchorId)
-    ))) this.#task.abort()
   }
 
   #writeCanonicalClipboard(data,fragment,{html='',text=''}={}){
@@ -738,7 +732,6 @@ export class ClipboardController {
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
     this.#task = task
-    this.#taskAnchorId = owner.blockId
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
     const selectionKey=JSON.stringify(this.#selection.capture())
@@ -831,6 +824,7 @@ export class ClipboardController {
       )return
 
       let persisted = false
+      this.#applyingPasteTask = task
       try{
         const applied=this.#mutatePaste(() => this.#runtime.applyPasteResults(
           owner.blockId,owner.fieldKey,range,resolved,
@@ -850,6 +844,7 @@ export class ClipboardController {
           })
         }
       }finally {
+        this.#applyingPasteTask = null
         if (persisted) retainPersisted()
       }
     })().finally(() => {
@@ -864,7 +859,6 @@ export class ClipboardController {
       }
       if (this.#task === task) {
         this.#task = null
-        this.#taskAnchorId = null
       }
     })
   }
