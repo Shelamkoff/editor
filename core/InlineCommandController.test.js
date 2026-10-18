@@ -511,3 +511,70 @@ test('fresh inline text notifies its trigger exactly once after a live committed
   assert.deepEqual(notices, [{ type: 'color', blockId: 'a', fieldKey: 'text' }])
   assert.deepEqual(carets, [{ blockId: 'a', target: { fieldKey: 'text', offset: 3 } }])
 })
+
+
+for (const action of ['insert', 'pasteText', 'commitTypedPattern']) {
+  test(action + ' preserves a newer author selection in another block after commit', () => {
+    const { controller, runtime, definition, selection, carets } = harness()
+    runtime.health = 'ready'
+    runtime.generation = 1
+    runtime.modeEpoch = 0
+    definition.schema = { createDefault: () => ({ value: '#fff' }) }
+    runtime.insertInlineWidget = () => 'inline-1'
+    runtime.interact = (_name, operation) => {
+      const result = operation()
+      selection.capture = () => ({
+        anchor: { blockId: 'new', fieldKey: 'text', offset: 1 },
+        focus: { blockId: 'new', fieldKey: 'text', offset: 1 },
+      })
+      return result
+    }
+    const committed = action === 'insert' ? controller.insert('color')
+      : action === 'pasteText' ? controller.pasteText('#fff')
+        : controller.commitTypedPattern('#fff', {
+            blockId: 'a', fieldKey: 'text', range: { start: 0, end: 4 },
+          }, ' ')
+    assert.equal(committed, true, 'a successful command was mistaken for a failed edit')
+    assert.deepEqual(carets, [],
+      'the old inline command stole an author caret moved to a different block')
+  })
+}
+
+test('inline widget insertion preserves a newer author caret in a different field of the same block', () => {
+  const { controller, runtime, definition, selection, carets } = harness()
+  runtime.health = 'ready'
+  runtime.generation = 1
+  runtime.modeEpoch = 0
+  definition.schema = { createDefault: () => ({ value: '#fff' }) }
+  runtime.insertInlineWidget = () => 'inline-1'
+  runtime.interact = (_name, operation) => {
+    const result = operation()
+    selection.capture = () => ({
+      anchor: { blockId: 'a', fieldKey: 'caption', offset: 1 },
+      focus: { blockId: 'a', fieldKey: 'caption', offset: 1 },
+    })
+    return result
+  }
+  assert.equal(controller.insert('color'), true)
+  assert.deepEqual(carets, [],
+    'inline command reclaimed the original field after the author focused its sibling')
+})
+
+test('inline caret restoration stops if capturing post-commit selection destroys its editor', () => {
+  const { controller, runtime, definition, selection, carets } = harness()
+  runtime.health = 'ready'
+  runtime.generation = 1
+  runtime.modeEpoch = 0
+  definition.schema = { createDefault: () => ({ value: '#fff' }) }
+  runtime.insertInlineWidget = () => 'inline-1'
+  let captures = 0
+  const capture = selection.capture.bind(selection)
+  selection.capture = () => {
+    captures++
+    if (captures === 2) runtime.health = 'destroyed'
+    return capture()
+  }
+  assert.equal(controller.insert('color'), true)
+  assert.equal(captures, 2, 'did not inspect the post-commit author caret')
+  assert.deepEqual(carets, [], 'selection capture retired the owner but old code restored focus')
+})
