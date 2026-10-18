@@ -42,10 +42,14 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
   }
   acquiringByDocument.add(ownerDocument)
   try {
-    // This helper can also be called directly, without ExtensionRegistry's
-    // snapshot. Never invoke a caller-owned Array iterator while acquiring.
+    // Snapshot all URL inputs before the first createElement/appendChild.
+    // Those DOM callbacks can synchronously mutate a caller-owned array.
+    // This helper may be called directly, without ExtensionRegistry's
+    // snapshot, and must not consult an overridden Array iterator.
     const seen = new Set()
-    for (let index = 0; index < urls.length; index++) {
+    const selectedUrls = []
+    const length = urls.length
+    for (let index = 0; index < length; index++) {
       if (!Object.hasOwn(urls, index)) {
         throw new TypeError('Stylesheet URLs must be a dense array')
       }
@@ -53,6 +57,9 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
       if (typeof url !== 'string') throw new TypeError('Stylesheet URL must be a string')
       if (seen.has(url)) continue
       seen.add(url)
+      selectedUrls.push(url)
+    }
+    for (const url of selectedUrls) {
       const existing = entries.get(url)
       if (existing) {
         existing.count++
