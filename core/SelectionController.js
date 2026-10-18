@@ -506,6 +506,10 @@ export class SelectionController {
     const blockId = ids.find(id => this.#reconciler.getEditableFields(id).length)
     const field = blockId ? this.#reconciler.getEditableFields(blockId)[0] : null
     if (!field || !ownsStage()) return null
+    // Focus can trigger a newer explicit author selection without changing
+    // revision or control epoch. A retained IME handle must not replace it.
+    const selectedBefore=[...this.#view.selectedIds]
+    if (!ownsStage()) return null
     let settled = false
     // Focus is an externally observable operation. Stage first, then retire
     // the former whole-block selection only if the new editing host accepted
@@ -517,6 +521,9 @@ export class SelectionController {
       return null
     }
     if (!focused || !ownsStage()) return null
+    const selectedAfter=[...this.#view.selectedIds]
+    if (!ownsStage() || selectedAfter.length!==selectedBefore.length
+      || selectedAfter.some((id,index)=>id!==selectedBefore[index])) return null
     // Untouched blocks must never retain provisional preedit DOM after the
     // canonical commit. The old selection is retired only after stage succeeds.
     this.#deactivate()
