@@ -92,7 +92,28 @@ export class EditorViewModel {
     const revision = this.#runtime.revision
     const modeEpoch = this.#runtime.modeEpoch
     const readOnly = this.#runtime.readOnly
-    if (!this.#interaction.focus(id, target, { deferCurrent: true })) return false
+    const previousCurrentId = this.#interaction.currentId
+    // A plugin may focus its default field before we discover that the
+    // specifically requested keyed field no longer exists. Capture the
+    // author's previous logical selection before that potentially fallible
+    // focus, so a rejected gesture can restore the previous native owner.
+    let previousBookmark = null
+    try { previousBookmark = this.#selection.capture?.() ?? null } catch {}
+    const restoreRejectedFocus = () => {
+      if (!previousBookmark
+        || decision !== this.#interaction.explicitCurrentVersion
+        || previousCurrentId !== this.#interaction.currentId
+        || generation !== this.#runtime.generation
+        || revision !== this.#runtime.revision
+        || modeEpoch !== this.#runtime.modeEpoch
+        || readOnly !== this.#runtime.readOnly
+        || this.#runtime.health !== 'ready') return false
+      // Never roll back a newer user choice or an editor replacement. A
+      // restoration failure does not turn a rejected focus into an exception.
+      try { this.#selection.restore?.(previousBookmark) } catch {}
+      return false
+    }
+    if (!this.#interaction.focus(id, target, { deferCurrent: true })) return restoreRejectedFocus()
     if (decision !== this.#interaction.explicitCurrentVersion
       || generation !== this.#runtime.generation
       || revision !== this.#runtime.revision
@@ -100,7 +121,7 @@ export class EditorViewModel {
       || readOnly !== this.#runtime.readOnly
       || this.#runtime.health !== 'ready'
       || !this.#runtime.has(id)) return false
-    if (this.#selection.setCaret(id, target) !== true) return false
+    if (this.#selection.setCaret(id, target) !== true) return restoreRejectedFocus()
     // Native caret focus may synchronously hand ownership to a newer block,
     // generation or control mode. The older request never reclaims it.
     if (decision !== this.#interaction.explicitCurrentVersion
