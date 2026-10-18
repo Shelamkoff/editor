@@ -44,9 +44,9 @@ export class EditorViewModel {
   select(ids) { this.#interaction.select(ids) }
   clearSelection() { this.#interaction.clearSelection() }
 
-  insert(type, data, index, authority = 'interaction') {
+  insert(type, data, index, authority = 'interaction', options = {}) {
     const decision = this.#interaction.explicitCurrentVersion
-    const id = this.#runtime.insert(type, data, index, {}, authority)
+    const id = this.#runtime.insert(type, data, index, options, authority)
     this.#interaction.reconcile()
     // A commit observer may have accepted a newer author current-block
     // decision while the model inserted the block. Preserve it instead of
