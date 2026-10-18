@@ -123,3 +123,37 @@ test('distinct detached inline elements still project repeated widget occurrence
   assert.equal(probe.token.replaced.nodes[0].attributes['data-id'], 'one')
   assert.equal(probe.token.replaced.nodes[2].attributes['data-id'], 'one')
 })
+test('inline renderer cannot steal a node adopted during attribute initialization', () => {
+  let node
+  const probe = harness(() => node)
+  node = new FakeElement(probe.ownerDocument)
+  const outside = { owner: 'another UI' }
+  const setAttribute = node.setAttribute.bind(node)
+  node.setAttribute = (name, value) => {
+    setAttribute(name, value)
+    if (name === 'data-inline-plugin') node.parentNode = outside
+  }
+
+  assert.throws(probe.invoke, /fresh detached HTMLElement/,
+    'the output node was adopted while the renderer configured its attributes')
+  assert.equal(probe.token.replaced, null,
+    'a reentrant owner change must not publish a partial widget replacement')
+  assert.equal(node.parentNode, outside, 'the widget must not be stolen from the newer DOM owner')
+})
+
+test('inline renderer cannot steal a node adopted by a contentEditable setter', () => {
+  let node
+  const probe = harness(() => node)
+  node = new FakeElement(probe.ownerDocument)
+  const outside = { owner: 'another UI' }
+  Object.defineProperty(node, 'contentEditable', {
+    configurable: true,
+    set(value) {
+      if (value === 'false') node.parentNode = outside
+    },
+  })
+
+  assert.throws(probe.invoke, /fresh detached HTMLElement/)
+  assert.equal(probe.token.replaced, null)
+  assert.equal(node.parentNode, outside)
+})
