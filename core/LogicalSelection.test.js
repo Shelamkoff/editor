@@ -506,3 +506,78 @@ test('unsupported backward Range fallback must preserve the existing native sele
   assert.equal(rangeCount, 0, 'unsupported backward restore attempted a forward-only DOM Range')
   assert.deepEqual([native.anchorOffset, native.focusOffset], [1, 3])
 })
+
+
+for (const backward of [true, false]) {
+  test((backward
+    ? 'unsupported cross-field backward fallback preserves prior native range'
+    : 'forward cross-field native Range fallback remains supported'), () => {
+    const ownerDocument = { activeElement: null, defaultView: {} }
+    const fields = new Map()
+    for (const id of ['a','b']) {
+      const element = {
+        nodeType: 1, tagName: 'DIV', hasAttribute() { return false },
+        contains(node) { return node === this || node === child },
+        childNodes: [], textContent: 'Alpha',
+      }
+      const child = { nodeType: 3, textContent: 'Alpha', parentNode: element }
+      element.childNodes = [child]
+      element.focus = () => { ownerDocument.activeElement = element }
+      fields.set(id, { key:'text', mode:'rich-text', element, child })
+    }
+    const anchorBlock = backward ? 'b' : 'a'
+    const focusBlock = backward ? 'a' : 'b'
+    fields.get('a').element.compareDocumentPosition = other => other === fields.get('b').element ? 4 : 0
+    fields.get('b').element.compareDocumentPosition = other => other === fields.get('a').element ? 2 : 0
+    ownerDocument.activeElement = fields.get(anchorBlock).element
+    const native = {
+      anchorNode: fields.get(anchorBlock).child,
+      focusNode: fields.get(anchorBlock).child,
+      anchorOffset: 0, focusOffset: 0,
+      removeAllRanges() {
+        if (backward) throw Error('old selection was cleared')
+      },
+      addRange(range) {
+        if (backward) throw Error('backward fallback applied an unsupported Range')
+        this.anchorNode = range.startNode
+        this.anchorOffset = range.startOffset
+        this.focusNode = range.endNode
+        this.focusOffset = range.endOffset
+      },
+    }
+    let ranges = 0
+    ownerDocument.defaultView.getSelection = () => native
+    ownerDocument.createRange = () => {
+      ranges++
+      return {
+        setStart(node,offset) { this.startNode=node; this.startOffset=offset },
+        setEnd(node,offset) { this.endNode=node; this.endOffset=offset },
+      }
+    }
+    const reconciler = {
+      resolveEditableTarget() { return null },
+      getEditableFields(id) {
+        const field = fields.get(id)
+        return field ? [field] : []
+      },
+    }
+    const logical = new LogicalSelection({
+      root: { ownerDocument }, reconciler,
+    })
+    const bookmark = {
+      anchor: { blockId: anchorBlock, fieldKey:'text', offset: 3 },
+      focus: { blockId: focusBlock, fieldKey:'text', offset: 1 },
+    }
+    assert.equal(logical.restore(bookmark), !backward)
+    assert.equal(ranges, backward ? 0 : 1,
+      'unsupported backward selection reached native DOM Range construction')
+    if (backward) {
+      assert.equal(native.anchorOffset,0)
+      assert.equal(native.focusOffset,0)
+    } else {
+      assert.equal(native.anchorNode,fields.get('a').child)
+      assert.equal(native.focusNode,fields.get('b').child)
+      assert.deepEqual([native.anchorOffset,native.focusOffset],[3,1])
+    }
+  })
+}
