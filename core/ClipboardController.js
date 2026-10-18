@@ -420,15 +420,20 @@ export class ClipboardController {
   #applyPaste(event) {
     if (!this.#canPresent()) return
     const data = event.clipboardData
-    if (!data) return
+    if (!data || !this.#canPresent()) return
 
+    // Reading a ClipboardData implementation's formats may run host code.
+    // A retired owner cannot claim that event, even if its MIME remains valid.
     const privateFormatPresent = Array.from(data.types ?? []).includes(CLIPBOARD_FRAGMENT_MIME)
+    if (!this.#canPresent()) return
     if (privateFormatPresent) {
       event.preventDefault()
       let fragment
       try {
         const privatePayload = data.getData(CLIPBOARD_FRAGMENT_MIME)
+        if (!this.#canPresent()) return
         fragment = decodeClipboardFragment(privatePayload)
+        if (!this.#canPresent()) return
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
           operation: 'clipboard.private-fragment',
@@ -439,7 +444,7 @@ export class ClipboardController {
 
       if (this.#crossSelection?.active) {
         const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark, this.#crossSelection.wholeBlockIds)
-        if(!plan)return
+        if(!plan||!this.#canPresent())return
         try {
           const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts))
           if(result&&this.#canPresent()){
@@ -457,9 +462,9 @@ export class ClipboardController {
       }
 
       const owner = this.#reconciler.resolveEditableTarget(event.target)
-      if (!owner) return
+      if (!owner||!this.#canPresent()) return
       const range = selectionRange(this.#selection.capture(), owner)
-      if (!range) return
+      if (!range||!this.#canPresent()) return
 
       try {
         const result = this.#mutatePaste(() => this.#runtime.insertClipboardParts(
