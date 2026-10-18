@@ -69,7 +69,8 @@ export function createQuotePlugin(config = {}) {
         }
         return {
           parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:selected}],
-          remaining:(!remaining.text.trim()&&!remaining.caption.trim())?null:remaining,
+          remaining:isRichTextEmpty(remaining.text,context)&&isRichTextEmpty(remaining.caption,context)
+            ?null:remaining,
           focus:null,
         }
       },
