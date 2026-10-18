@@ -310,11 +310,12 @@ export class ClipboardController {
           ||revision!==this.#runtime.revision
           ||!sameIds(selected,this.#crossSelection?.wholeBlockIds)
         )return
+        if(!this.#canPresent())return
         const result=this.#mutateCut(()=>this.#runtime.applyPreparedClipboardCut(plan))
-        if(!result)return
+        if(!result||!this.#canPresent())return
         this.#crossSelection.clear()
-        this.#view.reconcileInteraction()
-        this.#view.setCurrent(result.blockId)
+        if(this.#canPresent())this.#view.reconcileInteraction()
+        if(this.#canPresent())this.#view.setCurrent(result.blockId)
         return
       }
 
@@ -336,13 +337,12 @@ export class ClipboardController {
         text:this.#crossSelection.text(),
       }))return
       if(!sameBookmark(plan.bookmark,this.#crossSelection?.bookmark))return
+      if(!this.#canPresent())return
       const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
-      if(!result)return
+      if(!result||!this.#canPresent())return
       this.#crossSelection.clear()
-      this.#view.reconcileInteraction()
-      if(result?.blockId){
-        this.#view.setCurrent(result.blockId)
-      }
+      if(this.#canPresent())this.#view.reconcileInteraction()
+      if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
       return
     }
 
@@ -366,13 +366,11 @@ export class ClipboardController {
       html,
       text:template.content.textContent??'',
     }))return
-    if(!sameBookmark(plan.bookmark,this.#selection.capture()))return
+    if(!sameBookmark(plan.bookmark,this.#selection.capture())||!this.#canPresent())return
     const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
-    if(!result)return
+    if(!result||!this.#canPresent())return
     this.#view.reconcileInteraction()
-    if(result?.blockId){
-      this.#view.setCurrent(result.blockId)
-    }
+    if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
     } catch (error) {
       this.#diagnostics?.emit('cut.failed', {
         operation: 'clipboard.cut',
