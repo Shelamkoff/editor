@@ -409,3 +409,41 @@ test('committed key and reentrant successor preserve the new trigger while consu
   h.controller.destroy()
   assert.deepEqual(h.calls, ['query', 'keydown', 'query', 'cancel'])
 })
+
+
+test('same inline trigger session cannot reenter commit before its first result settles', () => {
+  let activeSession = null
+  let commits = 0
+  const h = triggerScenario(session => { activeSession = session }, () => 'pass', () => {
+    commits++
+    if (commits === 1) {
+      assert.equal(activeSession.commit({ id: 'second', name: 'Nested' }), false,
+        'one trigger session reentered a second canonical insertion before the first completed')
+    }
+    return true
+  })
+  assert.equal(h.controller.refresh(), true)
+  assert.equal(activeSession.commit({ id: 'first', name: 'First' }), true)
+  assert.equal(commits, 1, 'one input produced multiple model authoring operations')
+  assert.equal(h.controller.isActive, false)
+  h.controller.destroy()
+})
+
+test('a throwing trigger commit releases its in-flight guard without retiring a still-active session', () => {
+  let activeSession = null
+  let attempts = 0
+  const h = triggerScenario(session => { activeSession = session }, () => 'pass', () => {
+    attempts++
+    if (attempts === 1) throw new Error('temporary commit failure')
+    return true
+  })
+  assert.equal(h.controller.refresh(), true)
+  let thrown = null
+  try { activeSession.commit({ id: 'first', name: 'First' }) } catch (error) { thrown = error }
+  assert.equal(thrown?.message, 'temporary commit failure')
+  assert.equal(h.controller.isActive, true)
+  assert.equal(activeSession.commit({ id: 'second', name: 'Second' }), true)
+  assert.equal(attempts, 2)
+  assert.equal(h.controller.isActive, false)
+  h.controller.destroy()
+})
