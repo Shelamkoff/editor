@@ -241,7 +241,15 @@ export class DragController {
       ||this.#runtime.modeEpoch!==state.modeEpoch
       ||!this.#runtime.has(state.sourceId)
       ||this.#view.element(state.sourceId)!==state.element)return
-    this.#suppressNextClick()
+    if(!this.#suppressNextClick())return
+    // Installing a click suppression listener is itself a host callback seam.
+    // Teardown/read-only/projection changes can happen synchronously there.
+    if(this.#destroyed||this.#runtime.readOnly
+      ||this.#runtime.generation!==state.generation
+      ||this.#runtime.revision!==state.revision
+      ||this.#runtime.modeEpoch!==state.modeEpoch
+      ||!this.#runtime.has(state.sourceId)
+      ||this.#view.element(state.sourceId)!==state.element)return
 
     if(currentIndex<0||targetIndex===currentIndex)return
     this.#runtime.move(state.sourceId,targetIndex)
@@ -283,26 +291,35 @@ export class DragController {
   }
 
   #suppressNextClick(){
+    if(this.#destroyed)return false
     this.#clearClickSuppression()
+    if(this.#destroyed)return false
     let active=true
-    const swallow=event=>{
-      if(!active)return
-      active=false
-      event.preventDefault?.()
-      event.stopImmediatePropagation?.()
-      cleanup()
-    }
+    let timer
     const view=this.#document.defaultView??globalThis
-    const timer=view.setTimeout?.(()=>cleanup(),0)
     const cleanup=()=>{
-      if(!active&&this.#clickCleanup===null)return
       active=false
       if(timer!==undefined)view.clearTimeout?.(timer)
       this.#handle.removeEventListener('click',swallow,true)
       if(this.#clickCleanup===cleanup)this.#clickCleanup=null
     }
+    const swallow=event=>{
+      if(!active||this.#destroyed)return
+      active=false
+      event.preventDefault?.()
+      event.stopImmediatePropagation?.()
+      cleanup()
+    }
+    try{timer=view.setTimeout?.(()=>cleanup(),0)}
+    catch(error){cleanup();throw error}
+    // A custom window timer can destroy the owning editor synchronously.
+    // No listener may be installed, and no move can be committed afterward.
+    if(this.#destroyed||!active){cleanup();return false}
     this.#clickCleanup=cleanup
-    this.#handle.addEventListener('click',swallow,true)
+    try{this.#handle.addEventListener('click',swallow,true)}
+    catch(error){cleanup();throw error}
+    if(this.#destroyed||!active){cleanup();return false}
+    return true
   }
 
   #clearClickSuppression(){
