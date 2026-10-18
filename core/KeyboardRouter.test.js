@@ -9,7 +9,7 @@ class FakeRoot {
   addEventListener(type, handler) { this.listeners.set(type, handler) }
 }
 
-function harness({ reportError } = {}) {
+function harness({ reportError, inlineCommands = null } = {}) {
   const root = new FakeRoot()
   const field = { value: '', parentNode: null }
   const owner = { blockId: 'b', fieldKey: 'text', element: field, mode: 'plain-text' }
@@ -72,6 +72,7 @@ function harness({ reportError } = {}) {
     indexOf(id) { return records.findIndex(record => record.id === id) },
   }
   const router = new KeyboardRouter({ root, runtime, registry, reconciler, selection, view,
+    inlineCommands,
     ...(reportError ? { reportError } : {}),
   })
   const event = (key, extra = {}) => {
@@ -84,7 +85,7 @@ function harness({ reportError } = {}) {
       ...extra,
     }
   }
-  return { router, runtime, calls, viewCalls, event, setBookmark: value => { bookmark = value }, field, records }
+  return { router, runtime, calls, viewCalls, event, setBookmark: value => { bookmark = value }, field, owner, root, records }
 }
 
 test('Enter delegates an editable split to one runtime transaction', () => {
@@ -402,4 +403,104 @@ test('cancelled shortcut preparation cannot fall through to another structural c
   assert.doesNotThrow(() => h.router.handleKeydown(event))
   assert.equal(event.prevented, false, 'unowned native key was consumed after editor teardown')
   assert.deepEqual(h.calls, [])
+})
+
+
+function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false } = {}) {
+  const commands = []
+  const h = harness({
+    inlineCommands: {
+      commitTypedPattern(value, target, delimiter) {
+        commands.push({ value, target, delimiter })
+        return converted
+      },
+    },
+  })
+  h.owner.mode = 'rich-text'
+  const node = {
+    nodeType: 3, data: word, textContent: word,
+    parentElement: { closest: selector => widgetLabel && selector === '[data-inline-plugin]' ? {} : null },
+    parentNode: h.field, previousSibling: null,
+  }
+  h.field.nodeType = 1
+  h.field.tagName = 'DIV'
+  h.field.childNodes = [node]
+  h.field.hasAttribute = () => false
+  h.field.textContent = word
+  h.field.contains = item => item === node
+  h.root.ownerDocument.defaultView.getSelection = () => ({
+    isCollapsed: nativeCollapsed,
+    anchorNode: node,
+    anchorOffset: word.length,
+  })
+  h.setBookmark({
+    anchor: { blockId: 'b', fieldKey: 'text', offset: nativeCollapsed ? word.length : 0 },
+    focus: { blockId: 'b', fieldKey: 'text', offset: word.length },
+  })
+  return { ...h, commands }
+}
+
+test('typed inline color before Space replaces exactly the preceding word and suppresses native space', () => {
+  const h = typedPatternHarness()
+  const e = h.event(' ')
+  h.router.handleKeydown(e)
+  assert.equal(e.prevented, true)
+  assert.deepEqual(h.commands, [{
+    value: '#f00',
+    target: { blockId: 'b', fieldKey: 'text', range: { start: 0, end: 4 } },
+    delimiter: ' ',
+  }])
+  assert.deepEqual(h.calls, [], 'typed color conversion triggered a separate structural command')
+  h.router.destroy()
+})
+
+test('typed inline color before Enter wins over block split without appending a newline', () => {
+  const h = typedPatternHarness()
+  const e = h.event('Enter')
+  h.router.handleKeydown(e)
+  assert.equal(e.prevented, true)
+  assert.deepEqual(h.commands, [{
+    value: '#f00',
+    target: { blockId: 'b', fieldKey: 'text', range: { start: 0, end: 4 } },
+    delimiter: 'Enter',
+  }])
+  assert.deepEqual(h.calls, [], 'Enter also split the block after converting the word')
+  h.router.destroy()
+})
+
+test('unmatched typed word leaves Space native and Enter with the normal split handler', () => {
+  for (const key of [' ', 'Enter']) {
+    const h = typedPatternHarness({ converted: false })
+    const e = h.event(key)
+    h.router.handleKeydown(e)
+    assert.equal(e.prevented, key === 'Enter')
+    assert.equal(h.commands.length, 1)
+    assert.deepEqual(h.calls.map(call => call[0]), key === 'Enter' ? ['split'] : [])
+    h.router.destroy()
+  }
+})
+
+test('typed matcher never receives text from selected ranges or inline widget labels', () => {
+  for (const invalid of [{nativeCollapsed:false},{widgetLabel:true}]) {
+    const h = typedPatternHarness(invalid)
+    const e = h.event(' ')
+    h.router.handleKeydown(e)
+    assert.equal(e.prevented, false)
+    assert.deepEqual(h.commands, [])
+    h.router.destroy()
+  }
+})
+
+test('typed pattern conversion does not hijack control shortcuts or non-text native selection', () => {
+  const h = typedPatternHarness()
+  h.router.handleKeydown(h.event(' ', { ctrlKey: true }))
+  assert.deepEqual(h.commands, [])
+  h.root.ownerDocument.defaultView.getSelection = () => ({
+    isCollapsed: true, anchorNode: { nodeType: 1 }, anchorOffset: 1,
+  })
+  const e = h.event(' ')
+  h.router.handleKeydown(e)
+  assert.equal(e.prevented, false)
+  assert.deepEqual(h.commands, [])
+  h.router.destroy()
 })
