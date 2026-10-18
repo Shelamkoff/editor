@@ -1,6 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
+import { invokeObserver } from '../shared/invokeObserver.js'
 
 const EXECUTE_ORIGINS = new Set(['user', 'native-input', 'plugin', 'external'])
 
@@ -432,12 +433,10 @@ export class TransactionEngine {
   }
 
   #publish(event) {
-    if (!this.#onCommit) return
-    try {
-      this.#onCommit(event)
-    } catch (error) {
-      this.#diagnostic(error)
-    }
+    // Publishing happens after the canonical commit point. An observer may
+    // return a Promise/thenable even though the transaction is synchronous;
+    // contain late rejection without changing committed state or history.
+    invokeObserver(this.#onCommit, [event], error => this.#diagnostic(error))
   }
 
   #observeCommand(operation, run) {
