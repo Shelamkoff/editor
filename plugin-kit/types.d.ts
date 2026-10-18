@@ -485,6 +485,10 @@ export type PasteInput =
 export interface PasteResolveContext extends DataOperationContext {
   readonly signal: AbortSignal
   readonly ownerDocument: Document
+  /** Create a temporary media URL owned by the clipboard transaction. The
+   * host releases it on cancellation/failure and retains a committed URL
+   * until editor disposal so Undo/Redo can restore its media reference. */
+  createObjectURL(file: Blob): string
 }
 
 export type PasteResult<D extends object> =
