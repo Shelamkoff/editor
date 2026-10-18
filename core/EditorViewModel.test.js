@@ -238,3 +238,57 @@ test('actual LogicalSelection missing keyed field cannot silently select another
   assert.equal(view.currentId, 'a')
   assert.deepEqual(h.events, [])
 })
+
+
+test('failed keyed focus does not publish a current-block change before the caret is accepted', () => {
+  const h = harness({ caret: () => false })
+  assert.equal(h.view.currentId, 'a')
+  assert.equal(h.view.focus('b', { fieldKey: 'retired', offset: 0 }), false)
+  assert.equal(h.view.currentId, 'a')
+  assert.deepEqual(h.events, [],
+    'failed native keyed focus had already published an incorrect block change')
+})
+
+test('actual LogicalSelection missing field cannot publish a false current-block focus', () => {
+  const h = harness()
+  const reconciler = {
+    getElement() { return {} },
+    resolveEditableTarget() { return null },
+    getEditableFields() {
+      return [{ key: 'text', mode: 'rich-text', element: { textContent: 'Hello' } }]
+    },
+    focus() { return true },
+  }
+  const logical = new LogicalSelection({
+    root: { ownerDocument: {} },
+    reconciler,
+  })
+  const view = new EditorViewModel({
+    runtime: h.runtime, reconciler, interaction: h.interaction, selection: logical,
+  })
+  assert.equal(view.focus('b', { fieldKey: 'missing-title', offset: 2 }), false)
+  assert.equal(view.currentId, 'a')
+  assert.deepEqual(h.events, [])
+})
+
+test('successful keyed focus publishes the current block exactly once after caret acceptance', () => {
+  let h, currentDuringCaret
+  h = harness({
+    caret() {
+      currentDuringCaret = h.view.currentId
+      return true
+    },
+  })
+  assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), true)
+  assert.equal(currentDuringCaret, 'a',
+    'current-block notification ran before native caret ownership was established')
+  assert.equal(h.view.currentId, 'b')
+  assert.deepEqual(h.events, ['b'])
+})
+
+test('focus without an explicit caret keeps normal plugin-only block focus behavior', () => {
+  const h = harness({ caret: () => { throw Error('unexpected native caret call') } })
+  assert.equal(h.view.focus('b'), true)
+  assert.equal(h.view.currentId, 'b')
+  assert.deepEqual(h.events, ['b'])
+})
