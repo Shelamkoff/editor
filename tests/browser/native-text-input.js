@@ -277,8 +277,8 @@ for (const [initial, offset, pastedText, expected] of [
 }
 
 
-for (const delimiter of [' ', 'Enter']) {
-  test(`Native typed color token converts on ${delimiter === ' ' ? 'Space' : 'Enter'} without duplicating the delimiter`, async () => {
+for (const [delimiter, shift] of [[' ', false], ['Enter', false], ['Enter', true]]) {
+  test(`Native typed color token converts on ${delimiter === ' ' ? 'Space' : shift ? 'Shift+Enter' : 'Enter'} without duplicating the delimiter`, async () => {
     const editor = make([para('a', '')], { inlinePlugins: [createColorSwatchPlugin()] })
     const field = editableField(editor, 'a')
     select(field, 0)
@@ -286,7 +286,7 @@ for (const delimiter of [' ', 'Enter']) {
     const typed = editor.save().blocks
     equal(typed[0].data.text, '#ff0000', 'Native typing failed before delimiter conversion')
     if (delimiter === ' ') await printable(' ')
-    else await dispatchKey('Enter', 'Enter', 13)
+    else await dispatchKey('Enter', 'Enter', 13, shift ? 8 : 0)
     const converted = editor.save().blocks
     equal(converted.length, 1, 'Typed Enter incorrectly split the matched word into two blocks')
     equal(Object.values(converted[0].inline ?? {}).map(widget => widget.data.value), ['#ff0000'])
