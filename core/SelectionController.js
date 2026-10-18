@@ -489,6 +489,7 @@ export class SelectionController {
   }
 
   #onMouseDown(event) {
+    if (this.#controller.signal.aborted) return
     this.#navigationX=null
     if (event.button !== 0) return
     // Toolbar inputs own their native focus without starting a document drag.
