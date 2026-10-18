@@ -145,7 +145,10 @@ export class InstanceScope{
 
   assertReadable(){
     if(this.#state==='revoked')throw createAbortError()
+    const epoch=this.#interactionEpoch
     if(this.#health()!=='ready')throw createAbortError('Instance runtime is not ready')
+    // Health is an injected observer and can synchronously revoke this scope.
+    if(this.#state==='revoked'||this.#interactionEpoch!==epoch)throw createAbortError()
   }
 
   runMutation(operation){
@@ -189,27 +192,58 @@ export class InstanceScope{
     })
   }
 
+  #stillOwnInteraction(epoch,generation){
+    return this.#state==='active'
+      && !this.readOnly
+      && this.#interactionEpoch===epoch
+      && this.#generation===generation
+  }
+
   #canMutate(){
     if(this.#state==='revoked')return false
     if(this.#state!=='active')throw new Error('Instance context is staged')
-    if(this.readOnly||this.#health()!=='ready')return false
+    const epoch=this.#interactionEpoch
+    const generation=this.#generation
+    if(this.readOnly||this.#health()!=='ready'
+      ||!this.#stillOwnInteraction(epoch,generation))return false
     const phase=this.#phase()
+    if(!this.#stillOwnInteraction(epoch,generation))return false
     if(phase!=='idle')throw new Error(`Cannot mutate instance context during ${phase} phase`)
-    return this.#parent ? this.#parent.#canMutate() : true
+    if(this.#parent&&!this.#parent.#canMutate())return false
+    // A parent health/phase callback can revoke this descendant while
+    // returning a deceptively valid old decision.
+    return this.#stillOwnInteraction(epoch,generation)
   }
 
   #beginTask(updateData){
-    if(this.#state!=='active'||this.readOnly||this.#health()!=='ready'){
+    const epoch=this.#interactionEpoch
+    const generation=this.#generation
+    if(this.#state!=='active'||this.readOnly||this.#health()!=='ready'
+      ||!this.#stillOwnInteraction(epoch,generation)){
       throw createAbortError('Cannot begin a data task for an inactive instance context')
     }
     const phase=this.#phase()
+    if(!this.#stillOwnInteraction(epoch,generation)){
+      throw createAbortError('Cannot begin a data task for an inactive instance context')
+    }
     if(phase!=='idle')throw new Error(`Cannot begin a data task during ${phase} phase`)
     if(this.#parent && !this.#parent.#canMutate()){
       throw createAbortError('Cannot begin a data task for an inactive parent scope')
     }
-
+    if(!this.#stillOwnInteraction(epoch,generation)){
+      throw createAbortError('Cannot begin a data task for an inactive instance context')
+    }
+    // Even the revision source is a callback: it can synchronously revoke
+    // this scope or cause a read-only round trip while returning a number.
     const baseRevision=this.#currentRevision()
+    if(!this.#stillOwnInteraction(epoch,generation)){
+      throw createAbortError('Cannot begin a data task for an inactive instance context')
+    }
     const controller=new AbortController()
+    if(!this.#stillOwnInteraction(epoch,generation)){
+      controller.abort()
+      throw createAbortError('Cannot begin a data task for an inactive instance context')
+    }
     const task={
       baseRevision,
       controller,
