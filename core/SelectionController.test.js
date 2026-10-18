@@ -868,3 +868,29 @@ test('cross-block IME retained cancel refuses to replace a newer native focus ow
   assert.equal(h.document.activeElement,h.fields.get('b').element)
   h.controller.destroy()
 })
+
+
+test('whole-block IME stage does not issue a handle after clear-selection callback chooses a successor', () => {
+  const h = harness()
+  h.runtime.ids = () => ['a','b']
+  h.runtime.has = id => id === 'a' || id === 'b'
+  h.reconciler.getEditableFields = id => id === 'a'
+    ? [{key:'text',mode:'rich-text',element:{}}] : []
+  h.controller.selectBlocks(['a'])
+  h.view.clearSelection = function() { this.select(['b']) }
+  assert.equal(h.controller.beginComposition(),null,
+    'new selection from clearSelection observer was mistaken for the old IME stage')
+  assert.deepEqual(h.view.selectedIds,['b'])
+  assert.equal(h.mutations(),0)
+  h.controller.destroy()
+})
+
+test('cross-block IME stage cannot supersede a selection accepted during old range teardown', () => {
+  const h = mountedRestoreFixture()
+  const bookmark = { anchor:h.point('a',1), focus:h.point('b',3) }
+  assert.equal(h.controller.restore(bookmark),true)
+  h.view.clearSelection = () => { h.view.select(['b']) }
+  assert.equal(h.controller.beginComposition(),null)
+  assert.deepEqual(h.view.selectedIds,['b'])
+  h.controller.destroy()
+})
