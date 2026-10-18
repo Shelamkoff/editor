@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { InlineCommandController } from './InlineCommandController.js'
 
-function harness() {
+function harness({ onFreshText = null } = {}) {
   const calls = []
   const carets = []
   let preparing = false
@@ -43,8 +43,8 @@ function harness() {
     },
     setCaret(blockId, target) { carets.push({ blockId, target }); return true },
   }
-  const controller = new InlineCommandController({ runtime, registry, selection })
-  return { controller, runtime, calls, carets, definition, isPreparing: () => preparing }
+  const controller = new InlineCommandController({ runtime, registry, selection, onFreshText })
+  return { controller, runtime, selection, calls, carets, definition, isPreparing: () => preparing }
 }
 
 test('pasteText chooses the longest overlapping pattern and keeps surrounding text', () => {
@@ -464,4 +464,50 @@ test('typed matcher cannot claim an edit after a control-mode round trip during 
   },' '),false)
   assert.equal(transactions,0)
   assert.deepEqual(carets,[])
+})
+
+
+for (const retirement of ['commit observer', 'control-mode callback', 'caret focus callback']) {
+  test('fresh inline text does not refresh a retired editor after ' + retirement, () => {
+    const notices = []
+    const { controller, runtime, definition, selection, carets } = harness({
+      onFreshText: details => notices.push(details),
+    })
+    runtime.health = 'ready'
+    runtime.generation = 1
+    runtime.modeEpoch = 0
+    runtime.replaceRichText = () => undefined
+    definition.insertion = { createInitial: () => ({ kind: 'text', text: '@' }) }
+    runtime.interact = (_name, operation) => {
+      const result = operation()
+      if (retirement === 'commit observer') runtime.health = 'destroyed'
+      if (retirement === 'control-mode callback') runtime.modeEpoch += 2
+      return result
+    }
+    if (retirement === 'caret focus callback') {
+      selection.setCaret = () => {
+        runtime.health = 'destroyed'
+        carets.push({ blockId: 'a', target: { fieldKey: 'text', offset: 3 } })
+        return true
+      }
+    }
+    assert.equal(controller.insert('color'), true, 'successful canonical insertion lost its committed result')
+    assert.deepEqual(notices, [], 'retired fresh-text command notified a detached inline owner')
+    assert.equal(carets.length, retirement === 'caret focus callback' ? 1 : 0)
+  })
+}
+
+test('fresh inline text notifies its trigger exactly once after a live committed edit', () => {
+  const notices = []
+  const { controller, runtime, definition, carets } = harness({
+    onFreshText: details => notices.push(details),
+  })
+  runtime.health = 'ready'
+  runtime.generation = 1
+  runtime.modeEpoch = 0
+  runtime.replaceRichText = () => undefined
+  definition.insertion = { createInitial: () => ({ kind: 'text', text: '@' }) }
+  assert.equal(controller.insert('color'), true)
+  assert.deepEqual(notices, [{ type: 'color', blockId: 'a', fieldKey: 'text' }])
+  assert.deepEqual(carets, [{ blockId: 'a', target: { fieldKey: 'text', offset: 3 } }])
 })
