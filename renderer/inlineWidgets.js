@@ -56,6 +56,15 @@ export function renderInlineWidgets(fragment, inline, registry, ownerDocument) {
       element.setAttribute('data-inline-plugin', ref.type)
       element.setAttribute('data-id', id)
       element.contentEditable = 'false'
+      // Custom-element attribute callbacks can synchronously adopt the node
+      // after the initial detached-owner check. Never move an element that a
+      // newer host or DOM owner claimed while we decorated its attributes.
+      if (element.isConnected || element.parentNode) {
+        throw new TypeError(`Inline renderer "${ref.type}" must return a fresh detached HTMLElement`)
+      }
+      if (element.ownerDocument && element.ownerDocument !== ownerDocument) {
+        throw new TypeError(`Inline renderer "${ref.type}" must return an HTMLElement in the owning document`)
+      }
       replacement.append(element)
       lastIndex = match.index + token.length
       projected = true
