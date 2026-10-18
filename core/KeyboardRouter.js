@@ -183,6 +183,7 @@ export class KeyboardRouter {
 
     const record = this.#runtime.get(owner.blockId)
     if(this.#handleShortcut(owner,event,range,keys))return
+    if (!this.#canPresent()) return
 
     if (key === 'Enter' && !keys.shiftKey) {
       const handled=this.#handleStructuralKey(event,()=>this.#runtime.isEmpty(owner.blockId)
