@@ -133,6 +133,30 @@ function mergeAdjacentCanonicalTags(parent) {
 }
 
 /**
+ * Canonicalize a detached, already-sanitized rich-text DOM subtree.
+ * Shared with the editor serializer so literal inline tokens are protected
+ * only after any tag replacements and adjacent-mark merges that could join
+ * otherwise separate authored Text leaves.
+ *
+ * @param {ParentNode} root
+ * @param {Document} ownerDocument
+ */
+export function canonicalizeRichTextSubtree(root, ownerDocument) {
+  const elements = Array.from(root.querySelectorAll('*'))
+  for (const original of elements) {
+    const canonicalTag = CANONICAL_TAGS.get(original.tagName.toLowerCase())
+    const element = canonicalTag
+      ? replaceTag(original, canonicalTag, ownerDocument)
+      : original
+
+    canonicalizeStyle(element)
+    canonicalizeAttributes(element)
+  }
+
+  mergeAdjacentCanonicalTags(root)
+}
+
+/**
  * Canonicalize already-sanitized Rector rich text.
  *
  * @param {string} html
@@ -144,18 +168,7 @@ export function canonicalizeRichText(html, ownerDocument) {
   const template = document.createElement('template')
   template.innerHTML = /** @type {any} */ (toTrustedHtml(String(html || ''), document))
 
-  const elements = Array.from(template.content.querySelectorAll('*'))
-  for (const original of elements) {
-    const canonicalTag = CANONICAL_TAGS.get(original.tagName.toLowerCase())
-    const element = canonicalTag
-      ? replaceTag(original, canonicalTag, document)
-      : original
-
-    canonicalizeStyle(element)
-    canonicalizeAttributes(element)
-  }
-
-  mergeAdjacentCanonicalTags(template.content)
+  canonicalizeRichTextSubtree(template.content, document)
   return template.innerHTML
 }
 
