@@ -13,6 +13,12 @@ function isAtomic(node) {
       || /** @type {Element} */ (node).hasAttribute('data-inline-plugin'))
 }
 
+/** @param {Element} element */
+function isNativeControl(element) {
+  return ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(element.tagName)
+    || element.getAttribute?.('role') === 'button'
+}
+
 /** Controls within an authored field do not own authored text offsets.
  * Nested editing hosts have their own offset namespace. This guard is also
  * used when resolving native endpoints in a locked control.
@@ -22,8 +28,7 @@ function isAtomic(node) {
 function isOutsideLogicalText(node, root) {
   if (node.nodeType !== ELEMENT_NODE || isAtomic(node)) return false
   const element = /** @type {Element} */ (node)
-  if (['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(element.tagName)
-    || element.getAttribute?.('role') === 'button') return true
+  if (isNativeControl(element)) return true
   const editable = element.getAttribute?.('contenteditable')
   return editable === 'false'
     || (node !== root && (editable === 'true' || element.hasAttribute?.('contenteditable')))
@@ -101,6 +106,32 @@ export function splitsSurrogateAtOffset(root, offset) {
   return false
 }
 
+/** Native labels, inline widgets and non-author editing hosts do not
+ * participate in text transformations. A cross-block walker may begin outside
+ * any host, so its true editable islands stay visible even through a false
+ * plugin shell. Within one true field, nested fields have separate ownership.
+ * @param {Node} node
+ * @param {Node} root
+ */
+function isOutsideEditableWalker(node, root) {
+  const rootIsHost = root.nodeType === ELEMENT_NODE
+    && /** @type {Element} */ (root).getAttribute?.('contenteditable') === 'true'
+  let foundEditable = false
+  for (let ancestor = node.parentElement; ancestor; ancestor = ancestor.parentElement) {
+    if (isAtomic(ancestor)) return true
+    if (isNativeControl(ancestor)) return true
+    const editable = ancestor.getAttribute?.('contenteditable')
+    if (editable === 'true') {
+      if (rootIsHost && ancestor !== root) return true
+      foundEditable = true
+    } else if (editable === 'false' && !foundEditable) {
+      return true
+    }
+    if (ancestor === root) break
+  }
+  return false
+}
+
 /**
  * Create a TreeWalker for text transformations, excluding widget labels.
  * Position calculations use logical leaves instead of this text-only view.
@@ -115,7 +146,7 @@ export function editableTextWalker(root) {
   const viewFilter = ownerDocument.defaultView?.NodeFilter
   return ownerDocument.createTreeWalker(root, viewFilter?.SHOW_TEXT ?? SHOW_TEXT, {
     acceptNode(node) {
-      if (node.parentElement?.closest('[data-inline-plugin]')) return viewFilter?.FILTER_REJECT ?? FILTER_REJECT
+      if (isOutsideEditableWalker(node, root)) return viewFilter?.FILTER_REJECT ?? FILTER_REJECT
       return viewFilter?.FILTER_ACCEPT ?? FILTER_ACCEPT
     },
   })
