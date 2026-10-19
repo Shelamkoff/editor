@@ -459,3 +459,72 @@ test('drag commit observer can destroy editor without post-commit presentation o
   await Promise.resolve()
   assert.deepEqual(h.focusCalls(), [])
 })
+test('pointerdown cannot create a new drag after old capture release destroys the controller', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  assert.equal(h.captured(), 7)
+  const release = h.handle.releasePointerCapture.bind(h.handle)
+  h.handle.releasePointerCapture = id => {
+    release(id)
+    controller.destroy()
+  }
+
+  h.handle.dispatch('pointerdown', pointerEvent(8, 5))
+  assert.equal(h.captured(), null,
+    'new pointerdown reacquired a pointer capture after synchronous controller destruction')
+  assert.deepEqual(h.document.listeners.get('pointermove') ?? [], [],
+    'retired pointerdown attached new listeners after controller teardown')
+  h.document.dispatch('pointermove', pointerEvent(8, 55, { x: 10 }))
+  h.document.dispatch('pointerup', pointerEvent(8, 55, { x: 10 }))
+  assert.deepEqual(h.moves, [])
+})
+
+test('pointer capture callbacks cannot retain a canceled drag session', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  const capture = h.handle.setPointerCapture.bind(h.handle)
+  h.handle.setPointerCapture = id => {
+    capture(id)
+    h.setReadOnly(true)
+    controller.setReadOnly(true)
+  }
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  assert.equal(h.captured(), null,
+    'canceled drag kept browser pointer capture')
+  assert.deepEqual(h.document.listeners.get('pointermove') ?? [], [],
+    'a canceled pointer capture still installed document listeners')
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  assert.deepEqual(h.moves, [])
+  controller.destroy()
+})
+
+test('drag activation cannot insert its spacer after a class callback destroys the editor', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  const source = h.view.element('A')
+  const parent = source.parentNode
+  const originalChildren = [...parent.children]
+  const add = source.classList.add.bind(source.classList)
+  source.classList.add = name => {
+    add(name)
+    if (name === 'oe-block--dragging') controller.destroy()
+  }
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  assert.equal(h.captured(), null)
+  assert.deepEqual(parent.children, originalChildren,
+    'retired drag inserted a spacer after its owner had been destroyed')
+  assert.equal(h.document.body.classList.contains('oe-editor-dragging'), false)
+  assert.equal(source.classList.contains('oe-block--dragging'), false)
+  assert.deepEqual(h.moves, [])
+})
