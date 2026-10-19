@@ -84,8 +84,11 @@ export class InlineSelectionAuthority {
   get range() {
     if (!this.#available()) return null
     const current = this.#read()
-    if (!this.#validCurrent(current)) return null
-    return current.range.cloneRange()
+    if (!this.#validCurrent(current) || !this.#available()) return null
+    const snapshot = current.range.cloneRange()
+    // A native selection reader, DOM resolver or Range cloning hook can
+    // synchronously retire this tool's selection authority.
+    return this.#available() ? snapshot : null
   }
 
   /**
@@ -94,7 +97,7 @@ export class InlineSelectionAuthority {
    */
   capture(range = undefined) {
     if (!this.#available()) return null
-    return this.#runtime.prepareExtensionValue(() => {
+    const token = this.#runtime.prepareExtensionValue(() => {
       const current = this.#read()
       if (!this.#validCurrent(current) || (range !== undefined && !sameRange(range, current.range))) return null
       const bookmark = current.bookmark
@@ -111,6 +114,9 @@ export class InlineSelectionAuthority {
       })
       return /** @type {import('../inline-tools/types').InlineSelectionBookmark} */ (/** @type {unknown} */ (token))
     })
+    // Preparation and its teardown are external callbacks. A newly revoked
+    // mount must never publish a token, even if its internal snapshot was valid.
+    return this.#available() ? token : null
   }
 
   /** Validate private provenance and current endpoints without moving focus.
@@ -122,6 +128,8 @@ export class InlineSelectionAuthority {
     return this.#matches(captured)
       && this.#currentOwns(captured)
       && Boolean(this.#resolve(captured.anchor) && this.#resolve(captured.focus))
+      // Endpoint resolution may synchronously detach/revoke the mount.
+      && this.#matches(captured)
   }
 
   /** Internal host-only resolution of a settled logical result.
@@ -132,12 +140,14 @@ export class InlineSelectionAuthority {
    */
   resolveOwnResult(bookmark) {
     if (!this.#available()) return null
-    return this.#runtime.prepareExtensionValue(() => {
+    const resolved = this.#runtime.prepareExtensionValue(() => {
       const anchor = this.#copyPoint(bookmark?.anchor)
       const focus = this.#copyPoint(bookmark?.focus)
       if (!anchor || !focus) return null
       return this.#resolvedRange(anchor, focus)
     })
+    // A host-only range still belongs to this exact active presentation.
+    return this.#available() ? resolved : null
   }
 
   /**
@@ -289,7 +299,13 @@ export class InlineSelectionAuthority {
   }
 
   #available() {
-    return this.#active && !this.#revoked && this.#root.isConnected
-      && this.#runtime.health === 'ready' && !this.#runtime.readOnly && this.#phase()
+    if (!this.#active || this.#revoked || !this.#root.isConnected
+      || this.#runtime.health !== 'ready' || this.#runtime.readOnly) return false
+    // canAccess() is another host callback. It can synchronously retire the
+    // mount or change its effective control mode while returning true.
+    const allowed = this.#phase()
+    return Boolean(allowed) && this.#active && !this.#revoked
+      && this.#root.isConnected && this.#runtime.health === 'ready'
+      && !this.#runtime.readOnly && this.#active && !this.#revoked
   }
 }
