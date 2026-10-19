@@ -7,7 +7,7 @@ import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
-import { scanRichTextPlaceholders, richTextPlaceholderMatches } from '../shared/richTextOperations.js'
+import { scanRichTextPlaceholders, richTextPlaceholderMatches, protectInlineLiteralTokens } from '../shared/richTextOperations.js'
 import { richTextFieldMap, mapRichTextFields, mountedRichFields } from './projectionFields.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
@@ -24,7 +24,7 @@ function belongsToAuthorField(field,node){
   let parent=node.parentNode
   while(parent&&parent!==field){
     if(parent.nodeType===1&&/** @type {Element} */(parent).matches(
-      '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]',
+      '[data-inline-plugin], [contenteditable], span.oe-inline-literal, button, input, textarea, select, option, [role="button"]',
     ))return false
     parent=parent.parentNode
   }
@@ -731,12 +731,21 @@ export class InlineProjectionRuntime {
 
   #serializeField(blockId,field){
     const container=this.#ownerDocument.createElement('div')
+    /** @type {Array<{element: Element,id:string}>} */
+    const references=[]
+    const ownedIds=new Set()
     const append=(source,target)=>{
       for(const node of source.childNodes){
         if(isRichTextCaretPadding(node))continue
         const owned=this.#owned.get(node)
         if(owned?.blockId===blockId&&this.#blocks.get(blockId)?.widgets.get(owned.id)?.element===node){
-          target.appendChild(this.#ownerDocument.createTextNode('{{'+owned.id+'}}'))
+          // Keep actual widget references out of the authored text walk until
+          // colliding literal "{{id}}" text is safely tagged.
+          const marker=this.#ownerDocument.createElement('span')
+          marker.setAttribute('data-oe-inline-reference',owned.id)
+          target.appendChild(marker)
+          references.push({element:marker,id:owned.id})
+          ownedIds.add(owned.id)
           continue
         }
         if(node.nodeType===3){
@@ -744,9 +753,8 @@ export class InlineProjectionRuntime {
           continue
         }
         if(node.nodeType!==1)continue
-        // A rich field can contain plugin-owned controls and nested editing
-        // hosts. Their presentation text is not authored document content.
-        // Current inline widgets were serialized to {{id}} above.
+        // Auxiliary controls and independent editing islands are not author
+        // text. Their contents must not be persisted as block rich text.
         if(/** @type {Element} */(node).matches(
           'button, input, textarea, select, option, [role="button"], [contenteditable], [data-inline-plugin]',
         ))continue
@@ -756,6 +764,12 @@ export class InlineProjectionRuntime {
       }
     }
     append(field,container)
+    protectInlineLiteralTokens(container,ownedIds,this.#ownerDocument)
+    // Only genuine owned markers become canonical {{id}} references. Author
+    // literal tokens are wrapped in a sanitizer-preserved class instead.
+    for(const {element,id} of references){
+      element.replaceWith(this.#ownerDocument.createTextNode('{{'+id+'}}'))
+    }
     return normalizeRichText(container.innerHTML,this.#ownerDocument)
   }
 
