@@ -2036,6 +2036,19 @@ test('serializing a literal inline ID split between adjacent formatting wrappers
       'Formatted literal text has no persisted ownership boundary')
     assert(first.isConnected && second.isConnected && first.nextSibling===second,
       'Serialization changed live author formatting DOM instead of its clone')
+    // Sanitization can also unwrap a forbidden element and concatenate its
+    // child text with the next author Text leaf into an owned-looking token.
+    const unknown=document.createElement('unapproved-inline')
+    unknown.textContent='{{inline-'
+    const continuation=document.createTextNode('1}}')
+    field.append(unknown,continuation)
+    const afterSanitize=projection.serializeBlock('a',record,definition,fields,record.data).data.text
+    equal(scanRichTextPlaceholders(afterSanitize,inline,document).occurrences.get('inline-1'),1,
+      'Sanitizer unwrapping generated an extra inline reference')
+    equal((afterSanitize.match(/class="oe-inline-literal"/g)??[]).length,2,
+      'Both formatted and unwrapped literal tokens must remain independently marked')
+    assert(unknown.isConnected&&unknown.nextSibling===continuation,
+      'Serializer mutated the live DOM while sanitizing a clone')
     projection.reconcileBlock('a',{data:{text:html},inline},definition,fields,
       {createInlineWidgetContext(){return{}}})
     equal(field.querySelectorAll('[data-inline-plugin="mention"]').length,1,
