@@ -1372,6 +1372,44 @@ test('rejecting a staged block that borrows another block field preserves the ac
   reconciler.destroy()
 })
 
+
+test('native controls and independent nested editors cannot borrow a parent editable field owner', () => {
+  const { document, reconciler } = setup(1)
+  const field = reconciler.getEditableField('0', 'text').element
+  const authored = document.createElement('strong')
+  const nativeButton = document.createElement('button')
+  const buttonLabel = document.createElement('span')
+  nativeButton.appendChild(buttonLabel)
+  const locked = document.createElement('span')
+  locked.contentEditable = 'false'
+  const lockedLabel = document.createElement('i')
+  locked.appendChild(lockedLabel)
+  const independent = document.createElement('div')
+  independent.contentEditable = 'true'
+  const independentText = document.createElement('span')
+  independent.appendChild(independentText)
+  const widget = document.createElement('span')
+  widget.dataset.inlinePlugin = 'swatch'
+  const widgetLabel = document.createElement('span')
+  widget.appendChild(widgetLabel)
+  const roleButton = document.createElement('span')
+  roleButton.getAttribute = name => name === 'role' ? 'button' : null
+  field.append(authored, nativeButton, locked, independent, widget, roleButton)
+
+  assert.equal(reconciler.resolveEditableTarget(authored)?.fieldKey, 'text',
+    'Ordinary authored formatting descendants lost their owning field')
+  for (const target of [
+    nativeButton, buttonLabel, locked, lockedLabel, independent,
+    independentText, widget, widgetLabel, roleButton,
+  ]) {
+    assert.equal(reconciler.resolveEditableTarget(target), null,
+      'A native/locked/independent DOM owner was mistaken for author text')
+    assert.equal(reconciler.resolveBlockTarget(target), '0',
+      'Excluding a nested control from authored text should not erase its block ownership')
+  }
+  reconciler.destroy()
+})
+
 test('a valid nested editable field remains addressable after ownership validation', () => {
   const { reconciler, container } = setup(1)
   const field = reconciler.getEditableField('0', 'text').element
