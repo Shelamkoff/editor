@@ -9,6 +9,22 @@ const TEXT_NODE = 3
 const PROTECTED_OWNER_SELECTOR = '[data-inline-plugin], [contenteditable="false"], button, input, textarea, select, option, [role="button"]'
 const NORMALIZE_BOUNDARY_SELECTOR = '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]'
 
+// Native controls and inline widget owners cannot be authored text hosts. A
+// plugin wrapper with contenteditable=false may still contain legitimate
+// contenteditable=true fields, which are selected by their own nearest host.
+const NATIVE_OWNER_SELECTOR = '[data-inline-plugin], button, input, textarea, select, option, [role="button"]'
+
+/** Resolve the nearest *actual* editing host of an author formatting node.
+ * @param {Element} element
+ * @returns {Element | null}
+ */
+function authorHost(element) {
+  if (element.closest(NATIVE_OWNER_SELECTOR)) return null
+  const host = element.closest('[contenteditable]')
+  return host?.getAttribute('contenteditable') === 'true' ? host : null
+}
+
+
 /** @param {Node} node @returns {boolean} */
 export function hasProtectedDomContent(node) {
   if (node.nodeType !== ELEMENT_NODE && node.nodeType !== DOCUMENT_FRAGMENT_NODE) return false
@@ -26,7 +42,31 @@ export function hasProtectedDomContent(node) {
 export function normalizeAuthoredText(root) {
   if (!root || root.nodeType !== ELEMENT_NODE) return
   const element = /** @type {Element} */ (root)
-  if (element.closest(PROTECTED_OWNER_SELECTOR)) return
+  if (element.closest(NATIVE_OWNER_SELECTOR)) return
+
+  const nearest = element.closest('[contenteditable]')
+  if (!nearest) {
+    // A cross-block selection can use an editor shell as its walk root.
+    // Do not normalize its toolbar, block chrome or other static UI. Visit
+    // only actual author fields, traversing contenteditable=false plugin
+    // containers without normalizing their own text.
+    /** @param {Element} parent */
+    const visitHosts = parent => {
+      for (const node of Array.from(parent.childNodes)) {
+        if (node.nodeType !== ELEMENT_NODE) continue
+        const child = /** @type {Element} */ (node)
+        if (child.matches(NATIVE_OWNER_SELECTOR)) continue
+        if (child.getAttribute('contenteditable') === 'true') {
+          normalizeAuthoredText(child)
+        } else {
+          visitHosts(child)
+        }
+      }
+    }
+    visitHosts(element)
+    return
+  }
+  if (!authorHost(element)) return
 
   /** @param {Element} parent */
   const visit = parent => {
@@ -82,7 +122,7 @@ export function removeEmptyInlineTags(parent) {
     // Embedded native, locked and inline-widget descendants are independently
     // owned controls, including empty nodes with no visible text. Do not treat
     // their elements as disposable editor formatting wrappers.
-    if (el.hasAttribute('contenteditable') || el.closest(PROTECTED_OWNER_SELECTOR)) continue
+    if (el.hasAttribute('contenteditable') || !authorHost(el)) continue
     if (!hasInlineContent(el)) el.remove()
   }
   normalizeAuthoredText(parent)
