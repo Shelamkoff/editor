@@ -53,16 +53,26 @@ export class SlashCommandController {
     this.#menu.className = 'oe-slash-menu'
     this.#menu.setAttribute('role', 'menu')
     this.#menu.style.display = 'none'
-    root.appendChild(this.#menu)
+    try {
+      root.appendChild(this.#menu)
 
-    this.#items = this.#buildItems()
+      this.#items = this.#buildItems()
 
-    root.addEventListener('input', event => this.#onInput(event), { signal })
-    root.addEventListener('compositionstart', () => this.close(), { signal })
-    root.addEventListener('keydown', event => this.#onKeydown(event), { capture: true, signal })
-    root.addEventListener('focusout', event => this.#onFocusOut(event), { signal })
-    this.#document.addEventListener('scroll', () => this.#position(), { capture: true, passive: true, signal })
-    this.#window?.addEventListener?.('resize', () => this.#position(), { signal })
+      root.addEventListener('input', event => this.#onInput(event), { signal })
+      root.addEventListener('compositionstart', () => this.close(), { signal })
+      root.addEventListener('keydown', event => this.#onKeydown(event), { capture: true, signal })
+      root.addEventListener('focusout', event => this.#onFocusOut(event), { signal })
+      this.#document.addEventListener('scroll', () => this.#position(), { capture: true, passive: true, signal })
+      this.#window?.addEventListener?.('resize', () => this.#position(), { signal })
+    } catch (error) {
+      // This constructor does not return a destroyable owner on failure.
+      // Revoke every partially registered listener and the provisional menu.
+      try { this.#controller.abort() } catch {}
+      try {
+        if (!this.#menu.parentNode || this.#menu.parentNode === root) this.#menu.remove()
+      } catch {}
+      throw error
+    }
   }
 
   get isOpen() {
@@ -136,16 +146,25 @@ export class SlashCommandController {
     // Browser dispatch may retain a callback before the listener's AbortSignal
     // is revoked. A retired menu must never inspect mounted field ownership.
     if (this.#controller.signal.aborted) return
+    const epoch = this.#runtime.modeEpoch
+    const prior = this.#session
+    const itemsVersion = this.#itemsVersion
+    const stillOwned = () => !this.#controller.signal.aborted
+      && !this.#runtime.readOnly && this.#runtime.modeEpoch === epoch
+      && this.#session === prior && this.#itemsVersion === itemsVersion
     if (this.#runtime.readOnly || event.isComposing || this.#isComposing()) {
-      this.close()
+      if (stillOwned()) this.close()
       return
     }
+    if (!stillOwned()) return
     const owner = this.#reconciler.resolveEditableTarget(event.target)
+    if (!stillOwned()) return
     if (!owner || owner.mode !== 'rich-text') {
       this.close()
       return
     }
     const bookmark = this.#selection.capture()
+    if (!stillOwned()) return
     if (
       !bookmark?.anchor
       || !bookmark?.focus
@@ -160,11 +179,14 @@ export class SlashCommandController {
     }
 
     const native = this.#window?.getSelection?.()
+    if (!stillOwned()) return
     if (!native?.focusNode || native.rangeCount === 0 || !owner.element.contains(native.focusNode)) {
-      this.close()
+      if (stillOwned()) this.close()
       return
     }
+    if (!stillOwned()) return
     const before = this.#textBeforeCaret(owner.element, native.focusNode, native.focusOffset)
+    if (!stillOwned()) return
     const slash = before.lastIndexOf('/')
     if (slash < 0) {
       this.close()
@@ -178,6 +200,7 @@ export class SlashCommandController {
     }
     const end = bookmark.focus.offset
     const start = Math.max(0, end - query.length - 1)
+    if (!stillOwned()) return
     this.#session = {
       blockId: owner.blockId,
       fieldKey: owner.fieldKey,
@@ -186,7 +209,12 @@ export class SlashCommandController {
       end,
       query,
     }
+    const settled = this.#session
     this.#filter(query)
+    // A plug-in label/icon renderer can destroy or replace this menu during
+    // filtering. Do not re-expose an obsolete popup after such a callback.
+    if (this.#controller.signal.aborted || this.#runtime.readOnly
+      || this.#runtime.modeEpoch !== epoch || this.#session !== settled) return
     this.#menu.style.display = ''
     this.#position()
   }
