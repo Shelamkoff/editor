@@ -2121,6 +2121,12 @@ test('multi-field save protects a literal ID owned by a widget in a sibling rich
       'A sibling field received a false inline reference')
     equal(scanRichTextPlaceholders(saved.data.answer,saved.inline,document).occurrences.get('inline-1'),1,
       'The actual widget reference was lost from its owning field')
+    const reversed=projection.serializeBlock('a',record,definition,
+      [...fields].reverse(),record.data)
+    equal(reversed.data.question,saved.data.question,
+      'Reversing field order consumed the block-wide inline ID set too early')
+    equal(reversed.data.answer,saved.data.answer,
+      'Changing field order altered the canonical widget reference')
     assert(first.lastChild===literal,
       'Serialization rewrote the real author DOM instead of its detached clone')
 
