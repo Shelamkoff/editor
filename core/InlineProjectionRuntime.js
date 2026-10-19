@@ -764,6 +764,11 @@ export class InlineProjectionRuntime {
       }
     }
     append(field,container)
+    // The editor may deliberately preserve adjacent live Text leaves to keep
+    // native DOM Range endpoints stable. Normalize only this detached clone:
+    // its HTML serializer would concatenate those leaves into a token that
+    // a per-Text-node scan otherwise cannot protect from ID collision.
+    container.normalize()
     protectInlineLiteralTokens(container,ownedIds,this.#ownerDocument)
     // Only genuine owned markers become canonical {{id}} references. Author
     // literal tokens are wrapped in a sanitizer-preserved class instead.
