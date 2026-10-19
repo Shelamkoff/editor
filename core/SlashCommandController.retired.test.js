@@ -179,3 +179,76 @@ test('Slash input owner resolver cannot continue after destroying its editor', (
   assert.equal(reads, 0)
   assert.equal(controller.isOpen, false)
 })
+test('Slash input in read-only mode dismisses an already open command menu', () => {
+  const handlers = new Map()
+  const text = { nodeType: 3, textContent: '/' }
+  const field = {
+    nodeType: 1, tagName: 'P', isConnected: true, childNodes: [text],
+    hasAttribute() { return false },
+    contains(node) { return node === text },
+  }
+  text.parentElement = field
+  text.parentNode = field
+  const menu = {
+    style: {}, children: [], offsetWidth: 100, offsetHeight: 100,
+    setAttribute() {}, replaceChildren() { this.children = [] },
+    appendChild(node) { this.children.push(node) }, remove() {},
+  }
+  const document = {
+    defaultView: {
+      AbortController, innerWidth: 1000, innerHeight: 1000,
+      getSelection() {
+        return { focusNode: text, focusOffset: 1, rangeCount: 1 }
+      },
+      addEventListener() {},
+    },
+    createElement(type) {
+      if (type === 'ul') return menu
+      return { className: '', setAttribute() {}, textContent: '' }
+    },
+    createRange() {
+      return {
+        selectNodeContents() {}, setEnd() {}, setStart() {},
+        toString() { return '/' },
+        getClientRects() { return [{ left: 20, top: 10, bottom: 30 }] },
+        getBoundingClientRect() { return { left: 20, top: 10, bottom: 30 } },
+      }
+    },
+    addEventListener() {},
+  }
+  field.ownerDocument = document
+  const root = {
+    ownerDocument: document,
+    getBoundingClientRect() { return { left: 0, top: 0, right: 1000, bottom: 1000 } },
+    contains(node) { return node === field },
+    appendChild() {},
+    addEventListener(type, callback) { handlers.set(type, callback) },
+  }
+  const runtime = { readOnly: false, modeEpoch: 0 }
+  const controller = new SlashCommandController({
+    root, runtime, registry: { blockTypes: [], inlineTypes: [] },
+    reconciler: {
+      resolveEditableTarget() {
+        return { mode: 'rich-text', blockId: 'a', fieldKey: 'text', element: field }
+      },
+    },
+    selection: {
+      capture() {
+        const point = { blockId: 'a', fieldKey: 'text', offset: 1 }
+        return { anchor: point, focus: { ...point } }
+      },
+    },
+    view: {}, inlineCommands: {},
+  })
+  const input = () => handlers.get('input')({ target: field, isComposing: false })
+  try {
+    input()
+    assert.equal(controller.isOpen, true, 'fixture did not open a native Slash query')
+    runtime.readOnly = true
+    input()
+    assert.equal(controller.isOpen, false,
+      'read-only input left the old command menu open')
+  } finally {
+    controller.destroy()
+  }
+})
