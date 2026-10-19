@@ -950,4 +950,60 @@ test('empty author styling inside a noneditable plugin shell still cleans up', (
   } finally { fixture.remove() }
 })
 
+
+test('inline normalization preserves backward Unicode selection with native Range retargeting', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div contenteditable="true"></div>'
+  document.body.append(fixture)
+  try {
+    const field = fixture.firstElementChild
+    const first = document.createTextNode('Stra')
+    const second = document.createTextNode('ße')
+    field.append(first, second)
+    field.focus()
+    const native = window.getSelection()
+    native.setBaseAndExtent(second, 2, second, 0)
+    equal([getTextOffset(field, native.anchorNode, native.anchorOffset),
+      getTextOffset(field, native.focusNode, native.focusOffset)], [6, 4])
+    normalizeAfterEdit(field, field)
+    equal(field.textContent, 'Straße')
+    equal(field.childNodes.length, 1, 'Author-only nodes did not normalize')
+    assert(native.anchorNode === first && native.focusNode === first,
+      'Native normalization did not preserve both selection boundary points')
+    equal([getTextOffset(field, native.anchorNode, native.anchorOffset),
+      getTextOffset(field, native.focusNode, native.focusOffset)], [6, 4],
+    'A selected Text leaf was removed without preserving backward caret offsets')
+  } finally { fixture.remove() }
+})
+
+test('inline normalization leaves mixed native-owner selection boundaries intact', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div contenteditable="true"></div>'
+  document.body.append(fixture)
+  try {
+    const field = fixture.firstElementChild
+    const first = document.createTextNode('Stra')
+    const second = document.createTextNode('ße')
+    const nativeControl = document.createElement('button')
+    nativeControl.type = 'button'
+    const labelA = document.createTextNode('UI')
+    const labelB = document.createTextNode(' action')
+    nativeControl.append(labelA, labelB)
+    field.append(first, second, nativeControl)
+    field.focus()
+    const selection = window.getSelection()
+    selection.setBaseAndExtent(second, 2, second, 1)
+    const before = [getTextOffset(field, selection.anchorNode, selection.anchorOffset),
+      getTextOffset(field, selection.focusNode, selection.focusOffset)]
+    normalizeAfterEdit(field, field)
+    equal(field.textContent, 'StraßeUI action')
+    assert(second.isConnected && selection.anchorNode === second && selection.focusNode === second,
+      'Mixed-owner normalization detached a selected Text leaf')
+    equal([getTextOffset(field, selection.anchorNode, selection.anchorOffset),
+      getTextOffset(field, selection.focusNode, selection.focusOffset)], before)
+    assert(nativeControl.firstChild === labelA && nativeControl.lastChild === labelB,
+      'A native control lost its independently owned text nodes')
+  } finally { fixture.remove() }
+})
+
 await run()
