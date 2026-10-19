@@ -219,7 +219,7 @@ test('auxiliary controls keep native history ownership; editor chrome owns docum
     }
   }
 
-  for(const selector of ['input','textarea','select','[data-inline-plugin]']){
+  for(const selector of ['input','textarea','select','[data-inline-plugin]','button','[role="button]']){
     const current=event(target(selector))
     router.handleKeydown(current)
     assert.equal(current.prevented,false,`${selector} shortcut was claimed by editor history`)
@@ -240,6 +240,26 @@ test('auxiliary controls keep native history ownership; editor chrome owns docum
   router.handleKeydown(nestedEvent)
   assert.equal(nestedEvent.prevented, false, 'native input inside editor chrome lost native history ownership')
   assert.equal(calls.length, 5)
+
+  // Native controls inside an inline widget retain control ownership, too.
+  const widgetButton=target('button')
+  reconciler.resolveInlineWidgetElement = node => node === widgetButton
+    ? {contains:child => child === widgetButton} : null
+  const widgetKey=event(widgetButton)
+  router.handleKeydown(widgetKey)
+  assert.equal(widgetKey.prevented,false,
+    'A native button inside an inline widget replayed editor history')
+  assert.equal(calls.length,5)
+
+  // Explicit editor toolbar buttons are intentionally document chrome and
+  // must continue to route Undo even though they use the native BUTTON tag.
+  const toolbarButton=target('button')
+  toolbarButton.closest = query => query.split(',').map(item=>item.trim())
+    .some(item=>item==='button' || item==='.oe-toolbar') ? toolbarButton : null
+  const toolbarKey=event(toolbarButton)
+  router.handleKeydown(toolbarKey)
+  assert.equal(toolbarKey.prevented,true,'Toolbar Undo lost its document history action')
+  assert.equal(calls.length,6)
   router.destroy()
 })
 
