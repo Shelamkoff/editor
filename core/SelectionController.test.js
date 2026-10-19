@@ -981,3 +981,34 @@ test('selection mousemove cannot touch canceled drag after geometry callback des
   }), 'retired drag continued reading its now-cleared pointer state')
   assert.equal(h.controller.dragging, false)
 })
+test('selectBlocks lookup cannot revive a selection after synchronous controller teardown', () => {
+  const h = crossSelectionPointerReentryHarness('none')
+  const selections = []
+  h.view.select = ids => selections.push([...ids])
+  h.runtime.has = () => {
+    h.controller.destroy()
+    return true
+  }
+  h.controller.selectBlocks(['a'])
+  assert.deepEqual(selections, [],
+    'a destroyed selection controller published a stale whole-block choice')
+  h.controller.destroy()
+})
+
+test('public cross-selection activation cannot publish after its endpoint resolver destroys owner', () => {
+  const h = crossSelectionPointerReentryHarness('point')
+  // The native range is already captured before plugin/DOM endpoint lookup;
+  // resolving its first point can still destroy the selection owner.
+  const node = h.field.childNodes[0]
+  const range = {
+    collapsed: false,
+    startContainer: node, startOffset: 1,
+    endContainer: node, endOffset: 3,
+    cloneRange() { return this },
+  }
+  const outcome = h.controller.activate(range)
+  assert.equal(outcome, false,
+    'a retired controller accepted a native range with no live selection owner')
+  assert.equal(h.controller.active, false)
+  h.controller.destroy()
+})
