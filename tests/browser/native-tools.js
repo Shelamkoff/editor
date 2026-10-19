@@ -1526,4 +1526,53 @@ test('inline hydration never converts literal widget-reference text inside a nat
   }
 })
 
+
+test('reconciling a widget with a placeholder-shaped label never hydrates itself', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true">A{{inline-1}}B</div></div>'
+  document.body.append(fixture)
+  const field = fixture.querySelector('[contenteditable="true"]')
+  const record = {
+    data: { text: 'A{{inline-1}}B' },
+    inline: { 'inline-1': { type: 'mention', dataVersion: 1, data: { name: 'Ada' } } },
+  }
+  const definition = { schema: {
+    mapRichText(data, visit) { return { ...data, text: visit(data.text, 'text') } },
+  } }
+  const registry = {
+    getInlineDefinition(type) {
+      return type === 'mention' ? { schema: { decode(value) { return value } } } : null
+    },
+    getInlineRuntime(type) {
+      return type === 'mention' ? { create(_id, data) {
+        const element = document.createElement('span')
+        element.contentEditable = 'true'
+        element.textContent = data.name
+        return { element, setReadOnly() {}, destroy() {} }
+      } } : null
+    },
+  }
+  const projection = new InlineProjectionRuntime({registry, ownerDocument:document})
+  try {
+    const fields = [{key:'text', mode:'rich-text', element:field}]
+    const context = {createInlineWidgetContext(){return {}}}
+    projection.reconcileBlock('a', record, definition, fields, context,
+      {preserveSourceProjection:true})
+    const widget = field.querySelector('[data-inline-plugin="mention"]')
+    assert(widget && widget.isConnected, 'Expected a live inline widget after first hydration')
+    widget.textContent = '{{inline-1}}'
+    projection.reconcileBlock('a', record, definition, fields, context,
+      {preserveSourceProjection:true})
+    assert(projection.resolveWidgetElement(widget) === widget,
+      'The widget was detached or recursively inserted into its own label')
+    assert(widget.parentNode === field, 'The widget was moved away from its authored position')
+    equal(widget.textContent, '{{inline-1}}', 'Placeholder-shaped label is authored by its widget')
+    equal(field.querySelectorAll('[data-inline-plugin="mention"]').length, 1,
+      'A duplicate inline widget was hydrated inside its existing label')
+  } finally {
+    projection.destroy()
+    fixture.remove()
+  }
+})
+
 await run()
