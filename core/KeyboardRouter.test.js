@@ -219,7 +219,7 @@ test('auxiliary controls keep native history ownership; editor chrome owns docum
     }
   }
 
-  for(const selector of ['input','textarea','select','[data-inline-plugin]','button','[role="button]']){
+  for(const selector of ['input','textarea','select','[data-inline-plugin]','button','[role="button"]']){
     const current=event(target(selector))
     router.handleKeydown(current)
     assert.equal(current.prevented,false,`${selector} shortcut was claimed by editor history`)
