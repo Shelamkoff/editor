@@ -210,3 +210,61 @@ test('animator destruction does not remove a spacer moved to another owner', () 
     'destroy() removed a DOM node now owned by another container')
   assert.deepEqual(outside.children, [spacer])
 })
+test('a failed removal spacer allocation does not abort later visual-only animations', () => {
+  const document = realm()
+  const container = new FakeElement(document)
+  const first = new FakeElement(document, 0, 30)
+  const second = new FakeElement(document, 40, 30)
+  container.appendChild(first)
+  container.appendChild(second)
+  const animator = new ProjectionAnimator({ removeMs: 40 })
+  animator.enable()
+  const snapshots = [
+    animator.captureRemoval(first, 0),
+    animator.captureRemoval(second, 1),
+  ]
+  first.remove()
+  second.remove()
+  const createElement = document.createElement
+  let allocations = 0
+  document.createElement = function (...args) {
+    if (++allocations === 1) throw new Error('optional animation DOM unavailable')
+    return createElement.apply(this, args)
+  }
+
+  assert.doesNotThrow(() => animator.animateRemovals(container, snapshots),
+    'optional animation allocation failure escaped after document commit')
+  assert.equal(allocations, 2,
+    'failed animation staging prevented an independent later animation')
+  assert.equal(container.children.length, 1)
+  const survivor = container.children[0]
+  assert.equal(survivor.className, 'oe-block-removal-spacer')
+  animator.destroy()
+  assert.deepEqual(container.children, [], 'visual-only spacer was not released')
+})
+
+test('a failing spacer removal does not strand independent animator resources', () => {
+  const document = realm()
+  const container = new FakeElement(document)
+  const first = new FakeElement(document, 0, 30)
+  const second = new FakeElement(document, 40, 30)
+  container.appendChild(first)
+  container.appendChild(second)
+  const animator = new ProjectionAnimator({ removeMs: 40 })
+  animator.enable()
+  const snapshots = [
+    animator.captureRemoval(first, 0),
+    animator.captureRemoval(second, 1),
+  ]
+  first.remove()
+  second.remove()
+  animator.animateRemovals(container, snapshots)
+  const [failing, independent] = container.children
+  failing.remove = () => { throw new Error('broken DOM removal adapter') }
+
+  assert.doesNotThrow(() => animator.destroy(),
+    'one failing visual-only spacer interrupted editor teardown')
+  assert.equal(independent.parentNode, null,
+    'unrelated removal spacer remained mounted after a sibling cleanup failure')
+  assert.deepEqual(container.children, [failing])
+})
