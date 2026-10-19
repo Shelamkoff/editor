@@ -617,3 +617,49 @@ test('inline Paste matches only complete whitespace-delimited tokens, including 
   assert.equal(controller.pasteText('#fff,#f00'), false)
   assert.deepEqual(calls, [])
 })
+test('inline insertion does not author into an obsolete caret after its factory moves selection', () => {
+  const h = harness()
+  h.runtime.health = 'ready'
+  h.runtime.generation = 1
+  h.runtime.modeEpoch = 0
+  const first = h.selection.capture()
+  let current = first
+  h.selection.capture = () => current
+  h.definition.insertion = {
+    createInitial() {
+      current = {
+        anchor: { blockId: 'new-block', fieldKey: 'text', offset: 0 },
+        focus: { blockId: 'new-block', fieldKey: 'text', offset: 0 },
+      }
+      return { kind: 'widget', data: { value: '#fff' } }
+    },
+  }
+  h.definition.schema = { createDefault: () => ({ value: '#f00' }) }
+  let writes = 0
+  h.runtime.insertInlineWidget = () => { writes++; return 'inline-1' }
+  assert.equal(h.controller.insert('color'), false,
+    'stale inline factory inserted a widget into the old author selection')
+  assert.equal(writes, 0)
+  assert.deepEqual(h.carets, [])
+})
+
+test('inline paste matcher cannot convert text after a newer caret is selected', () => {
+  const h = harness()
+  h.runtime.health = 'ready'
+  h.runtime.generation = 1
+  h.runtime.modeEpoch = 0
+  const initial = h.selection.capture()
+  let current = initial
+  h.selection.capture = () => current
+  h.definition.paste.fromMatch = () => {
+    current = {
+      anchor: { blockId: 'elsewhere', fieldKey: 'text', offset: 1 },
+      focus: { blockId: 'elsewhere', fieldKey: 'text', offset: 1 },
+    }
+    return { value: '#fff' }
+  }
+  assert.equal(h.controller.pasteText('#fff'), false,
+    'stale paste matcher converted a widget in the former field')
+  assert.deepEqual(h.calls, [])
+  assert.deepEqual(h.carets, [])
+})
