@@ -288,7 +288,11 @@ export class InlineProjectionRuntime {
     return Boolean(entry && entry.type===source.type
       && entry.fieldKey===fieldKey && entry.fieldElement?.isConnected
       && entry.element===source.element && entry.instance===source.instance
-      && (allowDetached || belongsToAuthorField(entry.fieldElement,entry.element)))
+      // Native deletion may detach a widget before settlement, but it may
+      // not move a still-connected widget into a native button or new owner.
+      && (entry.element.isConnected
+        ? belongsToAuthorField(entry.fieldElement,entry.element)
+        : allowDetached))
   }
 
   /** Complete owned inline DOM/cache changes under the DocumentRuntime's
