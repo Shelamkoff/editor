@@ -6,7 +6,7 @@ import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
 import { collectTextTargets, toggleTag, removeEmptyInlineTags, normalizeAfterEdit } from '../../inline-tools/utils.js'
-import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
+import { findNodeAtOffset, getTextLength, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
 
@@ -881,6 +881,47 @@ test('cross-field normalization skips nested independent editing hosts while rea
     equal(locked.childNodes.length, 2, 'Plugin decoration lost its private text nodes')
     assert(nested.lastChild === nestedSecond && locked.lastChild === lockedSecond,
       'Independent text-node identity was changed during cross-field normalization')
+  } finally { fixture.remove() }
+})
+
+
+test('Unicode logical offsets survive cross-block normalization without mutating editor UI', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<span data-ui-label=""></span>',
+    '<div class="oe-block" contenteditable="false"><div contenteditable="true" data-first=""></div></div>',
+    '<div class="oe-block" contenteditable="false"><div contenteditable="true" data-second=""></div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const ui = fixture.querySelector('[data-ui-label]')
+    const first = fixture.querySelector('[data-first]')
+    const second = fixture.querySelector('[data-second]')
+    const uiA = document.createTextNode('UI'), uiB = document.createTextNode(' label')
+    ui.append(uiA, uiB)
+    first.append(document.createTextNode('Stra'), document.createTextNode('ße'))
+    second.append(document.createTextNode('A'), document.createTextNode('😀B'))
+    const expected = [getTextLength(first), getTextLength(second)]
+    equal(expected, [6, 4])
+    normalizeAfterEdit(null, fixture)
+    equal(first.childNodes.length, 1)
+    equal(second.childNodes.length, 1)
+    equal([first.textContent, second.textContent], ['Straße', 'A😀B'])
+    equal([getTextLength(first), getTextLength(second)], expected)
+    equal(ui.childNodes.length, 2, 'Cross-block normalization entered non-author UI text')
+    assert(ui.firstChild === uiA && ui.lastChild === uiB, 'UI text identity changed')
+    for (const [field, offset] of [[first, 6], [second, 4]]) {
+      const boundary = findNodeAtOffset(field, offset, 'end')
+      equal(getTextOffset(field, boundary.node, boundary.offset), offset,
+        'UTF-16 endpoint cannot be recovered after normalization')
+    }
+    second.focus()
+    const anchor = findNodeAtOffset(second, 4, 'end')
+    const focus = findNodeAtOffset(second, 0, 'start')
+    window.getSelection().setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
+    equal([getTextOffset(second, window.getSelection().anchorNode, window.getSelection().anchorOffset),
+      getTextOffset(second, window.getSelection().focusNode, window.getSelection().focusOffset)], [4, 0],
+      'Backward Unicode selection was not restored from logical endpoints')
   } finally { fixture.remove() }
 })
 
