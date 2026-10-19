@@ -2,6 +2,7 @@ import { createParagraphPlugin, createHeadingPlugin } from '../../plugins/index.
 import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
+import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
@@ -480,5 +481,42 @@ test('native retained Font Size and Color callbacks cannot edit after external r
   }
 })
 
+
+
+test('case transform changes authored cross-block text without rewriting native or locked labels', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">alpha',
+    '<span contenteditable="false">locked label</span>beta</div></div>',
+    '<button type="button">native action</button>',
+    '<div class="oe-block"><div contenteditable="true">bravo</div></div>',
+  ].join('')
+  document.body.append(fixture)
+  const fields = fixture.querySelectorAll('[contenteditable="true"]')
+  const first = fields[0]
+  const second = fields[1]
+  const locked = fixture.querySelector('[contenteditable="false"]')
+  const action = fixture.querySelector('button')
+  const range = document.createRange()
+  range.setStart(first.firstChild, 0)
+  range.setEnd(second.firstChild, second.firstChild.length)
+  const tool = createCaseTransformTool('Toggle case')
+  tool.bindSelectionPort({
+    get range() { return range },
+    capture: () => ({}),
+    restore: () => true,
+  })
+  try {
+    tool.toggle({ range })
+    equal(first.firstChild.data, 'ALPHA')
+    equal(first.lastChild.data, 'BETA')
+    equal(second.textContent, 'BRAVO')
+    equal(locked.textContent, 'locked label', 'case transform edited locked widget text')
+    equal(action.textContent, 'native action', 'case transform edited native control label')
+  } finally {
+    tool.bindSelectionPort(null)
+    fixture.remove()
+  }
+})
 
 await run()
