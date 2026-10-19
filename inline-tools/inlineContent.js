@@ -4,9 +4,7 @@ const ELEMENT_NODE = 1
 const DOCUMENT_FRAGMENT_NODE = 11
 
 const TEXT_NODE = 3
-// A formatting operation owns author text, never DOM maintained by native
-// controls, nested editing hosts or mounted inline extensions.
-const PROTECTED_OWNER_SELECTOR = '[data-inline-plugin], [contenteditable="false"], button, input, textarea, select, option, [role="button"]'
+// Editing hosts and controls form boundaries between independently owned DOM.
 const NORMALIZE_BOUNDARY_SELECTOR = '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]'
 
 // Native controls and inline widget owners cannot be authored text hosts. A
@@ -23,7 +21,6 @@ function authorHost(element) {
   const host = element.closest('[contenteditable]')
   return host?.getAttribute('contenteditable') === 'true' ? host : null
 }
-
 
 /** @param {Node} node @returns {boolean} */
 export function hasProtectedDomContent(node) {
