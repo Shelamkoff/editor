@@ -16,6 +16,9 @@ function harness(options = {}) {
   const child = { parentNode: field }
   const reconciler = {
     resolveEditableTarget(target) {
+      // Model the current BlockReconciler invariant: an inline widget cannot
+      // borrow its parent field through the widget root itself.
+      if (options.rejectWidgetTargets && target?.closest?.('[data-inline-plugin]')) return null
       for (let node = target; node; node = node.parentNode) {
         if (node === field) return {
           blockId: 'b1',
@@ -416,6 +419,38 @@ test('a nonmatching inline event retires its envelope rather than borrowing its 
   controller.handleInput({target:child,inputType:'deleteWordBackward',isTrusted:false})
   assert.deepEqual(events,[])
   assert.equal(calls.length,1)
+})
+
+test('native widget deletion resolves through the parent after the widget root is denied field ownership',()=>{
+  const handled=[]
+  const widget={
+    parentNode:null,isConnected:true,isContentEditable:true,
+    closest(selector){return selector.includes('[data-inline-plugin]')?this:null},
+  }
+  const projection={resolveWidgetElement:node=>node===widget?widget:null}
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){
+      handled.push(['capture',owner.blockId,owner.fieldKey])
+      return {blockId:owner.blockId,fieldKey:owner.fieldKey,eventHost:owner.element,
+        inputType:event.inputType,trusted:true,originalEvent:event,
+        generation:1,revision:2}
+    },
+    completeNativeDeletion(){handled.push(['settle']);return{status:'committed',inside:true}},
+    markNativeInputEvent(_event,result){handled.push(['route',result.status,result.inside])},
+  }
+  const {controller,field,runtime,calls}=harness({
+    projection,inlineWidgetInput,rejectWidgetTargets:true,
+  })
+  widget.parentNode=field
+  runtime.generation=1
+  runtime.revision=2
+  const event={target:widget,inputType:'deleteWordBackward',defaultPrevented:false,isTrusted:true}
+  controller.handleBeforeInput(event)
+  controller.handleInput({target:widget,inputType:'deleteWordBackward',isTrusted:true})
+  assert.deepEqual(handled,[
+    ['capture','b1','text'],['settle'],['route','committed',true],
+  ],'Rejecting widget DOM ownership must not disable the authorized native-deletion bridge')
+  assert.deepEqual(calls,[],'A widget deletion was also committed as generic native input')
 })
 
 test('a widget-targeted native word deletion is resolved to its registered owning field',()=>{
