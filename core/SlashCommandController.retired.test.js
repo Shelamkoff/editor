@@ -381,3 +381,50 @@ test('Slash Escape cannot edit after close() synchronously destroys the menu own
   assert.equal(retired, true)
   assert.deepEqual(h.actions, [], 'Escape continued authoring after menu close retired its editor')
 })
+test('Slash focusout does not read a retired session after relatedTarget getter destroys its owner', () => {
+  const h = activeSlashKeyHarness()
+  h.input()
+  assert.equal(h.controller.isOpen, true)
+  assert.doesNotThrow(() => h.handlers.get('focusout')({
+    get relatedTarget() {
+      h.controller.destroy()
+      return {}
+    },
+  }), 'focusout resumed after a getter destroyed the Slash owner')
+  assert.equal(h.controller.isOpen, false)
+})
+
+test('Slash focusout from a retired session cannot close a reentrant successor', () => {
+  const h = activeSlashKeyHarness()
+  h.input()
+  let replacements = 0
+  h.handlers.get('focusout')({
+    get relatedTarget() {
+      replacements++
+      h.input()
+      return {}
+    },
+  })
+  assert.equal(replacements, 1)
+  assert.equal(h.controller.isOpen, true,
+    'old focusout canceled a newer Slash session created by its relatedTarget reader')
+  h.controller.destroy()
+})
+
+test('Slash menu rendering stops when replaceChildren tears down the editor', () => {
+  const h = activeSlashKeyHarness()
+  const previous = h.menu.replaceChildren.bind(h.menu)
+  let retired = false
+  h.menu.replaceChildren = () => {
+    previous()
+    if (!retired) {
+      retired = true
+      h.controller.destroy()
+    }
+  }
+  h.input()
+  assert.equal(retired, true)
+  assert.equal(h.controller.isOpen, false)
+  assert.deepEqual(h.menu.children, [],
+    'stale menu renderer appended items to a detached menu after destroy')
+})
