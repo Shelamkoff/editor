@@ -433,7 +433,6 @@ export class SlashCommandController {
     this.#view.setCurrent(id)
     if (!ownsCommand() || this.#view.currentId !== id) return
     const generation=this.#runtime.generation,revision=this.#runtime.revision
-    const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element(id)
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||this.#runtime.readOnly
