@@ -9,7 +9,7 @@
  * @param {{ onEscape: () => void, itemSelector?: string }} options
  * @returns {boolean} true if the event was handled
  */
-export function handleMenuKeydown(e, menuEl, { onEscape, itemSelector = '[role="menuitem"]:not([aria-disabled="true"])' }) {
+export function handleMenuKeydown(e, menuEl, { onEscape, itemSelector = '[role="menuitem"]:not(:disabled):not([aria-disabled="true"])' }) {
   const items = /** @type {HTMLElement[]} */ (
     [...menuEl.querySelectorAll(itemSelector)]
   )
@@ -40,10 +40,12 @@ export function handleMenuKeydown(e, menuEl, { onEscape, itemSelector = '[role="
       return true
     case 'Home':
       e.preventDefault()
+      e.stopPropagation()
       items[0]?.focus()
       return true
     case 'End':
       e.preventDefault()
+      e.stopPropagation()
       items[items.length - 1]?.focus()
       return true
     default:
