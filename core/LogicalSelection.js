@@ -56,7 +56,7 @@ export class LogicalSelection {
         || ['button', 'menuitem', 'option', 'textbox', 'combobox', 'listbox'].includes(
           node.getAttribute?.('role') ?? '',
         )
-      const outside = !this.#root.contains(active)
+      const outside = this.#root.contains?.(active) === false
       if (document.activeElement !== active || outside || auxiliary) return null
     }
 
