@@ -6,7 +6,7 @@ import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
 import { collectTextTargets, toggleTag, removeEmptyInlineTags, normalizeAfterEdit } from '../../inline-tools/utils.js'
-import { findNodeAtOffset, getTextLength, getTextOffset } from '../../shared/textOffset.js'
+import { findNodeAtOffset, getTextLength, getTextOffset, editableTextWalker } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
 
@@ -1072,6 +1072,39 @@ test('native controls do not contribute to authored UTF-16 caret offsets', () =>
     equal([getTextOffset(field, selection.anchorNode, selection.anchorOffset),
       getTextOffset(field, selection.focusNode, selection.focusOffset)], [5, 2],
       'Backward UTF-16 selection included native control labels')
+  } finally { fixture.remove() }
+})
+
+
+test('editable text walker skips native labels but discovers separate fields in plugin shells', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div contenteditable="true" data-main="">A',
+    '<button type="button">native button</button>',
+    '<span contenteditable="false">locked label</span>',
+    '<span data-inline-plugin="stub">widget label</span>',
+    '<div contenteditable="true">nested editor</div>',
+    'B</div>',
+    '<section contenteditable="false" data-plugin-shell="">',
+    '<button type="button">settings</button>',
+    '<div contenteditable="true" data-plugin-author="">Alpha</div>',
+    '<span contenteditable="false">blocked</span></section>',
+    '<div contenteditable="true" data-extra="">Bravo</div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const read = root => {
+      const walker = editableTextWalker(root)
+      const values = []
+      while (walker.nextNode()) values.push(walker.currentNode.textContent)
+      return values
+    }
+    equal(read(fixture.querySelector('[data-main]')), ['A', 'B'],
+      'Single-host text traversal included native UI or a nested editor')
+    equal(read(fixture.querySelector('[data-plugin-shell]')), ['Alpha'],
+      'Plugin block shell did not find its legitimate editor or traversed private UI labels')
+    equal(read(fixture), ['A', 'B', 'nested editor', 'Alpha', 'Bravo'],
+      'Cross-block traversal did not retain separate editing hosts in DOM order')
   } finally { fixture.remove() }
 })
 
