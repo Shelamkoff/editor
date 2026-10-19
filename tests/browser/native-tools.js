@@ -2535,4 +2535,45 @@ test('opaque inline candidate discard, rollback and replacement revoke only thei
   }
 })
 
+test('an orphan inline sidecar cannot be revived by newly typed literal text', () => {
+  const visible=document.createElement('div')
+  visible.contentEditable='true'
+  visible.textContent='Visible '
+  document.body.append(visible)
+  const record={
+    data:{visible:'Visible ',hidden:'Hidden without a reference'},
+    inline:{'orphan-1':{type:'not-installed',dataVersion:7,
+      data:{secret:'unreferenced opaque payload'}}},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,visible:visit(data.visible,'visible'),
+      hidden:visit(data.hidden,'hidden')}
+  }}}
+  const fields=[{key:'visible',mode:'rich-text',element:visible}]
+  const projection=new InlineProjectionRuntime({
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+    ownerDocument:document,
+  })
+  try{
+    projection.reconcileBlock('a',record,definition,fields,
+      {createInlineWidgetContext(){return{}}},
+      {preserveSourceProjection:true})
+    const literal=document.createTextNode('{{orphan-1}}')
+    visible.append(literal)
+    const saved=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(saved.data.visible,
+      'Visible <span class="oe-inline-literal">{{orphan-1}}</span>',
+      'An unrelated typed literal resurrected an unreferenced inline payload')
+    equal(saved.data.hidden,record.data.hidden)
+    equal(scanRichTextPlaceholders(saved.data.visible,saved.inline,document)
+      .occurrences.size,0,
+      'The orphan sidecar ID was reintroduced as a canonical reference')
+    assert(literal.isConnected&&visible.lastChild===literal,
+      'Saving modified a live author text leaf')
+  }finally{
+    projection.destroy()
+    visible.remove()
+  }
+})
+
 await run()
