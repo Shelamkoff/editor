@@ -1575,4 +1575,38 @@ test('reconciling a widget with a placeholder-shaped label never hydrates itself
   }
 })
 
+
+test('serializing authored text excludes embedded native controls and locked labels', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">',
+    'Alpha<button type="button" data-native-action=""><b>SETTINGS</b></button>',
+    '<span contenteditable="false" data-locked-label="">LOCKED</span>',
+    '<b>Beta</b></div></div>',
+  ].join('')
+  document.body.append(fixture)
+  const field = fixture.querySelector('[contenteditable="true"]')
+  const expected = 'Alpha<b>Beta</b>'
+  const definition = { schema: {
+    mapRichText(data, visit) { return { ...data, text: visit(data.text, 'text') } },
+  } }
+  const projection = new InlineProjectionRuntime({
+    ownerDocument:document, registry:{},
+  })
+  try {
+    const record = {data:{text:expected}}
+    const saved = projection.serializeBlock('a', record, definition,
+      [{key:'text',mode:'rich-text',element:field}], {text:expected})
+    equal(saved.data.text, expected,
+      'Native button or locked label text was persisted as authored content')
+    equal(field.querySelector('[data-native-action]').textContent, 'SETTINGS',
+      'Serialization modified the live native control')
+    equal(field.querySelector('[data-locked-label]').textContent, 'LOCKED',
+      'Serialization modified the live locked label')
+  } finally {
+    projection.destroy()
+    fixture.remove()
+  }
+})
+
 await run()
