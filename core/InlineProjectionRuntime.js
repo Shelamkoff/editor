@@ -217,9 +217,13 @@ export class InlineProjectionRuntime {
     const candidate=richTextFieldMap(definition,readData)
     const actual=mountedRichFields(fields,candidate)
     const serialized=new Map()
+    // Sidecar IDs are block-scoped, not limited to the field where the
+    // widget is mounted. A literal "{{id}}" in any sibling rich-text field
+    // must never become a second canonical reference after serialization.
+    const reservedInlineIds=Object.keys(object(record.inline))
 
     for(const [key,element] of actual){
-      const html=this.#serializeField(blockId,element)
+      const html=this.#serializeField(blockId,element,reservedInlineIds)
       serialized.set(key,html)
     }
 
@@ -730,11 +734,11 @@ export class InlineProjectionRuntime {
     }
   }
 
-  #serializeField(blockId,field){
+  #serializeField(blockId,field,reservedInlineIds){
     const container=this.#ownerDocument.createElement('div')
     /** @type {Array<{element: Element,id:string}>} */
     const references=[]
-    const ownedIds=new Set()
+    const ownedIds=new Set(reservedInlineIds)
     const append=(source,target)=>{
       for(const node of source.childNodes){
         if(isRichTextCaretPadding(node))continue
