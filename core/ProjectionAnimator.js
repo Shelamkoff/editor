@@ -86,46 +86,46 @@ export class ProjectionAnimator {
       // spacer must not stop later animations or document/owner cleanup.
       let spacer
       try {
-      spacer = snapshot.ownerDocument.createElement('div')
-      spacer.className = 'oe-block-removal-spacer'
-      spacer.setAttribute('aria-hidden', 'true')
-      spacer.inert = true
-      Object.assign(spacer.style, {
-        height: `${snapshot.height}px`,
-        maxHeight: `${snapshot.height}px`,
-        marginBottom: `${snapshot.marginBottom}px`,
-        overflow: 'hidden',
-        pointerEvents: 'none',
-      })
-      const anchor = container.children?.[snapshot.index] ?? null
-      try { container.insertBefore(spacer, anchor) }
-      catch {
-        // DOM adapters can throw after inserting a node. Recover only our
-        // newly-created spacer; leave the original container content intact.
-        if (spacer.parentNode === container) spacer.remove()
-        continue
-      }
-      if (spacer.parentNode !== container) continue
-      if (!this.#enabled) {
-        spacer.remove()
-        continue
-      }
-      this.#spacers.set(spacer, container)
-      if (!this.#canAnimate(spacer)) {
-        this.#removeSpacer(spacer)
-        continue
-      }
-      try {
-        const animation = spacer.animate([
-          { opacity: 1, height: spacer.style.height, maxHeight: spacer.style.maxHeight, marginBottom: spacer.style.marginBottom },
-          { opacity: 0, height: '0px', maxHeight: '0px', marginBottom: '0px' },
-        ], { duration: this.#removeMs, easing: 'cubic-bezier(.22,1,.36,1)' })
-        const cleanup = () => this.#removeSpacer(spacer)
-        animation.onfinish = cleanup
-        animation.oncancel = cleanup
-      } catch {
-        this.#removeSpacer(spacer)
-      }
+        spacer = snapshot.ownerDocument.createElement('div')
+        spacer.className = 'oe-block-removal-spacer'
+        spacer.setAttribute('aria-hidden', 'true')
+        spacer.inert = true
+        Object.assign(spacer.style, {
+          height: `${snapshot.height}px`,
+          maxHeight: `${snapshot.height}px`,
+          marginBottom: `${snapshot.marginBottom}px`,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        })
+        const anchor = container.children?.[snapshot.index] ?? null
+        try { container.insertBefore(spacer, anchor) }
+        catch {
+          // DOM adapters can throw after inserting a node. Recover only our
+          // newly-created spacer; leave the original container content intact.
+          if (spacer.parentNode === container) spacer.remove()
+          continue
+        }
+        if (spacer.parentNode !== container) continue
+        if (!this.#enabled) {
+          spacer.remove()
+          continue
+        }
+        this.#spacers.set(spacer, container)
+        if (!this.#canAnimate(spacer)) {
+          this.#removeSpacer(spacer)
+          continue
+        }
+        try {
+          const animation = spacer.animate([
+            { opacity: 1, height: spacer.style.height, maxHeight: spacer.style.maxHeight, marginBottom: spacer.style.marginBottom },
+            { opacity: 0, height: '0px', maxHeight: '0px', marginBottom: '0px' },
+          ], { duration: this.#removeMs, easing: 'cubic-bezier(.22,1,.36,1)' })
+          const cleanup = () => this.#removeSpacer(spacer)
+          animation.onfinish = cleanup
+          animation.oncancel = cleanup
+        } catch {
+          this.#removeSpacer(spacer)
+        }
       } catch {
         // Attribute/DOM callbacks can fail after allocating or inserting the
         // provisional spacer. Retire our lease, but never remove a node that
