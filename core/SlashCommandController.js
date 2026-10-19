@@ -392,15 +392,27 @@ export class SlashCommandController {
   #select(index) {
     const session = this.#session
     const item = this.#filtered[index]
+    const modeEpoch = this.#runtime.modeEpoch
     if (!session || !item || !this.#sessionIsCurrent()) return
+    if (this.#controller.signal.aborted || this.#runtime.readOnly
+      || this.#runtime.modeEpoch !== modeEpoch || this.#session !== session) return
+    const version = this.#itemsVersion
     this.close()
+    // A menu clear callback can synchronously destroy this editor or open a
+    // new menu. Only the old completed menu's *exact* close permits its edit.
+    const ownsCommand = () => !this.#controller.signal.aborted
+      && !this.#runtime.readOnly && this.#runtime.modeEpoch === modeEpoch
+      && this.#session === null && this.#itemsVersion === version + 1
+    if (!ownsCommand()) return
 
     if (item.kind === 'inline') {
       const restored = this.#selection.restore({
         anchor: { blockId: session.blockId, fieldKey: session.fieldKey, offset: session.start },
         focus: { blockId: session.blockId, fieldKey: session.fieldKey, offset: session.end },
       })
-      if (restored) this.#inlineCommands.insert(item.type)
+      // A native selection restore may trigger focus/selection listeners that
+      // retire the exact authoring owner before inline insertion can begin.
+      if (restored && ownsCommand()) this.#inlineCommands.insert(item.type)
       return
     }
 
@@ -415,9 +427,11 @@ export class SlashCommandController {
       const point = { blockId, fieldKey: field?.key ?? '', offset: 0 }
       return { anchor: point, focus: { ...point } }
     })
-    if (!id) return
+    if (!id || !ownsCommand()) return
     this.#view.reconcileInteraction()
+    if (!ownsCommand()) return
     this.#view.setCurrent(id)
+    if (!ownsCommand() || this.#view.currentId !== id) return
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element(id)
