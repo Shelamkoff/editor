@@ -1028,3 +1028,37 @@ test('public cross-selection activation cannot publish after its endpoint resolv
     'stale selection activation published blocks after owner teardown')
   h.controller.destroy()
 })
+test('cross-selection destroy is idempotent under reentrant host cleanup', () => {
+  const h = crossSelectionPointerReentryHarness('none')
+  let cleanupCalls = 0
+  h.view.clearSelection = () => {
+    cleanupCalls++
+    // A selection subscriber may synchronously destroy the same editor.
+    // The first teardown must already have revoked its event owner.
+    if (cleanupCalls < 3) h.controller.destroy()
+  }
+  h.controller.destroy()
+  assert.equal(cleanupCalls, 1,
+    'reentrant destroy processed the same selection owner repeatedly')
+  h.controller.destroy()
+  assert.equal(cleanupCalls, 1, 'a retired selection was cleaned twice')
+})
+
+test('cross-selection destroy revokes events even if UI cleanup throws', () => {
+  const h = crossSelectionPointerReentryHarness('none')
+  h.view.clearSelection = () => { throw new Error('selection observer cleanup failed') }
+  assert.doesNotThrow(() => h.controller.destroy(),
+    'a failed selection cleanup stopped the terminal owner teardown')
+  let reads = 0
+  h.reconciler.resolveEditableTarget = () => {
+    reads++
+    return { blockId: 'a', fieldKey: 'text', element: h.field }
+  }
+  const captured = h.handlers.get('mousedown')
+  assert.doesNotThrow(() => captured({
+    button: 0, clientX: 2, clientY: 2, target: h.field,
+  }))
+  assert.equal(reads, 0,
+    'a callback captured before destruction still inspected detached selection')
+  assert.equal(h.controller.dragging, false)
+})
