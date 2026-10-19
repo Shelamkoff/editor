@@ -22,7 +22,7 @@ export function renderInlineWidgets(fragment, inline, registry, ownerDocument) {
   for (let node = walker.nextNode(); node; node = walker.nextNode()) textNodes.push(/** @type {Text} */ (node))
 
   for (const textNode of textNodes) {
-    if (textNode.parentElement?.closest('[data-inline-plugin]')) continue
+    if (textNode.parentElement?.closest('[data-inline-plugin], span.oe-inline-literal')) continue
     const text = textNode.data
     if (!text.includes('{{')) continue
 
