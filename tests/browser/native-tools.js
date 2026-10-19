@@ -3,6 +3,8 @@ import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { LogicalSelection } from '../../core/LogicalSelection.js'
+import { NativeInputController } from '../../core/NativeInputController.js'
+import { KeyboardRouter } from '../../core/KeyboardRouter.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
@@ -1208,6 +1210,109 @@ test('external native button focus never captures an editor text range retained 
   } finally {
     field.remove()
     external.remove()
+  }
+})
+
+
+test('native widget deletion still settles with strict widget editing-field isolation', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div contenteditable="true">A<span data-inline-plugin="mention">mention</span>B</div>'
+  document.body.append(fixture)
+  const field = fixture.firstElementChild
+  const widget = field.querySelector('[data-inline-plugin]')
+  const handled = []
+  const owner = {blockId:'a',fieldKey:'text',mode:'rich-text',element:field}
+  const runtime = {
+    readOnly:false,generation:1,revision:2,
+    syncBlockFromProjection(){handled.push('generic-persistence')},
+  }
+  const reconciler = {
+    resolveEditableTarget(node) {
+      if (widget.contains(node)) return null
+      return field.contains(node) ? owner : null
+    },
+    getEditableField(id,key) {
+      return id==='a'&&key==='text' ? {element:field,mode:'rich-text'} : null
+    },
+  }
+  const projection = {resolveWidgetElement(node) {
+    return widget.contains(node) ? widget : null
+  }}
+  const inlineWidgetInput = {
+    captureNativeDeletion(current,event) {
+      handled.push('capture:' + current.fieldKey)
+      return {eventHost:field,inputType:event.inputType,
+        trusted:event.isTrusted===true,originalEvent:event,
+        generation:1,revision:2}
+    },
+    completeNativeDeletion(){handled.push('settle');return{status:'committed',inside:true}},
+    markNativeInputEvent(_event,result){handled.push('route:'+result.status)},
+  }
+  const controller = new NativeInputController({
+    root:fixture,runtime,reconciler,projection,inlineWidgetInput,
+  })
+  try {
+    assert(widget.isContentEditable, 'Native input fixture did not inherit the authored editing host')
+    widget.dispatchEvent(new InputEvent('beforeinput', {
+      bubbles:true,cancelable:true,inputType:'deleteWordBackward',
+    }))
+    widget.dispatchEvent(new InputEvent('input', {
+      bubbles:true,inputType:'deleteWordBackward',
+    }))
+    equal(handled, ['capture:text','settle','route:committed'],
+      'Inline deletion was lost or double committed through generic persistence')
+  } finally {
+    controller.destroy()
+    fixture.remove()
+  }
+})
+
+test('native block and widget buttons cannot replay history, but toolbar Undo can', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><button data-native="" type="button">Settings</button>',
+    '<span data-inline-plugin="mention"><button type="button" data-widget-button="">Action</button></span></div>',
+    '<div class="oe-toolbar"><button type="button" data-toolbar-undo="">Undo</button></div>',
+  ].join('')
+  document.body.append(fixture)
+  const history = []
+  const runtime = {
+    readOnly:false,modeEpoch:0,health:'ready',
+    prepareExtensionValue:fn=>fn(),
+    splitBlock(){},mergeAdjacent(){},
+    undo(){history.push('undo');return true},
+    redo(){history.push('redo');return true},
+  }
+  const reconciler = {
+    resolveEditableTarget(){return null},
+    resolveInlineWidgetElement(node){return node.closest?.('[data-inline-plugin]')??null},
+    resolveBlockTarget(node){return fixture.querySelector('.oe-block').contains(node)?'a':null},
+  }
+  const router = new KeyboardRouter({
+    root:fixture,runtime,reconciler,registry:{getBlockDefinition(){return null}},
+    selection:{capture(){return null}},
+    view:{focus(){return false},reconcileInteraction(){}},
+  })
+  const command = target => {
+    target.focus()
+    const event = new KeyboardEvent('keydown', {
+      key:'z',code:'KeyZ',ctrlKey:true,bubbles:true,cancelable:true,
+    })
+    target.dispatchEvent(event)
+    return event.defaultPrevented
+  }
+  try {
+    equal(command(fixture.querySelector('[data-native]')),false,
+      'Block button replayed canonical Undo')
+    equal(command(fixture.querySelector('[data-widget-button]')),false,
+      'Widget button replayed canonical Undo')
+    equal(history,[], 'Native controls changed document history')
+    equal(command(fixture.querySelector('[data-toolbar-undo]')),true,
+      'Editor toolbar did not route canonical Undo')
+    equal(history,['undo'],'Toolbar Undo did not route exactly once')
+  } finally {
+    router.destroy()
+    fixture.remove()
   }
 })
 
