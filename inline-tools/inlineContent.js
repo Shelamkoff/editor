@@ -13,8 +13,8 @@ const NORMALIZE_BOUNDARY_SELECTOR = '[data-inline-plugin], [contenteditable], bu
 export function hasProtectedDomContent(node) {
   if (node.nodeType !== ELEMENT_NODE && node.nodeType !== DOCUMENT_FRAGMENT_NODE) return false
   const element = /** @type {Element | DocumentFragment} */ (node)
-  return (node.nodeType === ELEMENT_NODE && /** @type {Element} */ (node).matches(PROTECTED_OWNER_SELECTOR))
-    || !!element.querySelector(PROTECTED_OWNER_SELECTOR)
+  return (node.nodeType === ELEMENT_NODE && /** @type {Element} */ (node).matches(NORMALIZE_BOUNDARY_SELECTOR))
+    || !!element.querySelector(NORMALIZE_BOUNDARY_SELECTOR)
 }
 
 /** Normalize only authored text leaves, without walking into independently
@@ -82,7 +82,7 @@ export function removeEmptyInlineTags(parent) {
     // Embedded native, locked and inline-widget descendants are independently
     // owned controls, including empty nodes with no visible text. Do not treat
     // their elements as disposable editor formatting wrappers.
-    if (el.closest(PROTECTED_OWNER_SELECTOR)) continue
+    if (el.hasAttribute('contenteditable') || el.closest(PROTECTED_OWNER_SELECTOR)) continue
     if (!hasInlineContent(el)) el.remove()
   }
   normalizeAuthoredText(parent)
