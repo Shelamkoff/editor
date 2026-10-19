@@ -224,3 +224,30 @@ test('text walker inside a formatting span keeps its owning editable field', () 
   assert.equal(walker.nextNode(), null)
   assert.equal(getTextLength(root), 4)
 })
+
+
+test('an opaque unloaded inline reference is atomic while an unowned literal remains text', () => {
+  const first = text('A')
+  const last = text('😀B')
+  const inert = element('span', [text('{{opaque-1}}')], {
+    'data-inline-plugin': '__unregistered__',
+    'data-oe-opaque-inline': 'opaque-1',
+    contenteditable: 'false',
+  })
+  const field = wire(element('div', [first, inert, last], { contenteditable: 'true' }))
+  assert.equal(getTextLength(field), 5,
+    'The visible token label is not twelve authored caret positions')
+  assert.equal(getTextOffset(field, last, 0), 2,
+    'The caret after an opaque reference has the wrong logical offset')
+  const point = findNodeAtOffset(field, 2, 'start')
+  assert.equal(point.node, last)
+  assert.equal(point.offset, 0)
+  assert.equal(splitsSurrogateAtOffset(field, 3), false)
+  assert.equal(splitsSurrogateAtOffset(field, 4), true)
+
+  const author = wire(element('div', [text('A{{opaque-1}}B')], {
+    contenteditable: 'true',
+  }))
+  assert.equal(getTextLength(author), 14,
+    'A token-shaped author literal without a sidecar was made atomic')
+})
