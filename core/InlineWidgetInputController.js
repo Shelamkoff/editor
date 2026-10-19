@@ -511,6 +511,12 @@ export class InlineWidgetInputController {
         ||current.focusOffset!==expected.focusOffset)return
       if(inside){
         if(this.#projection.resolveWidgetElement(target.element)!==target.element)return
+        // The projection lookup is an external owner callback. It may
+        // synchronously destroy the controller or replace the input mode;
+        // a retired edit cannot restore the native caret afterward.
+        if(this.#controller.signal.aborted||this.#runtime.readOnly
+          ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+          ||modeEpoch!==this.#runtime.modeEpoch)return
         const node=target.element.firstChild
         if(localCaret!==null&&node?.nodeType===3){
           const caret=Math.max(0,Math.min(localCaret,node.textContent?.length??0))
