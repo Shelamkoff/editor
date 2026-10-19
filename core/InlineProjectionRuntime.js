@@ -709,6 +709,12 @@ export class InlineProjectionRuntime {
           continue
         }
         if(node.nodeType!==1)continue
+        // A rich field can contain plugin-owned controls and nested editing
+        // hosts. Their presentation text is not authored document content.
+        // Current inline widgets were serialized to {{id}} above.
+        if(/** @type {Element} */(node).matches(
+          'button, input, textarea, select, option, [role="button"], [contenteditable], [data-inline-plugin]',
+        ))continue
         const clone=/** @type {Element} */(node).cloneNode(false)
         append(node,clone)
         target.appendChild(clone)
