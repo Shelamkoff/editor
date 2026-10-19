@@ -559,3 +559,78 @@ test('a custom detached block element remains accepted after connected-node reje
   assert.equal(renderer.renderBlock(block), detached)
   renderer.destroy(detached)
 })
+test('block renderer cannot return a node adopted during dataset decoration', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const outside = document.createElement('aside')
+  let node
+  let disposals = 0
+  renderer.registerRenderer({
+    type: 'adopted-decoration',
+    schema: passthroughSchema,
+    render() {
+      node = document.createElement('article')
+      Object.defineProperty(node.dataset, 'blockType', {
+        configurable: true,
+        set() { outside.appendChild(node) },
+      })
+      return node
+    },
+    destroy() { disposals++ },
+  })
+  try {
+    assert.throws(
+      () => renderer.renderBlock({
+        id: 'first', type: 'adopted-decoration', dataVersion: 1, data: {},
+      }),
+      /detached HTMLElement/,
+      'an attribute callback adopted the node after its initial ownership check',
+    )
+    assert.equal(outside.children[0], node,
+      'failed detached rendering stole the element from its newer parent')
+    assert.equal(disposals, 1,
+      'a provisionally acquired renderer instance was not released exactly once')
+  } finally {
+    renderer.destroy()
+  }
+  assert.equal(disposals, 1)
+})
+
+test('mounted renderer does not steal nodes adopted by a later decoration callback', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const container = document.createElement('main')
+  const outside = document.createElement('aside')
+  let node
+  let disposals = 0
+  renderer.registerRenderer({
+    type: 'adopted-decoration',
+    schema: passthroughSchema,
+    render() {
+      node = document.createElement('article')
+      Object.defineProperty(node.dataset, 'blockType', {
+        configurable: true,
+        set() { outside.appendChild(node) },
+      })
+      return node
+    },
+    destroy() { disposals++ },
+  })
+  try {
+    assert.throws(
+      () => renderer.renderTo({
+        version: '2.0.0',
+        blocks: [{ id: 'first', type: 'adopted-decoration', dataVersion: 1, data: {} }],
+      }, container),
+      /detached HTMLElement/,
+    )
+    assert.equal(container.children.length, 0,
+      'failed staging still published a block owned by another DOM subtree')
+    assert.equal(outside.children[0], node,
+      'the staged renderer detached an element claimed during its attribute callback')
+    assert.equal(disposals, 1)
+  } finally {
+    renderer.destroy()
+  }
+  assert.equal(disposals, 1)
+})
