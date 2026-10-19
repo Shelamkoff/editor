@@ -316,7 +316,8 @@ export class InlineWidgetInputController {
   }
 
   #settleNativeNotices(snapshot,changes,status,observed){
-    if(this.#controller.signal.aborted||this.#runtime.readOnly)return
+    const current=()=>!this.#controller.signal.aborted&&!this.#runtime.readOnly
+    if(!current())return
     const finalOwner=observed?.focus?.id??observed?.anchor?.id??null
     const targets=new Set(changes.filter(c=>c.action.kind==='update').map(c=>c.id))
     if(finalOwner)targets.add(finalOwner)
@@ -328,6 +329,7 @@ export class InlineWidgetInputController {
           const a=observed.anchor?.id===finalOwner?Math.max(0,Math.min(observed.anchor.offset,text.length)):null
           const f=observed.focus?.id===finalOwner?Math.max(0,Math.min(observed.focus.offset,text.length)):null
           const native=this.#root.ownerDocument.defaultView?.getSelection?.()
+          if(!current())return
           if(a!==null&&f!==null&&native?.setBaseAndExtent){
             try { native.setBaseAndExtent(text,a,text,f) }
             catch(error) {
@@ -339,17 +341,25 @@ export class InlineWidgetInputController {
         }
       }
     }
+    // Native setBaseAndExtent dispatches focus/selection observers that may
+    // synchronously destroy the editor. Committed model edits remain valid,
+    // but the old controller no longer owns plugin-facing notifications.
+    if(!current())return
     const finalOccurrence=snapshot.occurrences.find(source=>source.id===finalOwner)
     if(finalOccurrence?.optedIn&&this.#projection.isCurrentNativeOccurrence(
       snapshot.blockId,snapshot.fieldKey,finalOccurrence)){
+      if(!current())return
       try{this.#onNativeSettled?.()}catch(error){this.#report(error)}
     }
+    if(!current())return
     const ordered=[...targets].filter(id=>id!==finalOwner)
     if(finalOwner&&targets.has(finalOwner))ordered.push(finalOwner)
     for(const id of ordered){
+      if(!current())return
       const source=snapshot.occurrences.find(entry=>entry.id===id)
       if(!source?.optedIn||!this.#projection.isCurrentNativeOccurrence(
         snapshot.blockId,snapshot.fieldKey,source))continue
+      if(!current())return
       const label=source.element.textContent??''
       const notice={inputType:snapshot.inputType,text:label,
         labelChanged:label!==source.beforeText,
