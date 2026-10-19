@@ -116,7 +116,9 @@ export class InlineSelectionAuthority {
     })
     // Preparation and its teardown are external callbacks. A newly revoked
     // mount must never publish a token, even if its internal snapshot was valid.
-    return this.#available() ? token : null
+    // The runtime revision/generation or selection lease can also change
+    // *during* capture of the token's metadata: reject already-stale rights.
+    return token && this.#matches(this.#tokens.get(token)) ? token : null
   }
 
   /** Validate private provenance and current endpoints without moving focus.
