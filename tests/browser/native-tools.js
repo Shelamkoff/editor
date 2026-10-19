@@ -1040,4 +1040,39 @@ test('backward Unicode case formatting across blocks restores selection and one 
   checkBackward('after Redo')
 })
 
+
+test('native controls do not contribute to authored UTF-16 caret offsets', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true" data-author="">',
+    'A<button type="button">native action</button>',
+    '<span contenteditable="false">locked label</span>',
+    '<span data-inline-plugin="stub">inline label</span>',
+    '😀B</div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[data-author]')
+    const tail = field.lastChild
+    const buttonText = field.querySelector('button').firstChild
+    equal(getTextLength(field), 5,
+      'Native/locked text should have zero logical length and an inline widget should use one unit')
+    equal(getTextOffset(field, tail, 0), 2)
+    equal(getTextOffset(field, tail, 3), 5)
+    equal(getTextOffset(field, buttonText, 6), 1,
+      'Native button text was exposed as editable caret position')
+    equal(getTextOffset(field, field, 3), 1,
+      'Element boundary after native controls leaked their label lengths')
+    const position = findNodeAtOffset(field, 3, 'end')
+    assert(position.node === tail && position.offset === 1,
+      'Caret landed inside an auxiliary native control instead of the authored Unicode text')
+    const selection = window.getSelection()
+    field.focus()
+    selection.setBaseAndExtent(tail, 3, tail, 0)
+    equal([getTextOffset(field, selection.anchorNode, selection.anchorOffset),
+      getTextOffset(field, selection.focusNode, selection.focusOffset)], [5, 2],
+      'Backward UTF-16 selection included native control labels')
+  } finally { fixture.remove() }
+})
+
 await run()
