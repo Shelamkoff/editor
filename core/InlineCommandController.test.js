@@ -566,16 +566,20 @@ test('inline caret restoration stops if capturing post-commit selection destroys
   runtime.generation = 1
   runtime.modeEpoch = 0
   definition.schema = { createDefault: () => ({ value: '#fff' }) }
-  runtime.insertInlineWidget = () => 'inline-1'
+  let committed = false
+  runtime.insertInlineWidget = () => { committed = true; return 'inline-1' }
   let captures = 0
   const capture = selection.capture.bind(selection)
   selection.capture = () => {
     captures++
-    if (captures === 2) runtime.health = 'destroyed'
+    // Additional pre-commit ownership checks are legitimate. Only a read
+    // *after* canonical insertion models the post-commit observer teardown.
+    if (committed) runtime.health = 'destroyed'
     return capture()
   }
   assert.equal(controller.insert('color'), true)
-  assert.equal(captures, 2, 'did not inspect the post-commit author caret')
+  assert.equal(committed, true)
+  assert.equal(captures >= 2, true, 'did not inspect the post-commit author caret')
   assert.deepEqual(carets, [], 'selection capture retired the owner but old code restored focus')
 })
 
