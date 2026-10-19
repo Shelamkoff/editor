@@ -158,9 +158,21 @@ test('a real editable field inside a plugin read-only shell can normalize its ow
   assert.equal(lockedDecoration.childNodes.length, 2)
 })
 
+test('normalizing an editor shell traverses read-only plugin wrappers to reach authored fields', () => {
+  const field = el('div', { contenteditable: 'true' }, text('A'), text('😀B'))
+  const locked = el('span', { contenteditable: 'false' }, text('UI'), text('label'))
+  const pluginShell = el('section', { contenteditable: 'false' }, locked, field)
+  const outside = el('div', {}, text('static'), text(' label'))
+  const root = el('main', {}, outside, pluginShell)
+  normalizeAuthoredText(root)
+  assert.deepEqual(field.childNodes.map(node => node.data), ['A😀B'])
+  assert.equal(locked.childNodes.length, 2, 'Plugin shell lost independently-owned text')
+  assert.equal(outside.childNodes.length, 2, 'Editor shell normalized UI labels')
+})
+
 test('normalization does not enter nested editing hosts or a protected root', () => {
   const nested = el('div', { contenteditable: 'true' }, text('ne'), text('sted'))
-  const root = el('div', {}, text('au'), text('thor'), nested)
+  const root = el('div', { contenteditable: 'true' }, text('au'), text('thor'), nested)
   normalizeAuthoredText(root)
   assert.deepEqual(root.childNodes.slice(0, 1).map(node => node.data), ['author'])
   assert.equal(nested.childNodes.length, 2)
