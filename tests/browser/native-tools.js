@@ -2454,4 +2454,85 @@ test('visible authored literal cannot borrow inline ID from an unmounted hidden 
   }
 })
 
+
+test('opaque inline candidate discard, rollback and replacement revoke only their own DOM leases', () => {
+  const original=document.createElement('div')
+  original.contentEditable='true'
+  original.textContent='A{{opaque-1}}B'
+  document.body.append(original)
+  const record={data:{text:'A{{opaque-1}}B'},inline:{
+    'opaque-1':{type:'not-installed',dataVersion:7,data:{secret:'retained'}},
+  }}
+  const nextRecord={...record,data:{text:'C{{opaque-1}}D'}}
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const projection=new InlineProjectionRuntime({
+    ownerDocument:document,
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+  })
+  const field=element=>[{key:'text',mode:'rich-text',element}]
+  const context={createInlineWidgetContext(){return{}}}
+  const candidates=[]
+  try{
+    projection.reconcileBlock('a',record,definition,field(original),context,
+      {preserveSourceProjection:true})
+    const old=original.querySelector('[data-oe-opaque-inline]')
+    assert(old&&old.isConnected&&getTextLength(original)===3)
+
+    const discarded=document.createElement('div')
+    discarded.contentEditable='true'
+    candidates.push(discarded)
+    const abandoned=projection.prepareBlock('a',nextRecord,definition,
+      field(discarded),context,1)
+    const abandonedAtom=discarded.querySelector('[data-oe-opaque-inline]')
+    assert(abandonedAtom&&!abandonedAtom.isConnected)
+    abandoned.discard()
+    assert(!discarded.contains(abandonedAtom),
+      'Discard retained the staged opaque reference DOM')
+    assert(old.isConnected&&getTextLength(original)===3,
+      'Discard retired the unchanged committed opaque occurrence')
+
+    const rolledBack=document.createElement('div')
+    rolledBack.contentEditable='true'
+    candidates.push(rolledBack)
+    const rollback=projection.prepareBlock('a',nextRecord,definition,
+      field(rolledBack),context,2)
+    const rolledBackAtom=rolledBack.querySelector('[data-oe-opaque-inline]')
+    rollback.apply()
+    rollback.recover()
+    assert(!rolledBack.contains(rolledBackAtom),
+      'Rollback kept an unpublished opaque candidate')
+    assert(old.isConnected&&getTextLength(original)===3,
+      'Rollback retired the previous committed opaque occurrence')
+    equal(projection.serializeBlock('a',record,definition,
+      field(original),record.data).data.text,record.data.text)
+
+    const replacement=document.createElement('div')
+    replacement.contentEditable='true'
+    candidates.push(replacement)
+    const prepared=projection.prepareBlock('a',nextRecord,definition,
+      field(replacement),context,3)
+    const current=replacement.querySelector('[data-oe-opaque-inline]')
+    assert(current&&current!==old)
+    prepared.apply()
+    document.body.append(replacement)
+    prepared.finalize()
+    assert(!old.isConnected,
+      'Finalizing a successor left its predecessor opaque DOM active')
+    assert(current.isConnected&&getTextLength(replacement)===3,
+      'The committed successor lacks its atomic opaque inline reference')
+    equal(projection.serializeBlock('a',nextRecord,definition,
+      field(replacement),nextRecord.data).data.text,nextRecord.data.text)
+
+    projection.destroyBlock('a')
+    assert(!current.isConnected,
+      'Retiring the block did not release its opaque reference')
+  }finally{
+    projection.destroy()
+    for(const candidate of candidates)candidate.remove()
+    original.remove()
+  }
+})
+
 await run()
