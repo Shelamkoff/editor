@@ -295,3 +295,21 @@ test('reentrant timer cancellation cannot schedule over a newer tooltip owner', 
   tooltip.destroy()
   assert.deepEqual([...timers.keys()], [])
 })
+test('synchronously fired tooltip registration does not resurrect a completed timer', () => {
+  const h = tooltipHarness()
+  const view = h.root.ownerDocument.defaultView
+  const cleared = []
+  view.setTimeout = callback => {
+    callback()
+    return 1
+  }
+  view.clearTimeout = id => cleared.push(id)
+  const tooltip = new Tooltip(h.root)
+  tooltip.show(h.anchor, 'Immediate')
+  assert.equal(h.popup.style.display, 'flex')
+  assert.equal(h.popup.children[0].textContent, 'Immediate')
+  tooltip.destroy()
+  assert.deepEqual(cleared, [],
+    'an expired inline timer was wrongly resurrected as a pending lease')
+  assert.equal(h.anchor.getAttribute('aria-describedby'), null)
+})
