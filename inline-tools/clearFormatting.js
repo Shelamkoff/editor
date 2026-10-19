@@ -2,45 +2,35 @@ import {
   createSelectionPortBinding,
   ICON_CLEAR,
   toggleTag,
+  getWalkRoot,
+  collectTextTargets,
 } from './utils.js'
-
-const ELEMENT_NODE = 1
 
 const CLEARABLE_TAGS = ['b', 'i', 's', 'code', 'mark', 'span', 'em', 'strong', 'u', 'sup', 'sub']
 
-/**
- * Keep inline-plugin widgets intact while clearing ordinary text wrappers.
+/** Keep inline-plugin widgets intact while clearing ordinary text wrappers.
  * @param {HTMLElement} element
- * @returns {boolean}
  */
 function isClearableElement(element) {
   return !element.dataset.inlinePlugin && !element.closest('[data-inline-plugin]')
 }
 
-/**
- * Return whether a matching wrapper affects any part of the range.
+/** A format wrapper matters only when selected, authored text is inside it.
+ * Intersecting an unrelated bold label or a locked native control must not
+ * cause Clear Formatting to author a new wrapper on plain text.
  * @param {Range} range
  * @param {string} tag
- * @returns {boolean}
  */
 function hasClearableWrapper(range, tag) {
-  const start = range.startContainer.nodeType === ELEMENT_NODE
-    ? /** @type {HTMLElement} */ (range.startContainer)
-    : range.startContainer.parentElement
-  let ancestor = start
-  while (ancestor && ancestor.getAttribute('contenteditable') !== 'true') {
-    if (ancestor.matches(tag) && isClearableElement(ancestor)) return true
-    ancestor = ancestor.parentElement
-  }
-
-  const common = range.commonAncestorContainer.nodeType === ELEMENT_NODE
-    ? /** @type {HTMLElement} */ (range.commonAncestorContainer)
-    : range.commonAncestorContainer.parentElement
-  const root = common?.closest('[contenteditable="true"]') || common
-  return !!root && Array.from(root.querySelectorAll(tag)).some(element => (
-    isClearableElement(/** @type {HTMLElement} */ (element))
-      && range.intersectsNode(element)
-  ))
+  const root = getWalkRoot(range)
+  if (!root) return false
+  return collectTextTargets(root, range).some(({ node }) => {
+    for (let ancestor = node.parentElement; ancestor; ancestor = ancestor.parentElement) {
+      if (ancestor.hasAttribute('contenteditable')) break
+      if (ancestor.matches(tag) && isClearableElement(ancestor)) return true
+    }
+    return false
+  })
 }
 
 /**
