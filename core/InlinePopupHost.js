@@ -30,15 +30,12 @@ export class InlinePopupHost {
 
   showPopup(owner,anchor,content,cleanup){
     const ElementCtor=this.#view?.HTMLElement
+    const contentAvailable=()=>content.ownerDocument===this.#document
+      &&content!==this.#root&&!content.contains(this.#root)
+      &&!this.#root.contains(content)&&!content.isConnected&&!content.parentNode
     if(!ElementCtor||!(anchor instanceof ElementCtor)||!(content instanceof ElementCtor)
-      ||anchor.ownerDocument!==this.#document||content.ownerDocument!==this.#document
-      ||content===this.#root||content.contains(this.#root)
-      // Popup contents must be detached from editor UI. Moving an owned
-      // editable anchor/control into a transient popup destroys it on close.
-      ||this.#root.contains(content)
-      // Do not steal either connected controls or nodes already owned by
-      // another detached application/popup subtree.
-      ||content.isConnected||content.parentNode
+      ||anchor.ownerDocument!==this.#document
+      ||!contentAvailable()
       ||(cleanup!==undefined&&typeof cleanup!=='function')){
       throw new TypeError('Popup requires owning-document HTML elements and optional cleanup function')
     }
@@ -50,11 +47,21 @@ export class InlinePopupHost {
       this.#runCleanup(cleanup)
       return handle
     }
+    // Read-only/owner probes are external callbacks. Revalidate the
+    // caller-supplied detached node *before* retiring any active popup.
+    if(!contentAvailable()){
+      throw new TypeError('Popup requires owning-document HTML elements and optional cleanup function')
+    }
     const generation=++this.#generation
     this.#hide()
     if(generation!==this.#generation||this.#destroyed||this.#isReadOnly()||!this.#root.isConnected||!this.#root.contains(anchor)){
       this.#runCleanup(cleanup)
       return handle
+    }
+    // The displaced popup's cleanup can synchronously adopt a new
+    // candidate. Never steal it from the successor application owner.
+    if(!contentAvailable()){
+      throw new TypeError('Popup requires owning-document HTML elements and optional cleanup function')
     }
 
     const popup=this.#document.createElement('div')
@@ -62,14 +69,29 @@ export class InlinePopupHost {
     try {
       popup.className='oe-ip-popup'
       popup.appendChild(content)
+      if(content.parentNode!==popup||content.ownerDocument!==this.#document){
+        throw new Error('Popup content ownership changed during mounting')
+      }
       this.#root.appendChild(popup)
+      // Custom-element connection callbacks can adopt the child or the
+      // entire popup into another subtree while our host append runs.
+      if(content.parentNode!==popup||content.ownerDocument!==this.#document){
+        throw new Error('Popup content ownership changed during mounting')
+      }
+      if(popup.parentNode!==this.#root){
+        throw new Error('Popup surface ownership changed during mounting')
+      }
       // A custom-element callback can synchronously open a successor during
       // insertion. An older presentation must never reclaim its ownership.
       if(generation!==this.#generation||this.#destroyed||this.#isReadOnly()
         ||!this.#root.isConnected||!this.#root.contains(anchor)){
-        popup.remove()
+        if(popup.parentNode===this.#root)popup.remove()
         this.#runCleanup(cleanup)
         return handle
+      }
+      if(content.parentNode!==popup||content.ownerDocument!==this.#document
+        ||popup.parentNode!==this.#root){
+        throw new Error('Popup content ownership changed during mounting')
       }
 
       this.#popup=popup
@@ -132,7 +154,11 @@ export class InlinePopupHost {
     }catch(error){
       if(this.#presentation===presentation)this.hidePopup()
       else if(!claimed){
-        try{popup.remove()}catch{}
+        // A host callback may already have transferred the surface to a
+        // different owner. Never delete that owner's newly adopted DOM.
+        if(popup.parentNode===this.#root){
+          try{popup.remove()}catch{}
+        }
         this.#runCleanup(cleanup)
       }
       throw error
