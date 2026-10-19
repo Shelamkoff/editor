@@ -5,7 +5,7 @@ import { createDefaultInlineTools } from '../../preset/index.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
-import { collectTextTargets, toggleTag } from '../../inline-tools/utils.js'
+import { collectTextTargets, toggleTag, removeEmptyInlineTags } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
@@ -719,6 +719,28 @@ test('partial bold removal retains unselected prefix and suffix formatting', () 
     toggleTag('b', range)
     equal(host.innerHTML, '<b>before</b>selected<b>after</b>')
     equal(host.textContent, 'beforeselectedafter')
+  } finally { fixture.remove() }
+})
+
+
+test('empty formatting cleanup retains native and locked control-owned nodes', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">alpha',
+    '<span data-empty-author=""></span>',
+    '<span contenteditable="false"><span data-empty-locked=""></span></span>',
+    '<button type="button"><span data-empty-native=""></span></button>',
+    '<span data-inline-plugin="stub"><span data-empty-widget=""></span></span>',
+    'beta</div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    removeEmptyInlineTags(field)
+    assert(!field.querySelector('[data-empty-author]'), 'Empty author markup was retained')
+    assert(field.querySelector('[data-empty-locked]'), 'Cleanup removed a locked control-owned element')
+    assert(field.querySelector('[data-empty-native]'), 'Cleanup removed a native button-owned element')
+    assert(field.querySelector('[data-empty-widget]'), 'Cleanup removed plugin-owned widget DOM')
   } finally { fixture.remove() }
 })
 
