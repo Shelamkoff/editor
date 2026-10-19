@@ -223,7 +223,7 @@ export class InlineProjectionRuntime {
     // intentionally has no mounted widget and is represented by its raw
     // canonical {{id}} text; changing that reference into a literal would
     // silently prune its opaque payload at the next canonical assembly.
-    const reservedInlineIds=this.#blocks.get(blockId)?.widgets.keys()??[]
+    const reservedInlineIds=new Set(this.#blocks.get(blockId)?.widgets.keys()??[])
 
     for(const [key,element] of actual){
       const html=this.#serializeField(blockId,element,reservedInlineIds)
