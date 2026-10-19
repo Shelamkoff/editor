@@ -379,7 +379,11 @@ export class NativeInputController {
       || target.closest?.('input, textarea, select, button, [contenteditable="false"]')) return null
     const widget = this.#projection.resolveWidgetElement(target)
     if (!widget?.isConnected || !widget.isContentEditable) return null
-    const owner = this.#reconciler.resolveEditableTarget(widget)
+    // The widget root is an independent DOM owner and must not resolve as
+    // authored text. For this deletion-only bridge, resolve its *parent*
+    // field instead, then verify the mounted widget occurrence belongs to
+    // that same currently registered rich editing host.
+    const owner = this.#reconciler.resolveEditableTarget(widget.parentNode)
     if (!owner || owner.mode !== 'rich-text' || !owner.element?.contains?.(widget)) return null
     const current = this.#reconciler.getEditableField?.(owner.blockId, owner.fieldKey)
     if (current?.element !== owner.element || current.mode !== 'rich-text'
