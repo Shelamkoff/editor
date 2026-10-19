@@ -853,4 +853,35 @@ test('adjacent tag merging preserves the boundary around native-controlled wrapp
   } finally { fixture.remove() }
 })
 
+
+test('cross-field normalization skips nested independent editing hosts while reaching plugin fields', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true" data-outer="">',
+    '<span data-author=""></span><div contenteditable="true" data-nested=""></div></div></div>',
+    '<div class="oe-block"><section contenteditable="false">',
+    '<div contenteditable="true" data-plugin-author=""></div>',
+    '<span data-locked=""></span></section></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const author = fixture.querySelector('[data-author]')
+    const nested = fixture.querySelector('[data-nested]')
+    const pluginAuthor = fixture.querySelector('[data-plugin-author]')
+    const locked = fixture.querySelector('[data-locked]')
+    for (const field of [author, nested, pluginAuthor, locked]) {
+      field.append(document.createTextNode('left'), document.createTextNode('right'))
+    }
+    const nestedSecond = nested.lastChild
+    const lockedSecond = locked.lastChild
+    normalizeAfterEdit(null, fixture)
+    equal(author.childNodes.length, 1, 'Outer author text failed to normalize')
+    equal(pluginAuthor.childNodes.length, 1, 'Nested field in plugin shell failed to normalize')
+    equal(nested.childNodes.length, 2, 'Outer field normalization entered a nested editing host')
+    equal(locked.childNodes.length, 2, 'Plugin decoration lost its private text nodes')
+    assert(nested.lastChild === nestedSecond && locked.lastChild === lockedSecond,
+      'Independent text-node identity was changed during cross-field normalization')
+  } finally { fixture.remove() }
+})
+
 await run()
