@@ -669,8 +669,19 @@ export class SelectionController {
 
   destroy() {
     if (this.#controller.signal.aborted) return
-    this.clear()
+    // Revoke native listeners before entering DOM/view cleanup callbacks.
+    // Clearing selected blocks can synchronously call destroy() again, and
+    // errors in one observer must not prevent independent resource release.
     this.#controller.abort()
+    this.#navigationX = null
+    this.#dragStart = null
+    this.#bookmark = null
+    this.#conversionCaret = false
+    this.#range = null
+    this.#wholeBlocks = false
+    try { this.#root.classList.remove('oe-editor--cross-selecting') } catch {}
+    try { this.#view.clearSelection() } catch {}
+    try { this.#hideHighlight() } catch {}
   }
 
   #canPresentCommitted() {
