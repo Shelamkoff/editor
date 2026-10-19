@@ -220,3 +220,44 @@ test('tooltip geometry reentry cannot publish an obsolete tooltip', () => {
   assert.equal(successor.getAttribute('aria-describedby'), h.popup.id)
   tooltip.destroy()
 })
+test('reentrant timer registration cannot replace the newest tooltip owner', () => {
+  const h = tooltipHarness()
+  const view = h.root.ownerDocument.defaultView
+  const pending = new Map()
+  let issued = 0
+  let tooltip
+  view.setTimeout = callback => {
+    const id = ++issued
+    pending.set(id, callback)
+    if (id === 1) tooltip.show(h.anchor, 'Newest')
+    return id
+  }
+  view.clearTimeout = id => pending.delete(id)
+  tooltip = new Tooltip(h.root)
+  tooltip.show(h.anchor, 'Obsolete')
+  assert.deepEqual([...pending.keys()], [2],
+    'a superseded registration left a stale tooltip timer alive')
+  pending.get(2)()
+  assert.equal(h.popup.children[0].textContent, 'Newest')
+  tooltip.destroy()
+  assert.deepEqual([...pending.keys()], [2],
+    'an already fired callback should be outside pending host map only when its host retires it')
+})
+
+test('destroy during timer registration does not leave a tooltip timer alive', () => {
+  const h = tooltipHarness()
+  const view = h.root.ownerDocument.defaultView
+  const pending = new Map()
+  let tooltip
+  view.setTimeout = callback => {
+    pending.set(1, callback)
+    tooltip.destroy()
+    return 1
+  }
+  view.clearTimeout = id => pending.delete(id)
+  tooltip = new Tooltip(h.root)
+  tooltip.show(h.anchor, 'Retired')
+  assert.deepEqual([...pending.keys()], [],
+    'a destroyed tooltip retained a timer returned by its obsolete host registration')
+  assert.equal(h.popup.removed, true)
+})
