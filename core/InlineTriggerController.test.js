@@ -518,36 +518,38 @@ test('selectionchange cannot cancel a newer inline query installed during old-ra
 })
 
 test('failed inline trigger listener registration aborts every partially installed handler', () => {
-  const listeners = new Map()
-  const remove = (type, callback) => {
-    const items = listeners.get(type) ?? []
-    listeners.set(type, items.filter(fn => fn !== callback))
-  }
-  const add = (type, callback, options = {}) => {
-    const items = listeners.get(type) ?? []
-    items.push(callback)
-    listeners.set(type, items)
-    options.signal?.addEventListener?.('abort', () => remove(type, callback), { once: true })
-  }
-  const root = {
-    ownerDocument: {
-      defaultView: { AbortController },
+  for (const failureStage of ['keydown', 'selectionchange', 'focusout']) {
+    const listeners = new Map()
+    const remove = (type, callback) => {
+      const items = listeners.get(type) ?? []
+      listeners.set(type, items.filter(fn => fn !== callback))
+    }
+    const add = (type, callback, options = {}) => {
+      const items = listeners.get(type) ?? []
+      items.push(callback)
+      listeners.set(type, items)
+      options.signal?.addEventListener?.('abort', () => remove(type, callback), { once: true })
+      // Browser registration may throw *after* installing a listener.
+      if (type === failureStage) throw new Error(type + ' registration failed after insertion')
+    }
+    const root = {
+      ownerDocument: {
+        defaultView: { AbortController },
+        addEventListener: add,
+      },
       addEventListener: add,
-    },
-    addEventListener(type, callback, options) {
-      add(type, callback, options)
-      if (type === 'keydown') throw new Error('keydown registration failed after insertion')
-    },
+    }
+    assert.throws(() => new InlineTriggerController({
+      root,
+      registry: { inlineTypes: [] },
+      reconciler: {},
+      selection: {},
+      commands: {},
+    }), /registration failed after insertion/,
+    failureStage + ' did not exercise the failing registration')
+    assert.deepEqual([...listeners.values()].flat(), [],
+      failureStage + ' left event handlers with no destroyable controller')
   }
-  assert.throws(() => new InlineTriggerController({
-    root,
-    registry: { inlineTypes: [] },
-    reconciler: {},
-    selection: {},
-    commands: {},
-  }), /keydown registration failed after insertion/)
-  assert.deepEqual([...listeners.values()].flat(), [],
-    'construction failure left event handlers with no destroyable controller')
 })
 test('inline query preflight must not publish a stale trigger when the caret moves during range capture', () => {
   for (const variant of ['selection-lost', 'prefix-changed']) {
