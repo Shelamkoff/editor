@@ -5,6 +5,7 @@ import { createDefaultInlineTools } from '../../preset/index.js'
 import { LogicalSelection } from '../../core/LogicalSelection.js'
 import { NativeInputController } from '../../core/NativeInputController.js'
 import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
+import { InlineWidgetInputController } from '../../core/InlineWidgetInputController.js'
 import { KeyboardRouter } from '../../core/KeyboardRouter.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
@@ -1378,6 +1379,64 @@ test('detached inline widget occurrences lose selection and DOM authority', () =
   } finally {
     projection.destroy()
     field.remove()
+  }
+})
+
+
+test('deferred widget caret does not reclaim focus from an external native button', async () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div contenteditable="true">A<span contenteditable="true" data-inline-plugin="mention">Ada</span>B</div>'
+  const external = document.createElement('button')
+  external.type = 'button'
+  external.textContent = 'External action'
+  document.body.append(fixture, external)
+  const field = fixture.firstElementChild
+  const widget = field.querySelector('[data-inline-plugin="mention"]')
+  const label = widget.firstChild
+  const caretWrites = []
+  const committed = []
+  const owner = {blockId:'a',fieldKey:'text',mode:'rich-text',element:field}
+  const runtime = {
+    readOnly:false,generation:1,revision:2,modeEpoch:0,
+    canAccessFormattingSelection(){return true},
+    prepareExtensionValue(fn){return fn()},
+    interact(_name,produce){produce();this.revision++;return true},
+    removeInlineWidget(){committed.push('remove')},
+  }
+  const projection = {
+    resolveWidgetInputTarget(){return {
+      blockId:'a',fieldKey:'text',inlineId:'widget-1',type:'mention',
+      element:widget,data:{name:'Ada'},position:'inside',offset:2,logicalOffset:1,
+    }},
+    resolveWidgetElement(node){return node===widget?widget:null},
+  }
+  const input = new InlineWidgetInputController({
+    root:fixture,runtime,projection,
+    registry:{getInlineDefinition(){return {editing:{
+      handle(){return {kind:'remove',caret:0}},
+    }}}},
+    reconciler:{getEditableField(){return {mode:'rich-text',element:field}}},
+    selection:{setCaret(){caretWrites.push('caret')}},
+  })
+  try {
+    field.focus()
+    window.getSelection().setBaseAndExtent(label,2,label,2)
+    const event = new InputEvent('beforeinput', {
+      inputType:'deleteContentBackward',bubbles:true,cancelable:true,
+    })
+    field.dispatchEvent(event)
+    assert(event.defaultPrevented,'Owned inline action was not accepted')
+    equal(committed,['remove'],'Inline action did not commit exactly once')
+
+    external.focus()
+    assert(document.activeElement===external,'External button did not own focus')
+    await Promise.resolve()
+    equal(caretWrites,[],'Deferred inline caret reclaimed a later native-control focus')
+    assert(document.activeElement===external,'Inline focus restoration displaced the external button')
+  } finally {
+    input.destroy()
+    fixture.remove()
+    external.remove()
   }
 })
 
