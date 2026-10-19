@@ -41,8 +41,9 @@ export function normalizeAuthoredText(root) {
           continue
         }
         while (node.nextSibling?.nodeType === TEXT_NODE) {
-          const sibling = node.nextSibling
-          /** @type {Text} */ (node).appendData(/** @type {Text} */ (sibling).data)
+          const sibling = /** @type {Text} */ (node.nextSibling)
+          const current = /** @type {Text} */ (node)
+          current.appendData(sibling.data)
           sibling.parentNode?.removeChild(sibling)
         }
       } else if (node.nodeType === ELEMENT_NODE
