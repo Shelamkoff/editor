@@ -231,6 +231,9 @@ test('Slash input in read-only mode dismisses an already open command menu', () 
       resolveEditableTarget() {
         return { mode: 'rich-text', blockId: 'a', fieldKey: 'text', element: field }
       },
+      getEditableField() {
+        return { mode: 'rich-text', element: field }
+      },
     },
     selection: {
       capture() {
