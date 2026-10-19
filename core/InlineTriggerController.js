@@ -43,22 +43,30 @@ export class InlineTriggerController {
     const Ctor=root.ownerDocument.defaultView?.AbortController??AbortController
     this.#controller=new Ctor()
     const signal=this.#controller.signal
-    root.addEventListener('compositionstart',()=>this.#cancel(),{signal})
-    root.addEventListener('compositionend',event=>{
-      if(!event.data)return
-      const modeEpoch=this.#modeEpoch
-      queueMicrotask(()=>{
-        // Native IME completion is owned by the control mode in which it
-        // occurred. A read-only round trip revokes this old query refresh.
-        if(!signal.aborted&&modeEpoch===this.#modeEpoch)this.refresh()
-      })
-    },{signal})
-    root.addEventListener('input',event=>this.#onInput(event),{signal})
-    root.addEventListener('keydown',event=>this.#onKeyDown(event),{signal,capture:true})
-    root.ownerDocument.addEventListener('selectionchange',()=>this.#onSelectionChange(),{signal})
-    root.addEventListener('focusout',()=>queueMicrotask(()=>{
-      if(this.#active&&!this.#root.contains(this.#root.ownerDocument.activeElement))this.#cancel()
-    }),{signal})
+    try{
+      root.addEventListener('compositionstart',()=>this.#cancel(),{signal})
+      root.addEventListener('compositionend',event=>{
+        if(!event.data)return
+        const modeEpoch=this.#modeEpoch
+        queueMicrotask(()=>{
+          // Native IME completion is owned by the control mode in which it
+          // occurred. A read-only round trip revokes this old query refresh.
+          if(!signal.aborted&&modeEpoch===this.#modeEpoch)this.refresh()
+        })
+      },{signal})
+      root.addEventListener('input',event=>this.#onInput(event),{signal})
+      root.addEventListener('keydown',event=>this.#onKeyDown(event),{signal,capture:true})
+      root.ownerDocument.addEventListener('selectionchange',()=>this.#onSelectionChange(),{signal})
+      root.addEventListener('focusout',()=>queueMicrotask(()=>{
+        if(this.#active&&!this.#root.contains(this.#root.ownerDocument.activeElement))this.#cancel()
+      }),{signal})
+    }catch(error){
+      // Event targets can fail after registering a listener. In a failed
+      // constructor there is no public controller to call destroy() on, so
+      // all provisional handlers must be revoked before propagating error.
+      try{this.#controller.abort()}catch{}
+      throw error
+    }
   }
 
   get isActive(){return !!this.#active}
@@ -316,7 +324,14 @@ export class InlineTriggerController {
   }
 
   #onSelectionChange(){
-    if(this.#active&&!this.#liveRange(this.#active))this.#cancel()
+    const active=this.#active
+    if(!active)return
+    const session=active.session
+    const valid=this.#liveRange(active)
+    // Range and selection readers can synchronously cancel this session
+    // and publish a successor. The old selectionchange event has no right
+    // to cancel the successor, even if its own range is now invalid.
+    if(!valid&&this.#active===active&&active.session===session)this.#cancel()
   }
 
   #liveRange(active){
