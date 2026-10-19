@@ -231,9 +231,23 @@ export class InlineProjectionRuntime {
       ...(state?.widgets.keys()??[]),
       ...(state?.opaque.keys()??[]),
     ])
+    // A canonical inline may live in a hidden rich field with no mounted
+    // descriptor or DOM lease. Its raw {{id}} token is authoritative *there*
+    // but matching author text in any other visible field is a literal. Do
+    // not reserve that ID in the owning field itself: unloaded inline types
+    // intentionally retain an unmounted raw reference and opaque sidecar.
+    const canonicalOwners=new Map()
+    for(const [fieldKey,html] of canonical){
+      const refs=scanRichTextPlaceholders(html,object(record.inline),this.#ownerDocument).references
+      for(const id of refs)if(!canonicalOwners.has(id))canonicalOwners.set(id,fieldKey)
+    }
 
     for(const [key,element] of actual){
-      const html=this.#serializeField(blockId,element,reservedInlineIds)
+      const reserved=new Set(reservedInlineIds)
+      for(const [id,ownerField] of canonicalOwners){
+        if(ownerField!==key)reserved.add(id)
+      }
+      const html=this.#serializeField(blockId,element,reserved)
       serialized.set(key,html)
     }
 
