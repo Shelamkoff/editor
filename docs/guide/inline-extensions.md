@@ -60,6 +60,8 @@ When an inline extension is not installed, its canonical `{{id}}` reference and 
 
 An author may also type the literal characters `{{id}}` where that ID is already owned by a widget. Rector persists this *ordinary text*, without creating a second reference, as `<span class="oe-inline-literal">{{id}}</span>` in canonical rich-text HTML. The class is a reserved internal serialization marker, not an extension API or visual style. Sanitization, selection offsets, ID remapping and rendering preserve the literal text; only the unmarked owned token counts as an inline reference. Extension code must not add or remove this marker to impersonate a widget.
 
+For multi-field blocks, a canonical inline reference may belong to a hidden rich-text field whose DOM is not currently mounted. Rector protects matching author-typed literals in *other* mounted fields without rewriting the hidden field's reference or opaque payload. An inline sidecar entry with **no** canonical reference is not permission to revive that widget through coincidentally matching typed text; its ID is also protected as a literal until canonical assembly can prune the unreferenced entry. Field serialization order must not affect these rules.
+
 ## Runtime and widget instance
 
 The host sets and maintains `data-inline-plugin` and `data-id` on the instance's stable root element. Extensions do not need to write these markers. They support atomic editing coordinates: a widget occupies one parent-field unit regardless of label length. Private runtime ownership controls serialization; copying these DOM attributes does not create a widget or payload. The widget still owns its content and editable/read-only presentation.
