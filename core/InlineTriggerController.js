@@ -223,6 +223,15 @@ export class InlineTriggerController {
     if(this.#controller.signal.aborted||this.#isReadOnly()
       ||modeEpoch!==this.#modeEpoch||this.#active!==active
       ||active.session!==sessionBefore)return
+    // Native Selection and DOM text can change between discovering a trigger
+    // and reading its prefix for publication. Never invoke a plug-in with a
+    // query that no longer belongs to the live caret; retire only this owner.
+    if(textPrefix===null
+      ||textPrefix.slice(active.textStart)!==active.trigger+query
+      ||!active.anchor.isConnected||!this.#root.contains(active.anchor)){
+      if(this.#active===active&&active.session===sessionBefore)this.#cancel()
+      return
+    }
     active.textPrefix=textPrefix
     let committing=false
     const session=Object.freeze({
