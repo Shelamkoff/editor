@@ -171,6 +171,19 @@ test('normalizing an editor shell traverses read-only plugin wrappers to reach a
   assert.equal(outside.childNodes.length, 2, 'Editor shell normalized UI labels')
 })
 
+test('normalization called on a block shell reaches its actual editable islands', () => {
+  const question = el('div', { contenteditable: 'true' }, text('one'), text(' two'))
+  const caption = el('div', { contenteditable: 'true' }, text('Stra'), text('ße'))
+  const label = el('span', {}, text('non'), text('author'))
+  const blockShell = el('section', { contenteditable: 'false' }, label, question, caption)
+  const labelSecond = label.childNodes[1]
+  normalizeAuthoredText(blockShell)
+  assert.deepEqual(question.childNodes.map(node => node.data), ['one two'])
+  assert.deepEqual(caption.childNodes.map(node => node.data), ['Straße'])
+  assert.equal(label.childNodes.length, 2)
+  assert.equal(label.childNodes[1], labelSecond)
+})
+
 test('normalization does not enter nested editing hosts or a protected root', () => {
   const nested = el('div', { contenteditable: 'true' }, text('ne'), text('sted'))
   const root = el('div', { contenteditable: 'true' }, text('au'), text('thor'), nested)
