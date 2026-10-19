@@ -129,7 +129,13 @@ function isOutsideEditableWalker(node, root) {
     }
     if (ancestor === root) break
   }
-  return false
+  if (foundEditable) return false
+  // When root is a formatting wrapper beneath an authoring host, its Text
+  // leaves still belong to that host. A root outside every editing host may
+  // also contain static toolbar/section labels; those are never authored text.
+  const element = root.nodeType === ELEMENT_NODE
+    ? /** @type {Element} */ (root) : root.parentElement
+  return element?.closest?.('[contenteditable]')?.getAttribute('contenteditable') !== 'true'
 }
 
 /**
