@@ -38,22 +38,30 @@ export class SelectionController {
     this.#controller = new AbortControllerCtor()
     const signal = this.#controller.signal
 
-    root.addEventListener('mousedown', event => this.#onMouseDown(event), { signal })
-    root.addEventListener('dragstart', event => {
-      // Extending our logical range must not become native text drag/drop.
-      if (this.#dragStart) event.preventDefault()
-    }, { signal })
-    this.#document.addEventListener('mousemove', event => this.#onMouseMove(event), { signal })
-    this.#document.addEventListener('mouseup', () => this.#onMouseUp(), { signal })
-    this.#document.addEventListener('selectionchange', () => this.#ensureCurrent(), { signal })
-    this.#document.addEventListener('mousedown', event => {
-      const target = event.target
-      if (target && typeof target === 'object' && 'nodeType' in target && !root.contains(target)) {
-        this.clear()
-        const native = this.#window?.getSelection?.()
-        if (native?.anchorNode && root.contains(native.anchorNode)) native.removeAllRanges()
-      }
-    }, { capture: true, signal })
+    try {
+      root.addEventListener('mousedown', event => this.#onMouseDown(event), { signal })
+      root.addEventListener('dragstart', event => {
+        // Extending our logical range must not become native text drag/drop.
+        if (this.#dragStart) event.preventDefault()
+      }, { signal })
+      this.#document.addEventListener('mousemove', event => this.#onMouseMove(event), { signal })
+      this.#document.addEventListener('mouseup', () => this.#onMouseUp(), { signal })
+      this.#document.addEventListener('selectionchange', () => this.#ensureCurrent(), { signal })
+      this.#document.addEventListener('mousedown', event => {
+        const target = event.target
+        if (target && typeof target === 'object' && 'nodeType' in target && !root.contains(target)) {
+          this.clear()
+          const native = this.#window?.getSelection?.()
+          if (native?.anchorNode && root.contains(native.anchorNode)) native.removeAllRanges()
+        }
+      }, { capture: true, signal })
+    } catch (error) {
+      // A native event host can fail after installing one of the callbacks.
+      // Constructor failure leaves no public controller for destroy(), so
+      // revoke the entire provisional listener scope before propagating it.
+      try { this.#controller.abort() } catch {}
+      throw error
+    }
   }
 
   get active() {
@@ -693,49 +701,71 @@ export class SelectionController {
 
   #onMouseDown(event) {
     if (this.#controller.signal.aborted) return
+    const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch
+    const owned = () => !this.#controller.signal.aborted
+      && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch
     this.#navigationX=null
     if (event.button !== 0) return
     // Toolbar inputs own their native focus without starting a document drag.
-    if (event.target?.closest?.('.oe-inline-toolbar')) return
+    if (event.target?.closest?.('.oe-inline-toolbar') || !owned()) return
     const caret = this.#caretFromPoint(event.clientX, event.clientY)
+    if (!owned()) return
     const point = caret ? this.#logicalPoint(caret.node, caret.offset) : null
+    if (!owned()) return
     if (!point) {
-      if (event.target && this.#root.contains(event.target)) this.clear()
+      if (event.target && this.#root.contains(event.target) && owned()) this.clear()
       return
     }
     this.#deactivate()
-    this.#dragStart = { caret, point, generation: this.#runtime.generation, bookmark: null }
+    // Clear-selection observers can synchronously retire this editor or
+    // publish a different author gesture. A retired mouse press owns no drag.
+    if (!owned()) return
+    this.#dragStart = { caret, point, generation, bookmark: null }
   }
 
   #onMouseMove(event) {
-    if (!this.#dragStart || (event.buttons & 1) === 0) return
-    if (this.#runtime.readOnly || this.#dragStart.generation !== this.#runtime.generation) {
+    const drag = this.#dragStart
+    if (!drag || (event.buttons & 1) === 0 || this.#controller.signal.aborted) return
+    const owned = () => !this.#controller.signal.aborted && this.#dragStart === drag
+      && !this.#runtime.readOnly
+      && drag.generation === this.#runtime.generation
+    if (!owned()) {
       this.clear()
       return
     }
+    // Native geometry and mounted-field resolvers may synchronously destroy
+    // the controller. Never dereference the retired drag after those reads.
     const caret = this.#dragCaretFromPoint(event.clientX, event.clientY)
+    if (!owned()) return
     const point = caret ? this.#logicalPoint(caret.node, caret.offset) : null
-    if (!point) return
-    if (point.blockId === this.#dragStart.point.blockId
-      && point.fieldKey === this.#dragStart.point.fieldKey) {
-      this.#dragStart.bookmark = null
-      if (this.active) this.#deactivate()
+    if (!owned() || !point) return
+    if (point.blockId === drag.point.blockId
+      && point.fieldKey === drag.point.fieldKey) {
+      drag.bookmark = null
+      if (this.active && owned()) this.#deactivate()
       return
     }
 
-    const bookmark = { anchor: clonePoint(this.#dragStart.point), focus: clonePoint(point) }
-    const built = this.#buildRange(bookmark, this.#dragStart.caret, caret)
-    if (!built) return
-    this.#dragStart.bookmark = bookmark
+    const bookmark = { anchor: clonePoint(drag.point), focus: clonePoint(point) }
+    const built = this.#buildRange(bookmark, drag.caret, caret)
+    if (!owned() || !built) return
+    drag.bookmark = bookmark
     event.preventDefault()
+    if (!owned()) return
     this.#activate(bookmark, built.range)
+    if (!owned()) return
 
     const selection = this.#window?.getSelection?.()
+    if (!owned()) return
     if (selection && typeof selection.setBaseAndExtent === 'function') {
       try {
         selection.setBaseAndExtent(
-          this.#dragStart.caret.node,
-          this.#dragStart.caret.offset,
+          drag.caret.node,
+          drag.caret.offset,
           caret.node,
           caret.offset,
         )
