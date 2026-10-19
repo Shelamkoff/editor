@@ -4,6 +4,7 @@ import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
+import { createFontSizeTool } from '../../inline-tools/fontSize.js'
 import { collectTextTargets, toggleTag } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
@@ -623,6 +624,40 @@ test('clear formatting ignores styled labels inside protected controls when auth
     assert(locked.querySelector('b')?.textContent === 'LOCKED', 'Clear Formatting removed protected bold')
     assert(button.querySelector('i')?.textContent === 'ACTION', 'Clear Formatting removed native button italic')
   } finally {
+    tool.bindSelectionPort(null)
+    fixture.remove()
+  }
+})
+
+
+test('font-size reset ignores styled text owned exclusively by locked controls', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">alpha',
+    '<span contenteditable="false"><span style="font-size:28px">LOCKED</span></span>',
+    '<button type="button"><span style="font-size:30px">ACTION</span></button>beta</div></div>',
+    '<div class="oe-inline-toolbar"><button type="button" class="oe-inline-tool"></button></div>',
+  ].join('')
+  document.body.append(fixture)
+  const field = fixture.querySelector('[contenteditable="true"]')
+  const range = document.createRange()
+  range.setStart(field.firstChild, 0)
+  range.setEnd(field.lastChild, field.lastChild.length)
+  const tool = createFontSizeTool('Font size')
+  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+  try {
+    const initial = field.innerHTML
+    tool.onMount(fixture.querySelector('.oe-inline-tool'), {
+      mutate: (_bookmark, action) => action(range),
+      restoreSelection: () => true,
+    })
+    tool.toggle({ range })
+    const reset = fixture.querySelector('.oe-font-size-reset')
+    assert(reset, 'Font-size reset control is unavailable')
+    reset.click()
+    equal(field.innerHTML, initial, 'Font-size reset changed locked formatting or plain authored text')
+  } finally {
+    tool.destroy()
     tool.bindSelectionPort(null)
     fixture.remove()
   }
