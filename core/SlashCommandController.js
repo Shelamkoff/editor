@@ -229,41 +229,59 @@ export class SlashCommandController {
   #onKeydown(event) {
     if (this.#controller.signal.aborted || event.defaultPrevented
       || event.isComposing || event.keyCode === 229 || this.#isComposing()) return
-    if (!this.#session) return
-    if (!this.#sessionIsCurrent()) {
+    const session = this.#session
+    const modeEpoch = this.#runtime.modeEpoch
+    const ownsKey = () => !this.#controller.signal.aborted
+      && !this.#runtime.readOnly && this.#runtime.modeEpoch === modeEpoch
+      && this.#session === session
+    if (!session || !ownsKey()) return
+    const valid = this.#sessionIsCurrent()
+    // The registered-field resolver may synchronously destroy the editor,
+    // switch mode or install a new Slash query while returning old metadata.
+    if (!ownsKey()) return
+    if (!valid) {
       this.close()
       return
     }
     const owner = this.#reconciler.resolveEditableTarget(event.target)
+    if (!ownsKey()) return
     if (
       !owner
-      || owner.blockId !== this.#session.blockId
-      || owner.fieldKey !== this.#session.fieldKey
+      || owner.blockId !== session.blockId
+      || owner.fieldKey !== session.fieldKey
     ) {
       this.close()
       return
     }
+    const key = event.key
+    if (!ownsKey()) return
 
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    if (key === 'ArrowDown' || key === 'ArrowUp') {
       event.preventDefault()
       event.stopPropagation()
-      if (!this.#filtered.length) return
-      const direction = event.key === 'ArrowDown' ? 1 : -1
+      if (!ownsKey() || !this.#filtered.length) return
+      const direction = key === 'ArrowDown' ? 1 : -1
       this.#activeIndex = (this.#activeIndex + direction + this.#filtered.length) % this.#filtered.length
       this.#render()
       return
     }
-    if (event.key === 'Enter' || event.key === 'Tab') {
+    if (key === 'Enter' || key === 'Tab') {
       event.preventDefault()
       event.stopPropagation()
-      this.#select(this.#activeIndex)
+      if (ownsKey()) this.#select(this.#activeIndex)
       return
     }
-    if (event.key === 'Escape') {
+    if (key === 'Escape') {
       event.preventDefault()
       event.stopPropagation()
-      const session = this.#session
+      if (!ownsKey()) return
+      const version = this.#itemsVersion
       this.close()
+      // close() mutates the DOM and can fire reentrant callbacks. Escape
+      // owns no author command after a successor, mode change or teardown.
+      if (this.#controller.signal.aborted || this.#runtime.readOnly
+        || this.#runtime.modeEpoch !== modeEpoch
+        || this.#session !== null || this.#itemsVersion !== version + 1) return
       const point = { blockId: session.blockId, fieldKey: session.fieldKey, offset: session.start }
       this.#runtime.interact('slash.cancel', () => this.#runtime.replaceRichText(
         session.blockId,
@@ -271,14 +289,18 @@ export class SlashCommandController {
         { start: session.start, end: session.end },
         { kind: 'text', text: '' },
       ), () => ({ anchor: point, focus: { ...point } }))
+      if (this.#controller.signal.aborted || this.#runtime.readOnly
+        || this.#runtime.modeEpoch !== modeEpoch || this.#session !== null) return
       this.#view.reconcileInteraction()
+      if (this.#controller.signal.aborted || this.#runtime.readOnly
+        || this.#runtime.modeEpoch !== modeEpoch || this.#session !== null) return
       this.#selection.setCaret(session.blockId, {
         fieldKey: session.fieldKey,
         offset: session.start,
       })
       return
     }
-    if (event.key === 'Backspace' && this.#session.query === '') {
+    if (key === 'Backspace' && ownsKey() && session.query === '') {
       this.close()
     }
   }
