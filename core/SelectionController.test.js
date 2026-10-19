@@ -956,7 +956,7 @@ function crossSelectionPointerReentryHarness(retireOn) {
     },
   }
   controller = new SelectionController({ root, runtime, reconciler, view })
-  return { controller, handlers, documentHandlers, runtime, field }
+  return { controller, handlers, documentHandlers, runtime, view, field }
 }
 
 test('selection mousedown cannot reopen drag after its point resolver destroys the owner', () => {
