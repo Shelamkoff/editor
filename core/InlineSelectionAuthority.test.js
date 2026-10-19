@@ -424,3 +424,24 @@ test('inline restore cannot move native selection after its final reader revokes
   assert.deepEqual(state.applied, [],
     'a callback moved the caret after its owning inline presentation was destroyed')
 })
+test('inline selection capture refuses a token invalidated during revision observation', () => {
+  for (const retirement of ['generation', 'lease']) {
+    const state = fixture()
+    state.port.activate()
+    let observed = 0
+    Object.defineProperty(state.runtime, 'revision', {
+      configurable: true,
+      get() {
+        observed++
+        if (observed === 1) {
+          if (retirement === 'generation') state.runtime.generation++
+          else state.setLease(8)
+        }
+        return 2
+      },
+    })
+    assert.equal(state.port.capture(), null,
+      retirement + ' changed while capture built its token; stale rights escaped')
+    assert.equal(observed > 0, true)
+  }
+})
