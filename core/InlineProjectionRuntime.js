@@ -583,6 +583,13 @@ export class InlineProjectionRuntime {
         const ref=Object.hasOwn(inline,id)?inline[id]:undefined
         if(!ref||typeof ref!=='object'||Array.isArray(ref)||counts.get(id)!==1)continue
         const type=typeof ref.type==='string'?ref.type:''
+        // A live owned occurrence already represents this canonical inline
+        // reference. A user may also type the literal "{{id}}" into adjacent
+        // author text: that text must not steal/reparent the existing widget.
+        const mounted=state.widgets.get(id)
+        if(mounted?.type===type&&mounted.fieldKey===fieldKey
+          &&mounted.fieldElement===element
+          &&element.contains(mounted.element))continue
         const definition=this.#registry.getInlineDefinition(type)
         const runtime=this.#registry.getInlineRuntime(type)
         if(!definition||!runtime)continue
@@ -684,8 +691,14 @@ export class InlineProjectionRuntime {
     }
 
     // Source native-input projection already contains owned widget elements.
+    // A current DOM child is not sufficient authority: Undo/Redo or a
+    // canonical removal can retire the reference before the old root leaves
+    // the editing field. Never resurrect it from the stale DOM alone.
     for(const entry of state.widgets.values()){
       if(entry.fieldKey!==fieldKey)continue
+      const canonicalRef=Object.hasOwn(inline,entry.id)?inline[entry.id]:null
+      if(!canonicalRef||typeof canonicalRef!=='object'||Array.isArray(canonicalRef)
+        ||canonicalRef.type!==entry.type||counts.get(entry.id)!==1)continue
       if(element.contains(entry.element)){
         this.#markWidget(entry)
         entry.fieldElement=element
