@@ -1,5 +1,6 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
 import { SelectionController } from '../../core/SelectionController.js'
+import { InlinePopupHost } from '../../core/InlinePopupHost.js'
 import { test, assert as check, equal, run, make, blockElement, editorRoot, para, editableField, select } from './regressions/harness.js'
 import { CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment } from '../../core/ClipboardFragment.js'
 import { getTextOffset } from '../../shared/textOffset.js'
@@ -2614,6 +2615,44 @@ test('deferred code highlighting does not overwrite newer inline text', async ()
     setHighlightRuntime(previousRuntime)
     if (hadAmbientRuntime) window.hljs = previousAmbientRuntime
     else delete window.hljs
+  }
+})
+
+
+test('native custom-element popup adoption must not steal another DOM owner', () => {
+  const editorRoot = document.createElement('section')
+  const anchor = document.createElement('span')
+  editorRoot.append(anchor)
+  document.body.append(editorRoot)
+  const otherOwner = document.createElement('div')
+  document.body.append(otherOwner)
+  const tag = 'rector-audit-popup-adoption'
+  if (!customElements.get(tag)) {
+    customElements.define(tag, class extends HTMLElement {
+      connectedCallback() {
+        if (this.__movedByCallback) return
+        this.__movedByCallback = true
+        this.__auditOtherOwner?.append(this)
+      }
+    })
+  }
+  const node = document.createElement(tag)
+  node.__auditOtherOwner = otherOwner
+  const popup = new InlinePopupHost({ root: editorRoot })
+  let cleanups = 0
+  try {
+    assert.throws(
+      () => popup.showPopup('audit-owner', anchor, node, () => cleanups++),
+      /Popup content ownership changed during mounting/,
+    )
+    check(otherOwner.contains(node), 'inline popup stole custom element after its connected callback')
+    equal(editorRoot.children.length, 1)
+    equal(editorRoot.firstElementChild, anchor)
+    equal(cleanups, 1, 'aborted popup released the provisional owner more than once')
+  } finally {
+    popup.destroy()
+    editorRoot.remove()
+    otherOwner.remove()
   }
 })
 
