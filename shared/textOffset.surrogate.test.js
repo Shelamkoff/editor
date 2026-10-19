@@ -189,3 +189,38 @@ test('cross-block walker reaches true fields through false plugin shells, exclud
   while (walker.nextNode()) selected.push(walker.currentNode.textContent)
   assert.deepEqual(selected, ['Alpha', 'Bravo'])
 })
+
+test('cross-block text walker excludes unowned editor chrome outside explicit editing hosts', () => {
+  const lead = text('Editor title')
+  const divider = text('Insert block')
+  const footer = text('Status: saved')
+  const a = text('Alpha')
+  const b = text('Bravo')
+  const root = withTextWalker(wire(element('main', [
+    element('div', [lead], { class: 'toolbar-title' }),
+    element('div', [a], { contenteditable: 'true' }),
+    divider,
+    element('span', [text('List item actions')], { class: 'block-label' }),
+    element('section', [
+      element('div', [b], { contenteditable: 'true' }),
+    ], { contenteditable: 'false' }),
+    element('div', [footer], { class: 'editor-footer' }),
+  ])))
+  const walker = editableTextWalker(root)
+  const selected = []
+  while (walker.nextNode()) selected.push(walker.currentNode.textContent)
+  assert.deepEqual(selected, ['Alpha', 'Bravo'],
+    'Unowned static editor chrome was exposed as authored text during cross-block traversal')
+  assert.equal(firstTextNode(root), a)
+  assert.equal(lastTextNode(root), b)
+})
+
+test('text walker inside a formatting span keeps its owning editable field', () => {
+  const fragment = text('café')
+  const span = element('b', [fragment])
+  const root = withTextWalker(wire(element('div', [span], { contenteditable: 'true' })))
+  const walker = editableTextWalker(span)
+  assert.equal(walker.nextNode(), fragment)
+  assert.equal(walker.nextNode(), null)
+  assert.equal(getTextLength(root), 4)
+})
