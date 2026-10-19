@@ -120,3 +120,63 @@ test('renderTo keeps custom DOM and automatic styles in the target owning docume
     globalThis.HTMLElement = previousHTMLElement
   }
 })
+test('failed detached renderer wrapper creation releases all automatic styles', async () => {
+  const { EditorRenderer } = await import('./EditorRenderer.js')
+  const { ownerDocument, links } = createRealm()
+  const createElement = ownerDocument.createElement
+  ownerDocument.createElement = function (tagName) {
+    if (tagName === 'div') throw new Error('wrapper allocation failed')
+    return createElement.call(this, tagName)
+  }
+  const previousDocument = globalThis.document
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: true })
+  try {
+    globalThis.document = ownerDocument
+    assert.throws(
+      () => renderer.render({ version: '2.0.0', blocks: [] }),
+      /wrapper allocation failed/,
+    )
+    assert.ok(links.length > 0, 'the failure did not follow style acquisition')
+    assert.equal(links.every(link => link.removed), true,
+      'failed render left document-global links without any live result')
+
+    ownerDocument.createElement = createElement
+    const wrapper = renderer.render({ version: '2.0.0', blocks: [] })
+    assert.ok(links.length >= 2, 'a stale style reference prevented later acquisition')
+    renderer.destroy(wrapper)
+    assert.equal(links.every(link => link.removed), true)
+  } finally {
+    renderer.destroy()
+    globalThis.document = previousDocument
+  }
+})
+
+test('failed renderTo wrapper creation releases styles without retaining the container', async () => {
+  const { EditorRenderer } = await import('./EditorRenderer.js')
+  const { ownerDocument, links } = createRealm()
+  const container = ownerDocument.createElement('main')
+  const createElement = ownerDocument.createElement
+  ownerDocument.createElement = function (tagName) {
+    if (tagName === 'div') throw new Error('mounted wrapper allocation failed')
+    return createElement.call(this, tagName)
+  }
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: true })
+  try {
+    assert.throws(
+      () => renderer.renderTo({ version: '2.0.0', blocks: [] }, container),
+      /mounted wrapper allocation failed/,
+    )
+    assert.ok(links.length > 0, 'the failure did not follow style acquisition')
+    assert.equal(links.every(link => link.removed), true,
+      'failed renderTo retained automatic style ownership without a mount')
+    assert.equal(container.children.length, 0, 'failed mount changed application DOM')
+
+    ownerDocument.createElement = createElement
+    renderer.renderTo({ version: '2.0.0', blocks: [] }, container)
+    assert.equal(container.children.length, 1, 'a failed renderTo blocked subsequent use')
+    renderer.destroy(container)
+    assert.equal(links.every(link => link.removed), true)
+  } finally {
+    renderer.destroy()
+  }
+})
