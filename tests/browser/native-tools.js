@@ -6,7 +6,7 @@ import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
 import { collectTextTargets, toggleTag, removeEmptyInlineTags, normalizeAfterEdit } from '../../inline-tools/utils.js'
-import { findNodeAtOffset, getTextLength, getTextOffset, editableTextWalker } from '../../shared/textOffset.js'
+import { findNodeAtOffset, getTextLength, getTextOffset, editableTextWalker, firstTextNode, lastTextNode } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
 
@@ -1105,6 +1105,31 @@ test('editable text walker skips native labels but discovers separate fields in 
       'Plugin block shell did not find its legitimate editor or traversed private UI labels')
     equal(read(fixture), ['A', 'B', 'nested editor', 'Alpha', 'Bravo'],
       'Cross-block traversal did not retain separate editing hosts in DOM order')
+  } finally { fixture.remove() }
+})
+
+
+test('cross-block text walker excludes static editor chrome outside authored fields', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="editor-toolbar"><span>Rich text tools</span></div>',
+    '<div contenteditable="true" data-first="">Alpha</div>',
+    '<span class="editor-status">Insert block</span>',
+    '<section contenteditable="false">',
+    '<span class="block-label">Settings</span>',
+    '<div contenteditable="true" data-second="">Bravo</div>',
+    '</section>',
+    '<footer>Saved successfully</footer>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const walker = editableTextWalker(fixture)
+    const texts = []
+    while (walker.nextNode()) texts.push(walker.currentNode.textContent)
+    equal(texts, ['Alpha', 'Bravo'],
+      'Cross-block text traversal included static toolbar, block or status labels')
+    equal(firstTextNode(fixture), fixture.querySelector('[data-first]').firstChild)
+    equal(lastTextNode(fixture), fixture.querySelector('[data-second]').firstChild)
   } finally { fixture.remove() }
 })
 
