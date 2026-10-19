@@ -581,3 +581,27 @@ for (const backward of [true, false]) {
     }
   })
 }
+
+
+test('capture never reuses stale authored selection while a native control has focus in a fielded block', () => {
+  const h = fixture()
+  const field = h.field().element
+  const text = h.field().child
+  const button = { nodeType: 1, tagName: 'BUTTON', parentNode: field }
+  const owner = { blockId: 'a', fieldKey: 'text', element: field, mode: 'rich-text' }
+  h.reconciler.resolveEditableTarget = target => target === field || target === text ? owner : null
+  h.reconciler.resolveBlockTarget = target => target === button ? 'a' : null
+  h.native.anchorNode = text
+  h.native.focusNode = text
+  h.native.anchorOffset = 1
+  h.native.focusOffset = 4
+  h.ownerDocument.activeElement = button
+  assert.equal(h.selection.capture(), null,
+    'Focused native control borrowed a stale selection from the containing author field')
+
+  h.ownerDocument.activeElement = field
+  assert.deepEqual(h.selection.capture(), {
+    anchor: { blockId: 'a', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'a', fieldKey: 'text', offset: 4 },
+  }, 'A legitimately focused authored field lost its logical selection')
+})
