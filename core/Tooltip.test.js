@@ -237,11 +237,13 @@ test('reentrant timer registration cannot replace the newest tooltip owner', () 
   tooltip.show(h.anchor, 'Obsolete')
   assert.deepEqual([...pending.keys()], [2],
     'a superseded registration left a stale tooltip timer alive')
-  pending.get(2)()
+  const current = pending.get(2)
+  pending.delete(2)
+  current()
   assert.equal(h.popup.children[0].textContent, 'Newest')
   tooltip.destroy()
-  assert.deepEqual([...pending.keys()], [2],
-    'an already fired callback should be outside pending host map only when its host retires it')
+  assert.deepEqual([...pending.keys()], [],
+    'destroy must not retain or recreate a superseded host timer')
 })
 
 test('destroy during timer registration does not leave a tooltip timer alive', () => {
