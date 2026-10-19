@@ -209,3 +209,26 @@ test('peek is an internal frozen identity while detached snapshot APIs remain is
   listed[0].data.text = 'consumer-list'
   assert.equal(store.peek('a').data.text, 'a')
 })
+test('semantically identical block updates leave a draft unchanged', () => {
+  const source = {
+    id: 'a', type: 'paragraph', dataVersion: 2,
+    data: { text: 'stable', nested: { first: 1, second: 2 } },
+  }
+  const store = new DocumentStore({ version: '2.0.0', blocks: [source] })
+  const current = store.peek('a')
+  const draft = store.createDraft()
+  draft.update('a', {
+    data: { nested: { second: 2, first: 1 }, text: 'stable' },
+    type: 'paragraph', dataVersion: 2, id: 'a',
+  })
+  assert.deepEqual(draft.changes, [],
+    'semantically equal JSON manufactured a block.update and an Undo step')
+  assert.equal(draft.peek('a'), current,
+    'an equal update unnecessarily replaced the canonical frozen record')
+  draft.update('a', {
+    ...source, data: { ...source.data, text: 'edited' },
+  })
+  assert.deepEqual(draft.changes.map(change => change.kind), ['block.update'])
+  assert.equal(draft.changes[0].before.data.text, 'stable')
+  assert.equal(draft.changes[0].after.data.text, 'edited')
+})
