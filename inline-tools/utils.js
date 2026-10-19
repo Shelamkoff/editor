@@ -407,18 +407,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       ? range.commonAncestorContainer
       : range.commonAncestorContainer.parentElement)
     if (walkRoot) {
-      const walker = editableTextWalker(walkRoot)
-      /** @type {{ node: Text, startOffset: number, endOffset: number }[]} */
-      const targets = []
-      while (walker.nextNode()) {
-        const textNode = /** @type {Text} */ (walker.currentNode)
-        if (!range.intersectsNode(textNode)) continue
-        let so = 0, eo = textNode.length
-        if (textNode === range.startContainer) so = range.startOffset
-        if (textNode === range.endContainer) eo = range.endOffset
-        if (so >= eo) continue
-        targets.push({ node: textNode, startOffset: so, endOffset: eo })
-      }
+      const targets = collectTextTargets(walkRoot, range)
       for (let i = targets.length - 1; i >= 0; i--) {
         const target = targets[i]
         if (!target) continue
