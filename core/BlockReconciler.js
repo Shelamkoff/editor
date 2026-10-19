@@ -9,6 +9,26 @@ import { synchronousResult } from '../shared/synchronousResult.js'
 
 const liveBlockRoots=new WeakMap()
 
+/** A target inside a control, widget or unregistered nested editing host may
+ * not borrow a surrounding author's field key. Its own registered field is
+ * still allowed and is checked before this boundary.
+ * @param {Node} target
+ */
+function isIndependentEditableBoundary(target) {
+  const element = /** @type {Element} */ (target)
+  if (typeof element?.tagName !== 'string') return false
+  const tag = element.tagName
+  if (['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(tag)) return true
+  if (element.hasAttribute?.('data-inline-plugin')
+    || /** @type {HTMLElement} */ (element).dataset?.inlinePlugin !== undefined) return true
+  if (['button', 'menuitem', 'option', 'textbox', 'combobox', 'listbox'].includes(
+    element.getAttribute?.('role') ?? '',
+  )) return true
+  const contentEditable = element.getAttribute?.('contenteditable')
+    ?? /** @type {HTMLElement} */ (element).contentEditable
+  return contentEditable === 'true' || contentEditable === 'false'
+}
+
 /** Restore only the host's original children after an aborted mount.
  * @param {HTMLElement} parent
  * @param {Node[]} expectedChildren
@@ -254,6 +274,11 @@ export class BlockReconciler {
     while (node && node !== this.#container) {
       const owner = this.#currentFieldOwner(node)
       if (owner) return owner
+      // Do not climb out of a native control or another editing host into
+      // the first ancestor field and treat the control's event/selection as
+      // authored text. A newly remounted registered input may still resolve
+      // after the on-demand field refresh below.
+      if (isIndependentEditableBoundary(node)) break
       node = node.parentNode
     }
     // Tabs and carousel navigation can replace presentation hosts without a
@@ -266,6 +291,7 @@ export class BlockReconciler {
       while (node && node !== entry.element) {
         const owner = this.#currentFieldOwner(node)
         if (owner) return owner
+        if (isIndependentEditableBoundary(node)) return null
         node = node.parentNode
       }
     }
