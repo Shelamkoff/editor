@@ -33,6 +33,10 @@ function compatibleUpdate(left, right) {
   return previous.kind === 'block.update'
     && next.kind === 'block.update'
     && previous.id === next.id
+    // Consecutive authoring edits must join at the exact canonical state.
+    // Identical origins/names alone do not make a disconnected transition
+    // one undo gesture; otherwise history silently skips an intervening edit.
+    && equalJsonValue(previous.after, next.before)
 }
 
 /**
