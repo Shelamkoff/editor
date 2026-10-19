@@ -3,6 +3,7 @@ import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
+import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { collectTextTargets, toggleTag } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
@@ -576,6 +577,53 @@ test('single-field inline tag formatting leaves embedded locked labels and nativ
     assert(!locked.closest('b') && !locked.querySelector('b'), 'Locked text was wrapped by surroundContents')
     assert(!action.closest('b') && !action.querySelector('b'), 'Native button was wrapped by surroundContents')
   } finally {
+    fixture.remove()
+  }
+})
+
+
+test('clearing bold preserves a locked descendant and native control inside a styled wrapper', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true"><b>alpha<span contenteditable="false"><i>LOCKED</i></span><button type="button"><i>ACTION</i></button>beta</b></div></div>'
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    const locked = field.querySelector('[contenteditable="false"]')
+    const button = field.querySelector('button')
+    const range = document.createRange()
+    range.setStart(field.querySelector('b').firstChild, 0)
+    range.setEnd(field.querySelector('b').lastChild, 4)
+    toggleTag('b', range)
+    equal(field.textContent, 'alphaLOCKEDACTIONbeta')
+    assert(locked.closest('b') !== null, 'Clear Bold removed the locked descendant’s inherited formatting')
+    assert(button.closest('b') !== null, 'Clear Bold removed the native button’s inherited formatting')
+    assert(locked.querySelector('i')?.textContent === 'LOCKED', 'Clear Bold mutated locked nested markup')
+    assert(button.querySelector('i')?.textContent === 'ACTION', 'Clear Bold mutated button nested markup')
+    assert(!field.firstChild?.matches?.('b') && !field.lastChild?.matches?.('b'), 'Clear Bold retained formatting on author text')
+    equal(field.textContent, 'alphaLOCKEDACTIONbeta', 'Clearing bold changed document text')
+  } finally { fixture.remove() }
+})
+
+test('clear formatting ignores styled labels inside protected controls when author text is plain', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true">alpha<span contenteditable="false"><b>LOCKED</b></span><button type="button"><i>ACTION</i></button>beta</div></div>'
+  document.body.append(fixture)
+  const field = fixture.querySelector('[contenteditable="true"]')
+  const locked = field.querySelector('[contenteditable="false"]')
+  const button = field.querySelector('button')
+  const range = document.createRange()
+  range.setStart(field.firstChild, 0)
+  range.setEnd(field.lastChild, field.lastChild.length)
+  const tool = createClearFormattingTool('Clear')
+  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+  try {
+    const initial = field.innerHTML
+    tool.toggle({ range })
+    equal(field.innerHTML, initial, 'Clear Formatting modified protected markup or newly formatted plain author text')
+    assert(locked.querySelector('b')?.textContent === 'LOCKED', 'Clear Formatting removed protected bold')
+    assert(button.querySelector('i')?.textContent === 'ACTION', 'Clear Formatting removed native button italic')
+  } finally {
+    tool.bindSelectionPort(null)
     fixture.remove()
   }
 })
