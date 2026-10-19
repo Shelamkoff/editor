@@ -217,10 +217,13 @@ export class InlineProjectionRuntime {
     const candidate=richTextFieldMap(definition,readData)
     const actual=mountedRichFields(fields,candidate)
     const serialized=new Map()
-    // Sidecar IDs are block-scoped, not limited to the field where the
-    // widget is mounted. A literal "{{id}}" in any sibling rich-text field
-    // must never become a second canonical reference after serialization.
-    const reservedInlineIds=Object.keys(object(record.inline))
+    // Mounted widget IDs are block-scoped, not field-scoped: a literal
+    // "{{id}}" typed in a sibling rich field must never become another widget.
+    // Do not reserve every sidecar ID here. An unloaded/unknown inline type
+    // intentionally has no mounted widget and is represented by its raw
+    // canonical {{id}} text; changing that reference into a literal would
+    // silently prune its opaque payload at the next canonical assembly.
+    const reservedInlineIds=this.#blocks.get(blockId)?.widgets.keys()??[]
 
     for(const [key,element] of actual){
       const html=this.#serializeField(blockId,element,reservedInlineIds)
