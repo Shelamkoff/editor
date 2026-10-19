@@ -1783,4 +1783,64 @@ test('reparented inline widgets inside native controls lose authored ownership',
   }
 })
 
+
+test('reentrant widget update cannot borrow an external DOM parent during hydration', () => {
+  const fixture=document.createElement('div')
+  fixture.innerHTML='<div contenteditable="true">A{{inline-1}}B</div>'
+  const external=document.createElement('section')
+  document.body.append(fixture,external)
+  const field=fixture.firstElementChild
+  let adoptDuringUpdate=false,updates=0
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const registry={
+    getInlineDefinition(type){
+      return type==='mention'?{schema:{decode(value){return value}}}:null
+    },
+    getInlineRuntime(type){
+      return type==='mention'?{create(_id,data){
+        const element=document.createElement('span')
+        element.textContent=data.name
+        return {element,setReadOnly(){},destroy(){},
+          update(next){
+            updates++
+            element.textContent=next.name
+            if(adoptDuringUpdate)external.append(element)
+          }}
+      }}:null
+    },
+  }
+  const projection=new InlineProjectionRuntime({registry,ownerDocument:document})
+  const initial={data:{text:'A{{inline-1}}B'},inline:{
+    'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}},
+  }}
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    projection.reconcileBlock('a',initial,definition,fields,context,
+      {preserveSourceProjection:true})
+    const original=field.querySelector('[data-inline-plugin="mention"]')
+    assert(original&&original.isConnected)
+    adoptDuringUpdate=true
+    const next={data:initial.data,inline:{
+      'inline-1':{type:'mention',dataVersion:1,data:{name:'Changed'}},
+    }}
+    let rejected=false
+    try{
+      projection.reconcileBlock('a',next,definition,fields,context)
+    }catch{rejected=true}
+    assert(rejected,'Hydration silently borrowed a widget from its external DOM owner')
+    equal(updates,1,'The reentrant plugin callback was not exercised')
+    assert(!field.contains(original),
+      'Hydration attached the externally adopted widget back into author text')
+    equal(projection.resolveWidgetElement(original),null,
+      'A failed projection retained the reparented widget authority')
+  }finally{
+    projection.destroy()
+    fixture.remove()
+    external.remove()
+  }
+})
+
 await run()
