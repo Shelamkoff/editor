@@ -70,6 +70,7 @@ class TestElement extends TestNode {
     this.attrs = new Map(Object.entries(attrs))
   }
   matches(selector) { return selectorMatches(this, selector) }
+  getAttribute(name) { return this.attrs.get(name) ?? null }
   closest(selector) {
     for (let node = this; node; node = node.parentNode) {
       if (node.nodeType === ELEMENT_NODE && node.matches(selector)) return node
