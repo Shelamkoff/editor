@@ -487,7 +487,8 @@ test('case transform changes authored cross-block text without rewriting native 
   const fixture = document.createElement('div')
   fixture.innerHTML = [
     '<div class="oe-block"><div contenteditable="true">alpha',
-    '<span contenteditable="false">locked label</span>beta</div></div>',
+    '<span contenteditable="false">locked label</span>beta',
+    '<button type="button">nested action</button></div></div>',
     '<button type="button">native action</button>',
     '<div class="oe-block"><div contenteditable="true">bravo</div></div>',
   ].join('')
@@ -496,7 +497,9 @@ test('case transform changes authored cross-block text without rewriting native 
   const first = fields[0]
   const second = fields[1]
   const locked = fixture.querySelector('[contenteditable="false"]')
-  const action = fixture.querySelector('button')
+  const nestedAction = first.querySelector('button')
+  const action = fixture.querySelector(':scope > button')
+  const suffix = locked.nextSibling
   const range = document.createRange()
   range.setStart(first.firstChild, 0)
   range.setEnd(second.firstChild, second.firstChild.length)
@@ -509,9 +512,10 @@ test('case transform changes authored cross-block text without rewriting native 
   try {
     tool.toggle({ range })
     equal(first.firstChild.data, 'ALPHA')
-    equal(first.lastChild.data, 'BETA')
+    equal(suffix.data, 'BETA')
     equal(second.textContent, 'BRAVO')
     equal(locked.textContent, 'locked label', 'case transform edited locked widget text')
+    equal(nestedAction.textContent, 'nested action', 'case transform edited a nested native button')
     equal(action.textContent, 'native action', 'case transform edited native control label')
   } finally {
     tool.bindSelectionPort(null)
