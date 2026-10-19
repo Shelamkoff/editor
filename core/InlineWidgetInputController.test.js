@@ -707,3 +707,36 @@ test('reentrant inline-controller destroy while claiming beforeinput prevents a 
     'destruction during the owning beforeinput callback allowed a later canonical edit')
   assert.equal(state.runtime.revision,oldRevision)
 })
+test('retired inline action producer cannot consume the original native beforeinput', () => {
+  let state
+  state = fixture(() => {
+    state.controller.destroy()
+    return {kind:'remove'}
+  })
+  const result = state.emit()
+  assert.equal(state.invokes, 1)
+  assert.equal(result.canceled, false,
+    'destroyed inline controller intercepted the native event after its plugin returned')
+  assert.equal(result.stopped, false)
+  assert.deepEqual(state.claimed, [])
+  assert.deepEqual(state.writes, [],
+    'retired plugin issued a canonical inline edit')
+})
+
+test('read-only round trip during an inline action producer cannot commit its old event', () => {
+  const state = fixture((_input, _data, runtime) => {
+    runtime.readOnly = true
+    runtime.modeEpoch++
+    runtime.readOnly = false
+    runtime.modeEpoch++
+    return {kind:'remove'}
+  })
+  const beforeRevision = state.runtime.revision
+  const result = state.emit()
+  assert.equal(result.canceled, false,
+    'inline event from prior control epoch suppressed native editing after mode replacement')
+  assert.equal(result.stopped, false)
+  assert.deepEqual(state.writes, [],
+    'a prior edit epoch performed an inline authoring transaction')
+  assert.equal(state.runtime.revision, beforeRevision)
+})
