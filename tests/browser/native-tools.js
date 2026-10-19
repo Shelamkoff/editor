@@ -2076,4 +2076,65 @@ test('typing the end of a literal inline ID cannot create a new owned reference'
     'A just-completed literal token was counted as an atomic inline widget')
 })
 
+
+test('multi-field save protects a literal ID owned by a widget in a sibling rich-text field', () => {
+  const first=document.createElement('div')
+  const second=document.createElement('div')
+  first.contentEditable='true'
+  second.contentEditable='true'
+  first.textContent='Question '
+  second.textContent='Answer {{inline-1}}'
+  document.body.append(first,second)
+  const record={
+    data:{question:'Question ',answer:'Answer {{inline-1}}'},
+    inline:{'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}}},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,question:visit(data.question,'question'),answer:visit(data.answer,'answer')}
+  }}}
+  const registry={
+    getInlineDefinition(type){return type==='mention'?{schema:{decode(value){return value}}}:null},
+    getInlineRuntime(type){return type==='mention'?{create(_id,data){
+      const element=document.createElement('span')
+      element.textContent=data.name
+      return {element,setReadOnly(){},destroy(){}}
+    }}:null},
+  }
+  const fields=[
+    {key:'question',mode:'rich-text',element:first},
+    {key:'answer',mode:'rich-text',element:second},
+  ]
+  const projection=new InlineProjectionRuntime({registry,ownerDocument:document})
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    const widget=second.querySelector('[data-inline-plugin="mention"]')
+    assert(widget&&projection.resolveWidgetElement(widget)===widget)
+    const literal=document.createTextNode('{{inline-1}}')
+    first.append(literal)
+    const saved=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(saved.data.question,
+      'Question <span class="oe-inline-literal">{{inline-1}}</span>',
+      'A literal typed in another field collided with the shared block inline ID')
+    equal(scanRichTextPlaceholders(saved.data.question,saved.inline,document).occurrences.size,0,
+      'A sibling field received a false inline reference')
+    equal(scanRichTextPlaceholders(saved.data.answer,saved.inline,document).occurrences.get('inline-1'),1,
+      'The actual widget reference was lost from its owning field')
+    assert(first.lastChild===literal,
+      'Serialization rewrote the real author DOM instead of its detached clone')
+
+    projection.reconcileBlock('a',{data:saved.data,inline:saved.inline},
+      definition,fields,context)
+    equal(first.querySelector('.oe-inline-literal')?.textContent,'{{inline-1}}')
+    const replayWidget=second.querySelector('[data-inline-plugin="mention"]')
+    assert(replayWidget&&projection.resolveWidgetElement(replayWidget)===replayWidget,
+      'Replay of a composite block lost its only inline widget')
+  }finally{
+    projection.destroy()
+    first.remove()
+    second.remove()
+  }
+})
+
 await run()
