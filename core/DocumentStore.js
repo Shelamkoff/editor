@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { equalJsonValue } from '../shared/jsonData.js'
 import { PersistentBlockMap } from './PersistentBlockMap.js'
 
 function freezeJson(value) {
@@ -181,7 +182,10 @@ export class DocumentDraft {
     if (!current) throw new Error(`Unknown block id: ${id}`)
     const next = ownBlock(input)
     if (next.id !== id) throw new Error('Block update cannot change block id')
-    if (next === current) return
+    // ownBlock() produces a detached clone, so reference equality here can
+    // never detect a genuine no-op. Canonical JSON equality disregards object
+    // property insertion order without hiding structural or data changes.
+    if (equalJsonValue(next, current)) return
     this.#blocks = this.#blocks.withSet(id, next)
     this.#changes.push({
       kind: 'block.update',
