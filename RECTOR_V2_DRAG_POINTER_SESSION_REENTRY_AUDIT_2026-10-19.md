@@ -52,7 +52,7 @@ A completed pointerup calls `#cancelSession(state)` to release browser pointer c
 ## Focused verification
 
 - Re-executed the **six new test bodies against the untouched starting production source** `ae09813a0b3a46549b2236c2fcae0ef618bc2f80`: **0/6 passed**, and each failed for the intended stale-pointer/session/listener/DOM behavior.
-- Re-executed all **18/18 test bodies** from `core/DragController.test.js` against the final fixed `core/DragController.js` source: **18 passed**, zero failures, 115 observed assertions in the first successful complete pass.
+- Re-executed all **18/18 test bodies** from `core/DragController.test.js` against the final fixed `core/DragController.js` source: **18 passed**, zero failures, **121 assertions** in the final full focused pass.
 - A focused regression of partial listener registration was separately checked on original and current source: original leaked capture, fixed version cleaned all listeners and capture.
 
 Test execution used the fetched actual DragController class and official test-body source in an **isolated V8 runner** with the repository's fake DOM adapted for AbortController and microtask scheduling. The Node.js `node --test` runner, actual browser PointerEvent/PointerCapture, TypeScript and package tests **were not run**. These remain local acceptance requirements and no overall stability or full v1/v2 behavioral parity is inferred.
