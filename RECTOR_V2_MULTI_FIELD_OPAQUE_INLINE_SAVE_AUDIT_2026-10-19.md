@@ -42,6 +42,19 @@ On the next `filterCanonicalInline()` pass it ceases to count as a reference and
 
 **Fix:** the shared block-wide reserved set contains **mounted widget IDs only**, not every sidecar key. Thus known mounted widgets cannot be duplicated via sibling literals, while unmounted/unknown references retain their current canonical raw tokens and sidecar ownership.
 
+## Finding MULTIFIELD-ITERATOR-3 — Map.keys() was exhausted by the first field (P2)
+
+The first mounted-widget fix used `this.#blocks.get(blockId)?.widgets.keys()` as the reserved ID iterable. `Map.prototype.keys()` returns a **single-use iterator**, while `#serializeField()` constructed a new Set from it on **every field**. The first serialized field consumed all keys; a second or later field could again emit an unmarked `{{inline-1}}` even though the live widget existed elsewhere in the block.
+
+**RED:** the actual provisional public `serializeBlock()` method was evaluated with a field serializer consuming its received iterable as the real private method does. Reversing the field list changed which field received the reserved ID. A public browser regression with reversed field descriptors was committed before the fix.
+
+**Fix:** materialize a single reusable `Set` of mounted widget IDs **once per block**, before looping through fields. Each `#serializeField()` creates an independent copy of that Set, making serialization order-independent without reintroducing the unloaded/opaque sidecar regression.
+
+**GREEN:** re-evaluating the exact current `serializeBlock()` method with the same consuming field method retained the reserved ID in both field orders.
+
+- [Field-order RED regression](https://github.com/Shelamkoff/editor/commit/6016cbcb24bd8b41851b9cba5098afcad8a72c19)
+- [Materialized Set fix](https://github.com/Shelamkoff/editor/commit/e84f0460fe4d8252e08e3169b86c8eb2d7016e87)
+
 ### TDD and independent verification
 
 | Test | Result | Evidence |
@@ -50,6 +63,7 @@ On the next `filterCanonicalInline()` pass it ceases to count as a reference and
 | Current cross-field serializer | **GREEN** | Actual current methods; Question `<span class="oe-inline-literal">{{inline-1}}</span>`, Answer one canonical token |
 | Provisional all-sidecar reservation with unloaded type | **RED** | Actual method bodies; unknown reference incorrectly marked literal |
 | Current unloaded inline reference | **GREEN** | Actual current methods; raw `{{opaque-1}}` and original opaque payload retained |
+| Reversed mounted-field iteration | **RED → GREEN** | Exact public source; reusable block-wide Set protects later fields |
 | Original DOM Text-node identity | **Preserved** | Source-backed detached-copy serialization |
 | New full-browser tests | **2 authored, not executed** | Public `InlineProjectionRuntime` multi-field and unloaded-extension test cases |
 | JavaScript parse | **5/5 passed** | Current projector, browser tests, shared rich-text, transforms and renderer parsed after ESM stripping |
@@ -64,6 +78,7 @@ The source-backed tests use actual fetched production method bodies, but their s
 - [First mounted/sidecar scope adjustment](https://github.com/Shelamkoff/editor/commit/dc998e1a15153b85699c8045b25d20d470b61425)
 - [Unknown/unloaded extension RED regression](https://github.com/Shelamkoff/editor/commit/2232ef08f281c7d0dee2e7344ecc14a02ea25149)
 - [Final mounted-block-ID solution](https://github.com/Shelamkoff/editor/commit/519e45fbdd45ab6112264db5d588536791db51e3)
+- [Final field-order-safe Set fix](https://github.com/Shelamkoff/editor/commit/e84f0460fe4d8252e08e3169b86c8eb2d7016e87)
 
 ## Next acceptance and remaining risk
 
