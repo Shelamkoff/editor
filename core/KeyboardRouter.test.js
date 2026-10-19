@@ -87,7 +87,7 @@ function harness({ reportError, inlineCommands = null, crossSelection = null, in
       ...extra,
     }
   }
-  return { router, runtime, calls, viewCalls, event, selection, reconciler, setBookmark: value => { bookmark = value }, field, owner, root, records }
+  return { router, runtime, calls, view, viewCalls, event, selection, reconciler, setBookmark: value => { bookmark = value }, field, owner, root, records }
 }
 
 test('Enter delegates an editable split to one runtime transaction', () => {
@@ -688,4 +688,62 @@ test('shortcut selection capture that destroys the owner cannot dispatch a canon
   assert.equal(event.prevented, false,
     'retired keyboard event consumed a key it no longer owns')
   h.router.destroy()
+})
+test('appendDefault does not touch a retired view after cross-selection cleanup destroys the router', () => {
+  let h
+  let oldToolbarCleanup = 0
+  const crossSelection = {
+    clear() { h.router.destroy() },
+  }
+  h = harness({
+    crossSelection,
+    inlineToolbar: { hide() { oldToolbarCleanup++ } },
+  })
+  h.runtime.health = 'ready'
+  h.runtime.size = h.records.length
+  h.runtime.isEmpty = () => true
+  assert.equal(h.router.appendDefault(), false)
+  assert.equal(oldToolbarCleanup, 0,
+    'a destroyed keyboard owner still hid a separate toolbar presentation')
+  assert.deepEqual(h.viewCalls, [], 'a destroyed keyboard owner focused an old block')
+})
+
+test('undo reconciliation teardown does not focus an already retired keyboard root', () => {
+  const h = harness()
+  const document = h.root.ownerDocument
+  document.body = {}
+  document.activeElement = document.body
+  h.root.contains = node => node === document.body
+  let staleFocuses = 0
+  h.root.focus = () => { staleFocuses++ }
+  h.view.reconcileInteraction = () => h.router.destroy()
+  const event = h.event('z', { ctrlKey: true })
+  h.router.handleKeydown(event)
+  assert.deepEqual(h.calls, [['undo']], 'test never reached the canonical undo')
+  assert.equal(staleFocuses, 0,
+    'a detached keyboard owner moved focus after a post-replay observer destroyed it')
+})
+
+test('arrow navigation never focuses a block after setCurrent publishes a newer author choice', () => {
+  for (const key of ['ArrowUp', 'ArrowDown']) {
+    const h = harness()
+    const atEnd = key === 'ArrowDown'
+    if (atEnd) h.field.value = 'B'
+    const offset = atEnd ? 1 : 0
+    h.setBookmark({
+      anchor: { blockId: 'b', fieldKey: 'text', offset },
+      focus: { blockId: 'b', fieldKey: 'text', offset },
+    })
+    let attemptedFocus = 0
+    h.view.setCurrent = id => {
+      // A synchronous selection subscriber chooses a different block before
+      // the older keydown continuation can call focus().
+      h.view.currentId = id === 'a' ? 'c' : 'a'
+    }
+    h.view.focus = () => { attemptedFocus++; return true }
+    h.router.handleKeydown(h.event(key))
+    assert.equal(attemptedFocus, 0,
+      key + ' stole focus after a newer explicit author selection')
+    h.router.destroy()
+  }
 })
