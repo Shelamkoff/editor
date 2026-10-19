@@ -375,14 +375,16 @@ export class EditorRenderer {
     // between API validation and this render's owning snapshot.
     const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
     const ownerDocument = globalThis.document
-    this.#ensureStyles(ownerDocument)
-    const wrapper = ownerDocument.createElement('div')
-    const theme = this.#config.theme
-    wrapper.className = this.#contentClassName(theme)
-
     /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
     const created = []
     try {
+      // Style acquisition and wrapper creation are one provisional lease.
+      // Even an early DOM allocation failure leaves no detached result to
+      // own the stylesheet references acquired immediately beforehand.
+      this.#ensureStyles(ownerDocument)
+      const wrapper = ownerDocument.createElement('div')
+      const theme = this.#config.theme
+      wrapper.className = this.#contentClassName(theme)
       if (blocks.length) {
         for (const block of blocks) {
           const entry = this.#createRenderedBlock(block, ownerDocument)
@@ -390,14 +392,13 @@ export class EditorRenderer {
           wrapper.appendChild(entry.element)
         }
       }
+      this.#detachedDocuments.set(wrapper, created)
+      return wrapper
     } catch (error) {
       for (const entry of created) this.#disposeRenderedElement(entry)
       this.#releaseAutomaticStylesIfIdle()
       throw error
     }
-
-    this.#detachedDocuments.set(wrapper, created)
-    return wrapper
   }
 
   /**
@@ -571,6 +572,16 @@ export class EditorRenderer {
       // failure cannot roll back an otherwise successful DOM transaction.
       try { this.#ensureStyles(ownerDocument) }
       catch (error) { console.warn('[EditorRenderer] Failed to refresh styles after render:', error) }
+    } catch (error) {
+      // A failed initial renderTo() may have acquired styles before its
+      // wrapper existed or before block staging acquired any live results.
+      // Preserve styles used by existing mounts or reentrant independent
+      // outputs, but release every now-unowned provisional document lease.
+      try { this.#releaseAutomaticStylesIfIdle() }
+      catch (failure) {
+        throw new AggregateError([error, failure], 'Renderer failed and style release was incomplete')
+      }
+      throw error
     } finally {
       this.#renderingContainers.delete(container)
       this.#activeRenderToCount--
