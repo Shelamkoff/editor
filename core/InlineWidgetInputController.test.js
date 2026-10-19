@@ -740,3 +740,32 @@ test('read-only round trip during an inline action producer cannot commit its ol
     'a prior edit epoch performed an inline authoring transaction')
   assert.equal(state.runtime.revision, beforeRevision)
 })
+test('deferred inline caret cannot write after its widget resolver destroys the owner', async () => {
+  const state = fixture(() => ({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
+  state.field.ownerDocument = state.root.ownerDocument
+  let nativeWrites = 0
+  const label = state.widget.firstChild
+  const native = {
+    anchorNode:label,focusNode:label,anchorOffset:3,focusOffset:3,
+    setBaseAndExtent() { nativeWrites++ },
+  }
+  state.root.ownerDocument.defaultView.getSelection = () => native
+  const resolve = state.projection.resolveWidgetElement
+  let retiredDuringResolve = false
+  const priorRevision = state.runtime.revision
+  state.projection.resolveWidgetElement = node => {
+    if (state.runtime.revision > priorRevision && !retiredDuringResolve) {
+      retiredDuringResolve = true
+      state.controller.destroy()
+    }
+    return resolve(node)
+  }
+  assert.equal(state.emit().canceled, true)
+  assert.equal(state.runtime.revision, priorRevision + 1,
+    'the controlled inline edit was not committed before delayed focus')
+  await Promise.resolve()
+  assert.equal(retiredDuringResolve, true, 'deferred widget resolver was not exercised')
+  assert.equal(nativeWrites, 0,
+    'resolver destroyed inline scope but an obsolete native selection was still restored')
+  assert.deepEqual(state.writes.filter(x => x[0] === 'caret'), [])
+})
