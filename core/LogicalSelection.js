@@ -45,6 +45,21 @@ export class LogicalSelection {
       return null
     }
 
+    if (!activeOwner && active && active !== document.body
+      && active !== document.documentElement) {
+      // External buttons/inputs and independently focused editor controls
+      // can retain a native Selection pointing at old author text. The
+      // current focus, not that stale Range, owns this author gesture.
+      const node = /** @type {HTMLElement} */ (active)
+      const auxiliary = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(node.tagName)
+        || node.isContentEditable === true
+        || ['button', 'menuitem', 'option', 'textbox', 'combobox', 'listbox'].includes(
+          node.getAttribute?.('role') ?? '',
+        )
+      const outside = !this.#root.contains(active)
+      if (document.activeElement !== active || outside || auxiliary) return null
+    }
+
     if (activeOwner && activeOwner.mode === 'plain-text') {
       // Read each native property once; DOM getters can reenter a focus event.
       const startOffset=active.selectionStart
