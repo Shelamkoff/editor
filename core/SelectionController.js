@@ -173,12 +173,24 @@ export class SelectionController {
   selectBlocks(ids) {
     if (this.#controller.signal.aborted) return false
     if (!Array.isArray(ids)) throw new TypeError('Selected block ids must be an array')
+    const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch
+    const owned = () => !this.#controller.signal.aborted
+      && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch
     for (const id of ids) {
+      if (!owned()) return false
       if (typeof id !== 'string' || !this.#runtime.has(id)) throw new Error(`Unknown block id: ${id}`)
+      // The ID membership check may destroy the editor or replace its model.
+      if (!owned()) return false
     }
+    if (!owned()) return false
     this.#dragStart = null
     this.#navigationX = null
     this.#deactivate({ clearBlocks: false })
+    if (!owned()) return false
     this.#view.select(ids)
   }
 
@@ -280,31 +292,41 @@ export class SelectionController {
 
   activate(range) {
     if (this.#controller.signal.aborted || !range || range.collapsed) return false
+    const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch
+    const owned = () => !this.#controller.signal.aborted
+      && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch
     const start = this.#logicalPoint(range.startContainer, range.startOffset)
+    if (!owned()) return false
     const end = this.#logicalPoint(range.endContainer, range.endOffset)
-    if (
-      !start
-      || !end
-      || (start.blockId === end.blockId && start.fieldKey === end.fieldKey)
-    ) return false
+    if (!owned() || !start || !end
+      || (start.blockId === end.blockId && start.fieldKey === end.fieldKey)) return false
 
     const native = this.#window?.getSelection?.() ?? null
+    if (!owned()) return false
     const nativeAnchor = native?.anchorNode
       ? this.#logicalPoint(native.anchorNode, native.anchorOffset)
       : null
+    if (!owned()) return false
     const nativeFocus = native?.focusNode
       ? this.#logicalPoint(native.focusNode, native.focusOffset)
       : null
+    if (!owned()) return false
     const nativeRange = native?.rangeCount ? native.getRangeAt(0) : null
+    if (!owned()) return false
     const matchesNative = nativeRange
       && nativeRange.compareBoundaryPoints(0, range) === 0
       && nativeRange.compareBoundaryPoints(2, range) === 0
+    if (!owned()) return false
     const bookmark = matchesNative && nativeAnchor && nativeFocus
       ? { anchor: nativeAnchor, focus: nativeFocus }
       : { anchor: start, focus: end }
 
     this.#activate(bookmark, range)
-    return true
+    return owned()
   }
 
   deactivate() {
