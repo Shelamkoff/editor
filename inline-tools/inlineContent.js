@@ -45,11 +45,10 @@ export function normalizeAuthoredText(root) {
   if (element.closest(NATIVE_OWNER_SELECTOR)) return
 
   const nearest = element.closest('[contenteditable]')
-  if (!nearest) {
-    // A cross-block selection can use an editor shell as its walk root.
-    // Do not normalize its toolbar, block chrome or other static UI. Visit
-    // only actual author fields, traversing contenteditable=false plugin
-    // containers without normalizing their own text.
+  if (!nearest || nearest.getAttribute('contenteditable') !== 'true') {
+    // The walk root may be an editor shell or a contenteditable=false block
+    // shell containing legitimate nested author fields. Never edit text in
+    // that shell itself; discover only explicit true editing hosts beneath it.
     /** @param {Element} parent */
     const visitHosts = parent => {
       for (const node of Array.from(parent.childNodes)) {
