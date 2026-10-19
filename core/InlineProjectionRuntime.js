@@ -237,9 +237,17 @@ export class InlineProjectionRuntime {
     // not reserve that ID in the owning field itself: unloaded inline types
     // intentionally retain an unmounted raw reference and opaque sidecar.
     const canonicalOwners=new Map()
+    const inlineSource=object(record.inline)
     for(const [fieldKey,html] of canonical){
-      const refs=scanRichTextPlaceholders(html,object(record.inline),this.#ownerDocument).references
+      const refs=scanRichTextPlaceholders(html,inlineSource,this.#ownerDocument).references
       for(const id of refs)if(!canonicalOwners.has(id))canonicalOwners.set(id,fieldKey)
+    }
+    // Sidecars without any schema-declared canonical reference are not
+    // permission to reinterpret a freshly typed "{{id}}" as a new widget.
+    // Reserve those orphan IDs in every mounted author field. Canonical
+    // assembly may then prune the truly unreferenced payload after editing.
+    for(const id of Object.keys(inlineSource)){
+      if(!canonicalOwners.has(id))reservedInlineIds.add(id)
     }
 
     for(const [key,element] of actual){
