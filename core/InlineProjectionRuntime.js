@@ -623,6 +623,12 @@ export class InlineProjectionRuntime {
         // occurrence is already mounted elsewhere. Never move that occurrence
         // during source reconciliation before the next canonical Save.
         if(canonicalOwners.size&&canonicalOwners.get(id)!==fieldKey)continue
+        // Only one source token can become the canonical widget occurrence.
+        // Newly created roots are first held by the fragment, not the field,
+        // so belongsToAuthorField() alone cannot detect a duplicate match in
+        // the same Text node or a later Text leaf. Preserve further matches
+        // verbatim as author text instead of creating orphan widget DOM.
+        if(live.has(id)||liveOpaque.has(id))continue
         const type=typeof ref.type==='string'?ref.type:''
         // A live owned occurrence already represents this canonical inline
         // reference. A user may also type the literal "{{id}}" into adjacent
