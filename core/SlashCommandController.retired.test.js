@@ -74,3 +74,108 @@ test('Slash retained keyboard and scroll callbacks do not recreate menu after te
   assert.equal(h.controller.isOpen, false)
   h.controller.destroy()
 })
+test('failed Slash command metadata preparation leaves no orphan menu', () => {
+  let attached = false, removed = 0
+  const menu = {
+    style: {},
+    setAttribute() {},
+    replaceChildren() {},
+    remove() { attached = false; removed++ },
+  }
+  const document = {
+    defaultView: { AbortController },
+    createElement() { return menu },
+    addEventListener() {},
+  }
+  const root = {
+    ownerDocument: document,
+    appendChild(node) { assert.equal(node, menu); attached = true },
+    addEventListener() {},
+  }
+  assert.throws(() => new SlashCommandController({
+    root, runtime: { readOnly: false },
+    registry: {
+      blockTypes: ['paragraph'], inlineTypes: [],
+      getBlockDefinition() {
+        return { type: 'paragraph', label: { key: 'name', fallback: 'Paragraph' } }
+      },
+    },
+    reconciler: {}, selection: {}, view: {}, inlineCommands: {},
+    translate() { throw new Error('locale provider failed') },
+  }), /locale provider failed/)
+  assert.equal(attached, false,
+    'failed item preparation left a menu without any destroyable controller')
+  assert.equal(removed, 1, 'failed Slash menu was not disposed exactly once')
+})
+
+test('failed Slash listener registration releases menu and partially added listeners', () => {
+  let attached = false, removed = 0
+  const listeners = new Map()
+  const menu = {
+    style: {}, setAttribute() {}, replaceChildren() {},
+    remove() { attached = false; removed++ },
+  }
+  const attach = (type, callback, options = {}) => {
+    const callbacks = listeners.get(type) ?? []
+    callbacks.push(callback)
+    listeners.set(type, callbacks)
+    options.signal?.addEventListener?.('abort', () => {
+      listeners.set(type, (listeners.get(type) ?? []).filter(fn => fn !== callback))
+    })
+    if (type === 'keydown') throw new Error('slash listener host failed')
+  }
+  const document = {
+    defaultView: { AbortController, addEventListener: attach },
+    createElement() { return menu },
+    addEventListener: attach,
+  }
+  const root = {
+    ownerDocument: document,
+    appendChild() { attached = true },
+    addEventListener: attach,
+  }
+  assert.throws(() => new SlashCommandController({
+    root, runtime: { readOnly: false },
+    registry: { blockTypes: [], inlineTypes: [] },
+    reconciler: {}, selection: {}, view: {}, inlineCommands: {},
+  }), /slash listener host failed/)
+  assert.equal(attached, false, 'failed constructor retained an orphan menu')
+  assert.equal(removed, 1)
+  assert.deepEqual([...listeners.values()].flat(), [],
+    'failed constructor retained native handlers without a controller to destroy')
+})
+
+test('Slash input owner resolver cannot continue after destroying its editor', () => {
+  const callbacks = new Map()
+  let reads = 0, controller
+  const menu = { style: {}, setAttribute() {}, replaceChildren() {}, remove() {} }
+  const document = {
+    defaultView: { AbortController },
+    createElement() { return menu },
+    addEventListener() {},
+  }
+  const root = {
+    ownerDocument: document,
+    appendChild() {},
+    addEventListener(type, callback) { callbacks.set(type, callback) },
+  }
+  controller = new SlashCommandController({
+    root, runtime: { readOnly: false },
+    registry: { blockTypes: [], inlineTypes: [] },
+    reconciler: {
+      resolveEditableTarget() {
+        controller.destroy()
+        return { mode: 'rich-text', blockId: 'a', fieldKey: 'text', element: {} }
+      },
+    },
+    selection: {
+      capture() { reads++; throw new Error('destroyed Slash controller read selection') },
+    },
+    view: {}, inlineCommands: {},
+  })
+  assert.doesNotThrow(() => callbacks.get('input')({
+    target: {}, isComposing: false,
+  }), 'an obsolete Slash input handler continued through native selection')
+  assert.equal(reads, 0)
+  assert.equal(controller.isOpen, false)
+})
