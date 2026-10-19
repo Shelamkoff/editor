@@ -957,7 +957,7 @@ function crossSelectionPointerReentryHarness(retireOn) {
     },
   }
   controller = new SelectionController({ root, runtime, reconciler, view })
-  return { controller, handlers, documentHandlers, runtime, view, field }
+  return { controller, handlers, documentHandlers, runtime, reconciler, view, field }
 }
 
 test('selection mousedown cannot reopen drag after its point resolver destroys the owner', () => {
@@ -997,19 +997,34 @@ test('selectBlocks lookup cannot revive a selection after synchronous controller
 })
 
 test('public cross-selection activation cannot publish after its endpoint resolver destroys owner', () => {
-  const h = crossSelectionPointerReentryHarness('point')
-  // The native range is already captured before plugin/DOM endpoint lookup;
-  // resolving its first point can still destroy the selection owner.
-  const node = h.field.childNodes[0]
+  const h = crossSelectionPointerReentryHarness('none')
+  // A cross-block range was already captured, but the first mounted-field
+  // lookup can synchronously destroy the selection controller.
+  const first = h.field.childNodes[0]
+  const second = { nodeType: 3, data: 'World', textContent: 'World', previousSibling: null }
+  const fieldB = {
+    childNodes: [second],
+    contains(node) { return node === second },
+  }
+  second.parentNode = fieldB
+  h.runtime.ids = () => ['a', 'b']
+  h.runtime.indexOf = id => id === 'a' ? 0 : 1
+  h.reconciler.resolveEditableTarget = node => {
+    if (node === first) {
+      h.controller.destroy()
+      return { blockId: 'a', fieldKey: 'text', element: h.field }
+    }
+    return { blockId: 'b', fieldKey: 'text', element: fieldB }
+  }
   const range = {
     collapsed: false,
-    startContainer: node, startOffset: 1,
-    endContainer: node, endOffset: 3,
+    startContainer: first, startOffset: 1,
+    endContainer: second, endOffset: 3,
     cloneRange() { return this },
   }
-  const outcome = h.controller.activate(range)
-  assert.equal(outcome, false,
-    'a retired controller accepted a native range with no live selection owner')
-  assert.equal(h.controller.active, false)
+  assert.equal(h.controller.activate(range), false,
+    'a retired controller accepted a cross-block native range with no live owner')
+  assert.deepEqual(h.view.selectedIds, [],
+    'stale selection activation published blocks after owner teardown')
   h.controller.destroy()
 })
