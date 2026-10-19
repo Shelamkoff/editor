@@ -5,7 +5,8 @@ import { createDefaultInlineTools } from '../../preset/index.js'
 import { LogicalSelection } from '../../core/LogicalSelection.js'
 import { NativeInputController } from '../../core/NativeInputController.js'
 import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
-import { scanRichTextPlaceholders, getRichTextLogicalLength } from '../../shared/richTextOperations.js'
+import { scanRichTextPlaceholders, getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, remapRichTextReferences } from '../../shared/richTextOperations.js'
+import { renderInlineWidgets } from '../../renderer/inlineWidgets.js'
 import { normalizeRichText } from '../../shared/richTextCodec.js'
 import { InlineWidgetInputController } from '../../core/InlineWidgetInputController.js'
 import { KeyboardRouter } from '../../core/KeyboardRouter.js'
@@ -1906,6 +1907,45 @@ test('canonical save and replay distinguish literal inline IDs from owned occurr
     project.destroy()
     field.remove()
   }
+})
+
+
+test('canonical literal inline markers remain plain text through transforms and read-only rendering', () => {
+  const ref='{{inline-1}}'
+  const literal='<span class="oe-inline-literal">{{inline-1}}</span>'
+  const inline={'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}}}
+  const html='A'+ref+'B'+literal
+  const scan=scanRichTextPlaceholders(html,inline,document)
+  equal(scan.occurrences.get('inline-1'),1,
+    'Literal marker counted as another owned canonical reference')
+  assert(scan.literals.has('inline-1'),'Literal marker was not reserved as author text')
+  equal(getRichTextLogicalLength(html,inline,document),15,
+    'Literal marker incorrectly consumed one widget caret unit')
+  equal(replaceRichTextReference(html,inline,'inline-1',''), 'AB'+literal,
+    'Removing an inline widget also deleted the author literal')
+  const moved=remapRichTextReferences(html,inline,new Map([['inline-1','remapped']]),document)
+  equal(moved,'A{{remapped}}B'+literal,
+    'Inline ID remapping modified literal author text')
+
+  const inserted=replaceRichTextRange('A'+ref+'B',inline,{start:3,end:3},
+    {kind:'text',text:ref},document)
+  equal(inserted,'A'+ref+'B'+literal,
+    'Inserting a literal token acquired the existing inline widget ID')
+
+  const template=document.createElement('template')
+  template.innerHTML=html
+  const rendered=renderInlineWidgets(template.content,inline,
+    new Map([['mention',{schema:{decode(value){return value}},
+      render(_id,data){
+        const span=document.createElement('span')
+        span.className='rendered-mention'
+        span.textContent=data.name
+        return span
+      }}]]),document)
+  equal(rendered.querySelectorAll('.rendered-mention').length,1,
+    'Renderer projected a literal token as a second widget')
+  equal(rendered.querySelector('.oe-inline-literal')?.textContent,ref,
+    'Renderer erased the authored literal marker')
 })
 
 await run()
