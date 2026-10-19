@@ -558,9 +558,11 @@ export class InlineProjectionRuntime {
     const richFields=mountedRichFields(fields,canonical)
     const inline=object(record.inline)
     const counts=new Map()
-    for(const html of canonical.values()){
+    const canonicalOwners=new Map()
+    for(const [fieldKey,html] of canonical){
       for(const [id,count] of scanRichTextPlaceholders(html,inline,this.#ownerDocument).occurrences){
         counts.set(id,(counts.get(id)??0)+count)
+        if(!canonicalOwners.has(id))canonicalOwners.set(id,fieldKey)
       }
     }
     const live=new Set()
@@ -576,7 +578,7 @@ export class InlineProjectionRuntime {
         element.replaceChildren(...template.content.childNodes)
       }
 
-      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque)
+      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners)
       projectRichTextCaretPadding(element)
     }
 
@@ -592,7 +594,7 @@ export class InlineProjectionRuntime {
     }
   }
 
-  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set()){
+  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map()){
     const textNodes=[]
     const walker=this.#ownerDocument.createTreeWalker(element,4)
     let current=walker.nextNode()
@@ -616,6 +618,11 @@ export class InlineProjectionRuntime {
         const id=match[1]
         const ref=Object.hasOwn(inline,id)?inline[id]:undefined
         if(!ref||typeof ref!=='object'||Array.isArray(ref)||counts.get(id)!==1)continue
+        // Canonical inline IDs belong to a specific rich field. An author may
+        // type matching "{{id}}" text in a sibling field while the one real
+        // occurrence is already mounted elsewhere. Never move that occurrence
+        // during source reconciliation before the next canonical Save.
+        if(canonicalOwners.size&&canonicalOwners.get(id)!==fieldKey)continue
         const type=typeof ref.type==='string'?ref.type:''
         // A live owned occurrence already represents this canonical inline
         // reference. A user may also type the literal "{{id}}" into adjacent
@@ -768,7 +775,8 @@ export class InlineProjectionRuntime {
     for(const entry of state.opaque.values()){
       if(entry.fieldKey!==fieldKey)continue
       const ref=Object.hasOwn(inline,entry.id)?inline[entry.id]:null
-      if(!ref||ref.type!==entry.type||counts.get(entry.id)!==1)continue
+      if(!ref||ref.type!==entry.type||counts.get(entry.id)!==1
+        ||(canonicalOwners.size&&canonicalOwners.get(entry.id)!==fieldKey))continue
       if(belongsToAuthorField(element,entry.element)){
         entry.fieldElement=element
         liveOpaque.add(entry.id)
@@ -783,7 +791,8 @@ export class InlineProjectionRuntime {
       if(entry.fieldKey!==fieldKey)continue
       const canonicalRef=Object.hasOwn(inline,entry.id)?inline[entry.id]:null
       if(!canonicalRef||typeof canonicalRef!=='object'||Array.isArray(canonicalRef)
-        ||canonicalRef.type!==entry.type||counts.get(entry.id)!==1)continue
+        ||canonicalRef.type!==entry.type||counts.get(entry.id)!==1
+        ||(canonicalOwners.size&&canonicalOwners.get(entry.id)!==fieldKey))continue
       if(belongsToAuthorField(element,entry.element)){
         this.#markWidget(entry)
         entry.fieldElement=element
