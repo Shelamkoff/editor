@@ -21,6 +21,22 @@ function isUpperCase(text) {
   return letters.length > 0 && letters === letters.toUpperCase()
 }
 
+/** Only authored editing-host text may be mutated by a case command.
+ * Native controls can occur inside contenteditable fields and a cross-block
+ * range can intersect labels between fields; neither owns authored text.
+ * @param {Text} node
+ * @returns {boolean}
+ */
+function isAuthoredCaseText(node) {
+  const parent = node.parentElement
+  const nearestHost = parent?.closest('[contenteditable]')
+  if (!nearestHost || nearestHost.getAttribute('contenteditable') !== 'true') return false
+  const block = closestBlock(node)
+  if (!block || editableAtBoundary(block, node, 0)?.element !== nearestHost) return false
+  const native = parent.closest('button, input, textarea, select, option, [data-inline-plugin], [role="button"]')
+  return !native || !nearestHost.contains(native)
+}
+
 /** @typedef {{ node: Text, start: number, end: number }} CaseTarget */
 
 /** Convert continuous logical text, not each formatting node independently.
@@ -105,7 +121,7 @@ export function createCaseTransformTool(label) {
 
       while (walker.nextNode()) {
         const node = /** @type {Text} */ (walker.currentNode)
-        if (!range.intersectsNode(node)) continue
+        if (!range.intersectsNode(node) || !isAuthoredCaseText(node)) continue
         let start = 0
         let end = node.length
         if (node === range.startContainer) start = range.startOffset
