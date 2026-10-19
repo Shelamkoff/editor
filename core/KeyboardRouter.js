@@ -78,7 +78,13 @@ export class KeyboardRouter {
     // is revoked. A terminal keyboard owner may not consume native keys.
     if (this.#controller.signal.aborted || this.#runtime.readOnly || event?.defaultPrevented || event?.isComposing || event?.keyCode === 229 || this.#isComposing()) return
 
+    const ownerModeEpoch = this.#runtime.modeEpoch
+    const stillOwnKey = () => this.#canPresent()
+      && this.#runtime.modeEpoch === ownerModeEpoch
     const ownership = this.#ownership(event)
+    // A target resolver may synchronously retire the keyboard owner or
+    // replace control mode while returning its previously valid field.
+    if (!stillOwnKey()) return
     if (ownership.kind === 'outside' || ownership.kind === 'auxiliary-native') return
 
     let keys
@@ -92,7 +98,7 @@ export class KeyboardRouter {
       try{this.#reportError(error)}catch{}
       return
     }
-    if (!this.#canPresent()) return
+    if (!stillOwnKey()) return
     const key = keys.key
     const lower = shortcutKey(keys)
     const mod = keys.metaKey || keys.ctrlKey
@@ -105,17 +111,22 @@ export class KeyboardRouter {
 
       if (lower === 'a' && !keys.shiftKey && ownership.owner) {
         if (this.#crossSelection?.wholeBlockIds?.length) {
+          if (!stillOwnKey()) return
           this.#crossSelection.clear()
           // Native Ctrl+A selects text in the focused editing host again.
           return
         }
         const owner = ownership.owner
         const bookmark = this.#selection.capture()
+        if (!stillOwnKey()) return
         const range = sameEditableRange(bookmark, owner)
         if (
           this.#crossSelection?.active
           || (range && (range.start !== range.end || fieldLength(owner) === 0))
         ) {
+          // Reading field size and selection state may invoke host getters.
+          // Never claim a whole-block selection with a retired key lease.
+          if (!stillOwnKey()) return
           if (this.#crossSelection?.selectAllBlocks()) event.preventDefault?.()
           return
         }
