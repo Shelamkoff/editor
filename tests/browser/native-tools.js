@@ -1931,6 +1931,10 @@ test('canonical literal inline markers remain plain text through transforms and 
     {kind:'text',text:ref},document)
   equal(inserted,'A'+ref+'B'+literal,
     'Inserting a literal token acquired the existing inline widget ID')
+  const pasted=replaceRichTextRange('A'+ref+'B',inline,{start:3,end:3},
+    {kind:'html',html:'<b>'+ref+'</b>'},document)
+  equal(pasted,'A'+ref+'B<b>'+literal+'</b>',
+    'Pasted literal placeholder text was interpreted as a widget reference')
 
   const template=document.createElement('template')
   template.innerHTML=html
