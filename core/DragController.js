@@ -251,6 +251,16 @@ export class DragController {
       state.spacerParent=null
       throw error
     }
+    // DOM insertion can synchronously destroy this drag or install a
+    // successor pointer owner without throwing. Its provisional spacer must
+    // not survive that callback, nor may we detach an adopted foreign node.
+    if(!this.#current(state)){
+      state.spacerParent=null
+      if(spacer.parentNode===parent){
+        try{spacer.remove?.()}catch{}
+      }
+      return
+    }
     state.spacerParent=spacer.parentNode===parent?parent:null
   }
 
@@ -271,24 +281,37 @@ export class DragController {
     const targetIndex=resolveDragGap(order,state.sourceId,state)
     const currentIndex=this.#runtime.indexOf(state.sourceId)
     this.#cancelSession(state)
+    // The capture-release callback may have opened a newer pointer session.
+    // Only that successor owns the drag now: no commit or click suppression
+    // may be published by the older pointerup continuation.
+    if(this.#session)return
     // Lost pointer capture is dispatched synchronously. A host callback may
     // destroy the editor, change read-only mode, or replace the projected block
     // during releasePointerCapture(). Revalidate before touching canonical data.
-    if(this.#destroyed||this.#runtime.readOnly
+    if(this.#destroyed||this.#session||this.#runtime.readOnly
       ||this.#runtime.generation!==state.generation
       ||this.#runtime.revision!==state.revision
       ||this.#runtime.modeEpoch!==state.modeEpoch
       ||!this.#runtime.has(state.sourceId)
       ||this.#view.element(state.sourceId)!==state.element)return
     if(!this.#suppressNextClick())return
+    if(this.#session){
+      // A new pointerdown during suppression installation replaces the old
+      // click owner; do not leave an obsolete listener in front of its click.
+      this.#clearClickSuppression()
+      return
+    }
     // Installing a click suppression listener is itself a host callback seam.
     // Teardown/read-only/projection changes can happen synchronously there.
-    if(this.#destroyed||this.#runtime.readOnly
+    if(this.#destroyed||this.#session||this.#runtime.readOnly
       ||this.#runtime.generation!==state.generation
       ||this.#runtime.revision!==state.revision
       ||this.#runtime.modeEpoch!==state.modeEpoch
       ||!this.#runtime.has(state.sourceId)
-      ||this.#view.element(state.sourceId)!==state.element)return
+      ||this.#view.element(state.sourceId)!==state.element){
+      this.#clearClickSuppression()
+      return
+    }
 
     if(currentIndex<0||targetIndex===currentIndex)return
     this.#runtime.move(state.sourceId,targetIndex)
