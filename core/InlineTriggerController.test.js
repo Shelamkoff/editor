@@ -79,9 +79,11 @@ function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
     contains(node){return node===label},
   }
   const document={
-    defaultView:{AbortController,getSelection(){return {focusNode:label,focusOffset:1}}},
+    defaultView:{AbortController,getSelection(){return hooks.getSelection
+      ? hooks.getSelection(label) : {focusNode:label,focusOffset:1}}},
     createRange(){return {
-      selectNodeContents(){},setEnd(){},toString(){return '@'},
+      selectNodeContents(){},setEnd(){},
+      toString(){return hooks.textBeforeCaret?.() ?? '@'},
     }},
     addEventListener(type, callback){documentEvents.set(type, callback)},
   }
@@ -546,4 +548,27 @@ test('failed inline trigger listener registration aborts every partially install
   }), /keydown registration failed after insertion/)
   assert.deepEqual([...listeners.values()].flat(), [],
     'construction failure left event handlers with no destroyable controller')
+})
+test('inline query preflight must not publish a stale trigger when the caret moves during range capture', () => {
+  for (const variant of ['selection-lost', 'prefix-changed']) {
+    let nativeReads = 0, prefixReads = 0
+    const h = triggerScenario(null, () => 'pass', () => false, {
+      getSelection(label) {
+        nativeReads++
+        if (variant === 'selection-lost' && nativeReads === 2) return null
+        return { focusNode: label, focusOffset: 1 }
+      },
+      textBeforeCaret() {
+        prefixReads++
+        if (variant === 'prefix-changed' && prefixReads === 2) return '@another'
+        return '@'
+      },
+    })
+    assert.equal(h.controller.refresh(), false,
+      variant + ' opened a query after its native selection/prefix was superseded')
+    assert.equal(h.controller.isActive, false)
+    assert.deepEqual(h.calls.filter(call => call === 'query'), [],
+      variant + ' published an extension query with an already stale caret')
+    h.controller.destroy()
+  }
 })
