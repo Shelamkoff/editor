@@ -2,6 +2,7 @@ import { createParagraphPlugin, createHeadingPlugin } from '../../plugins/index.
 import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
+import { LogicalSelection } from '../../core/LogicalSelection.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
@@ -1130,6 +1131,47 @@ test('cross-block text walker excludes static editor chrome outside authored fie
       'Cross-block text traversal included static toolbar, block or status labels')
     equal(firstTextNode(fixture), fixture.querySelector('[data-first]').firstChild)
     equal(lastTextNode(fixture), fixture.querySelector('[data-second]').firstChild)
+  } finally { fixture.remove() }
+})
+
+
+test('native button focus cannot capture the retained author range as a logical bookmark', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true">Alpha<button type="button">Action</button></div></div>'
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    const button = fixture.querySelector('button')
+    const content = field.firstChild
+    const owner = { blockId: 'a', fieldKey: 'text', element: field, mode: 'rich-text' }
+    const reconcile = {
+      resolveEditableTarget(target) {
+        for (let node = target; node && node !== fixture; node = node.parentNode) {
+          if (node === button) return null
+          if (node === field) return owner
+        }
+        return null
+      },
+      resolveBlockTarget(target) { return fixture.contains(target) ? 'a' : null },
+      getEditableFields(id) { return id === 'a' ? [{ key: 'text', element: field, mode: 'rich-text' }] : [] },
+      getElement(id) { return id === 'a' ? fixture.firstElementChild : null },
+    }
+    const selection = new LogicalSelection({ root: fixture, reconciler: reconcile })
+    const native = window.getSelection()
+    field.focus()
+    native.setBaseAndExtent(content, 1, content, 4)
+    button.focus()
+    assert(document.activeElement === button, 'Native button did not acquire focus')
+    equal(native.toString(), 'lph',
+      'The browser no longer retained the native author selection needed for this regression')
+    equal(selection.capture(), null,
+      'An auxiliary button captured an older author selection while it owned focus')
+    field.focus()
+    native.setBaseAndExtent(content, 1, content, 4)
+    equal(selection.capture(), {
+      anchor: { blockId: 'a', fieldKey: 'text', offset: 1 },
+      focus: { blockId: 'a', fieldKey: 'text', offset: 4 },
+    }, 'The author field lost its valid selection after control focus was released')
   } finally { fixture.remove() }
 })
 
