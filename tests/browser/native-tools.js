@@ -3,6 +3,7 @@ import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
+import { collectTextTargets } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
@@ -503,6 +504,11 @@ test('case transform changes authored cross-block text without rewriting native 
   const range = document.createRange()
   range.setStart(first.firstChild, 0)
   range.setEnd(second.firstChild, second.firstChild.length)
+  equal(
+    collectTextTargets(fixture, range).map(({ node, startOffset, endOffset }) => node.data.slice(startOffset, endOffset)),
+    ['alpha', 'beta', 'bravo'],
+    'shared target collection included locked fields or native control labels',
+  )
   const tool = createCaseTransformTool('Toggle case')
   tool.bindSelectionPort({
     get range() { return range },
