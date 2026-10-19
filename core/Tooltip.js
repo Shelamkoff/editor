@@ -79,7 +79,9 @@ export class Tooltip {
     if (this.#destroyed) return
     const epoch = ++this.#timerEpoch
     this.#pendingAnchor = anchor
-    this.#timer = this.#window.setTimeout(() => {
+    let fired = false
+    const timer = this.#window.setTimeout(() => {
+      fired = true
       // A queued callback may still arrive after cancellation or teardown.
       // It cannot clear its successor's timer or restore stale ARIA state.
       if (this.#destroyed || epoch !== this.#timerEpoch) return
@@ -117,6 +119,15 @@ export class Tooltip {
       ids.add(this.#element.id)
       anchor.setAttribute('aria-describedby', [...ids].join(' '))
     }, 500)
+    // A timer host can synchronously reenter show() or destroy() before
+    // returning the handle. Never replace the newer presentation's lease.
+    if (this.#destroyed || epoch !== this.#timerEpoch) {
+      try { this.#window.clearTimeout(timer) } catch {}
+      return
+    }
+    // Custom timer hosts can fire while registering; a completed callback is
+    // not a pending timer and must not be resurrected by its outer caller.
+    if (!fired) this.#timer = timer
   }
 
   hide() {
