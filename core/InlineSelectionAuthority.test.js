@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { InlineSelectionAuthority } from './InlineSelectionAuthority.js'
 
-function fixture() {
+function fixture({ onReadSelection = null } = {}) {
   const ownerDocument = {
     createRange() {
       return {
@@ -72,7 +72,10 @@ function fixture() {
     root,
     runtime,
     reconciler,
-    readSelection: () => ({ range, bookmark }),
+    readSelection: () => {
+      onReadSelection?.()
+      return { range, bookmark }
+    },
     restoreSelection(value) { applied.push(value); return true },
     lease: () => lease,
     canAccess: () => access,
@@ -371,23 +374,26 @@ test('inline selection resolution cannot return a range after its preparation re
     'a retired plugin was handed a fresh editable DOM range')
 })
 
-test('inline range access cannot return a selection after the native selection reader retires it', () => {
+test('inline range access cannot return a selection after native read revokes its owner', () => {
+  let state
+  state = fixture({ onReadSelection: () => state.port.revoke() })
+  state.port.activate()
+  assert.equal(state.port.range, null,
+    'the native reader retired the authority but a range was still returned')
+})
+
+test('inline token validity cannot survive revocation from an endpoint check', () => {
   const state = fixture()
   state.port.activate()
-  const currentRange = state.port.range
-  assert.ok(currentRange)
-  const currentHealth = state.runtime.health
-  // A live selection callback may synchronously revoke its owner while the
-  // caller is still resolving the current native range.
-  let reads = 0
-  Object.defineProperty(state.runtime, 'health', {
-    configurable: true,
-    get() {
-      reads++
-      if (reads === 2) state.port.revoke()
-      return currentHealth
-    },
-  })
-  assert.equal(state.port.range, null,
-    'reentrant selection read returned an obsolete range')
+  const token = state.port.capture()
+  assert.ok(token)
+  const closest = state.field.closest
+  let invoked = 0
+  state.field.closest = (...args) => {
+    if (++invoked === 1) state.port.revoke()
+    return closest.apply(state.field, args)
+  }
+  assert.equal(state.port.isValid(token), false,
+    'endpoint metadata observer retired the owner while its old token stayed valid')
+  assert.equal(invoked > 0, true)
 })
