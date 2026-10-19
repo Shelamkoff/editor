@@ -9,7 +9,7 @@ class FakeRoot {
   addEventListener(type, handler) { this.listeners.set(type, handler) }
 }
 
-function harness({ reportError, inlineCommands = null, crossSelection = null } = {}) {
+function harness({ reportError, inlineCommands = null, crossSelection = null, inlineToolbar = null } = {}) {
   const root = new FakeRoot()
   const field = { value: '', parentNode: null }
   const owner = { blockId: 'b', fieldKey: 'text', element: field, mode: 'plain-text' }
@@ -73,6 +73,7 @@ function harness({ reportError, inlineCommands = null, crossSelection = null } =
   }
   const router = new KeyboardRouter({ root, runtime, registry, reconciler, selection, view,
     inlineCommands,
+    inlineToolbar,
     crossSelection,
     ...(reportError ? { reportError } : {}),
   })
@@ -86,7 +87,7 @@ function harness({ reportError, inlineCommands = null, crossSelection = null } =
       ...extra,
     }
   }
-  return { router, runtime, calls, viewCalls, event, selection, setBookmark: value => { bookmark = value }, field, owner, root, records }
+  return { router, runtime, calls, viewCalls, event, selection, reconciler, setBookmark: value => { bookmark = value }, field, owner, root, records }
 }
 
 test('Enter delegates an editable split to one runtime transaction', () => {
@@ -645,5 +646,46 @@ test('Ctrl+A cannot overwrite a newer mode decision made during selection captur
   assert.deepEqual(calls, [],
     'Ctrl+A selected blocks using a selection that belonged to a retired mode')
   assert.equal(key.prevented, false)
+  h.router.destroy()
+})
+test('failed inline-toolbar shortcut cannot replay history after its callback replaces edit mode', () => {
+  let changeMode
+  const h = harness({
+    inlineToolbar: {
+      handleShortcut() {
+        changeMode()
+        return false
+      },
+    },
+  })
+  changeMode = () => { h.runtime.modeEpoch += 2 }
+  h.owner.mode = 'rich-text'
+  h.root.contains = node => node === h.field
+  h.field.closest = selector => selector === '[contenteditable="true"]' ? h.field : null
+  const event = h.event('z', { ctrlKey: true })
+  h.router.handleKeydown(event)
+  assert.deepEqual(h.calls, [],
+    'a toolbar callback retired the key but an old Mod+Z still replayed canonical history')
+  assert.equal(event.prevented, false)
+  h.router.destroy()
+})
+
+test('shortcut selection capture that destroys the owner cannot dispatch a canonical edit', () => {
+  const h = harness()
+  let reads = 0
+  const bookmark = h.selection.capture()
+  h.selection.capture = () => {
+    if (++reads === 2) h.router.destroy()
+    return bookmark
+  }
+  let attempted = 0
+  h.runtime.prepareShortcutAction = () => ({ kind: 'update', data: { text: 'Modified after destroy' } })
+  h.runtime.update = () => { attempted++; return true }
+  const event = h.event('x')
+  h.router.handleKeydown(event)
+  assert.equal(reads, 2, 'test did not enter the protected shortcut-selection capture')
+  assert.equal(attempted, 0, 'a retired keyboard command still invoked the canonical author update')
+  assert.equal(event.prevented, false,
+    'retired keyboard event consumed a key it no longer owns')
   h.router.destroy()
 })
