@@ -29,12 +29,12 @@ function isOutsideLogicalText(node, root) {
     || (node !== root && (editable === 'true' || element.hasAttribute?.('contenteditable')))
 }
 
-/**
- Walk logical leaves without entering inline widgets.
+/** Walk logical leaves without entering inline widgets or nested editors.
  * @param {Node} root
+ * @param {Node} [ownerRoot] Editing host that owns these offsets.
  * @returns {Generator<Node>}
  */
-function* positionNodes(root) {
+function* positionNodes(root, ownerRoot = root) {
   const stack = [root]
   while (stack.length) {
     const node = stack.pop()
@@ -44,7 +44,7 @@ function* positionNodes(root) {
       yield node
       continue
     }
-    if (isOutsideLogicalText(node, root)) continue
+    if (isOutsideLogicalText(node, ownerRoot)) continue
     if (node.nodeType === TEXT_NODE) yield node
     else {
       for (let index = node.childNodes.length - 1; index >= 0; index--) {
@@ -54,14 +54,19 @@ function* positionNodes(root) {
   }
 }
 
-/** UTF-16 text units, with one unit per BR or atomic inline widget.
+/** @param {Node} root @param {Node} ownerRoot */
+function textLengthWithin(root, ownerRoot) {
+  let length = 0
+  for (const node of positionNodes(root, ownerRoot)) length += isAtomic(node) ? 1 : (node.textContent?.length ?? 0)
+  return length
+}
+
+/** UTF-16 authored text units, with one unit per BR or atomic inline widget.
  * @param {Node} root
  * @returns {number}
  */
 export function getTextLength(root) {
-  let length = 0
-  for (const node of positionNodes(root)) length += isAtomic(node) ? 1 : (node.textContent?.length ?? 0)
-  return length
+  return textLengthWithin(root, root)
 }
 
 /** Determine whether a logical UTF-16 offset divides a surrogate pair.
@@ -157,15 +162,15 @@ export function getTextOffset(container, targetNode, targetOffset) {
   }
   let offset = 0
   if (targetNode.nodeType === TEXT_NODE || isAtomic(targetNode)) {
-    offset = Math.max(0, Math.min(targetOffset, getTextLength(targetNode)))
+    offset = Math.max(0, Math.min(targetOffset, textLengthWithin(targetNode, container)))
   } else {
     for (let index = 0; index < Math.min(targetOffset, targetNode.childNodes.length); index++) {
-      offset += getTextLength(targetNode.childNodes[index])
+      offset += textLengthWithin(targetNode.childNodes[index], container)
     }
   }
   for (let node = targetNode; node && node !== container; node = node.parentNode) {
     for (let sibling = node.previousSibling; sibling; sibling = sibling.previousSibling) {
-      offset += getTextLength(sibling)
+      offset += textLengthWithin(sibling, container)
     }
   }
   return offset
