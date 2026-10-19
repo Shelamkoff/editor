@@ -5,6 +5,8 @@ import { createDefaultInlineTools } from '../../preset/index.js'
 import { LogicalSelection } from '../../core/LogicalSelection.js'
 import { NativeInputController } from '../../core/NativeInputController.js'
 import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
+import { scanRichTextPlaceholders, getRichTextLogicalLength } from '../../shared/richTextOperations.js'
+import { normalizeRichText } from '../../shared/richTextCodec.js'
 import { InlineWidgetInputController } from '../../core/InlineWidgetInputController.js'
 import { KeyboardRouter } from '../../core/KeyboardRouter.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
@@ -1840,6 +1842,69 @@ test('reentrant widget update cannot borrow an external DOM parent during hydrat
     projection.destroy()
     fixture.remove()
     external.remove()
+  }
+})
+
+
+test('canonical save and replay distinguish literal inline IDs from owned occurrences', () => {
+  const field=document.createElement('div')
+  field.contentEditable='true'
+  field.textContent='A{{inline-1}}B'
+  document.body.append(field)
+  const initial={data:{text:'A{{inline-1}}B'},inline:{
+    'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}},
+  }}
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  let mounts=0
+  const registry={
+    getInlineDefinition(type){
+      return type==='mention'?{schema:{decode(value){return value}}}:null
+    },
+    getInlineRuntime(type){
+      return type==='mention'?{create(_id,data){
+        mounts++
+        const element=document.createElement('span')
+        element.contentEditable='false'
+        element.textContent=data.name
+        return {element,setReadOnly(){},destroy(){}}
+      }}:null
+    },
+  }
+  const project=new InlineProjectionRuntime({registry,ownerDocument:document})
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    project.reconcileBlock('a',initial,definition,fields,context,
+      {preserveSourceProjection:true})
+    const widget=field.querySelector('[data-inline-plugin="mention"]')
+    assert(widget && project.resolveWidgetElement(widget)===widget)
+    const literal=document.createTextNode('{{inline-1}}')
+    field.append(literal)
+    const saved=project.serializeBlock('a',initial,definition,fields,initial.data)
+    const html=saved.data.text
+    equal(scanRichTextPlaceholders(html,saved.inline,document).occurrences.get('inline-1'),1,
+      'A user-typed literal reference was mistaken for a second canonical widget')
+    assert(html.includes('oe-inline-literal'),
+      'Canonical HTML lacks a reversible literal-token distinction')
+    equal(getRichTextLogicalLength(html,saved.inline,document),1+1+1+12,
+      'A literal token incorrectly acquired atomic widget length')
+    equal(normalizeRichText(html,document),html,
+      'Literal-token representation is unstable under canonical sanitization')
+
+    project.reconcileBlock('a',{data:{text:html},inline:saved.inline},
+      definition,fields,context)
+    const replay=field.querySelectorAll('[data-inline-plugin="mention"]')
+    equal(replay.length,1,'Undo/replay created a duplicate widget from a literal token')
+    assert(replay[0].isConnected && project.resolveWidgetElement(replay[0])===replay[0],
+      'Replayed canonical occurrence lost its owned DOM')
+    const remaining=field.querySelector('.oe-inline-literal')
+    assert(remaining && remaining.textContent==='{{inline-1}}',
+      'Literal reference characters were lost on canonical replay')
+  }finally{
+    project.destroy()
+    field.remove()
   }
 })
 
