@@ -153,7 +153,14 @@ export class SlashCommandController {
       && !this.#runtime.readOnly && this.#runtime.modeEpoch === epoch
       && this.#session === prior && this.#itemsVersion === itemsVersion
     if (this.#runtime.readOnly || event.isComposing || this.#isComposing()) {
-      if (stillOwned()) this.close()
+      // Read-only state itself makes stillOwned() false, but an open menu
+      // must still be dismissed. Only retire the ingress session if no
+      // newer callback has replaced its owner in the meantime.
+      if (!this.#controller.signal.aborted
+        && this.#runtime.modeEpoch === epoch
+        && this.#session === prior && this.#itemsVersion === itemsVersion) {
+        this.close()
+      }
       return
     }
     if (!stillOwned()) return
