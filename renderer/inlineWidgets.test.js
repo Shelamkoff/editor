@@ -48,6 +48,20 @@ function harness(render, { registered = true } = {}) {
   return { invoke: () => renderInlineWidgets(fragment, inline, registry, ownerDocument), token, fragment, ownerDocument }
 }
 
+test('literal inline text markers never render as widgets with colliding sidecar IDs', () => {
+  let rendered = 0
+  const probe = harness(() => { rendered++; return new FakeElement() })
+  probe.token.data = '{{one}}'
+  probe.token.parentElement = {
+    closest(selector) {
+      return selector.includes('span.oe-inline-literal') ? this : null
+    },
+  }
+  assert.equal(probe.invoke(), probe.fragment)
+  assert.equal(rendered, 0, 'literal token was rendered as a widget')
+  assert.equal(probe.token.replaced, null, 'literal text was removed from its author span')
+})
+
 test('a registered inline renderer cannot silently leave the widget placeholder visible', () => {
   const probe = harness(() => null)
   assert.throws(probe.invoke, /must return an HTMLElement/)
