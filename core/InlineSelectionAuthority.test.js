@@ -397,3 +397,30 @@ test('inline token validity cannot survive revocation from an endpoint check', (
     'endpoint metadata observer retired the owner while its old token stayed valid')
   assert.equal(invoked > 0, true)
 })
+test('inline restore cannot move native selection after its final reader revokes authority', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  const normalPrepare = state.runtime.prepareExtensionValue
+  const oldClosest = state.field.closest
+  let revokedDuringFinalRead = false
+  state.runtime.prepareExtensionValue = operation => {
+    const result = normalPrepare(operation)
+    // The candidate has been calculated, but its final native-selection
+    // verification has not yet begun.
+    state.field.closest = (...args) => {
+      if (!revokedDuringFinalRead) {
+        revokedDuringFinalRead = true
+        state.port.revoke()
+      }
+      return oldClosest.apply(state.field, args)
+    }
+    return result
+  }
+  assert.equal(state.port.restore(token), false,
+    'a native selection read revoked the owner immediately before stale focus restoration')
+  assert.equal(revokedDuringFinalRead, true)
+  assert.deepEqual(state.applied, [],
+    'a callback moved the caret after its owning inline presentation was destroyed')
+})
