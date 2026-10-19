@@ -86,9 +86,12 @@ function closestInEditable(el, selector) {
  */
 function mergeAdjacentTags(parent, tagName) {
   if (!parent || parent.nodeType !== ELEMENT_NODE) return
-  if (/** @type {Element} */ (parent).closest(
-    '[data-inline-plugin], [contenteditable="false"], button, input, textarea, select, option, [role="button"]',
-  )) return
+  const element = /** @type {Element} */ (parent)
+  // Only an actual editing host owns author formatting. Static editor chrome
+  // and controls must not have their wrappers merged by cross-block edits.
+  if (element.closest('[data-inline-plugin], button, input, textarea, select, option, [role="button"]')) return
+  const host = element.closest('[contenteditable]')
+  if (!host || host.getAttribute('contenteditable') !== 'true') return
   const upper = tagName.toUpperCase()
   // Normalize first so empty text nodes between elements are removed
   normalizeAuthoredText(parent)
@@ -462,14 +465,10 @@ export function collectTextTargets(walkRoot, range) {
  * @returns {void}
  */
 export function normalizeAfterEdit(singleCe, walkRoot) {
-  if (singleCe) {
-    normalizeAuthoredText(singleCe)
-  } else {
-    // Nested false hosts and native controls own their own text nodes.
-    // Resolve real editable hosts rather than all [contenteditable] nodes.
-    const fields = walkRoot.querySelectorAll('[contenteditable="true"]')
-    for (const field of fields) normalizeAuthoredText(field)
-  }
+  // The shared host traversal selects top-level authoring fields once.
+  // querySelectorAll('[contenteditable=true]') independently normalized nested
+  // editable islands, even when their owner was the outer field's plugin.
+  normalizeAuthoredText(singleCe ?? walkRoot)
 }
 
 /**
