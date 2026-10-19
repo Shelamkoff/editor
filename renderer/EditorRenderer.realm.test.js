@@ -180,3 +180,35 @@ test('failed renderTo wrapper creation releases styles without retaining the con
     renderer.destroy()
   }
 })
+test('failed independent renderer output preserves styles held by a live mount', async () => {
+  const { EditorRenderer } = await import('./EditorRenderer.js')
+  const { ownerDocument, links } = createRealm()
+  const container = ownerDocument.createElement('main')
+  const originalCreate = ownerDocument.createElement
+  const previousDocument = globalThis.document
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: true })
+  try {
+    renderer.renderTo({ version: '2.0.0', blocks: [] }, container)
+    assert.ok(links.length > 0)
+    assert.equal(links.some(link => link.removed), false)
+    ownerDocument.createElement = function (tagName) {
+      if (tagName === 'div') throw new Error('independent output allocation failed')
+      return originalCreate.call(this, tagName)
+    }
+    globalThis.document = ownerDocument
+    assert.throws(
+      () => renderer.render({ version: '2.0.0', blocks: [] }),
+      /independent output allocation failed/,
+    )
+    assert.equal(links.some(link => link.removed), false,
+      'rollback removed stylesheet links still required by an existing mount')
+    assert.equal(container.children.length, 1,
+      'failed independent detached render displaced a previously mounted editor')
+
+    renderer.destroy(container)
+    assert.equal(links.every(link => link.removed), true)
+  } finally {
+    renderer.destroy()
+    globalThis.document = previousDocument
+  }
+})
