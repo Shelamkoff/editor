@@ -120,3 +120,33 @@ test('prepared replay does not move cursor until commit', () => {
   assert.equal(history.canUndo, false)
   assert.equal(history.canRedo, true)
 })
+test('typing coalescence requires contiguous canonical before and after snapshots', () => {
+  const history = new HistoryStore()
+  history.push(record(1, 'first', 'second'))
+  const stale = history.prepareRecord(record(2, 'unrelated', 'third'), { coalesce: true })
+  assert.equal(stale.coalesced, false,
+    'an incompatible before snapshot was joined to an earlier history record')
+  stale.commit()
+  assert.equal(history.undoDepth, 2,
+    'nonadjacent changes lost their independent undo boundary')
+  history.commitUndo()
+  assert.equal(history.peekUndo().changes[0].after.data.text, 'second')
+  assert.equal(history.peekRedo().changes[0].before.data.text, 'unrelated')
+})
+
+test('typing coalescence compares canonical JSON values without object key order', () => {
+  const history = new HistoryStore()
+  const earlier = record(1, 'first', 'second')
+  earlier.changes[0].after.data.metadata = { a: 1, b: 2 }
+  earlier.changes[0].before.data.metadata = { a: 1, b: 2 }
+  const later = record(2, 'second', 'third')
+  later.changes[0].before.data.metadata = { b: 2, a: 1 }
+  later.changes[0].after.data.metadata = { b: 2, a: 1 }
+  history.push(earlier)
+  const prepared = history.prepareRecord(later, { coalesce: true })
+  assert.equal(prepared.coalesced, true,
+    'equivalent canonical JSON states should remain one undo gesture')
+  prepared.commit()
+  assert.equal(history.undoDepth, 1)
+  assert.equal(history.peekUndo().changes[0].after.data.text, 'third')
+})
