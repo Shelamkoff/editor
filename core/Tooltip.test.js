@@ -341,3 +341,27 @@ test('tooltip child replacement reentry cannot display an obsolete owner', () =>
   assert.equal(successor.getAttribute('aria-describedby'), h.popup.id)
   tooltip.destroy()
 })
+test('tooltip ARIA read reentry cannot assign a retired description', () => {
+  const h = tooltipHarness()
+  const successor = boundAnchor({ left: 140, width: 50, top: 40, bottom: 60, height: 20 })
+  h.root.contains = node => node === h.anchor || node === successor
+  const tooltip = new Tooltip(h.root)
+  const getAttribute = h.anchor.getAttribute
+  let reentered = false
+  h.anchor.getAttribute = name => {
+    if (name === 'aria-describedby' && !reentered) {
+      reentered = true
+      tooltip.show(successor, 'Newest')
+    }
+    return getAttribute(name)
+  }
+  tooltip.show(h.anchor, 'Retired')
+  h.callbacks[0]()
+  assert.equal(reentered, true)
+  assert.equal(h.anchor.getAttribute('aria-describedby'), null,
+    'stale ARIA description was published after a successor tooltip was acquired')
+  h.callbacks[1]()
+  assert.equal(h.popup.children[0].textContent, 'Newest')
+  assert.equal(successor.getAttribute('aria-describedby'), h.popup.id)
+  tooltip.destroy()
+})
