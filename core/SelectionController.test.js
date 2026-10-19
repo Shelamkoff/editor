@@ -894,3 +894,90 @@ test('cross-block IME stage cannot supersede a selection accepted during old ran
   assert.deepEqual(h.view.selectedIds,['b'])
   h.controller.destroy()
 })
+test('failed cross-selection event registration releases all partially installed listeners', () => {
+  const registrations = new Map()
+  const add = (type, callback, options = {}) => {
+    const current = registrations.get(type) ?? []
+    current.push(callback)
+    registrations.set(type, current)
+    options.signal?.addEventListener?.('abort', () => {
+      registrations.set(type, (registrations.get(type) ?? []).filter(item => item !== callback))
+    })
+    if (type === 'selectionchange') throw new Error('selection listener host failed')
+  }
+  const document = { defaultView: { AbortController }, addEventListener: add }
+  const root = { ownerDocument: document, addEventListener: add }
+  assert.throws(() => new SelectionController({
+    root, runtime: {}, reconciler: {}, view: {},
+  }), /selection listener host failed/)
+  assert.deepEqual([...registrations.values()].flat(), [],
+    'failed SelectionController constructor retained native DOM listeners')
+})
+
+function crossSelectionPointerReentryHarness(retireOn) {
+  const handlers = new Map(), documentHandlers = new Map()
+  const text = { nodeType: 3, textContent: 'Hello', data: 'Hello', previousSibling: null }
+  const field = {
+    nodeType: 1, childNodes: [text],
+    contains(node) { return node === text || node === this },
+    getBoundingClientRect() {
+      if (retireOn === 'geometry') controller.destroy()
+      return { left: 0, right: 100, top: 0, bottom: 30, width: 100, height: 30 }
+    },
+  }
+  text.parentNode = field
+  const document = {
+    defaultView: { AbortController },
+    addEventListener(type, fn) { documentHandlers.set(type, fn) },
+    caretPositionFromPoint() { return { offsetNode: text, offset: 1 } },
+  }
+  const root = {
+    ownerDocument: document,
+    contains(node) { return node === field || node === text },
+    classList: { add() {}, remove() {} },
+    addEventListener(type, fn) { handlers.set(type, fn) },
+  }
+  const runtime = {
+    readOnly: false, health: 'ready', generation: 1, revision: 0, modeEpoch: 0,
+    ids() { return ['a'] }, indexOf() { return 0 },
+  }
+  const view = {
+    clearSelection() {},
+    select() {},
+  }
+  let controller
+  const reconciler = {
+    resolveEditableTarget() {
+      if (retireOn === 'point') controller.destroy()
+      return { blockId: 'a', fieldKey: 'text', mode: 'rich-text', element: field }
+    },
+    getEditableFields() {
+      return [{ blockId: 'a', key: 'text', mode: 'rich-text', element: field }]
+    },
+  }
+  controller = new SelectionController({ root, runtime, reconciler, view })
+  return { controller, handlers, documentHandlers, runtime, field }
+}
+
+test('selection mousedown cannot reopen drag after its point resolver destroys the owner', () => {
+  const h = crossSelectionPointerReentryHarness('point')
+  h.handlers.get('mousedown')({
+    button: 0, clientX: 2, clientY: 2, target: h.field,
+  })
+  assert.equal(h.controller.dragging, false,
+    'retired native mouse event issued a new logical drag session')
+  h.controller.destroy()
+})
+
+test('selection mousemove cannot touch canceled drag after geometry callback destroys the owner', () => {
+  const h = crossSelectionPointerReentryHarness('geometry')
+  h.handlers.get('mousedown')({
+    button: 0, clientX: 2, clientY: 2, target: h.field,
+  })
+  assert.equal(h.controller.dragging, true, 'initial drag did not start')
+  assert.doesNotThrow(() => h.documentHandlers.get('mousemove')({
+    buttons: 1, clientX: 8, clientY: 10,
+    preventDefault() {},
+  }), 'retired drag continued reading its now-cleared pointer state')
+  assert.equal(h.controller.dragging, false)
+})
