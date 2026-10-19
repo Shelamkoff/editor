@@ -595,6 +595,40 @@ test('a later native selection change revokes queued inline caret restoration',a
   assert.equal(state.writes.filter(call=>call[0]==='caret').length,0)
 })
 
+
+test('new native-control focus cancels a deferred inline caret even when selection stays unchanged',async()=>{
+  for(const action of [
+    {kind:'update',data:{id:'ada',name:'Ad'},caret:3},
+    {kind:'remove',caret:0},
+  ]){
+    const state=fixture(()=>action)
+    state.field.ownerDocument=state.root.ownerDocument
+    const document=state.root.ownerDocument
+    document.activeElement=state.widget
+    let nativeCaretWrites=0
+    const label=state.widget.firstChild
+    const native={
+      isCollapsed:true,
+      anchorNode:label,focusNode:label,
+      anchorOffset:3,focusOffset:3,
+      setBaseAndExtent(){nativeCaretWrites++},
+    }
+    document.defaultView.getSelection=()=>native
+    assert.equal(state.emit().canceled,true)
+    assert.equal(state.runtime.revision,3,
+      'The author operation must commit before focus handoff')
+    const button={nodeType:1,tagName:'BUTTON'}
+    document.activeElement=button
+    await Promise.resolve()
+    assert.equal(nativeCaretWrites,0,
+      'A queued inline action moved native selection after button acquired focus')
+    assert.deepEqual(state.writes.filter(call=>call[0]==='caret'),[],
+      'A queued inline action reclaimed a caret from another control')
+    assert.equal(document.activeElement,button,
+      'A queued inline action replaced the author\'s newer focus')
+  }
+})
+
 test('unchanged native selection permits the just-accepted inline caret result',async()=>{
   const state=fixture(()=>({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
   state.field.ownerDocument=state.root.ownerDocument
