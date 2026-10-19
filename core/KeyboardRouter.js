@@ -340,6 +340,11 @@ export class KeyboardRouter {
     const element = /** @type {Element} */ (target)
     const widget=this.#reconciler.resolveInlineWidgetElement?.(target)
     if(widget){
+      // Native controls inside a widget own their keyboard history. They
+      // cannot replay canonical Undo merely because the enclosing widget
+      // participates in author content.
+      const native=element.closest?.('input, textarea, select, button, [role="button"]')
+      if(native && widget.contains(native))return {kind:'auxiliary-native',owner:null}
       const control=element.closest?.('input, textarea, select, [contenteditable="true"]')
       if(!control||!widget.contains(control))return {kind:'editor-chrome',owner:null}
     }
@@ -348,6 +353,11 @@ export class KeyboardRouter {
     }
     if (element.closest?.('.oe-toolbar, .oe-inline-toolbar, .oe-toolbox, .oe-settings-menu, .oe-slash-menu')) {
       return { kind: 'editor-chrome', owner: null }
+    }
+    // A button in a block's non-editable chrome is an auxiliary native
+    // control. Explicit toolbar chrome remains a document-history owner.
+    if(element.closest?.('button, [role="button"]')) {
+      return {kind:'auxiliary-native',owner:null}
     }
     if (
       this.#reconciler.resolveBlockTarget(target)
