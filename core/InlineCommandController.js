@@ -30,7 +30,7 @@ export class InlineCommandController {
       const trailingText = this.#runtime.prepareExtensionValue(
         () => definition.insertion?.trailingText ?? '',
       )
-      if (!this.#canRestoreCaret(caretLease)) return false
+      if (!this.#canRestoreCaret(caretLease) || !this.#stillSelected(target)) return false
       return this.#insertWidget(type, target, explicitData, trailingText)
     }
 
@@ -51,7 +51,7 @@ export class InlineCommandController {
     })
     // Extension factories can revoke this editor through host callbacks while
     // preparation is running. Do not enter an obsolete canonical command.
-    if (!this.#canRestoreCaret(caretLease)) return false
+    if (!this.#canRestoreCaret(caretLease) || !this.#stillSelected(target)) return false
 
     if (!insertion.fresh) {
       return this.#insertWidget(type, target, insertion.defaultData, insertion.trailingText)
@@ -212,7 +212,8 @@ export class InlineCommandController {
       if (textStart < text.length) prepared.push({ kind: 'text', text: text.slice(textStart) })
       return prepared.some(segment => segment.kind === 'widget') ? prepared : null
     })
-    if (!segments || !this.#canRestoreCaret(caretLease)) return false
+    if (!segments || !this.#canRestoreCaret(caretLease)
+      || !this.#stillSelected(target)) return false
 
     const result = this.#runtime.interact('inline.paste', () => this.#runtime.replaceRichTextWithInlineSegments(
       target.blockId,
@@ -288,6 +289,20 @@ export class InlineCommandController {
       && !this.#runtime.readOnly
       && this.#runtime.generation === lease.generation
       && this.#runtime.modeEpoch === lease.modeEpoch
+  }
+
+  #stillSelected(expected) {
+    // Inline factories and paste matchers are extension callbacks. A newer
+    // author caret is independent of document revision and control mode:
+    // never apply a prepared edit to the previous logical host or offsets.
+    try {
+      const actual = this.#currentRange()
+      return actual !== null
+        && actual.blockId === expected.blockId
+        && actual.fieldKey === expected.fieldKey
+        && actual.range.start === expected.range.start
+        && actual.range.end === expected.range.end
+    } catch { return false }
   }
 
   #currentRange() {
