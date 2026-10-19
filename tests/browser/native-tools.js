@@ -2237,6 +2237,15 @@ test('unloaded inline references occupy one inert caret unit and survive replay'
     equal(getTextLength(field),3)
     equal(projection.serializeBlock('a',record,definition,fields,record.data).data.text,
       record.data.text)
+
+    // A placeholder-shaped author string without a sidecar remains ordinary
+    // UTF-16 text, not an inert or registered widget.
+    const unowned={data:{text:'A{{ghost}}B'},inline:{}}
+    projection.reconcileBlock('a',unowned,definition,fields,context)
+    equal(field.textContent,'A{{ghost}}B')
+    equal(getTextLength(field),11)
+    assert(!field.querySelector('[data-oe-opaque-inline]'),
+      'Unowned placeholder-shaped text was given inline ownership')
   }finally{
     projection.destroy()
     field.remove()
