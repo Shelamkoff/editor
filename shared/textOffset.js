@@ -42,6 +42,38 @@ export function getTextLength(root) {
   return length
 }
 
+/** Determine whether a logical UTF-16 offset divides a surrogate pair.
+ * Adjacent authored Text leaves share one logical string even when formatting
+ * wrappers split their DOM representation. BRs and inline widgets are atomic
+ * separators, not character halves.
+ * @param {Node} root
+ * @param {number} offset
+ * @returns {boolean}
+ */
+export function splitsSurrogateAtOffset(root, offset) {
+  if (!Number.isSafeInteger(offset) || offset <= 0) return false
+  let consumed = 0
+  let previous = -1
+  for (const node of positionNodes(root)) {
+    if (isAtomic(node)) {
+      if (offset <= consumed + 1) return false
+      consumed++
+      previous = -1
+      continue
+    }
+    const value = node.textContent ?? ''
+    const index = offset - consumed
+    if (index >= 0 && index < value.length) {
+      const before = index > 0 ? value.charCodeAt(index - 1) : previous
+      const after = value.charCodeAt(index)
+      return before >= 0xd800 && before <= 0xdbff && after >= 0xdc00 && after <= 0xdfff
+    }
+    consumed += value.length
+    if (value.length) previous = value.charCodeAt(value.length - 1)
+  }
+  return false
+}
+
 /**
  * Create a TreeWalker for text transformations, excluding widget labels.
  * Position calculations use logical leaves instead of this text-only view.
