@@ -13,6 +13,24 @@ import { synchronousResult } from '../shared/synchronousResult.js'
 
 const liveWidgetRoots=new WeakMap()
 
+/** A widget or author Text node belongs to its registered rich field only
+ * when the path to that field does not enter another DOM owner. Connectivity
+ * is deliberately checked separately: staged projection fields are detached.
+ * @param {Element} field
+ * @param {Node} node
+ */
+function belongsToAuthorField(field,node){
+  if(!field?.contains?.(node))return false
+  let parent=node.parentNode
+  while(parent&&parent!==field){
+    if(parent.nodeType===1&&/** @type {Element} */(parent).matches(
+      '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]',
+    ))return false
+    parent=parent.parentNode
+  }
+  return parent===field
+}
+
 function object(value){
   return value&&typeof value==='object'&&!Array.isArray(value)?value:{}
 }
@@ -231,7 +249,7 @@ export class InlineProjectionRuntime {
       // declared rich-field owner may resolve a live occurrence.
       if(entry?.element===node
         &&entry.element.isConnected&&entry.fieldElement?.isConnected
-        &&entry.fieldElement.contains(entry.element)){
+        &&belongsToAuthorField(entry.fieldElement,entry.element)){
         return entry.element
       }
     }
@@ -249,7 +267,7 @@ export class InlineProjectionRuntime {
     const occurrences=[]
     for(const entry of state.widgets.values()){
       if(entry.fieldKey!==fieldKey||entry.fieldElement!==fieldElement
-        ||!fieldElement.contains(entry.element)||!entry.element.isConnected)continue
+        ||!belongsToAuthorField(fieldElement,entry.element)||!entry.element.isConnected)continue
       if(!entry.element.isContentEditable)continue
       const definition=this.#registry.getInlineDefinition(entry.type)
       occurrences.push(Object.freeze({
@@ -270,7 +288,7 @@ export class InlineProjectionRuntime {
     return Boolean(entry && entry.type===source.type
       && entry.fieldKey===fieldKey && entry.fieldElement?.isConnected
       && entry.element===source.element && entry.instance===source.instance
-      && (allowDetached || entry.fieldElement.contains(entry.element)))
+      && (allowDetached || belongsToAuthorField(entry.fieldElement,entry.element)))
   }
 
   /** Complete owned inline DOM/cache changes under the DocumentRuntime's
@@ -307,7 +325,7 @@ export class InlineProjectionRuntime {
       const entry=state.widgets.get(change.id)
       if(!entry||entry.element!==change.element||entry.instance!==change.instance
         ||entry.fieldKey!==fieldKey||!entry.fieldElement?.isConnected
-        ||!entry.element.isConnected||!entry.fieldElement.contains(entry.element)
+        ||!entry.element.isConnected||!belongsToAuthorField(entry.fieldElement,entry.element)
         ||typeof entry.instance.update!=='function'){
         throw new Error('Native inline update lost its mounted instance')
       }
@@ -329,7 +347,7 @@ export class InlineProjectionRuntime {
       if(this.#destroyed||this.#blocks.get(blockId)!==state
         ||state.widgets.get(change.id)!==entry
         ||!entry.fieldElement?.isConnected||!entry.element.isConnected
-        ||!entry.fieldElement.contains(entry.element)){
+        ||!belongsToAuthorField(entry.fieldElement,entry.element)){
         throw new Error('Native inline update lost its mounted instance')
       }
       entry.data=next
@@ -338,7 +356,7 @@ export class InlineProjectionRuntime {
       if(this.#destroyed||this.#blocks.get(blockId)!==state
         ||state.widgets.get(change.id)!==entry
         ||!entry.fieldElement?.isConnected||!entry.element.isConnected
-        ||!entry.fieldElement.contains(entry.element)){
+        ||!belongsToAuthorField(entry.fieldElement,entry.element)){
         throw new Error('Native inline update lost its mounted instance')
       }
     }
@@ -360,7 +378,8 @@ export class InlineProjectionRuntime {
   /** Deliver one transient notice to a retained native-edit-aware instance. */
   notifyNativeInlineEdit(blockId,id,notice){
     const entry=this.#blocks.get(blockId)?.widgets.get(id)
-    if(!entry||!entry.element.isConnected||!entry.fieldElement?.contains(entry.element)
+    if(!entry||!entry.element.isConnected||!entry.fieldElement?.isConnected
+      ||!belongsToAuthorField(entry.fieldElement,entry.element)
       ||typeof entry.instance.afterNativeEdit!=='function')return false
     synchronousResult(entry.instance.afterNativeEdit(Object.freeze({...notice})))
     return true
@@ -377,7 +396,7 @@ export class InlineProjectionRuntime {
           const entry=this.#blocks.get(meta.blockId)?.widgets.get(meta.id)
           return entry?.element===current
             &&entry.element.isConnected&&entry.fieldElement?.isConnected
-            &&entry.fieldElement.contains(entry.element)
+            &&belongsToAuthorField(entry.fieldElement,entry.element)
             ?{meta,entry}:null
         }
       }
@@ -444,7 +463,7 @@ export class InlineProjectionRuntime {
     // Editable widget roots are editing hosts, but offsets belong to the block field.
     const field=entry.fieldElement
     if(!field?.isConnected||!entry.element.isConnected
-      ||!field.contains(entry.element)||!field.contains(selection.anchorNode))return null
+      ||!belongsToAuthorField(field,entry.element)||!field.contains(selection.anchorNode))return null
     let logicalOffset=0
     try{logicalOffset=getTextOffset(field,entry.element,0)}catch{return null}
     return {
@@ -557,18 +576,8 @@ export class InlineProjectionRuntime {
       // auxiliary controls. A literal {{id}} inside those owners must never
       // be interpreted as an authored inline reference: doing so can move
       // the existing widget into a button or even into its own descendant.
-      let authorText=true
-      let parent=current.parentNode
-      while(parent&&parent!==element){
-        if(parent.nodeType===1 && /** @type {Element} */(parent).matches(
-          '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]',
-        )){
-          authorText=false
-          break
-        }
-        parent=parent.parentNode
-      }
-      if(authorText&&parent===element)textNodes.push(/** @type {Text} */(current))
+      if(belongsToAuthorField(element,current))
+        textNodes.push(/** @type {Text} */(current))
       current=walker.nextNode()
     }
 
@@ -589,7 +598,7 @@ export class InlineProjectionRuntime {
         const mounted=state.widgets.get(id)
         if(mounted?.type===type&&mounted.fieldKey===fieldKey
           &&mounted.fieldElement===element
-          &&element.contains(mounted.element))continue
+          &&belongsToAuthorField(element,mounted.element))continue
         const definition=this.#registry.getInlineDefinition(type)
         const runtime=this.#registry.getInlineRuntime(type)
         if(!definition||!runtime)continue
@@ -604,7 +613,9 @@ export class InlineProjectionRuntime {
         if(match.index>cursor)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
 
         let entry=state.widgets.get(id)
-        if(entry&&(entry.type!==type||entry.fieldKey!==fieldKey)){
+        if(entry&&(entry.type!==type||entry.fieldKey!==fieldKey
+          ||(entry.element.isConnected&&!belongsToAuthorField(element,entry.element)))){
+          // Never reuse a root adopted by a button or a nested editor.
           state.widgets.delete(id)
           this.#destroyWidget(entry)
           entry=null
@@ -699,7 +710,7 @@ export class InlineProjectionRuntime {
       const canonicalRef=Object.hasOwn(inline,entry.id)?inline[entry.id]:null
       if(!canonicalRef||typeof canonicalRef!=='object'||Array.isArray(canonicalRef)
         ||canonicalRef.type!==entry.type||counts.get(entry.id)!==1)continue
-      if(element.contains(entry.element)){
+      if(belongsToAuthorField(element,entry.element)){
         this.#markWidget(entry)
         entry.fieldElement=element
         live.add(entry.id)
