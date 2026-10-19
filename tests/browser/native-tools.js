@@ -925,4 +925,29 @@ test('Unicode logical offsets survive cross-block normalization without mutating
   } finally { fixture.remove() }
 })
 
+
+test('empty author styling inside a noneditable plugin shell still cleans up', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block" contenteditable="false">',
+    '<section contenteditable="true" data-author-field="">',
+    '<span data-empty-author=""></span>',
+    '<button type="button"><span data-empty-control=""></span></button>',
+    '<span contenteditable="false"><span data-empty-locked=""></span></span>',
+    '</section></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[data-author-field]')
+    const button = fixture.querySelector('button')
+    const locked = fixture.querySelector('[data-empty-locked]')
+    removeEmptyInlineTags(field)
+    assert(!field.querySelector('[data-empty-author]'), 'A read-only block shell prevented authored empty-format cleanup')
+    assert(button.isConnected && button.querySelector('[data-empty-control]'),
+      'Author cleanup entered a native button')
+    assert(locked.isConnected && field.contains(locked),
+      'Author cleanup deleted independently owned locked markup')
+  } finally { fixture.remove() }
+})
+
 await run()
