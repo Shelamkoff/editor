@@ -427,3 +427,52 @@ test('popup mount refuses content adopted during connected DOM insertion', () =>
   host.destroy()
   assert.deepEqual(released, ['cleanup'])
 })
+test('popup surface adopted by another root during insertion survives failed mount', () => {
+  const { root, anchor, create } = fixture()
+  const outside = create()
+  outside.isRoot = true
+  const originalAppend = root.appendChild.bind(root)
+  let adopted
+  root.appendChild = child => {
+    const result = originalAppend(child)
+    if (child !== anchor) {
+      outside.appendChild(child)
+      adopted = child
+    }
+    return result
+  }
+  const host = new InlinePopupHost({ root })
+  const cleaned = []
+  assert.throws(
+    () => host.showPopup('owner', anchor, create(), () => cleaned.push('once')),
+    /Popup surface ownership changed during mounting/,
+    'popup mounted even though a newer owner adopted its shell',
+  )
+  assert.deepEqual(root.children, [anchor])
+  assert.deepEqual(outside.children, [adopted],
+    'rollback removed a popup node from its newer DOM owner')
+  assert.deepEqual(cleaned, ['once'])
+  host.destroy()
+  assert.deepEqual(outside.children, [adopted])
+  assert.deepEqual(cleaned, ['once'])
+})
+
+test('old popup cleanup cannot redirect new popup content into its own subtree', () => {
+  const { root, anchor, host, create } = fixture()
+  const pending = create()
+  const outside = create()
+  const old = host.showPopup('old', anchor, create(), () => {
+    outside.appendChild(pending)
+  })
+  let newCleanup = 0
+  assert.throws(
+    () => host.showPopup('new', anchor, pending, () => newCleanup++),
+    /Popup requires owning-document HTML elements/,
+    'cleanup of retired popup stole a newer popup input before its mount',
+  )
+  assert.deepEqual(outside.children, [pending])
+  assert.deepEqual(root.children, [anchor])
+  assert.equal(newCleanup, 0, 'never-acquired content cleanup was invoked')
+  old.close()
+  host.destroy()
+})
