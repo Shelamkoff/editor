@@ -9,7 +9,7 @@ class FakeRoot {
   addEventListener(type, handler) { this.listeners.set(type, handler) }
 }
 
-function harness({ reportError, inlineCommands = null } = {}) {
+function harness({ reportError, inlineCommands = null, crossSelection = null } = {}) {
   const root = new FakeRoot()
   const field = { value: '', parentNode: null }
   const owner = { blockId: 'b', fieldKey: 'text', element: field, mode: 'plain-text' }
@@ -73,6 +73,7 @@ function harness({ reportError, inlineCommands = null } = {}) {
   }
   const router = new KeyboardRouter({ root, runtime, registry, reconciler, selection, view,
     inlineCommands,
+    crossSelection,
     ...(reportError ? { reportError } : {}),
   })
   const event = (key, extra = {}) => {
@@ -85,7 +86,7 @@ function harness({ reportError, inlineCommands = null } = {}) {
       ...extra,
     }
   }
-  return { router, runtime, calls, viewCalls, event, setBookmark: value => { bookmark = value }, field, owner, root, records }
+  return { router, runtime, calls, viewCalls, event, selection, setBookmark: value => { bookmark = value }, field, owner, root, records }
 }
 
 test('Enter delegates an editable split to one runtime transaction', () => {
@@ -579,5 +580,70 @@ test('typed-pattern callback mode epoch change cannot fall through into Enter st
   h.router.handleKeydown(event)
   assert.equal(event.prevented,false)
   assert.deepEqual(h.calls,[],'old key ran after author edit mode was replaced')
+  h.router.destroy()
+})
+test('an input-mode round trip during shortcut snapshot cannot replay old keyboard history', () => {
+  const h = harness()
+  const key = h.event('z', { ctrlKey: true })
+  Object.defineProperty(key, 'key', {
+    configurable: true,
+    get() {
+      h.runtime.modeEpoch += 2
+      return 'z'
+    },
+  })
+  h.router.handleKeydown(key)
+  assert.deepEqual(h.calls, [],
+    'stale Mod+Z replayed history after the author mode changed during event snapshot')
+  assert.equal(key.prevented, false,
+    'keyboard captured a native key after losing the original mode lease')
+  h.router.destroy()
+})
+
+test('Ctrl+A cannot select all after its selection reader destroys the keyboard owner', () => {
+  const calls = []
+  const crossSelection = {
+    active: false,
+    wholeBlockIds: [],
+    selectAllBlocks() { calls.push('select-all'); return true },
+    clear() { calls.push('clear') },
+  }
+  const h = harness({ crossSelection })
+  h.selection.capture = () => {
+    h.router.destroy()
+    return {
+      anchor: { blockId: 'b', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'b', fieldKey: 'text', offset: 1 },
+    }
+  }
+  const key = h.event('a', { ctrlKey: true })
+  h.router.handleKeydown(key)
+  assert.deepEqual(calls, [],
+    'captured Ctrl+A issued a whole-block selection after its keyboard owner was destroyed')
+  assert.equal(key.prevented, false)
+  h.router.destroy()
+})
+
+test('Ctrl+A cannot overwrite a newer mode decision made during selection capture', () => {
+  const calls = []
+  const crossSelection = {
+    active: false,
+    wholeBlockIds: [],
+    selectAllBlocks() { calls.push('select-all'); return true },
+    clear() { calls.push('clear') },
+  }
+  const h = harness({ crossSelection })
+  h.selection.capture = () => {
+    h.runtime.modeEpoch += 2
+    return {
+      anchor: { blockId: 'b', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'b', fieldKey: 'text', offset: 1 },
+    }
+  }
+  const key = h.event('a', { ctrlKey: true })
+  h.router.handleKeydown(key)
+  assert.deepEqual(calls, [],
+    'Ctrl+A selected blocks using a selection that belonged to a retired mode')
+  assert.equal(key.prevented, false)
   h.router.destroy()
 })
