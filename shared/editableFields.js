@@ -1,3 +1,5 @@
+import { closestBlock } from './editorDom.js'
+
 /**
  * Return every editable field owned by one block in DOM order.
  * @param {HTMLElement} block
@@ -86,4 +88,22 @@ export function editingHostForEvent(root, target) {
   if (!host || !root.contains(host)) return null
   const locked = element?.closest?.('[contenteditable="false"]')
   return locked && host.contains(locked) ? null : host
+}
+
+/** Whether a text leaf belongs to a real authored editing field.
+ * Native controls may be nested in a contenteditable, while cross-block
+ * selections may intersect unrelated interface labels between fields.
+ * Those text leaves must never be mutated by author formatting commands.
+ * @param {Text} node
+ * @returns {boolean}
+ */
+export function isAuthoredEditableText(node) {
+  const parent = node.parentElement
+  if (!parent) return false
+  const field = parent.closest('[contenteditable]')
+  if (!field || field.getAttribute('contenteditable') !== 'true') return false
+  const block = closestBlock(node)
+  if (!block || editableAtBoundary(block, node, 0)?.element !== field) return false
+  const control = parent.closest('button, input, textarea, select, option, [data-inline-plugin], [role="button"]')
+  return !control || !field.contains(control)
 }
