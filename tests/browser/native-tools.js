@@ -663,4 +663,46 @@ test('font-size reset ignores styled text owned exclusively by locked controls',
   }
 })
 
+
+test('font-size reset splits shared styled author text away from protected descendants', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">',
+    '<span style="font-size:24px">alpha',
+    '<span contenteditable="false"><span style="font-size:30px">LOCKED</span></span>',
+    '<button type="button">ACTION</button>beta</span></div></div>',
+    '<div class="oe-inline-toolbar"><button type="button" class="oe-inline-tool"></button></div>',
+  ].join('')
+  document.body.append(fixture)
+  const field = fixture.querySelector('[contenteditable="true"]')
+  const outer = field.querySelector('span')
+  const locked = field.querySelector('[contenteditable="false"]')
+  const action = field.querySelector('button')
+  const range = document.createRange()
+  range.setStart(outer.firstChild, 0)
+  range.setEnd(outer.lastChild, outer.lastChild.length)
+  const tool = createFontSizeTool('Font size')
+  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+  try {
+    tool.onMount(fixture.querySelector('.oe-inline-tool'), {
+      mutate: (_bookmark, change) => change(range),
+      restoreSelection: () => true,
+    })
+    tool.toggle({ range })
+    const reset = fixture.querySelector('.oe-font-size-reset')
+    assert(reset, 'Font-size reset control is unavailable')
+    reset.click()
+    equal(field.textContent, 'alphaLOCKEDACTIONbeta')
+    assert(field.firstChild.nodeType === Node.TEXT_NODE, 'Reset retained the font-size wrapper on the authored prefix')
+    assert(field.lastChild.nodeType === Node.TEXT_NODE, 'Reset retained the font-size wrapper on the authored suffix')
+    assert(locked.closest('[style*="font-size"]') !== null, 'Reset removed inherited styling from protected content')
+    equal(locked.querySelector('span')?.style.fontSize, '30px', 'Reset removed protected explicit font size')
+    assert(action.closest('[style*="font-size"]') !== null, 'Reset removed the native action’s inherited styling')
+  } finally {
+    tool.destroy()
+    tool.bindSelectionPort(null)
+    fixture.remove()
+  }
+})
+
 await run()
