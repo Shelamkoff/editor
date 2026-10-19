@@ -842,32 +842,38 @@ export class BlockToolbar {
   #menuKeydown(event, menu) {
     if (this.#destroyed) return
     if (event.target?.closest?.('input, textarea, select') && !['ArrowDown', 'ArrowUp', 'Escape'].includes(event.key)) return
-    const items = [...menu.querySelectorAll('[role^="menuitem"]:not([aria-disabled="true"])')].filter(item => item.style.display !== 'none')
+    const items = [...menu.querySelectorAll('[role^="menuitem"]:not(:disabled):not([aria-disabled="true"])')].filter(item => item.style.display !== 'none')
     if (!items.length && event.key !== 'Escape') return
+    // Menu-owned keys must not trigger parent editor/document shortcuts.
+    const consume = () => {
+      event.preventDefault()
+      event.stopPropagation?.()
+    }
     const current = menu.ownerDocument.activeElement
     const index = items.indexOf(current)
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault()
+      consume()
       const direction = event.key === 'ArrowDown' ? 1 : -1
-      const next = index < 0 ? 0 : (index + direction + items.length) % items.length
+      const next = index < 0 ? (direction > 0 ? 0 : items.length - 1)
+        : (index + direction + items.length) % items.length
       items[next]?.focus?.()
     } else if ((event.key === 'Escape' || event.key === 'ArrowLeft') && ((menu === this.#toolbox && this.#toolboxParent) || (menu === this.#settings && this.#settingsView === 'convert'))) {
-      event.preventDefault()
+      consume()
       menu.querySelector('[data-menu-back]')?.click()
     } else if (event.key === 'Home' || event.key === 'End') {
-      event.preventDefault()
+      consume()
       items[event.key === 'Home' ? 0 : items.length - 1]?.focus?.()
     } else if (event.key === 'ArrowRight' && current?.getAttribute('aria-haspopup') === 'menu') {
-      event.preventDefault()
+      consume()
       current.click()
     } else if (event.key === 'Escape') {
-      event.preventDefault()
+      consume()
       this.closeToolbox()
       this.closeSettings()
       if (menu === this.#settings) this.#settingsButton.focus()
       else this.#plus.focus()
     } else if ((event.key === 'Enter' || event.key === ' ') && index >= 0) {
-      event.preventDefault()
+      consume()
       items[index]?.click?.()
     }
   }
