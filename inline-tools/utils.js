@@ -1,5 +1,5 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
-import { removeEmptyInlineTags } from './inlineContent.js'
+import { removeEmptyInlineTags, normalizeAuthoredText, hasProtectedDomContent } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { closestBlock, el } from '../shared/editorDom.js'
 import { isAuthoredEditableText } from '../shared/editableFields.js'
@@ -88,7 +88,7 @@ function mergeAdjacentTags(parent, tagName) {
   if (!parent || parent.nodeType !== ELEMENT_NODE) return
   const upper = tagName.toUpperCase()
   // Normalize first so empty text nodes between elements are removed
-  parent.normalize()
+  normalizeAuthoredText(parent)
   /** @type {Node | null} */
   let node = parent.firstChild
   while (node) {
@@ -101,7 +101,9 @@ function mergeAdjacentTags(parent, tagName) {
         && haveSameAttributes(
           /** @type {Element} */ (node),
           /** @type {Element} */ (next),
-        )) {
+        )
+        && !hasProtectedDomContent(node)
+        && !hasProtectedDomContent(next)) {
       while (next.firstChild) node.appendChild(next.firstChild)
       next.remove()
       // Don't advance — merged node may have a new adjacent sibling
@@ -109,7 +111,7 @@ function mergeAdjacentTags(parent, tagName) {
       node = next
     }
   }
-  parent.normalize()
+  normalizeAuthoredText(parent)
 }
 
 /**
@@ -243,7 +245,7 @@ export function toggleTag(tagName, range, matches = () => true) {
         targetNode.parentNode?.insertBefore(w, targetNode)
         w.appendChild(targetNode)
       }
-      walkRoot.normalize()
+      normalizeAuthoredText(walkRoot)
       mergeAdjacentTags(walkRoot, tagName)
     }
     return
@@ -458,10 +460,12 @@ export function collectTextTargets(walkRoot, range) {
  */
 export function normalizeAfterEdit(singleCe, walkRoot) {
   if (singleCe) {
-    singleCe.normalize()
+    normalizeAuthoredText(singleCe)
   } else {
-    const blocks = walkRoot.querySelectorAll('[contenteditable]')
-    for (const b of blocks) b.normalize()
+    // Nested false hosts and native controls own their own text nodes.
+    // Resolve real editable hosts rather than all [contenteditable] nodes.
+    const fields = walkRoot.querySelectorAll('[contenteditable="true"]')
+    for (const field of fields) normalizeAuthoredText(field)
   }
 }
 
