@@ -1,31 +1,4 @@
-import { collectTextTargets, getWalkRoot } from './utils.js'
-
-/** Split ordinary inline wrappers around one selected text fragment. Siblings
- * are moved, not serialized, so atomic widgets keep their live DOM ownership.
- * @param {Text} text
- * @param {HTMLElement} ancestor
- */
-function isolateAncestor(text, ancestor) {
-  /** @type {Node} */
-  let part = text
-  while (part.parentNode) {
-    const parent = /** @type {HTMLElement} */ (part.parentNode)
-    const container = parent.parentNode
-    if (!container) return
-    if (part.previousSibling) {
-      const before = parent.cloneNode(false)
-      while (parent.firstChild !== part) before.appendChild(parent.firstChild)
-      container.insertBefore(before, parent)
-    }
-    if (part.nextSibling) {
-      const after = parent.cloneNode(false)
-      while (part.nextSibling) after.appendChild(part.nextSibling)
-      container.insertBefore(after, parent.nextSibling)
-    }
-    if (parent === ancestor) return
-    part = parent
-  }
-}
+import { collectTextTargets, getWalkRoot, isolateAncestor } from './utils.js'
 
 /** Change matching ancestors only around the selected text, never the rest
  * of a shared wrapper. Callers restore their logical bookmarks after editing.
