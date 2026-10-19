@@ -705,4 +705,21 @@ test('font-size reset splits shared styled author text away from protected desce
   }
 })
 
+
+test('partial bold removal retains unselected prefix and suffix formatting', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true"><b>beforeselectedafter</b></div></div>'
+  document.body.append(fixture)
+  try {
+    const host = fixture.querySelector('[contenteditable="true"]')
+    const node = host.querySelector('b').firstChild
+    const range = document.createRange()
+    range.setStart(node, 6)
+    range.setEnd(node, 14)
+    toggleTag('b', range)
+    equal(host.innerHTML, '<b>before</b>selected<b>after</b>')
+    equal(host.textContent, 'beforeselectedafter')
+  } finally { fixture.remove() }
+})
+
 await run()
