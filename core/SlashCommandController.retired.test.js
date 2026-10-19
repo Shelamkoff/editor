@@ -252,3 +252,132 @@ test('Slash input in read-only mode dismisses an already open command menu', () 
     controller.destroy()
   }
 })
+function activeSlashKeyHarness() {
+  const handlers = new Map()
+  const actions = []
+  const text = { nodeType: 3, data: '/', textContent: '/', length: 1 }
+  const field = {
+    nodeType: 1, tagName: 'P', isConnected: true, childNodes: [text],
+    hasAttribute() { return false },
+    contains(node) { return node === text },
+  }
+  text.parentNode = field
+  text.parentElement = field
+  const menu = {
+    style: {}, children: [], offsetWidth: 100, offsetHeight: 100,
+    setAttribute() {},
+    replaceChildren() { this.children = [] },
+    appendChild(node) { this.children.push(node) },
+    remove() { this.removed = true },
+    contains() { return false },
+  }
+  const ownerDocument = {
+    defaultView: {
+      AbortController, innerWidth: 1000, innerHeight: 1000,
+      getSelection() { return { focusNode: text, focusOffset: 1, rangeCount: 1 } },
+      addEventListener() {},
+    },
+    createElement(tag) {
+      if (tag === 'ul') return menu
+      return { className: '', setAttribute() {}, textContent: '' }
+    },
+    createRange() {
+      return {
+        selectNodeContents() {}, setEnd() {}, setStart() {},
+        toString() { return '/' },
+        getClientRects() { return [{ left: 20, top: 10, bottom: 30 }] },
+        getBoundingClientRect() { return { left: 20, top: 10, bottom: 30 } },
+      }
+    },
+    addEventListener() {},
+  }
+  field.ownerDocument = ownerDocument
+  const root = {
+    ownerDocument,
+    getBoundingClientRect() { return { left: 0, top: 0, right: 1000, bottom: 1000 } },
+    contains(node) { return node === field },
+    appendChild() {},
+    addEventListener(type, handler) { handlers.set(type, handler) },
+  }
+  const runtime = {
+    readOnly: false, modeEpoch: 0,
+    interact(name, operation) {
+      actions.push(name)
+      return operation()
+    },
+    replaceRichText() { actions.push('author mutation'); return true },
+  }
+  const reconciler = {
+    getEditableField() { return { element: field, mode: 'rich-text' } },
+    resolveEditableTarget() {
+      return { blockId: 'a', fieldKey: 'text', mode: 'rich-text', element: field }
+    },
+  }
+  const selection = {
+    capture() {
+      const point = { blockId: 'a', fieldKey: 'text', offset: 1 }
+      return { anchor: point, focus: { ...point } }
+    },
+    setCaret() { actions.push('caret') },
+  }
+  const view = { reconcileInteraction() { actions.push('reconcile') } }
+  const controller = new SlashCommandController({
+    root, runtime,
+    registry: { blockTypes: [], inlineTypes: [] },
+    reconciler, selection, view, inlineCommands: {},
+  })
+  const input = () => handlers.get('input')({ target: field, isComposing: false })
+  const keydown = key => {
+    let prevented = false, stopped = false
+    handlers.get('keydown')({
+      key, target: field, defaultPrevented: false,
+      preventDefault() { prevented = true },
+      stopPropagation() { stopped = true },
+    })
+    return { prevented, stopped }
+  }
+  return { controller, runtime, reconciler, selection, root, field, menu,
+    handlers, actions, input, keydown }
+}
+
+test('Slash keydown cannot delete author text after an ownership callback destroys the menu', () => {
+  const h = activeSlashKeyHarness()
+  h.input()
+  assert.equal(h.controller.isOpen, true)
+  h.reconciler.getEditableField = () => {
+    h.controller.destroy()
+    return { element: h.field, mode: 'rich-text' }
+  }
+  assert.doesNotThrow(() => h.keydown('Escape'))
+  assert.deepEqual(h.actions, [], 'retired menu performed a canonical Slash cancellation')
+  assert.equal(h.controller.isOpen, false)
+})
+
+test('Slash Escape cannot author after a control-mode change from its field resolver', () => {
+  const h = activeSlashKeyHarness()
+  h.input()
+  h.reconciler.getEditableField = () => {
+    h.runtime.modeEpoch += 2
+    return { element: h.field, mode: 'rich-text' }
+  }
+  assert.doesNotThrow(() => h.keydown('Escape'))
+  assert.deepEqual(h.actions, [], 'old Slash key wrote after a control-mode round trip')
+  h.controller.destroy()
+})
+
+test('Slash Escape cannot edit after close() synchronously destroys the menu owner', () => {
+  const h = activeSlashKeyHarness()
+  h.input()
+  const clear = h.menu.replaceChildren.bind(h.menu)
+  let retired = false
+  h.menu.replaceChildren = () => {
+    clear()
+    if (!retired) {
+      retired = true
+      h.controller.destroy()
+    }
+  }
+  assert.doesNotThrow(() => h.keydown('Escape'))
+  assert.equal(retired, true)
+  assert.deepEqual(h.actions, [], 'Escape continued authoring after menu close retired its editor')
+})
