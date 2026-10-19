@@ -331,3 +331,63 @@ test('hidden and no-longer-editable rich fields cannot receive scoped restoratio
   assert.equal(state.port.capture(), null)
   assert.deepEqual(state.applied, [])
 })
+test('revoked selection owner cannot return a retained range after health observation', () => {
+  const state = fixture()
+  state.port.activate()
+  Object.defineProperty(state.runtime, 'health', {
+    configurable: true,
+    get() {
+      state.port.revoke()
+      return 'ready'
+    },
+  })
+  assert.equal(state.port.range, null,
+    'a runtime health callback retired the range owner during its admission')
+})
+
+test('inline selection capture cannot mint authority after scope revocation in preparation', () => {
+  const state = fixture()
+  state.port.activate()
+  state.runtime.prepareExtensionValue = operation => {
+    state.port.revoke()
+    return operation()
+  }
+  assert.equal(state.port.capture(), null,
+    'capture issued a token after its plugin preparation revoked its owner')
+})
+
+test('inline selection resolution cannot return a range after its preparation revokes scope', () => {
+  const state = fixture()
+  state.port.activate()
+  state.runtime.prepareExtensionValue = operation => {
+    state.port.revoke()
+    return operation()
+  }
+  const bookmark = {
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 4 },
+  }
+  assert.equal(state.port.resolveOwnResult(bookmark), null,
+    'a retired plugin was handed a fresh editable DOM range')
+})
+
+test('inline range access cannot return a selection after the native selection reader retires it', () => {
+  const state = fixture()
+  state.port.activate()
+  const currentRange = state.port.range
+  assert.ok(currentRange)
+  const currentHealth = state.runtime.health
+  // A live selection callback may synchronously revoke its owner while the
+  // caller is still resolving the current native range.
+  let reads = 0
+  Object.defineProperty(state.runtime, 'health', {
+    configurable: true,
+    get() {
+      reads++
+      if (reads === 2) state.port.revoke()
+      return currentHealth
+    },
+  })
+  assert.equal(state.port.range, null,
+    'reentrant selection read returned an obsolete range')
+})
