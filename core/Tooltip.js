@@ -122,7 +122,11 @@ export class Tooltip {
       this.#element.style.left = center + 'px'
       this.#element.style.top = top + 'px'
       this.#anchor = anchor
-      const ids = new Set((anchor.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean))
+      const existingDescription = anchor.getAttribute('aria-describedby')
+      // ARIA getters can be implemented by a caller-owned host. If one opens
+      // a newer tooltip, this callback must not reapply its retired ID.
+      if (this.#destroyed || epoch !== this.#timerEpoch) return
+      const ids = new Set((existingDescription ?? '').split(/\s+/).filter(Boolean))
       ids.add(this.#element.id)
       anchor.setAttribute('aria-describedby', [...ids].join(' '))
     }, 500)
