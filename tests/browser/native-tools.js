@@ -2061,4 +2061,19 @@ test('serializing a literal inline ID split between adjacent formatting wrappers
   }
 })
 
+
+test('typing the end of a literal inline ID cannot create a new owned reference', () => {
+  const inline={'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}}}
+  const source='A{{inline-1}}B{{inline-'
+  const pos=getRichTextLogicalLength(source,inline,document)
+  const result=replaceRichTextRange(source,inline,{start:pos,end:pos},
+    {kind:'text',text:'1}}'},document)
+  equal(scanRichTextPlaceholders(result,inline,document).occurrences.get('inline-1'),1,
+    'Completing an author-typed literal token created a second inline occurrence')
+  assert(result.includes('<span class="oe-inline-literal">{{inline-1}}</span>'),
+    'The complete user-typed literal was not protected after text insertion')
+  equal(getRichTextLogicalLength(result,inline,document),15,
+    'A just-completed literal token was counted as an atomic inline widget')
+})
+
 await run()
