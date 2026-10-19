@@ -580,3 +580,30 @@ test('newer pointerdown during capture release supersedes an old pending drag co
     'superseded pointer session installed stale click suppression')
   controller.destroy()
 })
+test('partial drag listener registration failure retires the pointer and all listeners', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  const add = h.document.addEventListener.bind(h.document)
+  h.document.addEventListener = (type, listener, options) => {
+    add(type, listener, options)
+    if (type === 'pointerup') throw new Error('synthetic pointer listener host failure')
+  }
+  assert.throws(
+    () => h.handle.dispatch('pointerdown', pointerEvent(7, 5)),
+    /synthetic pointer listener host failure/,
+  )
+  assert.equal(h.captured(), null,
+    'partly installed document listeners kept a pointer capture after setup failed')
+  for (const eventType of ['pointermove', 'pointerup', 'pointercancel']) {
+    assert.deepEqual(h.document.listeners.get(eventType) ?? [], [],
+      eventType + ' listener survived aborted pointer setup')
+  }
+  const after = pointerEvent(7, 55, { x: 10 })
+  h.document.dispatch('pointermove', after)
+  h.document.dispatch('pointerup', after)
+  assert.deepEqual(h.moves, [])
+  controller.destroy()
+})
