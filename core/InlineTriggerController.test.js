@@ -71,7 +71,7 @@ test('deferred inline trigger refresh and input never reactivate after read-only
 })
 
 function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
-  const events=new Map(),calls=[],errors=[]
+  const events=new Map(),documentEvents=new Map(),calls=[],errors=[]
   let readOnly=false
   const label={nodeType:3,textContent:'@'}
   const field={
@@ -83,7 +83,7 @@ function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
     createRange(){return {
       selectNodeContents(){},setEnd(){},toString(){return '@'},
     }},
-    addEventListener(){},
+    addEventListener(type, callback){documentEvents.set(type, callback)},
   }
   const root={
     ownerDocument:document,
@@ -104,7 +104,7 @@ function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
       getInlineRuntime(){return runtime},
     },
     reconciler:{
-      getEditableField(){hooks.getEditableField?.();return {mode:'rich-text',element:field}},
+      getEditableField(){return hooks.getEditableField?.() ?? {mode:'rich-text',element:field}},
       resolveEditableTarget(){hooks.resolveEditableTarget?.();return {mode:'rich-text',element:field,blockId:'a',fieldKey:'text'}},
     },
     selection:{capture(){hooks.capture?.();return {anchor:point,focus:{...point}}}},
@@ -123,7 +123,7 @@ function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
     return {prevented,stopped}
   }
   return {
-    controller,calls,errors,press,events,
+    controller,calls,errors,press,events,documentEvents,
     input(){events.get('input')({target:field,isComposing:false})},
     setReadOnly(value){
       readOnly=value
@@ -488,4 +488,62 @@ test('trigger commit must not mutate after live-range lookup synchronously destr
   assert.equal(session.commit({ id: 'stale', name: 'Stale' }), false)
   assert.equal(mutations, 0, 'retired trigger reached a canonical write after detached DOM read')
   assert.equal(h.controller.isActive, false)
+})
+test('selectionchange cannot cancel a newer inline query installed during old-range resolution', () => {
+  let h
+  let checking = false, reentered = false
+  h = triggerScenario(null, () => 'pass', () => false, {
+    getEditableField() {
+      if (!checking || reentered) return undefined
+      reentered = true
+      assert.equal(h.controller.retireFreshQueryForNativeEdit(), true)
+      assert.equal(h.controller.refresh(), true, 'a successor query did not acquire its own lease')
+      // The outer stale lookup now returns a field that does not own the
+      // retired session's original anchor. It must not cancel the successor.
+      return { mode: 'rich-text', element: { isConnected: true } }
+    },
+  })
+  assert.equal(h.controller.refresh(), true)
+  checking = true
+  h.documentEvents.get('selectionchange')()
+  assert.equal(reentered, true)
+  assert.equal(h.controller.isActive, true,
+    'a stale selectionchange callback canceled a newer inline query')
+  assert.deepEqual(h.calls, ['query', 'cancel', 'query'],
+    'a selectionchange from the prior session canceled the successor')
+  h.controller.destroy()
+  assert.deepEqual(h.calls, ['query', 'cancel', 'query', 'cancel'])
+})
+
+test('failed inline trigger listener registration aborts every partially installed handler', () => {
+  const listeners = new Map()
+  const remove = (type, callback) => {
+    const items = listeners.get(type) ?? []
+    listeners.set(type, items.filter(fn => fn !== callback))
+  }
+  const add = (type, callback, options = {}) => {
+    const items = listeners.get(type) ?? []
+    items.push(callback)
+    listeners.set(type, items)
+    options.signal?.addEventListener?.('abort', () => remove(type, callback), { once: true })
+  }
+  const root = {
+    ownerDocument: {
+      defaultView: { AbortController },
+      addEventListener: add,
+    },
+    addEventListener(type, callback, options) {
+      add(type, callback, options)
+      if (type === 'keydown') throw new Error('keydown registration failed after insertion')
+    },
+  }
+  assert.throws(() => new InlineTriggerController({
+    root,
+    registry: { inlineTypes: [] },
+    reconciler: {},
+    selection: {},
+    commands: {},
+  }), /keydown registration failed after insertion/)
+  assert.deepEqual([...listeners.values()].flat(), [],
+    'construction failure left event handlers with no destroyable controller')
 })
