@@ -313,3 +313,31 @@ test('synchronously fired tooltip registration does not resurrect a completed ti
     'an expired inline timer was wrongly resurrected as a pending lease')
   assert.equal(h.anchor.getAttribute('aria-describedby'), null)
 })
+test('tooltip child replacement reentry cannot display an obsolete owner', () => {
+  const h = tooltipHarness()
+  const successor = boundAnchor({ left: 120, width: 60, top: 30, bottom: 50, height: 20 })
+  h.root.contains = node => node === h.anchor || node === successor
+  const tooltip = new Tooltip(h.root)
+  const replace = h.popup.replaceChildren.bind(h.popup)
+  let reentered = false
+  h.popup.replaceChildren = (...children) => {
+    replace(...children)
+    // Replacing a previously mounted child can synchronously notify an
+    // external custom-element lifecycle, which may install a newer tooltip.
+    if (!reentered) {
+      reentered = true
+      tooltip.show(successor, 'Newest')
+    }
+  }
+  tooltip.show(h.anchor, 'Stale')
+  h.callbacks[0]()
+  assert.equal(reentered, true, 'test did not exercise child-replacement reentry')
+  assert.equal(h.popup.style.display, 'none',
+    'retired callback made an obsolete tooltip visible over a pending successor')
+  assert.equal(h.anchor.getAttribute('aria-describedby'), null)
+  h.callbacks[1]()
+  assert.equal(h.popup.style.display, 'flex')
+  assert.equal(h.popup.children[0].textContent, 'Newest')
+  assert.equal(successor.getAttribute('aria-describedby'), h.popup.id)
+  tooltip.destroy()
+})
