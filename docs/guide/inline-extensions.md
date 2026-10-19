@@ -56,6 +56,8 @@ interface InlinePluginDefinition<Data> {
 
 The widget ID is owned by the document model. Rich text stores a `{{id}}` reference; the block's `inline[id]` record stores type, data version and data. Projection DOM is reconstructed from that canonical pair.
 
+An author may also type the literal characters `{{id}}` where that ID is already owned by a widget. Rector persists this *ordinary text*, without creating a second reference, as `<span class="oe-inline-literal">{{id}}</span>` in canonical rich-text HTML. The class is a reserved internal serialization marker, not an extension API or visual style. Sanitization, selection offsets, ID remapping and rendering preserve the literal text; only the unmarked owned token counts as an inline reference. Extension code must not add or remove this marker to impersonate a widget.
+
 ## Runtime and widget instance
 
 The host sets and maintains `data-inline-plugin` and `data-id` on the instance's stable root element. Extensions do not need to write these markers. They support atomic editing coordinates: a widget occupies one parent-field unit regardless of label length. Private runtime ownership controls serialization; copying these DOM attributes does not create a widget or payload. The widget still owns its content and editable/read-only presentation.
