@@ -1,5 +1,5 @@
 // @ts-check
-import { findNodeAtOffset, getTextLength } from '../shared/textOffset.js'
+import { findNodeAtOffset, getTextLength, splitsSurrogateAtOffset } from '../shared/textOffset.js'
 
 /** True only for an endpoint inside a host-owned inline widget presentation.
  * The parent boundary on either side of the widget remains ordinary text selection.
@@ -16,14 +16,6 @@ function sameRange(left, right) {
     && left.startOffset === right.startOffset
     && left.endContainer === right.endContainer
     && left.endOffset === right.endOffset
-}
-
-/** @param {string} content @param {number} offset */
-function splitsSurrogate(content, offset) {
-  if (offset < 1 || offset >= content.length) return false
-  const before = content.charCodeAt(offset - 1)
-  const after = content.charCodeAt(offset)
-  return before >= 0xd800 && before <= 0xdbff && after >= 0xdc00 && after <= 0xdfff
 }
 
 /** A per-mount, private-token view over the editor's existing selection owners.
@@ -219,8 +211,7 @@ export class InlineSelectionAuthority {
     if (point.offset < 0 || point.offset > length) return null
     const resolved = findNodeAtOffset(field.element, point.offset, 'end')
     if (!resolved || isWidgetEndpoint(resolved.node)) return null
-    if (resolved.node.nodeType === 3
-      && splitsSurrogate(resolved.node.textContent ?? '', resolved.offset)) return null
+    if (splitsSurrogateAtOffset(element, point.offset)) return null
     return resolved
   }
 
