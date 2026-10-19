@@ -1342,10 +1342,12 @@ test('detached inline widget occurrences lose selection and DOM authority', () =
         const element = document.createElement('span')
         element.contentEditable = 'true'
         element.textContent = data.label
-        return { element, setReadOnly() {}, destroy() {} }
+        return { element, setReadOnly() {}, destroy() {},
+          update(next) { pluginUpdates.push(next.label) } }
       } } : null
     },
   }
+  const pluginUpdates = []
   const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
   try {
     projection.reconcileBlock(
@@ -1358,6 +1360,8 @@ test('detached inline widget occurrences lose selection and DOM authority', () =
     assert(widget && widget.isConnected, 'The inline occurrence failed to mount')
     assert(projection.resolveWidgetElement(widget) === widget,
       'A currently connected occurrence lost its DOM ownership')
+    const nativeOccurrence = projection.captureNativeField('a', 'text', field)?.occurrences[0]
+    assert(nativeOccurrence?.element === widget, 'Native occurrence lease was not captured')
     const selection = {
       isCollapsed: true, anchorNode: widget.firstChild, anchorOffset: 2,
     }
@@ -1371,6 +1375,16 @@ test('detached inline widget occurrences lose selection and DOM authority', () =
       'A detached widget still resolved through a stale field child relationship')
     equal(projection.resolveWidgetInputTarget(selection, 'insertText'), null,
       'A detached widget could still receive an inline edit or caret target')
+    let rejectedUpdate = false
+    try {
+      projection.finalizeNativeInlineUpdates('a', 'text',
+        [{ ...nativeOccurrence, action: { kind: 'update', data: { label: 'Stale' } } }],
+        record.inline)
+    } catch {
+      rejectedUpdate = true
+    }
+    assert(rejectedUpdate, 'A detached widget was updated after losing its editing host')
+    equal(pluginUpdates, [], 'A disconnected widget instance received an update callback')
 
     projection.destroyBlock('a')
     document.body.append(field)
