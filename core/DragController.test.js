@@ -528,3 +528,55 @@ test('drag activation cannot insert its spacer after a class callback destroys t
   assert.equal(source.classList.contains('oe-block--dragging'), false)
   assert.deepEqual(h.moves, [])
 })
+test('drag drop-gap insertion cannot leave a spacer after insertion callback destroys its owner', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  const parent = h.view.element('A').parentNode
+  const before = [...parent.children]
+  const insert = parent.insertBefore.bind(parent)
+  let injected = 0
+  parent.insertBefore = (node, next) => {
+    insert(node, next)
+    if (node.className === 'oe-block-drop-gap' && ++injected === 1) {
+      controller.destroy()
+    }
+  }
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  assert.equal(injected, 1, 'host insertion callback was not exercised')
+  assert.equal(h.captured(), null)
+  assert.deepEqual(parent.children, before,
+    'a spacer inserted by a callback outlived its destroyed drag owner')
+  assert.equal(h.document.body.classList.contains('oe-editor-dragging'), false)
+  assert.deepEqual(h.moves, [])
+})
+
+test('newer pointerdown during capture release supersedes an old pending drag commit', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  const release = h.handle.releasePointerCapture.bind(h.handle)
+  let successor = 0
+  h.handle.releasePointerCapture = id => {
+    release(id)
+    if (++successor === 1) h.handle.dispatch('pointerdown', pointerEvent(8, 5))
+  }
+  h.document.dispatch('pointerup', pointerEvent(7, 55, { x: 10 }))
+  assert.equal(successor, 1, 'new pointer gesture was not acquired during capture release')
+  assert.equal(h.captured(), 8,
+    'retired drag released its newer successor pointer capture')
+  assert.deepEqual(h.moves, [],
+    'retired pointer session committed a block move after its successor was acquired')
+  const click = pointerEvent(7, 55)
+  h.handle.dispatch('click', click)
+  assert.equal(click.prevented, false,
+    'superseded pointer session installed stale click suppression')
+  controller.destroy()
+})
