@@ -131,6 +131,33 @@ test('only authored text is normalized; native, locked and widget leaves retain 
   }
 })
 
+
+test('normalization from editor shell only changes author fields, not interface labels', () => {
+  const staticFirst = text('To'), staticSecond = text('olbar')
+  const uiLabel = el('div', {}, staticFirst, staticSecond)
+  const first = el('div', { contenteditable: 'true' }, text('Stra'), text('ße'))
+  const second = el('div', { contenteditable: 'true' }, text('A'), text('😀B'))
+  const root = el('section', {}, uiLabel, first, second)
+  normalizeAuthoredText(root)
+  assert.equal(uiLabel.childNodes.length, 2, 'Editor shell rewrote interface text nodes outside author fields')
+  assert.equal(uiLabel.firstChild, staticFirst)
+  assert.equal(uiLabel.childNodes[1], staticSecond)
+  assert.deepEqual(first.childNodes.map(node => node.data), ['Straße'])
+  assert.deepEqual(second.childNodes.map(node => node.data), ['A😀B'])
+})
+
+test('a real editable field inside a plugin read-only shell can normalize its own text', () => {
+  const field = el('div', { contenteditable: 'true' }, text('Stra'), text('ße'))
+  const lockedDecoration = el('span', { contenteditable: 'false' }, text('lo'), text('cked'))
+  const wrapper = el('section', { contenteditable: 'false' }, field, lockedDecoration)
+  normalizeAuthoredText(field)
+  assert.deepEqual(field.childNodes.map(node => node.data), ['Straße'],
+    'Ancestor contenteditable=false incorrectly blocked explicitly targeted author field')
+  assert.equal(lockedDecoration.childNodes.length, 2)
+  normalizeAuthoredText(wrapper)
+  assert.equal(lockedDecoration.childNodes.length, 2)
+})
+
 test('normalization does not enter nested editing hosts or a protected root', () => {
   const nested = el('div', { contenteditable: 'true' }, text('ne'), text('sted'))
   const root = el('div', {}, text('au'), text('thor'), nested)
