@@ -1343,11 +1343,15 @@ test('detached inline widget occurrences lose selection and DOM authority', () =
         element.contentEditable = 'true'
         element.textContent = data.label
         return { element, setReadOnly() {}, destroy() {},
-          update(next) { pluginUpdates.push(next.label) } }
+          update(next) {
+            pluginUpdates.push(next.label)
+            if (disconnectDuringUpdate) field.remove()
+          } }
       } } : null
     },
   }
   const pluginUpdates = []
+  let disconnectDuringUpdate = false
   const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
   try {
     projection.reconcileBlock(
@@ -1385,6 +1389,26 @@ test('detached inline widget occurrences lose selection and DOM authority', () =
     }
     assert(rejectedUpdate, 'A detached widget was updated after losing its editing host')
     equal(pluginUpdates, [], 'A disconnected widget instance received an update callback')
+
+    // A plugin update can itself detach the block during a live operation.
+    // This must invalidate settlement before replacing cached canonical data.
+    document.body.append(field)
+    disconnectDuringUpdate = true
+    let rejectedReentrantUpdate = false
+    try {
+      projection.finalizeNativeInlineUpdates('a', 'text',
+        [{ ...nativeOccurrence, action: { kind: 'update', data: { label: 'Later' } } }],
+        { 'inline-1': { type: 'mention', dataVersion: 1, data: { label: 'Later' } } })
+    } catch {
+      rejectedReentrantUpdate = true
+    }
+    assert(rejectedReentrantUpdate, 'A plugin detached its host but still finalized a native inline update')
+    equal(pluginUpdates, ['Later'], 'The live plugin callback was not exercised')
+    assert(!field.isConnected, 'The callback did not detach the original editing host')
+    document.body.append(field)
+    const afterRejected = projection.captureNativeField('a', 'text', field)?.occurrences[0]
+    equal(afterRejected?.data.label, 'Widget',
+      'A failed reentrant plugin update changed the settled inline data cache')
 
     projection.destroyBlock('a')
     document.body.append(field)
