@@ -368,3 +368,62 @@ test('popup cleanup must not remove a surface adopted by another application roo
   host.destroy()
   assert.deepEqual(outside.children, [surface])
 })
+test('popup admission cannot steal content adopted by read-only preflight', () => {
+  const { root, anchor, create } = fixture()
+  const content = create()
+  const foreign = create()
+  let checks = 0
+  let released = 0
+  const host = new InlinePopupHost({
+    root,
+    isReadOnly() {
+      if (++checks === 1) foreign.appendChild(content)
+      return false
+    },
+  })
+  assert.throws(
+    () => host.showPopup('owner', anchor, content, () => released++),
+    /Popup requires owning-document HTML elements/,
+    'the host stole content adopted after its initial admission check',
+  )
+  assert.equal(checks, 1, 'preflight was not exercised')
+  assert.deepEqual(foreign.children, [content])
+  assert.deepEqual(root.children, [anchor],
+    'rejected content unexpectedly mounted a popup shell')
+  assert.equal(released, 0,
+    'a rejected request must not invoke a cleanup now owned by another UI')
+  host.destroy()
+})
+
+test('popup mount refuses content adopted during connected DOM insertion', () => {
+  const { root, anchor, create } = fixture()
+  const content = create()
+  const foreign = create()
+  const originalAppend = root.appendChild.bind(root)
+  const released = []
+  let detached = false
+  root.appendChild = child => {
+    const result = originalAppend(child)
+    if (!detached && child !== anchor) {
+      detached = true
+      foreign.appendChild(content)
+    }
+    return result
+  }
+
+  const host = new InlinePopupHost({ root })
+  assert.throws(
+    () => host.showPopup('owner', anchor, content, () => released.push('cleanup')),
+    /Popup content ownership changed during mounting/,
+    'the host published an empty popup after its child was adopted elsewhere',
+  )
+  assert.equal(detached, true)
+  assert.deepEqual(foreign.children, [content],
+    'failed mount reclaimed another DOM owner\'s content')
+  assert.deepEqual(root.children, [anchor],
+    'a failed mount left an empty popup attached to the editor')
+  assert.deepEqual(released, ['cleanup'],
+    'provisional popup cleanup did not settle exactly once')
+  host.destroy()
+  assert.deepEqual(released, ['cleanup'])
+})
