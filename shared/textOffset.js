@@ -13,7 +13,24 @@ function isAtomic(node) {
       || /** @type {Element} */ (node).hasAttribute('data-inline-plugin'))
 }
 
-/** Walk logical leaves without entering inline widgets.
+/** Controls within an authored field do not own authored text offsets.
+ * Nested editing hosts have their own offset namespace. This guard is also
+ * used when resolving native endpoints in a locked control.
+ * @param {Node} node
+ * @param {Node} root
+ */
+function isOutsideLogicalText(node, root) {
+  if (node.nodeType !== ELEMENT_NODE || isAtomic(node)) return false
+  const element = /** @type {Element} */ (node)
+  if (['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(element.tagName)
+    || element.getAttribute?.('role') === 'button') return true
+  const editable = element.getAttribute?.('contenteditable')
+  return editable === 'false'
+    || (node !== root && (editable === 'true' || element.hasAttribute?.('contenteditable')))
+}
+
+/**
+ Walk logical leaves without entering inline widgets.
  * @param {Node} root
  * @returns {Generator<Node>}
  */
@@ -23,7 +40,12 @@ function* positionNodes(root) {
     const node = stack.pop()
     if (!node) continue
     if (isRichTextCaretPadding(node)) continue
-    if (node.nodeType === TEXT_NODE || isAtomic(node)) yield node
+    if (isAtomic(node)) {
+      yield node
+      continue
+    }
+    if (isOutsideLogicalText(node, root)) continue
+    if (node.nodeType === TEXT_NODE) yield node
     else {
       for (let index = node.childNodes.length - 1; index >= 0; index--) {
         stack.push(node.childNodes[index])
@@ -123,6 +145,13 @@ export function getTextOffset(container, targetNode, targetOffset) {
     if (isAtomic(node)) {
       targetNode = node
       targetOffset = targetOffset > 0 ? 1 : 0
+      break
+    }
+    if (isOutsideLogicalText(node, container)) {
+      // The control's label is not author text. A selection inside it cannot
+      // supply an authored offset; project the endpoint to its outer edge.
+      targetNode = node
+      targetOffset = 0
       break
     }
   }
