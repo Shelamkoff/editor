@@ -2357,4 +2357,54 @@ test('source projection gives only one opaque atom to duplicate raw inline-looki
   }
 })
 
+
+test('source hydration never mounts duplicate installed widgets from an authored literal', () => {
+  const field=document.createElement('div')
+  field.contentEditable='true'
+  field.textContent='A{{inline-1}}B{{inline-1}}'
+  document.body.append(field)
+  let mounts=0
+  const record={
+    data:{text:'A{{inline-1}}B'},
+    inline:{'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}}},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const registry={
+    getInlineDefinition(type){
+      return type==='mention'?{schema:{decode(value){return value}}}:null
+    },
+    getInlineRuntime(type){
+      return type==='mention'?{create(_id,data){
+        mounts++
+        const element=document.createElement('span')
+        element.textContent=data.name
+        return {element,setReadOnly(){},destroy(){}}
+      }}:null
+    },
+  }
+  const projection=new InlineProjectionRuntime({ownerDocument:document,registry})
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  try{
+    projection.reconcileBlock('a',record,definition,fields,
+      {createInlineWidgetContext(){return{}}},{preserveSourceProjection:true})
+    const widgets=field.querySelectorAll('[data-inline-plugin="mention"]')
+    equal(widgets.length,1,
+      'One canonical inline reference created multiple mounted widget instances')
+    equal(mounts,1,'Duplicate raw source token mounted a second plugin instance')
+    assert(projection.resolveWidgetElement(widgets[0])===widgets[0])
+    equal(field.textContent,'AAdaB{{inline-1}}')
+    const saved=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(saved.data.text,
+      'A{{inline-1}}B<span class="oe-inline-literal">{{inline-1}}</span>')
+    equal(scanRichTextPlaceholders(saved.data.text,saved.inline,document)
+      .occurrences.get('inline-1'),1)
+    equal(saved.inline,record.inline)
+  }finally{
+    projection.destroy()
+    field.remove()
+  }
+})
+
 await run()
