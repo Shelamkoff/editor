@@ -38,6 +38,11 @@ export class LogicalSelection {
         const point={blockId:focusedBlock,fieldKey:'',offset:0}
         return {anchor:point,focus:{...point}}
       }
+      // A button, picker or retired nested field may keep a previous browser
+      // Selection in a live authored field after it takes focus. The block has
+      // real authoring fields, but the active control is not one of them:
+      // never mint a logical bookmark from that stale native selection.
+      return null
     }
 
     if (activeOwner && activeOwner.mode === 'plain-text') {
