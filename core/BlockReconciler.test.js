@@ -1410,6 +1410,47 @@ test('native controls and independent nested editors cannot borrow a parent edit
   reconciler.destroy()
 })
 
+
+test('newly registered native plain-text input resolves after an on-demand field refresh', () => {
+  const document = new FakeDocument()
+  const container = document.createElement('main')
+  const wrapper = document.createElement('article')
+  const previous = document.createElement('span')
+  const replacement = document.createElement('input')
+  wrapper.appendChild(previous)
+  let current = previous
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({
+      create(data) {
+        return {
+          element: wrapper,
+          read() { return data },
+          editableFields() {
+            return [{ key: 'content', element: current,
+              mode: current === replacement ? 'plain-text' : 'rich-text' }]
+          },
+          setReadOnly() {},
+          destroy() {},
+        }
+      },
+    }),
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({ version: '2.0.0', blocks: [block('a')] }))
+  wrapper.appendChild(replacement)
+  current = replacement
+  assert.equal(reconciler.resolveEditableTarget(replacement)?.fieldKey, 'content',
+    'A new registered native control was rejected before the field refresh')
+  assert.equal(reconciler.resolveEditableTarget(replacement)?.mode, 'plain-text')
+  assert.equal(reconciler.resolveEditableTarget(previous), null,
+    'A retired field retained its earlier editing lease')
+  reconciler.destroy()
+})
+
 test('a valid nested editable field remains addressable after ownership validation', () => {
   const { reconciler, container } = setup(1)
   const field = reconciler.getEditableField('0', 'text').element
