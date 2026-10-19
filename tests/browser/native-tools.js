@@ -1724,4 +1724,56 @@ test('a typed literal inline ID cannot relocate an already mounted widget', () =
   }
 })
 
+
+test('reparented inline widgets inside native controls lose authored ownership', () => {
+  const fixture=document.createElement('div')
+  fixture.innerHTML='<div contenteditable="true">A{{inline-1}}B</div>'
+  document.body.append(fixture)
+  const field=fixture.firstElementChild
+  const record={data:{text:'A{{inline-1}}B'},inline:{
+    'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}},
+  }}
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const registry={
+    getInlineDefinition(type){
+      return type==='mention'?{schema:{decode(value){return value}}}:null
+    },
+    getInlineRuntime(type){
+      return type==='mention'?{create(_id,data){
+        const element=document.createElement('span')
+        element.contentEditable='true'
+        element.textContent=data.name
+        return {element,setReadOnly(){},destroy(){}}
+      }}:null
+    },
+  }
+  const projection=new InlineProjectionRuntime({registry,ownerDocument:document})
+  try{
+    projection.reconcileBlock('a',record,definition,
+      [{key:'text',mode:'rich-text',element:field}],
+      {createInlineWidgetContext(){return{}}},
+      {preserveSourceProjection:true})
+    const widget=field.querySelector('[data-inline-plugin="mention"]')
+    assert(widget&&projection.resolveWidgetElement(widget)===widget)
+    const button=document.createElement('button')
+    button.type='button'
+    field.append(button)
+    button.append(widget)
+    assert(field.contains(widget)&&widget.isConnected,
+      'Native-control reparenting did not preserve live field containment')
+    equal(projection.resolveWidgetElement(widget),null,
+      'An inline widget inside a native button retained author ownership')
+    const selection={isCollapsed:true,anchorNode:widget.firstChild,anchorOffset:1}
+    equal(projection.resolveWidgetInputTarget(selection,'insertText'),null,
+      'A native button child retained its inline author caret route')
+    equal(projection.captureNativeField('a','text',field)?.occurrences.length,0,
+      'Native input capture included a widget adopted by a button')
+  }finally{
+    projection.destroy()
+    fixture.remove()
+  }
+})
+
 await run()
