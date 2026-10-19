@@ -2223,10 +2223,13 @@ test('unloaded inline references occupy one inert caret unit and survive replay'
     equal(scanRichTextPlaceholders(collision.data.text,collision.inline,document)
       .occurrences.get('opaque-1'),1)
 
-    projection.reconcileBlock('a',{data:{text:'AB'},inline:{}},
-      definition,fields,context,{preserveSourceProjection:true})
+    // The canonical widget was removed, not the separately typed author
+    // literal. Source preservation must retire only the owned atom.
+    projection.reconcileBlock('a',{data:{
+      text:'AB<span class="oe-inline-literal">{{opaque-1}}</span>',
+    },inline:{}},definition,fields,context,{preserveSourceProjection:true})
     assert(!placeholder.isConnected,'A canonically removed opaque inline retained its DOM')
-    equal(field.textContent,'AB')
+    equal(field.textContent,'AB{{opaque-1}}')
 
     projection.reconcileBlock('a',record,definition,fields,context)
     const recovered=field.querySelector('[data-oe-opaque-inline]')
