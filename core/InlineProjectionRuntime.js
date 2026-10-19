@@ -4,7 +4,8 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { getTextOffset } from '../shared/textOffset.js'
 import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
-import { normalizeRichText } from '../shared/richTextCodec.js'
+import { normalizeRichText, canonicalizeRichTextSubtree } from '../shared/richTextCodec.js'
+import { sanitizeSubtree } from '../shared/sanitize/walker.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 import { scanRichTextPlaceholders, richTextPlaceholderMatches, protectInlineLiteralTokens } from '../shared/richTextOperations.js'
@@ -743,6 +744,10 @@ export class InlineProjectionRuntime {
           // colliding literal "{{id}}" text is safely tagged.
           const marker=this.#ownerDocument.createElement('span')
           marker.setAttribute('data-oe-inline-reference',owned.id)
+          // The transient class survives the first sanitizer pass. The
+          // data attribute is not persisted, and the live reference list
+          // still retains the exact marker Element and its canonical ID.
+          marker.className='oe-inline-owned-reference'
           target.appendChild(marker)
           references.push({element:marker,id:owned.id})
           ownedIds.add(owned.id)
@@ -764,10 +769,14 @@ export class InlineProjectionRuntime {
       }
     }
     append(field,container)
-    // The editor may deliberately preserve adjacent live Text leaves to keep
-    // native DOM Range endpoints stable. Normalize only this detached clone:
-    // its HTML serializer would concatenate those leaves into a token that
-    // a per-Text-node scan otherwise cannot protect from ID collision.
+    // Match the real canonical HTML pipeline on this detached clone *before*
+    // scanning author literals. Sanitizer unwrapping and canonical tag merges
+    // may join separate text fragments into one "{{id}}" token. The temporary
+    // owned-marker spans survive sanitization by their transient class; their
+    // exact Element identities are retained in the private references list.
+    // The real field and all live DOM Ranges remain entirely untouched.
+    sanitizeSubtree(container)
+    canonicalizeRichTextSubtree(container,this.#ownerDocument)
     container.normalize()
     protectInlineLiteralTokens(container,ownedIds,this.#ownerDocument)
     // Only genuine owned markers become canonical {{id}} references. Author
