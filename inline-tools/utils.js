@@ -1,5 +1,5 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
-import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
+import { removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { closestBlock, el } from '../shared/editorDom.js'
 import { isAuthoredEditableText } from '../shared/editableFields.js'
@@ -7,8 +7,6 @@ import { createSvgIcon, ICON_BACK } from '../shared/editorIcons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
-const TEXT_NODE = 3
-const DOCUMENT_FRAGMENT_NODE = 11
 
 /**
  * Bind one tool to its mount-scoped selection authority. A fresh mount gets
@@ -129,69 +127,31 @@ function haveSameAttributes(left, right) {
   return true
 }
 
-/**
- * Check if content already has a given tag in its wrapper chain.
- * extractContents clones partially-covered inline elements (DOM spec),
- * so we need to detect these to avoid double-wrapping.
- *
- * Handles both single-child chains (`<i><b>text</b></i>`) and
- * multi-child fragments (`<i>a</i><s>b</s>`) — the latter can occur
- * when extractContents splits a parent that had multiple children.
- *
- * @param {Node} content — text node, element, or DocumentFragment
- * @param {string} tag — lowercase tag name to look for
- * @returns {boolean}
+/** Split ordinary wrappers to isolate a selected text leaf without cloning
+ * protected descendants, native controls, or inline-widget DOM ownership.
+ * @param {Text} text
+ * @param {HTMLElement} ancestor
  */
-function hasWrapperTag(content, tag) {
-  let node = content
-  // Unwrap single-child DocumentFragments
-  while (node.nodeType === DOCUMENT_FRAGMENT_NODE && node.childNodes.length === 1) {
-    node = /** @type {Node} */ (node.firstChild)
+export function isolateAncestor(text, ancestor) {
+  /** @type {Node} */
+  let part = text
+  while (part.parentNode) {
+    const parent = /** @type {HTMLElement} */ (part.parentNode)
+    const container = parent.parentNode
+    if (!container) return
+    if (part.previousSibling) {
+      const before = parent.cloneNode(false)
+      while (parent.firstChild !== part) before.appendChild(parent.firstChild)
+      container.insertBefore(before, parent)
+    }
+    if (part.nextSibling) {
+      const after = parent.cloneNode(false)
+      while (part.nextSibling) after.appendChild(part.nextSibling)
+      container.insertBefore(after, parent.nextSibling)
+    }
+    if (parent === ancestor) return
+    part = parent
   }
-  // For multi-child fragments: the tag is considered present if the
-  // fragment itself IS the unwrapped content (no single wrapper around it).
-  // We only need to detect a wrapper that surrounds ALL children.
-  // Walk down single-child element chain looking for the tag.
-  while (node.nodeType === ELEMENT_NODE) {
-    if (/** @type {Element} */ (node).tagName.toLowerCase() === tag) return true
-    // Only descend if there's exactly one element child (a wrapper chain)
-    const children = /** @type {Element} */ (node).children
-    if (children.length !== 1) break
-    node = children[0]
-  }
-  return false
-}
-
-/**
- * Wrap content in an inline wrapper tag, but only if the content isn't
- * already wrapped in the same tag (which happens when extractContents
- * clones partially-covered elements per DOM spec).
- *
- * For multi-child fragments (e.g. `<i>a</i><s>b</s>`), wraps each
- * top-level child individually if it lacks the wrapper, avoiding
- * double-wrapping children that already have the tag from extractContents.
- *
- * @param {Node} content — text node, element, or DocumentFragment
- * @param {HTMLElement} wrapperTemplate — cloned empty element to use as wrapper
- * @returns {Node}
- */
-function wrapIfNeeded(content, wrapperTemplate) {
-  const tag = wrapperTemplate.tagName.toLowerCase()
-
-  // Already has the wrapper (single-child chain) — skip
-  if (hasWrapperTag(content, tag)) return content
-
-  // Multi-child fragment: extractContents already cloned partially-covered
-  // wrappers for each child individually (DOM spec). Adding another wrapper
-  // around the whole fragment would double-wrap children that don't need it.
-  // Leave multi-child fragments as-is — the per-child clones are correct.
-  if (content.nodeType === DOCUMENT_FRAGMENT_NODE && content.childNodes.length > 1) {
-    return content
-  }
-
-  const w = /** @type {HTMLElement} */ (wrapperTemplate.cloneNode(false))
-  w.appendChild(content)
-  return w
 }
 
 /**
@@ -221,177 +181,33 @@ export function toggleTag(tagName, range, matches = () => true) {
     ? /** @type {HTMLElement} */ (parent)
     : parent.parentElement
 
-  // Case 1: Selection is entirely INSIDE an existing tag — unwrap
-  let ancestor = closestInEditable(container, tagName)
-  while (ancestor && !canChange(ancestor)) {
-    ancestor = closestInEditable(ancestor.parentElement, tagName)
+  // Unwrap only the selected authored text. The previous whole-wrapper
+  // extraction also removed formatting from locked and native descendants
+  // whenever the selection happened to span the entire surrounding tag.
+  const selectionRoot = getWalkRoot(range)
+  const selectedText = selectionRoot ? collectTextTargets(selectionRoot, range) : []
+  const matchingAncestors = (/** @type {Text} */ node) => {
+    /** @type {HTMLElement[]} */
+    const result = []
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+      if (parent.hasAttribute('contenteditable')) break
+      if (parent.matches(tagName) && canChange(parent)) result.push(parent)
+    }
+    return result
   }
-  if (ancestor) {
-    // Check if selection covers the full ancestor content via character offsets
-    // (compareBoundaryPoints is unreliable for mixed text/element boundaries)
-    const startOff = getTextOffset(ancestor, range.startContainer, range.startOffset)
-    const endOff = getTextOffset(ancestor, range.endContainer, range.endOffset)
-    const totalLen = getTextLength(ancestor)
-    const coversStart = startOff === 0
-    const coversEnd = endOff >= totalLen
-
-    if (coversStart && coversEnd) {
-      // Full unwrap — selection covers entire ancestor
-      const parentNode = ancestor.parentNode
-      while (ancestor.firstChild) {
-        parentNode?.insertBefore(ancestor.firstChild, ancestor)
+  if (selectedText.some(({ node }) => matchingAncestors(node).length > 0)) {
+    // Reverse DOM order prevents earlier endpoints from drifting when text
+    // fragments split. Cloned shells retain their non-author children.
+    for (const { node, startOffset, endOffset } of selectedText.reverse()) {
+      if (endOffset < node.length) node.splitText(endOffset)
+      const selected = startOffset > 0 ? node.splitText(startOffset) : node
+      const ancestors = matchingAncestors(selected)
+      for (const ancestor of ancestors) {
+        isolateAncestor(selected, ancestor)
+        ancestor.replaceWith(...ancestor.childNodes)
       }
-      ancestor.remove()
-      removeEmptyInlineTags(parentNode)
-    } else {
-      // Partial unwrap — only remove tag from selected portion
-      // Preserves inner inline wrappers (e.g. removing <b> keeps <i>)
-      // Result: <b><i>before</i></b><i>selected</i><b><i>after</i></b>
-      const parentNode = ancestor.parentNode
-      const ref = ancestor.nextSibling
-
-      // Save inner inline wrapper chain (between text node and ancestor, exclusive)
-      const innerWrappers = []
-      /** @type {Node | null} */
-      let n = range.startContainer
-      if (n.nodeType === TEXT_NODE) n = n.parentElement
-      while (n && n !== ancestor) {
-        innerWrappers.push(/** @type {HTMLElement} */ (n).cloneNode(false))
-        n = /** @type {HTMLElement} */ (n).parentElement
-      }
-
-      // 1. Extract content AFTER selection
-      const afterRange = ownerDocument.createRange()
-      afterRange.setStart(range.endContainer, range.endOffset)
-      afterRange.setEndAfter(ancestor.lastChild || ancestor)
-      const afterFrag = afterRange.extractContents()
-
-      // 2. Extract selected content and re-wrap with inner wrappers (preserving other formatting)
-      //    wrapIfNeeded skips if extractContents already cloned them (partial coverage).
-      /** @type {Node} */
-      let wrappedSelected = range.extractContents()
-      for (let i = 0; i < innerWrappers.length; i++) {
-        const iw = innerWrappers[i]
-        if (!iw) continue
-        wrappedSelected = wrapIfNeeded(wrappedSelected, /** @type {HTMLElement} */ (iw))
-      }
-      parentNode?.insertBefore(wrappedSelected, ref)
-
-      // 4. Re-wrap after content with inner wrappers + ancestor tag
-      //    extractContents already clones partially-covered inner wrappers,
-      //    so wrapIfNeeded prevents duplication.
-      if (hasInlineContent(afterFrag)) {
-        /** @type {Node} */
-        let wrappedAfter = afterFrag
-        for (let i = 0; i < innerWrappers.length; i++) {
-          const iw = innerWrappers[i]
-          if (!iw) continue
-          wrappedAfter = wrapIfNeeded(wrappedAfter, /** @type {HTMLElement} */ (iw))
-        }
-        const afterTag = /** @type {HTMLElement} */ (ancestor.cloneNode(false))
-        afterTag.appendChild(wrappedAfter)
-        parentNode?.insertBefore(afterTag, ref)
-      }
-
-      // 5. Remove ancestor if empty
-      if (!hasInlineContent(ancestor)) ancestor.remove()
-
-      // 6. Clean up empty inline tags left by extraction
-      removeEmptyInlineTags(parentNode)
-      mergeAdjacentTags(parentNode, tagName)
-
     }
     return
-  }
-
-  // Case 2: Selection CONTAINS descendant tags — unwrap (full or partial)
-  if (container) {
-    const descendants = container.querySelectorAll(tagName)
-    const toUnwrap = []
-    for (const el of descendants) {
-      if (range.intersectsNode(el) && canChange(/** @type {HTMLElement} */ (el))) {
-        toUnwrap.push(el)
-      }
-    }
-    if (toUnwrap.length) {
-      // Process in reverse DOM order so extractContents/insertBefore
-      // mutations don't invalidate range references for earlier elements.
-      for (let ti = toUnwrap.length - 1; ti >= 0; ti--) {
-        const el = /** @type {HTMLElement} */ (toUnwrap[ti])
-        // Create a clipped range: intersection of selection with this element
-        const clipped = ownerDocument.createRange()
-        if (el.contains(range.startContainer)) {
-          clipped.setStart(range.startContainer, range.startOffset)
-        } else {
-          clipped.setStart(el, 0)
-        }
-        if (el.contains(range.endContainer)) {
-          clipped.setEnd(range.endContainer, range.endOffset)
-        } else {
-          clipped.setEnd(el, el.childNodes.length)
-        }
-
-        const clippedLen = clipped.toString().length
-        const fullLen = el.textContent?.length ?? 0
-
-        if (clippedLen >= fullLen) {
-          // Full unwrap
-          const p = el.parentNode
-          while (el.firstChild) p?.insertBefore(el.firstChild, el)
-          el.remove()
-        } else {
-          // Partial unwrap — split element, preserve inner wrappers
-          const parentNode = el.parentNode
-          const ref = el.nextSibling
-
-          // Save inner wrapper chain
-          const innerWrappers = []
-          /** @type {Node | null} */
-          let nn = clipped.startContainer
-          if (nn.nodeType === TEXT_NODE) nn = nn.parentElement
-          while (nn && nn !== el) {
-            innerWrappers.push(/** @type {HTMLElement} */ (nn).cloneNode(false))
-            nn = /** @type {HTMLElement} */ (nn).parentElement
-          }
-
-          const afterRange = ownerDocument.createRange()
-          afterRange.setStart(clipped.endContainer, clipped.endOffset)
-          afterRange.setEndAfter(el.lastChild || el)
-          const afterFrag = afterRange.extractContents()
-
-          // Re-wrap selected with inner wrappers (skip if extractContents already cloned them)
-          /** @type {Node} */
-          let wrappedSel = clipped.extractContents()
-          for (let i = 0; i < innerWrappers.length; i++) {
-            const iw = innerWrappers[i]
-            if (!iw) continue
-            wrappedSel = wrapIfNeeded(wrappedSel, /** @type {HTMLElement} */ (iw))
-          }
-          parentNode?.insertBefore(wrappedSel, ref)
-
-          if (hasInlineContent(afterFrag)) {
-            /** @type {Node} */
-            let wrappedAfter = afterFrag
-            for (let i = 0; i < innerWrappers.length; i++) {
-              const iw = innerWrappers[i]
-              if (!iw) continue
-              wrappedAfter = wrapIfNeeded(wrappedAfter, /** @type {HTMLElement} */ (iw))
-            }
-            const afterTag = /** @type {HTMLElement} */ (el.cloneNode(false))
-            afterTag.appendChild(wrappedAfter)
-            parentNode?.insertBefore(afterTag, ref)
-          }
-
-          if (!hasInlineContent(el)) el.remove()
-        }
-      }
-
-      // Clean up empty inline tags, merge adjacent, and normalize
-      removeEmptyInlineTags(container)
-      mergeAdjacentTags(container, tagName)
-
-      return
-    }
   }
 
   // Case 3: No existing tag found — wrap selection
