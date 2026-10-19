@@ -1006,4 +1006,38 @@ test('inline normalization leaves mixed native-owner selection boundaries intact
   } finally { fixture.remove() }
 })
 
+
+test('backward Unicode case formatting across blocks restores selection and one Undo/Redo entry', async () => {
+  const editor = make([para('a', 'Straße'), para('b', 'Alpha')], {
+    injectStyles: true,
+    inlineTools: createDefaultInlineTools({ types: ['caseTransform'] }),
+  })
+  const before = editor.save().blocks
+  const a = editableField(editor, 'a')
+  const b = editableField(editor, 'b')
+  await dragAcross(editor, a, 0, b, 5, true)
+  await clickNative(editorRoot(editor).querySelector('[data-tool="caseTransform"]'))
+  await pause(35)
+  const after = editor.save().blocks
+  equal(after.map(block => block.data.text), ['STRASSE', 'ALPHA'])
+  equal(editor.canUndo, true)
+  const checkBackward = label => {
+    const native = window.getSelection()
+    assert(b.contains(native.anchorNode) && a.contains(native.focusNode),
+      label + ': backward selection moved to another editing host')
+    equal(getTextOffset(b, native.anchorNode, native.anchorOffset), 5,
+      label + ': backward anchor changed')
+    equal(getTextOffset(a, native.focusNode, native.focusOffset), 0,
+      label + ': backward focus changed')
+  }
+  checkBackward('after formatting')
+  editor.undo()
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false, 'Cross-block Unicode gesture generated multiple history entries')
+  checkBackward('after Undo')
+  editor.redo()
+  equal(editor.save().blocks, after)
+  checkBackward('after Redo')
+})
+
 await run()
