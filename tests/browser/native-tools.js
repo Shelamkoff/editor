@@ -4,6 +4,7 @@ import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { LogicalSelection } from '../../core/LogicalSelection.js'
 import { NativeInputController } from '../../core/NativeInputController.js'
+import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
 import { KeyboardRouter } from '../../core/KeyboardRouter.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
@@ -1313,6 +1314,70 @@ test('native block and widget buttons cannot replay history, but toolbar Undo ca
   } finally {
     router.destroy()
     fixture.remove()
+  }
+})
+
+
+test('detached inline widget occurrences lose selection and DOM authority', () => {
+  const field = document.createElement('div')
+  field.contentEditable = 'true'
+  field.textContent = 'A{{inline-1}}B'
+  document.body.append(field)
+  const record = {
+    data: { text: 'A{{inline-1}}B' },
+    inline: { 'inline-1': { type: 'mention', dataVersion: 1, data: { label: 'Widget' } } },
+  }
+  const definition = { schema: {
+    mapRichText(data, visit) { return { ...data, text: visit(data.text, 'text') } },
+  } }
+  const registry = {
+    getInlineDefinition(type) {
+      return type === 'mention' ? {
+        schema: { decode(value) { return value } },
+      } : null
+    },
+    getInlineRuntime(type) {
+      return type === 'mention' ? { create(_id, data) {
+        const element = document.createElement('span')
+        element.contentEditable = 'true'
+        element.textContent = data.label
+        return { element, setReadOnly() {}, destroy() {} }
+      } } : null
+    },
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  try {
+    projection.reconcileBlock(
+      'a', record, definition,
+      [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext() { return {} } },
+      { preserveSourceProjection: true },
+    )
+    const widget = field.querySelector('[data-inline-plugin="mention"]')
+    assert(widget && widget.isConnected, 'The inline occurrence failed to mount')
+    assert(projection.resolveWidgetElement(widget) === widget,
+      'A currently connected occurrence lost its DOM ownership')
+    const selection = {
+      isCollapsed: true, anchorNode: widget.firstChild, anchorOffset: 2,
+    }
+    assert(projection.resolveWidgetInputTarget(selection, 'insertText')?.element === widget,
+      'A connected widget cannot resolve its own input target')
+
+    field.remove()
+    assert(!field.isConnected && field.contains(widget),
+      'The fixture did not retain the stale child relationship')
+    equal(projection.resolveWidgetElement(widget), null,
+      'A detached widget still resolved through a stale field child relationship')
+    equal(projection.resolveWidgetInputTarget(selection, 'insertText'), null,
+      'A detached widget could still receive an inline edit or caret target')
+
+    projection.destroyBlock('a')
+    document.body.append(field)
+    equal(projection.resolveWidgetElement(widget), null,
+      'Reattaching a disposed occurrence resurrected its former DOM authority')
+  } finally {
+    projection.destroy()
+    field.remove()
   }
 })
 
