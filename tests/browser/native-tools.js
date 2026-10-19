@@ -2268,6 +2268,13 @@ test('unloaded inline references occupy one inert caret unit and survive replay'
     assert(placeholder&&placeholder.textContent==='{{opaque-1}}',
       'The unknown inline reference lacks an inert owned DOM boundary')
     assert(!placeholder.isContentEditable,'An opaque inline reference was made editable')
+    equal(projection.resolveWidgetElement(placeholder),null,
+      'Unknown inline type received live plugin runtime ownership')
+    equal(projection.resolveWidgetInputTarget({
+      isCollapsed:true,anchorNode:placeholder.firstChild,anchorOffset:2,
+    },'insertText'),null,'Unknown type received plugin editing authority')
+    equal(projection.captureNativeField('a','text',field)?.occurrences.length,0,
+      'Unknown type was offered to the native plugin edit bridge')
     const saved=projection.serializeBlock('a',record,definition,fields,record.data)
     equal(saved.data.text,record.data.text)
     equal(saved.inline,record.inline)
