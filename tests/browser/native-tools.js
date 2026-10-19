@@ -1757,6 +1757,8 @@ test('reparented inline widgets inside native controls lose authored ownership',
       {preserveSourceProjection:true})
     const widget=field.querySelector('[data-inline-plugin="mention"]')
     assert(widget&&projection.resolveWidgetElement(widget)===widget)
+    const captured=projection.captureNativeField('a','text',field)?.occurrences[0]
+    assert(captured?.element===widget,'Initial inline native occurrence was not captured')
     const button=document.createElement('button')
     button.type='button'
     field.append(button)
@@ -1770,6 +1772,11 @@ test('reparented inline widgets inside native controls lose authored ownership',
       'A native button child retained its inline author caret route')
     equal(projection.captureNativeField('a','text',field)?.occurrences.length,0,
       'Native input capture included a widget adopted by a button')
+    assert(!projection.isCurrentNativeOccurrence('a','text',captured,{allowDetached:true}),
+      'A connected widget adopted by a button passed a native-deletion lifetime check')
+    widget.remove()
+    assert(projection.isCurrentNativeOccurrence('a','text',captured,{allowDetached:true}),
+      'A genuinely detached occurrence must remain recognizable for native deletion settlement')
   }finally{
     projection.destroy()
     fixture.remove()
