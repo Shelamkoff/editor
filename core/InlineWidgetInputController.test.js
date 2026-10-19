@@ -769,3 +769,42 @@ test('deferred inline caret cannot write after its widget resolver destroys the 
     'resolver destroyed inline scope but an obsolete native selection was still restored')
   assert.deepEqual(state.writes.filter(x => x[0] === 'caret'), [])
 })
+test('native inline notices stop when caret restoration destroys their owner', () => {
+  const state = fixture()
+  const notices = []
+  state.runtime.get = () => ({type:'paragraph'})
+  state.runtime.observeExtension = operation => operation()
+  const source = {
+    id:'mention-1',type:'mention',fieldKey:'text',element:state.widget,
+    beforeText:'@Ada',data:{id:'ada',name:'Ada'},optedIn:true,instance:{},
+  }
+  state.projection.isCurrentNativeOccurrence = () => true
+  state.projection.retireNativeInlineChanges = () => {}
+  state.projection.notifyNativeInlineEdit = (_id, _inlineId, notice) => notices.push(notice)
+  state.root.ownerDocument.createRange = () => ({
+    selectNodeContents() {}, setEnd() {}, toString() {return '@Ad'},
+  })
+  const label = state.widget.firstChild
+  let restorations = 0
+  state.root.ownerDocument.defaultView.getSelection = () => ({
+    anchorNode:label,focusNode:label,anchorOffset:2,focusOffset:2,
+    setBaseAndExtent() {
+      restorations++
+      state.controller.destroy()
+    },
+  })
+  state.runtime.reconcileNativeInlineInput = snapshot => {
+    snapshot.settle([{...source,action:{kind:'update',data:{id:'ada',name:'Ad'}}}], 'committed')
+    return {status:'committed'}
+  }
+  const captured = {
+    blockId:'a',fieldKey:'text',blockType:'paragraph',
+    fieldElement:state.field,
+    generation:state.runtime.generation,revision:state.runtime.revision,
+    occurrences:[source],selectionBefore:null,
+  }
+  assert.equal(state.controller.completeNativeDeletion(captured,{}).status,'committed')
+  assert.equal(restorations,1, 'native caret restoration did not run')
+  assert.deepEqual(notices,[],
+    'a destroyed inline controller still sent plugin notices after native focus callbacks')
+})
