@@ -559,4 +559,25 @@ test('cross-block tag fallback formats author text without touching controls or 
   }
 })
 
+
+test('single-field inline tag formatting leaves embedded locked labels and native buttons untouched', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true">alpha<span contenteditable="false">locked</span><button type="button">action</button>beta</div></div>'
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    const locked = field.querySelector('[contenteditable="false"]')
+    const action = field.querySelector('button')
+    const range = document.createRange()
+    range.setStart(field.firstChild, 0)
+    range.setEnd(field.lastChild, field.lastChild.length)
+    toggleTag('b', range)
+    equal(Array.from(field.querySelectorAll('b'), item => item.textContent), ['alpha', 'beta'])
+    assert(!locked.closest('b') && !locked.querySelector('b'), 'Locked text was wrapped by surroundContents')
+    assert(!action.closest('b') && !action.querySelector('b'), 'Native button was wrapped by surroundContents')
+  } finally {
+    fixture.remove()
+  }
+})
+
 await run()
