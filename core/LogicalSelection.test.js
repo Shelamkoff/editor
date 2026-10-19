@@ -605,3 +605,27 @@ test('capture never reuses stale authored selection while a native control has f
     focus: { blockId: 'a', fieldKey: 'text', offset: 4 },
   }, 'A legitimately focused authored field lost its logical selection')
 })
+
+
+test('external native control focus does not authorize a stale selection inside the editor', () => {
+  const h = fixture()
+  const field = h.field().element
+  const text = h.field().child
+  const external = { nodeType: 1, tagName: 'BUTTON', parentNode: null }
+  const owner = { blockId: 'a', fieldKey: 'text', element: field, mode: 'rich-text' }
+  h.reconciler.resolveEditableTarget = target => target === text || target === field ? owner : null
+  h.reconciler.resolveBlockTarget = () => null
+  h.native.anchorNode = text
+  h.native.focusNode = text
+  h.native.anchorOffset = 1
+  h.native.focusOffset = 4
+  h.ownerDocument.activeElement = external
+  assert.equal(h.selection.capture(), null,
+    'An external native button borrowed a stale editor selection')
+
+  h.ownerDocument.activeElement = field
+  assert.deepEqual(h.selection.capture(), {
+    anchor: { blockId: 'a', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'a', fieldKey: 'text', offset: 4 },
+  }, 'A legitimately focused rich-text field was blocked by the external-control guard')
+})
