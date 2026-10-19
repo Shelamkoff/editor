@@ -396,16 +396,24 @@ export function toggleTag(tagName, range, matches = () => true) {
 
   // Case 3: No existing tag found — wrap selection
   const wrapper = ownerDocument.createElement(tagName)
-  try {
-    range.surroundContents(wrapper)
-  } catch {
-    // surroundContents fails when range crosses element boundaries.
-    // Per-text-node wrapping as safe fallback.
-    // Use contenteditable for single-block, commonAncestorContainer for cross-block.
-    const singleCe = container?.closest('[contenteditable="true"]')
-    const walkRoot = singleCe || (range.commonAncestorContainer.nodeType === ELEMENT_NODE
-      ? range.commonAncestorContainer
-      : range.commonAncestorContainer.parentElement)
+  const walkRoot = getWalkRoot(range)
+  // surroundContents can succeed across a native or contenteditable=false
+  // control inside one editing host, wrapping UI text as author formatting.
+  // Such selections must use only verified authored text leaves.
+  const protectedElements = walkRoot?.querySelectorAll(
+    'button, input, textarea, select, option, [contenteditable="false"], [data-inline-plugin], [role="button"]',
+  ) ?? []
+  const crossesControl = Array.from(protectedElements).some(element => range.intersectsNode(element))
+  let surrounded = false
+  if (!crossesControl) {
+    try {
+      range.surroundContents(wrapper)
+      surrounded = true
+    } catch {
+      // Partially selected element boundaries also need the text-only path.
+    }
+  }
+  if (!surrounded) {
     if (walkRoot) {
       const targets = collectTextTargets(walkRoot, range)
       for (let i = targets.length - 1; i >= 0; i--) {
