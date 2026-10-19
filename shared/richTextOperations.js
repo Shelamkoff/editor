@@ -6,6 +6,52 @@ import { toTrustedHtml } from './sanitize/trustedHtml.js'
 const PLACEHOLDER_RE=/\{\{([A-Za-z0-9_-]+)\}\}/g
 const MARKER_ATTR='data-oe-inline-reference'
 
+/** Sanitizer-preserved author text boundary for a placeholder-shaped literal
+ * that happens to share an ID with a real inline widget. */
+export const INLINE_LITERAL_CLASS = 'oe-inline-literal'
+
+/** @param {Node} node */
+function isLiteralInlineText(node) {
+  return Boolean(node.parentElement?.closest?.('span.' + INLINE_LITERAL_CLASS))
+}
+
+/** Preserve literal "{{id}}" characters separately from actual inline
+ * references, without a new document envelope or visible formatting.
+ * @param {Node} root
+ * @param {Iterable<string>} ids
+ * @param {Document} ownerDocument
+ */
+export function protectInlineLiteralTokens(root, ids, ownerDocument) {
+  const reserved=new Set(ids)
+  if(!reserved.size)return
+  const walker=ownerDocument.createTreeWalker(root,4)
+  /** @type {Text[]} */
+  const nodes=[]
+  for(let node=walker.nextNode();node;node=walker.nextNode()) {
+    if(!isLiteralInlineText(node))nodes.push(/** @type {Text} */ (node))
+  }
+  for(const text of nodes){
+    if(!text.data.includes('{{'))continue
+    let cursor=0,changed=false
+    const fragment=ownerDocument.createDocumentFragment()
+    for(const match of richTextPlaceholderMatches(text.data)){
+      if(!reserved.has(match[1]))continue
+      if(match.index>cursor)fragment.appendChild(
+        ownerDocument.createTextNode(text.data.slice(cursor,match.index)),
+      )
+      const literal=ownerDocument.createElement('span')
+      literal.className=INLINE_LITERAL_CLASS
+      literal.textContent=match[0]
+      fragment.appendChild(literal)
+      cursor=match.index+match[0].length
+      changed=true
+    }
+    if(!changed)continue
+    if(cursor<text.data.length)fragment.appendChild(ownerDocument.createTextNode(text.data.slice(cursor)))
+    text.replaceWith(fragment)
+  }
+}
+
 /** Iterate the canonical placeholder grammar in a text node, never raw HTML. */
 export function richTextPlaceholderMatches(text){
   return String(text??'').matchAll(PLACEHOLDER_RE)
@@ -21,7 +67,7 @@ function expandReferences(root,inline,ownerDocument){
   let node=walker.nextNode()
   while(node){textNodes.push(/** @type {Text} */(node));node=walker.nextNode()}
   for(const text of textNodes){
-    if(!text.data.includes('{{'))continue
+    if(isLiteralInlineText(text)||!text.data.includes('{{'))continue
     const fragment=ownerDocument.createDocumentFragment()
     let cursor=0
     let changed=false
@@ -51,7 +97,12 @@ function collapseReferences(root,ownerDocument){
 }
 
 function replacementNode(replacement,inline,ownerDocument){
-  if(replacement.kind==='text')return ownerDocument.createTextNode(replacement.text)
+  if(replacement.kind==='text'){
+    const fragment=ownerDocument.createDocumentFragment()
+    fragment.appendChild(ownerDocument.createTextNode(replacement.text))
+    protectInlineLiteralTokens(fragment,Object.keys(inline),ownerDocument)
+    return fragment
+  }
   if(replacement.kind==='inline-reference'){
     if(!Object.hasOwn(inline,replacement.id))throw new Error('Unknown inline reference: '+replacement.id)
     const marker=ownerDocument.createElement('span')
@@ -63,6 +114,7 @@ function replacementNode(replacement,inline,ownerDocument){
   if(replacement.kind==='html'){
     const template=ownerDocument.createElement('template')
     template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(replacement.html,ownerDocument),ownerDocument))
+    protectInlineLiteralTokens(template.content,Object.keys(inline),ownerDocument)
     return template.content
   }
   throw new TypeError('Unknown rich-text replacement kind')
@@ -233,6 +285,10 @@ export function scanRichTextPlaceholders(html, inline, ownerDocument) {
     const text = /** @type {Text} */ (node)
     for (const match of richTextPlaceholderMatches(text.data)) {
       const id = match[1]
+      if (isLiteralInlineText(text)) {
+        literals.add(id)
+        continue
+      }
       if (Object.hasOwn(ownedInline, id)) {
         references.add(id)
         occurrences.set(id, (occurrences.get(id) ?? 0) + 1)
@@ -264,7 +320,7 @@ export function replaceRichTextReference(html,inline,id,replacement,ownerDocumen
   const walker=ownerDocument.createTreeWalker(template.content,4)
   for(let node=walker.nextNode();node;node=walker.nextNode()){
     const text=/** @type {Text} */(node)
-    if(!text.data.includes('{{'))continue
+    if(isLiteralInlineText(text)||!text.data.includes('{{'))continue
     text.data=text.data.replace(PLACEHOLDER_RE,(token,tokenId)=>tokenId===id?replacement:token)
   }
   return normalizeRichText(template.innerHTML,ownerDocument)
@@ -291,7 +347,7 @@ export function remapRichTextReferences(html, inline, remap, ownerDocument) {
   const walker = ownerDocument.createTreeWalker(template.content, 4)
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = /** @type {Text} */ (node)
-    if (!text.data.includes('{{')) continue
+    if (isLiteralInlineText(text)||!text.data.includes('{{')) continue
     text.data = text.data.replace(PLACEHOLDER_RE, (token, id) => {
       if (!Object.hasOwn(ownedInline, id)) return token
       const next = remap.get(id)
