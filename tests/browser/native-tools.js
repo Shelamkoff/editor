@@ -2317,4 +2317,44 @@ test('unloaded inline references occupy one inert caret unit and survive replay'
   }
 })
 
+
+test('source projection gives only one opaque atom to duplicate raw inline-looking tokens', () => {
+  const field=document.createElement('div')
+  field.contentEditable='true'
+  field.textContent='A{{opaque-1}}B{{opaque-1}}'
+  document.body.append(field)
+  const canonical={
+    data:{text:'A{{opaque-1}}B'},
+    inline:{'opaque-1':{type:'not-installed',dataVersion:7,data:{keep:'yes'}}},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const projection=new InlineProjectionRuntime({
+    ownerDocument:document,
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+  })
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    projection.reconcileBlock('a',canonical,definition,fields,context,
+      {preserveSourceProjection:true})
+    equal(field.querySelectorAll('[data-oe-opaque-inline]').length,1,
+      'Duplicate raw token received multiple opaque inline instances')
+    equal(field.textContent,'A{{opaque-1}}B{{opaque-1}}')
+    equal(getTextLength(field),15,
+      'Duplicate opaque marker consumed a second atomic caret unit')
+    const saved=projection.serializeBlock('a',canonical,definition,fields,canonical.data)
+    equal(saved.data.text,
+      'A{{opaque-1}}B<span class="oe-inline-literal">{{opaque-1}}</span>',
+      'Saving a duplicate literal dropped text or forged a canonical inline reference')
+    equal(saved.inline,canonical.inline)
+    equal(scanRichTextPlaceholders(saved.data.text,saved.inline,document)
+      .occurrences.get('opaque-1'),1)
+  }finally{
+    projection.destroy()
+    field.remove()
+  }
+})
+
 await run()
