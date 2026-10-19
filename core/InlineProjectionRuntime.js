@@ -306,7 +306,8 @@ export class InlineProjectionRuntime {
       if(change.action.kind!=='update')continue
       const entry=state.widgets.get(change.id)
       if(!entry||entry.element!==change.element||entry.instance!==change.instance
-        ||entry.fieldKey!==fieldKey||!entry.fieldElement.contains(entry.element)
+        ||entry.fieldKey!==fieldKey||!entry.fieldElement?.isConnected
+        ||!entry.element.isConnected||!entry.fieldElement.contains(entry.element)
         ||typeof entry.instance.update!=='function'){
         throw new Error('Native inline update lost its mounted instance')
       }
@@ -327,6 +328,7 @@ export class InlineProjectionRuntime {
       // root. Do not settle an invalid native edit into canonical caches.
       if(this.#destroyed||this.#blocks.get(blockId)!==state
         ||state.widgets.get(change.id)!==entry
+        ||!entry.fieldElement?.isConnected||!entry.element.isConnected
         ||!entry.fieldElement.contains(entry.element)){
         throw new Error('Native inline update lost its mounted instance')
       }
@@ -335,6 +337,7 @@ export class InlineProjectionRuntime {
       // Custom-element attribute observers may also revoke the owner.
       if(this.#destroyed||this.#blocks.get(blockId)!==state
         ||state.widgets.get(change.id)!==entry
+        ||!entry.fieldElement?.isConnected||!entry.element.isConnected
         ||!entry.fieldElement.contains(entry.element)){
         throw new Error('Native inline update lost its mounted instance')
       }
