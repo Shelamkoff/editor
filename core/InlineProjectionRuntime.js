@@ -694,6 +694,13 @@ export class InlineProjectionRuntime {
           ||(!state.staged&&this.#blocks.get(blockId)!==state)){
           throw new Error('Inline projection owner was revoked during reconciliation')
         }
+        // A setReadOnly(), update() or attribute observer callback can move
+        // an existing root into a different control, editor or application.
+        // Never steal that root back while hydrating the canonical reference:
+        // fail the projection so its transaction owner can recover instead.
+        if(entry.element.parentNode||entry.element.isConnected){
+          throw new Error('Inline widget root left its projection boundary before hydration')
+        }
         fragment.appendChild(entry.element)
         live.add(id)
         cursor=match.index+match[0].length
