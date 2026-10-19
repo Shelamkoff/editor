@@ -1609,4 +1609,119 @@ test('serializing authored text excludes embedded native controls and locked lab
   }
 })
 
+
+test('preserved source projection retires a widget removed from canonical inline references', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div contenteditable="true">A{{inline-1}}B</div>'
+  document.body.append(fixture)
+  const field = fixture.firstElementChild
+  const definition = { schema: {
+    mapRichText(data, visit) { return { ...data, text: visit(data.text, 'text') } },
+  } }
+  let created = 0, destroyed = 0
+  const registry = {
+    getInlineDefinition(type) {
+      return type === 'mention' ? {
+        schema: { decode(value) { return value } },
+      } : null
+    },
+    getInlineRuntime(type) {
+      return type === 'mention' ? { create(_id, data) {
+        created++
+        const element = document.createElement('span')
+        element.textContent = data.name
+        return { element, setReadOnly() {}, destroy() { destroyed++ } }
+      } } : null
+    },
+  }
+  const projection = new InlineProjectionRuntime({registry, ownerDocument:document})
+  const initial = {data:{text:'A{{inline-1}}B'},inline:{
+    'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}},
+  }}
+  const fields = [{key:'text',mode:'rich-text',element:field}]
+  const context = {createInlineWidgetContext(){return {}}}
+  try {
+    projection.reconcileBlock('a',initial,definition,fields,context,
+      {preserveSourceProjection:true})
+    const oldWidget = field.querySelector('[data-inline-plugin="mention"]')
+    assert(oldWidget && projection.resolveWidgetElement(oldWidget) === oldWidget,
+      'Initial canonical inline occurrence was not projected')
+
+    // A source edit can leave the old DOM occurrence in the author field even
+    // after the canonical operation removes the final inline reference.
+    const withoutInline = {data:{text:'AB'},inline:{}}
+    projection.reconcileBlock('a',withoutInline,definition,fields,context,
+      {preserveSourceProjection:true})
+    equal(field.textContent,'AB',
+      'Obsolete widget label survived a canonical removal')
+    equal(projection.resolveWidgetElement(oldWidget),null,
+      'A deleted inline occurrence retained DOM ownership')
+    assert(!oldWidget.isConnected && destroyed === 1,
+      'Removed widget was not disposed exactly once')
+
+    // Replaying Undo reconstructs the same canonical ID but must create a
+    // fresh occurrence; the disposed predecessor may not reclaim a new lease.
+    projection.reconcileBlock('a',initial,definition,fields,context)
+    const restored = field.querySelector('[data-inline-plugin="mention"]')
+    assert(restored && restored !== oldWidget,
+      'Undo restored an already-disposed widget element')
+    assert(projection.resolveWidgetElement(restored) === restored,
+      'Undo did not publish current widget ownership')
+    equal(projection.resolveWidgetElement(oldWidget),null)
+    equal(field.textContent,'AAdaB')
+    equal(created,2)
+  } finally {
+    projection.destroy()
+    fixture.remove()
+  }
+})
+
+test('a typed literal inline ID cannot relocate an already mounted widget', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div contenteditable="true">A{{inline-1}}B</div>'
+  document.body.append(fixture)
+  const field = fixture.firstElementChild
+  const record = {data:{text:'A{{inline-1}}B'},inline:{
+    'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}},
+  }}
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const registry={
+    getInlineDefinition(type) {
+      return type === 'mention' ? {schema:{decode(value){return value}}}:null
+    },
+    getInlineRuntime(type) {
+      return type === 'mention' ? {create(_id,data){
+        const element=document.createElement('span')
+        element.textContent=data.name
+        return {element,setReadOnly(){},destroy(){}}
+      }}:null
+    },
+  }
+  const projection=new InlineProjectionRuntime({registry,ownerDocument:document})
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    const widget=field.querySelector('[data-inline-plugin="mention"]')
+    assert(widget && widget.isConnected)
+    const literal=document.createTextNode('{{inline-1}}')
+    field.append(literal)
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    assert(field.contains(widget) && widget.previousSibling?.textContent === 'A',
+      'Literal authored token stole the existing inline occurrence')
+    assert(widget.nextSibling?.textContent === 'B',
+      'The original widget was moved from its authored position')
+    assert(literal.isConnected && literal.data === '{{inline-1}}',
+      'Author-typed placeholder-shaped text was incorrectly converted')
+    equal(field.querySelectorAll('[data-inline-plugin="mention"]').length,1)
+  }finally{
+    projection.destroy()
+    fixture.remove()
+  }
+})
+
 await run()
