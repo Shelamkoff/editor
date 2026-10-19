@@ -1478,4 +1478,52 @@ test('deferred widget caret does not reclaim focus from an external native butto
   }
 })
 
+
+test('inline hydration never converts literal widget-reference text inside a native button', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true">A{{inline-1}}B<button type="button" data-native-label="">{{inline-1}}</button></div></div>'
+  document.body.append(fixture)
+  const field = fixture.querySelector('[contenteditable="true"]')
+  const button = fixture.querySelector('button')
+  const record = {
+    data: { text: 'A{{inline-1}}B' },
+    inline: { 'inline-1': { type: 'mention', dataVersion: 1, data: { name: 'Ada' } } },
+  }
+  const definition = { schema: {
+    mapRichText(data, visit) { return { ...data, text: visit(data.text, 'text') } },
+  } }
+  const registry = {
+    getInlineDefinition(type) {
+      return type === 'mention' ? { schema: { decode(value) { return value } } } : null
+    },
+    getInlineRuntime(type) {
+      return type === 'mention' ? { create(_id, data) {
+        const element = document.createElement('span')
+        element.contentEditable = 'false'
+        element.textContent = data.name
+        return { element, setReadOnly() {}, destroy() {} }
+      } } : null
+    },
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  try {
+    projection.reconcileBlock('a', record, definition,
+      [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext() { return {} } },
+      { preserveSourceProjection: true },
+    )
+    const widget = field.querySelector('[data-inline-plugin="mention"]')
+    assert(widget && widget.isConnected, 'Inline occurrence was not hydrated in authored text')
+    assert(projection.resolveWidgetElement(widget) === widget, 'Author inline occurrence lost ownership')
+    assert(!button.contains(widget), 'An author widget root moved into the native button')
+    equal(button.textContent, '{{inline-1}}',
+      'Placeholder-shaped native control label was incorrectly hydrated')
+    equal(field.querySelectorAll('[data-inline-plugin="mention"]').length, 1,
+      'Native control label produced another inline widget occurrence')
+  } finally {
+    projection.destroy()
+    fixture.remove()
+  }
+})
+
 await run()
