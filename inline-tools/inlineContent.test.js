@@ -77,6 +77,30 @@ class TestElement extends TestNode {
     }
     return null
   }
+  // Model the DOM-native normalization available on real Elements. Scoped
+  // normalization must delegate author-only subtrees to this operation, which
+  // also updates live DOM Range boundary points in browsers.
+  normalize() {
+    for (const child of [...this.childNodes]) {
+      if (child.nodeType === ELEMENT_NODE) child.normalize()
+    }
+    let node = this.firstChild
+    while (node) {
+      if (node.nodeType !== TEXT_NODE) { node = node.nextSibling; continue }
+      if (node.data.length === 0) {
+        const next = node.nextSibling
+        this.removeChild(node)
+        node = next
+        continue
+      }
+      while (node.nextSibling?.nodeType === TEXT_NODE) {
+        const sibling = node.nextSibling
+        node.appendData(sibling.data)
+        this.removeChild(sibling)
+      }
+      node = node.nextSibling
+    }
+  }
   querySelector(selector) {
     for (const node of this.childNodes) {
       if (node.nodeType !== ELEMENT_NODE) continue
@@ -159,6 +183,61 @@ test('a real editable field inside a plugin read-only shell can normalize its ow
   assert.equal(lockedDecoration.childNodes.length, 2)
 })
 
+test('native normalization preserves the selection endpoint of an adjacent author text leaf', () => {
+  const first = text('Stra')
+  const second = text('ße')
+  const field = el('div', { contenteditable: 'true' }, first, second)
+  const selection = { anchorNode: second, anchorOffset: 1 }
+
+  // A normal DOM child removal relocates a live Range into the parent at the
+  // removal index. Node.normalize(), unlike appendData+removeChild, reanchors
+  // it into the retained Text node at the correct cumulative UTF-16 offset.
+  const remove = field.removeChild.bind(field)
+  field.removeChild = node => {
+    if (selection.anchorNode === node) {
+      selection.anchorNode = field
+      selection.anchorOffset = field.childNodes.indexOf(node)
+    }
+    return remove(node)
+  }
+  const nativeNormalize = field.normalize.bind(field)
+  field.normalize = () => {
+    if (selection.anchorNode === second) {
+      selection.anchorNode = first
+      selection.anchorOffset += first.data.length
+    }
+    nativeNormalize()
+  }
+
+  normalizeAuthoredText(field)
+  assert.equal(field.textContent, 'Straße')
+  assert.equal(field.childNodes.length, 1)
+  assert.equal(selection.anchorNode, first, 'Native range endpoint was moved to the parent')
+  assert.equal(selection.anchorOffset, 5, 'Native range offset was lost during normalization')
+})
+
+test('mixed-owner field does not detach native selection text leaves', () => {
+  const first = text('Stra')
+  const second = text('ße')
+  const button = el('button', {}, text('native'))
+  const field = el('div', { contenteditable: 'true' }, first, second, button)
+  const selection = { anchorNode: second, anchorOffset: 1 }
+  const remove = field.removeChild.bind(field)
+  field.removeChild = node => {
+    if (selection.anchorNode === node) {
+      selection.anchorNode = field
+      selection.anchorOffset = field.childNodes.indexOf(node)
+    }
+    return remove(node)
+  }
+
+  normalizeAuthoredText(field)
+  assert.equal(field.textContent, 'Straßenative')
+  assert.equal(selection.anchorNode, second, 'Mixed-owner normalization detached the live selected Text')
+  assert.equal(selection.anchorOffset, 1, 'Mixed-owner normalization moved the caret')
+  assert.equal(button.firstChild.data, 'native', 'The native control was rewritten')
+})
+
 test('normalizing an editor shell traverses read-only plugin wrappers to reach authored fields', () => {
   const field = el('div', { contenteditable: 'true' }, text('A'), text('😀B'))
   const locked = el('span', { contenteditable: 'false' }, text('UI'), text('label'))
@@ -187,8 +266,11 @@ test('normalization called on a block shell reaches its actual editable islands'
 test('normalization does not enter nested editing hosts or a protected root', () => {
   const nested = el('div', { contenteditable: 'true' }, text('ne'), text('sted'))
   const root = el('div', { contenteditable: 'true' }, text('au'), text('thor'), nested)
+  const originalSegments = root.childNodes.slice(0, 2)
   normalizeAuthoredText(root)
-  assert.deepEqual(root.childNodes.slice(0, 1).map(node => node.data), ['author'])
+  assert.equal(root.textContent, 'a uthor'.replace(' ', '') + 'nested')
+  assert.equal(root.childNodes[0], originalSegments[0], 'Mixed-owner normalization moved an authored Range start')
+  assert.equal(root.childNodes[1], originalSegments[1], 'Mixed-owner normalization removed an authored Range endpoint')
   assert.equal(nested.childNodes.length, 2)
   normalizeAuthoredText(nested)
   assert.equal(nested.childNodes.length, 1, 'Explicitly targeted editing host should normalize')
