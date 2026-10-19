@@ -263,3 +263,35 @@ test('destroy during timer registration does not leave a tooltip timer alive', (
     'a destroyed tooltip retained a timer returned by its obsolete host registration')
   assert.equal(h.popup.removed, true)
 })
+test('reentrant timer cancellation cannot schedule over a newer tooltip owner', () => {
+  const h = tooltipHarness()
+  const view = h.root.ownerDocument.defaultView
+  const timers = new Map()
+  let nextId = 0
+  let entered = false
+  let tooltip
+  view.setTimeout = callback => {
+    const id = ++nextId
+    timers.set(id, callback)
+    return id
+  }
+  view.clearTimeout = id => {
+    timers.delete(id)
+    if (!entered) {
+      entered = true
+      tooltip.show(h.anchor, 'Newest')
+    }
+  }
+  tooltip = new Tooltip(h.root)
+  tooltip.show(h.anchor, 'Initial')
+  tooltip.show(h.anchor, 'Obsolete')
+  assert.equal(entered, true)
+  assert.deepEqual([...timers.keys()], [2],
+    'outer show() reentered after clearTimeout and stole the newer tooltip timer')
+  const newest = timers.get(2)
+  timers.delete(2)
+  newest()
+  assert.equal(h.popup.children[0].textContent, 'Newest')
+  tooltip.destroy()
+  assert.deepEqual([...timers.keys()], [])
+})
