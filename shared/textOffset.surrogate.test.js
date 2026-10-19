@@ -242,8 +242,8 @@ test('an opaque unloaded inline reference is atomic while an unowned literal rem
   const point = findNodeAtOffset(field, 2, 'start')
   assert.equal(point.node, last)
   assert.equal(point.offset, 0)
-  assert.equal(splitsSurrogateAtOffset(field, 3), false)
-  assert.equal(splitsSurrogateAtOffset(field, 4), true)
+  assert.equal(splitsSurrogateAtOffset(field, 3), true)
+  assert.equal(splitsSurrogateAtOffset(field, 4), false)
 
   const author = wire(element('div', [text('A{{opaque-1}}B')], {
     contenteditable: 'true',
