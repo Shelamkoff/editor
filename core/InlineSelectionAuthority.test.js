@@ -232,6 +232,40 @@ test('widget-local range endpoints and surrogate-pair boundaries are rejected', 
   assert.equal(state.port.capture(), null)
 })
 
+test('split surrogate pair across authored text nodes is not an admissible logical caret', () => {
+  const state = fixture()
+  const low = {
+    nodeType: 3,
+    textContent: '\uDE00B',
+    parentElement: state.field,
+    parentNode: state.field,
+    previousSibling: state.text,
+  }
+  state.text.textContent = 'A\uD83D'
+  state.field.childNodes = [state.text, low]
+  state.root.contains = node => node === state.field || state.field.childNodes.includes(node)
+  state.port.activate()
+
+  const split = {
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 0 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 2 },
+  }
+  assert.equal(state.port.resolveOwnResult(split), null,
+    'a logical split in a surrogate pair was admitted only because its halves occupy separate DOM Text nodes')
+
+  const wholePair = {
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 3 },
+  }
+  assert.notEqual(state.port.resolveOwnResult(wholePair), null,
+    'surrounding a whole Unicode character should remain valid')
+
+  state.text.textContent = 'A😀B'
+  state.field.childNodes = [state.text]
+  assert.equal(state.port.resolveOwnResult(split), null,
+    'native normalization must not change whether a logical UTF-16 offset is admissible')
+})
+
 test('a removed or renamed field rejects token restoration without fallback', () => {
   const state = fixture()
   state.port.activate()
