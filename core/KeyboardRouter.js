@@ -251,6 +251,9 @@ export class KeyboardRouter {
         const fields=this.#reconciler.getEditableFields(previousId)
         const fieldKey=fields.at(-1)?.key
         this.#view.setCurrent(previousId)
+        // setCurrent can synchronously publish a newer explicit author focus.
+        // Never move the caret after another block reclaimed that decision.
+        if (!stillOwnKey() || this.#view.currentId !== previousId) return
         this.#view.focus(previousId,{
           ...(fieldKey ? { fieldKey } : {}),
           offset: 'end',
@@ -271,6 +274,7 @@ export class KeyboardRouter {
       if(index>=0&&nextId){
         event.preventDefault?.()
         this.#view.setCurrent(nextId)
+        if (!stillOwnKey() || this.#view.currentId !== nextId) return
         this.#view.focus(nextId,{offset:'start'})
       }
       return
@@ -391,10 +395,15 @@ export class KeyboardRouter {
   appendDefault() {
     if (this.#controller.signal.aborted || this.#runtime.readOnly
       || this.#runtime.health !== 'ready') return false
+    const modeEpoch = this.#runtime.modeEpoch
     const lastId = this.#runtime.idAt(this.#runtime.size - 1)
     const last = lastId ? this.#runtime.get(lastId) : null
     this.#crossSelection?.clear()
+    // Clearing the old range can synchronously destroy the editor or switch
+    // control mode. Do not continue into a retired toolbar or focus operation.
+    if (!this.#canPresent() || this.#runtime.modeEpoch !== modeEpoch) return false
     this.#inlineToolbar?.hide()
+    if (!this.#canPresent() || this.#runtime.modeEpoch !== modeEpoch) return false
     if (last?.type === this.#registry.defaultBlockType && this.#runtime.isEmpty(lastId)) {
       this.#view.focus(lastId, { offset: 'start' })
       return true
@@ -576,6 +585,7 @@ export class KeyboardRouter {
     if (!this.#runtime[action]()) return false
     if (!this.#canPresent()) return true
     this.#view.reconcileInteraction()
+    if (!this.#canPresent()) return true
     // Replaying can recreate the focused widget without a saved text caret.
     // Keep subsequent history shortcuts in the editor when native focus falls to body.
     if(owned&&document.activeElement===document.body)this.#root.focus?.({preventScroll:true})
