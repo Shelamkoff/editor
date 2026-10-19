@@ -75,8 +75,11 @@ export class Tooltip {
 
   /** @param {HTMLElement} anchor @param {string} label @param {string} [shortcut] */
   show(anchor, label, shortcut = '') {
+    const priorEpoch = this.#timerEpoch
     this.hide()
-    if (this.#destroyed) return
+    // clearTimeout and ARIA cleanup are host callbacks and can synchronously
+    // install a successor tooltip. Do not schedule an older caller over it.
+    if (this.#destroyed || this.#timerEpoch !== priorEpoch + 1) return
     const epoch = ++this.#timerEpoch
     this.#pendingAnchor = anchor
     let fired = false
