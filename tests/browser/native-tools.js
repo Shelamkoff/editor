@@ -1996,4 +1996,56 @@ test('canonical serializer protects a literal token split across adjacent author
   }
 })
 
+
+test('serializing a literal inline ID split between adjacent formatting wrappers is unambiguous', () => {
+  const field=document.createElement('div')
+  field.contentEditable='true'
+  field.textContent='A{{inline-1}}B'
+  document.body.append(field)
+  const inline={'inline-1':{type:'mention',dataVersion:1,data:{name:'Ada'}}}
+  const record={data:{text:'A{{inline-1}}B'},inline}
+  const definition={schema:{mapRichText(data,visit){return {...data,text:visit(data.text,'text')}}}}
+  const registry={
+    getInlineDefinition(type){return type==='mention'?{schema:{decode(value){return value}}}:null},
+    getInlineRuntime(type){return type==='mention'?{create(_id,data){
+      const element=document.createElement('span')
+      element.textContent=data.name
+      return {element,setReadOnly(){},destroy(){}}
+    }}:null},
+  }
+  const projection=new InlineProjectionRuntime({registry,ownerDocument:document})
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  try{
+    projection.reconcileBlock('a',record,definition,fields,
+      {createInlineWidgetContext(){return{}}},
+      {preserveSourceProjection:true})
+    const owned=field.querySelector('[data-inline-plugin="mention"]')
+    assert(owned && owned.isConnected)
+    // The canonicalizer merges adjacent <b> elements, including <strong>
+    // after its standard tag replacement. It must not merge literal text
+    // into a second reference with an already-owned inline sidecar ID.
+    const first=document.createElement('strong')
+    first.textContent='{{inline-'
+    const second=document.createElement('b')
+    second.textContent='1}}'
+    field.append(first,second)
+    const html=projection.serializeBlock('a',record,definition,fields,record.data).data.text
+    equal(scanRichTextPlaceholders(html,inline,document).occurrences.get('inline-1'),1,
+      'Canonical merge created another inline widget reference from formatted literal text')
+    assert(html.includes('oe-inline-literal'),
+      'Formatted literal text has no persisted ownership boundary')
+    assert(first.isConnected && second.isConnected && first.nextSibling===second,
+      'Serialization changed live author formatting DOM instead of its clone')
+    projection.reconcileBlock('a',{data:{text:html},inline},definition,fields,
+      {createInlineWidgetContext(){return{}}})
+    equal(field.querySelectorAll('[data-inline-plugin="mention"]').length,1,
+      'Replay mounted another widget from the formatted literal')
+    assert(field.querySelector('.oe-inline-literal')?.textContent==='{{inline-1}}',
+      'Replay did not restore the complete formatted author literal')
+  }finally{
+    projection.destroy()
+    field.remove()
+  }
+})
+
 await run()
