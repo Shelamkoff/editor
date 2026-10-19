@@ -100,11 +100,15 @@ export class Tooltip {
       text.className = 'oe-tooltip__label'
       text.textContent = label
       this.#element.replaceChildren(text)
+      // Replacing tooltip descendants can invoke custom-element lifecycle
+      // callbacks that install a successor while this old timer is running.
+      if (this.#destroyed || epoch !== this.#timerEpoch) return
       if (shortcut) {
         const badge = doc.createElement('span')
         badge.className = 'oe-tooltip__shortcut'
         badge.textContent = formatShortcut(shortcut, this.#window.navigator)
         this.#element.append(badge)
+        if (this.#destroyed || epoch !== this.#timerEpoch) return
       }
       this.#element.style.display = 'flex'
       const bounds = this.#element.getBoundingClientRect()
