@@ -2113,6 +2113,14 @@ test('multi-field save protects a literal ID owned by a widget in a sibling rich
     assert(widget&&projection.resolveWidgetElement(widget)===widget)
     const literal=document.createTextNode('{{inline-1}}')
     first.append(literal)
+    // A subsequent source reconciliation may run before Save. A matching
+    // typed literal in Question must not steal the widget owned by Answer.
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    assert(second.contains(widget)&&projection.resolveWidgetElement(widget)===widget,
+      'Source reconciliation moved the existing widget into the sibling field')
+    assert(literal.isConnected&&literal.parentNode===first,
+      'The sibling typed literal was consumed as a second widget')
     const saved=projection.serializeBlock('a',record,definition,fields,record.data)
     equal(saved.data.question,
       'Question <span class="oe-inline-literal">{{inline-1}}</span>',
@@ -2143,6 +2151,56 @@ test('multi-field save protects a literal ID owned by a widget in a sibling rich
   }
 })
 
+
+test('source reconciliation keeps an opaque inline occurrence in its canonical sibling field', () => {
+  const first=document.createElement('div')
+  const second=document.createElement('div')
+  first.contentEditable='true'
+  second.contentEditable='true'
+  first.textContent='Question '
+  second.textContent='Answer {{opaque-1}}'
+  document.body.append(first,second)
+  const record={
+    data:{question:'Question ',answer:'Answer {{opaque-1}}'},
+    inline:{'opaque-1':{type:'unavailable',dataVersion:7,data:{keep:true}}},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,question:visit(data.question,'question'),answer:visit(data.answer,'answer')}
+  }}}
+  const fields=[
+    {key:'question',mode:'rich-text',element:first},
+    {key:'answer',mode:'rich-text',element:second},
+  ]
+  const projection=new InlineProjectionRuntime({
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+    ownerDocument:document,
+  })
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    const atom=second.querySelector('[data-oe-opaque-inline]')
+    assert(atom&&atom.textContent==='{{opaque-1}}')
+    const literal=document.createTextNode('{{opaque-1}}')
+    first.append(literal)
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    assert(atom.isConnected&&atom.parentNode===second,
+      'Unknown inline reference was moved out of its canonical field')
+    assert(literal.isConnected&&literal.parentNode===first,
+      'Typed literal acquired an unknown extension ID')
+    equal(getTextLength(second),8, 'Opaque reference lost its atomic text length')
+    const saved=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(saved.data.question,
+      'Question <span class="oe-inline-literal">{{opaque-1}}</span>')
+    equal(saved.data.answer,'Answer {{opaque-1}}')
+    equal(saved.inline,record.inline)
+  }finally{
+    projection.destroy()
+    first.remove()
+    second.remove()
+  }
+})
 
 test('unloaded inline extension remains an opaque reference when saving an active rich-text field', () => {
   const field=document.createElement('div')
