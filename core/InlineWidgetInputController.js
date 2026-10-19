@@ -411,6 +411,16 @@ export class InlineWidgetInputController {
     const capturedHandle=editing.handle
     const startGeneration=this.#runtime.generation
     const startRevision=this.#runtime.revision
+    const startModeEpoch=this.#runtime.modeEpoch
+    const ownsEvent=()=>!this.#controller.signal.aborted
+      &&!this.#runtime.readOnly
+      &&this.#runtime.generation===startGeneration
+      &&this.#runtime.revision===startRevision
+      &&this.#runtime.modeEpoch===startModeEpoch
+      &&this.#projection.resolveWidgetElement(target.element)===target.element
+      // Resolver getters are synchronous host boundaries too. A revoked
+      // controller must never claim the event after the final ownership read.
+      &&!this.#controller.signal.aborted
 
     let action
     try{
@@ -445,13 +455,11 @@ export class InlineWidgetInputController {
       this.#report(error)
       return
     }
-    if(action===null)return
+    if(action===null||!ownsEvent())return
+    // Once a live inline operation has claimed beforeinput, teardown from
+    // the claim callback cannot restore native ownership of that same event.
     this.#claimBeforeInput(event)
-
-    if(this.#controller.signal.aborted||this.#runtime.readOnly
-      ||this.#runtime.generation!==startGeneration
-      ||this.#runtime.revision!==startRevision
-      ||this.#projection.resolveWidgetElement(target.element)!==target.element)return
+    if(!ownsEvent())return
 
     if(action.kind==='update'){
       this.#withCaret(target,action,()=>this.#runtime.updateInlineWidget(
