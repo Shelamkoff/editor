@@ -255,7 +255,7 @@ test('Slash input in read-only mode dismisses an already open command menu', () 
     controller.destroy()
   }
 })
-function activeSlashKeyHarness() {
+function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
   const handlers = new Map()
   const actions = []
   const text = { nodeType: 3, data: '/', textContent: '/', length: 1 }
@@ -282,7 +282,11 @@ function activeSlashKeyHarness() {
     },
     createElement(tag) {
       if (tag === 'ul') return menu
-      return { className: '', setAttribute() {}, textContent: '' }
+      return {
+        className: '', style: {}, textContent: '', setAttribute() {},
+        classList: { add() {} }, append() {}, addEventListener() {},
+        scrollIntoView() {},
+      }
     },
     createRange() {
       return {
@@ -303,7 +307,9 @@ function activeSlashKeyHarness() {
     addEventListener(type, handler) { handlers.set(type, handler) },
   }
   const runtime = {
-    readOnly: false, modeEpoch: 0,
+    readOnly: false, modeEpoch: 0, generation: 1, revision: 1,
+    has() { return true },
+    applySlashBlockCommand() { actions.push('apply block'); return 'converted' },
     interact(name, operation) {
       actions.push(name)
       return operation()
@@ -311,6 +317,7 @@ function activeSlashKeyHarness() {
     replaceRichText() { actions.push('author mutation'); return true },
   }
   const reconciler = {
+    getEditableFields() { return [{ key: 'text', element: field, mode: 'rich-text' }] },
     getEditableField() { return { element: field, mode: 'rich-text' } },
     resolveEditableTarget() {
       return { blockId: 'a', fieldKey: 'text', mode: 'rich-text', element: field }
@@ -322,12 +329,25 @@ function activeSlashKeyHarness() {
       return { anchor: point, focus: { ...point } }
     },
     setCaret() { actions.push('caret') },
+    restore() { actions.push('restore selection'); return true },
   }
-  const view = { reconcileInteraction() { actions.push('reconcile') } }
+  const view = {
+    currentId: 'a',
+    reconcileInteraction() { actions.push('reconcile') },
+    setCurrent(id) { this.currentId = id; actions.push('set current') },
+    element() { return field },
+    focus() { actions.push('focus') },
+  }
+  const inlineCommands = { insert() { actions.push('insert inline') } }
   const controller = new SlashCommandController({
     root, runtime,
-    registry: { blockTypes: [], inlineTypes: [] },
-    reconciler, selection, view, inlineCommands: {},
+    registry: {
+      blockTypes: blockItem ? ['quote'] : [],
+      inlineTypes: inlineItem ? ['color'] : [],
+      getBlockDefinition() { return { type: 'quote', icon: '' } },
+      getInlineDefinition() { return { type: 'color', icon: '' } },
+    },
+    reconciler, selection, view, inlineCommands,
   })
   const input = () => handlers.get('input')({ target: field, isComposing: false })
   const keydown = key => {
@@ -430,4 +450,43 @@ test('Slash menu rendering stops when replaceChildren tears down the editor', ()
   assert.equal(h.controller.isOpen, false)
   assert.deepEqual(h.menu.children, [],
     'stale menu renderer appended items to a detached menu after destroy')
+})
+test('Slash block selection cannot commit after menu-close callback destroys its controller', () => {
+  const h = activeSlashKeyHarness({ blockItem: true })
+  h.input()
+  assert.equal(h.controller.isOpen, true)
+  const clear = h.menu.replaceChildren.bind(h.menu)
+  let retired = false
+  h.menu.replaceChildren = () => {
+    clear()
+    if (!retired) { retired = true; h.controller.destroy() }
+  }
+  assert.doesNotThrow(() => h.keydown('Enter'))
+  assert.equal(retired, true)
+  assert.deepEqual(h.actions, [],
+    'a stale block command authored a document transaction after menu teardown')
+})
+
+test('Slash selection callback cannot insert an inline widget after teardown', () => {
+  const h = activeSlashKeyHarness({ inlineItem: true })
+  h.input()
+  let restored = false
+  h.selection.restore = () => {
+    restored = true
+    h.controller.destroy()
+    return true
+  }
+  assert.doesNotThrow(() => h.keydown('Enter'))
+  assert.equal(restored, true, 'inline selection restoration was not exercised')
+  assert.deepEqual(h.actions, [],
+    'an inline widget command ran after selection restoration retired the menu')
+})
+
+test('live Slash inline selection still commits through a healthy owned session', () => {
+  const h = activeSlashKeyHarness({ inlineItem: true })
+  h.input()
+  const event = h.keydown('Enter')
+  assert.equal(event.prevented, true)
+  assert.deepEqual(h.actions, ['restore selection', 'insert inline'])
+  h.controller.destroy()
 })
