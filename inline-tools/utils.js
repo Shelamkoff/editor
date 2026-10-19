@@ -2,6 +2,7 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { closestBlock, el } from '../shared/editorDom.js'
+import { isAuthoredEditableText } from '../shared/editableFields.js'
 import { createSvgIcon, ICON_BACK } from '../shared/editorIcons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
 
@@ -625,7 +626,7 @@ export function collectTextTargets(walkRoot, range) {
   const targets = []
   while (walker.nextNode()) {
     const textNode = /** @type {Text} */ (walker.currentNode)
-    if (!range.intersectsNode(textNode)) continue
+    if (!range.intersectsNode(textNode) || !isAuthoredEditableText(textNode)) continue
     let startOffset = 0
     let endOffset = textNode.length
     if (textNode === range.startContainer) startOffset = range.startOffset
