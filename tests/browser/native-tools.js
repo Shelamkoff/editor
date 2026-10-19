@@ -5,7 +5,7 @@ import { createDefaultInlineTools } from '../../preset/index.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
 import { createClearFormattingTool } from '../../inline-tools/clearFormatting.js'
 import { createFontSizeTool } from '../../inline-tools/fontSize.js'
-import { collectTextTargets, toggleTag, removeEmptyInlineTags } from '../../inline-tools/utils.js'
+import { collectTextTargets, toggleTag, removeEmptyInlineTags, normalizeAfterEdit } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
@@ -741,6 +741,115 @@ test('empty formatting cleanup retains native and locked control-owned nodes', (
     assert(field.querySelector('[data-empty-locked]'), 'Cleanup removed a locked control-owned element')
     assert(field.querySelector('[data-empty-native]'), 'Cleanup removed a native button-owned element')
     assert(field.querySelector('[data-empty-widget]'), 'Cleanup removed plugin-owned widget DOM')
+  } finally { fixture.remove() }
+})
+
+
+test('inline cleanup preserves an empty protected control inside a matching author wrapper', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">',
+    '<b data-protected-shell=""><button type="button"><span data-button-owned=""></span></button>',
+    '<span contenteditable="false" data-locked-owned=""></span></b>',
+    '<span data-empty-author=""></span>',
+    '</div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    const shell = field.querySelector('[data-protected-shell]')
+    const button = field.querySelector('button')
+    const locked = field.querySelector('[data-locked-owned]')
+    removeEmptyInlineTags(field)
+    assert(shell.isConnected && field.contains(shell), 'Cleanup removed the empty shell owning a native control')
+    assert(button.isConnected && shell.contains(button), 'Cleanup detached an empty native control')
+    assert(locked.isConnected && shell.contains(locked), 'Cleanup detached an empty locked host')
+    assert(!field.querySelector('[data-empty-author]'), 'Empty authored formatting was retained')
+  } finally { fixture.remove() }
+})
+
+test('single-host inline normalization leaves protected text nodes and owners intact', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">',
+    '<span contenteditable="false" data-locked=""></span>',
+    '<button type="button" data-native=""></button>',
+    '<span data-inline-plugin="stub" data-widget=""></span>',
+    '<span data-author=""></span>',
+    '</div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    const protectedHosts = ['[data-locked]', '[data-native]', '[data-widget]']
+      .map(selector => field.querySelector(selector))
+    const originals = protectedHosts.map((element, index) => {
+      const first = document.createTextNode('protected' + index)
+      const second = document.createTextNode(' tail')
+      element.append(first, second)
+      return { element, first, second }
+    })
+    const authored = field.querySelector('[data-author]')
+    authored.append(document.createTextNode('au'), document.createTextNode('thor'))
+    normalizeAfterEdit(field, field)
+    equal(authored.childNodes.length, 1, 'Author text was not normalized')
+    equal(authored.textContent, 'author')
+    for (const { element, first, second } of originals) {
+      equal(element.childNodes.length, 2, 'Protected subtree was recursively normalized')
+      assert(element.firstChild === first && element.lastChild === second, 'Protected text-node identity changed')
+      assert(first.isConnected && second.isConnected, 'Protected text node was detached')
+    }
+  } finally { fixture.remove() }
+})
+
+test('cross-host inline normalization skips locked fields and native control descendants', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true" data-author-a=""></div></div>',
+    '<div class="oe-block"><div contenteditable="false" data-locked=""></div>',
+    '<div contenteditable="true" data-author-b=""></div></div>',
+    '<div class="oe-block"><div contenteditable="true" data-native-owner="">',
+    '<button type="button" data-native=""></button></div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const a = fixture.querySelector('[data-author-a]')
+    const b = fixture.querySelector('[data-author-b]')
+    const locked = fixture.querySelector('[data-locked]')
+    const native = fixture.querySelector('[data-native]')
+    for (const el of [a, b, locked, native]) {
+      el.append(document.createTextNode('left'), document.createTextNode('right'))
+    }
+    const lockedSecond = locked.lastChild
+    const nativeSecond = native.lastChild
+    normalizeAfterEdit(null, fixture)
+    equal(a.childNodes.length, 1, 'First author host failed to normalize')
+    equal(b.childNodes.length, 1, 'Second author host failed to normalize')
+    equal(locked.childNodes.length, 2, 'Cross-host normalization mutated a locked field')
+    equal(native.childNodes.length, 2, 'Cross-host normalization entered a native button')
+    assert(locked.lastChild === lockedSecond && native.lastChild === nativeSecond,
+      'Cross-host normalization changed protected node identities')
+  } finally { fixture.remove() }
+})
+
+test('adjacent tag merging preserves the boundary around native-controlled wrappers', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true"><b>prefix<button type="button">action</button></b>plain<b>suffix</b></div></div>'
+  document.body.append(fixture)
+  try {
+    const field = fixture.querySelector('[contenteditable="true"]')
+    const protectedWrapper = field.firstElementChild
+    const action = protectedWrapper.querySelector('button')
+    const plain = protectedWrapper.nextSibling
+    const range = document.createRange()
+    range.selectNodeContents(plain)
+    toggleTag('b', range)
+    assert(protectedWrapper.isConnected && field.firstElementChild === protectedWrapper,
+      'Tag merge replaced the wrapper containing a native control')
+    assert(action.parentElement === protectedWrapper, 'Tag merge moved a native control to a different wrapper')
+    assert(protectedWrapper.nextElementSibling?.tagName === 'B', 'New authored bold sibling was not retained')
+    equal(protectedWrapper.nextElementSibling?.textContent, 'plainsuffix',
+      'Adjacent author-only bold wrappers did not merge')
   } finally { fixture.remove() }
 })
 
