@@ -2137,4 +2137,42 @@ test('multi-field save protects a literal ID owned by a widget in a sibling rich
   }
 })
 
+
+test('unloaded inline extension remains an opaque reference when saving an active rich-text field', () => {
+  const field=document.createElement('div')
+  field.contentEditable='true'
+  field.textContent='Before {{opaque-1}} after'
+  document.body.append(field)
+  const payload={type:'unloaded-extension',dataVersion:1,data:{original:{id:17}}}
+  const record={
+    data:{text:'Before {{opaque-1}} after'},
+    inline:{'opaque-1':payload},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const projection=new InlineProjectionRuntime({
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+    ownerDocument:document,
+  })
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  try{
+    projection.reconcileBlock('b',record,definition,fields,
+      {createInlineWidgetContext(){return{}}},
+      {preserveSourceProjection:true})
+    equal(field.textContent,'Before {{opaque-1}} after',
+      'An unloaded inline widget was replaced or hidden at projection time')
+    const saved=projection.serializeBlock('b',record,definition,fields,record.data)
+    equal(saved.data.text,'Before {{opaque-1}} after',
+      'Opaque inline reference was misclassified as a new authored literal')
+    equal(saved.inline,record.inline,
+      'Opaque unloaded extension sidecar payload was not preserved')
+    equal(scanRichTextPlaceholders(saved.data.text,saved.inline,document).occurrences.get('opaque-1'),1,
+      'Serialized unknown inline type lost its one canonical reference')
+  }finally{
+    projection.destroy()
+    field.remove()
+  }
+})
+
 await run()
