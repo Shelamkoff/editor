@@ -273,15 +273,29 @@ export function createFontSizeTool(label) {
     }
   }
 
+  /** Match formatting only when selected authored text is inside the wrapper.
+   * A browser range can geometrically intersect a locked widget without granting
+   * permission to remove styling from its native/control-owned descendants.
+   * @param {HTMLElement} root
+   * @param {Range} range
+   * @param {string} selector
+   * @returns {HTMLElement[]}
+   */
+  function selectedWrappers(root, range, selector) {
+    const text = collectTextTargets(root, range)
+    if (!text.length) return []
+    return Array.from(root.querySelectorAll(selector))
+      .filter(element => text.some(({ node }) => element.contains(node)))
+      .map(element => /** @type {HTMLElement} */ (element))
+  }
+
   function removeSize() {
     const bookmark = savedBookmark
     const range = cbs.range
     if (!bookmark || !range) { closeDropdown(); return }
     const root = getWalkRoot(range)
     if (!root) { closeDropdown(); return }
-    const relevant = Array.from(root.querySelectorAll('span')).some(
-      span => !!span.style.fontSize && range.intersectsNode(span),
-    )
+    const relevant = selectedWrappers(root, range, 'span').some(span => !!span.style.fontSize)
     if (!relevant) { closeDropdown(); return }
 
     try {
@@ -294,8 +308,8 @@ export function createFontSizeTool(label) {
         // Split only the selected part of each font-size span. Temporary
         // markers retain neighboring class/style attributes until the final
         // normalization, but never become persisted author formatting.
-        const toReset = Array.from(walkRoot.querySelectorAll('span'))
-          .filter(span => span.style.fontSize && activeRange.intersectsNode(span))
+        const toReset = selectedWrappers(walkRoot, activeRange, 'span')
+          .filter(span => !!span.style.fontSize)
         for (let index = toReset.length - 1; index >= 0; index--) {
           const span = /** @type {HTMLElement} */ (toReset[index])
           if (!span.isConnected) continue
@@ -315,8 +329,8 @@ export function createFontSizeTool(label) {
           const current = cbs.range
           if (!current) throw new Error('Font-size reset selection is unavailable')
           const currentRoot = getWalkRoot(current)
-          const hasMarker = !!currentRoot && Array.from(currentRoot.querySelectorAll('oe-font-size'))
-            .some(marker => current.intersectsNode(marker))
+          const hasMarker = !!currentRoot
+            && selectedWrappers(currentRoot, current, 'oe-font-size').length > 0
           if (!hasMarker) break
           toggleTag('oe-font-size', current)
           if (!cbs.restore(bookmark)) {
