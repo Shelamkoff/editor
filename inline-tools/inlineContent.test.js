@@ -102,6 +102,9 @@ test('empty protected controls count as real content even without text', () => {
   assert.equal(hasProtectedDomContent(author), true)
   assert.equal(hasInlineContent(author), true)
   assert.equal(hasInlineContent(el('b', {})), false)
+  const independentEditor = el('span', { contenteditable: 'true' })
+  assert.equal(hasProtectedDomContent(independentEditor), true)
+  assert.equal(hasInlineContent(el('b', {}, independentEditor)), true)
 })
 
 test('only authored text is normalized; native, locked and widget leaves retain identity', () => {
