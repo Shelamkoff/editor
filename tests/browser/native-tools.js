@@ -3,7 +3,7 @@ import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { createCaseTransformTool } from '../../inline-tools/caseTransform.js'
-import { collectTextTargets } from '../../inline-tools/utils.js'
+import { collectTextTargets, toggleTag } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
@@ -525,6 +525,36 @@ test('case transform changes authored cross-block text without rewriting native 
     equal(action.textContent, 'native action', 'case transform edited native control label')
   } finally {
     tool.bindSelectionPort(null)
+    fixture.remove()
+  }
+})
+
+
+test('cross-block tag fallback formats author text without touching controls or locked labels', () => {
+  const fixture = document.createElement('div')
+  fixture.innerHTML = [
+    '<div class="oe-block"><div contenteditable="true">alpha',
+    '<span contenteditable="false">locked label</span>beta',
+    '<button type="button">nested action</button></div></div>',
+    '<button type="button">native action</button>',
+    '<div class="oe-block"><div contenteditable="true">bravo</div></div>',
+  ].join('')
+  document.body.append(fixture)
+  try {
+    const [first, second] = fixture.querySelectorAll('[contenteditable="true"]')
+    const locked = fixture.querySelector('[contenteditable="false"]')
+    const native = fixture.querySelector(':scope > button')
+    const nested = first.querySelector('button')
+    const range = document.createRange()
+    range.setStart(first.firstChild, 0)
+    range.setEnd(second.firstChild, second.firstChild.length)
+    toggleTag('b', range)
+    equal(Array.from(first.querySelectorAll('b'), item => item.textContent), ['alpha', 'beta'])
+    equal(Array.from(second.querySelectorAll('b'), item => item.textContent), ['bravo'])
+    assert(!locked.closest('b') && !locked.querySelector('b'), 'Locked label became bold')
+    assert(!nested.closest('b') && !nested.querySelector('b'), 'Nested action became bold')
+    assert(!native.closest('b') && !native.querySelector('b'), 'Native action became bold')
+  } finally {
     fixture.remove()
   }
 })
