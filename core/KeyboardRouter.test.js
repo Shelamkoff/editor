@@ -713,7 +713,7 @@ test('undo reconciliation teardown does not focus an already retired keyboard ro
   const document = h.root.ownerDocument
   document.body = {}
   document.activeElement = document.body
-  h.root.contains = node => node === document.body
+  h.root.contains = node => node === document.body || node === h.field
   let staleFocuses = 0
   h.root.focus = () => { staleFocuses++ }
   h.view.reconcileInteraction = () => h.router.destroy()
