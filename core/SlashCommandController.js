@@ -306,9 +306,17 @@ export class SlashCommandController {
   }
 
   #onFocusOut(event) {
-    if (!this.#session) return
+    const session = this.#session
+    const modeEpoch = this.#runtime.modeEpoch
+    if (!session || this.#controller.signal.aborted) return
     const next = event.relatedTarget
-    if (next && (this.#session.element.contains(next) || this.#menu.contains(next))) return
+    // Focusout accessors/DOM containment can synchronously destroy the menu
+    // or publish a newer Slash query. The old event only owns its own session.
+    const stillCurrent = () => !this.#controller.signal.aborted
+      && this.#session === session && this.#runtime.modeEpoch === modeEpoch
+    if (!stillCurrent()) return
+    const retained = next && (session.element.contains(next) || this.#menu.contains(next))
+    if (!stillCurrent() || retained) return
     this.close()
   }
 
@@ -322,24 +330,35 @@ export class SlashCommandController {
   }
 
   #render() {
+    if (this.#controller.signal.aborted || !this.#session) return
     const version = ++this.#itemsVersion
     const session = this.#session
+    const modeEpoch = this.#runtime.modeEpoch
     const ownsItems = () => (
       this.#session === session
       && this.#itemsVersion === version
+      && !this.#controller.signal.aborted && !this.#runtime.readOnly
+      && this.#runtime.modeEpoch === modeEpoch
       && this.#sessionIsCurrent()
+      // The native field resolver itself may have retired this menu.
+      && this.#session === session && this.#itemsVersion === version
+      && !this.#controller.signal.aborted && !this.#runtime.readOnly
+      && this.#runtime.modeEpoch === modeEpoch
     )
     this.#menu.replaceChildren()
+    if (!ownsItems()) return
     if (!this.#filtered.length) {
       const empty = this.#document.createElement('li')
       empty.className = 'oe-slash-menu__empty'
       empty.setAttribute('role', 'none')
       empty.textContent = this.#t('slash.noResults', 'No results')
+      if (!ownsItems()) return
       this.#menu.appendChild(empty)
       return
     }
 
     this.#filtered.forEach((item, index) => {
+      if (!ownsItems()) return
       const element = this.#document.createElement('li')
       element.className = 'oe-slash-menu__item'
       if (index === this.#activeIndex) element.classList.add('oe-slash-menu__item--active')
@@ -353,6 +372,7 @@ export class SlashCommandController {
       label.className = 'oe-slash-menu__label'
       label.textContent = item.label
       element.append(icon, label)
+      if (!ownsItems()) return
 
       element.addEventListener('mousedown', event => {
         event.preventDefault()
@@ -364,9 +384,9 @@ export class SlashCommandController {
         this.#activeIndex = index
         this.#render()
       }, { signal: this.#controller.signal })
-      this.#menu.appendChild(element)
+      if (ownsItems()) this.#menu.appendChild(element)
     })
-    this.#menu.children[this.#activeIndex]?.scrollIntoView?.({ block: 'nearest' })
+    if (ownsItems()) this.#menu.children[this.#activeIndex]?.scrollIntoView?.({ block: 'nearest' })
   }
 
   #select(index) {
