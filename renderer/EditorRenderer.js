@@ -354,6 +354,16 @@ export class EditorRenderer {
       if (textAlign) element.style.textAlign = textAlign
       if (block.id) element.dataset.blockId = block.id
       element.dataset.blockType = block.type
+      // HTMLElement attributes may invoke a custom element's synchronous
+      // attributeChangedCallback. Another DOM owner can adopt the element
+      // after our initial detached check but before these writes finish.
+      // Revalidate immediately before returning a node for publication.
+      if (element.isConnected || element.parentNode) {
+        throw new TypeError(`Block renderer "${block.type}" must return a detached HTMLElement`)
+      }
+      if (element.ownerDocument && element.ownerDocument !== ownerDocument) {
+        throw new TypeError(`Block renderer "${block.type}" must return an HTMLElement in the owning document`)
+      }
       return { element, type: block.type, renderer }
     } catch (error) {
       // The renderer allocated this element, but decorating it failed.
