@@ -942,8 +942,9 @@ function crossSelectionPointerReentryHarness(retireOn) {
     ids() { return ['a'] }, indexOf() { return 0 },
   }
   const view = {
-    clearSelection() {},
-    select() {},
+    selectedIds: [],
+    clearSelection() { this.selectedIds = [] },
+    select(ids) { this.selectedIds = [...ids] },
   }
   let controller
   const reconciler = {
