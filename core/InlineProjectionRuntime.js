@@ -229,7 +229,9 @@ export class InlineProjectionRuntime {
       // A retained WeakMap entry does not authorize a detached widget or
       // one moved into another editor/application. Only the currently
       // declared rich-field owner may resolve a live occurrence.
-      if(entry?.element===node&&entry.fieldElement?.contains(entry.element)){
+      if(entry?.element===node
+        &&entry.element.isConnected&&entry.fieldElement?.isConnected
+        &&entry.fieldElement.contains(entry.element)){
         return entry.element
       }
     }
@@ -370,7 +372,10 @@ export class InlineProjectionRuntime {
         const meta=this.#owned.get(current)
         if(meta){
           const entry=this.#blocks.get(meta.blockId)?.widgets.get(meta.id)
-          return entry?.element===current?{meta,entry}:null
+          return entry?.element===current
+            &&entry.element.isConnected&&entry.fieldElement?.isConnected
+            &&entry.fieldElement.contains(entry.element)
+            ?{meta,entry}:null
         }
       }
       return null
@@ -435,7 +440,8 @@ export class InlineProjectionRuntime {
     const {meta,entry}=resolved
     // Editable widget roots are editing hosts, but offsets belong to the block field.
     const field=entry.fieldElement
-    if(!field?.contains(entry.element)||!field.contains(selection.anchorNode))return null
+    if(!field?.isConnected||!entry.element.isConnected
+      ||!field.contains(entry.element)||!field.contains(selection.anchorNode))return null
     let logicalOffset=0
     try{logicalOffset=getTextOffset(field,entry.element,0)}catch{return null}
     return {
