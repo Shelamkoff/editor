@@ -189,7 +189,10 @@ export class InlineSelectionAuthority {
       if (!resolvedAnchor || !resolvedFocus) return null
       return { anchor, focus, ...(captured.conversionCaret ? { conversionCaret: true } : {}) }
     })
-    if (!candidate || !this.#matches(captured) || !this.#currentOwns(captured)) return false
+    if (!candidate || !this.#matches(captured) || !this.#currentOwns(captured)
+      // Native verification may revoke the mount inside #currentOwns().
+      // Recheck *after* that observer before moving the browser caret.
+      || !this.#matches(captured)) return false
     return this.#restore(candidate) === true
   }
 
@@ -295,7 +298,9 @@ export class InlineSelectionAuthority {
     return Boolean(metadata && this.#available()
       && metadata.lease === this.#lease()
       && metadata.generation === this.#runtime.generation
-      && metadata.revision === this.#runtime.revision)
+      && metadata.revision === this.#runtime.revision
+      // The monotonic lease and runtime getters are callback boundaries too.
+      && this.#active && !this.#revoked)
   }
 
   #available() {
