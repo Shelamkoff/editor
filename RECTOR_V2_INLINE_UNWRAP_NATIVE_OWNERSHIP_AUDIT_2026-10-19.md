@@ -60,17 +60,28 @@ The former `toggleTag()` Case 1 unwrapped an entire matching `<b>` when a select
 | Old/new `hasClearableWrapper` | **true → false** for protected-only bold | Actual helper in a focused controlled host |
 | Font-size wrapper authorization | Protected-only excluded; authored span retained | Current `selectedWrappers` extracted from actual source with controlled targets |
 | Parse of changed `utils`, `clearFormatting`, `fontSize`, `selectedAncestors`, browser fixture | **Passed** | V8 parsing with ESM imports/exports stripped; not a TypeScript check |
-| Browser regressions | **5 scenarios authored** | Full native browser suite **not executed** |
+| Browser regressions | **6 scenarios authored** | Full native browser suite **not executed** |
 | Chromium execution attempt in available container | **No valid result** | Headless Chromium also hung on a minimal page, with D-Bus/socket errors |
 | `npm test`, `typecheck`, `test:browser`, `test:types`, `test:package`, `test:docs` | **Not run** | Full project checkout and dependency environment unavailable |
 | Complete v1/v2 feature parity | **Not established** | Requires the full real-gesture acceptance matrix |
 
 Neither isolated V8 checks nor authored browser tests establish complete editor stability.
 
+## Finding UNWRAP-4 — empty inline cleanup removed nodes owned by controls (P2)
+
+`removeEmptyInlineTags()` walked every generic empty inline element under a supplied container, skipping inline-plugin descendants but not native controls and `contenteditable=false` subtrees. Empty control-owned spans could therefore be deleted as a side effect of clearing authored formatting.
+
+**RED (actual pre-fix helper under controlled DOM):** empty spans in authored, locked and native control areas were all removed. Inline-plugin descendants remained protected.
+
+**GREEN:** exclude descendants of inline-plugin roots, locked editing hosts, native controls and role buttons before checking whether a formatting wrapper is empty. The same focused check now removes only the empty authored span and preserves all protected control-owned elements. This pass does **not** change the helper's final `parent.normalize()`; traversal/normalization into protected subtrees is a separate unresolved audit target.
+
+- Browser regression: [`9457c324`](https://github.com/Shelamkoff/editor/commit/9457c3245a12df8ae87b9e534045cbf5d4a9e125).
+- Production fix: [`e8160799`](https://github.com/Shelamkoff/editor/commit/e81607992827e8f3a5d573795c590593672cb70d).
+
 ## Follow-up
 
-1. Execute the full native browser suite, including five added regression cases, from the project checkout; inspect canonical `save()` and one-operation Undo/Redo on mixed protected/authored selections.
-2. Check how `removeEmptyInlineTags()`, `mergeAdjacentTags()` and `normalizeAfterEdit()` treat nested `contenteditable=false`, native buttons and plugin-owned empty elements; those deeper normalization boundaries were **not** changed in this pass.
+1. Execute the full native browser suite, including six added regression cases, from the project checkout; inspect canonical `save()` and one-operation Undo/Redo on mixed protected/authored selections.
+2. The empty inline element removal guard is now corrected (UNWRAP-4); inspect the remaining recursive `parent.normalize()`, `mergeAdjacentTags()` and `normalizeAfterEdit()` effects on native/locked control internals, which were **not** changed in this pass.
 3. Verify font-size reset with multiple simultaneous authored font-size spans, nested style spans, backward selection, and cross-block selections.
 4. Re-run normal package, declaration, docs and type checks before considering v1/v2 parity accepted.
 
