@@ -1,6 +1,6 @@
 // @ts-check
 import { findNodeAtOffset, getTextLength, getTextOffset } from './textOffset.js'
-import { normalizeRichText } from './richTextCodec.js'
+import { normalizeRichText, canonicalizeRichTextSubtree } from './richTextCodec.js'
 import { toTrustedHtml } from './sanitize/trustedHtml.js'
 
 const PLACEHOLDER_RE=/\{\{([A-Za-z0-9_-]+)\}\}/g
@@ -96,6 +96,23 @@ function collapseReferences(root,ownerDocument){
   }
 }
 
+/** Finish one logical DOM edit before exposing canonical HTML.
+ * A new text insertion can complete a "{{id}}" literal against pre-existing
+ * author text, including across formatting wrappers that canonicalization
+ * merges. Actual widget references are still marked with private DOM attrs
+ * here, so the collision scan must run before those markers become {{id}}.
+ *
+ * @param {DocumentFragment} root
+ * @param {Record<string, unknown>} inline
+ * @param {Document} ownerDocument
+ */
+function finalizeEditedReferences(root,inline,ownerDocument) {
+  canonicalizeRichTextSubtree(root,ownerDocument)
+  root.normalize()
+  protectInlineLiteralTokens(root,Object.keys(inline),ownerDocument)
+  collapseReferences(root,ownerDocument)
+}
+
 function replacementNode(replacement,inline,ownerDocument){
   if(replacement.kind==='text'){
     const fragment=ownerDocument.createDocumentFragment()
@@ -156,7 +173,7 @@ export function ensureRichTextReferenceSuffix(html,inline,id,suffix,ownerDocumen
   if(!text.startsWith(suffix)&&!(suffix==='\u00a0'&&/^\s/.test(text))){
     marker.after(ownerDocument.createTextNode(suffix))
   }
-  collapseReferences(template.content,ownerDocument)
+  finalizeEditedReferences(template.content,inline,ownerDocument)
   return {html:normalizeRichText(template.innerHTML,ownerDocument),offset:offset+suffix.length}
 }
 
@@ -188,7 +205,7 @@ export function replaceRichTextRange(html,inline,range,replacement,ownerDocument
   selection.deleteContents()
   selection.insertNode(replacementNode(replacement,ownedInline,ownerDocument))
 
-  collapseReferences(template.content,ownerDocument)
+  finalizeEditedReferences(template.content,inline,ownerDocument)
   return normalizeRichText(template.innerHTML,ownerDocument)
 }
 
