@@ -29,7 +29,8 @@ function isUpperCase(text) {
  */
 function isAuthoredCaseText(node) {
   const parent = node.parentElement
-  const nearestHost = parent?.closest('[contenteditable]')
+  if (!parent) return false
+  const nearestHost = parent.closest('[contenteditable]')
   if (!nearestHost || nearestHost.getAttribute('contenteditable') !== 'true') return false
   const block = closestBlock(node)
   if (!block || editableAtBoundary(block, node, 0)?.element !== nearestHost) return false
