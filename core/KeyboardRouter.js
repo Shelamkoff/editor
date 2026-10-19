@@ -104,10 +104,12 @@ export class KeyboardRouter {
     const mod = keys.metaKey || keys.ctrlKey
 
     if (mod && !keys.altKey) {
-      if (
-        ownership.kind === 'document-rich-text'
-        && this.#inlineToolbar?.handleShortcut?.(event)
-      ) return
+      if (ownership.kind === 'document-rich-text') {
+        const handled = this.#inlineToolbar?.handleShortcut?.(event)
+        // A plugin/tool shortcut can replace edit mode while returning false.
+        // That response cannot authorize an old Mod+Z/Y or structural key.
+        if (!stillOwnKey() || handled) return
+      }
 
       if (lower === 'a' && !keys.shiftKey && ownership.owner) {
         if (this.#crossSelection?.wholeBlockIds?.length) {
@@ -196,7 +198,7 @@ export class KeyboardRouter {
 
     const record = this.#runtime.get(owner.blockId)
     if(this.#handleShortcut(owner,event,range,keys))return
-    if (!this.#canPresent()) return
+    if (!stillOwnKey()) return
 
     // V1 recognized a typed inline pattern on Space/Enter before allowing
     // native space insertion or a structural Enter split. The word replacement
@@ -535,7 +537,12 @@ export class KeyboardRouter {
   }
 
   #mutate(name, operation, focusAfter) {
+    const modeEpoch = this.#runtime.modeEpoch
     const before = this.#selection.capture()
+    // The native selection reader can synchronously destroy this router or
+    // complete a control-mode round trip while returning an old bookmark.
+    // Never enter a canonical transaction with that retired authority.
+    if (!this.#canPresent() || this.#runtime.modeEpoch !== modeEpoch) return undefined
     return this.#runtime.interact(name, operation, result => {
       const target = focusAfter(result)
       if(!target)return null
