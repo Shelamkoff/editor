@@ -3,7 +3,6 @@ const INLINE_TAGS_SELECTOR = 'b, i, s, em, strong, u, mark, code, span, a, sup, 
 const ELEMENT_NODE = 1
 const DOCUMENT_FRAGMENT_NODE = 11
 
-const TEXT_NODE = 3
 // Editing hosts and controls form boundaries between independently owned DOM.
 const NORMALIZE_BOUNDARY_SELECTOR = '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]'
 
@@ -66,27 +65,23 @@ export function normalizeAuthoredText(root) {
 
   /** @param {Element} parent */
   const visit = parent => {
-    /** @type {Node | null} */
-    let node = parent.firstChild
-    while (node) {
-      if (node.nodeType === TEXT_NODE) {
-        if (!node.textContent?.length) {
-          const next = node.nextSibling
-          node.parentNode?.removeChild(node)
-          node = next
-          continue
-        }
-        while (node.nextSibling?.nodeType === TEXT_NODE) {
-          const sibling = /** @type {Text} */ (node.nextSibling)
-          const current = /** @type {Text} */ (node)
-          current.appendData(sibling.data)
-          sibling.parentNode?.removeChild(sibling)
-        }
-      } else if (node.nodeType === ELEMENT_NODE
-        && !/** @type {Element} */ (node).matches(NORMALIZE_BOUNDARY_SELECTOR)) {
-        visit(/** @type {Element} */ (node))
-      }
-      node = node.nextSibling
+    // Native Node.normalize() correctly relocates *all* live DOM Range
+    // endpoints when it joins Text leaves. appendData()+removeChild() does
+    // not: a selected removed leaf becomes a parent/child-index boundary.
+    // Only invoke it where it cannot recurse into an independently owned
+    // control or a different contenteditable host.
+    if (!parent.querySelector(NORMALIZE_BOUNDARY_SELECTOR)) {
+      parent.normalize()
+      return
+    }
+    // At mixed-owner levels leave direct Text siblings intact. There is no
+    // way to enumerate every live DOM Range before deleting one manually.
+    // Descend into safe authored subtrees and let their native normalize()
+    // preserve browser caret and history range semantics.
+    for (const node of Array.from(parent.childNodes)) {
+      if (node.nodeType !== ELEMENT_NODE) continue
+      const child = /** @type {Element} */ (node)
+      if (!child.matches(NORMALIZE_BOUNDARY_SELECTOR)) visit(child)
     }
   }
 
