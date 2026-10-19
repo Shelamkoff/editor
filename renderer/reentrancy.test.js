@@ -634,3 +634,38 @@ test('mounted renderer does not steal nodes adopted by a later decoration callba
   }
   assert.equal(disposals, 1)
 })
+test('block renderer rejects an element adopted by a foreign document during decoration', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const foreignDocument = { foreignOwner: true }
+  let element
+  let releases = 0
+  renderer.registerRenderer({
+    type: 'reassigned-realm',
+    schema: passthroughSchema,
+    render() {
+      element = document.createElement('article')
+      Object.defineProperty(element.dataset, 'blockType', {
+        configurable: true,
+        set() { element.ownerDocument = foreignDocument },
+      })
+      return element
+    },
+    destroy() { releases++ },
+  })
+  try {
+    assert.throws(
+      () => renderer.renderBlock({
+        id: 'a', type: 'reassigned-realm', dataVersion: 1, data: {},
+      }),
+      /owning document/,
+      'custom-element callback changed the owning document after the initial realm check',
+    )
+    assert.equal(element.ownerDocument, foreignDocument,
+      'renderer took ownership of a node adopted by a different document')
+    assert.equal(releases, 1)
+  } finally {
+    renderer.destroy()
+  }
+  assert.equal(releases, 1)
+})
