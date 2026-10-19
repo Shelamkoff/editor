@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { getTextLength, getTextOffset, findNodeAtOffset, splitsSurrogateAtOffset } from './textOffset.js'
+import { getTextLength, getTextOffset, findNodeAtOffset, splitsSurrogateAtOffset, editableTextWalker, firstTextNode, lastTextNode } from './textOffset.js'
 
 const text = value => ({ nodeType: 3, textContent: value, childNodes: [] })
 function element(tag, children, attrs = {}) {
@@ -107,4 +107,85 @@ test('inline widgets remain atomic while nested independent editing hosts do not
   const next = findNodeAtOffset(root, 2, 'start')
   assert.equal(next.node, tail)
   assert.equal(next.offset, 0)
+})
+
+
+/** Minimal TreeWalker honoring the returned accept/reject contract. */
+function withTextWalker(root) {
+  const document = {
+    defaultView: { NodeFilter: { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 } },
+    createTreeWalker(walkRoot, _mask, filter) {
+      const leaves = []
+      const collect = node => {
+        if (node.nodeType === 3) leaves.push(node)
+        else for (const child of node.childNodes) collect(child)
+      }
+      collect(walkRoot)
+      let cursor = 0
+      return {
+        currentNode: walkRoot,
+        nextNode() {
+          while (cursor < leaves.length) {
+            const candidate = leaves[cursor++]
+            if (filter.acceptNode(candidate) === 1) {
+              this.currentNode = candidate
+              return candidate
+            }
+          }
+          return null
+        },
+      }
+    },
+  }
+  const visit = node => {
+    node.ownerDocument = document
+    if (node.nodeType === 1) {
+      node.closest = selector => {
+        for (let current = node; current; current = current.parentElement) {
+          if (selector === '[data-inline-plugin]' && current.hasAttribute('data-inline-plugin')) return current
+          if (selector === '[contenteditable]' && current.hasAttribute('contenteditable')) return current
+        }
+        return null
+      }
+      for (const child of node.childNodes) visit(child)
+    }
+  }
+  visit(root)
+  return root
+}
+
+test('editable text walking and first/last text skip native controls and nested editing hosts', () => {
+  const prefix = text('A')
+  const suffix = text('B')
+  const root = withTextWalker(wire(element('div', [
+    element('button', [text('native')]),
+    element('span', [text('locked')], { contenteditable: 'false' }),
+    prefix,
+    element('span', [text('inline widget')], { 'data-inline-plugin': '' }),
+    element('div', [text('other field')], { contenteditable: 'true' }),
+    suffix,
+  ], { contenteditable: 'true' })))
+  const walker = editableTextWalker(root)
+  const results = []
+  while (walker.nextNode()) results.push(walker.currentNode.textContent)
+  assert.deepEqual(results, ['A', 'B'])
+  assert.equal(firstTextNode(root), prefix)
+  assert.equal(lastTextNode(root), suffix)
+})
+
+test('cross-block walker reaches true fields through false plugin shells, excluding control labels', () => {
+  const left = text('Alpha')
+  const right = text('Bravo')
+  const root = withTextWalker(wire(element('div', [
+    element('section', [
+      element('button', [text('settings')]),
+      element('div', [left], { contenteditable: 'true' }),
+      element('span', [text('locked')], { contenteditable: 'false' }),
+    ], { contenteditable: 'false' }),
+    element('div', [right], { contenteditable: 'true' }),
+  ])))
+  const walker = editableTextWalker(root)
+  const selected = []
+  while (walker.nextNode()) selected.push(walker.currentNode.textContent)
+  assert.deepEqual(selected, ['Alpha', 'Bravo'])
 })
