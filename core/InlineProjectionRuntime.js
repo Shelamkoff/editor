@@ -552,7 +552,25 @@ export class InlineProjectionRuntime {
     const textNodes=[]
     const walker=this.#ownerDocument.createTreeWalker(element,4)
     let current=walker.nextNode()
-    while(current){textNodes.push(/** @type {Text} */(current));current=walker.nextNode()}
+    while(current){
+      // A source projection can already contain mounted widget labels and
+      // auxiliary controls. A literal {{id}} inside those owners must never
+      // be interpreted as an authored inline reference: doing so can move
+      // the existing widget into a button or even into its own descendant.
+      let authorText=true
+      let parent=current.parentNode
+      while(parent&&parent!==element){
+        if(parent.nodeType===1 && /** @type {Element} */(parent).matches(
+          '[data-inline-plugin], [contenteditable], button, input, textarea, select, option, [role="button"]',
+        )){
+          authorText=false
+          break
+        }
+        parent=parent.parentNode
+      }
+      if(authorText&&parent===element)textNodes.push(/** @type {Text} */(current))
+      current=walker.nextNode()
+    }
 
     for(const text of textNodes){
       if(!text.data.includes('{{'))continue
