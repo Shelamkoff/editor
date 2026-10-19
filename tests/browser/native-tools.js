@@ -1175,4 +1175,40 @@ test('native button focus cannot capture the retained author range as a logical 
   } finally { fixture.remove() }
 })
 
+
+test('external native button focus never captures an editor text range retained by Chromium', () => {
+  const field = document.createElement('div')
+  field.contentEditable = 'true'
+  field.textContent = 'Alpha'
+  const external = document.createElement('button')
+  external.type = 'button'
+  external.textContent = 'External'
+  document.body.append(field, external)
+  try {
+    const text = field.firstChild
+    const owner = { blockId: 'a', fieldKey: 'text', element: field, mode: 'rich-text' }
+    const root = {
+      ownerDocument: document,
+      contains(node) { return field.contains(node) },
+    }
+    const reconciler = {
+      resolveEditableTarget(node) { return field.contains(node) ? owner : null },
+      resolveBlockTarget() { return null },
+      getEditableFields(id) { return id === 'a' ? [{ key: 'text', element: field, mode: 'rich-text' }] : [] },
+    }
+    const logical = new LogicalSelection({ root, reconciler })
+    const native = window.getSelection()
+    field.focus()
+    native.setBaseAndExtent(text, 1, text, 4)
+    external.focus()
+    assert(document.activeElement === external, 'External button did not acquire focus')
+    equal(native.toString(), 'lph', 'Chromium did not retain the native text range after external focus')
+    equal(logical.capture(), null,
+      'An external button borrowed an old author range despite owning browser focus')
+  } finally {
+    field.remove()
+    external.remove()
+  }
+})
+
 await run()
