@@ -74,8 +74,18 @@ export class DragController {
       if(!sourceId||!this.#runtime.has(sourceId))return
       const element=this.#view.element(sourceId)
       if(!element)return
+      const generation=this.#runtime.generation
+      const revision=this.#runtime.revision
+      const modeEpoch=this.#runtime.modeEpoch
 
+      // Retiring the previous pointer can synchronously call lostpointercapture
+      // listeners, including editor teardown or a *newer* pointerdown.
       this.#cancelSession()
+      if(this.#destroyed||this.#session||this.#runtime.readOnly
+        ||this.#runtime.generation!==generation
+        ||this.#runtime.revision!==revision
+        ||this.#runtime.modeEpoch!==modeEpoch
+        ||!this.#runtime.has(sourceId)||this.#view.element(sourceId)!==element)return
       const AbortControllerCtor=this.#document.defaultView?.AbortController??AbortController
       const controller=new AbortControllerCtor()
       const pointerId=Number.isInteger(event.pointerId)?event.pointerId:0
@@ -83,9 +93,9 @@ export class DragController {
         pointerId,
         sourceId,
         element,
-        generation:this.#runtime.generation,
-        revision:this.#runtime.revision,
-        modeEpoch:this.#runtime.modeEpoch,
+        generation,
+        revision,
+        modeEpoch,
         startX:event.clientX,
         startY:event.clientY,
         active:false,
@@ -96,24 +106,42 @@ export class DragController {
         spacerParent:null,
         controller,
       }
+      // The indexOf() read used while constructing the state is another host
+      // callback boundary; never publish a session after it retired the owner.
+      if(this.#destroyed||this.#session||this.#runtime.readOnly
+        ||this.#runtime.generation!==generation
+        ||this.#runtime.revision!==revision
+        ||this.#runtime.modeEpoch!==modeEpoch
+        ||!this.#runtime.has(sourceId)||this.#view.element(sourceId)!==element)return
       this.#session=state
 
       try{this.#handle.setPointerCapture?.(pointerId)}catch{}
+      // Pointer capture can synchronously dispatch lostpointercapture. A
+      // retired owner must not install document listeners after the callback.
+      if(!this.#current(state)){this.#cancelSession(state);return}
 
-      this.#document.addEventListener('pointermove',moveEvent=>this.#move(state,moveEvent),{
-        capture:true,
-        signal:controller.signal,
-      })
-      this.#document.addEventListener('pointerup',upEvent=>this.#finish(state,upEvent),{
-        capture:true,
-        signal:controller.signal,
-      })
-      this.#document.addEventListener('pointercancel',cancelEvent=>{
-        if(this.#matchesPointer(state,cancelEvent))this.#cancelSession(state)
-      },{
-        capture:true,
-        signal:controller.signal,
-      })
+      try{
+        this.#document.addEventListener('pointermove',moveEvent=>this.#move(state,moveEvent),{
+          capture:true,
+          signal:controller.signal,
+        })
+        if(!this.#current(state)){this.#cancelSession(state);return}
+        this.#document.addEventListener('pointerup',upEvent=>this.#finish(state,upEvent),{
+          capture:true,
+          signal:controller.signal,
+        })
+        if(!this.#current(state)){this.#cancelSession(state);return}
+        this.#document.addEventListener('pointercancel',cancelEvent=>{
+          if(this.#matchesPointer(state,cancelEvent))this.#cancelSession(state)
+        },{
+          capture:true,
+          signal:controller.signal,
+        })
+        if(!this.#current(state))this.#cancelSession(state)
+      }catch(error){
+        this.#cancelSession(state)
+        throw error
+      }
     }
 
     handle.addEventListener('pointerdown',this.#onPointerDown)
@@ -146,21 +174,28 @@ export class DragController {
       &&this.#runtime.modeEpoch===state.modeEpoch
       &&this.#runtime.has(state.sourceId)
       &&this.#view.element(state.sourceId)===state.element
+      // Getters above may have synchronously retired or replaced this owner.
+      &&!this.#destroyed&&this.#session===state
     )
   }
 
   #activate(state){
-    if(state.active)return
+    if(state.active||!this.#current(state))return
     state.active=true
     state.element.classList?.add('oe-block--dragging')
+    if(!this.#current(state))return
     this.#document.body?.classList?.add('oe-editor-dragging')
+    if(!this.#current(state))return
     const spacer=this.#document.createElement?.('div')??null
+    if(!this.#current(state))return
     if(spacer){
       spacer.className='oe-block-drop-gap'
       spacer.setAttribute?.('aria-hidden','true')
+      if(!this.#current(state))return
       state.spacer=spacer
     }
     const order=this.#runtime.ids()
+    if(!this.#current(state))return
     const without=order.filter(id=>id!==state.sourceId)
     const current=Math.max(0,order.indexOf(state.sourceId))
     this.#setGap(state,Math.min(current,without.length),without)
@@ -176,10 +211,14 @@ export class DragController {
     if(!state.active&&distance<this.#threshold)return
     try{
       this.#activate(state)
+      if(!this.#current(state)){this.#cancelSession(state);return}
       event.preventDefault?.()
+      if(!this.#current(state)){this.#cancelSession(state);return}
       const order=this.#runtime.ids()
+      if(!this.#current(state)){this.#cancelSession(state);return}
       const without=order.filter(id=>id!==state.sourceId)
       const gap=dragGapAtY(without,id=>this.#view.element(id),event.clientY)
+      if(!this.#current(state)){this.#cancelSession(state);return}
       this.#setGap(state,gap,without)
     }catch(error){
       // A renderer/DOM insertion may have thrown after placing the gap node.
