@@ -1,6 +1,7 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el } from '../shared/editorDom.js'
 import { createSvgIcon } from '../shared/editorIcons.js'
+import { normalizeAuthoredText } from './inlineContent.js'
 import {
   createSelectionPortBinding,
   ICON_CHECK,
@@ -260,8 +261,8 @@ export function createFontSizeTool(label) {
         if (result) {
           const startCe = result.firstSpan.closest('[contenteditable]')
           const endCe = result.lastSpan.closest('[contenteditable]')
-          if (startCe) startCe.normalize()
-          if (endCe && endCe !== startCe) endCe.normalize()
+          if (startCe) normalizeAuthoredText(startCe)
+          if (endCe && endCe !== startCe) normalizeAuthoredText(endCe)
         }
         if (!cbs.restore(bookmark)) {
           throw new Error('Formatting selection became unavailable after font-size application')
