@@ -66,6 +66,7 @@ The result preserves existing real widget position, sidecar payload and normal f
 - **Renderer unit suite:** **10/10 passed** in isolated V8, including existing asynchronous and ownership cases.
 - **Chromium DOM smoke:** the literal span and its 12-character text survive a DOM `innerHTML` parse/serialize cycle. This is not a full Rector browser acceptance run.
 - **JavaScript parse:** all five directly modified JS source/test files parsed in isolated V8 after removing ESM import/export syntax.
+- **Split literal across adjacent DOM Text leaves:** actual serializer RED → GREEN as above, with live source-node identity retained.
 
 Relevant changes:
 
@@ -78,6 +79,19 @@ Relevant changes:
 - [HTML paste literal regression](https://github.com/Shelamkoff/editor/commit/930413aa66df40324cc6ae702f2692f03c7c999e)
 - [English documentation](https://github.com/Shelamkoff/editor/commit/e294d24ee47e816d4bcfe67db39b96529b0a05ad)
 - [Russian documentation](https://github.com/Shelamkoff/editor/commit/75d3a2ccb4c20b7145e9feba387ad2139ee2e38f)
+
+## Finding LITERAL-ROUNDTRIP-2 — joined adjacent Text leaves could form a new reference during serialization (P2)
+
+The DOM may contain two adjacent live author Text nodes with values `{{inline-` and `1}}`, particularly when normalization was intentionally avoided near protected controls to preserve live native Range boundaries. Earlier `protectInlineLiteralTokens()` scanned each Text node separately and found no full match. But `innerHTML` serialization concatenates these adjacent leaves into `{{inline-1}}`, turning their author text into a second canonical reference.
+
+**RED:** the actual pre-fix `#serializeField()` and current literal-protection helper emitted `A{{inline-1}}B{{inline-1}}` from these separate leaves. A new browser regression was committed before changing the production code.
+
+**Fix:** call native `Node.normalize()` **only on the detached serialization clone** immediately before protecting the literal tokens. The clone has no live editor Selection/Range ownership. Adjacent cloned Text leaves are merged so the full literal `{{inline-1}}` is protected, while the source field's original Text identities stay unchanged.
+
+**GREEN:** running exact previous/current serializer bodies with a synthetic DOM that implements native adjacent-text normalization proved that the old source produced two unmarked tokens, whereas the current source emitted one owned token plus the marked literal span. The original two live author Text nodes were unchanged in both runs.
+
+- [RED browser regression](https://github.com/Shelamkoff/editor/commit/88fa2815e12f0c578d65d93c0c20c9c056449b7a)
+- [Detached-clone normalization fix](https://github.com/Shelamkoff/editor/commit/9d9cb12603f111740cbf1ba2c89527a188b41c90)
 
 ## Remaining acceptance and caveats
 
@@ -97,7 +111,7 @@ npm run test:package
 npm run docs:check
 ```
 
-Browser acceptance must verify actual save → Undo → Redo → reload, renderer hydration, one widget DOM/sidecar lease, backward and cross-field Unicode caret offsets, literal content within formatting marks, native/plain input and structured paste, and failure recovery on remounting the same block ID.
+Browser acceptance must verify actual save → Undo → Redo → reload, renderer hydration, one widget DOM/sidecar lease, backward and cross-field Unicode caret offsets, literal content within formatting marks, native/plain input and structured paste, and failure recovery on remounting the same block ID. In particular, test placeholder-shaped literals divided across *adjacent formatting elements* that canonical HTML normalization may merge; the detached Text-node normalization fix does not by itself establish that additional edge case.
 
 A preexisting canonical document containing two *unmarked* `{{id}}` strings and one matching sidecar cannot be disambiguated retrospectively from that string alone. No migration or speculative guess was added; the new reversible marker is produced for new author edits and respected by the existing current-format consumers. Explicitly test unknown/unloaded inline types before declaring global parity.
 
