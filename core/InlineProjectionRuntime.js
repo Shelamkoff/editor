@@ -69,6 +69,9 @@ export class InlineProjectionRuntime {
   /** @type {Set<(() => void) & { blockId: string }>} */
   #pendingPreparations=new Set()
   #owned=new WeakMap()
+  // Exact identity of inert projections for unloaded inline references.
+  // Never authorize these through extension runtime or attribute matching.
+  #opaqueOwned=new WeakMap()
   #readOnly
   #destroyed=false
 
@@ -89,7 +92,7 @@ export class InlineProjectionRuntime {
     try{
       let state=this.#blocks.get(blockId)
       if(!state){
-        state={widgets:new Map(),staged:false}
+        state={widgets:new Map(),opaque:new Map(),staged:false}
         this.#blocks.set(blockId,state)
       }
       try{
@@ -119,7 +122,7 @@ export class InlineProjectionRuntime {
     }
     this.#projectingBlocks.add(blockId)
     const previous=this.#blocks.get(blockId)
-    const state={widgets:new Map(),staged:true,generation}
+    const state={widgets:new Map(),opaque:new Map(),staged:true,generation}
     try{
       this.#projectState(
         blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
@@ -223,7 +226,11 @@ export class InlineProjectionRuntime {
     // intentionally has no mounted widget and is represented by its raw
     // canonical {{id}} text; changing that reference into a literal would
     // silently prune its opaque payload at the next canonical assembly.
-    const reservedInlineIds=new Set(this.#blocks.get(blockId)?.widgets.keys()??[])
+    const state=this.#blocks.get(blockId)
+    const reservedInlineIds=new Set([
+      ...(state?.widgets.keys()??[]),
+      ...(state?.opaque.keys()??[]),
+    ])
 
     for(const [key,element] of actual){
       const html=this.#serializeField(blockId,element,reservedInlineIds)
@@ -557,6 +564,7 @@ export class InlineProjectionRuntime {
       }
     }
     const live=new Set()
+    const liveOpaque=new Set()
 
     for(const [fieldKey,element] of richFields){
       const html=canonical.get(fieldKey)
@@ -568,7 +576,7 @@ export class InlineProjectionRuntime {
         element.replaceChildren(...template.content.childNodes)
       }
 
-      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live)
+      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque)
       projectRichTextCaretPadding(element)
     }
 
@@ -577,9 +585,14 @@ export class InlineProjectionRuntime {
       state.widgets.delete(id)
       this.#destroyWidget(entry)
     }
+    for(const [id,entry] of state.opaque){
+      if(liveOpaque.has(id))continue
+      state.opaque.delete(id)
+      if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
+    }
   }
 
-  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live){
+  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set()){
     const textNodes=[]
     const walker=this.#ownerDocument.createTreeWalker(element,4)
     let current=walker.nextNode()
@@ -611,9 +624,39 @@ export class InlineProjectionRuntime {
         if(mounted?.type===type&&mounted.fieldKey===fieldKey
           &&mounted.fieldElement===element
           &&belongsToAuthorField(element,mounted.element))continue
+        const inert=state.opaque.get(id)
+        if(inert?.type===type&&inert.fieldKey===fieldKey
+          &&inert.fieldElement===element
+          &&belongsToAuthorField(element,inert.element))continue
         const definition=this.#registry.getInlineDefinition(type)
         const runtime=this.#registry.getInlineRuntime(type)
-        if(!definition||!runtime)continue
+        if(!definition||!runtime){
+          // Unknown inline payloads are still one-unit canonical references.
+          // Render an inert visible token, with a private identity lease,
+          // rather than editable raw text whose UTF-16 length differs from
+          // canonical selection/history offsets.
+          if(match.index>cursor)fragment.appendChild(
+            this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)),
+          )
+          if(inert){
+            state.opaque.delete(id)
+            if(belongsToAuthorField(inert.fieldElement,inert.element))inert.element.remove()
+          }
+          const marker=this.#ownerDocument.createElement('span')
+          marker.setAttribute('data-inline-plugin','__unregistered__')
+          marker.setAttribute('data-oe-opaque-inline',id)
+          marker.setAttribute('data-id',id)
+          marker.contentEditable='false'
+          marker.textContent=match[0]
+          const entry={id,type,fieldKey,fieldElement:element,element:marker,blockId}
+          state.opaque.set(id,entry)
+          this.#opaqueOwned.set(marker,entry)
+          fragment.appendChild(marker)
+          liveOpaque.add(id)
+          cursor=match.index+match[0].length
+          changed=true
+          continue
+        }
 
         let decoded
         try{
@@ -720,6 +763,18 @@ export class InlineProjectionRuntime {
       text.replaceWith(fragment)
     }
 
+    // A source field may already contain a current, inert opaque reference.
+    // It only remains live while its exact canonical inline ID is present.
+    for(const entry of state.opaque.values()){
+      if(entry.fieldKey!==fieldKey)continue
+      const ref=Object.hasOwn(inline,entry.id)?inline[entry.id]:null
+      if(!ref||ref.type!==entry.type||counts.get(entry.id)!==1)continue
+      if(belongsToAuthorField(element,entry.element)){
+        entry.fieldElement=element
+        liveOpaque.add(entry.id)
+      }
+    }
+
     // Source native-input projection already contains owned widget elements.
     // A current DOM child is not sufficient authority: Undo/Redo or a
     // canonical removal can retire the reference before the old root leaves
@@ -745,6 +800,20 @@ export class InlineProjectionRuntime {
     const append=(source,target)=>{
       for(const node of source.childNodes){
         if(isRichTextCaretPadding(node))continue
+        const opaque=this.#opaqueOwned.get(node)
+        if(opaque?.blockId===blockId&&opaque.fieldElement===field
+          &&this.#blocks.get(blockId)?.opaque.get(opaque.id)===opaque
+          &&belongsToAuthorField(field,node)){
+          // A source-only opaque marker is trusted by its WeakMap lease, not
+          // by forgeable data-* attributes. Persist the genuine reference.
+          const marker=this.#ownerDocument.createElement('span')
+          marker.setAttribute('data-oe-inline-reference',opaque.id)
+          marker.className='oe-inline-owned-reference'
+          target.appendChild(marker)
+          references.push({element:marker,id:opaque.id})
+          ownedIds.add(opaque.id)
+          continue
+        }
         const owned=this.#owned.get(node)
         if(owned?.blockId===blockId&&this.#blocks.get(blockId)?.widgets.get(owned.id)?.element===node){
           // Keep actual widget references out of the authored text walk until
@@ -800,6 +869,11 @@ export class InlineProjectionRuntime {
     const owned=[...state.widgets.values()]
     state.widgets.clear()
     for(const entry of owned)this.#destroyWidget(entry)
+    const opaque=[...state.opaque.values()]
+    state.opaque.clear()
+    for(const entry of opaque){
+      if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
+    }
   }
 
   #markWidget(entry){
