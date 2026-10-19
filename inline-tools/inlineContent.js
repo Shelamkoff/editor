@@ -24,8 +24,10 @@ export function removeEmptyInlineTags(parent) {
   if (!parent || parent.nodeType !== ELEMENT_NODE) return
   const empties = /** @type {HTMLElement} */ (parent).querySelectorAll(INLINE_TAGS_SELECTOR)
   for (const el of empties) {
-    // Widget roots and descendants are owned by the plugin, not text formatting.
-    if (el.closest('[data-inline-plugin]')) continue
+    // Embedded native, locked and inline-widget descendants are independently
+    // owned controls, including empty nodes with no visible text. Do not treat
+    // their elements as disposable editor formatting wrappers.
+    if (el.closest('[data-inline-plugin], [contenteditable="false"], button, input, textarea, select, option, [role="button"]')) continue
     if (!hasInlineContent(el)) el.remove()
   }
   parent.normalize()
