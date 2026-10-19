@@ -2407,4 +2407,51 @@ test('source hydration never mounts duplicate installed widgets from an authored
   }
 })
 
+test('visible authored literal cannot borrow inline ID from an unmounted hidden rich field', () => {
+  const visible=document.createElement('div')
+  visible.contentEditable='true'
+  visible.textContent='Visible '
+  document.body.append(visible)
+  const record={
+    data:{visible:'Visible ',hidden:'Hidden {{hidden-1}}'},
+    inline:{'hidden-1':{type:'not-installed',dataVersion:7,data:{original:'kept'}}},
+  }
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,visible:visit(data.visible,'visible'),
+      hidden:visit(data.hidden,'hidden')}
+  }}}
+  const fields=[{key:'visible',mode:'rich-text',element:visible}]
+  const projection=new InlineProjectionRuntime({
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+    ownerDocument:document,
+  })
+  try{
+    projection.reconcileBlock('a',record,definition,fields,
+      {createInlineWidgetContext(){return{}}},
+      {preserveSourceProjection:true})
+    assert(!visible.querySelector('[data-oe-opaque-inline]'),
+      'An unmounted canonical inline was incorrectly projected into another field')
+    const literal=document.createTextNode('{{hidden-1}}')
+    visible.append(literal)
+    const saved=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(saved.data.visible,
+      'Visible <span class="oe-inline-literal">{{hidden-1}}</span>',
+      'An unmounted sibling inline ID was copied as a second canonical reference')
+    equal(saved.data.hidden,record.data.hidden,
+      'The hidden canonical rich-text source was overwritten by visible DOM')
+    equal(saved.inline,record.inline,
+      'An unknown inline payload from the hidden field was discarded')
+    const visibleScan=scanRichTextPlaceholders(saved.data.visible,saved.inline,document)
+    const hiddenScan=scanRichTextPlaceholders(saved.data.hidden,saved.inline,document)
+    equal(visibleScan.occurrences.get('hidden-1'),undefined,
+      'Visible literal was incorrectly counted as a hidden inline occurrence')
+    equal(hiddenScan.occurrences.get('hidden-1'),1)
+    assert(literal.isConnected&&visible.lastChild===literal,
+      'Serialization rewrote the live author text rather than a detached clone')
+  }finally{
+    projection.destroy()
+    visible.remove()
+  }
+})
+
 await run()
