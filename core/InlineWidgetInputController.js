@@ -499,6 +499,7 @@ export class InlineWidgetInputController {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const field=this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element
+    const focusOwner=field?.ownerDocument?.activeElement
     const selection=field?.ownerDocument?.defaultView?.getSelection?.()
     const expected=selection?.anchorNode&&selection.focusNode
       ?{
@@ -510,7 +511,8 @@ export class InlineWidgetInputController {
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch)return
       if(this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element!==field
-        ||!field?.isConnected||!expected)return
+        ||!field?.isConnected||!expected
+        ||field.ownerDocument.activeElement!==focusOwner)return
       // The action has been accepted, but user selection is still a separate
       // authority. Never let this queued focus restoration steal an intervening
       // native selection without any canonical revision change.
@@ -526,7 +528,8 @@ export class InlineWidgetInputController {
         // a retired edit cannot restore the native caret afterward.
         if(this.#controller.signal.aborted||this.#runtime.readOnly
           ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
-          ||modeEpoch!==this.#runtime.modeEpoch)return
+          ||modeEpoch!==this.#runtime.modeEpoch
+          ||field.ownerDocument.activeElement!==focusOwner)return
         const node=target.element.firstChild
         if(localCaret!==null&&node?.nodeType===3){
           const caret=Math.max(0,Math.min(localCaret,node.textContent?.length??0))
@@ -541,6 +544,7 @@ export class InlineWidgetInputController {
           }
         }
       }
+      if(field.ownerDocument.activeElement!==focusOwner)return
       this.#selection.setCaret(target.blockId,{fieldKey:target.fieldKey,offset})
     })
   }
