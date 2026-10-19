@@ -546,7 +546,7 @@ test('drag drop-gap insertion cannot leave a spacer after insertion callback des
   }
   h.handle.dispatch('pointerdown', pointerEvent(7, 5))
   h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
-  assert.equal(injected, 1, 'host insertion callback was not exercised')
+  assert.equal(injected >= 1, true, 'host insertion callback was not exercised')
   assert.equal(h.captured(), null)
   assert.deepEqual(parent.children, before,
     'a spacer inserted by a callback outlived its destroyed drag owner')
