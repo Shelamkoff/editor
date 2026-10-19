@@ -2181,4 +2181,63 @@ test('unloaded inline extension remains an opaque reference when saving an activ
   }
 })
 
+
+test('unloaded inline references occupy one inert caret unit and survive replay', () => {
+  const field=document.createElement('div')
+  field.contentEditable='true'
+  field.textContent='A{{opaque-1}}B'
+  document.body.append(field)
+  const record={data:{text:'A{{opaque-1}}B'},inline:{
+    'opaque-1':{type:'not-installed',dataVersion:7,data:{secret:{value:'kept'}}},
+  }}
+  const definition={schema:{mapRichText(data,visit){
+    return {...data,text:visit(data.text,'text')}
+  }}}
+  const projection=new InlineProjectionRuntime({
+    registry:{getInlineDefinition(){return null},getInlineRuntime(){return null}},
+    ownerDocument:document,
+  })
+  const fields=[{key:'text',mode:'rich-text',element:field}]
+  const context={createInlineWidgetContext(){return{}}}
+  try{
+    projection.reconcileBlock('a',record,definition,fields,context,
+      {preserveSourceProjection:true})
+    equal(field.textContent,'A{{opaque-1}}B',
+      'Opaque placeholder changed its visible text')
+    equal(getTextLength(field),3,
+      'Opaque canonical inline reference does not occupy one logical caret unit')
+    const placeholder=field.querySelector('[data-oe-opaque-inline]')
+    assert(placeholder&&placeholder.textContent==='{{opaque-1}}',
+      'The unknown inline reference lacks an inert owned DOM boundary')
+    assert(!placeholder.isContentEditable,'An opaque inline reference was made editable')
+    const saved=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(saved.data.text,record.data.text)
+    equal(saved.inline,record.inline)
+
+    // A second author-typed token must not impersonate that canonical ref.
+    const literal=document.createTextNode('{{opaque-1}}')
+    field.append(literal)
+    const collision=projection.serializeBlock('a',record,definition,fields,record.data)
+    equal(collision.data.text,
+      'A{{opaque-1}}B<span class="oe-inline-literal">{{opaque-1}}</span>')
+    equal(scanRichTextPlaceholders(collision.data.text,collision.inline,document)
+      .occurrences.get('opaque-1'),1)
+
+    projection.reconcileBlock('a',{data:{text:'AB'},inline:{}},
+      definition,fields,context,{preserveSourceProjection:true})
+    assert(!placeholder.isConnected,'A canonically removed opaque inline retained its DOM')
+    equal(field.textContent,'AB')
+
+    projection.reconcileBlock('a',record,definition,fields,context)
+    const recovered=field.querySelector('[data-oe-opaque-inline]')
+    assert(recovered&&recovered!==placeholder,'Undo reused a retired opaque reference')
+    equal(getTextLength(field),3)
+    equal(projection.serializeBlock('a',record,definition,fields,record.data).data.text,
+      record.data.text)
+  }finally{
+    projection.destroy()
+    field.remove()
+  }
+})
+
 await run()
