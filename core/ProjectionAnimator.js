@@ -82,7 +82,11 @@ export class ProjectionAnimator {
   animateRemovals(container, snapshots) {
     if (!this.#enabled || this.#removeMs === 0) return
     for (const snapshot of snapshots) {
-      const spacer = snapshot.ownerDocument.createElement('div')
+      // Animation is post-commit presentation. A broken DOM adapter for one
+      // spacer must not stop later animations or document/owner cleanup.
+      let spacer
+      try {
+      spacer = snapshot.ownerDocument.createElement('div')
       spacer.className = 'oe-block-removal-spacer'
       spacer.setAttribute('aria-hidden', 'true')
       spacer.inert = true
@@ -122,6 +126,17 @@ export class ProjectionAnimator {
       } catch {
         this.#removeSpacer(spacer)
       }
+      } catch {
+        // Attribute/DOM callbacks can fail after allocating or inserting the
+        // provisional spacer. Retire our lease, but never remove a node that
+        // another application has since adopted.
+        if (spacer) {
+          this.#spacers.delete(spacer)
+          if (spacer.parentNode === container) {
+            try { spacer.remove?.() } catch {}
+          }
+        }
+      }
     }
   }
 
@@ -131,16 +146,22 @@ export class ProjectionAnimator {
   }
 
   #clearSpacers() {
-    for (const [spacer, originalParent] of this.#spacers) {
-      if (spacer.parentNode === originalParent) spacer.remove?.()
-    }
+    // Retire the entire ledger before entering fallible DOM remove callbacks.
+    // One broken/disconnected spacer cannot strand its independent siblings.
+    const owned = [...this.#spacers]
     this.#spacers.clear()
+    for (const [spacer, originalParent] of owned) {
+      if (spacer.parentNode !== originalParent) continue
+      try { spacer.remove?.() } catch {}
+    }
   }
 
   #removeSpacer(spacer) {
     const originalParent = this.#spacers.get(spacer)
     this.#spacers.delete(spacer)
-    if (originalParent && spacer.parentNode === originalParent) spacer.remove?.()
+    if (originalParent && spacer.parentNode === originalParent) {
+      try { spacer.remove?.() } catch {}
+    }
   }
 
   #canAnimate(element) {
