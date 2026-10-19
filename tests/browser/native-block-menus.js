@@ -769,4 +769,55 @@ for (const menu of ['type', 'level']) {
   })
 }
 
+
+test('block settings menu captures Home End and wraps ArrowUp without active item', async () => {
+  const editor = mount()
+  const root = editorRoot(editor)
+  await open(editor, '.oe-toolbar__drag')
+  const menu = root.querySelector('.oe-settings-menu')
+  const available = [...menu.querySelectorAll('[role^="menuitem"]')]
+    .filter(item => item.style.display !== 'none' && item.getAttribute('aria-disabled') !== 'true' && !item.disabled)
+  assert(available.length >= 2, 'The settings menu needs multiple focusable actions')
+  let escaped = 0
+  const onBubble = event => {
+    if (['ArrowUp', 'Home', 'End'].includes(event.key)) escaped++
+  }
+  root.addEventListener('keydown', onBubble)
+  try {
+    menu.focus()
+    equal(document.activeElement, menu)
+    await dispatchKey('ArrowUp', 'ArrowUp', 38)
+    equal(document.activeElement, available.at(-1),
+      'ArrowUp from the menu container should wrap to the last enabled action')
+    await dispatchKey('Home', 'Home', 36)
+    equal(document.activeElement, available[0])
+    await dispatchKey('End', 'End', 35)
+    equal(document.activeElement, available.at(-1))
+    equal(escaped, 0, 'An already handled menu key bubbled into the editor')
+  } finally {
+    root.removeEventListener('keydown', onBubble)
+  }
+})
+
+test('block settings keyboard navigation skips native disabled menu buttons', async () => {
+  const editor = mount()
+  const root = editorRoot(editor)
+  await open(editor, '.oe-toolbar__drag')
+  const menu = root.querySelector('.oe-settings-menu')
+  const buttons = [...menu.querySelectorAll('[role^="menuitem"]')]
+    .filter(item => item.style.display !== 'none' && item.getAttribute('aria-disabled') !== 'true')
+  assert(buttons.length >= 2, 'The settings menu needs an alternative enabled button')
+  const disabled = buttons[0]
+  const original = disabled.disabled
+  try {
+    disabled.disabled = true
+    menu.focus()
+    await dispatchKey('ArrowDown', 'ArrowDown', 40)
+    equal(document.activeElement, buttons[1],
+      'Keyboard focus stopped at a disabled native menu button')
+  } finally {
+    disabled.disabled = original
+  }
+})
+
 await run()
