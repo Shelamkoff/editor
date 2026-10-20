@@ -616,3 +616,69 @@ test('async Paste final selection recheck failure releases blob and reports with
   } finally { f.controller.destroy() }
   assert.deepEqual(f.revoked, f.created)
 })
+
+
+test('failed owner AbortController.abort still revokes provisional Paste media and permits a replacement', async () => {
+  class ThrowingAbortController extends AbortController {
+    abort() { throw new Error('owner AbortController cannot dispatch cancellation') }
+  }
+  let resolves = 0
+  const f = fixture({
+    AbortControllerCtor: ThrowingAbortController,
+    resolve(_input, context) {
+      resolves++
+      context.createObjectURL({ name: 'provisional.mp4' })
+      return new Promise(() => {})
+    },
+  })
+  try {
+    assert.equal(f.paste().defaultPrevented, true)
+    assert.deepEqual(f.created, ['blob:clipboard-owned-1'])
+    assert.doesNotThrow(() => f.controller.cancelPendingTask(),
+      'owner AbortController failure escaped through the editor cancellation API')
+    assert.deepEqual(f.revoked, ['blob:clipboard-owned-1'],
+      'failed abort left an uncommitted blob retained while its resolver never settles')
+    assert.equal(f.paste().defaultPrevented, true)
+    assert.equal(resolves, 2, 'the aborted task blocked a subsequent valid Paste')
+    assert.deepEqual(f.created, ['blob:clipboard-owned-1', 'blob:clipboard-owned-2'])
+  } finally {
+    assert.doesNotThrow(() => f.controller.destroy())
+  }
+  assert.deepEqual(f.revoked, ['blob:clipboard-owned-1', 'blob:clipboard-owned-2'],
+    'destroy did not release pending media after the second failed abort')
+  assert.equal(f.applied.length, 0)
+})
+
+test('throwing owner abort after dispatch does not cancel a reentrant replacement Paste', async () => {
+  class PostDispatchThrowingAbortController extends AbortController {
+    abort(reason) {
+      super.abort(reason)
+      throw new Error('owner abort returned a failure after dispatch')
+    }
+  }
+  let f
+  let resolves = 0
+  f = fixture({
+    AbortControllerCtor: PostDispatchThrowingAbortController,
+    resolve(_input, context) {
+      resolves++
+      const url = context.createObjectURL({ name: 'provisional.mp4' })
+      if (resolves === 1) {
+        context.signal.addEventListener('abort', () => {
+          f.paste()
+        }, { once: true })
+      }
+      return new Promise(() => {})
+    },
+  })
+  try {
+    f.paste()
+    assert.doesNotThrow(() => f.controller.cancelPendingTask())
+    assert.equal(resolves, 2)
+    assert.deepEqual(f.revoked, ['blob:clipboard-owned-1'])
+    assert.deepEqual(f.created, ['blob:clipboard-owned-1', 'blob:clipboard-owned-2'])
+  } finally {
+    f.controller.destroy()
+  }
+  assert.deepEqual(f.revoked, ['blob:clipboard-owned-1', 'blob:clipboard-owned-2'])
+})
