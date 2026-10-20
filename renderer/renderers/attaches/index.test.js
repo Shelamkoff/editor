@@ -148,6 +148,63 @@ test('ZIP output is built as an owning-window Blob from byte data', async () => 
     assert.equal(clicked, 1)
     assert.equal(revoked, 'blob:owner/archive')
   } finally {
-    if (previousRuntime) setZipRuntime(previousRuntime)
+    setZipRuntime(previousRuntime)
+  }
+})
+
+
+test('ZIP export revokes its Blob URL if anchor creation, click or timer setup fails', async () => {
+  const previousRuntime = getZipRuntime()
+  class FakeZip {
+    file() {}
+    async generateAsync() { return new Uint8Array([1, 2, 3]) }
+  }
+  setZipRuntime(FakeZip)
+
+  const failures = ['anchor', 'click', 'timer', 'click-with-revoke-error']
+  try {
+    for (const failure of failures) {
+      const revoked = []
+      const expectedFailure = failure.startsWith('click') ? 'click' : failure
+      const ownerDocument = {
+        defaultView: {
+          AbortController,
+          fetch: async () => new Response(new Uint8Array([42]), { status: 200 }),
+          Blob,
+          URL: {
+            createObjectURL() { return 'blob:owner/failed-archive' },
+            revokeObjectURL(url) {
+              revoked.push(url)
+              if (failure === 'click-with-revoke-error') throw new Error('URL revocation failed')
+            },
+          },
+          setTimeout(callback) {
+            if (failure === 'timer') throw new Error('timer failed')
+            callback()
+          },
+        },
+        createElement() {
+          if (failure === 'anchor') throw new Error('anchor failed')
+          return {
+            download: '',
+            setAttribute() {},
+            click() { if (failure.startsWith('click')) throw new Error('click failed') },
+          }
+        },
+      }
+
+      await assert.rejects(
+        downloadArchive(
+          [{ url: 'https://example.test/export.bin', name: 'export.bin' }],
+          { signal: new AbortController().signal, ownerDocument },
+        ),
+        new RegExp(expectedFailure + ' failed'),
+        failure,
+      )
+      assert.deepEqual(revoked, ['blob:owner/failed-archive'],
+        `Blob URL leaked or was revoked twice after ${failure} failure`)
+    }
+  } finally {
+    setZipRuntime(previousRuntime)
   }
 })
