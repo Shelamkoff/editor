@@ -644,3 +644,48 @@ test('failed streaming attachment releases its provisional bytes so valid files 
     setZipRuntime(previousRuntime)
   }
 })
+
+
+test('ZIP duplicate filenames with very long extensions stay within the portable name limit', async () => {
+  const previousRuntime = getZipRuntime()
+  const recorded = []
+  class FakeZip {
+    file(name) { recorded.push(name) }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      Blob,
+      fetch: async () => new Response(new Uint8Array([1]), { status: 200 }),
+      URL: {
+        createObjectURL() { return 'blob:owner/long-names' },
+        revokeObjectURL() {},
+      },
+      setTimeout(callback) { callback() },
+    },
+    createElement() { return { setAttribute() {}, click() {}, download: '' } },
+  }
+  const name = 'a.' + 'x'.repeat(126) // Exactly 128 UTF-16 code units.
+  try {
+    await downloadArchive([
+      { url: 'https://example.test/one', name },
+      { url: 'https://example.test/two', name },
+      { url: 'https://example.test/three', name },
+    ], { signal: new AbortController().signal, ownerDocument })
+    assert.equal(recorded.length, 3)
+    assert.ok(recorded.every(value => value.length <= 128),
+      'collision suffix produced an overlong ZIP entry name')
+    assert.equal(new Set(recorded.map(value => value.toLowerCase())).size, 3)
+  } finally {
+    setZipRuntime(previousRuntime)
+  }
+})
+
+test('archive filename truncation does not leave half of a Unicode surrogate pair', () => {
+  const original = 'x'.repeat(127) + '😀'
+  const truncated = sanitizeArchiveFilename(original)
+  assert.equal(truncated, 'x'.repeat(127))
+  assert.equal(/[\uD800-\uDBFF]$/.test(truncated), false)
+})
