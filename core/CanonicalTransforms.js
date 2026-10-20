@@ -138,6 +138,27 @@ export function remapCanonicalInline(inline, remap) {
 }
 
 /**
+ * Validate a remapped widget id against the namespace that existed before
+ * calling a host allocator. A valid allocator may itself reserve its result
+ * in the supplied Set, so checking reserved.has(id) only afterwards would
+ * incorrectly reject valid producer implementations.
+ * @param {Set<string>} reserved
+ * @param {(reserved: Set<string>) => string} allocate
+ */
+function allocateCanonicalInlineId(reserved, allocate) {
+  const previouslyReserved = new Set(reserved)
+  const id = allocate(reserved)
+  if (typeof id !== 'string' || !/^[A-Za-z0-9_-]+$/.test(id)) {
+    throw new TypeError('Inline reference destination id must match the canonical placeholder grammar')
+  }
+  if (previouslyReserved.has(id)) {
+    throw new Error('Inline reference ID collision: ' + id)
+  }
+  reserved.add(id)
+  return id
+}
+
+/**
  * Remap only owned inline occurrences in schema-declared rich-text fields.
  *
  * @param {any} definition
@@ -175,7 +196,7 @@ export function remapCanonicalFragment(input) {
 
   for (const id of scan.references) {
     if (!Object.hasOwn(sourceInline, id)) continue
-    const next = reserved.has(id) ? input.allocateInlineId(reserved) : id
+    const next = reserved.has(id) ? allocateCanonicalInlineId(reserved, input.allocateInlineId) : id
     reserved.add(next)
     if (next !== id) remap.set(id, next)
   }
@@ -184,7 +205,12 @@ export function remapCanonicalFragment(input) {
     html: remap.size
       ? remapRichTextReferences(input.html, sourceInline, remap, input.ownerDocument)
       : input.html,
-    inline: remapCanonicalInline(sourceInline, remap),
+    // Clipboard HTML owns only occurrences actually present in its text.
+    // Copying arbitrary unused sidecar metadata could overwrite a current
+    // target widget when ClipboardPlans merges the two namespaces.
+    inline: remapCanonicalInline(Object.fromEntries([...scan.references]
+      .filter(id => Object.hasOwn(sourceInline, id))
+      .map(id => [id, sourceInline[id]])), remap),
     remap,
   }
 }
@@ -216,7 +242,7 @@ export function prepareCanonicalInlineMerge(input) {
   const targetRemap = new Map()
   for (const id of targetScan.references) {
     if (!Object.hasOwn(targetInline, id)) continue
-    const next = reserved.has(id) ? input.allocateInlineId(reserved) : id
+    const next = reserved.has(id) ? allocateCanonicalInlineId(reserved, input.allocateInlineId) : id
     reserved.add(next)
     if (next !== id) targetRemap.set(id, next)
   }
@@ -224,7 +250,7 @@ export function prepareCanonicalInlineMerge(input) {
   const sourceRemap = new Map()
   for (const id of sourceScan.references) {
     if (!Object.hasOwn(sourceInline, id)) continue
-    const next = reserved.has(id) ? input.allocateInlineId(reserved) : id
+    const next = reserved.has(id) ? allocateCanonicalInlineId(reserved, input.allocateInlineId) : id
     reserved.add(next)
     if (next !== id) sourceRemap.set(id, next)
   }
