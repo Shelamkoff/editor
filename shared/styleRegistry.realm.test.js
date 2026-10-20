@@ -203,3 +203,47 @@ test('stylesheet URL acquisition captures all entries before a host append callb
   }
   assert.equal(links.every(link => link.removed), true)
 })
+
+
+test('releasing the final old style during link append does not orphan the next reference-counted lease', () => {
+  const { doc, links } = fakeDocument('overlapping-lifetimes')
+  const old = acquireStyleUrls(['/old.css'], doc)
+  const append = doc.head.appendChild
+  doc.head.appendChild = link => {
+    append(link)
+    if (link.href === '/new.css') old.destroy()
+  }
+
+  const first = acquireStyleUrls(['/new.css'], doc)
+  const borrowed = acquireStyleUrls(['/new.css'], doc)
+  assert.deepEqual(links.map(link => link.href), ['/old.css', '/new.css'],
+    'the old owner's destroy removed the shared document ledger during a new acquire')
+  assert.equal(links[0].removed, true)
+  assert.equal(links[1].removed, false)
+  first.destroy()
+  assert.equal(links[1].removed, false, 'first release discarded another owner\'s live link')
+  borrowed.destroy()
+  assert.equal(links[1].removed, true)
+})
+
+test('releasing the final old style during new link allocation preserves the pending registry', () => {
+  const { doc, links } = fakeDocument('allocation-reentry')
+  const old = acquireStyleUrls(['/held.css'], doc)
+  const createElement = doc.createElement
+  let released = false
+  doc.createElement = tag => {
+    if (!released) {
+      released = true
+      old.destroy()
+    }
+    return createElement(tag)
+  }
+  const first = acquireStyleUrls(['/fresh.css'], doc)
+  const second = acquireStyleUrls(['/fresh.css'], doc)
+  assert.deepEqual(links.map(link => link.href), ['/held.css', '/fresh.css'],
+    'a teardown during createElement detached the pending style map')
+  first.destroy()
+  assert.equal(links[1].removed, false)
+  second.destroy()
+  assert.equal(links[1].removed, true)
+})
