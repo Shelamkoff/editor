@@ -263,9 +263,12 @@ export class InstanceScope{
     if(!this.#stillOwnInteraction(epoch,generation))return false
     if(phase!=='idle')throw new Error(`Cannot mutate instance context during ${phase} phase`)
     if(this.#parent&&!this.#parent.#canMutate())return false
-    // A parent health/phase callback can revoke this descendant while
-    // returning a deceptively valid old decision.
-    return this.#stillOwnInteraction(epoch,generation)
+    // The phase and parent callbacks may synchronously advance the actual
+    // document generation without revoking this local scope yet. Revalidate
+    // the committed generation *after* those external boundary checks.
+    if(!this.#stillOwnInteraction(epoch,generation))return false
+    return this.#currentGeneration()===generation
+      &&this.#stillOwnInteraction(epoch,generation)
   }
 
   #beginTask(updateData){
@@ -291,7 +294,11 @@ export class InstanceScope{
     // Even the revision source is a callback: it can synchronously revoke
     // this scope or cause a read-only round trip while returning a number.
     const baseRevision=this.#currentRevision()
-    if(!this.#stillOwnInteraction(epoch,generation)){
+    // The revision reader can reenter the editor and replace its document
+    // while returning an obsolete number. Do not issue a task for that owner.
+    if(!this.#stillOwnInteraction(epoch,generation)
+      ||this.#currentGeneration()!==generation
+      ||!this.#stillOwnInteraction(epoch,generation)){
       throw createAbortError('Cannot begin a data task for an inactive instance context')
     }
     const controller=new AbortController()
