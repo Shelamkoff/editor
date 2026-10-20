@@ -217,7 +217,7 @@ test('releasing the final old style during link append does not orphan the next 
   const first = acquireStyleUrls(['/new.css'], doc)
   const borrowed = acquireStyleUrls(['/new.css'], doc)
   assert.deepEqual(links.map(link => link.href), ['/old.css', '/new.css'],
-    'the old owner's destroy removed the shared document ledger during a new acquire')
+    'release of the former owner removed the shared document ledger during a new acquire')
   assert.equal(links[0].removed, true)
   assert.equal(links[1].removed, false)
   first.destroy()
