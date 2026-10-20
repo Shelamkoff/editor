@@ -436,6 +436,10 @@ export class ExtensionRegistry {
     const translate = typeof options.translate === 'function'
       ? options.translate
       : (_key, fallback = '') => fallback
+    // Inline plugins retain their setup context. Snapshot the host callback
+    // rather than consulting mutable editor options on every future popup.
+    const suppliedShowPopup = inline.length ? options.showPopup : undefined
+    const showPopupHost = typeof suppliedShowPopup === 'function' ? suppliedShowPopup : undefined
 
     const blocks = mapDenseArray(options.blocks, snapshotBlockDefinition)
     const inlines = mapDenseArray(inline, snapshotInlineDefinition)
@@ -511,10 +515,15 @@ export class ExtensionRegistry {
             ownerDocument,
             signal: this.#abortController.signal,
             t: (key, fallback = '', params = undefined) => translate(`inlinePlugin.${definition.type}.${key}`, fallback, params),
-            showPopup: (anchor,content,cleanup) => {
-              if(typeof options.showPopup==='function')return options.showPopup(popupOwner,anchor,content,cleanup)
+            showPopup: (anchor, content, cleanup) => {
+              // A saved plugin context must not mount another popup after its
+              // registry has been retired. Declining the presentation still
+              // releases the caller's provisional resource exactly once.
+              if (!this.#destroyed && showPopupHost) {
+                return Reflect.apply(showPopupHost, options, [popupOwner, anchor, content, cleanup])
+              }
               invokeObserver(cleanup)
-              return Object.freeze({close(){}})
+              return Object.freeze({ close() {} })
             },
           })
           destroySource = captureInstanceDestroy(runtimeSource)
