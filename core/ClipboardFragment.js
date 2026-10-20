@@ -21,6 +21,16 @@ function object(value,label){
   if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} must be an object`)
   return value
 }
+
+/** Require only the declared current transfer-block envelope members.
+ * Local source records may have id/revision; private transferred blocks may not.
+ * @param {unknown} value
+ */
+export function assertClipboardTransferFields(value) {
+  const transfer = object(value, 'Clipboard transfer block')
+  assertKnownClipboardFields(transfer, TRANSFER_BLOCK_FIELDS, 'Clipboard transfer block')
+}
+
 function dense(parts){
   if(!Array.isArray(parts))throw new TypeError('Clipboard fragment parts must be a dense non-empty array')
   const length=parts.length
@@ -100,8 +110,7 @@ export function decodeClipboardFragment(text){
         assertKnownClipboardFields(part, RICH_TEXT_FIELDS, 'Clipboard rich-text part')
       } else if (part.kind === 'block') {
         assertKnownClipboardFields(part, BLOCK_PART_FIELDS, 'Clipboard block part')
-        const transfer = object(part.block, 'Clipboard transfer block')
-        assertKnownClipboardFields(transfer, TRANSFER_BLOCK_FIELDS, 'Clipboard transfer block')
+        assertClipboardTransferFields(part.block)
       }
       // createClipboardFragment still validates missing/invalid part kinds
       // and owns all accepted nested JSON payloads.
