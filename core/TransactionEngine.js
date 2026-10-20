@@ -220,7 +220,7 @@ export class TransactionEngine {
       this.#assertHealthy()
 
       this.#phase = 'applying-projection'
-      prepared.apply()
+      synchronousResult(prepared.apply(), error => this.#diagnostic(error, 'transaction.apply'))
       this.#assertHealthy()
 
       const selectionAfter = metadata.selectionAfter
@@ -328,7 +328,7 @@ export class TransactionEngine {
       this.#assertHealthy()
 
       this.#phase = 'applying-projection'
-      prepared.apply()
+      synchronousResult(prepared.apply(), error => this.#diagnostic(error, 'transaction.apply'))
       this.#assertHealthy()
 
       const event = this.#event({
@@ -382,7 +382,11 @@ export class TransactionEngine {
   }
 
   #prepareProjection(input) {
-    const prepared = this.#projector.prepare(input)
+    // Projection preparation is a synchronous ownership transfer. A
+    // Promise/thenable cannot become the authoritative prepared projection.
+    const prepared = synchronousResult(this.#projector.prepare(input), error => {
+      this.#diagnostic(error, 'transaction.prepare')
+    })
     if (
       !prepared
       || typeof prepared.apply !== 'function'
@@ -390,7 +394,7 @@ export class TransactionEngine {
       || typeof prepared.finalize !== 'function'
       || typeof prepared.discard !== 'function'
     ) {
-      try { prepared?.discard?.() } catch {}
+      try { synchronousResult(prepared?.discard?.(), error => this.#diagnostic(error, 'transaction.discard')) } catch {}
       throw new TypeError('Projector prepare() must return apply(), recover(), finalize(), and discard()')
     }
     return prepared
@@ -399,8 +403,10 @@ export class TransactionEngine {
   #rollbackPrepared(prepared, original, message, selectionBefore = null) {
     const failures = [original]
     if (prepared) {
-      try { prepared.recover() } catch (error) { failures.push(error) }
-      try { prepared.discard() } catch (error) { failures.push(error) }
+      try { synchronousResult(prepared.recover(), error => this.#diagnostic(error, 'transaction.recover')) }
+      catch (error) { failures.push(error) }
+      try { synchronousResult(prepared.discard(), error => this.#diagnostic(error, 'transaction.discard')) }
+      catch (error) { failures.push(error) }
     }
     if (failures.length > 1) {
       const aggregate = new AggregateError(failures, message)
@@ -413,7 +419,7 @@ export class TransactionEngine {
 
   #finalize(prepared) {
     try {
-      prepared.finalize()
+      synchronousResult(prepared.finalize(), error => this.#diagnostic(error, 'transaction.finalize'))
     } catch (error) {
       this.#diagnostic(error, 'transaction.finalize')
     }
