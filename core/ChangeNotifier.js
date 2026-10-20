@@ -52,7 +52,12 @@ export class ChangeNotifier {
     // cancel that successor or allocate another timer for a retired epoch.
     const previousTimer = this.#timer
     this.#timer = null
-    if (previousTimer !== null) this.#timerHost.clearTimeout(previousTimer)
+    // Timer handles are already retired by generation. A host window whose
+    // clearTimeout throws cannot keep the old callback authoritative or
+    // prevent the next notification from being scheduled.
+    if (previousTimer !== null) {
+      try { this.#timerHost.clearTimeout(previousTimer) } catch {}
+    }
     if (this.#destroyed || generation !== this.#generation) return
     let fired = false
     const nextTimer = this.#timerHost.setTimeout(async () => {
@@ -82,7 +87,7 @@ export class ChangeNotifier {
     // schedule a newer change or destroy this notifier before returning its
     // handle. Only the surviving generation may publish a pending timer.
     if (this.#destroyed || generation !== this.#generation) {
-      this.#timerHost.clearTimeout(nextTimer)
+      try { this.#timerHost.clearTimeout(nextTimer) } catch {}
       return
     }
     // Some supplied timer hosts invoke a callback during registration.
@@ -99,6 +104,8 @@ export class ChangeNotifier {
     // can synchronously reenter destroy() and must never cancel it twice.
     const timer = this.#timer
     this.#timer = null
-    if (timer !== null) this.#timerHost.clearTimeout(timer)
+    if (timer !== null) {
+      try { this.#timerHost.clearTimeout(timer) } catch {}
+    }
   }
 }
