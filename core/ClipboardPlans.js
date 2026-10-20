@@ -106,20 +106,23 @@ export function clipboardRichTextPart(s,html,inline) {
 export function materializeClipboardBlock(s,input,reserved) {
   if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Clipboard block part is invalid')
   if(typeof input.type!=='string'||!input.type)throw new TypeError('Clipboard block type must be non-empty')
-  const id=s.allocateId(input.type,reserved)
-  const candidate={id,type:input.type,dataVersion:input.dataVersion,data:input.data}
+  // A transfer block has no persisted destination identity. Validate its
+  // complete current envelope before consuming an irreversible session ID.
+  // This placeholder is never published or reserved in the live document.
+  const candidate={id:'clipboard-pending',type:input.type,dataVersion:input.dataVersion,data:input.data}
   if(Object.hasOwn(input,'tunes'))candidate.tunes=input.tunes
   if(Object.hasOwn(input,'inline'))candidate.inline=input.inline
   const decoded=decodeCurrentBlock(candidate,{
     getBlockSchema:type=>s.getBlockDefinition(type)?.schema,
     getInlineSchema:type=>s.getInlineDefinition(type)?.schema,
   })
+  const id=s.allocateId(decoded.type,reserved)
   const definition=s.getBlockDefinition(decoded.type)
   return definition
     ?s.recordFromData(
-        decoded.id,decoded.type,definition,decoded.data,decoded.tunes,decoded.inline,
+        id,decoded.type,definition,decoded.data,decoded.tunes,decoded.inline,
       )
-    :decoded
+    :{...decoded,id}
 
 }
 
