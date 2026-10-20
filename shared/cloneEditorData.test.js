@@ -105,3 +105,51 @@ test('cloneEditorData rejects inherited sparse array entries without evaluating 
   assert.throws(() => cloneEditorData(value), /array hole/)
   assert.equal(reads, 0)
 })
+
+
+test('invalid enumerable symbol metadata rejects before invoking JSON payload getters', () => {
+  let reads = 0
+  const value = {
+    get secret() {
+      reads++
+      throw new Error('payload getter must not execute before symbol rejection')
+    },
+  }
+  Object.defineProperty(value, Symbol('metadata'), {
+    enumerable: true,
+    get() {
+      reads++
+      throw new Error('symbol getter must never run')
+    },
+  })
+  assert.throws(() => cloneEditorData(value), /enumerable symbol key/)
+  assert.equal(reads, 0)
+})
+
+test('nested invalid enumerable symbol metadata is rejected before sibling data getters', () => {
+  let reads = 0
+  const child = {
+    get secret() {
+      reads++
+      throw new Error('nested payload getter was executed')
+    },
+  }
+  Object.defineProperty(child, Symbol('private'), { enumerable: true, value: true })
+  const document = { blocks: [{ data: child }] }
+  assert.throws(() => cloneEditorData(document), /enumerable symbol key/)
+  assert.equal(reads, 0)
+})
+
+test('non-enumerable symbol metadata stays ignored during detached JSON cloning', () => {
+  let reads = 0
+  const value = { text: 'author data' }
+  Object.defineProperty(value, Symbol('private'), {
+    enumerable: false,
+    get() {
+      reads++
+      throw new Error('non-enumerable symbol accessor executed')
+    },
+  })
+  assert.deepEqual(cloneEditorData(value), { text: 'author data' })
+  assert.equal(reads, 0)
+})
