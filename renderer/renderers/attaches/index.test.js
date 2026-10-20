@@ -208,3 +208,133 @@ test('ZIP export revokes its Blob URL if anchor creation, click or timer setup f
     setZipRuntime(previousRuntime)
   }
 })
+
+
+test('ZIP export canceled by attachment input normalization cannot start a fetch', async () => {
+  const originalZip = getZipRuntime()
+  const caller = new AbortController()
+  let fetches = 0
+  let filesWritten = 0
+  class FakeZip {
+    file() { filesWritten++ }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      fetch: async () => {
+        fetches++
+        return new Response(new Uint8Array([1]), { status: 200 })
+      },
+    },
+  }
+
+  try {
+    await assert.rejects(
+      downloadArchive([{
+        get url() {
+          caller.abort()
+          return 'https://example.test/canceled.bin'
+        },
+        name: 'canceled.bin',
+      }], { signal: caller.signal, ownerDocument }),
+      error => error?.name === 'AbortError',
+    )
+    assert.equal(fetches, 0, 'a canceled file list started a network request')
+    assert.equal(filesWritten, 0, 'a canceled file list was added to the ZIP')
+  } finally {
+    setZipRuntime(originalZip)
+  }
+})
+
+test('ZIP export cannot add a delayed Blob response after caller cancellation', async () => {
+  const originalZip = getZipRuntime()
+  const caller = new AbortController()
+  let filesWritten = 0
+  let releaseBlob
+  let blobEntered
+  const enteredBlob = new Promise(resolve => { blobEntered = resolve })
+  const pendingBlob = new Promise(resolve => { releaseBlob = resolve })
+  class FakeZip {
+    file() { filesWritten++ }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      fetch: async () => ({
+        ok: true,
+        headers: { get: () => null },
+        body: null,
+        blob() { blobEntered(); return pendingBlob },
+      }),
+    },
+  }
+
+  try {
+    const pending = downloadArchive(
+      [{ url: 'https://example.test/slow.bin', name: 'slow.bin' }],
+      { signal: caller.signal, ownerDocument },
+    )
+    await enteredBlob
+    caller.abort()
+    releaseBlob({
+      size: 3,
+      async arrayBuffer() { return new Uint8Array([1, 2, 3]).buffer },
+    })
+    await assert.rejects(pending, error => error?.name === 'AbortError')
+    assert.equal(filesWritten, 0, 'an aborted Blob response was added to the archive')
+  } finally {
+    setZipRuntime(originalZip)
+  }
+})
+
+test('ZIP export cannot add a stream that finishes after caller cancellation', async () => {
+  const originalZip = getZipRuntime()
+  const caller = new AbortController()
+  let filesWritten = 0
+  let canceledReads = 0
+  let releaseRead
+  let readEntered
+  const enteredRead = new Promise(resolve => { readEntered = resolve })
+  const pendingRead = new Promise(resolve => { releaseRead = resolve })
+  class FakeZip {
+    file() { filesWritten++ }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      fetch: async () => ({
+        ok: true,
+        headers: { get: () => null },
+        body: {
+          getReader() {
+            return {
+              read() { readEntered(); return pendingRead },
+              async cancel() { canceledReads++ },
+            }
+          },
+        },
+      }),
+    },
+  }
+
+  try {
+    const pending = downloadArchive(
+      [{ url: 'https://example.test/stream.bin', name: 'stream.bin' }],
+      { signal: caller.signal, ownerDocument },
+    )
+    await enteredRead
+    caller.abort()
+    releaseRead({ done: true })
+    await assert.rejects(pending, error => error?.name === 'AbortError')
+    assert.equal(filesWritten, 0, 'an aborted stream was added to the archive')
+    assert.equal(canceledReads, 1, 'a stale reader was not canceled')
+  } finally {
+    setZipRuntime(originalZip)
+  }
+})
