@@ -1019,3 +1019,42 @@ test('retained block and inline runtime methods are revoked after ExtensionRegis
   inlineRuntime.destroy()
   assert.equal(calls.destroy, 2, 'retained destroy handles must remain idempotent')
 })
+
+
+test('direct runtime teardown revokes retained create and inline trigger methods', () => {
+  const doc = documentStub()
+  let invoked = 0
+  let disposed = 0
+  const block = {
+    ...blockDefinition('paragraph'),
+    setup() {
+      return {
+        create() { invoked++; return { valid: true } },
+        destroy() { disposed++ },
+      }
+    },
+  }
+  const inline = {
+    ...inlineDefinition('mention', '@'),
+    setup() {
+      return {
+        create() { invoked++; return { valid: true } },
+        onTriggerCancel() { invoked++; return null },
+        destroy() { disposed++ },
+      }
+    },
+  }
+  const registry = new ExtensionRegistry({ ownerDocument: doc, blocks: [block], inline: [inline] })
+  const blockRuntime = registry.getBlockRuntime('paragraph')
+  const inlineRuntime = registry.getInlineRuntime('mention')
+  blockRuntime.destroy()
+  inlineRuntime.destroy()
+
+  assert.throws(() => blockRuntime.create(), /destroyed|revoked/i)
+  assert.throws(() => inlineRuntime.create(), /destroyed|revoked/i)
+  assert.throws(() => inlineRuntime.onTriggerCancel(), /destroyed|revoked/i)
+  assert.equal(invoked, 0)
+  assert.equal(disposed, 2)
+  registry.destroy()
+  assert.equal(disposed, 2, 'registry teardown must not double-dispose retired plugin runtimes')
+})
