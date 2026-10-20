@@ -78,6 +78,9 @@ export class HistoryStore {
   #redo = []
   #maxStack
   #coalesceAllowed = false
+  // Prepared record/replay cursors are snapshots, not perpetual write leases.
+  // Clearing history or committing another plan revokes all earlier plans.
+  #epoch = 0
 
   constructor(options = {}) {
     const maxStack = options.maxStack ?? 100
@@ -148,17 +151,22 @@ export class HistoryStore {
       if (undo.length > this.#maxStack) undo = undo.slice(undo.length - this.#maxStack)
     }
 
+    const expectedEpoch = this.#epoch
     let committed = false
     return Object.freeze({
       coalesced,
       history: Object.freeze({ canUndo: undo.length > 0, canRedo: false }),
       commit: () => {
         if (committed) return
+        if (this.#epoch !== expectedEpoch) {
+          throw new Error('Prepared history plan is stale')
+        }
         this.#undo = undo
         this.#redo = redo
         // Async completion seals this authoring action: further typing must
         // not accidentally merge into the previously captured native group.
         this.#coalesceAllowed = !continued
+        this.#epoch++
         committed = true
       },
     })
@@ -186,17 +194,22 @@ export class HistoryStore {
       if (undo.length > this.#maxStack) undo.shift()
     }
 
+    const expectedEpoch = this.#epoch
     let committed = false
     return Object.freeze({
       record,
       history: Object.freeze({ canUndo: undo.length > 0, canRedo: redo.length > 0 }),
       commit: () => {
         if (committed) return
+        if (this.#epoch !== expectedEpoch) {
+          throw new Error('Prepared history plan is stale')
+        }
         this.#undo = undo
         this.#redo = redo
         // A successful replay ends the previous typing gesture, including
         // programmatic/keyboard replay that bypasses native beforeinput.
         this.#coalesceAllowed = false
+        this.#epoch++
         committed = true
       },
     })
@@ -241,5 +254,6 @@ export class HistoryStore {
     this.#undo = []
     this.#redo = []
     this.#coalesceAllowed = false
+    this.#epoch++
   }
 }
