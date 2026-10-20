@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from './cloneEditorData.js'
+import { synchronousResult } from './synchronousResult.js'
 
 /**
  * @template {object} D
@@ -84,7 +85,7 @@ export function createVersionedDataSchema(options) {
   /** @param {unknown} input @returns {D} */
   const normalizeOwned = input => {
     const ownedInput = ownObject(input, 'Block data input')
-    return ownObject(normalize(ownedInput), 'Block data normalizer result')
+    return ownObject(synchronousResult(normalize(ownedInput)), 'Block data normalizer result')
   }
 
   const schema = {
@@ -92,7 +93,7 @@ export function createVersionedDataSchema(options) {
 
     /** @returns {D} */
     createDefault() {
-      return normalizeOwned(createDefault())
+      return normalizeOwned(synchronousResult(createDefault()))
     },
 
     /**
@@ -136,7 +137,7 @@ export function createVersionedDataSchema(options) {
         throw new TypeError('Rich-text transform must be a function')
       }
       const owned = normalizeOwned(data)
-      if (mapRichText) mapRichText(owned, transform)
+      if (mapRichText) synchronousResult(mapRichText(owned, transform))
       return normalizeOwned(owned)
     },
 
