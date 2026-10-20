@@ -145,3 +145,26 @@ test('Poll comparator then getter is observed exactly once and its failure propa
   })), /comparator then getter failed/)
   assert.equal(reads, 1)
 })
+
+
+test('runtime poll count normalization never invokes object coercion hooks', () => {
+  const reads = []
+  const hostileVotes = { toString() { reads.push('votes'); throw new Error('hostile votes coercion') } }
+  const hostileTotal = { valueOf() { reads.push('total'); throw new Error('hostile total coercion') } }
+  const result = normalizePollResults({
+    options: [{ id: 'first', votes: hostileVotes }, { id: 'second', votes: 3 }],
+    total: hostileTotal,
+  }, ['first', 'second'])
+  assert.deepEqual(result.options, [{ id: 'first', votes: 0 }, { id: 'second', votes: 3 }])
+  assert.equal(result.total, 3, 'invalid total should use the accepted option counts')
+  assert.deepEqual(reads, [], 'invalid runtime count objects executed extension code')
+})
+
+test('runtime poll counts retain supported primitive numeric strings', () => {
+  const result = normalizePollResults({
+    options: [{ id: 'first', votes: '2.9' }, { id: 'second', votes: 1 }],
+    total: '4',
+  }, ['first', 'second'])
+  assert.deepEqual(result.options, [{ id: 'first', votes: 2 }, { id: 'second', votes: 1 }])
+  assert.equal(result.total, 4)
+})
