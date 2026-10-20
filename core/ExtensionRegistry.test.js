@@ -925,3 +925,44 @@ test('failed extension setup retains its original error when owner abort also fa
   assert.deepEqual(doc.links, [], 'failed setup did not release a prior stylesheet')
   assert.equal(aborts, 1)
 })
+
+
+test('ExtensionRegistry owns definition snapshots before invoking an owner AbortController constructor', () => {
+  const doc = documentStub()
+  const definitions = [blockDefinition('intended')]
+  let allocations = 0
+  class MutatingAbortController {
+    signal = { aborted: false }
+    constructor() {
+      allocations++
+      definitions[0] = blockDefinition('substituted')
+    }
+    abort() { this.signal.aborted = true }
+  }
+  doc.defaultView = { AbortController: MutatingAbortController }
+  const registry = new ExtensionRegistry({ ownerDocument: doc, blocks: definitions })
+  assert.equal(allocations, 1)
+  assert.deepEqual(registry.blockTypes, ['intended'],
+    'owner-realm constructor modified the caller array before registration owned it')
+  assert.equal(registry.defaultBlockType, 'intended')
+  assert.equal(registry.hasBlock('substituted'), false)
+  registry.destroy()
+})
+
+test('invalid extension definitions fail before allocating owner AbortController resources', () => {
+  const doc = documentStub()
+  let allocations = 0
+  class OwnerAbortController {
+    signal = { aborted: false }
+    constructor() { allocations++ }
+    abort() { this.signal.aborted = true }
+  }
+  doc.defaultView = { AbortController: OwnerAbortController }
+  const invalid = { ...blockDefinition('probe'), icon: 4 }
+  assert.throws(
+    () => new ExtensionRegistry({ ownerDocument: doc, blocks: [invalid] }),
+    /icon must be a string/,
+  )
+  assert.equal(allocations, 0,
+    'a rejected definition needlessly created an owner-realm cancellation resource')
+})
