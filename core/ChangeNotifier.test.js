@@ -444,3 +444,62 @@ test('throwing console diagnostics cannot reject notification timers', async () 
     console.warn = oldWarn
   }
 })
+
+
+test('a throwing timer cancellation does not block a newer saved notification', async () => {
+  const callbacks = []
+  const cleared = []
+  const host = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout(id) {
+      cleared.push(id)
+      throw new Error('owner window timer cleanup failed')
+    },
+  }
+  const seen = []
+  let saves = 0
+  const notifier = new ChangeNotifier(
+    () => { saves++; return { version: 'current', blocks: [] } },
+    data => seen.push(data.version),
+    0,
+    host,
+  )
+  try {
+    notifier.schedule()
+    assert.doesNotThrow(() => notifier.schedule(),
+      'a failing clearTimeout prevented the successor notification')
+    await callbacks[0]()
+    assert.equal(saves, 0, 'a canceled but still queued timer saved stale data')
+    assert.equal(callbacks.length, 2)
+    await callbacks[1]()
+    assert.deepEqual(seen, ['current'])
+    assert.deepEqual(cleared, [1])
+  } finally {
+    notifier.destroy()
+  }
+})
+
+test('destroying a notifier is safe when host clearTimeout itself throws', async () => {
+  const callbacks = []
+  let cancellations = 0
+  let saves = 0
+  const host = {
+    setTimeout(callback) { callbacks.push(callback); return 1 },
+    clearTimeout() {
+      cancellations++
+      throw new Error('dead timer realm')
+    },
+  }
+  const notifier = new ChangeNotifier(
+    () => { saves++; return { version: 'test', blocks: [] } },
+    () => {},
+    0,
+    host,
+  )
+  notifier.schedule()
+  assert.doesNotThrow(() => notifier.destroy())
+  assert.doesNotThrow(() => notifier.destroy())
+  await callbacks[0]()
+  assert.equal(cancellations, 1)
+  assert.equal(saves, 0, 'retired timer callback saved after failed cancellation')
+})
