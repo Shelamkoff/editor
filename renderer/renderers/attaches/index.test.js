@@ -551,3 +551,96 @@ test('ZIP export rejects delayed arrayBuffer completion after abort without writ
     setZipRuntime(previousRuntime)
   }
 })
+
+
+test('failed streaming attachment releases its provisional bytes so valid files fit the ZIP total limit', async () => {
+  const previousRuntime = getZipRuntime()
+  const caller = new AbortController()
+  const accepted = []
+  let clicked = 0
+  let releaseLarge
+  const largeGate = new Promise(resolve => { releaseLarge = resolve })
+  const largeBytes = new Uint8Array(25 * 1024 * 1024).buffer
+  const failedChunk = new Uint8Array(24 * 1024 * 1024)
+  const smallBytes = new Uint8Array(2 * 1024 * 1024).buffer
+
+  class FakeZip {
+    file(name, bytes) {
+      accepted.push([name, bytes.byteLength])
+      // Make the final 2 MiB success settle before the three staged 25 MiB
+      // files. The failed 24 MiB stream must no longer count toward 100 MiB.
+      if (name === 'small.bin') releaseLarge()
+    }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      Blob,
+      fetch: async url => {
+        if (url.endsWith('/broken')) {
+          let reads = 0
+          return {
+            ok: true,
+            headers: { get: () => null },
+            body: {
+              getReader() {
+                return {
+                  async read() {
+                    if (reads++ === 0) return { done: false, value: failedChunk }
+                    throw new Error('connection dropped')
+                  },
+                  async cancel() {},
+                }
+              },
+            },
+          }
+        }
+        const isSmall = url.endsWith('/small')
+        const data = isSmall ? smallBytes : largeBytes
+        return {
+          ok: true,
+          headers: { get: () => null },
+          body: null,
+          async blob() {
+            return {
+              size: data.byteLength,
+              async arrayBuffer() {
+                if (!isSmall) await largeGate
+                return data
+              },
+            }
+          },
+        }
+      },
+      URL: {
+        createObjectURL() { return 'blob:owner/accounting' },
+        revokeObjectURL() {},
+      },
+      setTimeout(callback) { callback() },
+    },
+    createElement() {
+      return { setAttribute() {}, download: '', click() { clicked++ } }
+    },
+  }
+
+  try {
+    await downloadArchive([
+      { url: 'https://example.test/broken', name: 'broken.bin' },
+      { url: 'https://example.test/large-a', name: 'large-a.bin' },
+      { url: 'https://example.test/large-b', name: 'large-b.bin' },
+      { url: 'https://example.test/large-c', name: 'large-c.bin' },
+      { url: 'https://example.test/small', name: 'small.bin' },
+    ], { signal: caller.signal, ownerDocument })
+
+    assert.deepEqual(accepted.map(([name]) => name).sort(),
+      ['large-a.bin', 'large-b.bin', 'large-c.bin', 'small.bin'].sort())
+    assert.equal(clicked, 1)
+    assert.equal(caller.signal.aborted, false)
+  } finally {
+    releaseLarge?.()
+    setZipRuntime(previousRuntime)
+  }
+})
