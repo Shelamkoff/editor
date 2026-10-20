@@ -66,18 +66,29 @@ function uniqueArchiveFilename(name, used) {
 
 /** @param {Response} response @param {AbortSignal} signal @param {{ value: number }} total */
 async function readBoundedResponse(response, signal, total) {
+  signal.throwIfAborted()
   const declared = Number(response.headers.get('content-length'))
+  signal.throwIfAborted()
   if (Number.isFinite(declared) && declared > ARCHIVE_LIMITS.fileBytes) {
     throw new RangeError('Attachment exceeds the per-file ZIP limit')
   }
 
   if (!response.body?.getReader) {
     const blob = await response.blob()
+    signal.throwIfAborted()
     if (blob.size > ARCHIVE_LIMITS.fileBytes || total.value + blob.size > ARCHIVE_LIMITS.totalBytes) {
       throw new RangeError('Attachment archive exceeds its size limit')
     }
-    total.value += blob.size
-    return new Uint8Array(await blob.arrayBuffer())
+    const bytes = await blob.arrayBuffer()
+    signal.throwIfAborted()
+    // The response is only admitted after the final asynchronous read.
+    // A canceled blob must not update archive totals or enter zip.file().
+    if (bytes.byteLength > ARCHIVE_LIMITS.fileBytes
+      || total.value + bytes.byteLength > ARCHIVE_LIMITS.totalBytes) {
+      throw new RangeError('Attachment archive exceeds its size limit')
+    }
+    total.value += bytes.byteLength
+    return new Uint8Array(bytes)
   }
 
   const reader = response.body.getReader()
@@ -88,6 +99,9 @@ async function readBoundedResponse(response, signal, total) {
     while (true) {
       signal.throwIfAborted()
       const { done, value } = await reader.read()
+      // A canceled stream may still resolve one queued read, including a
+      // final {done:true}; never treat that as an accepted ZIP entry.
+      signal.throwIfAborted()
       if (done) break
       if (!value) continue
       size += value.byteLength
@@ -103,6 +117,7 @@ async function readBoundedResponse(response, signal, total) {
     await reader.cancel(error).catch(() => {})
     throw error
   }
+  signal.throwIfAborted()
   const content = new Uint8Array(size)
   let offset = 0
   for (const chunk of chunks) {
@@ -136,6 +151,9 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
   const controller = new AbortControllerCtor()
   const abortOperation = () => controller.abort(signal.reason)
   signal.addEventListener('abort', abortOperation, { once: true })
+  // File normalization occurs before the listener can be registered.
+  // A caller canceled during a URL/name getter has no event to replay.
+  if (signal.aborted) abortOperation()
   const operationSignal = controller.signal
 
   try {
@@ -154,8 +172,14 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
         operationSignal.throwIfAborted()
         try {
           const response = await fetchFn(entry.url, { signal: operationSignal })
+          operationSignal.throwIfAborted()
           if (!response.ok) continue
-          zip.file(entry.name, await readBoundedResponse(response, operationSignal, total))
+          const bytes = await readBoundedResponse(response, operationSignal, total)
+          // An asynchronous source can settle after cancellation even when
+          // the underlying fetch/body reader ignores AbortSignal.
+          operationSignal.throwIfAborted()
+          zip.file(entry.name, bytes)
+          operationSignal.throwIfAborted()
           archived += 1
         } catch (error) {
           if (error instanceof RangeError) {
