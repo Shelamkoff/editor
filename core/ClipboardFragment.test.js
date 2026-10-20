@@ -100,7 +100,7 @@ test('private Clipboard rejects malformed nested inline maps before exposing any
     ]) {
       assert.throws(() => decodeClipboardFragment(JSON.stringify({
         version: CLIPBOARD_FRAGMENT_VERSION, parts: [part],
-      })), /dataVersion|version|unknown|JSON object/i)
+      })), /dataVersion|version|unknown|unsupported|JSON object/i)
     }
   }
 })
