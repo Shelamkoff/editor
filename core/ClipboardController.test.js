@@ -1267,3 +1267,37 @@ test('file Paste stops evaluating later plugin matchers after a read-only transi
       'later plugin matcher ran after the first revoked the Paste interaction')
   } finally { fixture.controller.destroy() }
 })
+
+
+test('multiple valid files still publish one ordered Paste transaction', async () => {
+  const matched = []
+  const resolved = []
+  const transactions = []
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'first.txt' }, { name: 'second.txt' }],
+    accepts: input => {
+      matched.push(input.file.name)
+      return true
+    },
+    resolve: input => {
+      resolved.push(input.file.name)
+      return { kind: 'rich-text', replacement: { kind: 'text', text: input.file.name } }
+    },
+  })
+  fixture.runtime.applyPasteResults = (_blockId, _fieldKey, _range, items) => {
+    transactions.push(items)
+    fixture.runtime.revision++
+    return { blockId: 'a', inserted: [] }
+  }
+  try {
+    fixture.paste()
+    for (let i = 0; i < 12; i++) await Promise.resolve()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.deepEqual(matched, ['first.txt', 'second.txt'])
+    assert.deepEqual(resolved, ['first.txt', 'second.txt'])
+    assert.equal(transactions.length, 1)
+    assert.deepEqual(transactions[0].map(item => item.result.replacement.text),
+      ['first.txt', 'second.txt'])
+  } finally { fixture.controller.destroy() }
+})
