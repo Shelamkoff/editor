@@ -278,3 +278,45 @@ test('unknown current-format transfer blocks receive destination IDs while prese
   assert.notStrictEqual(result.inline, source.inline)
   assert.deepEqual([...reserved], ['occupied', 'new-opaque'])
 })
+
+
+test('direct transfer materialization refuses undeclared fields before reading payload getters or allocating IDs', () => {
+  const known = {
+    type: 'paragraph',
+    dataVersion: 2,
+    data: { text: 'Valid content' },
+  }
+  const definition = {
+    schema: {
+      currentVersion: 2,
+      decode(input) { return input },
+    },
+  }
+  let allocations = 0
+  const services = {
+    getBlockDefinition: type => type === 'paragraph' ? definition : undefined,
+    getInlineDefinition: () => undefined,
+    allocateId() { allocations++; return 'id-' + allocations },
+    recordFromData() { throw new Error('invalid transfer reached record creation') },
+  }
+  const reserved = new Set(['already-owned'])
+  for (const key of ['futureMetadata', 'id', 'revision']) {
+    let reads = 0
+    const malformed = {
+      get type() {
+        reads++
+        throw new Error('untrusted type getter executed before envelope rejection')
+      },
+      ...{ dataVersion: known.dataVersion, data: known.data },
+      [key]: 'not declared by TransferBlock',
+    }
+    assert.throws(
+      () => materializeClipboardBlock(services, malformed, reserved),
+      /unknown|undeclared|unsupported/i,
+      'invalid transfer property was silently dropped',
+    )
+    assert.equal(reads, 0)
+    assert.equal(allocations, 0)
+    assert.deepEqual([...reserved], ['already-owned'])
+  }
+})
