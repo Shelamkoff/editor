@@ -49,12 +49,22 @@ export function createVersionedDataSchema(options) {
     throw new TypeError('Versioned data schema options must be an object')
   }
 
-  const supplied = /** @type {VersionedDataSchemaOptions<D> & Record<string, unknown>} */ ({ ...options })
-  for (const key of Object.keys(supplied)) {
+  // Reject unknown own option names before reading any caller-owned value.
+  // Object spread would eagerly invoke removed/undeclared option accessors
+  // and enumerable symbol getters before we could reject the descriptor.
+  for (const key of Object.keys(options)) {
     if (!['currentVersion', 'createDefault', 'normalize', 'mapRichText'].includes(key)) {
       throw new TypeError(`Unknown versioned data schema option: ${key}`)
     }
   }
+  // Read only declared own options, once. Inherited option getters must not
+  // be promoted to schema methods or bypass the known-fields boundary.
+  const supplied = /** @type {VersionedDataSchemaOptions<D> & Record<string, unknown>} */ ({
+    currentVersion: Object.hasOwn(options, 'currentVersion') ? options.currentVersion : undefined,
+    createDefault: Object.hasOwn(options, 'createDefault') ? options.createDefault : undefined,
+    normalize: Object.hasOwn(options, 'normalize') ? options.normalize : undefined,
+    mapRichText: Object.hasOwn(options, 'mapRichText') ? options.mapRichText : undefined,
+  })
 
   const currentVersion = assertVersion(supplied.currentVersion, 'currentVersion')
   const createDefault = supplied.createDefault
@@ -93,20 +103,22 @@ export function createVersionedDataSchema(options) {
       if (!input || typeof input !== 'object' || Array.isArray(input)) {
         throw new TypeError('Versioned block data input must be an object')
       }
-      const candidate = /** @type {{ dataVersion?: unknown, data?: unknown }} */ ({ ...input })
-      if (!Object.hasOwn(candidate, 'dataVersion')) {
+      // Check the version first: a wrong-version serialized payload is
+      // never inspected, and unrelated extension metadata has no authority
+      // to run code during decoding.
+      if (!Object.hasOwn(input, 'dataVersion')) {
         throw new TypeError('dataVersion is required')
       }
-      const version = assertVersion(candidate.dataVersion, 'dataVersion')
+      const version = assertVersion(input.dataVersion, 'dataVersion')
       if (version !== currentVersion) {
         throw new RangeError(`Unsupported data version ${version}; current version is ${currentVersion}`)
       }
-      if (!Object.hasOwn(candidate, 'data')) {
+      if (!Object.hasOwn(input, 'data')) {
         throw new TypeError('Versioned block data input must contain data')
       }
       return {
         dataVersion: currentVersion,
-        data: normalizeOwned(candidate.data),
+        data: normalizeOwned(input.data),
       }
     },
 
