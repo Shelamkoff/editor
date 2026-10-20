@@ -194,3 +194,21 @@ test('captured schema rejects non-string rich-text transform return values', () 
     /Rich-text transform must return a string/,
   )
 })
+
+
+test('captured schema cannot swallow failed author rich-text transform validation', () => {
+  const captured = snapshotDataSchema({
+    currentVersion: 1,
+    createDefault() { return { text: 'Original' } },
+    encode(data) { return { dataVersion: 1, data } },
+    decode(input) { return input },
+    mapRichText(data, transform) {
+      try { transform(data.text, 'text') } catch {}
+      return data
+    },
+  }, 'Probe', { richText: true })
+  assert.throws(
+    () => captured.mapRichText({ text: 'Original' }, () => 55),
+    /Rich-text transform must return a string/,
+  )
+})
