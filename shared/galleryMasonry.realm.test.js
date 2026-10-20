@@ -176,3 +176,66 @@ test('gallery masonry abort during observer registration skips later scheduled w
   assert.equal(frames, 0, 'a destroyed gallery registered a frame after abort')
   assert.equal(microtasks, 0, 'a destroyed gallery queued microtask work after abort')
 })
+
+
+test('gallery masonry cleans up observer constructed during a synchronous abort', async () => {
+  const controller = new AbortController()
+  let disconnects = 0
+  let frames = 0
+  let microtasks = 0
+  class OwnerResizeObserver {
+    constructor() { controller.abort() }
+    observe() { throw new Error('an aborted observer must not start') }
+    disconnect() { disconnects++ }
+  }
+  const container = {
+    ownerDocument: { defaultView: {
+      ResizeObserver: OwnerResizeObserver,
+      requestAnimationFrame() { frames++; return 1 },
+      queueMicrotask() { microtasks++ },
+    } },
+    isConnected: false,
+    getBoundingClientRect() { return { width: 0 } },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [], { signal: controller.signal })
+  assert.equal(await mount.ready, null)
+  assert.equal(disconnects, 1, 'the observer constructed after abort was never disconnected')
+  assert.equal(frames, 0)
+  assert.equal(microtasks, 0)
+})
+
+test('gallery masonry teardown continues after an observer disconnect failure', async () => {
+  const controller = new AbortController()
+  const failures = []
+  let canceled = 0
+  let disconnected = 0
+  class OwnerResizeObserver {
+    observe() {}
+    disconnect() {
+      disconnected++
+      throw new Error('observer disconnect failed')
+    }
+  }
+  const container = {
+    ownerDocument: { defaultView: {
+      ResizeObserver: OwnerResizeObserver,
+      requestAnimationFrame() { return 41 },
+      cancelAnimationFrame() { canceled++ },
+      queueMicrotask() {},
+    } },
+    isConnected: false,
+    getBoundingClientRect() { return { width: 0 } },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [], {
+    signal: controller.signal,
+    onError(error) { failures.push(error.message) },
+  })
+  assert.doesNotThrow(() => mount.destroy())
+  assert.equal(await mount.ready, null)
+  assert.equal(disconnected, 1)
+  assert.equal(canceled, 1, 'a throwing observer skipped release of a pending frame')
+  assert.deepEqual(failures, ['observer disconnect failed'])
+  assert.equal(controller.signal.aborted, false)
+})
