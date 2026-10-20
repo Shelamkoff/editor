@@ -276,3 +276,113 @@ test('synchronous owner animation-frame callback cannot publish a retired frame 
     'a frame that already executed should not be canceled')
   assert.equal(mount.instance, null)
 })
+
+
+test('gallery masonry reports geometry exceptions and settles ready instead of abandoning the mount', async () => {
+  const callbacks = []
+  const errors = []
+  let fallback = 0
+  const container = {
+    ownerDocument: { defaultView: { queueMicrotask(callback) { callbacks.push(callback) } } },
+    isConnected: true,
+    getBoundingClientRect() { throw new Error('geometry failed') },
+    classList: { add(name) { if (name === 'eg--masonry-fallback') fallback++ } },
+  }
+  const mount = mountGalleryMasonry(container, [], { onError: error => errors.push(error.message) })
+  let settled = false
+  mount.ready.then(() => { settled = true })
+  callbacks[0]()
+  for (let i = 0; i < 6; i++) await Promise.resolve()
+
+  assert.equal(settled, true, 'geometry failure left ready unresolved')
+  assert.equal(await mount.ready, null)
+  assert.deepEqual(errors, ['geometry failed'])
+  assert.equal(fallback, 1)
+  mount.destroy()
+})
+
+test('geometry callbacks cannot reenter a Gallery Masonry start before its preflight finishes', async () => {
+  const callbacks = []
+  let frameCallback
+  let reads = 0
+  const view = {
+    queueMicrotask(callback) { callbacks.push(callback) },
+    requestAnimationFrame(callback) { frameCallback = callback; return 24 },
+    cancelAnimationFrame() {},
+  }
+  const container = {
+    ownerDocument: { defaultView: view },
+    isConnected: true,
+    getBoundingClientRect() {
+      reads++
+      if (reads === 1) frameCallback()
+      return { width: 0 }
+    },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [])
+  callbacks[0]()
+  assert.equal(reads, 1, 'a reentrant geometry callback duplicated mount preflight')
+  mount.destroy()
+  assert.equal(await mount.ready, null)
+})
+
+test('failed Gallery ResizeObserver registration releases setup and resolves ready', async () => {
+  const callbacks = []
+  const errors = []
+  let disconnected = 0
+  let frames = 0
+  class OwnerResizeObserver {
+    observe() { throw new Error('observer registration failed') }
+    disconnect() { disconnected++ }
+  }
+  const container = {
+    ownerDocument: { defaultView: {
+      ResizeObserver: OwnerResizeObserver,
+      requestAnimationFrame() { frames++; return 8 },
+      queueMicrotask(callback) { callbacks.push(callback) },
+    } },
+    isConnected: false,
+    getBoundingClientRect() { return { width: 0 } },
+    classList: { add() {} },
+  }
+  let mount
+  assert.doesNotThrow(() => {
+    mount = mountGalleryMasonry(container, [], {
+      onError: error => errors.push(error.message),
+    })
+  })
+  assert.equal(await mount.ready, null)
+  assert.deepEqual(errors, ['observer registration failed'])
+  assert.equal(disconnected, 1)
+  assert.equal(frames, 0)
+  assert.equal(callbacks.length, 0)
+})
+
+test('failed owner-frame registration does not leak observer or an unfinished ready', async () => {
+  const errors = []
+  let disconnects = 0
+  class OwnerResizeObserver {
+    observe() {}
+    disconnect() { disconnects++ }
+  }
+  const container = {
+    ownerDocument: { defaultView: {
+      ResizeObserver: OwnerResizeObserver,
+      requestAnimationFrame() { throw new Error('frame registration failed') },
+      queueMicrotask() { throw new Error('should not register microtask') },
+    } },
+    isConnected: false,
+    getBoundingClientRect() { return { width: 0 } },
+    classList: { add() {} },
+  }
+  let mount
+  assert.doesNotThrow(() => {
+    mount = mountGalleryMasonry(container, [], {
+      onError: error => errors.push(error.message),
+    })
+  })
+  assert.equal(await mount.ready, null)
+  assert.deepEqual(errors, ['frame registration failed'])
+  assert.equal(disconnects, 1)
+})
