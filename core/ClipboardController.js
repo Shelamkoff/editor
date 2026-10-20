@@ -573,9 +573,16 @@ export class ClipboardController {
     const files = [...(data.files ?? [])]
     if (!this.#canPaste(modeEpoch,turn,event)) return
     if (files.length) {
-      const routed = files
-        .map(file => ({ input: { kind: /** @type {'file'} */ ('file'), file }, route: this.#route({ kind: 'file', file }, owner.blockId) }))
-        .filter(item => item.route)
+      const routed = []
+      for (const file of files) {
+        // Matchers can revoke the editor synchronously. Never dispatch the
+        // remaining files after an earlier matcher retires this Paste turn.
+        if (!this.#canPaste(modeEpoch, turn, event)) return
+        const input = { kind: /** @type {'file'} */ ('file'), file }
+        const route = this.#route(input, owner.blockId, modeEpoch, turn, event)
+        if (!this.#canPaste(modeEpoch, turn, event)) return
+        if (route) routed.push({ input, route })
+      }
       if (!routed.length || !this.#canPaste(modeEpoch,turn,event)) return
       event.preventDefault()
       this.#beginAsync(owner, range, routed)
@@ -647,7 +654,7 @@ export class ClipboardController {
     }
 
     const input = { kind: /** @type {'text'} */ ('text'), text }
-    const route = this.#route(input, owner.blockId)
+    const route = this.#route(input, owner.blockId, modeEpoch, turn, event)
     if (!this.#canPaste(modeEpoch,turn,event)) return
     event.preventDefault()
     if (route) {
@@ -782,8 +789,9 @@ export class ClipboardController {
     return true
   }
 
-  #route(input, blockId) {
+  #route(input, blockId, modeEpoch, turn, event) {
     return this.#runtime.prepareExtensionValue(() => {
+      if (!this.#canPaste(modeEpoch, turn, event)) return null
       // Matchers are independently evaluated against the same event-owned
       // envelope. A rejected plugin may mutate its argument, but must not
       // influence later candidates or the winning resolver's input.
@@ -791,12 +799,15 @@ export class ClipboardController {
         ? { kind: 'file', file: input.file }
         : { kind: 'text', text: input.text }
       const current = this.#runtime.get(blockId)
+      if (!this.#canPaste(modeEpoch, turn, event)) return null
       const ordered = current
         ? [current.type, ...this.#registry.blockTypes.filter(type => type !== current.type)]
         : this.#registry.blockTypes
 
       for (const type of ordered) {
+        if (!this.#canPaste(modeEpoch, turn, event)) return null
         const definition = this.#registry.getBlockDefinition(type)
+        if (!this.#canPaste(modeEpoch, turn, event)) return null
         const paste = definition?.capabilities?.paste
         if (!paste) continue
         const accepts = paste.accepts
@@ -804,6 +815,9 @@ export class ClipboardController {
           throw new TypeError(`Paste accepts() for "${type}" must be a function`)
         }
         const accepted = synchronousResult(Reflect.apply(accepts, paste, [{ ...original }]))
+        // A plugin may synchronously change mode, destroy its owner or start
+        // a newer Paste while matching. Do not visit the next candidate.
+        if (!this.#canPaste(modeEpoch, turn, event)) return null
         if (typeof accepted !== 'boolean') {
           throw new TypeError(`Paste accepts() for "${type}" must return a boolean`)
         }
