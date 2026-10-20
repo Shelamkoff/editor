@@ -887,3 +887,41 @@ test('ExtensionRegistry teardown releases all runtimes and CSS even if owner Abo
   registry.destroy()
   assert.equal(aborts, 1, 'the retired owner should not abort twice')
 })
+
+
+test('failed extension setup retains its original error when owner abort also fails', () => {
+  const doc = documentStub()
+  const disposed = []
+  let aborts = 0
+  class ThrowingOwnerAbortController {
+    signal = { aborted: false }
+    abort() {
+      aborts++
+      this.signal.aborted = true
+      throw new Error('owner abort adapter failed')
+    }
+  }
+  doc.defaultView = { AbortController: ThrowingOwnerAbortController }
+  const valid = {
+    ...blockDefinition('valid'),
+    styles: ['/valid.css'],
+    setup() {
+      return {
+        create() { throw new Error('must not run') },
+        destroy() { disposed.push('valid') },
+      }
+    },
+  }
+  const invalid = {
+    ...blockDefinition('invalid'),
+    setup() { throw new Error('extension setup failed') },
+  }
+
+  assert.throws(
+    () => new ExtensionRegistry({ ownerDocument: doc, blocks: [valid, invalid] }),
+    /extension setup failed/,
+  )
+  assert.deepEqual(disposed, ['valid'], 'failed setup did not release a prior runtime')
+  assert.deepEqual(doc.links, [], 'failed setup did not release a prior stylesheet')
+  assert.equal(aborts, 1)
+})
