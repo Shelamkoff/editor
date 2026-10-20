@@ -33,16 +33,18 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
     throw new TypeError(`${label} schema contains removed compatibility members`)
   }
   const currentVersion = source.currentVersion
+  // Validate the one declared version before invoking any plugin method
+  // accessors. A malformed definition cannot run unrelated extension code
+  // merely by being presented for registration.
+  if (!Number.isSafeInteger(currentVersion) || currentVersion < 1) {
+    throw new TypeError(`${label} schema currentVersion must be a positive safe integer`)
+  }
   const createDefault = bindMethod(source, source.createDefault, `${label} schema createDefault`)
   const decode = bindMethod(source, source.decode, `${label} schema decode`)
   const encode = bindMethod(source, source.encode, `${label} schema encode`)
   const mapRichText = richText
     ? bindMethod(source, source.mapRichText, `${label} schema mapRichText`, { optional: true })
     : undefined
-
-  if (!Number.isSafeInteger(currentVersion) || currentVersion < 1) {
-    throw new TypeError(`${label} schema currentVersion must be a positive safe integer`)
-  }
 
   const schema = {
     currentVersion,
@@ -60,8 +62,14 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
       // before the version gate and can inspect an unsupported payload.
       const dataVersion = Object.hasOwn(input, 'dataVersion') ? input.dataVersion : undefined
       if (dataVersion !== currentVersion) {
+        // Formatting an arbitrary version object could invoke a hostile
+        // toString/Symbol.toPrimitive callback before this rejection.
+        const provided = dataVersion !== null
+          && (typeof dataVersion === 'object' || typeof dataVersion === 'function')
+          ? typeof dataVersion
+          : String(dataVersion)
         throw markDocumentValidationFailure(
-          new RangeError(`Unsupported ${label} data version ${String(dataVersion)}; current version is ${currentVersion}`),
+          new RangeError(`Unsupported ${label} data version ${provided}; current version is ${currentVersion}`),
           { reason: 'unsupported-data-version' },
         )
       }
