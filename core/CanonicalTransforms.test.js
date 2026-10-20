@@ -212,7 +212,10 @@ test('clipboard remap carries only referenced inline payloads while safely renam
     inline: { shared: visible, stale },
     reservedIds: new Set(['shared']),
     ownerDocument,
-    allocateInlineId() { return 'copied-1' },
+    allocateInlineId(reserved) {
+      reserved.add('copied-1')
+      return 'copied-1'
+    },
   })
   assert.equal(result.html, '{{copied-1}}')
   assert.deepEqual(result.inline, { 'copied-1': visible })
@@ -277,10 +280,27 @@ test('valid inline merge remaps only the conflicting source and preserves both p
     definition, target, source, ownerDocument,
     allocateInlineId(reserved) {
       assert.equal(reserved.has('shared'), true)
+      // The real session allocator reserves its result before returning.
+      reserved.add('copy-1')
       return 'copy-1'
     },
   })
   assert.deepEqual(result.targetData, { text: '{{shared}}' })
   assert.deepEqual(result.sourceData, { text: '{{copy-1}}' })
   assert.deepEqual(result.inline, { shared: target.inline.shared, 'copy-1': source.inline.shared })
+})
+
+
+test('fragment remap rejects a generated id that cannot be parsed as an inline reference', () => {
+  const ownerDocument = plainTextOwnerDocument()
+  const inline = { shared: { type: 'mention', dataVersion: 1, data: { name: 'Copied' } } }
+  for (const invalid of ['', 'not/a/reference', 'two words']) {
+    assert.throws(() => remapCanonicalFragment({
+      html: '{{shared}}',
+      inline,
+      reservedIds: new Set(['shared']),
+      ownerDocument,
+      allocateInlineId() { return invalid },
+    }), /inline reference destination id/i)
+  }
 })
