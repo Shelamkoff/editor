@@ -1058,3 +1058,49 @@ test('direct runtime teardown revokes retained create and inline trigger methods
   registry.destroy()
   assert.equal(disposed, 2, 'registry teardown must not double-dispose retired plugin runtimes')
 })
+
+
+test('inline popup callback remains bound to its owner and rejects a retired editor', () => {
+  const doc = documentStub()
+  let showPopup
+  let mounted = 0
+  let cleaned = 0
+  let lastOwner
+  const inline = {
+    ...inlineDefinition('mention', '@'),
+    setup(context) {
+      showPopup = context.showPopup
+      return {
+        create() { throw new Error('not used') },
+        destroy() {},
+      }
+    },
+  }
+  const options = {
+    ownerDocument: doc,
+    blocks: [blockDefinition('paragraph')],
+    inline: [inline],
+    showPopup(owner, anchor, content) {
+      lastOwner = owner
+      mounted++
+      return { close() {} }
+    },
+  }
+  const registry = new ExtensionRegistry(options)
+  assert.equal(typeof showPopup, 'function')
+  const first = showPopup({}, {}, () => { cleaned++ })
+  assert.equal(typeof first.close, 'function')
+  assert.equal(mounted, 1)
+  options.showPopup = () => { throw new Error('mutable host popup callback was consulted') }
+  const second = showPopup({}, {}, () => { cleaned++ })
+  assert.equal(typeof second.close, 'function')
+  assert.equal(mounted, 2, 'the established host popup handler was not retained')
+  assert.equal(typeof lastOwner, 'object')
+
+  registry.destroy()
+  const retired = showPopup({}, {}, () => { cleaned++ })
+  assert.equal(typeof retired.close, 'function')
+  retired.close()
+  assert.equal(mounted, 2, 'a retired inline extension published a popup')
+  assert.equal(cleaned, 1, 'a declined popup did not release its incoming resource')
+})
