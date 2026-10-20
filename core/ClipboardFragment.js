@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
 
 export const CLIPBOARD_FRAGMENT_MIME = 'application/x-rector-fragment'
 export const CLIPBOARD_FRAGMENT_VERSION = 2
@@ -108,9 +109,14 @@ export function decodeClipboardFragment(text){
       const part = object(candidate, 'Clipboard fragment part')
       if (part.kind === 'rich-text') {
         assertKnownClipboardFields(part, RICH_TEXT_FIELDS, 'Clipboard rich-text part')
+        // Private MIME must be structurally current before the editor can
+        // prepare *any* of its parts. Unknown registered status is fine,
+        // but missing or malformed inline versions are not.
+        if (Object.hasOwn(part, 'inline')) decodeCurrentInlineMap(part.inline)
       } else if (part.kind === 'block') {
         assertKnownClipboardFields(part, BLOCK_PART_FIELDS, 'Clipboard block part')
         assertClipboardTransferFields(part.block)
+        if (Object.hasOwn(part.block, 'inline')) decodeCurrentInlineMap(part.block.inline)
       }
       // createClipboardFragment still validates missing/invalid part kinds
       // and owns all accepted nested JSON payloads.
