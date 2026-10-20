@@ -16,6 +16,18 @@ function isRecord(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
+/** Convert primitive runtime counts without invoking caller-owned coercion hooks.
+ * Preserve Number() semantics for primitive count values, while treating
+ * objects, symbols and functions as invalid untrusted result data.
+ * @param {unknown} value
+ * @returns {number}
+ */
+function pollResultNumber(value) {
+  if (value !== null && (typeof value === 'object'
+    || typeof value === 'function' || typeof value === 'symbol')) return Number.NaN
+  return Number(value)
+}
+
 /**
  * Preserve the voter details already present in a persisted/runtime snapshot.
  * The configured runtime cap is applied by the plugin/renderer after document
@@ -46,13 +58,13 @@ export function normalizePollResults(input, optionIds, maxVoters = 50, selection
   if (Array.isArray(source.options)) {
     for (const option of source.options) {
       if (!isRecord(option) || typeof option.id !== 'string' || !allowed.has(option.id)) continue
-      const votes = Number(option.votes)
+      const votes = pollResultNumber(option.votes)
       byId.set(option.id, Number.isFinite(votes) && votes >= 0 ? Math.floor(votes) : 0)
     }
   }
   const options = optionIds.map(id => ({ id, votes: byId.get(id) ?? 0 }))
   const calculatedTotal = options.reduce((sum, option) => sum + option.votes, 0)
-  const declaredTotal = Number(source.total)
+  const declaredTotal = pollResultNumber(source.total)
   const total = Number.isFinite(declaredTotal) && declaredTotal >= 0
     ? Math.floor(declaredTotal)
     : calculatedTotal
