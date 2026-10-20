@@ -796,3 +796,28 @@ test('an active instance does not expose a snapshot after its own read callback 
   assert.throws(() => context.getData(), error => error?.name === 'AbortError')
   assert.equal(reads, 1)
 })
+
+
+test('a valid host projection edit may invoke its DOM producer after entering the projection phase', () => {
+  const scope = new InstanceScope({ staged: false, generation: 3 })
+  let phase = 'idle', executions = 0
+  scope.configure({
+    currentGeneration: () => 3,
+    phase: () => phase,
+  })
+  const context = scope.createAuthority({
+    readData: () => ({ text: 'Original' }),
+    updateData() {},
+    commitDomMutation(operation) {
+      phase = 'editing-projection'
+      try { return operation() }
+      finally { phase = 'idle' }
+    },
+  })
+  assert.equal(context.commitDomMutation(() => {
+    executions++
+    return 'edited'
+  }), 'edited')
+  assert.equal(executions, 1,
+    'generation revocation guard incorrectly rejected a valid synchronous projection edit')
+})
