@@ -205,3 +205,20 @@ test('a successful prepared history commit is idempotent without invalidating ne
   assert.equal(history.peekUndo().id, 2)
   assert.equal(history.undoDepth, 2)
 })
+
+test('competing prepared replays cannot both advance one history cursor', () => {
+  const history = new HistoryStore()
+  history.push(record(1))
+  const first = history.prepareReplay('undo')
+  const second = history.prepareReplay('undo')
+  assert.ok(first && second)
+  first.commit()
+  assert.throws(() => second.commit(), /stale/i)
+  assert.equal(history.undoDepth, 0)
+  assert.equal(history.redoDepth, 1)
+  assert.equal(history.peekRedo().id, 1)
+  history.commitRedo()
+  assert.equal(history.peekUndo().id, 1)
+  assert.equal(history.redoDepth, 0)
+})
+
