@@ -137,7 +137,19 @@ export function createVersionedDataSchema(options) {
         throw new TypeError('Rich-text transform must be a function')
       }
       const owned = normalizeOwned(data)
-      if (mapRichText) synchronousResult(mapRichText(owned, transform))
+      if (mapRichText) {
+        synchronousResult(mapRichText(owned, (html, fieldKey) => {
+          // A plugin mapper may ignore the transform's returned value.
+          // Validate the callback itself, not only mapRichText's return:
+          // an async or malformed transform must never be accepted as an
+          // already-committed rich-text normalization.
+          const result = synchronousResult(transform(html, fieldKey))
+          if (typeof result !== 'string') {
+            throw new TypeError('Rich-text transform must return a string')
+          }
+          return result
+        }))
+      }
       return normalizeOwned(owned)
     },
 
