@@ -87,6 +87,7 @@ function assertIndex(index, min, max, label) {
 
 export class DocumentDraft {
   #owner
+  #baseRevision
   #version
   #order
   #blocks
@@ -101,6 +102,9 @@ export class DocumentDraft {
 
   constructor(owner, source, { state = false, borrow = null } = {}) {
     this.#owner = owner
+    // Capture the store revision before evaluating any caller-owned document
+    // input. A draft cannot be applied after another commit supersedes its base.
+    this.#baseRevision = owner.revision
     const borrowing = state && borrow === privateCommitToken
     const next = state ? (borrowing ? source : cloneState(source)) : stateFromDocument(source)
     this.#version = next.version
@@ -112,6 +116,10 @@ export class DocumentDraft {
 
   isOwnedBy(owner) {
     return this.#owner === owner
+  }
+
+  isBasedOn(revision) {
+    return this.#baseRevision === revision
   }
 
   get version() {
@@ -394,9 +402,18 @@ export class DocumentStore {
     if (!(draft instanceof DocumentDraft) || !draft.isOwnedBy(this)) {
       throw new TypeError('Cannot commit a draft owned by another DocumentStore')
     }
+    const expectedRevision = this.#revision
+    if (!draft.isBasedOn(expectedRevision)) {
+      throw new Error('Document draft is stale')
+    }
     const state = draft.preparedState(this, privateCommitToken)
+    // A monkey-patched draft method must not be able to change the store
+    // while a prepared snapshot is being captured.
+    if (this.#revision !== expectedRevision) {
+      throw new Error('Document draft is stale')
+    }
     const generation = this.#generation + (newGeneration ? 1 : 0)
-    const revision = this.#revision + 1
+    const revision = expectedRevision + 1
     let committed = false
 
     return Object.freeze({
@@ -404,6 +421,9 @@ export class DocumentStore {
       revision,
       commit: () => {
         if (committed) return
+        if (this.#revision !== expectedRevision) {
+          throw new Error('Prepared document commit is stale')
+        }
         this.#version = state.version
         this.#order = state.order
         this.#blocks = state.blocks
