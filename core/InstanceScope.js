@@ -312,7 +312,9 @@ export class InstanceScope{
     }
     const controller=new AbortController()
     if(!this.#stillOwnInteraction(epoch,generation)){
-      controller.abort()
+      // No task has been published yet; even an abnormal abort adapter
+      // cannot replace the authoritative inactive-scope error.
+      try{controller.abort()}catch{}
       throw createAbortError('Cannot begin a data task for an inactive instance context')
     }
     const task={
@@ -329,7 +331,11 @@ export class InstanceScope{
       if(task.closed)return
       task.closed=true
       this.#tasks.delete(task)
-      if(abort&&!controller.signal.aborted)controller.abort()
+      // Logical retirement precedes dispatch. A broken AbortController must
+      // not mask a producer error or allow an already-closed task to retry.
+      if(abort&&!controller.signal.aborted){
+        try{controller.abort()}catch{}
+      }
     }
 
     return Object.freeze({
@@ -397,7 +403,11 @@ export class InstanceScope{
     for(const task of [...this.#tasks]){
       task.closed=true
       this.#tasks.delete(task)
-      if(!task.controller.signal.aborted)task.controller.abort()
+      // Continue revoking every independent task and child scope even if a
+      // substituted AbortController throws before notifying its listeners.
+      if(!task.controller.signal.aborted){
+        try{task.controller.abort()}catch{}
+      }
     }
   }
 }
