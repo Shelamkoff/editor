@@ -128,3 +128,20 @@ test('diagnostic metadata does not deliver accidental object payloads or invalid
   assert.notEqual(events[0].timestamp, 0)
   assert.deepEqual(Object.keys(events[0]).sort(), ['code', 'timestamp'])
 })
+
+test('diagnostics do not invoke metadata getters supplied by extensions', async () => {
+  const received = []
+  const diagnostics = new Diagnostics(event => received.push(event))
+  let reads = 0
+  const details = { operation: 'clipboard.paste' }
+  Object.defineProperty(details, 'pluginType', {
+    enumerable: true,
+    get() { reads++; throw new Error('extension metadata getter') },
+  })
+  assert.doesNotThrow(() => diagnostics.emit('paste.failed', details))
+  await Promise.resolve()
+  assert.equal(reads, 0)
+  assert.equal(received.length, 1)
+  assert.equal(received[0].operation, 'clipboard.paste')
+  assert.equal('pluginType' in received[0], false)
+})
