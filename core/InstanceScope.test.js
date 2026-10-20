@@ -1015,3 +1015,59 @@ test('a failing task cancellation cannot mask the original producer exception', 
   assert.equal(rejected.commit(current => current), false)
   assert.doesNotThrow(() => scope.revoke())
 })
+
+
+test('InstanceScope cannot miss abort when a host signal retires during listener registration', () => {
+  const parent = new InstanceScope({ staged: false, generation: 2 })
+  const child = new InstanceScope({ staged: false, generation: 2, parent })
+  let reads = 0, listenerCalls = 0
+  const childContext = child.createAuthority({
+    readData() { reads++; return { text: 'private child data' } },
+    updateData() {},
+  })
+  const signal = {
+    aborted: false,
+    addEventListener(type) {
+      assert.equal(type, 'abort')
+      listenerCalls++
+      // The host retired this signal before the subscription became active:
+      // no abort event will be emitted for late listeners.
+      this.aborted = true
+    },
+    removeEventListener() {},
+  }
+  parent.configure({ signal })
+  assert.equal(listenerCalls, 1)
+  assert.equal(parent.revoked, true, 'scope survived an already-aborted host signal')
+  assert.equal(child.revoked, true, 'an abandoned parent retained a live child')
+  assert.throws(() => childContext.getData(), error => error?.name === 'AbortError')
+  assert.equal(reads, 0)
+})
+
+test('failed host abort-listener installation revokes scope before exposing new authority', () => {
+  for (const failure of ['listener', 'aborted-getter']) {
+    const scope = new InstanceScope({ staged: false, generation: 1 })
+    const child = new InstanceScope({ staged: false, generation: 1, parent: scope })
+    let writes = 0
+    const context = child.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData() { writes++ },
+    })
+    const signal = failure === 'listener'
+      ? {
+        aborted: false,
+        addEventListener() { throw new Error('host signal registration failed') },
+        removeEventListener() {},
+      }
+      : {
+        get aborted() { throw new Error('host signal status failed') },
+        addEventListener() { throw new Error('listener must not be registered') },
+        removeEventListener() {},
+      }
+    assert.throws(() => scope.configure({ signal }), /host signal/)
+    assert.equal(scope.revoked, true, 'a failed signal setup left the scope authorized')
+    assert.equal(child.revoked, true, 'failed signal setup did not retire descendant scope')
+    context.updateData(() => { writes++; return { value: 2 } })
+    assert.equal(writes, 0)
+  }
+})
