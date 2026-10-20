@@ -150,3 +150,58 @@ test('typing coalescence compares canonical JSON values without object key order
   assert.equal(history.undoDepth, 1)
   assert.equal(history.peekUndo().changes[0].after.data.text, 'third')
 })
+
+
+test('a prepared record cannot overwrite a later committed record', () => {
+  const history = new HistoryStore()
+  history.push(record(1))
+  const stale = history.prepareRecord(record(2))
+  history.push(record(3))
+  assert.throws(() => stale.commit(), /stale/i,
+    'a prepared history snapshot overwrote a newer committed record')
+  assert.equal(history.peekUndo().id, 3)
+  assert.equal(history.undoDepth, 2)
+  assert.equal(history.redoDepth, 0)
+
+  // A stale plan is never able to commit on a second invocation either.
+  assert.throws(() => stale.commit(), /stale/i)
+  assert.equal(history.peekUndo().id, 3)
+})
+
+test('a prepared Undo cannot restore history after clear', () => {
+  const history = new HistoryStore()
+  history.push(record(1))
+  const pending = history.prepareReplay('undo')
+  assert.ok(pending)
+  history.clear()
+  assert.throws(() => pending.commit(), /stale/i)
+  assert.equal(history.canUndo, false)
+  assert.equal(history.canRedo, false)
+  assert.equal(history.undoDepth, 0)
+  assert.equal(history.redoDepth, 0)
+})
+
+test('a prepared Redo cannot revert a newly committed edit or reintroduce its redo entry', () => {
+  const history = new HistoryStore()
+  history.push(record(1))
+  history.commitUndo()
+  const pending = history.prepareReplay('redo')
+  assert.ok(pending)
+  history.push(record(2))
+  assert.equal(history.canRedo, false)
+  assert.throws(() => pending.commit(), /stale/i)
+  assert.equal(history.peekUndo().id, 2)
+  assert.equal(history.undoDepth, 1)
+  assert.equal(history.redoDepth, 0)
+})
+
+test('a successful prepared history commit is idempotent without invalidating newer plans', () => {
+  const history = new HistoryStore()
+  const first = history.prepareRecord(record(1))
+  first.commit()
+  const second = history.prepareRecord(record(2))
+  first.commit()
+  second.commit()
+  assert.equal(history.peekUndo().id, 2)
+  assert.equal(history.undoDepth, 2)
+})
