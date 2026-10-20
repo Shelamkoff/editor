@@ -209,3 +209,72 @@ test('valid clipboard blocks allocate only after decoding and retain canonical d
   })
   assert.deepEqual([...reserved], ['existing', 'new-block'])
 })
+
+
+test('invalid nested clipboard inline dataVersion cannot consume a block ID', () => {
+  const reserved = new Set(['occupied'])
+  let allocations = 0
+  const blockDefinition = {
+    schema: {
+      currentVersion: 2,
+      decode(input) { return input },
+    },
+  }
+  const inlineDefinition = {
+    schema: {
+      currentVersion: 1,
+      decode(input) { return input },
+    },
+  }
+  const services = {
+    getBlockDefinition: type => type === 'paragraph' ? blockDefinition : undefined,
+    getInlineDefinition: type => type === 'mention' ? inlineDefinition : undefined,
+    allocateId() {
+      allocations++
+      return 'issued-' + allocations
+    },
+    recordFromData() { throw new Error('must not assemble a mismatched inline widget') },
+  }
+  assert.throws(() => materializeClipboardBlock(services, {
+    type: 'paragraph',
+    dataVersion: 2,
+    data: { text: 'Hello {{ref}}' },
+    inline: { ref: { type: 'mention', dataVersion: 2, data: { label: 'Stale' } } },
+  }, reserved), /version|current/i)
+  assert.equal(allocations, 0)
+  assert.deepEqual([...reserved], ['occupied'])
+})
+
+test('unknown current-format transfer blocks receive destination IDs while preserving opaque data', () => {
+  const source = {
+    type: 'unloaded-block',
+    dataVersion: 7,
+    data: { nested: { future: [1, 2, 3] } },
+    inline: {
+      'future-inline': {
+        type: 'unloaded-inline',
+        dataVersion: 8,
+        data: { opaque: true },
+      },
+    },
+  }
+  const reserved = new Set(['occupied'])
+  let allocations = 0
+  const services = {
+    getBlockDefinition: () => undefined,
+    getInlineDefinition: () => undefined,
+    allocateId(type, ids) {
+      allocations++
+      assert.equal(type, 'unloaded-block')
+      ids.add('new-opaque')
+      return 'new-opaque'
+    },
+    recordFromData() { throw new Error('unknown blocks must not execute plugin assembly') },
+  }
+  const result = materializeClipboardBlock(services, source, reserved)
+  assert.equal(allocations, 1)
+  assert.deepEqual(result, { id: 'new-opaque', ...source })
+  assert.notStrictEqual(result.data, source.data)
+  assert.notStrictEqual(result.inline, source.inline)
+  assert.deepEqual([...reserved], ['occupied', 'new-opaque'])
+})
