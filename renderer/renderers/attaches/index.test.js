@@ -338,3 +338,126 @@ test('ZIP export cannot add a stream that finishes after caller cancellation', a
     setZipRuntime(originalZip)
   }
 })
+
+
+test('ZIP export canceled during Blob construction does not create or click a URL', async () => {
+  const previousRuntime = getZipRuntime()
+  const caller = new AbortController()
+  let urlsCreated = 0
+  let clicked = 0
+  class FakeZip {
+    file() {}
+    async generateAsync() { return new Uint8Array([1, 2]) }
+  }
+  class CancelingBlob extends Blob {
+    constructor(parts, options) {
+      super(parts, options)
+      caller.abort()
+    }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      Blob: CancelingBlob,
+      fetch: async () => new Response(new Uint8Array([42]), { status: 200 }),
+      URL: {
+        createObjectURL() { urlsCreated++; return 'blob:owner/unwanted' },
+        revokeObjectURL() {},
+      },
+    },
+    createElement() { clicked++; throw new Error('canceled export must not create an anchor') },
+  }
+
+  try {
+    await assert.rejects(
+      downloadArchive([{ url: 'https://example.test/file', name: 'file' }],
+        { signal: caller.signal, ownerDocument }),
+      error => error?.name === 'AbortError',
+    )
+    assert.equal(urlsCreated, 0)
+    assert.equal(clicked, 0)
+  } finally {
+    setZipRuntime(previousRuntime)
+  }
+})
+
+test('ZIP export cancellation inside URL creation revokes URL without clicking', async () => {
+  const previousRuntime = getZipRuntime()
+  const caller = new AbortController()
+  const revoked = []
+  let clicked = 0
+  class FakeZip {
+    file() {}
+    async generateAsync() { return new Uint8Array([1, 2]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      Blob,
+      fetch: async () => new Response(new Uint8Array([42]), { status: 200 }),
+      URL: {
+        createObjectURL() { caller.abort(); return 'blob:owner/canceled' },
+        revokeObjectURL(url) { revoked.push(url) },
+      },
+      setTimeout(callback) { callback() },
+    },
+    createElement() { clicked++; throw new Error('canceled export must not create an anchor') },
+  }
+
+  try {
+    await assert.rejects(
+      downloadArchive([{ url: 'https://example.test/file', name: 'file' }],
+        { signal: caller.signal, ownerDocument }),
+      error => error?.name === 'AbortError',
+    )
+    assert.equal(clicked, 0)
+    assert.deepEqual(revoked, ['blob:owner/canceled'])
+  } finally {
+    setZipRuntime(previousRuntime)
+  }
+})
+
+test('ZIP export cancellation during href publication never triggers anchor.click', async () => {
+  const previousRuntime = getZipRuntime()
+  const caller = new AbortController()
+  const revoked = []
+  let clicked = 0
+  class FakeZip {
+    file() {}
+    async generateAsync() { return new Uint8Array([1, 2]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      Blob,
+      fetch: async () => new Response(new Uint8Array([42]), { status: 200 }),
+      URL: {
+        createObjectURL() { return 'blob:owner/canceled-attribute' },
+        revokeObjectURL(url) { revoked.push(url) },
+      },
+      setTimeout(callback) { callback() },
+    },
+    createElement() {
+      return {
+        setAttribute() { caller.abort() },
+        click() { clicked++ },
+        download: '',
+      }
+    },
+  }
+
+  try {
+    await assert.rejects(
+      downloadArchive([{ url: 'https://example.test/file', name: 'file' }],
+        { signal: caller.signal, ownerDocument }),
+      error => error?.name === 'AbortError',
+    )
+    assert.equal(clicked, 0)
+    assert.deepEqual(revoked, ['blob:owner/canceled-attribute'])
+  } finally {
+    setZipRuntime(previousRuntime)
+  }
+})
