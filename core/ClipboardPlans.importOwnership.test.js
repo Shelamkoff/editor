@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { materializeClipboardRichText } from './ClipboardPlans.js'
+import { materializeClipboardRichText, materializeClipboardBlock } from './ClipboardPlans.js'
 
 function harness(conversions) {
   const ownerDocument = Object.freeze({ id: 'editor-owning-document' })
@@ -104,4 +104,108 @@ test('clipboard import rejects asynchronous decisions and imports before allocat
     /synchronously/,
   )
   assert.equal(h2.allocated(), 0)
+})
+
+
+test('invalid clipboard block version must be rejected before consuming a session ID', () => {
+  const reserved = new Set(['existing'])
+  let allocations = 0
+  const definition = {
+    schema: {
+      currentVersion: 2,
+      decode(envelope) { return envelope },
+    },
+  }
+  const services = {
+    getBlockDefinition: type => type === 'paragraph' ? definition : undefined,
+    getInlineDefinition: () => undefined,
+    allocateId(_type, ids) {
+      allocations++
+      const id = 'issued-' + allocations
+      ids.add(id)
+      return id
+    },
+    recordFromData() { throw new Error('invalid input reached record creation') },
+  }
+  assert.throws(
+    () => materializeClipboardBlock(services, {
+      type: 'paragraph', dataVersion: 1, data: { text: 'wrong-version content' },
+    }, reserved),
+    /data version|version|currentVersion/i,
+  )
+  assert.equal(allocations, 0, 'a rejected clipboard block consumed a permanent session ID')
+  assert.deepEqual([...reserved], ['existing'])
+})
+
+test('invalid clipboard block data must be validated before allocating a block ID', () => {
+  const reserved = new Set(['existing'])
+  let allocations = 0
+  const definition = {
+    schema: {
+      currentVersion: 2,
+      decode(envelope) {
+        if (typeof envelope.data.text !== 'string') {
+          throw new TypeError('Clipboard paragraph text must be a string')
+        }
+        return envelope
+      },
+    },
+  }
+  const services = {
+    getBlockDefinition: type => type === 'paragraph' ? definition : undefined,
+    getInlineDefinition: () => undefined,
+    allocateId(_type, ids) {
+      allocations++
+      ids.add('issued-' + allocations)
+      return 'issued-' + allocations
+    },
+    recordFromData() { throw new Error('invalid data reached record creation') },
+  }
+  assert.throws(() => materializeClipboardBlock(services, {
+    type: 'paragraph', dataVersion: 2, data: { text: 99 },
+  }, reserved), /Clipboard paragraph text must be a string/)
+  assert.equal(allocations, 0)
+  assert.deepEqual([...reserved], ['existing'])
+})
+
+test('valid clipboard blocks allocate only after decoding and retain canonical data and detached identity', () => {
+  const events = []
+  const reserved = new Set(['existing'])
+  const definition = {
+    schema: {
+      currentVersion: 2,
+      decode(envelope) {
+        events.push('decode')
+        return {
+          dataVersion: 2,
+          data: { text: envelope.data.text.trim() },
+        }
+      },
+    },
+  }
+  const services = {
+    getBlockDefinition: type => type === 'paragraph' ? definition : undefined,
+    getInlineDefinition: () => undefined,
+    allocateId(_type, ids) {
+      events.push('allocate')
+      ids.add('new-block')
+      return 'new-block'
+    },
+    recordFromData(id, type, _definition, data, tunes) {
+      events.push('record')
+      return { id, type, dataVersion: 2, data, tunes }
+    },
+  }
+  const result = materializeClipboardBlock(services, {
+    type: 'paragraph',
+    dataVersion: 2,
+    data: { text: ' Hello ' },
+    tunes: { textAlign: 'center' },
+  }, reserved)
+  assert.deepEqual(events, ['decode', 'allocate', 'record'])
+  assert.deepEqual(result, {
+    id: 'new-block', type: 'paragraph', dataVersion: 2,
+    data: { text: 'Hello' }, tunes: { textAlign: 'center' },
+  })
+  assert.deepEqual([...reserved], ['existing', 'new-block'])
 })
