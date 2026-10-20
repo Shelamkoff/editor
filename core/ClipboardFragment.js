@@ -4,6 +4,19 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 export const CLIPBOARD_FRAGMENT_MIME = 'application/x-rector-fragment'
 export const CLIPBOARD_FRAGMENT_VERSION = 2
 
+const FRAGMENT_FIELDS = new Set(['version', 'parts'])
+const RICH_TEXT_FIELDS = new Set(['kind', 'html', 'inline'])
+const BLOCK_PART_FIELDS = new Set(['kind', 'block'])
+const TRANSFER_BLOCK_FIELDS = new Set(['type', 'dataVersion', 'data', 'tunes', 'inline'])
+
+function assertKnownClipboardFields(value, known, label) {
+  for (const key of Object.keys(value)) {
+    if (!known.has(key)) {
+      throw new TypeError(`${label} contains unknown field: ${key}`)
+    }
+  }
+}
+
 function object(value,label){
   if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} must be an object`)
   return value
@@ -75,6 +88,24 @@ export function decodeClipboardFragment(text){
   }
   if(Object.hasOwn(source,'blocks')||Object.hasOwn(source,'records')){
     throw new TypeError('Clipboard fragment contains removed legacy shape')
+  }
+  // Private clipboard MIME is an external serialized wire format, not a
+  // local record export. Unknown envelope/part fields must fail closed:
+  // silently removing them could discard meaningful future producer data.
+  assertKnownClipboardFields(source, FRAGMENT_FIELDS, 'Clipboard fragment')
+  if (Array.isArray(source.parts)) {
+    for (const candidate of source.parts) {
+      const part = object(candidate, 'Clipboard fragment part')
+      if (part.kind === 'rich-text') {
+        assertKnownClipboardFields(part, RICH_TEXT_FIELDS, 'Clipboard rich-text part')
+      } else if (part.kind === 'block') {
+        assertKnownClipboardFields(part, BLOCK_PART_FIELDS, 'Clipboard block part')
+        const transfer = object(part.block, 'Clipboard transfer block')
+        assertKnownClipboardFields(transfer, TRANSFER_BLOCK_FIELDS, 'Clipboard transfer block')
+      }
+      // createClipboardFragment still validates missing/invalid part kinds
+      // and owns all accepted nested JSON payloads.
+    }
   }
   return createClipboardFragment(source.parts)
 }
