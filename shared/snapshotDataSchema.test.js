@@ -116,3 +116,45 @@ test('schema default round trip must still reject a changed nested property', ()
     decode() { return { dataVersion: 1, data: { profile: { a: 1, b: 3 } } } },
   }, 'Probe'), /round-trip/)
 })
+
+
+test('schema registration rejects invalid currentVersion without invoking method accessors', () => {
+  const reads = []
+  const invalid = {
+    currentVersion: 0,
+    get createDefault() { reads.push('default'); throw new Error('default getter executed') },
+    get encode() { reads.push('encode'); throw new Error('encode getter executed') },
+    get decode() { reads.push('decode'); throw new Error('decode getter executed') },
+  }
+  assert.throws(
+    () => snapshotDataSchema(invalid, 'Probe'),
+    /currentVersion must be a positive safe integer/,
+  )
+  assert.deepEqual(reads, [], 'invalid schema version evaluated callback methods')
+})
+
+test('schema rejects object-valued dataVersion without invoking its toString', () => {
+  const target = schema()
+  let coercions = 0
+  const version = {
+    toString() {
+      coercions++
+      throw new Error('untrusted version coercion executed')
+    },
+  }
+  let payloadReads = 0
+  const input = {
+    dataVersion: version,
+    get data() {
+      payloadReads++
+      throw new Error('unsupported payload was evaluated')
+    },
+  }
+  assert.throws(() => target.decode(input), error => {
+    assert.match(error.message, /Unsupported Probe data version/)
+    assert.equal(documentValidationIssue(error)?.reason, 'unsupported-data-version')
+    return true
+  })
+  assert.equal(coercions, 0)
+  assert.equal(payloadReads, 0)
+})
