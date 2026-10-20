@@ -1204,3 +1204,66 @@ test('async Paste createId cannot return a new identifier after its host allocat
     assert.equal(generations, 1)
   } finally { h.controller.destroy() }
 })
+
+
+test('file Paste stops matching other files once an extension retires its editor', () => {
+  const matches = []
+  let fixture
+  fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'first.txt' }, { name: 'second.txt' }],
+    accepts: () => true,
+    capability: {
+      accepts(input) {
+        matches.push(input.file.name)
+        if (input.file.name === 'first.txt') fixture.controller.destroy()
+        return true
+      },
+      resolve() { throw new Error('retired Paste invoked a resolver') },
+    },
+  })
+  fixture.paste()
+  assert.deepEqual(matches, ['first.txt'],
+    'file routing called an extension after the first matcher destroyed the editor')
+})
+
+test('file Paste stops evaluating later plugin matchers after a read-only transition', () => {
+  const matches = []
+  let fixture
+  fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'source.dat' }],
+    accepts: () => true,
+    definitions: {
+      paragraph: {
+        capabilities: {
+          paste: {
+            accepts() {
+              matches.push('paragraph')
+              fixture.runtime.readOnly = true
+              fixture.runtime.modeEpoch = (fixture.runtime.modeEpoch ?? 0) + 1
+              return false
+            },
+            resolve() { throw new Error('rejected plugin resolved') },
+          },
+        },
+      },
+      other: {
+        capabilities: {
+          paste: {
+            accepts() {
+              matches.push('other')
+              return true
+            },
+            resolve() { throw new Error('revoked Paste resolved') },
+          },
+        },
+      },
+    },
+  })
+  try {
+    fixture.paste()
+    assert.deepEqual(matches, ['paragraph'],
+      'later plugin matcher ran after the first revoked the Paste interaction')
+  } finally { fixture.controller.destroy() }
+})
