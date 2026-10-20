@@ -191,8 +191,20 @@ export class InstanceScope{
     }
     const commitDom=operation=>{
       if(typeof operation!=='function')throw new TypeError('commitDomMutation() requires an operation')
-      if(!this.#canMutate())return
-      return commitDomMutation?.(operation)
+      const epoch=this.#interactionEpoch
+      const generation=this.#generation
+      if(!this.#canMutate()||!this.#stillOwnInteraction(epoch,generation))return
+      // A host may defer the DOM callback or revoke its owner while setting
+      // up projection synchronization. Pass only a revocable producer, not
+      // the original author callback. Recheck at invocation time without
+      // requiring phase==='idle': the host legitimately invokes it while
+      // its own projection-edit phase is active.
+      return commitDomMutation?.((...args)=>{
+        if(!this.#stillOwnInteraction(epoch,generation))return
+        const currentGeneration=this.#currentGeneration()
+        if(currentGeneration!==generation||!this.#stillOwnInteraction(epoch,generation))return
+        return operation(...args)
+      })
     }
     const allocate=prefix=>{
       const epoch=this.#interactionEpoch
