@@ -194,9 +194,12 @@ export class InstanceScope{
         // The canonical input can include getter-backed values, and both
         // snapshotting and the producer can retire this occurrence. Never
         // forward an obsolete result into the owning document transaction.
-        if(!this.#stillOwnInteraction(epoch,generation))throw createAbortError()
+        if(!this.#stillOwnGeneration(epoch,generation))throw createAbortError()
         const next=producer(owned)
-        if(!this.#stillOwnInteraction(epoch,generation))throw createAbortError()
+        // The author producer or host-owned update callback can replace the
+        // committed document before returning its candidate. Never publish
+        // that obsolete candidate into a successor generation.
+        if(!this.#stillOwnGeneration(epoch,generation))throw createAbortError()
         return next
       },options)
     }
@@ -245,6 +248,12 @@ export class InstanceScope{
       && !this.readOnly
       && this.#interactionEpoch===epoch
       && this.#generation===generation
+  }
+
+  #stillOwnGeneration(epoch,generation){
+    return this.#stillOwnInteraction(epoch,generation)
+      && this.#currentGeneration()===generation
+      && this.#stillOwnInteraction(epoch,generation)
   }
 
   #canMutate(){
@@ -340,7 +349,7 @@ export class InstanceScope{
           ||this.#generation!==task.generation
           ||this.#currentGeneration()!==task.generation
           ||(this.#parent&&!this.#parent.#canMutate())
-          ||!this.#stillOwnInteraction(task.epoch,task.generation)
+          ||!this.#stillOwnGeneration(task.epoch,task.generation)
           ||task.closed||controller.signal.aborted
         ){
           close(true)
@@ -349,7 +358,7 @@ export class InstanceScope{
         const currentPhase=this.#phase()
         // The phase check is itself a callback. A plugin can synchronously
         // revoke this task while claiming that the old phase was still idle.
-        if(!this.#stillOwnInteraction(task.epoch,task.generation)
+        if(!this.#stillOwnGeneration(task.epoch,task.generation)
           ||task.closed||controller.signal.aborted){
           close(true)
           return false
@@ -363,10 +372,12 @@ export class InstanceScope{
           updateData(current=>{
             const owned=snapshot(current)
             if(task.closed||controller.signal.aborted
-              ||!this.#stillOwnInteraction(task.epoch,task.generation))throw createAbortError()
+              ||!this.#stillOwnGeneration(task.epoch,task.generation))throw createAbortError()
             const next=producer(owned)
+            // A task may be superseded by the producer itself without any
+            // local scope epoch change. Reject before publishing its result.
             if(task.closed||controller.signal.aborted
-              ||!this.#stillOwnInteraction(task.epoch,task.generation))throw createAbortError()
+              ||!this.#stillOwnGeneration(task.epoch,task.generation))throw createAbortError()
             return next
           },continuation)
           close(false)
