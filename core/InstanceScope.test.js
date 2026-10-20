@@ -914,3 +914,104 @@ test('instance and data-task producers cannot commit after a reentrant generatio
     if (task) assert.equal(task.signal.aborted, true)
   }
 })
+
+
+test('a failing task AbortController cannot interrupt parent revocation or leave sibling tasks alive', () => {
+  const parent = new InstanceScope({ staged: false, generation: 1 })
+  const child = new InstanceScope({ staged: false, generation: 1, parent })
+  const grandchild = new InstanceScope({ staged: false, generation: 1, parent: child })
+  const childContext = child.createAuthority({
+    readData: () => ({ secret: 'child data' }),
+    updateData() {},
+  })
+  const parentContext = parent.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData() {},
+  })
+  let created = 0
+  const aborted = []
+  class ThrowingAbortController {
+    constructor() {
+      this.id = ++created
+      this.signal = { aborted: false }
+    }
+    abort() {
+      aborted.push(this.id)
+      if (this.id === 1) throw new Error('first task abort failed')
+      this.signal.aborted = true
+    }
+  }
+  const original = globalThis.AbortController
+  let first, second
+  try {
+    globalThis.AbortController = ThrowingAbortController
+    first = parentContext.beginTask()
+    second = parentContext.beginTask()
+  } finally {
+    globalThis.AbortController = original
+  }
+  assert.doesNotThrow(() => parent.revoke())
+  assert.equal(parent.revoked, true)
+  assert.equal(child.revoked, true, 'failed parent abort skipped child revocation')
+  assert.equal(grandchild.revoked, true)
+  assert.deepEqual(aborted, [1, 2], 'failed abort stopped cleanup of an independent task')
+  assert.equal(second.signal.aborted, true)
+  assert.equal(first.commit(current => current), false)
+  assert.throws(() => childContext.getData(), error => error?.name === 'AbortError')
+  assert.equal(parent.revoke(), false)
+})
+
+test('a failing task AbortController does not prevent read-only propagation to descendants', () => {
+  const parent = new InstanceScope({ staged: false, generation: 2 })
+  const child = new InstanceScope({ staged: false, generation: 2, parent })
+  const context = parent.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData() {},
+  })
+  class ThrowingAbortController {
+    signal = { aborted: false }
+    abort() { throw new Error('task abort adapter failed') }
+  }
+  const original = globalThis.AbortController
+  let task
+  try {
+    globalThis.AbortController = ThrowingAbortController
+    task = context.beginTask()
+  } finally {
+    globalThis.AbortController = original
+  }
+  assert.doesNotThrow(() => parent.setReadOnly(true))
+  assert.equal(child.readOnly, true, 'child was not locked after a failed parent task abort')
+  assert.equal(task.commit(() => { throw new Error('retired producer executed') }), false)
+  parent.setReadOnly(false)
+  assert.equal(child.readOnly, false)
+  parent.revoke()
+})
+
+test('a failing task cancellation cannot mask the original producer exception', () => {
+  const scope = new InstanceScope({ staged: false, generation: 1 })
+  const context = scope.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData(produce) { produce({ value: 1 }) },
+  })
+  class ThrowingAbortController {
+    signal = { aborted: false }
+    abort() { throw new Error('abort adapter failed') }
+  }
+  const original = globalThis.AbortController
+  let canceled, rejected
+  try {
+    globalThis.AbortController = ThrowingAbortController
+    canceled = context.beginTask()
+    rejected = context.beginTask()
+  } finally {
+    globalThis.AbortController = original
+  }
+  assert.doesNotThrow(() => canceled.cancel())
+  assert.equal(canceled.commit(current => current), false)
+  assert.throws(() => rejected.commit(() => {
+    throw new TypeError('producer data was rejected')
+  }), /producer data was rejected/)
+  assert.equal(rejected.commit(current => current), false)
+  assert.doesNotThrow(() => scope.revoke())
+})
