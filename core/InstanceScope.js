@@ -69,8 +69,21 @@ export class InstanceScope{
       }
       this.#signal=signal
       this.#abortListener=()=>this.revoke()
-      if(signal.aborted)this.revoke()
-      else signal.addEventListener('abort',this.#abortListener,{once:true})
+      try {
+        if(signal.aborted)this.revoke()
+        else {
+          signal.addEventListener('abort',this.#abortListener,{once:true})
+          // A supplied signal can retire synchronously during subscription
+          // before the listener was installed. Do not miss that transition.
+          if(signal.aborted)this.revoke()
+        }
+      } catch(error) {
+        // An unreadable status or failed listener install is not proof that
+        // this owner can receive future cancellation. Fail closed, including
+        // its already-attached children and pending tasks.
+        this.revoke()
+        throw error
+      }
     }
     return this
   }
