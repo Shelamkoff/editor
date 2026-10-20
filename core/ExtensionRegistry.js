@@ -357,7 +357,7 @@ function snapshotInlineDefinition(source) {
   })
 }
 
-function snapshotBlockRuntime(source, label, destroySource) {
+function snapshotBlockRuntime(source, label, destroySource, assertActive) {
   synchronousResult(source)
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
@@ -365,22 +365,29 @@ function snapshotBlockRuntime(source, label, destroySource) {
   const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
   const destroy = destroySource
-  return Object.freeze({ create, destroy })
+  return Object.freeze({
+    create: (...args) => { assertActive(); return create(...args) },
+    destroy,
+  })
 }
 
-function snapshotInlineRuntime(source, label, destroySource) {
+function snapshotInlineRuntime(source, label, destroySource, assertActive) {
   synchronousResult(source)
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
+  const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
   const runtime = {
-    create: bindMethod(source, source.create, `${label} runtime create`, { synchronous: false }),
+    create: (...args) => {
+      assertActive()
+      return create(...args)
+    },
     destroy: destroySource,
   }
   for (const name of ['onTriggerQuery', 'onTriggerKeydown', 'onTriggerCancel']) {
     const method = bindMethod(source, source[name], `${label} runtime ${name}`, { optional: true })
-    if (method) runtime[name] = method
+    if (method) runtime[name] = (...args) => { assertActive(); return method(...args) }
   }
   return Object.freeze(runtime)
 }
@@ -445,6 +452,10 @@ export class ExtensionRegistry {
     // point the registry already owns its independent definitions.
     this.#abortController = new (ownerDocument.defaultView?.AbortController ?? AbortController)()
 
+    const assertActive = () => {
+      if (this.#destroyed) throw new Error('Extension registry is destroyed')
+    }
+
     try {
       for (const definition of blocks) {
         if (acquireStyles && definition.styles.length) {
@@ -461,7 +472,7 @@ export class ExtensionRegistry {
             t: (key, fallback = '', params = undefined) => translate(`plugin.${definition.type}.${key}`, fallback, params),
           })
           destroySource = captureInstanceDestroy(runtimeSource)
-          const runtime = snapshotBlockRuntime(runtimeSource, `Block definition "${definition.type}"`, destroySource)
+          const runtime = snapshotBlockRuntime(runtimeSource, `Block definition "${definition.type}"`, destroySource, assertActive)
           this.#blockRuntimes.set(definition.type, runtime)
         } catch (error) {
           try { destroySource?.() } catch {}
@@ -488,7 +499,7 @@ export class ExtensionRegistry {
             },
           })
           destroySource = captureInstanceDestroy(runtimeSource)
-          const runtime = snapshotInlineRuntime(runtimeSource, `Inline definition "${definition.type}"`, destroySource)
+          const runtime = snapshotInlineRuntime(runtimeSource, `Inline definition "${definition.type}"`, destroySource, assertActive)
           this.#inlineRuntimes.set(definition.type, runtime)
         } catch (error) {
           try { destroySource?.() } catch {}
