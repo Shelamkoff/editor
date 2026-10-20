@@ -87,6 +87,7 @@ function assertIndex(index, min, max, label) {
 
 export class DocumentDraft {
   #owner
+  /** @type {number} */
   #baseRevision
   #version
   #order
@@ -118,6 +119,7 @@ export class DocumentDraft {
     return this.#owner === owner
   }
 
+  /** @param {number} revision */
   isBasedOn(revision) {
     return this.#baseRevision === revision
   }
