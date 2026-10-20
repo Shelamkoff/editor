@@ -177,8 +177,12 @@ export function validatePollData(data) {
  */
 export function applyLocalPollVote(current, previousIds, nextIds, optionIds) {
   const result = normalizePollResults(current, optionIds, retainedVoterLimit(current))
-  const previous = new Set(previousIds)
-  const next = new Set(nextIds)
+  // A queued local vote may settle after options were edited or removed.
+  // It must not create a currentUserVote outside the canonical option set,
+  // or manufacture a ballot that belongs to no active option.
+  const allowed = new Set(optionIds)
+  const previous = new Set(previousIds.filter(id => typeof id === 'string' && allowed.has(id)))
+  const next = new Set(nextIds.filter(id => typeof id === 'string' && allowed.has(id)))
   result.options = result.options.map(option => ({
     id: option.id,
     votes: Math.max(0, option.votes - (previous.has(option.id) ? 1 : 0) + (next.has(option.id) ? 1 : 0)),
