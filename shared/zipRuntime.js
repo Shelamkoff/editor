@@ -11,6 +11,8 @@
 let runtime = null
 /** @type {Promise<ZipRuntime> | null} */
 let loadPromise = null
+// A later explicit provider or reset revokes ownership of an earlier import.
+let selectionRevision = 0
 
 /**
  * @returns {ZipRuntime | null}
@@ -24,10 +26,13 @@ export function getZipRuntime() {
 }
 
 /**
- * @param {ZipRuntime} value
+ * @param {ZipRuntime | null} value
  */
 export function setZipRuntime(value) {
   runtime = value
+  selectionRevision++
+  // A later load must follow this selection, not reuse a retired Promise.
+  loadPromise = null
 }
 
 /**
@@ -39,16 +44,28 @@ export function loadZipRuntime() {
   if (current) return Promise.resolve(current)
   if (loadPromise) return loadPromise
 
-  loadPromise = import('jszip')
+  const revision = selectionRevision
+  const pending = import('jszip')
     .then(module => {
       const loaded = /** @type {ZipRuntime} */ (module.default || module)
+      // The explicit or ambient runtime selected after this import began
+      // has priority. Keep the previous awaiter usable without publishing
+      // an obsolete provider into the active registry.
+      const selected = getZipRuntime()
+      if (revision !== selectionRevision || selected) return selected ?? loaded
       runtime = loaded
       return loaded
     })
     .catch(error => {
-      loadPromise = null
+      // If an older lazy request fails after a replacement was installed,
+      // consumers can still use the newer provider.
+      const selected = getZipRuntime()
+      if (revision !== selectionRevision && selected) return selected
       throw error
     })
-
-  return loadPromise
+    .finally(() => {
+      if (loadPromise === pending) loadPromise = null
+    })
+  loadPromise = pending
+  return pending
 }
