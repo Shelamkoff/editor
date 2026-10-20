@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { prepareCurrentDocument } from './DocumentIngestion.js'
+import { createVersionedDataSchema } from '../shared/versionedDataSchema.js'
 
 function harness(normalizeData, normalizeTunes = value => value) {
   const definition = {
@@ -64,4 +65,30 @@ test('canonical document ingestion invalidates revisions when an array is reorde
   }))
   const result = prepareCurrentDocument(document, services)
   assert.equal(Object.hasOwn(result.blocks[0], 'revision'), false)
+})
+
+
+test('document ingestion rejects an async text normalizer even when the block mapper ignores its result', () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: data => ({ text: data.text }),
+    mapRichText(data, transform) {
+      transform(data.text, 'text')
+    },
+  })
+  const definition = { type: 'custom', schema }
+  const services = {
+    getBlockDefinition: type => type === 'custom' ? definition : undefined,
+    getInlineDefinition: () => undefined,
+    normalizeData: (_definition, data) => schema.encode(
+      schema.mapRichText(data, () => Promise.resolve('<b>late</b>')),
+    ),
+    normalizeTunes: value => value,
+  }
+  const document = {
+    version: '2.0.0',
+    blocks: [{ id: 'a', type: 'custom', dataVersion: 1, data: { text: 'Original' } }],
+  }
+  assert.throws(() => prepareCurrentDocument(document, services), /must complete synchronously/)
 })
