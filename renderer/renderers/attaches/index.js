@@ -87,44 +87,51 @@ async function readBoundedResponse(response, signal, total) {
       || total.value + bytes.byteLength > ARCHIVE_LIMITS.totalBytes) {
       throw new RangeError('Attachment archive exceeds its size limit')
     }
-    total.value += bytes.byteLength
-    return new Uint8Array(bytes)
+    const owned = new Uint8Array(bytes)
+    total.value += owned.byteLength
+    return owned
   }
 
   const reader = response.body.getReader()
   /** @type {Uint8Array[]} */
   const chunks = []
   let size = 0
+  // In-flight bytes count against the hard total budget, but a failed
+  // response must return its reservation so later valid files are not
+  // rejected as if the discarded content were present in the archive.
+  let reserved = 0
   try {
     while (true) {
       signal.throwIfAborted()
       const { done, value } = await reader.read()
-      // A canceled stream may still resolve one queued read, including a
-      // final {done:true}; never treat that as an accepted ZIP entry.
       signal.throwIfAborted()
       if (done) break
       if (!value) continue
-      size += value.byteLength
-      total.value += value.byteLength
-      if (size > ARCHIVE_LIMITS.fileBytes || total.value > ARCHIVE_LIMITS.totalBytes) {
+      const chunkSize = value.byteLength
+      if (size + chunkSize > ARCHIVE_LIMITS.fileBytes
+        || total.value + chunkSize > ARCHIVE_LIMITS.totalBytes) {
         throw new RangeError('Attachment archive exceeds its size limit')
       }
-      const copy = new Uint8Array(value.byteLength)
+      const copy = new Uint8Array(chunkSize)
       copy.set(value)
       chunks.push(copy)
+      size += chunkSize
+      total.value += chunkSize
+      reserved += chunkSize
     }
+    signal.throwIfAborted()
+    const content = new Uint8Array(size)
+    let offset = 0
+    for (const chunk of chunks) {
+      content.set(chunk, offset)
+      offset += chunk.byteLength
+    }
+    return content
   } catch (error) {
-    await reader.cancel(error).catch(() => {})
+    total.value -= reserved
+    try { await reader.cancel(error) } catch {}
     throw error
   }
-  signal.throwIfAborted()
-  const content = new Uint8Array(size)
-  let offset = 0
-  for (const chunk of chunks) {
-    content.set(chunk, offset)
-    offset += chunk.byteLength
-  }
-  return content
 }
 
 /**
@@ -170,18 +177,24 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
       while (cursor < entries.length) {
         const entry = entries[cursor++]
         operationSignal.throwIfAborted()
+        // Once a read has completed, its reserved bytes belong to the file
+        // only if ZIP insertion completes. Failed files release that lease.
+        let admittedBytes = 0
         try {
           const response = await fetchFn(entry.url, { signal: operationSignal })
           operationSignal.throwIfAborted()
           if (!response.ok) continue
           const bytes = await readBoundedResponse(response, operationSignal, total)
+          admittedBytes = bytes.byteLength
           // An asynchronous source can settle after cancellation even when
           // the underlying fetch/body reader ignores AbortSignal.
           operationSignal.throwIfAborted()
           zip.file(entry.name, bytes)
           operationSignal.throwIfAborted()
           archived += 1
+          admittedBytes = 0
         } catch (error) {
+          if (admittedBytes) total.value -= admittedBytes
           if (error instanceof RangeError) {
             controller.abort(error)
             throw error
