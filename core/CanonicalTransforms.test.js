@@ -304,3 +304,13 @@ test('fragment remap rejects a generated id that cannot be parsed as an inline r
     }), /inline reference destination id/i)
   }
 })
+
+
+test('inline remap retains an own __proto__ occurrence without changing object prototypes', () => {
+  const source = JSON.parse('{"__proto__":{"type":"mention","dataVersion":1,"data":{"name":"Opaque"}}}')
+  const remapped = remapCanonicalInline(source, new Map())
+  assert.equal(Object.hasOwn(remapped, '__proto__'), true)
+  assert.equal(Object.getPrototypeOf(remapped), Object.prototype)
+  assert.deepEqual(remapped, source)
+  assert.notStrictEqual(remapped['__proto__'], source['__proto__'])
+})
