@@ -70,9 +70,12 @@ export class ChangeNotifier {
         // Rejections from retired saves or observers belong to an old lease.
         if (this.#destroyed || generation !== this.#generation) return
         if (this.#onError) invokeObserver(this.#onError, [err], sinkError => {
-          console.warn('[ChangeNotifier] Error sink failed:', sinkError)
+          // Even a throwing diagnostic console cannot reject this timer task.
+          try { console.warn('[ChangeNotifier] Error sink failed:', sinkError) } catch {}
         })
-        else console.warn('[ChangeNotifier] Failed to save or notify:', err)
+        else {
+          try { console.warn('[ChangeNotifier] Failed to save or notify:', err) } catch {}
+        }
       }
     }, this.#delay)
     // Timer registration itself is a host callback. It may synchronously
