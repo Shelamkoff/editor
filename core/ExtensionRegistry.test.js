@@ -966,3 +966,56 @@ test('invalid extension definitions fail before allocating owner AbortController
   assert.equal(allocations, 0,
     'a rejected definition needlessly created an owner-realm cancellation resource')
 })
+
+
+test('retained block and inline runtime methods are revoked after ExtensionRegistry destroy', () => {
+  const doc = documentStub()
+  const calls = { blockCreate: 0, inlineCreate: 0, trigger: 0, inlineKeydown: 0, destroy: 0 }
+  const block = {
+    ...blockDefinition('paragraph'),
+    setup() {
+      return {
+        create() { calls.blockCreate++; return { id: 'block-instance' } },
+        destroy() { calls.destroy++ },
+      }
+    },
+  }
+  const inline = {
+    ...inlineDefinition('mention', '@'),
+    setup() {
+      return {
+        create() { calls.inlineCreate++; return { id: 'inline-instance' } },
+        onTriggerQuery() { calls.trigger++; return null },
+        onTriggerKeydown() { calls.inlineKeydown++; return null },
+        destroy() { calls.destroy++ },
+      }
+    },
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [block],
+    inline: [inline],
+  })
+  const blockRuntime = registry.getBlockRuntime('paragraph')
+  const inlineRuntime = registry.getInlineRuntime('mention')
+  assert.ok(blockRuntime.create())
+  assert.ok(inlineRuntime.create())
+  inlineRuntime.onTriggerQuery('a')
+  inlineRuntime.onTriggerKeydown({ key: 'ArrowDown' })
+  assert.deepEqual(calls, {
+    blockCreate: 1, inlineCreate: 1, trigger: 1, inlineKeydown: 1, destroy: 0,
+  })
+
+  registry.destroy()
+  assert.equal(calls.destroy, 2)
+  assert.throws(() => blockRuntime.create(), /destroyed|revoked/i)
+  assert.throws(() => inlineRuntime.create(), /destroyed|revoked/i)
+  assert.throws(() => inlineRuntime.onTriggerQuery('late'), /destroyed|revoked/i)
+  assert.throws(() => inlineRuntime.onTriggerKeydown({ key: 'Enter' }), /destroyed|revoked/i)
+  assert.deepEqual(calls, {
+    blockCreate: 1, inlineCreate: 1, trigger: 1, inlineKeydown: 1, destroy: 2,
+  }, 'retired runtime method invoked the extension producer')
+  blockRuntime.destroy()
+  inlineRuntime.destroy()
+  assert.equal(calls.destroy, 2, 'retained destroy handles must remain idempotent')
+})
