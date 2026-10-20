@@ -741,3 +741,58 @@ test('active instance refuses stale reads and ID allocations while staged snapsh
   assert.deepEqual(context.getData(), { secret: 'candidate value' })
   assert.equal(context.createId('item'), 'stale-id')
 })
+
+
+test('phase probe advancing document generation cannot authorize a stale mutation', () => {
+  const scope = new InstanceScope({ staged: false, generation: 2 })
+  let committedGeneration = 2, producers = 0, phaseChecks = 0
+  scope.configure({
+    currentGeneration: () => committedGeneration,
+    phase() {
+      phaseChecks++
+      committedGeneration = 3
+      return 'idle'
+    },
+  })
+  assert.equal(scope.runMutation(() => producers++), false,
+    'a phase callback changed the document generation before producer execution')
+  assert.equal(producers, 0)
+  assert.equal(phaseChecks, 1)
+})
+
+test('data task admission refuses a revision callback that changes document generation', () => {
+  const scope = new InstanceScope({ staged: false, generation: 5 })
+  let committedGeneration = 5, writers = 0, revisions = 0
+  scope.configure({
+    currentGeneration: () => committedGeneration,
+    currentRevision() {
+      revisions++
+      committedGeneration = 6
+      return 12
+    },
+  })
+  const context = scope.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData() { writers++ },
+  })
+  assert.throws(() => context.beginTask(), error => error?.name === 'AbortError',
+    'beginTask issued a task from a generation already superseded by revision lookup')
+  assert.equal(revisions, 1)
+  assert.equal(writers, 0)
+})
+
+test('an active instance does not expose a snapshot after its own read callback changes generation', () => {
+  const scope = new InstanceScope({ staged: false, generation: 1 })
+  let actualGeneration = 1, reads = 0
+  scope.configure({ currentGeneration: () => actualGeneration })
+  const context = scope.createAuthority({
+    readData() {
+      reads++
+      actualGeneration = 2
+      return { text: 'Retired author data' }
+    },
+    updateData() {},
+  })
+  assert.throws(() => context.getData(), error => error?.name === 'AbortError')
+  assert.equal(reads, 1)
+})
