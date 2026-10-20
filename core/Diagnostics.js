@@ -49,7 +49,25 @@ export class Diagnostics {
     // A diagnostics event is deliberately content-free. Types alone cannot
     // stop a JavaScript caller accidentally forwarding document/plugin data.
     // Read each permitted field once, without spreading arbitrary payloads.
-    const { durationMs, operation, pluginType, blockType, errorName } = details
+    // Extensions may pass accessor-backed metadata. Only own data properties
+    // are admitted: reading a getter would execute untrusted code inside a
+    // transaction (and could throw before the observer is deferred).
+    // Inspect the descriptors one key at a time so unrelated properties,
+    // including payload accessors, are never evaluated.
+    const readField = name => {
+      try {
+        const descriptor = Object.getOwnPropertyDescriptor(details, name)
+        return descriptor && 'value' in descriptor ? descriptor.value : undefined
+      } catch {
+        // A hostile Proxy must not interrupt editor operations.
+        return undefined
+      }
+    }
+    const durationMs = readField('durationMs')
+    const operation = readField('operation')
+    const pluginType = readField('pluginType')
+    const blockType = readField('blockType')
+    const errorName = readField('errorName')
     const diagnostic = Object.freeze({
       code,
       timestamp: Date.now(),
