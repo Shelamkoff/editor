@@ -27,7 +27,11 @@ export const ARCHIVE_LIMITS = Object.freeze({
 
 const WINDOWS_RESERVED_NAME_RE = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i
 
-/** Limit UTF-16 name length without splitting a non-BMP Unicode character. */
+/** Limit UTF-16 name length without splitting a non-BMP Unicode character.
+ * @param {string} value
+ * @param {number} maxLength
+ * @returns {string}
+ */
 function truncateArchiveFilename(value, maxLength) {
   const clipped = value.slice(0, maxLength)
   return /[\uD800-\uDBFF]$/.test(clipped) ? clipped.slice(0, -1) : clipped
