@@ -854,3 +854,36 @@ test('extension registries share a newly acquired stylesheet when the previous e
   next.destroy()
   assert.deepEqual(doc.links, [], 'final CSS owner must remove the shared link')
 })
+
+
+test('ExtensionRegistry teardown releases all runtimes and CSS even if owner AbortController throws', () => {
+  const doc = documentStub()
+  const callbacks = []
+  let aborts = 0
+  class ThrowingOwnerAbortController {
+    signal = { aborted: false }
+    abort() {
+      aborts++
+      this.signal.aborted = true
+      throw new Error('owner abort adapter failed')
+    }
+  }
+  doc.defaultView = { AbortController: ThrowingOwnerAbortController }
+  const registry = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [blockDefinition('first', { styles: ['/first.css'], calls: callbacks }),
+      blockDefinition('second', { styles: ['/second.css'], calls: callbacks })],
+    inline: [inlineDefinition('mention', '@', { styles: ['/mention.css'], calls: callbacks })],
+  })
+  assert.equal(doc.links.length, 3)
+
+  assert.doesNotThrow(() => registry.destroy())
+  assert.equal(aborts, 1)
+  assert.equal(doc.links.length, 0, 'a failed owner abort leaked extension styles')
+  assert.equal(callbacks.filter(([action]) => action === 'destroy').length, 2,
+    'the failed abort skipped block runtime cleanup')
+  assert.equal(callbacks.filter(([action]) => action === 'destroy-inline').length, 1,
+    'the failed abort skipped inline runtime cleanup')
+  registry.destroy()
+  assert.equal(aborts, 1, 'the retired owner should not abort twice')
+})
