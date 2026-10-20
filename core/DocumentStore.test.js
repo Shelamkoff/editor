@@ -232,3 +232,60 @@ test('semantically identical block updates leave a draft unchanged', () => {
   assert.equal(draft.changes[0].before.data.text, 'stable')
   assert.equal(draft.changes[0].after.data.text, 'edited')
 })
+
+
+test('a stale prepared document commit cannot replace a newer canonical revision', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a', 'base')] })
+  const staleDraft = store.createDraft()
+  staleDraft.update('a', block('a', 'stale'))
+  const stale = store.prepareCommit(staleDraft)
+
+  const freshDraft = store.createDraft()
+  freshDraft.update('a', block('a', 'fresh'))
+  const fresh = store.prepareCommit(freshDraft)
+  fresh.commit()
+
+  const preserved = store.export()
+  assert.throws(() => stale.commit(), /stale/i)
+  assert.deepEqual(store.export(), preserved)
+  assert.equal(store.revision, 1)
+  assert.equal(store.generation, 1)
+  assert.doesNotThrow(() => fresh.commit(), 'retrying a successful plan must remain idempotent')
+  assert.deepEqual(store.export(), preserved)
+})
+
+test('a draft created before a later commit cannot prepare against the newer revision', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a', 'base')] })
+  const staleDraft = store.createDraft()
+  staleDraft.update('a', block('a', 'stale'))
+
+  const replacement = store.createDraft()
+  replacement.replace({ version: '2.0.0', blocks: [block('b', 'replacement')] })
+  store.commit(replacement, { newGeneration: true })
+  const preserved = store.export()
+
+  assert.throws(() => store.prepareCommit(staleDraft), /stale/i)
+  assert.deepEqual(store.export(), preserved)
+  assert.equal(store.revision, 1)
+  assert.equal(store.generation, 2)
+})
+
+test('a stale prepared replacement cannot rewind the generation after a successor', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a', 'base')] })
+  const staleDraft = store.createDraft()
+  staleDraft.replace({ version: '2.0.0', blocks: [block('old', 'old')] })
+  const stale = store.prepareCommit(staleDraft, { newGeneration: true })
+
+  const freshDraft = store.createDraft()
+  freshDraft.replace({ version: '2.0.0', blocks: [block('new', 'new')] })
+  store.commit(freshDraft, { newGeneration: true })
+  const nextDraft = store.createDraft()
+  nextDraft.update('new', block('new', 'latest'))
+  store.commit(nextDraft)
+  const preserved = store.export()
+
+  assert.throws(() => stale.commit(), /stale/i)
+  assert.deepEqual(store.export(), preserved)
+  assert.equal(store.revision, 2)
+  assert.equal(store.generation, 2)
+})
