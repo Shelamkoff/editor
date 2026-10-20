@@ -821,3 +821,96 @@ test('a valid host projection edit may invoke its DOM producer after entering th
   assert.equal(executions, 1,
     'generation revocation guard incorrectly rejected a valid synchronous projection edit')
 })
+
+
+test('data task commit rejects a generation replaced during local or parent admission callbacks', () => {
+  for (const interruption of ['phase', 'parent-health', 'parent-phase']) {
+    let committedGeneration = 3
+    let interrupt = false
+    let writes = 0, producers = 0
+    const parent = new InstanceScope({ staged: false, generation: 3 })
+    const scope = new InstanceScope({ staged: false, generation: 3, parent })
+    parent.configure({
+      health() {
+        if (interruption === 'parent-health' && interrupt) committedGeneration = 4
+        return 'ready'
+      },
+      phase() {
+        if (interruption === 'parent-phase' && interrupt) committedGeneration = 4
+        return 'idle'
+      },
+    })
+    scope.configure({
+      currentGeneration: () => committedGeneration,
+      currentRevision: () => 7,
+      phase() {
+        if (interruption === 'phase' && interrupt) committedGeneration = 4
+        return 'idle'
+      },
+    })
+    const context = scope.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData(callback) { writes++; callback({ value: 1 }) },
+    })
+    const task = context.beginTask()
+    interrupt = true
+    assert.equal(task.commit(current => {
+      producers++
+      return { ...current, value: 2 }
+    }), false, interruption + ' committed after its document generation changed')
+    assert.equal(writes, 0, interruption + ' crossed the updateData boundary')
+    assert.equal(producers, 0)
+    assert.equal(task.signal.aborted, true)
+  }
+})
+
+test('queued instance update cannot invoke producer after host advances committed generation', () => {
+  const scope = new InstanceScope({ staged: false, generation: 9 })
+  let committedGeneration = 9, producers = 0, persisted = 0
+  scope.configure({ currentGeneration: () => committedGeneration })
+  const context = scope.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData(callback) {
+      committedGeneration = 10
+      callback({ value: 1 })
+      persisted++
+    },
+  })
+  assert.throws(() => context.updateData(current => {
+    producers++
+    return { ...current, value: 2 }
+  }), error => error?.name === 'AbortError')
+  assert.equal(producers, 0, 'stale queued producer received authority after document replacement')
+  assert.equal(persisted, 0)
+})
+
+test('instance and data-task producers cannot commit after a reentrant generation change', () => {
+  for (const method of ['updateData', 'task.commit']) {
+    const scope = new InstanceScope({ staged: false, generation: 5 })
+    let committedGeneration = 5, persisted = 0, producers = 0
+    scope.configure({
+      currentGeneration: () => committedGeneration,
+      currentRevision: () => 2,
+    })
+    const context = scope.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData(callback) {
+        callback({ value: 1 })
+        persisted++
+      },
+    })
+    const task = method === 'task.commit' ? context.beginTask() : null
+    assert.throws(() => {
+      const producer = current => {
+        producers++
+        committedGeneration = 6
+        return { ...current, value: 2 }
+      }
+      if (task) task.commit(producer)
+      else context.updateData(producer)
+    }, error => error?.name === 'AbortError')
+    assert.equal(producers, 1)
+    assert.equal(persisted, 0, method + ' persisted after producer retired its document generation')
+    if (task) assert.equal(task.signal.aborted, true)
+  }
+})
