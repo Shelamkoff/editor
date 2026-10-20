@@ -403,3 +403,44 @@ test('reentrant destruction through timer cancellation is idempotent', () => {
   assert.deepEqual(cleared, [1],
     'the reentrant destructor canceled the same timer more than once')
 })
+
+
+test('throwing console diagnostics cannot reject notification timers', async () => {
+  const callbacks = []
+  const host = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout() {},
+  }
+  const oldWarn = console.warn
+  let warnings = 0
+  console.warn = () => {
+    warnings++
+    throw new Error('diagnostic console is unavailable')
+  }
+  const notifier = new ChangeNotifier(
+    () => { throw new Error('save failed') },
+    () => {},
+    0,
+    host,
+  )
+  const observerNotifier = new ChangeNotifier(
+    () => ({ version: 'current', blocks: [] }),
+    () => { throw new Error('change observer failed') },
+    0,
+    host,
+  )
+
+  try {
+    notifier.schedule()
+    observerNotifier.schedule()
+    await assert.doesNotReject(callbacks[0](),
+      'a thrown warning replaced the original save failure')
+    await assert.doesNotReject(callbacks[1](),
+      'a thrown warning escaped the asynchronous observer boundary')
+    assert.equal(warnings, 2)
+  } finally {
+    notifier.destroy()
+    observerNotifier.destroy()
+    console.warn = oldWarn
+  }
+})
