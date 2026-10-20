@@ -461,3 +461,93 @@ test('ZIP export cancellation during href publication never triggers anchor.clic
     setZipRuntime(previousRuntime)
   }
 })
+
+
+test('ZIP export rejects a fetch that settles after abort without reading its body', async () => {
+  const previousRuntime = getZipRuntime()
+  const caller = new AbortController()
+  let releaseFetch
+  let enteredFetch
+  const started = new Promise(resolve => { enteredFetch = resolve })
+  const pendingFetch = new Promise(resolve => { releaseFetch = resolve })
+  let headerReads = 0
+  let filesWritten = 0
+  class FakeZip {
+    file() { filesWritten++ }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      fetch() { enteredFetch(); return pendingFetch },
+    },
+  }
+
+  try {
+    const pending = downloadArchive(
+      [{ url: 'https://example.test/delayed-fetch', name: 'delayed-fetch' }],
+      { signal: caller.signal, ownerDocument },
+    )
+    await started
+    caller.abort()
+    releaseFetch({
+      ok: true,
+      get headers() {
+        headerReads++
+        return { get: () => null }
+      },
+      body: null,
+      async blob() {
+        return { size: 1, async arrayBuffer() { return new Uint8Array([1]).buffer } }
+      },
+    })
+    await assert.rejects(pending, error => error?.name === 'AbortError')
+    assert.equal(headerReads, 0, 'a retired fetch read headers after cancellation')
+    assert.equal(filesWritten, 0)
+  } finally {
+    setZipRuntime(previousRuntime)
+  }
+})
+
+test('ZIP export rejects delayed arrayBuffer completion after abort without writing ZIP entry', async () => {
+  const previousRuntime = getZipRuntime()
+  const caller = new AbortController()
+  let releaseBytes
+  let enteredBytes
+  const started = new Promise(resolve => { enteredBytes = resolve })
+  const pendingBytes = new Promise(resolve => { releaseBytes = resolve })
+  let filesWritten = 0
+  class FakeZip {
+    file() { filesWritten++ }
+    async generateAsync() { return new Uint8Array([1]) }
+  }
+  setZipRuntime(FakeZip)
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      fetch: async () => ({
+        ok: true,
+        headers: { get: () => null },
+        body: null,
+        async blob() {
+          return { size: 1, arrayBuffer() { enteredBytes(); return pendingBytes } }
+        },
+      }),
+    },
+  }
+
+  try {
+    const pending = downloadArchive(
+      [{ url: 'https://example.test/delayed-buffer', name: 'delayed-buffer' }],
+      { signal: caller.signal, ownerDocument },
+    )
+    await started
+    caller.abort()
+    releaseBytes(new Uint8Array([1]).buffer)
+    await assert.rejects(pending, error => error?.name === 'AbortError')
+    assert.equal(filesWritten, 0, 'an aborted arrayBuffer continuation wrote an archive entry')
+  } finally {
+    setZipRuntime(previousRuntime)
+  }
+})
