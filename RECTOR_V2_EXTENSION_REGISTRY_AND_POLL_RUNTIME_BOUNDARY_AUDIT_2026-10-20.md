@@ -73,7 +73,7 @@ Commits:
 | ExtensionRegistry, snapshot/controller race | 37/39 | **39/39** |
 | Poll result coercion (before stale-id additions) | 10/11 | **11/11** |
 | Poll local vote option validation | 11/13 | **13/13** |
-| Final scoped total, using two non-overlapping suites | — | **52/52** |
+| Final scoped total, using two non-overlapping suites | — | **54/54 (including the later runtime-retirement checks documented below)** |
 
 All tests above executed the exact fetched production/test bodies with controlled V8 adapters for Node assertions, owner-document DOM and AbortController. They were **not** executed by native `node --test`. An ordinary direct `git ls-remote` from the local execution container failed with `Could not resolve host: github.com`; code reads and direct commits used the connected GitHub API instead. A check of the GitHub combined status and workflow runs for the intermediate commit returned no statuses or runs, not a passing CI signal.
 
@@ -96,3 +96,26 @@ npm run test:package
 Also run Chromium scenarios for two editor instances overlapping in one document, plugin setup/destroy lifecycle, and Poll live result refresh/vote/removal during pending callbacks; verify no retained resources, phantom ballots or invalid `currentUserVote`. Validate full user-facing v1/v2 feature parity separately against the 21 block-type matrix.
 
 **Not completed:** native Node/npm, TypeScript/type declaration verification, browser/heap/IME gates, package consumers, and full functional parity matrix. Therefore the individual reproduced defects are corrected at source level, but **overall Rector v2 release readiness is not certified**.
+
+
+## EXT-RETAINED-RUNTIME-1 — saved plugin producers remained callable after destroy (P2)
+
+A caller could retain a reference returned by `getBlockRuntime(type)` or `getInlineRuntime(type)`, then call the previously captured `create()` or inline trigger callbacks after `ExtensionRegistry.destroy()`. Although the registry cleared its internal maps and disposed runtimes, the frozen runtime wrappers held bound extension callbacks with no active-owner test. This violated the I7 owner-revocation contract.
+
+Added a regression retaining block and inline runtime handles, calling the methods before disposal (positive control) and after registry teardown (negative control). The old source passed **39/40** tests; the new case failed because the retained callback still ran. The fix makes each exported producer check a closure that verifies the registry is still active before invoking the saved plugin method. Registry-wide cleanup still calls the dedicated destructor without this guard. After the fix, **40/40 passed**.
+
+A second regression demonstrated that direct `runtime.destroy()` (while the registry itself remains active) had the same stale-handle problem. This test failed against the first fix at **40/41 passed**. The final code adds a runtime-local `retired` lease which is set **before** calling plugin cleanup. Both `create()` and optional inline trigger methods reject future calls once retired, including after a throwing or reentrant destructor. The runtime destructor stays idempotent, and subsequent whole-registry `destroy()` does not double-dispose it. The complete current registry suite passed **41/41** in isolated JS execution.
+
+Commits:
+- [Retained-handle RED regression](https://github.com/Shelamkoff/editor/commit/127dd845fb95c736b13e931f26522f867e889d3d)
+- [Registry lifetime guard](https://github.com/Shelamkoff/editor/commit/e6ff9b2fbd10cab4514a5bef40b881b29cfd7083)
+- [Direct runtime destroy RED regression](https://github.com/Shelamkoff/editor/commit/e99f60335445c335d0283a25082c28ce7f32cb29)
+- [Runtime-local lease revocation](https://github.com/Shelamkoff/editor/commit/6aab37186b2dca624f5e61875c073f91ccc8caee)
+
+### Updated final scoped status
+
+- `core/ExtensionRegistry.test.js`: **41/41** current source-backed isolated tests.
+- `shared/pollData.test.js`: **13/13** current source-backed isolated tests.
+- **54/54** non-overlapping focused tests in these two modules.
+
+The prior 52/52 count described the initial pass before retained-runtime regressions. This updated count supersedes it. Native Node, TypeScript and browser release gates remain **not executed**; source-backed checks cannot establish complete Rector v2 release readiness.
