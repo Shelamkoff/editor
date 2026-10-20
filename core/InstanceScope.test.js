@@ -696,3 +696,48 @@ test('ordinary synchronous DOM mutation still invokes its producer once', () => 
   assert.equal(context.commitDomMutation(() => { executions++ }), 'host result')
   assert.equal(executions, 1)
 })
+
+
+test('active instance cannot write after document generation advances before lifecycle teardown', () => {
+  const scope = new InstanceScope({ staged: false, generation: 4 })
+  let hostGeneration = 4, writes = 0, producers = 0, domOperations = 0
+  scope.configure({ currentGeneration: () => hostGeneration })
+  const context = scope.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData(producer) {
+      writes++
+      producer({ value: 1 })
+    },
+    commitDomMutation(operation) { domOperations++; operation() },
+  })
+  hostGeneration = 5
+  assert.equal(scope.runMutation(() => producers++), false)
+  context.updateData(() => { producers++; return { value: 2 } })
+  context.commitDomMutation(() => { producers++ })
+  assert.equal(writes, 0, 'a stale scope reached the canonical update boundary')
+  assert.equal(domOperations, 0, 'a stale scope scheduled a DOM mutation through its host')
+  assert.equal(producers, 0, 'a stale scope executed an authored operation')
+  assert.throws(() => context.beginTask(), error => error?.name === 'AbortError')
+})
+
+test('active instance refuses stale reads and ID allocations while staged snapshots remain legal', () => {
+  const scope = new InstanceScope({ staged: true, generation: 7 })
+  let hostGeneration = 6, reads = 0, allocations = 0
+  scope.configure({ currentGeneration: () => hostGeneration })
+  const context = scope.createAuthority({
+    readData() { reads++; return { secret: 'candidate value' } },
+    updateData() {},
+    createId() { allocations++; return 'stale-id' },
+  })
+  assert.deepEqual(context.getData(), { secret: 'candidate value' },
+    'a staged instance must read its future candidate before commit')
+  assert.equal(reads, 1)
+  scope.activate()
+  assert.throws(() => context.getData(), error => error?.name === 'AbortError')
+  assert.throws(() => context.createId('item'), error => error?.name === 'AbortError')
+  assert.equal(reads, 1, 'obsolete active instance leaked author data after a generation change')
+  assert.equal(allocations, 0, 'obsolete active instance allocated a data ID')
+  hostGeneration = 7
+  assert.deepEqual(context.getData(), { secret: 'candidate value' })
+  assert.equal(context.createId('item'), 'stale-id')
+})
