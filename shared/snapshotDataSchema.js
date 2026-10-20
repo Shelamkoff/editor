@@ -107,7 +107,16 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
     schema.mapRichText = (data, transform) => {
       if (typeof transform !== 'function') throw new TypeError('Rich-text transform must be a function')
       return ownObject(
-        mapRichText(ownObject(data, `${label} rich-text data`), transform),
+        mapRichText(ownObject(data, `${label} rich-text data`), (html, fieldKey) => {
+          // An extension can ignore a transform result while returning valid
+          // synchronous data. Reject the invalid callback result at the
+          // invocation boundary, before accepting that mapped data.
+          const result = synchronousResult(transform(html, fieldKey))
+          if (typeof result !== 'string') {
+            throw new TypeError('Rich-text transform must return a string')
+          }
+          return result
+        }),
         `${label} rich-text result`,
       )
     }
