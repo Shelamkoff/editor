@@ -92,6 +92,15 @@ export function cloneJsonValue(value, path = '$') {
         return result
       }
 
+      // The persisted JSON boundary forbids enumerable symbol keys on
+      // records. Reject their *names* before reading any ordinary payload
+      // accessor; a rejected shape must not execute author-owned data code.
+      for (const key of Object.getOwnPropertySymbols(current)) {
+        if (Object.prototype.propertyIsEnumerable.call(current, key)) {
+          throw new TypeError(`${currentPath} contains an enumerable symbol key`)
+        }
+      }
+
       /** @type {Record<string, unknown>} */
       const result = {}
       for (const key of Object.keys(current)) {
@@ -103,11 +112,6 @@ export function cloneJsonValue(value, path = '$') {
           configurable: true,
           writable: true,
         })
-      }
-      for (const key of Object.getOwnPropertySymbols(current)) {
-        if (Object.prototype.propertyIsEnumerable.call(current, key)) {
-          throw new TypeError(`${currentPath} contains an enumerable symbol key`)
-        }
       }
       return result
     } finally {
