@@ -70,8 +70,14 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     waitingObserver = null
     const pendingFrame = frameId
     frameId = null
-    observer?.disconnect()
-    if (pendingFrame !== null && cancelFrame) cancelFrame(pendingFrame)
+    // Every owner is released independently. An observer/DOM adapter may
+    // throw during teardown, but it cannot strand the next resource or the
+    // mount's ready promise.
+    try { observer?.disconnect() }
+    catch (error) { invokeObserver(onError, [error]) }
+    try {
+      if (pendingFrame !== null && cancelFrame) cancelFrame(pendingFrame)
+    } catch (error) { invokeObserver(onError, [error]) }
   }
 
   const readGap = () => {
@@ -148,10 +154,18 @@ export function mountGalleryMasonry(container, elements, options = {}) {
   } else {
     signal?.addEventListener('abort', destroy, { once: true })
     if (!destroyed && ResizeObserverCtor) {
-      waitingObserver = new ResizeObserverCtor(() => {
+      const observer = new ResizeObserverCtor(() => {
         void start()
       })
-      if (!destroyed) waitingObserver.observe(container)
+      // The constructor may synchronously abort through an owner-realm
+      // callback before the returned observer is published to our ledger.
+      if (destroyed || settled) {
+        try { observer.disconnect() }
+        catch (error) { invokeObserver(onError, [error]) }
+      } else {
+        waitingObserver = observer
+        observer.observe(container)
+      }
     }
     if (!destroyed && requestFrame) {
       // Some owner-realm animation adapters fire synchronously. Do not
