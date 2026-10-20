@@ -136,3 +136,71 @@ test('versioned data schema snapshots accessor-backed options and serialized env
   assert.deepEqual(schema.decode(input), { dataVersion: 1, data: { text: 'owned' } })
   assert.deepEqual(reads, { currentVersion: 1, createDefault: 1, normalize: 1, dataVersion: 1, data: 1 })
 })
+
+
+test('versioned schema rejects missing and unsupported versions before reading author payload', () => {
+  const schema = createSchema()
+  for (const [version, message] of [[undefined, /dataVersion is required/], [1, /Unsupported data version 1/]]) {
+    let payloadReads = 0
+    const input = {
+      ...(version === undefined ? {} : { dataVersion: version }),
+      get data() {
+        payloadReads++
+        throw new Error('version-rejected payload was evaluated')
+      },
+    }
+    assert.throws(() => schema.decode(input), message)
+    assert.equal(payloadReads, 0, 'an invalid version must not inspect its payload')
+  }
+})
+
+test('versioned schema reads only declared decode fields, not unrelated extension getters', () => {
+  const schema = createSchema()
+  let extraReads = 0
+  const input = {
+    dataVersion: 2,
+    data: { text: ' accepted ' },
+    get unrelatedPluginProperty() {
+      extraReads++
+      throw new Error('unrelated extension getter executed')
+    },
+  }
+  assert.deepEqual(schema.decode(input), {
+    dataVersion: 2, data: { text: 'accepted' },
+  })
+  assert.equal(extraReads, 0)
+})
+
+test('versioned schema rejects unknown option names before invoking their accessors', () => {
+  let reads = 0
+  const options = {
+    currentVersion: 1,
+    createDefault: () => ({}),
+    normalize: input => input,
+    get migrations() {
+      reads++
+      throw new Error('removed compatibility getter executed')
+    },
+  }
+  assert.throws(() => createVersionedDataSchema(options), /Unknown versioned data schema option: migrations/)
+  assert.equal(reads, 0)
+})
+
+test('versioned schema does not inspect undeclared option symbol getters', () => {
+  let reads = 0
+  const options = {
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: input => input,
+  }
+  Object.defineProperty(options, Symbol('extension-metadata'), {
+    enumerable: true,
+    get() {
+      reads++
+      throw new Error('option symbol getter executed')
+    },
+  })
+  const schema = createVersionedDataSchema(options)
+  assert.deepEqual(schema.createDefault(), { text: '' })
+  assert.equal(reads, 0)
+})
