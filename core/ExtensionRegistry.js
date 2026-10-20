@@ -510,7 +510,10 @@ export class ExtensionRegistry {
   destroy() {
     if (this.#destroyed) return
     this.#destroyed = true
-    this.#abortController.abort()
+    // The owning document may supply a custom AbortController whose abort()
+    // throws synchronously. Cleanup must still release every registered
+    // runtime and stylesheet; one failed disposer cannot retain the editor.
+    try { this.#abortController.abort() } catch {}
 
     for (const runtime of [...this.#inlineRuntimes.values()].reverse()) {
       try { runtime.destroy() } catch {}
