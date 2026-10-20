@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { assertClipboardTransferFields } from './ClipboardFragment.js'
 import { getRichTextLogicalLength, replaceRichTextRange, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
 import { remapCanonicalFragment } from './CanonicalTransforms.js'
 import { decodeCurrentBlock } from '../shared/DocumentSchema.js'
@@ -105,6 +106,9 @@ export function clipboardRichTextPart(s,html,inline) {
 
 export function materializeClipboardBlock(s,input,reserved) {
   if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Clipboard block part is invalid')
+  // Direct callers must obey the same C4 transfer shape as private MIME.
+  // Check names before reading caller getters or allocating destination IDs.
+  assertClipboardTransferFields(input)
   if(typeof input.type!=='string'||!input.type)throw new TypeError('Clipboard block type must be non-empty')
   // A transfer block has no persisted destination identity. Validate its
   // complete current envelope before consuming an irreversible session ID.
