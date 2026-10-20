@@ -819,3 +819,38 @@ for (const capabilityName of ['settings', 'inlineControls']) {
     } finally { registry.destroy() }
   })
 }
+
+
+test('extension registries share a newly acquired stylesheet when the previous editor is destroyed from DOM append', () => {
+  const doc = documentStub()
+  const previous = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [blockDefinition('previous', { styles: ['/previous.css'] })],
+  })
+  const append = doc.head.appendChild
+  let retired = false
+  doc.head.appendChild = link => {
+    append(link)
+    if (!retired && link.href === '/new.css') {
+      retired = true
+      previous.destroy()
+    }
+  }
+
+  const current = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [blockDefinition('current', { styles: ['/new.css'] })],
+  })
+  const next = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [blockDefinition('current', { styles: ['/new.css'] })],
+  })
+
+  assert.deepEqual(doc.links.map(link => link.href), ['/new.css'],
+    'the previous editor teardown orphaned the new editor CSS ledger')
+  current.destroy()
+  assert.deepEqual(doc.links.map(link => link.href), ['/new.css'],
+    'first editor teardown removed CSS still owned by the second editor')
+  next.destroy()
+  assert.deepEqual(doc.links, [], 'final CSS owner must remove the shared link')
+})
