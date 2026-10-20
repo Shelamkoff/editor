@@ -158,3 +158,39 @@ test('schema rejects object-valued dataVersion without invoking its toString', (
   assert.equal(coercions, 0)
   assert.equal(payloadReads, 0)
 })
+
+
+test('captured schema rejects asynchronously resolved rich-text transforms ignored by plugin mapper', async () => {
+  const captured = snapshotDataSchema({
+    currentVersion: 1,
+    createDefault() { return { text: 'Original' } },
+    encode(data) { return { dataVersion: 1, data } },
+    decode(input) { return input },
+    mapRichText(data, transform) {
+      transform(data.text, 'text')
+      return data
+    },
+  }, 'Probe', { richText: true })
+  assert.throws(
+    () => captured.mapRichText({ text: 'Original' }, () => Promise.resolve('late')),
+    /must complete synchronously/,
+  )
+  await Promise.resolve()
+})
+
+test('captured schema rejects non-string rich-text transform return values', () => {
+  const captured = snapshotDataSchema({
+    currentVersion: 1,
+    createDefault() { return { text: 'Original' } },
+    encode(data) { return { dataVersion: 1, data } },
+    decode(input) { return input },
+    mapRichText(data, transform) {
+      transform(data.text, 'text')
+      return data
+    },
+  }, 'Probe', { richText: true })
+  assert.throws(
+    () => captured.mapRichText({ text: 'Original' }, () => ({ text: 'object' })),
+    /Rich-text transform must return a string/,
+  )
+})
