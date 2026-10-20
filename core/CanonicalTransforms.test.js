@@ -7,6 +7,8 @@ import {
   captureDocumentView,
   canonicalRecordsEqual,
   remapCanonicalInline,
+  remapCanonicalFragment,
+  prepareCanonicalInlineMerge,
 } from './CanonicalTransforms.js'
 
 test('captured views retain immutable references/order and never traverse unrelated payloads', () => {
@@ -144,4 +146,141 @@ test('inline remapping still supports one-to-one ID swaps and preserves detached
   assert.notStrictEqual(result.first, right)
   result.second.data.text = 'changed'
   assert.equal(sidecar.first.data.text, 'Ada')
+})
+
+
+/** Minimal owning-document contract for canonical plain-text rich fields.
+ * Deliberately no HTML parser, markup fixtures, or synthetic rich DOM: the
+ * tests below use the actual shared rich-text scan and remap functions on
+ * plain text nodes only.
+ */
+function plainTextOwnerDocument() {
+  return {
+    createElement(tag) {
+      if (tag !== 'template') throw new Error('Unexpected DOM element: ' + tag)
+      const text = { nodeType: 3, data: '', nextSibling: null, parentElement: null }
+      const content = {
+        childNodes: [text],
+        firstChild: text,
+        querySelectorAll() { return [] },
+      }
+      return {
+        content,
+        get innerHTML() { return text.data },
+        set innerHTML(value) { text.data = String(value) },
+      }
+    },
+    createTreeWalker(root) {
+      let index = 0
+      return {
+        nextNode() {
+          while (index < root.childNodes.length) {
+            const candidate = root.childNodes[index++]
+            if (candidate.nodeType === 3) return candidate
+          }
+          return null
+        },
+      }
+    },
+  }
+}
+
+test('clipboard remap excludes unreferenced sidecar entries that could overwrite a target widget', () => {
+  const ownerDocument = plainTextOwnerDocument()
+  const existing = { type: 'mention', dataVersion: 1, data: { name: 'Existing' } }
+  const imported = { type: 'mention', dataVersion: 1, data: { name: 'Unrelated' } }
+  const result = remapCanonicalFragment({
+    html: 'Copied ordinary text',
+    inline: { shared: imported },
+    reservedIds: new Set(['shared']),
+    ownerDocument,
+    allocateInlineId() { throw new Error('no visible widget requires a remap') },
+  })
+  assert.equal(result.html, 'Copied ordinary text')
+  assert.deepEqual(result.inline, {})
+  const merged = { shared: existing, ...result.inline }
+  assert.deepEqual(merged.shared, existing,
+    'an unrelated copied sidecar replaced the existing inline widget')
+})
+
+test('clipboard remap carries only referenced inline payloads while safely renaming a collision', () => {
+  const ownerDocument = plainTextOwnerDocument()
+  const visible = { type: 'mention', dataVersion: 1, data: { name: 'Copied' } }
+  const stale = { type: 'mention', dataVersion: 1, data: { name: 'Stale' } }
+  const result = remapCanonicalFragment({
+    html: '{{shared}}',
+    inline: { shared: visible, stale },
+    reservedIds: new Set(['shared']),
+    ownerDocument,
+    allocateInlineId() { return 'copied-1' },
+  })
+  assert.equal(result.html, '{{copied-1}}')
+  assert.deepEqual(result.inline, { 'copied-1': visible })
+  assert.equal(Object.hasOwn(result.inline, 'stale'), false)
+  assert.notStrictEqual(result.inline['copied-1'], visible)
+})
+
+test('fragment remap rejects a duplicate id returned by the allocator instead of stealing target data', () => {
+  const ownerDocument = plainTextOwnerDocument()
+  const visible = { type: 'mention', dataVersion: 1, data: { name: 'Copied' } }
+  assert.throws(() => remapCanonicalFragment({
+    html: '{{shared}}',
+    inline: { shared: visible },
+    reservedIds: new Set(['shared']),
+    ownerDocument,
+    allocateInlineId() { return 'shared' },
+  }), /collis|reserved|unique/i)
+})
+
+test('inline merge rejects a duplicate allocator id rather than collapsing two widget payloads', () => {
+  const ownerDocument = plainTextOwnerDocument()
+  const definition = {
+    schema: {
+      mapRichText(data, transform) {
+        return { text: transform(data.text, 'text') }
+      },
+    },
+  }
+  const target = {
+    data: { text: '{{shared}}' },
+    inline: { shared: { type: 'mention', dataVersion: 1, data: { name: 'Left' } } },
+  }
+  const source = {
+    data: { text: '{{shared}}' },
+    inline: { shared: { type: 'mention', dataVersion: 1, data: { name: 'Right' } } },
+  }
+  assert.throws(
+    () => prepareCanonicalInlineMerge({
+      definition, target, source, ownerDocument,
+      allocateInlineId() { return 'shared' },
+    }),
+    /collis|reserved|unique/i,
+  )
+})
+
+test('valid inline merge remaps only the conflicting source and preserves both payloads', () => {
+  const ownerDocument = plainTextOwnerDocument()
+  const definition = {
+    schema: {
+      mapRichText(data, transform) { return { text: transform(data.text, 'text') } },
+    },
+  }
+  const target = {
+    data: { text: '{{shared}}' },
+    inline: { shared: { type: 'mention', dataVersion: 1, data: { name: 'Left' } } },
+  }
+  const source = {
+    data: { text: '{{shared}}' },
+    inline: { shared: { type: 'mention', dataVersion: 1, data: { name: 'Right' } } },
+  }
+  const result = prepareCanonicalInlineMerge({
+    definition, target, source, ownerDocument,
+    allocateInlineId(reserved) {
+      assert.equal(reserved.has('shared'), true)
+      return 'copy-1'
+    },
+  })
+  assert.deepEqual(result.targetData, { text: '{{shared}}' })
+  assert.deepEqual(result.sourceData, { text: '{{copy-1}}' })
+  assert.deepEqual(result.inline, { shared: target.inline.shared, 'copy-1': source.inline.shared })
 })
