@@ -204,3 +204,35 @@ test('versioned schema does not inspect undeclared option symbol getters', () =>
   assert.deepEqual(schema.createDefault(), { text: '' })
   assert.equal(reads, 0)
 })
+
+
+test('versioned schema rejects asynchronous default producers through its synchronous contract', () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => Promise.resolve({ text: 'late' }),
+    normalize: input => input,
+  })
+  assert.throws(() => schema.createDefault(), /must complete synchronously/)
+})
+
+test('versioned schema rejects asynchronous normalizers through its synchronous contract', () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: () => Promise.resolve({ text: 'late' }),
+  })
+  assert.throws(() => schema.encode({ text: 'initial' }), /must complete synchronously/)
+})
+
+test('versioned schema does not silently accept asynchronous rich-text mappers', () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: input => input,
+    mapRichText: () => Promise.resolve(),
+  })
+  assert.throws(
+    () => schema.mapRichText({ text: 'initial' }, text => text.toUpperCase()),
+    /must complete synchronously/,
+  )
+})
