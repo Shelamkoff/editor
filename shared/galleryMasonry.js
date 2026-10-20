@@ -170,35 +170,35 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     try {
       signal?.addEventListener('abort', destroy, { once: true })
       if (!destroyed && ResizeObserverCtor) {
-      const observer = new ResizeObserverCtor(() => {
-        void start()
-      })
-      // The constructor may synchronously abort through an owner-realm
-      // callback before the returned observer is published to our ledger.
-      if (destroyed || settled) {
-        try { observer.disconnect() }
-        catch (error) { invokeObserver(onError, [error]) }
-      } else {
-        waitingObserver = observer
-        observer.observe(container)
+        const observer = new ResizeObserverCtor(() => {
+          void start()
+        })
+        // The constructor may synchronously abort through an owner-realm
+        // callback before the returned observer is published to our ledger.
+        if (destroyed || settled) {
+          try { observer.disconnect() }
+          catch (error) { invokeObserver(onError, [error]) }
+        } else {
+          waitingObserver = observer
+          observer.observe(container)
+        }
       }
-    }
-    if (!destroyed && requestFrame) {
-      // Some owner-realm animation adapters fire synchronously. Do not
-      // publish a phantom frame handle after that callback has completed or
-      // after it has synchronously aborted the mount.
-      let fired = false
-      const pendingFrame = requestFrame(() => {
-        fired = true
-        frameId = null
-        void start()
-      })
-      if (destroyed || settled) {
-        if (!fired && cancelFrame) cancelFrame(pendingFrame)
-      } else if (!fired) {
-        frameId = pendingFrame
+      if (!destroyed && requestFrame) {
+        // Some owner-realm animation adapters fire synchronously. Do not
+        // publish a phantom frame handle after that callback has completed or
+        // after it has synchronously aborted the mount.
+        let fired = false
+        const pendingFrame = requestFrame(() => {
+          fired = true
+          frameId = null
+          void start()
+        })
+        if (destroyed || settled) {
+          if (!fired && cancelFrame) cancelFrame(pendingFrame)
+        } else if (!fired) {
+          frameId = pendingFrame
+        }
       }
-    }
       if (!destroyed) {
         scheduleMicrotask(() => {
           void start()
