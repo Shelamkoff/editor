@@ -239,3 +239,40 @@ test('gallery masonry teardown continues after an observer disconnect failure', 
   assert.deepEqual(failures, ['observer disconnect failed'])
   assert.equal(controller.signal.aborted, false)
 })
+
+
+test('synchronous owner animation-frame callback cannot publish a retired frame lease', async () => {
+  const controller = new AbortController()
+  let queuedMicrotasks = 0
+  let canceledFrames = 0
+  let styleReads = 0
+  const view = {
+    requestAnimationFrame(callback) {
+      callback()
+      return 88
+    },
+    cancelAnimationFrame() { canceledFrames++ },
+    queueMicrotask() { queuedMicrotasks++ },
+    getComputedStyle() {
+      styleReads++
+      return { columnGap: '8px' }
+    },
+  }
+  const container = {
+    ownerDocument: { defaultView: view },
+    isConnected: true,
+    getBoundingClientRect() {
+      controller.abort()
+      return { width: 350 }
+    },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [], { signal: controller.signal })
+  assert.equal(await mount.ready, null)
+  assert.equal(styleReads, 0)
+  assert.equal(queuedMicrotasks, 0,
+    'a synchronous frame callback aborted but bootstrap still scheduled another task')
+  assert.equal(canceledFrames, 0,
+    'a frame that already executed should not be canceled')
+  assert.equal(mount.instance, null)
+})
