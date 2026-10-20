@@ -149,6 +149,17 @@ export class InstanceScope{
     if(this.#health()!=='ready')throw createAbortError('Instance runtime is not ready')
     // Health is an injected observer and can synchronously revoke this scope.
     if(this.#state==='revoked'||this.#interactionEpoch!==epoch)throw createAbortError()
+    // A staged projection deliberately reads a future candidate before it
+    // becomes the committed generation. Once active, however, a stale
+    // occurrence must not expose data or issue identifiers merely because
+    // its teardown has not run yet.
+    if(this.#state==='active'){
+      const generation=this.#generation
+      if(this.#currentGeneration()!==generation||this.#state==='revoked'
+        ||this.#interactionEpoch!==epoch||this.#generation!==generation){
+        throw createAbortError('Instance generation is stale')
+      }
+    }
   }
 
   runMutation(operation){
@@ -243,6 +254,11 @@ export class InstanceScope{
     const generation=this.#generation
     if(this.readOnly||this.#health()!=='ready'
       ||!this.#stillOwnInteraction(epoch,generation))return false
+    // Generation belongs to the committed document, not only the local
+    // instance token. A replacement can advance it before the old
+    // projection's finalizer revokes its previous scope.
+    if(this.#currentGeneration()!==generation
+      ||!this.#stillOwnInteraction(epoch,generation))return false
     const phase=this.#phase()
     if(!this.#stillOwnInteraction(epoch,generation))return false
     if(phase!=='idle')throw new Error(`Cannot mutate instance context during ${phase} phase`)
@@ -267,7 +283,9 @@ export class InstanceScope{
     if(this.#parent && !this.#parent.#canMutate()){
       throw createAbortError('Cannot begin a data task for an inactive parent scope')
     }
-    if(!this.#stillOwnInteraction(epoch,generation)){
+    if(!this.#stillOwnInteraction(epoch,generation)
+      ||this.#currentGeneration()!==generation
+      ||!this.#stillOwnInteraction(epoch,generation)){
       throw createAbortError('Cannot begin a data task for an inactive instance context')
     }
     // Even the revision source is a callback: it can synchronously revoke
