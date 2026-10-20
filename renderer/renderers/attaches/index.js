@@ -204,6 +204,8 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
     const archiveBuffer = new ArrayBuffer(archiveBytes.byteLength)
     new Uint8Array(archiveBuffer).set(archiveBytes)
     const blob = new BlobCtor([archiveBuffer], { type: 'application/zip' })
+    // Constructing a host Blob may synchronously cancel the request.
+    operationSignal.throwIfAborted()
     const url = URLCtor.createObjectURL(blob)
     let released = false
     const releaseUrl = () => {
@@ -214,10 +216,18 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
       try { URLCtor.revokeObjectURL(url) } catch {}
     }
     try {
+      // The owner URL factory, DOM creation, and attribute setters may
+      // synchronously abort an otherwise completed async download. Do not
+      // grant a revoked request authority to publish/click a new anchor.
+      operationSignal.throwIfAborted()
       const a = ownerDocument.createElement('a')
+      operationSignal.throwIfAborted()
       setSafeUrlAttribute(a, 'href', url, 'download')
+      operationSignal.throwIfAborted()
       a.download = 'files.zip'
+      operationSignal.throwIfAborted()
       a.click()
+      operationSignal.throwIfAborted()
       // Delay revocation for a successful click so the browser can acquire
       // the archive. If publishing or scheduling fails, release immediately.
       if (view?.setTimeout) view.setTimeout(releaseUrl, 0)
