@@ -624,3 +624,75 @@ test('data task rejects revocation during its input snapshot or producer callbac
     assert.equal(producers, interruption === 'snapshot' ? 0 : 1)
   }
 })
+
+
+test('deferred DOM mutation loses authoring authority when its instance was revoked', () => {
+  const scope = new InstanceScope({ staged: false, generation: 2 })
+  let deferred
+  let executions = 0
+  const context = scope.createAuthority({
+    readData: () => ({ text: 'Before' }),
+    updateData() {},
+    commitDomMutation(operation) { deferred = operation },
+  })
+  context.commitDomMutation(() => { executions++ })
+  assert.equal(typeof deferred, 'function')
+  scope.revoke()
+  deferred()
+  assert.equal(executions, 0,
+    'a host-retained DOM mutation ran a producer after the instance was destroyed')
+})
+
+test('queued DOM mutation cannot reactivate after a read-only round trip', () => {
+  const scope = new InstanceScope({ staged: false, generation: 3 })
+  let deferred, executions = 0
+  const context = scope.createAuthority({
+    readData: () => ({ text: 'Before' }),
+    updateData() {},
+    commitDomMutation(operation) { deferred = operation },
+  })
+  context.commitDomMutation(() => { executions++ })
+  assert.equal(typeof deferred, 'function')
+  scope.setReadOnly(true)
+  scope.setReadOnly(false)
+  deferred()
+  assert.equal(executions, 0,
+    'an obsolete DOM producer retained write permission across a mode round trip')
+  context.commitDomMutation(() => { executions++ })
+  deferred()
+  assert.equal(executions, 1,
+    'a new authorized DOM mutation should work after the mode becomes writable')
+})
+
+test('DOM mutation host callback must not invoke a producer after synchronous owner revocation', () => {
+  for (const interruption of ['revoke', 'read-only', 'parent-revoke']) {
+    const parent = new InstanceScope({ staged: false, generation: 4 })
+    const scope = new InstanceScope({ staged: false, generation: 4, parent })
+    let executions = 0
+    const context = scope.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData() {},
+      commitDomMutation(operation) {
+        if (interruption === 'revoke') scope.revoke()
+        else if (interruption === 'read-only') scope.setReadOnly(true)
+        else parent.revoke()
+        operation()
+      },
+    })
+    context.commitDomMutation(() => { executions++ })
+    assert.equal(executions, 0,
+      interruption + ' let a revoked scope invoke the DOM authoring operation')
+  }
+})
+
+test('ordinary synchronous DOM mutation still invokes its producer once', () => {
+  const scope = new InstanceScope({ staged: false, generation: 1 })
+  let executions = 0
+  const context = scope.createAuthority({
+    readData: () => ({ text: 'Original' }),
+    updateData() {},
+    commitDomMutation(operation) { operation(); return 'host result' },
+  })
+  assert.equal(context.commitDomMutation(() => { executions++ }), 'host result')
+  assert.equal(executions, 1)
+})
