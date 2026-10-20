@@ -34,7 +34,14 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
         } catch {}
       }
     }
-    if (entries.size === 0) entriesByDocument.delete(ownerDocument)
+    // Another owner may be halfway through acquiring a link using this
+    // same ledger. DOM creation/append callbacks can synchronously release
+    // the final old lease; deleting the ledger now would orphan the pending
+    // new link and allow a duplicate stylesheet on the next acquisition.
+    if (entries.size === 0 && !acquiringByDocument.has(ownerDocument)
+      && entriesByDocument.get(ownerDocument) === entries) {
+      entriesByDocument.delete(ownerDocument)
+    }
   }
 
   if (acquiringByDocument.has(ownerDocument)) {
@@ -86,6 +93,11 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
     throw error
   } finally {
     acquiringByDocument.delete(ownerDocument)
+    // Rollback of a failed acquisition can leave an empty ledger deliberately
+    // retained during the mutation. Prune it after the acquisition gate ends.
+    if (entries.size === 0 && entriesByDocument.get(ownerDocument) === entries) {
+      entriesByDocument.delete(ownerDocument)
+    }
   }
 
   let released = false
