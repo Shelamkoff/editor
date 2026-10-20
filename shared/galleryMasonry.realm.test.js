@@ -81,3 +81,98 @@ test('gallery masonry settles even when its error observer throws or rejects', a
   assert.equal(calls, 1)
   mount.destroy()
 })
+
+
+test('gallery masonry abort during observer disconnect does not start revoked layout or disconnect twice', async () => {
+  const controller = new AbortController()
+  const microtasks = []
+  let disconnects = 0
+  let styleReads = 0
+  let frameCancels = 0
+  class OwnerResizeObserver {
+    observe() {}
+    disconnect() {
+      disconnects++
+      controller.abort()
+    }
+  }
+  const ownerView = {
+    ResizeObserver: OwnerResizeObserver,
+    queueMicrotask(callback) { microtasks.push(callback) },
+    requestAnimationFrame() { return 23 },
+    cancelAnimationFrame() { frameCancels++ },
+    getComputedStyle() {
+      styleReads++
+      return { columnGap: '8px' }
+    },
+  }
+  const container = {
+    ownerDocument: { defaultView: ownerView },
+    isConnected: true,
+    getBoundingClientRect() { return { width: 350 } },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [], { signal: controller.signal })
+  assert.equal(microtasks.length, 1)
+  microtasks[0]()
+  assert.equal(await mount.ready, null)
+  for (let i = 0; i < 4; i++) await Promise.resolve()
+  assert.equal(controller.signal.aborted, true)
+  assert.equal(disconnects, 1, 'a reentrant abort disconnected the same observer twice')
+  assert.equal(frameCancels, 1)
+  assert.equal(styleReads, 0, 'a retired gallery started a new layout after abort')
+  assert.equal(mount.instance, null)
+})
+
+test('gallery masonry abort during geometry observation cannot start a revoked instance', async () => {
+  const controller = new AbortController()
+  const microtasks = []
+  let styles = 0
+  const container = {
+    ownerDocument: { defaultView: {
+      queueMicrotask(callback) { microtasks.push(callback) },
+      getComputedStyle() {
+        styles++
+        return { columnGap: '4px' }
+      },
+    } },
+    isConnected: true,
+    getBoundingClientRect() {
+      controller.abort()
+      return { width: 360 }
+    },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [], { signal: controller.signal })
+  microtasks[0]()
+  assert.equal(await mount.ready, null)
+  assert.equal(styles, 0, 'layout styles accessed after cancellation during geometry read')
+  assert.equal(mount.instance, null)
+})
+
+test('gallery masonry abort during observer registration skips later scheduled work', async () => {
+  const controller = new AbortController()
+  let frames = 0
+  let microtasks = 0
+  let disconnects = 0
+  class OwnerResizeObserver {
+    observe() { controller.abort() }
+    disconnect() { disconnects++ }
+  }
+  const container = {
+    ownerDocument: { defaultView: {
+      ResizeObserver: OwnerResizeObserver,
+      requestAnimationFrame() { frames++; return 1 },
+      cancelAnimationFrame() {},
+      queueMicrotask() { microtasks++ },
+    } },
+    isConnected: false,
+    getBoundingClientRect() { return { width: 0 } },
+    classList: { add() {} },
+  }
+  const mount = mountGalleryMasonry(container, [], { signal: controller.signal })
+  assert.equal(await mount.ready, null)
+  assert.equal(disconnects, 1)
+  assert.equal(frames, 0, 'a destroyed gallery registered a frame after abort')
+  assert.equal(microtasks, 0, 'a destroyed gallery queued microtask work after abort')
+})
