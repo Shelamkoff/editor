@@ -6,6 +6,7 @@ import {
   createSessionIdAllocator,
   captureDocumentView,
   canonicalRecordsEqual,
+  remapCanonicalInline,
 } from './CanonicalTransforms.js'
 
 test('captured views retain immutable references/order and never traverse unrelated payloads', () => {
@@ -87,4 +88,60 @@ test('canonical equality still recognizes array order and genuine content change
   assert.equal(canonicalRecordsEqual(record({ a: 1 }), record({ a: 1, b: null })), false)
   assert.equal(canonicalRecordsEqual(record({ items: [{ x: 1 }] }), record({ items: [{ x: 1 }] })), true)
   assert.equal(canonicalRecordsEqual({ ...record({}), type: 'first' }, { ...record({}), type: 'second' }), false)
+})
+
+
+test('inline remapping rejects collisions with an existing sidecar instead of losing payloads', () => {
+  const sidecar = {
+    first: { type: 'mention', dataVersion: 1, data: { text: 'Ada' } },
+    second: { type: 'mention', dataVersion: 1, data: { text: 'Bob' } },
+  }
+  assert.throws(
+    () => remapCanonicalInline(sidecar, new Map([['first', 'second']])),
+    /collid|duplicate/i,
+  )
+  assert.deepEqual(sidecar.first.data, { text: 'Ada' })
+  assert.deepEqual(sidecar.second.data, { text: 'Bob' })
+})
+
+test('inline remapping rejects two-to-one destination IDs before reading author payload getters', () => {
+  let reads = 0
+  const sidecar = { second: { type: 'mention', dataVersion: 1, data: { text: 'Bob' } } }
+  Object.defineProperty(sidecar, 'first', {
+    enumerable: true,
+    get() {
+      reads++
+      throw new Error('colliding payload was needlessly inspected')
+    },
+  })
+  assert.throws(
+    () => remapCanonicalInline(sidecar, new Map([['first', 'same'], ['second', 'same']])),
+    /collid|duplicate/i,
+  )
+  assert.equal(reads, 0, 'a rejected ID remap inspected payload data before validating ownership')
+})
+
+test('inline remapping rejects destination IDs that cannot occur in canonical placeholders', () => {
+  const sidecar = { first: { type: 'mention', dataVersion: 1, data: { text: 'Ada' } } }
+  for (const invalid of ['', 'bad/id', 'two words', 17, null]) {
+    assert.throws(
+      () => remapCanonicalInline(sidecar, new Map([['first', invalid]])),
+      /inline.*id|inline.*reference|destination/i,
+      String(invalid),
+    )
+  }
+})
+
+test('inline remapping still supports one-to-one ID swaps and preserves detached payloads', () => {
+  const left = { type: 'mention', dataVersion: 1, data: { text: 'Ada' } }
+  const right = { type: 'mention', dataVersion: 1, data: { text: 'Bob' } }
+  const sidecar = { first: left, second: right }
+  const result = remapCanonicalInline(
+    sidecar, new Map([['first', 'second'], ['second', 'first']]),
+  )
+  assert.deepEqual(result, { second: left, first: right })
+  assert.notStrictEqual(result.second, left)
+  assert.notStrictEqual(result.first, right)
+  result.second.data.text = 'changed'
+  assert.equal(sidecar.first.data.text, 'Ada')
 })
