@@ -138,17 +138,26 @@ export function createVersionedDataSchema(options) {
       }
       const owned = normalizeOwned(data)
       if (mapRichText) {
+        let transformFailed = false
+        let transformError
         synchronousResult(mapRichText(owned, (html, fieldKey) => {
-          // A plugin mapper may ignore the transform's returned value.
-          // Validate the callback itself, not only mapRichText's return:
-          // an async or malformed transform must never be accepted as an
-          // already-committed rich-text normalization.
-          const result = synchronousResult(transform(html, fieldKey))
-          if (typeof result !== 'string') {
-            throw new TypeError('Rich-text transform must return a string')
+          try {
+            const result = synchronousResult(transform(html, fieldKey))
+            if (typeof result !== 'string') {
+              throw new TypeError('Rich-text transform must return a string')
+            }
+            return result
+          } catch (error) {
+            // A mapper can catch a failed callback and still return valid
+            // data. Once validation fails, that entire mapping is revoked.
+            if (!transformFailed) {
+              transformFailed = true
+              transformError = error
+            }
+            throw error
           }
-          return result
         }))
+        if (transformFailed) throw transformError
       }
       return normalizeOwned(owned)
     },
