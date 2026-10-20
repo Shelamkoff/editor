@@ -83,3 +83,47 @@ test('private clipboard v2 retains valid opaque blocks without inventing legacy 
   }
   assert.deepEqual(decodeClipboardFragment(JSON.stringify(fragment)), fragment)
 })
+
+
+test('private Clipboard rejects malformed nested inline maps before exposing any fragment parts', () => {
+  const validBlock = { type: 'paragraph', dataVersion: 2, data: { text: 'Hello' } }
+  const invalidInlineMaps = [
+    { mention: { type: 'mention', data: { id: 'missing-version' } } },
+    { mention: { type: 'mention', dataVersion: 0, data: { id: 'wrong-version' } } },
+    { mention: { type: 'mention', dataVersion: 1, data: { id: 'unknown-field' }, future: true } },
+    { mention: { type: 'mention', dataVersion: 1, data: 'not an object' } },
+  ]
+  for (const inline of invalidInlineMaps) {
+    for (const part of [
+      { kind: 'rich-text', html: 'Hello {{mention}}', inline },
+      { kind: 'block', block: { ...validBlock, inline } },
+    ]) {
+      assert.throws(() => decodeClipboardFragment(JSON.stringify({
+        version: CLIPBOARD_FRAGMENT_VERSION, parts: [part],
+      })), /dataVersion|version|unknown|JSON object/i)
+    }
+  }
+})
+
+test('private Clipboard keeps exact-version opaque inline records for unregistered types', () => {
+  const inline = {
+    ref: {
+      type: 'future-inline',
+      dataVersion: 9,
+      data: { nested: { opaque: [1, 2] } },
+    },
+  }
+  const fragment = {
+    version: CLIPBOARD_FRAGMENT_VERSION,
+    parts: [
+      { kind: 'rich-text', html: '{{ref}}', inline },
+      { kind: 'block', block: {
+        type: 'future-block',
+        dataVersion: 7,
+        data: { text: '{{ref}}' },
+        inline,
+      } },
+    ],
+  }
+  assert.deepEqual(decodeClipboardFragment(JSON.stringify(fragment)), fragment)
+})
