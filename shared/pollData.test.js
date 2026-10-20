@@ -168,3 +168,19 @@ test('runtime poll counts retain supported primitive numeric strings', () => {
   assert.deepEqual(result.options, [{ id: 'first', votes: 2 }, { id: 'second', votes: 1 }])
   assert.equal(result.total, 4)
 })
+
+
+test('local poll vote ignores stale option identifiers after options change', () => {
+  const result = applyLocalPollVote(undefined, [], ['removed-option'], ['a', 'b'])
+  assert.deepEqual(result.options, [{ id: 'a', votes: 0 }, { id: 'b', votes: 0 }])
+  assert.equal(result.total, 0, 'an unavailable option must not count as a ballot')
+  assert.deepEqual(result.currentUserVote, [])
+})
+
+test('replacing a valid poll vote with a removed option clears the ballot', () => {
+  const current = { total: 1, options: [{ id: 'a', votes: 1 }], currentUserVote: ['a'] }
+  const result = applyLocalPollVote(current, ['a'], ['old-removed-id'], ['a'])
+  assert.deepEqual(result.options, [{ id: 'a', votes: 0 }])
+  assert.equal(result.total, 0)
+  assert.deepEqual(result.currentUserVote, [])
+})
