@@ -289,3 +289,43 @@ test('a stale prepared replacement cannot rewind the generation after a successo
   assert.equal(store.revision, 2)
   assert.equal(store.generation, 2)
 })
+
+
+test('a reentrant commit during draft snapshot preparation invalidates the outer plan', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a', 'base')] })
+  const outer = store.createDraft()
+  outer.update('a', block('a', 'outer'))
+  const successor = store.createDraft()
+  successor.update('a', block('a', 'successor'))
+
+  const originalPreparedState = outer.preparedState.bind(outer)
+  outer.preparedState = (...args) => {
+    store.commit(successor)
+    return originalPreparedState(...args)
+  }
+
+  assert.throws(() => store.prepareCommit(outer), /stale/i)
+  assert.equal(store.get('a').data.text, 'successor')
+  assert.equal(store.revision, 1)
+})
+
+test('a reentrant commit during external document cloning revokes the incoming draft', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a', 'base')] })
+  const successor = store.createDraft()
+  successor.update('a', block('a', 'successor'))
+  let reads = 0
+  const external = {
+    get version() {
+      reads++
+      store.commit(successor)
+      return '2.0.0'
+    },
+    blocks: [block('outside', 'outside')],
+  }
+
+  const incoming = store.createDraftFrom(external)
+  assert.equal(reads, 1)
+  assert.throws(() => store.prepareCommit(incoming), /stale/i)
+  assert.equal(store.get('a').data.text, 'successor')
+  assert.equal(store.revision, 1)
+})
