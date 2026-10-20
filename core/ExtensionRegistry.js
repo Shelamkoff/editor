@@ -362,7 +362,7 @@ function snapshotBlockRuntime(source, label, destroySource, assertActive) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
-  const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
+  const create = bindMethod(source, source.create, `${label} runtime create`)
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
   let retired = false
   const ensureActive = () => {
@@ -387,7 +387,7 @@ function snapshotInlineRuntime(source, label, destroySource, assertActive) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
-  const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
+  const create = bindMethod(source, source.create, `${label} runtime create`)
   let retired = false
   const ensureActive = () => {
     assertActive()
