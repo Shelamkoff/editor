@@ -113,8 +113,27 @@ export function filterCanonicalInline(definition, data, inline, ownerDocument) {
  * @param {Map<string, string>} remap
  */
 export function remapCanonicalInline(inline, remap) {
-  return Object.fromEntries(Object.entries(inline ?? {}).map(([id, value]) => [
-    remap.get(id) ?? id, cloneEditorData(value),
+  const source = inline ?? {}
+  // Validate the entire destination namespace before reading or cloning any
+  // payload. Object.fromEntries silently overwrites an earlier widget when
+  // two source IDs resolve to the same destination, losing authored content.
+  const destinations = []
+  const ownedIds = new Set()
+  for (const id of Object.keys(source)) {
+    const isRemapped = remap.has(id)
+    const destination = isRemapped ? remap.get(id) : id
+    if (isRemapped && (typeof destination !== 'string'
+      || !/^[A-Za-z0-9_-]+$/.test(destination))) {
+      throw new TypeError('Inline reference destination id must match the canonical placeholder grammar')
+    }
+    if (ownedIds.has(destination)) {
+      throw new Error('Inline reference ID collision: ' + destination)
+    }
+    ownedIds.add(destination)
+    destinations.push([id, destination])
+  }
+  return Object.fromEntries(destinations.map(([id, destination]) => [
+    destination, cloneEditorData(source[id]),
   ]))
 }
 
