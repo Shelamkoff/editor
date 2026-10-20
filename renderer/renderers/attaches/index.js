@@ -181,9 +181,27 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
     new Uint8Array(archiveBuffer).set(archiveBytes)
     const blob = new BlobCtor([archiveBuffer], { type: 'application/zip' })
     const url = URLCtor.createObjectURL(blob)
-    const a = ownerDocument.createElement('a')
-    setSafeUrlAttribute(a, 'href', url, 'download'); a.download = 'files.zip'; a.click()
-    ;(view?.setTimeout ?? setTimeout)(() => URLCtor.revokeObjectURL(url), 0)
+    let released = false
+    const releaseUrl = () => {
+      if (released) return
+      released = true
+      // A failed URL revocation must not replace a download/publication error
+      // or escape later from a scheduled timer callback.
+      try { URLCtor.revokeObjectURL(url) } catch {}
+    }
+    try {
+      const a = ownerDocument.createElement('a')
+      setSafeUrlAttribute(a, 'href', url, 'download')
+      a.download = 'files.zip'
+      a.click()
+      // Delay revocation for a successful click so the browser can acquire
+      // the archive. If publishing or scheduling fails, release immediately.
+      if (view?.setTimeout) view.setTimeout(releaseUrl, 0)
+      else setTimeout(releaseUrl, 0)
+    } catch (error) {
+      releaseUrl()
+      throw error
+    }
   } finally {
     signal.removeEventListener('abort', abortOperation)
     controller.abort()
