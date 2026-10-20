@@ -364,10 +364,20 @@ function snapshotBlockRuntime(source, label, destroySource, assertActive) {
   }
   const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
-  const destroy = destroySource
+  let retired = false
+  const ensureActive = () => {
+    assertActive()
+    if (retired) throw new Error('Extension runtime is destroyed')
+  }
   return Object.freeze({
-    create: (...args) => { assertActive(); return create(...args) },
-    destroy,
+    create: (...args) => { ensureActive(); return create(...args) },
+    destroy: () => {
+      if (retired) return
+      // Revoke retained producers *before* invoking plugin cleanup, including
+      // during a reentrant destroy or one that throws an exception.
+      retired = true
+      destroySource()
+    },
   })
 }
 
@@ -378,16 +388,25 @@ function snapshotInlineRuntime(source, label, destroySource, assertActive) {
   }
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
   const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
+  let retired = false
+  const ensureActive = () => {
+    assertActive()
+    if (retired) throw new Error('Extension runtime is destroyed')
+  }
   const runtime = {
     create: (...args) => {
-      assertActive()
+      ensureActive()
       return create(...args)
     },
-    destroy: destroySource,
+    destroy: () => {
+      if (retired) return
+      retired = true
+      destroySource()
+    },
   }
   for (const name of ['onTriggerQuery', 'onTriggerKeydown', 'onTriggerCancel']) {
     const method = bindMethod(source, source[name], `${label} runtime ${name}`, { optional: true })
-    if (method) runtime[name] = (...args) => { assertActive(); return method(...args) }
+    if (method) runtime[name] = (...args) => { ensureActive(); return method(...args) }
   }
   return Object.freeze(runtime)
 }
