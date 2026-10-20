@@ -63,10 +63,15 @@ export function mountGalleryMasonry(container, elements, options = {}) {
   }
 
   const stopWaiting = () => {
-    waitingObserver?.disconnect()
+    // Detach every pending lease before entering a DOM host callback.
+    // A disconnect/cancel adapter may synchronously abort this mount and
+    // reenter destroy(); no observer or frame may be released twice.
+    const observer = waitingObserver
     waitingObserver = null
-    if (frameId !== null && cancelFrame) cancelFrame(frameId)
+    const pendingFrame = frameId
     frameId = null
+    observer?.disconnect()
+    if (pendingFrame !== null && cancelFrame) cancelFrame(pendingFrame)
   }
 
   const readGap = () => {
@@ -79,20 +84,34 @@ export function mountGalleryMasonry(container, elements, options = {}) {
   const start = async () => {
     if (destroyed || starting || settled) return
     if (!container.isConnected || container.getBoundingClientRect().width <= 0) return
+    // Geometry callbacks can synchronously abort the owner.
+    if (destroyed || settled) return
 
     starting = true
     stopWaiting()
+    // Disconnecting the observer can itself trigger teardown.
+    if (destroyed || settled) return
 
     try {
+      const gap = readGap()
+      if (destroyed || settled) return
       instance = new Masonry(container, {
         columnWidth,
         layoutMode: 'masonry',
         autoColSpan: false,
-        gap: readGap(),
+        gap,
         transitionDuration,
         fadeInDuration,
         contentLoadTimeout,
       })
+      // A custom DOM adapter can abort from inside the constructor.
+      // The returned instance was not yet visible to destroy() at that point.
+      if (destroyed || settled) {
+        const retired = instance
+        instance = null
+        retired.destroy()
+        return
+      }
       await instance.append(elements.map((element, index) => ({
         id: `gallery-item-${index}`,
         element,
@@ -100,12 +119,8 @@ export function mountGalleryMasonry(container, elements, options = {}) {
         meta: { index },
       })))
 
-      if (destroyed) {
-        instance.destroy()
-        instance = null
-        settle(null)
-        return
-      }
+      // destroy() already released the owned instance while append awaited.
+      if (destroyed) return
       settle(instance)
     } catch (error) {
       instance?.destroy()
@@ -132,21 +147,33 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     destroy()
   } else {
     signal?.addEventListener('abort', destroy, { once: true })
-    if (ResizeObserverCtor) {
+    if (!destroyed && ResizeObserverCtor) {
       waitingObserver = new ResizeObserverCtor(() => {
         void start()
       })
-      waitingObserver.observe(container)
+      if (!destroyed) waitingObserver.observe(container)
     }
-    if (requestFrame) {
-      frameId = requestFrame(() => {
+    if (!destroyed && requestFrame) {
+      // Some owner-realm animation adapters fire synchronously. Do not
+      // publish a phantom frame handle after that callback has completed or
+      // after it has synchronously aborted the mount.
+      let fired = false
+      const pendingFrame = requestFrame(() => {
+        fired = true
         frameId = null
         void start()
       })
+      if (destroyed || settled) {
+        if (!fired && cancelFrame) cancelFrame(pendingFrame)
+      } else if (!fired) {
+        frameId = pendingFrame
+      }
     }
-    scheduleMicrotask(() => {
-      void start()
-    })
+    if (!destroyed) {
+      scheduleMicrotask(() => {
+        void start()
+      })
+    }
   }
 
   return {
