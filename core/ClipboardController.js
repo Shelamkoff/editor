@@ -86,6 +86,8 @@ export class ClipboardController {
   #isComposing
   #controller
   #task = null
+  /** @type {{task: AbortController, release: () => void} | null} */
+  #pendingTaskCleanup = null
   #pasteTurn = null
   #destroyed = false
   #applyingPasteTask = null
@@ -117,11 +119,23 @@ export class ClipboardController {
 
   cancelPendingTask() {
     const previous = this.#task
-    // Revoke our lease before notifying resolver-owned abort listeners.
-    // A listener can synchronously start a newer Paste task; it must retain
-    // its own controller and anchor instead of being cleared by this call.
+    const pending = this.#pendingTaskCleanup
+    // Revoke our lease and detach its resource cleanup before invoking
+    // abort hooks: they can synchronously begin a successor Paste.
     this.#task = null
-    previous?.abort()
+    if (pending?.task === previous) this.#pendingTaskCleanup = null
+    let abortFailed = false
+    let abortError
+    try { previous?.abort() }
+    catch (error) {
+      abortFailed = true
+      abortError = error
+    }
+    // An owner AbortController can throw before dispatching its signal.
+    // Explicitly revoke provisional URL leases even if it never notifies
+    // their listener, without touching a newer task's resources.
+    if (pending?.task === previous) pending.release()
+    if (abortFailed) this.#reportResourceReleaseError(abortError)
   }
 
   /** The diagnostics sink is an observer, never an authoring or lifecycle controller.
@@ -887,6 +901,7 @@ export class ClipboardController {
       }
     }
     task.signal.addEventListener('abort', releasePending, { once: true })
+    if (this.#task === task) this.#pendingTaskCleanup = { task, release: releasePending }
     const retainPersisted = () => {
       if (this.#controller.signal.aborted) {
         releasePending()
@@ -1001,9 +1016,8 @@ export class ClipboardController {
       this.#controller.signal.removeEventListener('abort', abort)
       releasePending()
       this.#emitSlowDiagnostic(startedAt)
-      if (this.#task === task) {
-        this.#task = null
-      }
+      if (this.#task === task) this.#task = null
+      if (this.#pendingTaskCleanup?.task === task) this.#pendingTaskCleanup = null
     })
   }
 }
