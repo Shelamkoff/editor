@@ -98,7 +98,7 @@ test('inline remapping rejects collisions with an existing sidecar instead of lo
   }
   assert.throws(
     () => remapCanonicalInline(sidecar, new Map([['first', 'second']])),
-    /collid|duplicate/i,
+    /collision|duplicate/i,
   )
   assert.deepEqual(sidecar.first.data, { text: 'Ada' })
   assert.deepEqual(sidecar.second.data, { text: 'Bob' })
@@ -116,7 +116,7 @@ test('inline remapping rejects two-to-one destination IDs before reading author 
   })
   assert.throws(
     () => remapCanonicalInline(sidecar, new Map([['first', 'same'], ['second', 'same']])),
-    /collid|duplicate/i,
+    /collision|duplicate/i,
   )
   assert.equal(reads, 0, 'a rejected ID remap inspected payload data before validating ownership')
 })
