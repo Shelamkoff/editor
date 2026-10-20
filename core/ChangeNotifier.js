@@ -60,7 +60,10 @@ export class ChangeNotifier {
     }
     if (this.#destroyed || generation !== this.#generation) return
     let fired = false
-    const nextTimer = this.#timerHost.setTimeout(async () => {
+    /** @type {ReturnType<typeof setTimeout>} */
+    let nextTimer
+    try {
+      nextTimer = this.#timerHost.setTimeout(async () => {
       fired = true
       // A retired timer may still be queued by the host. It must not clear
       // a newer pending timer or invoke save after replacement/destroy.
@@ -82,7 +85,22 @@ export class ChangeNotifier {
           try { console.warn('[ChangeNotifier] Failed to save or notify:', err) } catch {}
         }
       }
-    }, this.#delay)
+      }, this.#delay)
+    } catch (error) {
+      // A timer host can schedule work and then throw without returning a
+      // cancellable handle. Retire that orphan callback by generation so it
+      // cannot save after a failed registration, or replace a newer lease.
+      if (!this.#destroyed && generation === this.#generation) {
+        this.#generation++
+        if (this.#onError) invokeObserver(this.#onError, [error], sinkError => {
+          try { console.warn('[ChangeNotifier] Error sink failed:', sinkError) } catch {}
+        })
+        else {
+          try { console.warn('[ChangeNotifier] Timer registration failed:', error) } catch {}
+        }
+      }
+      return
+    }
     // Timer registration itself is a host callback. It may synchronously
     // schedule a newer change or destroy this notifier before returning its
     // handle. Only the surviving generation may publish a pending timer.
