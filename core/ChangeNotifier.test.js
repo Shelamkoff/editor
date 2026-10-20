@@ -503,3 +503,72 @@ test('destroying a notifier is safe when host clearTimeout itself throws', async
   assert.equal(cancellations, 1)
   assert.equal(saves, 0, 'retired timer callback saved after failed cancellation')
 })
+
+
+test('failed timer registration cannot publish an unowned notification callback', async () => {
+  const errors = []
+  let registration = 0
+  let abandoned
+  let successor
+  let saves = 0
+  const host = {
+    setTimeout(callback) {
+      registration++
+      if (registration === 1) {
+        // An owner adapter can enqueue work before discovering that timer
+        // installation failed. This callback has no cancellable handle.
+        abandoned = callback
+        throw new Error('timer registration failed')
+      }
+      successor = callback
+      return registration
+    },
+    clearTimeout() {},
+  }
+  const seen = []
+  const notifier = new ChangeNotifier(
+    () => { saves++; return { version: 'current', blocks: [] } },
+    data => seen.push(data.version),
+    0,
+    host,
+    error => errors.push(error),
+  )
+  try {
+    assert.doesNotThrow(() => notifier.schedule())
+    assert.equal(errors.length, 1)
+    assert.match(errors[0].message, /timer registration failed/)
+    await abandoned()
+    assert.equal(saves, 0, 'unowned timer wrote a snapshot after registration failure')
+    notifier.schedule()
+    await successor()
+    assert.equal(saves, 1)
+    assert.deepEqual(seen, ['current'])
+  } finally {
+    notifier.destroy()
+  }
+})
+
+test('a throwing timer host and throwing diagnostics do not escape schedule', () => {
+  const originalWarn = console.warn
+  let attempts = 0
+  console.warn = () => {
+    attempts++
+    throw new Error('diagnostic console is unavailable')
+  }
+  const notifier = new ChangeNotifier(
+    () => ({ version: 'current', blocks: [] }),
+    () => {},
+    0,
+    {
+      setTimeout() { throw new Error('timers are unavailable') },
+      clearTimeout() {},
+    },
+  )
+  try {
+    assert.doesNotThrow(() => notifier.schedule())
+    assert.equal(attempts, 1)
+  } finally {
+    notifier.destroy()
+    console.warn = originalWarn
+  }
+})
