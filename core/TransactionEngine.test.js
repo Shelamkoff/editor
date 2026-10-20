@@ -1028,3 +1028,59 @@ test('async post-commit projector finalization reports a diagnostic without undo
   assert.equal(events.filter(event => event.operation === 'transaction.finalize').length, 1,
     'non-synchronous finalization was accepted without a cleanup diagnostic')
 })
+
+
+
+test('a thenable prepared projector cannot masquerade as four valid synchronous lifecycle methods', () => {
+  let applied = 0
+  const { store, history, engine } = harness({
+    projector: {
+      prepare() {
+        return {
+          then(resolve) { resolve() },
+          apply() { applied++ },
+          recover() {},
+          discard() {},
+          finalize() {},
+        }
+      },
+    },
+  })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'new'))
+  }), /must complete synchronously/)
+  assert.equal(applied, 0)
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+})
+
+test('Undo cannot advance history before an asynchronous replay projection settles', () => {
+  let asynchronousReplay = false
+  const events = []
+  const projector = {
+    prepare() {
+      return {
+        apply() {
+          events.push('apply')
+          return asynchronousReplay ? Promise.resolve() : undefined
+        },
+        recover() { events.push('recover') },
+        discard() { events.push('discard') },
+        finalize() { events.push('finalize') },
+      }
+    },
+  }
+  const { store, history, engine } = harness({ projector })
+  engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'committed'))
+  })
+  assert.equal(history.canUndo, true)
+  asynchronousReplay = true
+  assert.throws(() => engine.undo(), /must complete synchronously/)
+  assert.equal(store.get('a').data.text, 'committed')
+  assert.equal(history.canUndo, true)
+  assert.equal(history.canRedo, false)
+  assert.equal(engine.phase, 'idle')
+  assert.deepEqual(events.slice(-3), ['apply', 'recover', 'discard'])
+})
