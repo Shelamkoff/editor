@@ -247,3 +247,32 @@ test('releasing the final old style during new link allocation preserves the pen
   second.destroy()
   assert.equal(links[1].removed, true)
 })
+
+
+test('failed overlapping stylesheet acquisition rolls back after the previous owner releases its last link', () => {
+  const { doc, links } = fakeDocument('overlap-failure')
+  const previous = acquireStyleUrls(['/previous.css'], doc)
+  const originalAppend = doc.head.appendChild
+  let failOnce = true
+  doc.head.appendChild = link => {
+    originalAppend(link)
+    if (link.href === '/replacement.css' && failOnce) {
+      failOnce = false
+      previous.destroy()
+      throw new Error('new stylesheet append failed')
+    }
+  }
+
+  assert.throws(() => acquireStyleUrls(['/replacement.css'], doc), /new stylesheet append failed/)
+  assert.equal(links[0].removed, true, 'the previous lease should have been released')
+  assert.equal(links[1].removed, true, 'failed partially appended link should be rolled back')
+
+  const replacement = acquireStyleUrls(['/replacement.css'], doc)
+  const borrower = acquireStyleUrls(['/replacement.css'], doc)
+  assert.deepEqual(links.map(link => link.href),
+    ['/previous.css', '/replacement.css', '/replacement.css'])
+  replacement.destroy()
+  assert.equal(links[2].removed, false)
+  borrower.destroy()
+  assert.equal(links[2].removed, true)
+})
