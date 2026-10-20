@@ -406,7 +406,6 @@ export class ExtensionRegistry {
     assertDenseArray(inline, 'inline')
 
     this.#ownerDocument = ownerDocument
-    this.#abortController = new (ownerDocument.defaultView?.AbortController ?? AbortController)()
     const acquireStyles = options.acquireStyles !== false
     const translate = typeof options.translate === 'function'
       ? options.translate
@@ -439,6 +438,12 @@ export class ExtensionRegistry {
       }
       this.#inlineDefinitions.set(definition.type, definition)
     }
+
+    // Snapshot and validate *all* definitions before allocating an
+    // owner-document controller. A custom realm constructor may reenter
+    // application code and mutate the caller's block/inline arrays; at this
+    // point the registry already owns its independent definitions.
+    this.#abortController = new (ownerDocument.defaultView?.AbortController ?? AbortController)()
 
     try {
       for (const definition of blocks) {
