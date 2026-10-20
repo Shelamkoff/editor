@@ -87,21 +87,38 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     return Number.isFinite(value) && value >= 0 ? value : 4
   }
 
+  // Release one owned layout at most once, even if its disposer fails.
+  // Cleanup failures are observer errors, not permission to leave ready pending.
+  const releaseInstance = () => {
+    const owned = instance
+    instance = null
+    if (!owned) return
+    try { owned.destroy() }
+    catch (error) { invokeObserver(onError, [error]) }
+  }
+
+  const reportFailure = error => {
+    if (destroyed) return
+    try { container.classList.add('eg--masonry-fallback') }
+    catch (fallbackError) { invokeObserver(onError, [fallbackError]) }
+    invokeObserver(onError, [error])
+  }
+
   const start = async () => {
     if (destroyed || starting || settled) return
-    if (!container.isConnected || container.getBoundingClientRect().width <= 0) return
-    // Geometry callbacks can synchronously abort the owner.
-    if (destroyed || settled) return
-
+    // Preflight is owned by this start lease too. Calling a DOM getter may
+    // reenter the observer callback or throw before layout construction.
     starting = true
-    stopWaiting()
-    // Disconnecting the observer can itself trigger teardown.
-    if (destroyed || settled) return
-
     try {
+      if (!container.isConnected || container.getBoundingClientRect().width <= 0) return
+      if (destroyed || settled) return
+
+      stopWaiting()
+      if (destroyed || settled) return
+
       const gap = readGap()
       if (destroyed || settled) return
-      instance = new Masonry(container, {
+      const owned = new Masonry(container, {
         columnWidth,
         layoutMode: 'masonry',
         autoColSpan: false,
@@ -110,32 +127,30 @@ export function mountGalleryMasonry(container, elements, options = {}) {
         fadeInDuration,
         contentLoadTimeout,
       })
-      // A custom DOM adapter can abort from inside the constructor.
-      // The returned instance was not yet visible to destroy() at that point.
+      instance = owned
+      // Constructor callbacks can synchronously destroy this mount before
+      // its newly constructed instance becomes visible in the owner ledger.
       if (destroyed || settled) {
-        const retired = instance
-        instance = null
-        retired.destroy()
+        releaseInstance()
         return
       }
-      await instance.append(elements.map((element, index) => ({
+      const items = elements.map((element, index) => ({
         id: `gallery-item-${index}`,
         element,
         colSpan: 1,
         meta: { index },
-      })))
-
-      // destroy() already released the owned instance while append awaited.
-      if (destroyed) return
-      settle(instance)
+      }))
+      // Reading caller-supplied elements may also trigger cancellation.
+      if (destroyed || settled) return
+      await owned.append(items)
+      if (destroyed || settled) return
+      settle(owned)
     } catch (error) {
-      instance?.destroy()
-      instance = null
-      if (!destroyed) {
-        container.classList.add('eg--masonry-fallback')
-        invokeObserver(onError, [error])
-      }
+      releaseInstance()
+      reportFailure(error)
       settle(null)
+    } finally {
+      starting = false
     }
   }
 
@@ -143,17 +158,18 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     if (destroyed) return
     destroyed = true
     stopWaiting()
-    instance?.destroy()
-    instance = null
-    signal?.removeEventListener('abort', destroy)
+    releaseInstance()
+    try { signal?.removeEventListener('abort', destroy) }
+    catch (error) { invokeObserver(onError, [error]) }
     settle(null)
   }
 
   if (signal?.aborted) {
     destroy()
   } else {
-    signal?.addEventListener('abort', destroy, { once: true })
-    if (!destroyed && ResizeObserverCtor) {
+    try {
+      signal?.addEventListener('abort', destroy, { once: true })
+      if (!destroyed && ResizeObserverCtor) {
       const observer = new ResizeObserverCtor(() => {
         void start()
       })
@@ -183,10 +199,16 @@ export function mountGalleryMasonry(container, elements, options = {}) {
         frameId = pendingFrame
       }
     }
-    if (!destroyed) {
-      scheduleMicrotask(() => {
-        void start()
-      })
+      if (!destroyed) {
+        scheduleMicrotask(() => {
+          void start()
+        })
+      }
+    } catch (error) {
+      // Optional Masonry initialization must never make the owning Gallery
+      // fail to mount or retain a half-registered observer/frame/signal.
+      reportFailure(error)
+      destroy()
     }
   }
 
