@@ -27,6 +27,12 @@ export const ARCHIVE_LIMITS = Object.freeze({
 
 const WINDOWS_RESERVED_NAME_RE = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i
 
+/** Limit UTF-16 name length without splitting a non-BMP Unicode character. */
+function truncateArchiveFilename(value, maxLength) {
+  const clipped = value.slice(0, maxLength)
+  return /[\uD800-\uDBFF]$/.test(clipped) ? clipped.slice(0, -1) : clipped
+}
+
 /**
  * Convert an untrusted attachment name into a flat, portable ZIP entry name.
  * @param {unknown} value
@@ -41,7 +47,7 @@ export function sanitizeArchiveFilename(value, index = 0) {
     .replace(/[. ]+$/g, '')
     .trim()
   if (!name || name === '.' || name === '..' || WINDOWS_RESERVED_NAME_RE.test(name)) name = fallback
-  return name.slice(0, 128) || fallback
+  return truncateArchiveFilename(name, 128) || fallback
 }
 
 /** @param {string} name @param {Set<string>} used */
@@ -55,7 +61,16 @@ function uniqueArchiveFilename(name, used) {
   const stem = dot > 0 ? name.slice(0, dot) : name
   const extension = dot > 0 ? name.slice(dot) : ''
   for (let suffix = 2; ; suffix += 1) {
-    const candidate = `${stem.slice(0, Math.max(1, 128 - extension.length - String(suffix).length - 3))} (${suffix})${extension}`
+    const marker = ` (${suffix})`
+    // An unusually long extension must leave room for the suffix and at
+    // least one stem code unit; suffixing must never increase the ZIP limit.
+    const safeExtension = truncateArchiveFilename(
+      extension, Math.max(0, 128 - marker.length - 1),
+    )
+    const safeStem = truncateArchiveFilename(
+      stem, 128 - marker.length - safeExtension.length,
+    ) || '_'
+    const candidate = `${safeStem}${marker}${safeExtension}`
     const candidateKey = candidate.toLocaleLowerCase('en-US')
     if (!used.has(candidateKey)) {
       used.add(candidateKey)
