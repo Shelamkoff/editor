@@ -236,3 +236,36 @@ test('versioned schema does not silently accept asynchronous rich-text mappers',
     /must complete synchronously/,
   )
 })
+
+
+test('versioned schema rejects a Promise returned by a rich-text transform even when its mapper ignores the value', async () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: input => ({ text: input.text }),
+    mapRichText(data, transform) {
+      // A plugin mapper may call the supplied transform only for its effects.
+      transform(data.text, 'text')
+    },
+  })
+  assert.throws(
+    () => schema.mapRichText({ text: 'Original' }, () => Promise.resolve('late')),
+    /must complete synchronously/,
+  )
+  await Promise.resolve()
+})
+
+test('versioned schema rejects non-string rich-text transform values before accepting data', () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: input => ({ text: input.text }),
+    mapRichText(data, transform) {
+      transform(data.text, 'text')
+    },
+  })
+  assert.throws(
+    () => schema.mapRichText({ text: 'Original' }, () => 42),
+    /Rich-text transform must return a string/,
+  )
+})
