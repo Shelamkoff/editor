@@ -269,3 +269,22 @@ test('versioned schema rejects non-string rich-text transform values before acce
     /Rich-text transform must return a string/,
   )
 })
+
+
+test('versioned rich-text transform rejection cannot be swallowed by a plugin mapper', () => {
+  const schema = createVersionedDataSchema({
+    currentVersion: 1,
+    createDefault: () => ({ text: '' }),
+    normalize: input => ({ text: input.text }),
+    mapRichText(data, transform) {
+      try { transform(data.text, 'text') } catch {
+        // The mapper is not allowed to turn a failed author transform into
+        // a successful normalized data result by suppressing this exception.
+      }
+    },
+  })
+  assert.throws(
+    () => schema.mapRichText({ text: 'Original' }, () => Promise.resolve('late')),
+    /must complete synchronously/,
+  )
+})
