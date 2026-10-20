@@ -930,3 +930,101 @@ test('throwing slow diagnostic cannot override an already committed transaction 
   assert.equal(history.undoDepth, 1)
   assert.equal(engine.health, 'ready')
 })
+
+
+
+test('async projector apply must not commit a document before projection completion', () => {
+  const phases = []
+  const projector = {
+    prepare() {
+      return {
+        apply() { phases.push('apply'); return Promise.resolve() },
+        recover() { phases.push('recover') },
+        discard() { phases.push('discard') },
+        finalize() { phases.push('finalize') },
+      }
+    },
+  }
+  const { store, history, engine } = harness({ projector })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'async'))
+  }), /must complete synchronously/)
+  assert.equal(store.get('a').data.text, 'a', 'async projection published uncommitted content')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+  assert.equal(engine.phase, 'idle')
+  assert.deepEqual(phases, ['apply', 'recover', 'discard'])
+})
+
+test('asynchronous projector recovery poisons the engine rather than declaring a safe rollback', () => {
+  const failures = []
+  const projector = {
+    prepare() {
+      return {
+        apply() { throw new Error('projection apply failed') },
+        recover() { return Promise.resolve() },
+        discard() { failures.push('discard') },
+        finalize() { throw new Error('must not finalize a failed projection') },
+      }
+    },
+  }
+  const { store, history, engine } = harness({ projector })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'next'))
+  }), /recovery also failed/)
+  assert.equal(engine.health, 'failed')
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(history.canUndo, false)
+  assert.deepEqual(failures, ['discard'])
+})
+
+test('async projector discard during failure cannot silently declare rollback complete', () => {
+  const projector = {
+    prepare() {
+      return {
+        apply() { throw new Error('apply failed') },
+        recover() {},
+        discard() { return Promise.resolve() },
+        finalize() {},
+      }
+    },
+  }
+  const { store, history, engine } = harness({ projector })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'next'))
+  }), /recovery also failed/)
+  assert.equal(engine.health, 'failed')
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(history.canUndo, false)
+})
+
+test('async post-commit projector finalization reports a diagnostic without undoing a committed edit', async () => {
+  const events = []
+  const projector = {
+    prepare() {
+      return {
+        apply() {},
+        recover() {},
+        discard() {},
+        finalize() { return Promise.resolve() },
+      }
+    },
+  }
+  const diagnostics = {
+    now: () => 1,
+    threshold: () => Infinity,
+    errorName: error => error?.name ?? 'Error',
+    emit(code, detail) { events.push({ code, ...detail }) },
+  }
+  const { store, history, engine } = harness({ projector, diagnostics })
+  assert.doesNotThrow(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'committed'))
+  }))
+  await Promise.resolve()
+  assert.equal(store.get('a').data.text, 'committed')
+  assert.equal(history.canUndo, true)
+  assert.equal(engine.health, 'ready')
+  assert.equal(engine.phase, 'idle')
+  assert.equal(events.filter(event => event.operation === 'transaction.finalize').length, 1,
+    'non-synchronous finalization was accepted without a cleanup diagnostic')
+})
