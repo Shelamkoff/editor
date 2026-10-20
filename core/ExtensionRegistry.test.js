@@ -1104,3 +1104,53 @@ test('inline popup callback remains bound to its owner and rejects a retired edi
   assert.equal(mounted, 2, 'a retired inline extension published a popup')
   assert.equal(cleaned, 1, 'a declined popup did not release its incoming resource')
 })
+
+
+test('runtime block and inline create operations reject asynchronous instance factories', async () => {
+  const doc = documentStub()
+  let blocks = 0
+  let inlines = 0
+  const block = {
+    ...blockDefinition('paragraph'),
+    setup() {
+      return {
+        create() {
+          blocks++
+          return Promise.resolve({ element: null })
+        },
+        destroy() {},
+      }
+    },
+  }
+  const inline = {
+    ...inlineDefinition('mention', '@'),
+    setup() {
+      return {
+        create() {
+          inlines++
+          return Promise.reject(new Error('late inline instance error'))
+        },
+        destroy() {},
+      }
+    },
+  }
+  const registry = new ExtensionRegistry({ ownerDocument: doc, blocks: [block], inline: [inline] })
+  try {
+    assert.throws(
+      () => registry.getBlockRuntime('paragraph').create({ value: '' }, {}),
+      /must complete synchronously/,
+      'async block creation was allowed despite the synchronous BlockPluginRuntime contract',
+    )
+    assert.throws(
+      () => registry.getInlineRuntime('mention').create('widget', { value: '' }, {}),
+      /must complete synchronously/,
+      'async widget creation was allowed despite the synchronous InlinePluginRuntime contract',
+    )
+    assert.equal(blocks, 1)
+    assert.equal(inlines, 1)
+    await Promise.resolve()
+    await Promise.resolve()
+  } finally {
+    registry.destroy()
+  }
+})
