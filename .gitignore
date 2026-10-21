@@ -12,3 +12,7 @@ docs/.vitepress/readme-catalog.json
 .npm-pack-cache/
 .idea/
 *.tgz
+
+# Generated verification output. Historical tracked evidence is read-only.
+/test-results/
+/.npm-cache/
