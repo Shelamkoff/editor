@@ -800,24 +800,33 @@ test('block settings menu captures Home End and wraps ArrowUp without active ite
 })
 
 test('block settings keyboard navigation skips native disabled menu buttons', async () => {
-  const editor = mount()
+  const editor = panelEditor(context => {
+    const panel = context.ownerDocument.createElement('div')
+    for (const unavailable of [true, false]) {
+      const button = context.ownerDocument.createElement('button')
+      button.type = 'button'
+      button.setAttribute('role', 'menuitem')
+      button.disabled = unavailable
+      button.textContent = unavailable ? 'Unavailable action' : 'Available action'
+      panel.append(button)
+    }
+    return panel
+  })
   const root = editorRoot(editor)
   await open(editor, '.oe-toolbar__drag')
   const menu = root.querySelector('.oe-settings-menu')
-  const buttons = [...menu.querySelectorAll('[role^="menuitem"]')]
-    .filter(item => item.style.display !== 'none' && item.getAttribute('aria-disabled') !== 'true')
-  assert(buttons.length >= 2, 'The settings menu needs an alternative enabled button')
-  const disabled = buttons[0]
-  const original = disabled.disabled
-  try {
-    disabled.disabled = true
-    menu.focus()
-    await dispatchKey('ArrowDown', 'ArrowDown', 40)
-    equal(document.activeElement, buttons[1],
-      'Keyboard focus stopped at a disabled native menu button')
-  } finally {
-    disabled.disabled = original
-  }
+  const disabled = menu.querySelector('button:disabled')
+  const enabled = menu.querySelector('button:not(:disabled)')
+  assert(disabled && enabled, 'The plugin panel must expose native disabled and enabled buttons')
+  const before = editor.save().blocks
+  menu.focus()
+  await dispatchKey('ArrowDown', 'ArrowDown', 40)
+  equal(document.activeElement, enabled, 'Keyboard focus stopped at a disabled native menu button')
+  await dispatchKey('End', 'End', 35)
+  await dispatchKey('ArrowDown', 'ArrowDown', 40)
+  equal(document.activeElement, enabled, 'Wrapped keyboard navigation stopped at a disabled native menu button')
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
 })
 
 await run()
