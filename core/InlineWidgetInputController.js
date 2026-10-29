@@ -183,8 +183,10 @@ export class InlineWidgetInputController {
       eventHost:field.element,
       trusted:event.isTrusted===true,
       applyChanges:changes=>this.#projection.applyNativeInlineChanges(owner.blockId,owner.fieldKey,changes),
-      finalizeChanges:(changes,canonicalInline)=>
-        this.#projection.finalizeNativeInlineUpdates(owner.blockId,owner.fieldKey,changes,canonicalInline),
+      finalizeChanges:(changes,canonicalInline)=>{
+        this.#projection.finalizeNativeInlineUpdates(owner.blockId,owner.fieldKey,changes,canonicalInline)
+        if(changes.length)this.#reconciler.completeFieldProjection?.(owner.blockId,field)
+      },
     })
   }
 

@@ -2,6 +2,8 @@
 
 Uploadable image with caption, sizing, border, background, and object-fit controls.
 
+The editor derives the image's alternative text from its completed visible caption, including inline widget labels. Initial hydration, widget data updates, mode changes and Undo/Redo refresh this derived attribute without adding a separate history action or persisted `alt` field. A retired Image occurrence or an image moved outside its captured view container is not updated.
+
 ## Install and register
 
 ```bash

@@ -412,7 +412,7 @@ BlockInstanceContext.restoring is captured at instance creation by history/recov
 
 ### 16.7 Derived presentation after rich-field projection
 
-**Contract proposal for review, 2026-10-29; production adoption requires the proof below.** The selected extension shape is one optional `BlockInstance.afterProjection(field: EditableField): void`. It completes derived presentation for one exact declared rich-text field after its owning projection has settled that field. Image alternative text is the demonstrated consumer. This contract does not imply completion of arbitrary plain-text controls, every DOM mutation, renderer output, layout or paint.
+**Adopted contract, 2026-10-29.** The selected extension shape is one optional `BlockInstance.afterProjection(field: EditableField): void`. It completes derived presentation for one exact declared rich-text field after its owning projection has settled that field. Image alternative text is the demonstrated consumer. This contract does not imply completion of arbitrary plain-text controls, every DOM mutation, renderer output, layout or paint.
 
 #### Owner, capture and rights
 

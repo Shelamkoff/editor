@@ -322,6 +322,13 @@ export function createImagePlugin(config={}){
           let settingsController=null
           context.signal.addEventListener('abort',()=>settingsController?.abort(),{once:true})
 
+          const ownsCaptionImage=()=>!dead&&!context.signal.aborted&&caption.parentNode===container
+            &&image.parentNode===container&&container.parentNode===wrapper
+          const updateAlternativeText=()=>{
+            if(!ownsCaptionImage())return
+            const alt=caption.textContent?.trim()??''
+            if(ownsCaptionImage())image.alt=alt
+          }
           const applyStyles=()=>{
             wrapper.classList.toggle(CSS.withBorder,data.withBorder)
             wrapper.classList.toggle(CSS.expanded,data.expanded)
@@ -367,7 +374,7 @@ export function createImagePlugin(config={}){
               else caption.textContent=''
             }
             caption.contentEditable=!readOnly&&hasImage?'true':'false'
-            image.alt=caption.textContent?.trim()??''
+            updateAlternativeText()
             applyStyles()
           }
           const updateData=producer=>{
@@ -459,7 +466,7 @@ export function createImagePlugin(config={}){
           for(const {action,filledButton} of customActionButtons){
             filledButton.addEventListener('click',()=>{void runCustomAction(action);restoreSource()},{signal:context.signal})
           }
-          caption.addEventListener('input',()=>{image.alt=caption.textContent?.trim()??''},{signal:context.signal})
+          caption.addEventListener('input',updateAlternativeText,{signal:context.signal})
           wrapper.addEventListener('dragover',event=>{
             if(readOnly||!event.dataTransfer?.types.includes('Files'))return
             event.preventDefault()
@@ -479,6 +486,10 @@ export function createImagePlugin(config={}){
             read:()=>({...data,file:{...data.file},styles:{...data.styles},caption:caption.innerHTML.trim()}),
             update(next){if(!dead)project(next)},
             editableFields:()=>data.file.url?Object.freeze([Object.freeze({key:'caption',element:caption,mode:/** @type {'rich-text'} */('rich-text')})]):Object.freeze([]),
+            afterProjection(field){
+              if(field.key!=='caption'||field.element!==caption||field.mode!=='rich-text')return
+              updateAlternativeText()
+            },
             setReadOnly(value){
               readOnly=value
               // Native source input can commit a newer caption without an

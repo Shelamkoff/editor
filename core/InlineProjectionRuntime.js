@@ -115,6 +115,7 @@ export class InlineProjectionRuntime {
     preserveSourceProjection=false,projectionRoot=null,presentationFields=null,
     knownPresentationFields=presentationFields,onFailedFields=null,
     canRetainField=/** @type {(field:import('../plugin-kit/types').EditableField)=>boolean} */ (()=>true),
+    completeField=null,rewrittenFields=null,
   }={}){
     this.#assertLive()
     if(this.#projectingBlocks.has(blockId))throw new Error('Cannot reenter inline projection for the same block')
@@ -126,12 +127,12 @@ export class InlineProjectionRuntime {
         this.#blocks.set(blockId,state)
       }
       const retained=new Map()
+      const previousByElement=new Map(presentationFields?.map(field=>[field.element,field])??[])
       try{
         if(presentationFields){
           const canonical=richTextFieldMap(definition,record.data)
           const same=(left,right)=>left?.key===right.key&&left?.mode===right.mode
           const knownByElement=new Map(knownPresentationFields?.map(field=>[field.element,field])??[])
-          const previousByElement=new Map(presentationFields.map(field=>[field.element,field]))
           let ownershipFailed=false
           for(const field of fields){
             if(same(knownByElement.get(field.element),field)&&!canRetainField(field)){
@@ -146,15 +147,25 @@ export class InlineProjectionRuntime {
           }
           if(ownershipFailed)throw new Error('Presentation field left its accepted ownership boundary')
         }
-        this.#projectState(blockId,state,record,definition,fields,baseContext,{
+        const affected=this.#projectState(blockId,state,record,definition,fields,baseContext,{
           preserveSourceProjection,projectionRoot,retained,
-          canProjectField:canRetainField,
+          canProjectField:canRetainField,trackAffected:typeof completeField==='function',
         })
         if(this.#destroyed||this.#blocks.get(blockId)!==state){
           throw new Error('Inline projection owner was revoked during reconciliation')
         }
         if(fields.some(field=>!canRetainField(field))){
           throw new Error('Presentation field left its accepted ownership boundary')
+        }
+        if(completeField)for(const field of fields){
+          if(field.mode!=='rich-text')continue
+          const previous=previousByElement.get(field.element)
+          if(!affected.has(field.element)&&!rewrittenFields?.has(field.element)
+            &&(!presentationFields||(previous?.key===field.key&&previous?.mode===field.mode)))continue
+          completeField(field)
+          // A completed new field is now a healthy sibling if a later field
+          // fails. The existing failure cleanup owns this local retained set.
+          if(presentationFields)retained.set(field.key,field)
         }
       }catch(error){
         if(presentationFields&&this.#blocks.get(blockId)===state&&!this.#destroyed){
@@ -670,7 +681,8 @@ export class InlineProjectionRuntime {
     this.#pendingPreparations.clear()
   }
 
-  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,retained=new Map(),canProjectField=null}={}){
+  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,retained=new Map(),canProjectField=null,trackAffected=false}={}){
+    const affected=trackAffected?new Set():null
     const projectionParent=projectionRoot?.parentNode
     const assertFieldBoundary=(fieldKey,field)=>{
       if(canProjectField&&!canProjectField({key:fieldKey,element:field,mode:'rich-text'})){
@@ -706,6 +718,7 @@ export class InlineProjectionRuntime {
         // not hydrate or retire an in-progress native field.
         continue
       }
+      const before=trackAffected?element.innerHTML:null
 
       let decodedWidgets=null
       let retainedHtml=null
@@ -744,7 +757,7 @@ export class InlineProjectionRuntime {
         }
       }
 
-      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners,
+      const hydrated=this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners,
         ()=>assertFieldBoundary(fieldKey,element),decodedWidgets)
       if(retainedHtml!==null){
         if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
@@ -759,6 +772,7 @@ export class InlineProjectionRuntime {
         }
       }
       projectRichTextCaretPadding(element)
+      if(trackAffected&&(hydrated||element.innerHTML!==before))affected.add(element)
     }
 
     for(const [id,entry] of state.widgets){
@@ -788,6 +802,7 @@ export class InlineProjectionRuntime {
         if(parent===boundary)break
       }
     }
+    return affected
   }
 
   #readSafeAuthoredField(blockId,fieldKey,field,state){
@@ -871,6 +886,7 @@ export class InlineProjectionRuntime {
   }
 
   #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{},decodedWidgets=null){
+    let projected=false
     const textNodes=[]
     const walker=this.#ownerDocument.createTreeWalker(element,4)
     let current=walker.nextNode()
@@ -1074,6 +1090,7 @@ export class InlineProjectionRuntime {
       if(cursor<text.data.length)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor)))
       assertBoundary()
       text.replaceWith(fragment)
+      projected=true
     }
 
     // A source field may already contain a current, inert opaque reference.
@@ -1105,6 +1122,7 @@ export class InlineProjectionRuntime {
         live.add(entry.id)
       }
     }
+    return projected
   }
 
   #serializeField(blockId,field,reservedInlineIds){

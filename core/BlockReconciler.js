@@ -61,6 +61,23 @@ function hasStructuralChange(changes) {
   ))
 }
 
+/** Per-attempt rewrite eligibility, never field ownership. Only optional
+ * completion consumers pay for this exact descendant/HTML observation. */
+function fieldContent(element) {
+  const nodes=[]
+  const walker=element.ownerDocument.createTreeWalker(element,0xffffffff)
+  for(let node=walker.nextNode();node;node=walker.nextNode())nodes.push(node)
+  return {html:element.innerHTML,nodes}
+}
+
+function sameFieldContent(element,previous) {
+  if(element.innerHTML!==previous.html)return false
+  const walker=element.ownerDocument.createTreeWalker(element,0xffffffff)
+  let index=0
+  for(let node=walker.nextNode();node;node=walker.nextNode())if(previous.nodes[index++]!==node)return false
+  return index===previous.nodes.length
+}
+
 function snapshotBlockInstance(source, type, destroySource) {
   synchronousResult(source)
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
@@ -70,6 +87,7 @@ function snapshotBlockInstance(source, type, destroySource) {
   const read = captureInstanceMethod(source, 'read')
   const update = captureInstanceMethod(source, 'update')
   const editableFields = captureInstanceMethod(source, 'editableFields')
+  const afterProjection = captureInstanceMethod(source, 'afterProjection')
   const setReadOnly = captureInstanceMethod(source, 'setReadOnly')
   const focus = captureInstanceMethod(source, 'focus')
   if (!element || !read || !setReadOnly || !destroySource) {
@@ -84,6 +102,7 @@ function snapshotBlockInstance(source, type, destroySource) {
   }
   if (update) instance.update = update
   if (editableFields) instance.editableFields = editableFields
+  if (afterProjection) instance.afterProjection = afterProjection
   if (focus) instance.focus = focus
   return Object.freeze(instance)
 }
@@ -187,6 +206,7 @@ export class BlockReconciler {
         this.#activateEntry(entry)
         this.#assertPublicationOwner(fresh,'Block mount owner changed during activation')
       }
+      for (const entry of fresh.values()) this.#completeFields(entry)
       for (const entry of fresh.values()) {
         this.#finalizePreparedInline(entry)
         this.#assertPublicationOwner(fresh,'Block mount owner changed during finalization')
@@ -232,6 +252,17 @@ export class BlockReconciler {
 
   getElement(id) {
     return this.#entries.get(id)?.element
+  }
+
+  /** Complete an exact native-owned field after final DOM/cache normalization.
+   * This is an internal projection handoff, not a document mutation/event.
+   * @param {string} id
+   * @param {import('../plugin-kit/types').EditableField} field
+   */
+  completeFieldProjection(id,field) {
+    const entry=this.#entries.get(id)
+    if(!entry?.instance.afterProjection)return
+    this.#completeFields(entry,[field])
   }
 
   get ids() {
@@ -487,12 +518,16 @@ export class BlockReconciler {
 
         for (const item of updates) {
           const failedPresentation=item.entry.presentationFailure
+          const captured=item.dataChanged&&item.id!==sourceBlockId&&item.entry.instance.afterProjection
+            ?this.#captureFieldContent(item.entry):null
           item.entry.lifetime.candidate = item.after
           if (item.dataChanged && item.id !== sourceBlockId) {
             item.entry.instance.update(item.after.data, item.before.data)
           }
           item.entry.record = item.after
           this.#refreshFields(item.id, item.entry)
+          const rewrittenFields=captured?new Set(item.entry.fields.filter(field=>field.mode==='rich-text'
+            &&(!captured.has(field.element)||!sameFieldContent(field.element,captured.get(field.element)))).map(field=>field.element)):null
           if (this.#inlineProjection && !item.entry.unregistered) {
             this.#inlineProjection.reconcileBlock(
               item.id,
@@ -500,9 +535,12 @@ export class BlockReconciler {
               item.entry.definition,
               item.entry.fields,
               item.entry.baseContext,
-              { preserveSourceProjection: item.id === sourceBlockId, projectionRoot: item.entry.element },
+              { preserveSourceProjection: item.id === sourceBlockId, projectionRoot: item.entry.element,
+                rewrittenFields,
+                completeField:item.entry.instance.afterProjection?field=>this.#completeFields(item.entry,[field]):null,
+              },
             )
-          }
+          } else if(rewrittenFields)this.#completeFields(item.entry,item.entry.fields.filter(field=>rewrittenFields.has(field.element)))
           if(failedPresentation&&!item.entry.presentationFailure)this.#restoreRecoveredFieldModes(item.entry,failedPresentation)
           this.#applyTunes(item.entry, item.after)
         }
@@ -541,6 +579,7 @@ export class BlockReconciler {
         }
         publishedEntries = nextEntries
         this.#entries = nextEntries
+        for(const entry of staged.values())this.#completeFields(entry)
       },
 
       recover: () => {
@@ -604,6 +643,7 @@ export class BlockReconciler {
 
           for (const entry of restored.values()) this.#applyPreparedInline(entry)
           for (const entry of restored.values()) this.#activateEntry(entry)
+          for (const entry of restored.values()) this.#completeFields(entry)
           for (const entry of restored.values()) this.#finalizePreparedInline(entry)
 
           const keep = new Set(nextEntries.values())
@@ -728,6 +768,8 @@ export class BlockReconciler {
           this.#reportPresentationFailure(error)
           throw error
         }
+        try { for(const {entry,fields} of modeFields)this.#completeFields(entry,fields) }
+        catch(error) { modeBoundaryFailed=true; throw error }
       }
       if(this.#inlineProjection?.setReadOnly)this.#inlineProjection.setReadOnly(next,beforeAccept)
       else beforeAccept()
@@ -933,6 +975,61 @@ export class BlockReconciler {
     entry?.scope?.activate?.()
   }
 
+  #captureFieldContent(entry) {
+    const id=entry.record.id,fields=entry.fields.filter(field=>field.mode==='rich-text')
+    const owners=new Map(fields.map(field=>[field.element,this.#fieldOwners.get(field.element)]))
+    const assertOwned=()=>{
+      if(!this.#isCurrentMountedEntry(id,entry)||fields.some(field=>{
+        const owner=owners.get(field.element)
+        return !owner||this.#fieldOwners.get(field.element)!==owner||!this.#hasFieldAncestry(owner,entry)
+      }))throw new Error('Field rewrite observation lost its accepted owner')
+    }
+    assertOwned()
+    const captured=new Map(fields.map(field=>[field.element,fieldContent(field.element)]))
+    assertOwned()
+    return captured
+  }
+
+  #completeFields(entry,completed=entry.fields,fields=entry.fields,ownsField=null,contentState=null) {
+    if(!entry.instance.afterProjection)return
+    const id=entry.record.id
+    const owners=ownsField?null:new Map(fields.map(field=>[field.element,this.#fieldOwners.get(field.element)]))
+    const owns=ownsField??(field=>{
+      const owner=owners.get(field.element)
+      return this.#fieldOwners.get(field.element)===owner&&owner?.blockId===id
+        &&owner.fieldKey===field.key&&owner.mode===field.mode&&this.#hasFieldAncestry(owner,entry)
+    })
+    const assertOwned=()=>{
+      if(this.#isCurrentMountedEntry(id,entry)&&fields.every(owns))return
+      this.#revalidateSettledFields(id,entry,null,false)
+      throw new Error('Completed field left its accepted ownership boundary')
+    }
+    this.#projectPresentation(()=>{
+      const contents=new Map(fields.filter(field=>field.mode==='rich-text')
+        .map(field=>[field.element,fieldContent(field.element)]))
+      if(contentState)contentState.contents=contents
+      assertOwned()
+      for(const field of completed){
+        if(field.mode!=='rich-text')continue
+        assertOwned()
+        if(!fields.includes(field))throw new Error('Completed field descriptor is no longer current')
+        let failed=false,error
+        try { entry.instance.afterProjection(field) }
+        catch(failure) { failed=true; error=failure }
+        try {
+          assertOwned()
+          for(const [element,content] of contents){
+            if(!sameFieldContent(element,content))throw new Error('Field completion changed author content')
+          }
+        } catch(failure) {
+          if(failed)throw new AggregateError([error,failure],'Field completion and ownership validation failed',{cause:error})
+          throw failure
+        }
+        if(failed)throw error
+      }
+    })
+  }
+
   #applyPreparedInline(entry) {
     entry?.inlinePrepared?.apply?.()
   }
@@ -1066,13 +1163,30 @@ export class BlockReconciler {
     }
     if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
       let retained=[]
+      const completion={contents:null}
       try{
         this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext,{
           projectionRoot:entry.element,
           presentationFields:forceProjection?null:previousFields,
           knownPresentationFields:failed?.fields??previousFields,
-          onFailedFields:healthy=>{retained=healthy;publish(healthy,true)},
+          onFailedFields:healthy=>{
+            retained=healthy
+            // A completion can corrupt an untouched sibling's contents while
+            // leaving its host lease intact. Retire those exact occurrences
+            // through the existing cleanup owner, including callback fallout.
+            for(;;){
+              const damaged=retained.filter(field=>completion.contents?.has(field.element)
+                &&!sameFieldContent(field.element,completion.contents.get(field.element)))
+              if(!damaged.length)break
+              const lost=new Set(damaged)
+              retained=retained.filter(field=>!lost.has(field))
+              this.#inlineProjection.retirePresentationFields(id,damaged)
+            }
+            publish(retained,true)
+          },
           canRetainField:ownsField,
+          completeField:!forceProjection&&entry.instance.afterProjection
+            ?field=>this.#completeFields(entry,[field],fields,ownsField,completion):null,
         })
       }catch(error){
         if(forceProjection){
@@ -1331,6 +1445,7 @@ export class BlockReconciler {
         this.#activateEntry(entry)
         this.#assertPublicationOwner(fresh,'Block restoration owner changed during activation')
       }
+      for (const entry of fresh.values())this.#completeFields(entry)
       for (const entry of fresh.values()){
         this.#finalizePreparedInline(entry)
         this.#assertPublicationOwner(fresh,'Block restoration owner changed during finalization')

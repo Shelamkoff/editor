@@ -85,6 +85,12 @@ export interface BlockInstance<
   read(): D
   update?(next: Readonly<D>, previous: Readonly<D>): void
   editableFields?(): readonly EditableField[]
+  /** Synchronous derived presentation for one completed, still-owned rich field.
+   * Runs before acceptance, including native normalization without a commit.
+   * May read the frozen field and update owned auxiliary DOM; must not mutate
+   * author content, model/history, focus, mode or acquire asynchronous tasks.
+   */
+  afterProjection?(field: EditableField): void
   setReadOnly(readOnly: boolean): void
   focus?(target?: FocusTarget): void
   destroy(): void

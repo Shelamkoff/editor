@@ -36,7 +36,7 @@ interface BlockPluginDefinition<Data> {
 
 During DOM synchronization, mounted rich fields come from their DOM, hidden existing fields retain their committed canonical value (including empty strings), and new hidden fields retain their candidate value. Removed fields stay removed. Model-first `updateData()` can deliberately change hidden values. Flush pending DOM input with `commitDomMutation(() => {})` before presentation controls unmount its field; never copy rendered widget labels into a canonical rich-text cache.
 
-A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`, optional `editableFields()`, `setReadOnly(readOnly)`, optional `focus(target)`, and `destroy()`. The `element` must belong to the context's `ownerDocument` and be detached, with no parent, when returned by `create()`. It must be an `HTMLElement` in that document's realm; other node types (including comments, text nodes and SVG elements) are not valid block roots. Each simultaneously live block instance owns a different DOM root; returning an existing application node or a root still owned by another block is rejected.
+A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`, optional `editableFields()`, optional `afterProjection(field)`, `setReadOnly(readOnly)`, optional `focus(target)`, and `destroy()`. The `element` must belong to the context's `ownerDocument` and be detached, with no parent, when returned by `create()`. It must be an `HTMLElement` in that document's realm; other node types (including comments, text nodes and SVG elements) are not valid block roots. Each simultaneously live block instance owns a different DOM root; returning an existing application node or a root still owned by another block is rejected.
 
 `BlockInstanceContext` provides:
 
@@ -54,6 +54,24 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `isReadOnly()` | Current mutation eligibility. |
 
 The inherited `createId(prefix)` allocator creates nested stable identities.
+
+### Derived presentation after a rich field settles
+
+Implement optional synchronous `afterProjection(field: EditableField): void` when auxiliary presentation depends on the final visible text of a rich field. For example, an image's alternative text must include the rendered labels of its inline widgets. `update()` runs before that inline projection is complete; reading the caption there can still return canonical placeholders.
+
+The editor captures the method once with its original instance receiver. It passes the frozen descriptor of the exact affected mounted rich field after attachment and inline hydration, before accepting a canonical change or history replay. Mode changes deliver after inline mode hooks and scope cancellation. A standalone field replacement or recovery delivers only fields actually projected; an untouched sibling or repeated field query does not deliver again. Native normalization also delivers when final DOM changes but canonical data and history remain unchanged. A discarded detached candidate never receives completion.
+
+Use only the instance's captured, still-owned auxiliary nodes. This fragment belongs in the object returned by `create()`; `caption`, `image`, `container` and `wrapper` are exact nodes created for that occurrence:
+
+```js
+afterProjection(field) {
+  if (context.signal.aborted || field.key !== 'caption' || field.element !== caption) return
+  if (caption.parentNode !== container || image.parentNode !== container || container.parentNode !== wrapper) return
+  image.alt = caption.textContent?.trim() ?? ''
+}
+```
+
+The callback may read the field and current public data, but must not rewrite author DOM, change canonical data/history, move focus, change mode, destroy the editor or start a data task. It is synchronous projection work, so a thrown value or thenable rejects the owning attempt. Canonical/native changes recover without adding history; a standalone failure disables only its failed field and preserves healthy fields. Repeated queries do not retry that failed completion. Recovery recomputes derived presentation; core does not promise to undo arbitrary auxiliary DOM writes made by a callback that then throws. Omit the method when it is unnecessary: no completion-specific DOM scan or callback is added for such an instance.
 
 ## Schema
 
