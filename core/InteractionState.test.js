@@ -18,9 +18,15 @@ function fixture({ onChange, onError, focus } = {}) {
   }
   const calls = []
   let interaction
+  const ownerDocument = { activeElement: null }
+  const elements = new Map(ids.map(id => [id, {
+    ownerDocument, contains(node) { return node === this },
+  }]))
   const reconciler = {
+    getElement: id => elements.get(id),
     focus(id, target) {
       calls.push({ id, target })
+      ownerDocument.activeElement = elements.get(id)
       return focus ? focus(id, target, interaction, runtime) : true
     },
   }
@@ -176,7 +182,7 @@ test('a focus callback that enters read-only cannot claim another current block'
   assert.equal(runtime.readOnly, true)
 })
 
-test('a nested current-block change from the interaction observer wins over earlier focus', () => {
+test('a nested current-block decision follows accepted focus without retroactively failing it', () => {
   let interaction
   const events = []
   const h = fixture({
@@ -186,7 +192,7 @@ test('a nested current-block change from the interaction observer wins over earl
     },
   })
   interaction = h.interaction
-  assert.equal(interaction.focus('b'), false)
+  assert.equal(interaction.focus('b'), true)
   assert.equal(interaction.currentId, 'a')
   assert.deepEqual(events, ['b', 'a'])
 })

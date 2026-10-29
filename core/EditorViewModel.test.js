@@ -37,16 +37,21 @@ function harness({ insertCommit = null, removeCommit = null, caret = () => true 
       return nextId
     },
   }
+  const ownerDocument = { activeElement: null }
+  const elements = new Map()
   const reconciler = {
-    getElement() { return {} },
+    getElement(id) {
+      if (!elements.has(id)) elements.set(id, { ownerDocument, contains(node) { return node === this } })
+      return elements.get(id)
+    },
     getEditableFields() { return [] },
-    focus() { return true },
+    focus(id) { ownerDocument.activeElement = this.getElement(id); return true },
   }
   interaction = new InteractionState({
     runtime, reconciler,
     onChange: event => events.push(event.currentId),
   })
-  const selection = { setCaret: caret }
+  const selection = { setCaret(id, target) { ownerDocument.activeElement = reconciler.getElement(id); return caret(id, target) } }
   const view = new EditorViewModel({ runtime, reconciler, interaction, selection })
   return { view, runtime, ids, interaction, events, selection }
 }
@@ -365,8 +370,11 @@ function nativePlainFocusHarness({ onPluginFocus = null } = {}) {
     has: id => fields.has(id), list: () => [{id:'a'},{id:'b'},{id:'c'}],
   }
   let interaction
+  const elements = new Map([...fields.keys()].map(id => [id, {
+    ownerDocument, contains: node => node === fields.get(id)?.element,
+  }]))
   const reconciler = {
-    getElement(id) { return { ownerDocument } },
+    getElement(id) { return elements.get(id) },
     getEditableFields(id) { return fields.get(id) ? [fields.get(id)] : [] },
     resolveEditableTarget(element) {
       for (const [blockId, field] of fields) {

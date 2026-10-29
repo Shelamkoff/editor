@@ -244,12 +244,23 @@ export class BlockReconciler {
 
   focus(id, target) {
     const entry = this.#entries.get(id)
-    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered
-      || typeof entry.instance.focus !== 'function') return false
+    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered) return false
     try {
       const result=this.#projectPresentation(() => {
-        entry.instance.focus(target)
-        return true
+        if (typeof entry.instance.focus === 'function') {
+          entry.instance.focus(target)
+          return true
+        }
+        // focus() is optional. An already registered editable field can be
+        // focused without a plugin hook; an unknown key never redirects to
+        // a sibling. Caret placement still belongs to LogicalSelection.
+        const fields = this.getEditableFields(id)
+        const field = target?.fieldKey !== undefined
+          ? fields.find(candidate => candidate.key === target.fieldKey)
+          : fields[0]
+        if (!field || !this.#isCurrentMountedEntry(id,entry)) return false
+        field.element.focus({ preventScroll: true })
+        return field.element.ownerDocument.activeElement === field.element
       })
       return this.#isCurrentMountedEntry(id,entry) ? result : false
     } catch (error) {

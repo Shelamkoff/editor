@@ -349,6 +349,7 @@ export function createEditorRuntime(input){
       }
     },
     onError:error=>reportDiagnostic('command.failed','interaction.change',error),
+    onFocus:id=>toolbar?.showFor(id),
   })
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
@@ -508,15 +509,11 @@ export function createEditorRuntime(input){
     clickArea.removeEventListener('click',onClickArea)
   }})
 
-  const onFocusIn=event=>{
-    const blockId=reconciler.resolveBlockTarget(event.target)
-    if(blockId){
-      interaction.setCurrent(blockId)
-      toolbar?.showFor(blockId)
-    }
-  }
-  root.addEventListener('focusin',onFocusIn)
-  lifecycle.register({destroy(){root.removeEventListener('focusin',onFocusIn)}})
+  // Observe this owner document so native focus outside the editor can
+  // supersede a pending request; foreign elements never acquire our currentId.
+  const onFocusIn=event=>interaction.observeNativeFocus(event.target)
+  document.addEventListener('focusin',onFocusIn)
+  lifecycle.register({destroy(){document.removeEventListener('focusin',onFocusIn)}})
 
   notifier=lifecycle.register(new ChangeNotifier(
     ()=>runtime.save(),

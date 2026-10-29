@@ -82,102 +82,11 @@ export class EditorViewModel {
   }
 
   focus(id = this.#interaction.currentId, target) {
-    if (!id) return false
-    if (!target) return this.#interaction.focus(id)
-    // Keyed focus is a two-part author gesture: mounted plugin focus and
-    // logical caret ownership. Do not publish currentId until both accept.
-    // A missing field must not emit a false current-block change.
-    const decision = this.#interaction.explicitCurrentVersion
-    const generation = this.#runtime.generation
-    const revision = this.#runtime.revision
-    const modeEpoch = this.#runtime.modeEpoch
-    const readOnly = this.#runtime.readOnly
-    const previousCurrentId = this.#interaction.currentId
-    // A plugin may focus its default field before we discover that the
-    // specifically requested keyed field no longer exists. Capture the
-    // author's previous logical selection before that potentially fallible
-    // focus, so a rejected gesture can restore the previous native owner.
-    let previousBookmark = null
-    try { previousBookmark = this.#selection.capture?.() ?? null } catch {}
-    // Selection capture itself invokes external DOM/selection adapters.
-    // A newer focus or mode transition during that callback revokes the old
-    // request *before* it can call the destination plugin's focus method.
-    if (decision !== this.#interaction.explicitCurrentVersion
-      || previousCurrentId !== this.#interaction.currentId
-      || generation !== this.#runtime.generation
-      || revision !== this.#runtime.revision
-      || modeEpoch !== this.#runtime.modeEpoch
-      || readOnly !== this.#runtime.readOnly
-      || this.#runtime.health !== 'ready'
-      || !this.#runtime.has(id)) return false
-    const restoreRejectedFocus = () => {
-      if (!previousBookmark
-        || decision !== this.#interaction.explicitCurrentVersion
-        || previousCurrentId !== this.#interaction.currentId
-        || generation !== this.#runtime.generation
-        || revision !== this.#runtime.revision
-        || modeEpoch !== this.#runtime.modeEpoch
-        || readOnly !== this.#runtime.readOnly
-        || this.#runtime.health !== 'ready') return false
-      // Never roll back a newer user choice or an editor replacement. A
-      // restoration failure does not turn a rejected focus into an exception.
-      try { this.#selection.restore?.(previousBookmark) } catch {}
-      return false
-    }
-    if (!this.#interaction.focus(id, target, { deferCurrent: true })) return restoreRejectedFocus()
-    if (decision !== this.#interaction.explicitCurrentVersion
-      || generation !== this.#runtime.generation
-      || revision !== this.#runtime.revision
-      || modeEpoch !== this.#runtime.modeEpoch
-      || readOnly !== this.#runtime.readOnly
-      || this.#runtime.health !== 'ready'
-      || !this.#runtime.has(id)) return false
-    if (this.#selection.setCaret(id, target) !== true) return restoreRejectedFocus()
-    // Native caret focus may synchronously hand ownership to a newer block,
-    // generation or control mode. The older request never reclaims it.
-    if (decision !== this.#interaction.explicitCurrentVersion
-      || generation !== this.#runtime.generation
-      || revision !== this.#runtime.revision
-      || modeEpoch !== this.#runtime.modeEpoch
-      || readOnly !== this.#runtime.readOnly
-      || this.#runtime.health !== 'ready'
-      || !this.#runtime.has(id)) return false
-    this.#interaction.setCurrent(id)
-    return this.#interaction.currentId === id
-      && generation === this.#runtime.generation
-      && revision === this.#runtime.revision
-      && modeEpoch === this.#runtime.modeEpoch
-      && readOnly === this.#runtime.readOnly
-      && this.#runtime.health === 'ready'
+    return this.#interaction.focus(id, target, { selection: this.#selection })
   }
 
   setCaret(id, target) {
-    // Deferred caret work may run after failed recovery or editor teardown.
-    // Reject it before asking the logical selection to touch detached DOM.
-    if (this.#runtime.health !== 'ready' || !this.#runtime.has(id)) return false
-    const decision = this.#interaction.explicitCurrentVersion
-    const generation = this.#runtime.generation
-    const revision = this.#runtime.revision
-    const modeEpoch = this.#runtime.modeEpoch
-    // The native/logical caret must accept the target before claiming the
-    // corresponding current block. A missing keyed field returns false
-    // without altering author focus or publishing current-block events.
-    if (this.#selection.setCaret(id, target) !== true) return false
-    if (this.#runtime.health === 'destroyed' || this.#runtime.health === 'failed'
-      || generation !== this.#runtime.generation
-      || revision !== this.#runtime.revision
-      || modeEpoch !== this.#runtime.modeEpoch
-      || !this.#runtime.has(id)) return false
-    // Native focus itself may dispatch a newer current-block decision.
-    if (this.#interaction.explicitCurrentVersion !== decision) {
-      return this.#interaction.currentId === id
-    }
-    this.#interaction.setCurrent(id)
-    return this.#interaction.currentId === id
-      && this.#runtime.health === 'ready'
-      && generation === this.#runtime.generation
-      && revision === this.#runtime.revision
-      && modeEpoch === this.#runtime.modeEpoch
+    return this.#interaction.focus(id, target, { selection: this.#selection, caretOnly: true })
   }
 
   reconcileInteraction() { this.#interaction.reconcile() }

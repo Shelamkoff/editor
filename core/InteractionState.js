@@ -8,16 +8,19 @@ export class InteractionState {
   #selected = new Set()
   #onChange
   #onError
+  #onFocus
   #generation
   #currentClaimVersion = 0
   #explicitCurrentVersion = 0
+  #pendingFocus = null
 
-  constructor({ runtime, reconciler, onChange, onError }) {
+  constructor({ runtime, reconciler, onChange, onError, onFocus }) {
     if (!runtime?.list) throw new TypeError('InteractionState requires a DocumentRuntime')
     if (!reconciler?.focus) throw new TypeError('InteractionState requires a BlockReconciler')
     this.#runtime = runtime
     this.#reconciler = reconciler
     this.#onChange = typeof onChange === 'function' ? onChange : null
+    this.#onFocus = typeof onFocus === 'function' ? onFocus : null
     this.#onError = typeof onError === 'function' ? onError : () => {}
     this.reconcile({ notify: false })
   }
@@ -76,6 +79,8 @@ export class InteractionState {
       if (typeof id !== 'string' || !known.has(id)) throw new Error(`Unknown block id: ${id}`)
       next.add(id)
     }
+    this.#currentClaimVersion++
+    this.#explicitCurrentVersion++
     this.#selected = next
     this.#notify(previousCurrentId, previousSelectedIds)
   }
@@ -83,40 +88,117 @@ export class InteractionState {
   clearSelection() {
     const previousCurrentId = this.#currentId
     const previousSelectedIds = this.selectedIds
+    this.#currentClaimVersion++
+    this.#explicitCurrentVersion++
     this.#selected.clear()
     this.#notify(previousCurrentId, previousSelectedIds)
   }
 
-  focus(id = this.#currentId, target, { deferCurrent = false } = {}) {
-    // A retained focus callback must not invoke a retired plugin instance.
+  /** Coordinate plugin disclosure, logical caret and current-block publication.
+   * The selection port remains owned by LogicalSelection; this is one
+   * synchronous intent, not an additional stored selection or public lease.
+   */
+  focus(id = this.#currentId, target, { selection = null, caretOnly = false } = {}) {
     if (!id || this.#runtime.health !== 'ready' || !this.#runtime.has(id)) return false
-    const claimVersion = this.#currentClaimVersion
-    const generation = this.#runtime.generation
-    const revision = this.#runtime.revision
-    const modeEpoch = this.#runtime.modeEpoch
-    const readOnly = this.#runtime.readOnly
-    // The plug-in focus callback may synchronously cause a newer focus,
-    // render a replacement occurrence, or revoke the editor entirely.
-    if (!this.#reconciler.focus(id, target)) return false
-    if (claimVersion !== this.#currentClaimVersion
-      || generation !== this.#runtime.generation
-      || revision !== this.#runtime.revision
-      || modeEpoch !== this.#runtime.modeEpoch
-      || readOnly !== this.#runtime.readOnly
-      || this.#runtime.health === 'destroyed'
-      || this.#runtime.health === 'failed'
-      || !this.#runtime.has(id)) return false
-    // The ViewModel must also secure an explicit logical caret before
-    // publishing currentId. Keep ordinary plugin-only focus unchanged.
-    if (deferCurrent) return true
-    this.setCurrent(id)
-    return this.#currentId === id
-      && modeEpoch === this.#runtime.modeEpoch
-      && readOnly === this.#runtime.readOnly
-      && generation === this.#runtime.generation
-      && revision === this.#runtime.revision
-      && this.#runtime.health !== 'destroyed'
-      && this.#runtime.health !== 'failed'
+    const offset = target?.offset
+    if (offset !== undefined && offset !== 'start' && offset !== 'end'
+      && (typeof offset !== 'number' || !Number.isFinite(offset))) return false
+    const element = this.#reconciler.getElement(id)
+    if (!element) return false
+    const previousCurrentId = this.#currentId
+    const previousSelectedIds = this.selectedIds
+    const intent = {
+      id,
+      element,
+      acknowledgment: null,
+      claim: ++this.#currentClaimVersion,
+      generation: this.#runtime.generation,
+      revision: this.#runtime.revision,
+      modeEpoch: this.#runtime.modeEpoch,
+      readOnly: this.#runtime.readOnly,
+    }
+    this.#explicitCurrentVersion++
+    this.#pendingFocus = intent
+    let previousBookmark = null
+    try {
+      try { previousBookmark = selection?.capture?.() ?? null } catch {}
+      if (!this.#ownsFocus(intent)) return false
+      const previousOwners = previousBookmark ? [previousBookmark.anchor, previousBookmark.focus].map(point => ({
+        point,
+        block: this.#reconciler.getElement(point.blockId),
+        field: this.#reconciler.getEditableFields(point.blockId).find(field => field.key === point.fieldKey),
+      })) : []
+      if (!this.#ownsFocus(intent)) return false
+      const rejected = () => {
+        if (!this.#ownsFocus(intent)) return false
+        // A superseded request has no right to restore its previous selection.
+        const retained = previousOwners.length === 2 && previousOwners.every(({ point, block, field }) => {
+          if (!block || this.#reconciler.getElement(point.blockId) !== block) return false
+          const fields = this.#reconciler.getEditableFields(point.blockId)
+          if (point.fieldKey === '') return fields.length === 0
+          return !!field && fields.some(current => current.key === field.key
+            && current.mode === field.mode && current.element === field.element)
+        })
+        if (retained && this.#ownsFocus(intent) && this.#currentId === previousCurrentId) {
+          intent.acknowledgment = previousOwners[0].block
+          try { selection.restore(previousBookmark) } catch {}
+        }
+        return false
+      }
+      intent.acknowledgment = element
+      if (!caretOnly && !this.#reconciler.focus(id, target)) return rejected()
+      if (!this.#ownsFocus(intent)) return false
+      const hasCaret = caretOnly || target?.fieldKey !== undefined || target?.offset !== undefined
+      if (selection && hasCaret && selection.setCaret(id, target) !== true) return rejected()
+      if (!this.#ownsFocus(intent)) return false
+      if (!element.contains(element.ownerDocument.activeElement)) return rejected()
+      this.#currentId = id
+      this.#pendingFocus = null
+      this.#notify(previousCurrentId, previousSelectedIds)
+      // Acceptance precedes observers. A listener can now make a newer
+      // navigation decision, without retroactively rejecting this one.
+      if (intent.claim === this.#currentClaimVersion && this.#currentId === id
+        && this.#runtime.health === 'ready') {
+        invokeObserver(this.#onFocus, [id], this.#onError)
+      }
+      return true
+    } finally {
+      if (this.#pendingFocus === intent) this.#pendingFocus = null
+    }
+  }
+
+  #ownsFocus(intent) {
+    return this.#pendingFocus === intent
+      && intent.claim === this.#currentClaimVersion
+      && intent.generation === this.#runtime.generation
+      && intent.revision === this.#runtime.revision
+      && intent.modeEpoch === this.#runtime.modeEpoch
+      && intent.readOnly === this.#runtime.readOnly
+      && this.#runtime.health === 'ready'
+      && this.#runtime.has(intent.id)
+      && this.#reconciler.getElement(intent.id) === intent.element
+  }
+
+  observeNativeFocus(target) {
+    const id = this.#reconciler.resolveBlockTarget(target)
+    const element = id ? this.#reconciler.getElement(id) : null
+    // A focus handler can focus another owner before this event reaches the
+    // document. Do not let the older bubbling notification steal it back.
+    if (element && !element.contains(element.ownerDocument.activeElement)) return null
+    const intent = this.#pendingFocus
+    // The exact currently mounted destination can acknowledge plugin focus,
+    // including an intermediate field while a keyed target is disclosed.
+    if (id && intent && this.#ownsFocus(intent)
+      && this.#reconciler.getElement(id) === intent.acknowledgment) return null
+    if (id) {
+      this.setCurrent(id)
+      if (this.#currentId === id) invokeObserver(this.#onFocus, [id], this.#onError)
+    } else if (intent) {
+      // Native focus outside this editor supersedes its pending request too.
+      this.#currentClaimVersion++
+      this.#explicitCurrentVersion++
+    }
+    return id
   }
 
   resolveBlockTarget(target) {

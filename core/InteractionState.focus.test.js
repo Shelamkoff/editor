@@ -15,7 +15,11 @@ function harness(focusResult = false) {
     indexOf: id => ids.indexOf(id),
   }
   let focusResultFn = () => focusResult
-  const reconciler = { focus(id) { return focusResultFn(id) } }
+  const ownerDocument = { activeElement: null }
+  const elements = new Map(ids.map(id => [id, {
+    ownerDocument, contains(node) { return node === this },
+  }]))
+  const reconciler = { getElement: id => elements.get(id), focus(id) { ownerDocument.activeElement = elements.get(id); return focusResultFn(id) } }
   const state = new InteractionState({
     runtime, reconciler,
     onChange: event => events.push(event),

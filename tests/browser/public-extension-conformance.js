@@ -84,6 +84,86 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
   }
 
   const cases = [
+    ['public focus coordinates native acknowledgment, numeric carets and a newer observer decision', () => {
+      const fixture = extensions(), { editor, holder } = create(fixture, [block('a', 'Alpha'), block('b', 'Bravo')])
+      const [first, second] = holder.querySelectorAll('[data-external-field]')
+      const before = editor.save().blocks
+      const notices = []
+      editor.on('currentBlock:changed', event => {
+        notices.push({ id: event.currentId, offset: window.getSelection().anchorOffset })
+      })
+      equal(editor.blocks.focus('a', { fieldKey: 'text', offset: 2.9 }), true, 'fractional focus')
+      equal(window.getSelection().anchorOffset, 2, 'fractional offset truncation')
+      equal(editor.blocks.focus('a', { fieldKey: 'text', offset: -4 }), true, 'negative focus')
+      equal(window.getSelection().anchorOffset, 0, 'negative offset clamp')
+      for (const offset of [NaN, Infinity, -Infinity]) {
+        equal(editor.blocks.focus('b', { fieldKey: 'text', offset }), false, 'nonfinite focus')
+        check(document.activeElement === first, 'rejected numeric focus moved the active field')
+      }
+      equal(editor.blocks.focus('b', { fieldKey: 'text', offset: 100 }), true, 'large finite focus')
+      check(document.activeElement === second, 'destination focus owner')
+      equal(notices, [{ id: 'b', offset: 5 }], 'current notification preceded caret placement')
+      editor.blocks.focus('a', { fieldKey: 'text', offset: 1 })
+      const stop = editor.on('currentBlock:changed', event => {
+        if (event.currentId === 'b') editor.blocks.focus('a', { fieldKey: 'text', offset: 3 })
+      })
+      equal(editor.blocks.focus('b', { fieldKey: 'text', offset: 2 }), true, 'accepted focus was retroactively rejected')
+      equal(editor.blocks.currentId, 'a', 'newer observer decision was lost')
+      equal(window.getSelection().anchorOffset, 3, 'older focus stole the newer caret')
+      stop()
+      equal(editor.save().blocks, before, 'focus changed author data')
+      equal(editor.canUndo, false, 'focus created history')
+    }],
+    ['public keyed focus invokes plugin disclosure and re-resolves the resulting live field', () => {
+      const fixture = extensions()
+      const originalSetup = fixture.note.setup
+      let hiddenField, disclosures = 0
+      fixture.note.setup = runtime => {
+        const blockRuntime = originalSetup(runtime)
+        const originalCreate = blockRuntime.create
+        return { ...blockRuntime, create(initial, context) {
+          const instance = originalCreate(initial, context)
+          const originalFields = instance.editableFields
+          hiddenField = runtime.ownerDocument.createElement('p')
+          setSanitizedHtml(hiddenField, initial.items[0].html)
+          hiddenField.contentEditable = 'true'
+          let revealed = false
+          return { ...instance,
+            focus(target) {
+              if (target?.fieldKey === 'item:hidden') {
+                disclosures++
+                if (!revealed) instance.element.append(hiddenField)
+                revealed = true
+                hiddenField.focus()
+              } else originalFields()[0].element.focus()
+            },
+            editableFields() { return [...originalFields(), ...(revealed
+              ? [{ key: 'item:hidden', mode: 'rich-text', element: hiddenField }] : [])] },
+          }
+        } }
+      }
+      const record = block('note', 'Alpha')
+      record.data.items[0].html = 'Hidden'
+      const { editor } = create(fixture, [record])
+      equal(hiddenField.isConnected, false, 'hidden field started mounted')
+      equal(editor.blocks.focus('note', { fieldKey: 'item:hidden', offset: 2 }), true, 'disclosed field focus')
+      equal(disclosures, 1, 'optional plugin disclosure was skipped or repeated')
+      check(document.activeElement === hiddenField, 'wrong disclosed owner')
+      check(window.getSelection().anchorNode === hiddenField.firstChild, 'wrong disclosed text node')
+      equal(window.getSelection().anchorOffset, 2, 'wrong disclosed offset')
+      equal(editor.canUndo, false, 'presentation disclosure authored history')
+    }],
+    ['native focus to another owner supersedes public focus without restoring over the new owner', () => {
+      const fixture = extensions(), { editor, holder } = create(fixture, [block('a', 'Alpha'), block('b', 'Bravo')])
+      editor.blocks.focus('a', { fieldKey: 'text', offset: 2 })
+      const outside = document.createElement('input')
+      makeHolder().append(outside)
+      const second = holder.querySelectorAll('[data-external-field]')[1]
+      second.addEventListener('focus', () => outside.focus(), { once: true })
+      equal(editor.blocks.focus('b', { fieldKey: 'text', offset: 3 }), false, 'foreign native focus did not supersede')
+      check(document.activeElement === outside, 'failed request restored over foreign focus')
+      equal(editor.blocks.currentId, 'a', 'failed destination became current')
+    }],
     ['public historyMaxBytes retains the newest whole action without a default cap', () => {
       for (const [options, remaining] of [[{}, true], [{ historyMaxBytes: undefined }, true], [{ historyMaxBytes: 1 }, false]]) {
         const fixture = extensions(), { editor, holder } = create(fixture, [block('note', 'Initial')], [], options)
@@ -164,7 +244,7 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
       equal(next.data.text, 'AlphaBeta', 'removed occurrence text')
       check(!Object.hasOwn(next.inline, 'badge') && Object.hasOwn(next.inline, '__proto__'), 'removal changed an unrelated hidden payload')
       equal(editor.undo(), true, 'widget removal Undo')
-      equal(editor.save().blocks, before, 'widget removal complete rollback')
+      equal(editor.save().blocks, before, 'complete rollback')
       equal(editor.canUndo, false, 'widget removal history count')
       let denied = 0
       context.updateData(() => { denied++; return { label: 'Old occurrence' } })
