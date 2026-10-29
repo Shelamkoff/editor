@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "classification": "Actual Attaches ROUNDTRIP proof only; initial interrupted attempt is not accepted. Historical raw differences remain visible and classified by exact source/scenario/property/value.",
+  "summary": {
+    "root": "/tmp/rector-attaches-proof-0fecf490",
+    "productionBase": "0fecf490fe8a57188ac9edb502d2803743c29883",
+    "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+    "files": {
+      "scripts/parity/block-roundtrip.mjs": "7463630eb9e3423f75930fa01cef83974d2fd405b9788c1bf118fb9b0a10c264",
+      "scripts/parity/block-roundtrip.md": "5b07f8ce36cb9f2cb4c00231e931db1fd92cb2f247bcbd204d1b71f2ee208d1c",
+      "tests/browser/block-roundtrip-fixture.js": "462861402cd6ac075dc59016f415843ae5c78e1b191917c7d2d5958985a365bb"
+    },
+    "patch": {
+      "path": "/tmp/rector-attaches-roundtrip-review.patch",
+      "sha256": "e6d4a517c4c58a07023ef048a07c7a8ff7b6be34a1498deb7c2bb467477347a1"
+    },
+    "wrapper": {
+      "path": "/tmp/rector-run-attaches-final-gate.py",
+      "sha256": "d55226f0613c92b6daf93fc303b4ba157e0e6ed09fc06e728caf88d46fe5fd34"
+    },
+    "status": [
+      " M scripts/parity/block-roundtrip.md",
+      " M scripts/parity/block-roundtrip.mjs",
+      " M tests/browser/block-roundtrip-fixture.js",
+      "?? node_modules"
+    ],
+    "scope": "Thirty-six ROUNDTRIP cases including two Attaches cases; empty Attaches authoring/history explicitly N/A, populated literal filenames use native first-field input and exact one Undo/Redo. No full editor or detailed actions acceptance; Image remains literal-caption partial evidence.",
+    "differential": {
+      "manifest": "/tmp/rector-final-gates/attaches-roundtrip-three-source-retry1-precommit.json",
+      "manifestSha256": "f0ff8843428cbbb7297a84a37660fd81c3300d936b6b26e06dce8428203c294a",
+      "trace": "/tmp/rector-final-gates/attaches-roundtrip-three-source-retry1-precommit.log",
+      "traceSha256": "b1788420b1cb5d418df89621f289606b293e35585484184586adac952e103297",
+      "startedAt": "2026-10-29T19:07:39.086028+00:00",
+      "finishedAt": "2026-10-29T19:08:46.397681+00:00",
+      "seconds": 67.296,
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "summary": [
+        {
+          "source": "v1",
+          "cases": 36,
+          "observations": 5921,
+          "rawFailures": 361,
+          "classifiedDifferences": 361,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 36,
+          "observations": 4509,
+          "rawFailures": 12,
+          "classifiedDifferences": 12,
+          "unexpectedFailures": 0,
+          "incompleteCases": 10
+        },
+        {
+          "source": "candidate",
+          "cases": 36,
+          "observations": 5979,
+          "rawFailures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0
+        }
+      ],
+      "loadedSourceCounts": {
+        "v1": 203,
+        "spec-baseline": 224,
+        "candidate": 224
+      },
+      "loadedDependencyCount": 64,
+      "node": "v24.22.1",
+      "browser": "142.0.7444.175"
+    },
+    "native": {
+      "manifest": "/tmp/rector-final-gates/attaches-roundtrip-native-precommit.json",
+      "manifestSha256": "9859560da415a0b7ab8e8e911a403a064b0a91b177f7b90408d6e3ab2124ffe8",
+      "log": "/tmp/rector-final-gates/attaches-roundtrip-native-precommit.log",
+      "logSha256": "8078f9aeef07e135cac171c6737074bdd6c05908628d4cb7d65fde3cb652b8df",
+      "startedAt": "2026-10-29T19:09:05.755198+00:00",
+      "finishedAt": "2026-10-29T19:09:37.306182+00:00",
+      "seconds": 31.526,
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "page": "native-roundtrip-preservation.html",
+      "passed": 36,
+      "failed": 0,
+      "results": [
+        {
+          "name": "Block roundtrip differential: BLOCK_PARAGRAPH_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_HEADING_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_HEADING_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_LIST_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_LIST_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_QUOTE_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_QUOTE_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_WARNING_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_WARNING_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_CODE_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_CODE_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_CHECKLIST_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_DELIMITER_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_IMAGE_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_IMAGE_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_SPOILER_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_SPOILER_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_COLUMNS_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_COLUMNS_ROUNDTRIP/populated",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_ATTACHES_ROUNDTRIP/default",
+          "status": "PASS"
+        },
+        {
+          "name": "Block roundtrip differential: BLOCK_ATTACHES_ROUNDTRIP/populated",
+          "status": "PASS"
+        }
+      ]
+    },
+    "interruptedAttempt": {
+      "record": "/tmp/rector-final-gates/attaches-roundtrip-three-source-interruption.json",
+      "accepted": false
+    },
+    "mainCommit": "ab1c73ea6151a209443dc633dc83dfd9355ec61e",
+    "mainCommitRecord": "/tmp/rector-attaches-roundtrip-commit.json"
+  },
+  "differentialManifest": {
+    "name": "attaches-roundtrip-three-source-retry1-precommit",
+    "command": [
+      "env",
+      "EDITOR_V1_ROOT=/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT=/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "startedAt": "2026-10-29T19:07:39.086028+00:00",
+    "sourceStart": {
+      "head": "0fecf490fe8a57188ac9edb502d2803743c29883",
+      "trackedDiffSha256": "e6d4a517c4c58a07023ef048a07c7a8ff7b6be34a1498deb7c2bb467477347a1",
+      "status": [
+        " M scripts/parity/block-roundtrip.md",
+        " M scripts/parity/block-roundtrip.mjs",
+        " M tests/browser/block-roundtrip-fixture.js",
+        "?? node_modules"
+      ]
+    },
+    "finishedAt": "2026-10-29T19:08:46.397681+00:00",
+    "seconds": 67.296,
+    "exitCode": 0,
+    "log": "/tmp/rector-final-gates/attaches-roundtrip-three-source-retry1-precommit.log",
+    "sourceEnd": {
+      "head": "0fecf490fe8a57188ac9edb502d2803743c29883",
+      "trackedDiffSha256": "e6d4a517c4c58a07023ef048a07c7a8ff7b6be34a1498deb7c2bb467477347a1",
+      "status": [
+        " M scripts/parity/block-roundtrip.md",
+        " M scripts/parity/block-roundtrip.mjs",
+        " M tests/browser/block-roundtrip-fixture.js",
+        "?? node_modules"
+      ]
+    },
+    "sourceUnchanged": true
+  },
+  "nativeManifest": {
+    "name": "attaches-roundtrip-native-precommit",
+    "command": [
+      "env",
+      "EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html",
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "startedAt": "2026-10-29T19:09:05.755198+00:00",
+    "sourceStart": {
+      "head": "0fecf490fe8a57188ac9edb502d2803743c29883",
+      "trackedDiffSha256": "e6d4a517c4c58a07023ef048a07c7a8ff7b6be34a1498deb7c2bb467477347a1",
+      "status": [
+        " M scripts/parity/block-roundtrip.md",
+        " M scripts/parity/block-roundtrip.mjs",
+        " M tests/browser/block-roundtrip-fixture.js",
+        "?? node_modules"
+      ]
+    },
+    "finishedAt": "2026-10-29T19:09:37.306182+00:00",
+    "seconds": 31.526,
+    "exitCode": 0,
+    "log": "/tmp/rector-final-gates/attaches-roundtrip-native-precommit.log",
+    "sourceEnd": {
+      "head": "0fecf490fe8a57188ac9edb502d2803743c29883",
+      "trackedDiffSha256": "e6d4a517c4c58a07023ef048a07c7a8ff7b6be34a1498deb7c2bb467477347a1",
+      "status": [
+        " M scripts/parity/block-roundtrip.md",
+        " M scripts/parity/block-roundtrip.mjs",
+        " M tests/browser/block-roundtrip-fixture.js",
+        "?? node_modules"
+      ]
+    },
+    "sourceUnchanged": true
+  },
+  "interruptedAttempt": {
+    "status": "interrupted",
+    "accepted": false,
+    "observedAt": "2026-10-29T19:07:34.415640+00:00",
+    "gate": "attaches-roundtrip-three-source-precommit",
+    "sessionId": 17295,
+    "observations": [
+      "write_stdin returned Unknown process id",
+      "No matching wrapper or block-roundtrip runner process remained",
+      "Log remained empty; final wrapper manifest was not created"
+    ],
+    "cause": "Unknown from available evidence; no test outcome inferred",
+    "productionBase": "0fecf490fe8a57188ac9edb502d2803743c29883",
+    "files": {
+      "scripts/parity/block-roundtrip.mjs": "7463630eb9e3423f75930fa01cef83974d2fd405b9788c1bf118fb9b0a10c264",
+      "scripts/parity/block-roundtrip.md": "5b07f8ce36cb9f2cb4c00231e931db1fd92cb2f247bcbd204d1b71f2ee208d1c",
+      "tests/browser/block-roundtrip-fixture.js": "462861402cd6ac075dc59016f415843ae5c78e1b191917c7d2d5958985a365bb"
+    },
+    "log": "/tmp/rector-final-gates/attaches-roundtrip-three-source-precommit.log",
+    "logBytes": 0,
+    "finalManifestExists": false
+  }
+}
