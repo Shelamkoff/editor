@@ -1,8 +1,8 @@
 # Functional preservation register
 
-This is the open 209-scenario publication register derived from the recovery/read-boundary review. It is verification guidance; [the repository specification](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md) owns semantics. All 199 preceding scenario IDs and the ten recovery/read-boundary IDs are retained. Repeated boilerplate has been factored into the rules below; this is not a new runtime or compatibility format.
+This is the 209-scenario publication register derived from the recovery/read-boundary review. It is verification guidance; [the repository specification](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md) owns semantics. All 199 preceding scenario IDs and the ten recovery/read-boundary IDs are retained. Repeated boilerplate has been factored into the rules below; this is not a new runtime or compatibility format.
 
-**Every candidate status: not-implemented; not-run.** No row is a certificate of accepted parity. Existing source/browser evidence is historical unless PUBLICATION_REVIEW explicitly records a fresh run. Baseline `e981ff308000c1d92d7e820df95113c1e19bcee8`; v1 reference `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` (1.0.5). Full fresh v1 execution is still pending. A completed smoke does not accept the detailed behavior below.
+**Candidate status, 2026-10-29: `RENDERER_CONSTRUCTION` accepted within its recorded scope; 208 other scenarios remain open.** The [fresh construction review](./PUBLICATION_REVIEW.md#construction-parity-2026-10-29) identifies the candidate, executed v1/baseline controls, environment and limitations. The original publication marked every candidate scenario not-implemented/not-run; that is the historical starting status, not a claim that every currently open scenario is a known defect. Baseline `e981ff308000c1d92d7e820df95113c1e19bcee8`; v1 reference `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` (1.0.5). Full fresh v1 execution is still pending. Existing evidence accepts only the explicitly recorded properties; a completed smoke does not accept the detailed behavior of another row.
 
 ## Common procedure and oracle
 
@@ -167,7 +167,7 @@ Source owners are the existing block `plugins/<path>/` and `renderer/renderers/<
 | EXTENSION_DATATASK | Resolve after unrelated block edit, then mode/replacement/destroy controls. | Valid unrelated work survives; real invalidation rejects before producer. |
 | EXTENSION_POPUP | Detached popup, reentrant successor, old handle close. | Exact creating owner controls cleanup; foreign connected DOM not stolen. |
 | EXTENSION_TOOLS | Third-party mount/panel/labels and retirement inside callbacks. | Published ports suffice; separate leases and independent teardown after failure. |
-| RENDERER_CONSTRUCTION | Subclass public EditorRenderer with super; baseline forwarding factory control. | Sole retained constructor preserves overrides/registration; only spelling migrates. |
+| RENDERER_CONSTRUCTION | Subclass public EditorRenderer with super; baseline forwarding factory control. | **Accepted on candidate `4b87dad0`, Chromium 142:** sole retained constructor preserves overrides/registration; only spelling migrates. See [construction evidence](./PUBLICATION_REVIEW.md#construction-parity-2026-10-29). |
 | RENDERER_OUTPUTS | renderBlock/render/renderTo stable revisions, dispose target/all then reuse. | Output ownership, producer-revision shortcut and reusable lifecycle; foreign DOM not stolen. |
 | RENDERER_REGISTRATION | Register/unregister/reregister with retained old output. | Old output uses originating disposer; new registry controls new output only. |
 | RENDERER_ERRORS | Unknown type/version, validation observer throw/reject. | Deterministic validation and prior DOM preservation; observer cannot replace authoritative error. |

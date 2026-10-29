@@ -1,8 +1,10 @@
 # Architecture refinement implementation
 
-Authoritative target: [updated refinement specification](./RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md).
+Authoritative current target: [Contract and Boundary Refactor](./RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md), with unaffected requirements from the [refinement specification](./RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md).
 
-Each subsection records its own implementation checkpoint and verification scope. Current completion and exact verification scope are recorded under Final local integration acceptance; historical green suites do not establish acceptance of a later branch head.
+Latest checkpoint: [refactoring and parity evidence, 2026-10-29](./RECTOR_V2_PROGRESS_2026-10-29.md). It records the current implementation commits, actual source identities, test outcomes, one accepted preservation scenario and remaining decision gates.
+
+Each subsection below records its own historical implementation checkpoint and verification scope. The section titled Final local integration acceptance refers to its dated 2026-10-16 source/environment; those green suites do not establish acceptance of a later branch head.
 
 ## Preserved baseline
 

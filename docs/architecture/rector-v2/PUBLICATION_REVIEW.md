@@ -63,3 +63,29 @@ The directory still contains retained historical evidence in the repository for 
 ## Acceptance boundary
 
 Publishing this specification makes its agreed contracts discoverable in the branch. It does not make the documented defects fixed, the failing baseline green, or preservation proved. Whole-library acceptance requires implementation, required decision closure, actual proof against v1/current/candidate and separate architecture convergence on the final source identity.
+
+## Construction parity 2026-10-29
+
+This section records one fresh preservation acceptance. The publication and cleanup findings above retain their original 2026-10-21 source identity. The new result does not reclassify those historical runs or accept the whole library.
+
+**Accepted scenario: `RENDERER_CONSTRUCTION`.** Candidate `4b87dad094367eea16b768ca4e3ac0808b1dec1f`, Chromium `142.0.7444.175`, Linux, Node `v24.22.1`. The production renderer is unchanged from `fa13888a66e660e2893e5fc493bd600588f13b10`; the intervening commit changes only a conversion-grouping test fixture.
+
+The real-DOM differential executed these source versions:
+
+| Source | Construction controls |
+|---|---|
+| v1 `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` | Public constructor and `createEditorRenderer(config)` forwarding factory |
+| Specification baseline `e981ff308000c1d92d7e820df95113c1e19bcee8` | Public constructor and the same forwarding factory |
+| Candidate `4b87dad094367eea16b768ca4e3ac0808b1dec1f` | Retained public constructor, subclass/override capability and absence of the factory |
+
+All three versions preserved subclassing with `super` and public overrides. Each construction control verified public `instanceof` and prototype, unchanged configuration with a separate nondefault `classPrefix` forwarding case, custom registration, `renderBlock`/`render`/`renderTo` output, exact disposal and subsequent reuse. Every construction branch created and disposed seven resources exactly once. Baseline entrypoint and implementation bytes were verified against the exact Git objects.
+
+The independent earlier renderer comparison passed fourteen checks in each of v1 and candidate, including incremental reuse, isolation of a changed block, preservation of caller data and detached/target/direct/global disposal; each version created and disposed twelve resources exactly once. The candidate's unit, declaration and installed-tarball gates additionally verify the supported class and negative imports/exports for the removed forwarding routes. Their production source was `fa13888a`, which is unchanged in candidate `4b87dad0`.
+
+The construction probe command was `node /tmp/rector-renderer-factory-parity.mjs`. Its successful wrapper recorded 2026-10-29 14:52:09–14:52:11 UTC, exit 0, 2.063 seconds, a clean candidate tree and identical source identity before/after. Probe SHA-256: `bccac37befe9041536e24d035465f82fe43d7763f60709315b26e2cc6fc5a6cc`. The separate fourteen-check probe was `node /tmp/rector-renderer-v1-oracle.mjs`, SHA-256 `42266203aba29552651e118efe2ac68dac942c1ed88f35fa707b23b0b452b9c8`; its clean-source run on `fa13888a` exited 0 in 2.211 seconds. Session traces are named `renderer-factory-parity` and `v1-renderer`; the full checkpoint records the accompanying package/types/browser commands and source identities.
+
+The exact executed probe sources and original failed control are retained in [checkpoint reproduction sources](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-29), evidence commit `7db0361e5019dc4323514292cd03aa1a5e4c73e2`. Their README records original environment paths and prerequisites; these archived probes are not an automatically portable CI runner.
+
+The probes import the real source classes, adapt document/schema wire shapes only in test code, use shared installed current dependencies and a custom renderer with `injectStyles: false`. They do not establish built-in renderer coverage, legacy data migration, producer-revision shortcuts, foreign-output ownership, async factories, CSP, styles or cross-realm behavior. Those properties retain their separate preservation requirements. An earlier constructor-probe fixture incorrectly expected a dark-theme modifier; its failed `renderer-factory-control` trace is retained separately and is not a product regression or accepted result.
+
+Only `RENDERER_CONSTRUCTION` changes to accepted. The other 208 preservation scenarios, the broader C08 requirements and `B-HTML`, `B-STYLE`, `B-PRESENTATION` remain subject to their own proof and decision gates. The [full dated checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_PROGRESS_2026-10-29.md) records the implemented slices, bounded Quote comparison, final gates and remaining work.
