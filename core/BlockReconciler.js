@@ -685,15 +685,22 @@ export class BlockReconciler {
       for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
       this.#readOnly = next
     } catch (error) {
-      let recoveryError = error instanceof ReadOnlyRecoveryError ? error : null
+      // Failure occurrence is independent of the thrown payload: null,
+      // undefined and every other falsy value still require reconstruction.
+      // A child owner can already have reported its own failed rollback.
+      const failures = error instanceof ReadOnlyRecoveryError ? [...error.errors] : [error]
+      let needsRestore = error instanceof ReadOnlyRecoveryError
       for (let index = changed.length - 1; index >= 0; index--) {
         try { changed[index].instance.setReadOnly(this.#readOnly) }
-        catch (failure) { recoveryError ??= failure }
+        catch (failure) {
+          needsRestore = true
+          failures.push(failure)
+        }
       }
-      if (recoveryError && this.#store) {
+      if (needsRestore && this.#store) {
         try { this.#restore(this.#store, new Map()) }
         catch (failure) {
-          throw new ReadOnlyRecoveryError([error, recoveryError, failure], 'Read-only transition and recovery failed')
+          throw new ReadOnlyRecoveryError([...failures, failure], 'Read-only transition and recovery failed')
         }
       }
       throw error instanceof ReadOnlyRecoveryError ? error.errors[0] : error
