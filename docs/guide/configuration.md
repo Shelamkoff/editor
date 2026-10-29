@@ -21,6 +21,7 @@ interface EditorConfig {
   locale?: Record<string, unknown>
   changeDebounceMs?: number
   historyMaxStack?: number
+  historyMaxBytes?: number
   historyCoalesceMs?: number
   dragThreshold?: number
   toolboxFilterThreshold?: number
@@ -55,6 +56,7 @@ interface EditorConfig {
 | `locale` | no | built-in English | Flat message dictionary used by core and definitions. |
 | `changeDebounceMs` | no | `250` | Delay before the detached `onChange` snapshot is delivered. |
 | `historyMaxStack` | no | `100` | Maximum number of undo records retained by operation-based history. |
+| `historyMaxBytes` | no | omitted | Optional positive safe integer: retained history record size in UTF-8 JSON bytes, across undo and redo. Oldest whole actions are evicted on a new edit; the newest whole action is always kept, even when oversized. Omit to retain count-only behavior. |
 | `historyCoalesceMs` | no | `300` | Maximum idle interval for grouping consecutive native edits in one undo step. |
 | `dragThreshold` | no | `5` | Pointer movement in pixels required before block dragging starts. |
 | `toolboxFilterThreshold` | no | `7` | Show toolbox search only when the registered item count exceeds this value. |

@@ -167,6 +167,8 @@ export interface EditorConfig {
   locale?: Record<string, unknown>
   changeDebounceMs?: number
   historyMaxStack?: number
+  /** Optional UTF-8 JSON history budget; newest complete action is always retained. */
+  historyMaxBytes?: number
   historyCoalesceMs?: number
   dragThreshold?: number
   toolboxFilterThreshold?: number

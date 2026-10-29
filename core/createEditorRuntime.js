@@ -135,6 +135,9 @@ function snapshotEditorConfig(input){
   if(config.historyMaxStack!==undefined&&(!Number.isSafeInteger(config.historyMaxStack)||config.historyMaxStack<1)){
     throw new RangeError('createEditor() historyMaxStack must be a positive safe integer')
   }
+  if(config.historyMaxBytes!==undefined&&(!Number.isSafeInteger(config.historyMaxBytes)||config.historyMaxBytes<1)){
+    throw new RangeError('createEditor() historyMaxBytes must be a positive safe integer')
+  }
   if(config.toolboxFilterThreshold!==undefined&&(!Number.isSafeInteger(config.toolboxFilterThreshold)||config.toolboxFilterThreshold<0)){
     throw new RangeError('createEditor() toolboxFilterThreshold must be a non-negative safe integer')
   }
@@ -165,6 +168,7 @@ function snapshotEditorConfig(input){
  *   diagnosticThresholds?: Partial<import('./publicTypes').DiagnosticThresholds>,
  *   changeDebounceMs?: number,
  *   historyMaxStack?: number,
+ *   historyMaxBytes?: number,
  *   historyCoalesceMs?: number,
  *   dragThreshold?: number,
  *   toolboxFilterThreshold?: number,
@@ -284,7 +288,7 @@ export function createEditorRuntime(input){
     createId:prefix=>prefix+'-'+uid(),
     selection:selectionPort,
     onValidationError:config.onValidationError,
-    history:{maxStack:config.historyMaxStack??100},
+    history:{maxStack:config.historyMaxStack??100,maxBytes:config.historyMaxBytes},
     diagnostics,
     requestSplit:id=>keyboardRouter?.split(id),
     requestExit:id=>keyboardRouter?.exit(id),

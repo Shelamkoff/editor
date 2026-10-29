@@ -126,7 +126,7 @@ export class DocumentRuntime {
    *   richTextNormalizer?: (html: string) => string,
    *   requestSplit?: (id: string) => void,
    *   requestExit?: (id: string) => void,
-   *   history?: { maxStack?: number },
+   *   history?: { maxStack?: number, maxBytes?: number },
    * }} options
    */
   constructor(options) {

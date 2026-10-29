@@ -216,6 +216,10 @@ Continuous native text input is coalesced by the canonical history engine. Expli
 
 Committing a new action after undo discards the redo branch. Configure history capacity with `historyMaxStack` and native input grouping with `historyCoalesceMs`.
 
+The optional construction setting `historyMaxBytes` bounds the combined undo/redo history by the UTF-8 size of each complete serialized JSON record, including changes, metadata and selection. It is not a heap-memory limit. The value must be a positive safe integer; `null`, zero, fractions and nonfinite values are rejected before editor resources are acquired. Omitted or `undefined` keeps count-only history without byte accounting.
+
+A new authored action clears redo, applies `historyMaxStack`, and then evicts the oldest whole undo actions as needed. The newest action is never discarded solely because it exceeds the byte budget. Undo and redo move that action without further pruning; a no-op or rejected edit cannot evict accepted history. Coalesced native edits are budgeted as their complete merged action, not as individual keystrokes.
+
 ## Events are observations, not commands
 
 `editor.on()` is subscription-only. Events report completed behavior and must not be emitted by application or plugin code.

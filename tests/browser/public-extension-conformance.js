@@ -10,9 +10,9 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
   const copy = value => structuredClone(value)
   let holders, editors, renderers
   const makeHolder = () => { const holder = document.createElement('section'); document.body.append(holder); holders.push(holder); return holder }
-  const create = (extensions, blocks, inlineTools = []) => {
+  const create = (extensions, blocks, inlineTools = [], options = {}) => {
     const holder = makeHolder()
-    const editor = createEditor({ holder, defaultBlock: 'external-note', plugins: [extensions.note],
+    const editor = createEditor({ ...options, holder, defaultBlock: 'external-note', plugins: [extensions.note],
       inlinePlugins: [extensions.badge], inlineTools, injectStyles: false,
       data: { version: '2.0.0', blocks } })
     editors.push(editor)
@@ -84,6 +84,23 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
   }
 
   const cases = [
+    ['public historyMaxBytes retains the newest whole action without a default cap', () => {
+      for (const [options, remaining] of [[{}, true], [{ historyMaxBytes: undefined }, true], [{ historyMaxBytes: 1 }, false]]) {
+        const fixture = extensions(), { editor, holder } = create(fixture, [block('note', 'Initial')], [], options)
+        editor.blocks.update('note', current => ({ data: { ...current.data, text: 'First' } }))
+        const first = editor.save().blocks
+        editor.blocks.update('note', current => ({ data: { ...current.data, text: 'Second 🦎'.repeat(20) } }))
+        const second = editor.save().blocks
+        equal(editor.undo(), true, 'newest oversized action must remain undoable')
+        equal(editor.save().blocks, first, 'Undo preserved the complete prior record')
+        equal(field(holder).textContent, 'First', 'Undo projected accepted text')
+        equal(editor.canUndo, remaining, 'configured byte budget did not reach the history owner')
+        equal(editor.redo(), true, 'Redo must not prune the oversized action')
+        equal(editor.save().blocks, second, 'Redo preserved complete author data')
+        equal(editor.undo(), true, 'repeat Undo')
+        equal(editor.canUndo, remaining, 'replay changed retained action count')
+      }
+    }],
     ['external partial projection preserves hidden data and own inline dictionary keys', async () => {
       const fixture = extensions(), { editor, holder } = create(fixture, [block()])
       const before = editor.save().blocks

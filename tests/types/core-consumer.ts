@@ -91,6 +91,7 @@ const customPlugin: BlockPluginDefinition<{ text: string }> = {
 const config: EditorConfig = {
   holder,
   plugins: [customPlugin],
+  historyMaxBytes: 1024,
 }
 
 const editor: IEditor = createEditor(config)
@@ -110,3 +111,8 @@ void document
 editor.render({ blocks: [] })
 // @ts-expect-error only the current format is accepted
 editor.render({ version: '1.0.0', blocks: [] })
+
+// @ts-expect-error the byte budget is numeric, not a size string
+config.historyMaxBytes = '1KiB'
+// @ts-expect-error null is not the omitted byte-budget state
+config.historyMaxBytes = null
