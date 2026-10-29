@@ -128,7 +128,7 @@ test('Person retains active editing host when another person changes', () => {
   field.focus()
   const next = input()
   next.persons[1].role = 'Editor'
-  instance.update(next)
+  instance.update(next, input())
   assert.equal(nameField(instance, 'a'), field, 'unrelated update replaced the active author field')
   assert.equal(ownerDocument.activeElement, field, 'unrelated update blurred the author field')
   assert.equal(instance.read().persons[1].role, 'Editor')
@@ -140,7 +140,7 @@ test('Person retains active editing host after tabs are reordered', () => {
   field.focus()
   const next = input()
   next.persons.reverse()
-  instance.update(next)
+  instance.update(next, input())
   assert.equal(nameField(instance, 'a'), field)
   assert.equal(ownerDocument.activeElement, field)
   assert.deepEqual(instance.read().persons.map(item => item.id), ['b', 'a'])
@@ -149,7 +149,7 @@ test('Person retains active editing host after tabs are reordered', () => {
 test('Person replaces active author fields when the active person is removed', () => {
   const { instance } = mount()
   const before = nameField(instance, 'a')
-  instance.update({ persons: [person('b')] })
+  instance.update({ persons: [person('b')] }, input())
   const next = nameField(instance, 'b')
   assert.ok(next && next !== before)
   assert.deepEqual(instance.editableFields().map(field => field.key), [
@@ -164,7 +164,7 @@ test('Person current name input updates the tab created by a sibling change', ()
   const field = nameField(instance, 'a')
   const next = input()
   next.persons[1].role = 'New role'
-  instance.update(next)
+  instance.update(next, input())
   assert.equal(nameField(instance, 'a'), field, 'the editing host must remain mounted')
   field.textContent = 'Changed name'
   field.dispatch('input')
@@ -202,7 +202,7 @@ test('Person preserves its active editor through 400 deterministic unrelated cha
     } else if (action === 3 && next.persons.some(person => person.id === 'c')) {
       next.persons = next.persons.filter(person => person.id !== 'c')
     }
-    instance.update(next)
+    instance.update(next, current)
     assert.equal(nameField(instance, 'a'), field, 'active field replaced at step ' + step)
     assert.equal(ownerDocument.activeElement, field, 'active field blurred at step ' + step)
     assert.deepEqual(instance.read().persons.map(person => person.id),
@@ -219,7 +219,7 @@ test('retired Person tab cannot change active record after a sibling update', ()
   const retiredButton = retiredTab.children[0]
   const next = input()
   next.persons[1].role = 'Writer'
-  instance.update(next)
+  instance.update(next, input())
   assert.notEqual(tabs.children.find(item => item.dataset.personId === 'b'), retiredTab)
   assert.equal(retiredButton.listeners.get('click')?.length ?? 0, 0,
     'retired tab still owns a live click listener')
@@ -236,11 +236,11 @@ test('Person retires body event listeners only when the active record actually c
   assert.equal(name.listeners.get('input')?.length, 1)
   const sibling = input()
   sibling.persons[1].role = 'Writer'
-  instance.update(sibling)
+  instance.update(sibling, input())
   assert.equal(nameField(instance, 'a'), name)
   assert.equal(name.listeners.get('input')?.length, 1,
     'tab-only update accidentally disabled active author input')
-  instance.update({ persons: [person('b')] })
+  instance.update({ persons: [person('b')] }, sibling)
   assert.equal(name.listeners.get('input')?.length ?? 0, 0,
     'removed Person body retained a document-input listener')
   assert.equal(instance.editableFields()[0]?.key, 'person:b:name')
@@ -281,7 +281,7 @@ test('Person cancels a drag when its tab projection is replaced', () => {
 
   const next = input()
   next.persons[1].role = 'Writer'
-  instance.update(next)
+  instance.update(next, input())
   const replacement = tabs.children.find(tab => tab.dataset.personId === 'b')
   assert.notEqual(replacement, original)
   const hovered = replacement.dispatch('dragover')
@@ -299,7 +299,7 @@ test('Person accepts a fresh drag in the current tab projection', () => {
   const tabs = instance.element.children[0]
   const next = input()
   next.persons[1].role = 'Writer'
-  instance.update(next)
+  instance.update(next, input())
   const tabA = tabs.children.find(tab => tab.dataset.personId === 'a')
   const tabB = tabs.children.find(tab => tab.dataset.personId === 'b')
   tabA.dispatch('dragstart', { dataTransfer: { setData() {}, effectAllowed: '' } })
@@ -331,7 +331,7 @@ test('Person keeps natively edited active fields when another record changes', (
         ? { ...person, role: 'Updated sibling role' } : person),
     }
     setCanonicalData(sibling)
-    instance.update(sibling)
+    instance.update(sibling, canonical)
 
     assert.equal(instance.editableFields().find(entry => entry.key === fieldName).element, field,
       'sibling update detached a natively edited ' + key + ' field')
@@ -350,7 +350,7 @@ test('Person still reprojects an externally changed active field', () => {
   const next = input()
   next.persons[0].name = 'Remote author name'
   setCanonicalData(next)
-  instance.update(next)
+  instance.update(next, input())
   assert.notEqual(nameField(instance, 'a'), original,
     'remote active-person data change did not update its editing field')
   assert.equal(nameField(instance, 'a').textContent, 'Remote author name')
@@ -377,7 +377,7 @@ test('Person keeps a natively edited link URL when a different person changes', 
   const next = structuredClone(canonical)
   next.persons[1].role = 'Writer'
   setCanonicalData(next)
-  instance.update(next)
+  instance.update(next, canonical)
 
   assert.equal(instance.editableFields().find(field => field.key === key)?.element, original,
     'Person sibling update detached a natively edited link input')

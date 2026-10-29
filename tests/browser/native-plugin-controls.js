@@ -2,6 +2,8 @@ import { test, make, para, editorRoot, blockElement, pause, assert, equal, run }
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 import { pluginParityFixtures, pixel } from './plugin-parity-fixtures.js'
 import { createParagraphPlugin, createGalleryPlugin, createAttachesPlugin, createImagePlugin, createLinkPreviewPlugin, createPollPlugin, createPersonPlugin } from '../../plugins/index.js'
+import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
+import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 
 function pluginEditor(name, data) {
   const fixture = pluginParityFixtures.find(entry => entry.name === name)
@@ -27,6 +29,65 @@ async function historyFromButton(editor, before, after) {
   assert(document.activeElement === root, 'Editor chrome did not receive history focus')
   await history(editor, before, after)
 }
+
+for (const operation of ['sibling edit', 'reorder']) test(`Person derived native preedit survives ${operation} with its current rich field and backward range`, async () => {
+  const definition = createPersonPlugin(), updates = [], completions = []
+  const observed = { ...definition, setup(runtimeContext) {
+    const runtime = definition.setup(runtimeContext)
+    return { ...runtime, create(...args) {
+      const instance = runtime.create(...args), update = instance.update, afterProjection = instance.afterProjection
+      instance.update = function (next, previous) {
+        updates.push({ next, previous })
+        return update.call(this, next, previous)
+      }
+      instance.afterProjection = function (field) {
+        completions.push(field.key)
+        return afterProjection?.call(this, field)
+      }
+      return instance
+    } }
+  } }
+  const name = '<b>Alpha</b> {{mention}} {{swatch}} tail'
+  const editor = make([{ id: 'a', type: 'person', dataVersion: 2, data: { persons: [
+    { id: 'first', avatar: '', name, role: '', bio: '', links: [] },
+    { id: 'second', avatar: '', name: 'Grace', role: '', bio: '', links: [] },
+  ] }, inline: {
+    mention: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada' } },
+    swatch: { type: 'color', dataVersion: 1, data: { value: '#123456' } },
+  } }], { plugins: [observed], defaultBlock: 'person', inlineTools: [],
+    inlinePlugins: [createMentionPlugin({ searchFunction: async () => [] }), createColorSwatchPlugin()] })
+  const first = editor.save().blocks
+  assert(editor.blocks.focus('a', { fieldKey: 'person:first:name', offset: 'end' }))
+  const field = document.activeElement, selection = getSelection(), inputEvents = []
+  field.addEventListener('input', event => inputEvents.push({ trusted: event.isTrusted, type: event.inputType }))
+  await printable('X')
+  const native = structuredClone(first); native[0].data.persons[0].name += 'X'
+  equal(editor.save().blocks, native, 'Real native preedit was not committed before the public sibling action')
+  equal(updates.length, 0, 'The native preedit must preserve source projection instead of updating the plugin data snapshot')
+  assert(inputEvents.length > 0 && inputEvents.every(event => event.trusted && event.type === 'insertText'))
+  const tail = field.lastChild, widgets = [...field.querySelectorAll('[data-inline-plugin]')]
+  assert(tail?.nodeType === Node.TEXT_NODE && tail.data === ' tailX')
+  selection.setBaseAndExtent(tail, 4, tail, 1)
+  completions.length = 0
+  const after = structuredClone(native)
+  if (operation === 'sibling edit') after[0].data.persons[1].role = 'Reviewer'
+  else after[0].data.persons.reverse()
+  editor.blocks.update('a', () => ({ data: after[0].data }))
+  equal(editor.save().blocks, after)
+  equal(updates.map(update => update.previous), [native[0].data], 'The update contract must supply the accepted native predecessor')
+  equal({ sameField: blockElement(editor, 'a').querySelector('.oe-person__name') === field,
+    sameTail: field.lastChild === tail, active: document.activeElement === field,
+    anchor: selection.anchorNode === tail, anchorOffset: selection.anchorOffset,
+    focus: selection.focusNode === tail, focusOffset: selection.focusOffset,
+    label: blockElement(editor, 'a').querySelector('[data-person-id="first"] .oe-person__tab-label').textContent,
+    widgets: widgets.map(widget => widget.parentNode && field.contains(widget)), completions,
+  }, { sameField: true, sameTail: true, active: true, anchor: true, anchorOffset: 4, focus: true, focusOffset: 1,
+    label: 'Alpha @Ada #123456 tailX', widgets: [true, true], completions: [] })
+  assert(editor.undo()); equal(editor.save().blocks, native); assert(editor.canUndo)
+  assert(editor.undo()); equal(editor.save().blocks, first); assert(!editor.canUndo)
+  assert(editor.redo()); equal(editor.save().blocks, native)
+  assert(editor.redo()); equal(editor.save().blocks, after); assert(!editor.canRedo)
+})
 
 for (const template of ['horizontal','compact','large-top','minimal','twitter','notion','split']) {
   test(`LinkPreview template ${template} changes its actual styled card`, async () => {
