@@ -124,7 +124,7 @@ export function createPresentationDefinitions(options = {}) {
 export function createPresentationOwnerFixture(options = {}) {
   const h = createPresentationDefinitions(options), holder = document.createElement('section'); document.body.append(holder)
   const registry = new ExtensionRegistry({ ownerDocument: document, blocks: [h.block], inline: [h.inline], defaultBlock: h.block.type, acquireStyles: false })
-  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const projection = options.withoutInlineProjection ? null : new InlineProjectionRuntime({ registry, ownerDocument: document })
   let reconciler
   const runtime = new DocumentRuntime({ registry, ownerDocument: document, data: { version: '2.0.0', blocks: h.records },
     diagnostics: new Diagnostics(item => h.state.diagnostics.push(item)), onValidationError: issue => h.state.validation.push(issue),
@@ -136,7 +136,7 @@ export function createPresentationOwnerFixture(options = {}) {
     },
   })
   return { ...h, holder, registry, projection, reconciler, runtime,
-    dispose() { runtime.destroy(); projection.destroy(); registry.destroy(); holder.remove() } }
+    dispose() { runtime.destroy(); projection?.destroy(); registry.destroy(); holder.remove() } }
 }
 
 export function createPresentationNativeFixture(options = {}) {
