@@ -601,6 +601,11 @@ export class InlineProjectionRuntime {
 
   #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
     const projectionParent=projectionRoot?.parentNode
+    const assertFieldBoundary=field=>{
+      if(projectionRoot&&(projectionRoot.parentNode!==projectionParent||!projectionRoot.contains(field))){
+        throw new Error('Inline projection root or field left its block boundary')
+      }
+    }
     const canonical=richTextFieldMap(definition,record.data)
     const richFields=mountedRichFields(fields,canonical)
     const inline=object(record.inline)
@@ -646,7 +651,8 @@ export class InlineProjectionRuntime {
         }
       }
 
-      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners)
+      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners,
+        ()=>assertFieldBoundary(element))
       projectRichTextCaretPadding(element)
     }
 
@@ -679,7 +685,7 @@ export class InlineProjectionRuntime {
     }
   }
 
-  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map()){
+  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{}){
     const textNodes=[]
     const walker=this.#ownerDocument.createTreeWalker(element,4)
     let current=walker.nextNode()
@@ -860,6 +866,7 @@ export class InlineProjectionRuntime {
         if(this.#destroyed||(!state.staged&&this.#blocks.get(blockId)!==state)){
           throw new Error('Inline projection owner was revoked during reconciliation')
         }
+        assertBoundary()
         this.#markWidget(entry)
         // An observed custom-element attribute change can synchronously
         // revoke the block while the host is setting its identity markers.
@@ -868,6 +875,7 @@ export class InlineProjectionRuntime {
           ||(!state.staged&&this.#blocks.get(blockId)!==state)){
           throw new Error('Inline projection owner was revoked during reconciliation')
         }
+        assertBoundary()
         // A setReadOnly(), update() or attribute observer callback can move
         // an existing root into a different control, editor or application.
         // Never steal that root back while hydrating the canonical reference:
@@ -883,6 +891,7 @@ export class InlineProjectionRuntime {
 
       if(!changed)continue
       if(cursor<text.data.length)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor)))
+      assertBoundary()
       text.replaceWith(fragment)
     }
 

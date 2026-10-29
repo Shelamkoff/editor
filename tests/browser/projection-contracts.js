@@ -271,6 +271,7 @@ for (const adopted of ['field', 'shell']) test(`inline update cannot publish int
   const field = document.createElement('div')
   shell.append(field); document.body.append(shell)
   let destroyed = 0
+  const publishedIntoForeign = []
   const registry = {
     getInlineDefinition: () => ({ schema: { decode: input => input } }),
     getInlineRuntime: () => ({
@@ -280,7 +281,7 @@ for (const adopted of ['field', 'shell']) test(`inline update cannot publish int
         return {
           element,
           update(next) { element.textContent = next.label; foreign.append(adopted === 'field' ? field : shell) },
-          setReadOnly() {}, destroy() { destroyed++ },
+          setReadOnly() {}, destroy() { destroyed++; publishedIntoForeign.push(foreign.contains(element)) },
         }
       },
     }),
@@ -297,6 +298,7 @@ for (const adopted of ['field', 'shell']) test(`inline update cannot publish int
     throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
       { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell }), /block boundary/)
     equal(destroyed, 1, 'the invalidated projection must retire its widget once')
+    equal(publishedIntoForeign, [false], 'boundary validation must precede publishing a live widget into the adopted field')
   } finally { projection.destroy(); shell.remove() }
 })
 
