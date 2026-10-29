@@ -295,6 +295,56 @@ for(const name of ['Person','Carousel']){
     equal(document.activeElement.textContent,'BrXavo')
   })
 }
+for (const successor of ['foreign button', 'sibling author field']) {
+  test(`native history disclosure respects a newer ${successor} focus`, async () => {
+    const definition = createPersonPlugin()
+    const editor = make([
+      { id: 'a', type: 'person', dataVersion: definition.schema.currentVersion, data: { persons: [
+        { id: 'first', avatar: '', name: 'Alpha', role: '', bio: '', links: [] },
+        { id: 'second', avatar: '', name: 'Bravo', role: '', bio: '', links: [] },
+      ] } }, para('tail', 'Tail'),
+    ], { plugins: [createParagraphPlugin(), definition] })
+    const root = editorRoot(editor)
+    const outside = document.createElement('button')
+    outside.type = 'button'
+    outside.textContent = 'Outside editor'
+    document.body.append(outside)
+    const target = successor === 'foreign button' ? outside
+      : blockElement(editor, 'tail').querySelector('[contenteditable="true"]')
+    const before = editor.save().blocks
+    editor.blocks.focus('a', { fieldKey: 'person:second:name', offset: 2 })
+    await printable('X')
+    const after = editor.save().blocks
+    await clickNative(blockElement(editor, 'a').querySelector('[data-person-id="first"] .oe-person__tab-select'))
+    let redirects = 0
+    const redirect = event => {
+      if (!event.target.matches?.('.oe-person__name') || event.target.textContent !== 'Bravo') return
+      redirects++
+      target.focus({ preventScroll: true })
+    }
+    root.addEventListener('focus', redirect, true)
+    try {
+      await dispatchKey('z', 'KeyZ', 90, 2)
+      equal(editor.save().blocks, before, 'Focus supersession changed the accepted Undo data')
+      equal(redirects, 1, 'History did not try the requested disclosure exactly once')
+      assert(document.activeElement === target, 'History stole the newer native focus')
+      await pause()
+      equal(redirects, 1, 'Rejected history disclosure was retried after the native focus decision')
+      assert(document.activeElement === target, 'Deferred history completion stole the newer focus')
+      equal(editor.canUndo, false)
+      equal(editor.canRedo, true)
+
+      root.removeEventListener('focus', redirect, true)
+      root.focus({ preventScroll: true })
+      await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+      equal(editor.save().blocks, after, 'A later explicit Redo stopped working after focus supersession')
+      equal(document.activeElement.textContent, 'BrXavo')
+    } finally {
+      root.removeEventListener('focus', redirect, true)
+      outside.remove()
+    }
+  })
+}
 test('LinkPreview changing its URL clears metadata belonging to the previous page',async()=>{
   let finish
   const definition=createLinkPreviewPlugin({fetchMeta:()=>new Promise(resolve=>{finish=resolve})})

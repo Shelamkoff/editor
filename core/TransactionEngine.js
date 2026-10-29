@@ -345,13 +345,13 @@ export class TransactionEngine {
       historyCommit.commit()
 
       const selection = action === 'undo' ? record.selectionBefore : record.selectionAfter
-      this.#restoreSelection(selection)
+      const restored = this.#restoreSelection(selection, { reason: 'history' })
       // Moving the caret or reacting to onCommit may change selection without
       // advancing the document revision. Do not reclaim that newer selection.
       const restoredSelection = this.#selection?.capture ? this.#captureSelection() : null
       const committedGeneration = storeCommit.generation
       const committedRevision = storeCommit.revision
-      if (selection) {
+      if (selection && restored !== false) {
         queueMicrotask(() => {
           if (
             this.#destroyed
@@ -362,7 +362,7 @@ export class TransactionEngine {
             || (this.#selection?.capture
               && JSON.stringify(this.#captureSelection()) !== JSON.stringify(restoredSelection))
           ) return
-          this.#restoreSelection(selection)
+          this.#restoreSelection(selection, { reason: 'history' })
         })
       }
 
@@ -455,12 +455,14 @@ export class TransactionEngine {
     }
   }
 
-  #restoreSelection(bookmark) {
-    if (!bookmark || !this.#selection?.restore) return
+  /** @param {any} bookmark @param {{reason: 'history'}} [context] */
+  #restoreSelection(bookmark, context) {
+    if (!bookmark || !this.#selection?.restore) return false
     try {
-      this.#selection.restore(cloneEditorData(bookmark))
+      return this.#selection.restore(cloneEditorData(bookmark), context)
     } catch (error) {
       this.#diagnostic(error)
+      return false
     }
   }
 

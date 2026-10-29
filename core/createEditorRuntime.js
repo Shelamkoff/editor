@@ -272,8 +272,9 @@ export function createEditorRuntime(input){
   let crossSelection=null
   const selectionPort={
     capture:()=>crossSelection?.bookmark??logicalSelection?.capture()??null,
-    restore:bookmark=>{
+    restore:(bookmark,{reason=''}={})=>{
       if(bookmark?.anchor.blockId!==bookmark?.focus.blockId&&crossSelection?.restore(bookmark))return true
+      if(reason==='history')return view?.restoreHistorySelection(bookmark)??false
       return logicalSelection?.restore(bookmark)
     },
   }

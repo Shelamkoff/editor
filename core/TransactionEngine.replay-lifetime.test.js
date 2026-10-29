@@ -57,3 +57,23 @@ test('TransactionEngine destroyed during an Undo observer does not run the queue
   assert.equal(store.get('a').data.text, 'A',
     'disposal inside an event observer rolled back a committed Undo')
 })
+
+test('a rejected immediate history selection cannot retry after a newer focus decision', async () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('Alpha')] })
+  let attempts = 0
+  const engine = new TransactionEngine({
+    store, history: new HistoryStore(),
+    selection: {
+      capture: bookmark,
+      restore() { attempts++; return false },
+    },
+  })
+  engine.execute({ origin: 'user', name: 'edit' }, tx => tx.update('a', block('AlXpha')))
+  assert.equal(engine.undo(), true)
+  assert.equal(attempts, 1)
+  assert.equal(store.get('a').data.text, 'Alpha')
+  await Promise.resolve()
+  assert.equal(attempts, 1, 'an explicitly rejected restoration was retried in a later microtask')
+  assert.equal(engine.canUndo, false)
+  assert.equal(engine.canRedo, true)
+})

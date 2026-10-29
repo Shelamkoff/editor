@@ -89,5 +89,42 @@ export class EditorViewModel {
     return this.#interaction.focus(id, target, { selection: this.#selection, caretOnly: true })
   }
 
+  /** History may reveal one recorded field before the normal logical restore.
+   * Ordinary selection continuations never acquire this presentation right.
+   * @param {any} bookmark
+   * @returns {boolean}
+   */
+  restoreHistorySelection(bookmark) {
+    const anchor = bookmark?.anchor, focus = bookmark?.focus
+    if (!anchor || !focus) return false
+    if (!anchor.fieldKey || anchor.blockId !== focus.blockId || anchor.fieldKey !== focus.fieldKey) {
+      return this.#selection.restore(bookmark)
+    }
+    const id = anchor.blockId
+    const mounted = this.#reconciler.getElement(id)
+    if (!mounted) return false
+    const document = mounted.ownerDocument
+    const active = document.activeElement
+    const decision = this.#interaction.explicitCurrentVersion
+    const generation = this.#runtime.generation, revision = this.#runtime.revision, modeEpoch = this.#runtime.modeEpoch
+    const owns = () => this.#runtime.health === 'ready'
+      && generation === this.#runtime.generation && revision === this.#runtime.revision
+      && modeEpoch === this.#runtime.modeEpoch && this.#reconciler.getElement(id) === mounted
+    const existing = this.#reconciler.getEditableFields(id).find(field => field.key === anchor.fieldKey)
+    if (!owns() || document.activeElement !== active || this.#interaction.explicitCurrentVersion !== decision) return false
+    // A known mounted field keeps the existing strict restoration path. Only
+    // a missing recorded field may ask its plugin to reveal that exact key.
+    if (existing) return this.#selection.restore(bookmark)
+    if (!this.focus(id, { fieldKey: anchor.fieldKey, offset: anchor.offset })
+      || !owns() || this.#interaction.explicitCurrentVersion !== decision + 1) return false
+    const field = this.#reconciler.getEditableFields(id).find(field => field.key === anchor.fieldKey)
+    const selected = this.#selection.capture()
+    const matches = point => point?.blockId === id && point.fieldKey === anchor.fieldKey && point.offset === anchor.offset
+    if (!owns() || this.#interaction.explicitCurrentVersion !== decision + 1
+      || !field || document.activeElement !== field.element
+      || !matches(selected?.anchor) || !matches(selected?.focus)) return false
+    return this.#selection.restore(bookmark)
+  }
+
   reconcileInteraction() { this.#interaction.reconcile() }
 }
