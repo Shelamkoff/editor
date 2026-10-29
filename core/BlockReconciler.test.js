@@ -6,6 +6,7 @@ import { DocumentStore } from './DocumentStore.js'
 
 class FakeElement {
   constructor(tag, ownerDocument) {
+    this.nodeType = 1
     this.tagName = tag.toUpperCase()
     this.ownerDocument = ownerDocument
     this.parentNode = null
@@ -14,8 +15,14 @@ class FakeElement {
     this.style = {}
     this.className = ''
     this.textContent = ''
-    this.contentEditable = 'inherit'
+    this.attributes = new Map()
   }
+  getAttribute(name) { return this.attributes.get(name) ?? null }
+  setAttribute(name, value) { this.attributes.set(name, String(value)) }
+  removeAttribute(name) { this.attributes.delete(name) }
+  hasAttribute(name) { return this.attributes.has(name) }
+  get contentEditable() { return this.getAttribute('contenteditable') ?? 'inherit' }
+  set contentEditable(value) { this.setAttribute('contenteditable', value) }
   get firstChild() { return this.children[0] ?? null }
   get firstElementChild() { return this.children[0] ?? null }
   get nextSibling() {
@@ -1627,7 +1634,7 @@ test('block editable fields reject non-HTMLElement descendants of a valid block 
   assert.equal(released, 1)
 })
 
-test('failed child inline reconciliation retries a changed field element on the next refresh', () => {
+test('settled child inline failure retries only after an explicit field replacement', () => {
   const ownerDocument = new FakeDocument()
   const container = ownerDocument.createElement('main')
   const root = ownerDocument.createElement('article')
@@ -1637,6 +1644,7 @@ test('failed child inline reconciliation retries a changed field element on the 
   root.appendChild(newField)
   let currentField = oldField
   let attempts = 0
+  const failure = new Error('child inline projection failed')
   const registry = {
     hasBlock: () => true,
     getBlockDefinition: type => ({ type }),
@@ -1654,7 +1662,7 @@ test('failed child inline reconciliation retries a changed field element on the 
     prepareBlock() { return { apply() {}, finalize() {}, recover() {}, discard() {} } },
     reconcileBlock() {
       attempts++
-      if (attempts === 1) throw new Error('child inline projection failed')
+      if (attempts === 1) throw failure
     },
     destroy() {},
   }
@@ -1666,16 +1674,25 @@ test('failed child inline reconciliation retries a changed field element on the 
   }))
   currentField = newField
 
-  assert.throws(() => reconciler.getEditableFields('a'), /child inline projection failed/)
+  assert.throws(() => reconciler.getEditableFields('a'), error => error === failure)
   assert.equal(attempts, 1)
-  assert.equal(reconciler.getEditableField('a', 'text').element, newField)
-  assert.equal(attempts, 2, 'a failed field publication must retry inline hydration')
+  assert.equal(newField.contentEditable, 'false')
+  assert.deepEqual(reconciler.getEditableFields('a'), [])
+  assert.equal(reconciler.getEditableField('a', 'text'), undefined)
+  assert.equal(attempts, 1, 'an unchanged failed descriptor must not automatically retry')
+
+  const retryField = ownerDocument.createElement('span')
+  root.appendChild(retryField)
+  currentField = retryField
+  assert.equal(reconciler.getEditableField('a', 'text').element, retryField)
+  assert.equal(attempts, 2, 'an explicit new field occurrence admits one fresh projection attempt')
   assert.equal(reconciler.resolveEditableTarget(oldField), null)
-  assert.equal(reconciler.resolveEditableTarget(newField)?.blockId, 'a')
+  assert.equal(reconciler.resolveEditableTarget(newField), null)
+  assert.equal(reconciler.resolveEditableTarget(retryField)?.blockId, 'a')
   reconciler.destroy()
 })
 
-test('failed child inline reconciliation retries a mode-only descriptor change', () => {
+test('settled child inline failure retries an explicit new descriptor mode', () => {
   const ownerDocument = new FakeDocument()
   const container = ownerDocument.createElement('main')
   const root = ownerDocument.createElement('article')
@@ -1683,6 +1700,7 @@ test('failed child inline reconciliation retries a mode-only descriptor change',
   root.appendChild(field)
   let mode = 'rich-text'
   let attempts = 0
+  const failure = new Error('mode transition projection failed')
   const registry = {
     hasBlock: () => true,
     getBlockDefinition: type => ({ type }),
@@ -1697,7 +1715,7 @@ test('failed child inline reconciliation retries a mode-only descriptor change',
     prepareBlock() { return { apply() {}, finalize() {}, recover() {}, discard() {} } },
     reconcileBlock() {
       attempts++
-      if (attempts === 1) throw new Error('mode transition projection failed')
+      if (attempts === 1) throw failure
     },
     destroy() {},
   }
@@ -1709,11 +1727,17 @@ test('failed child inline reconciliation retries a mode-only descriptor change',
   }))
   mode = 'plain-text'
 
-  assert.throws(() => reconciler.getEditableFields('a'), /mode transition projection failed/)
+  assert.throws(() => reconciler.getEditableFields('a'), error => error === failure)
   assert.equal(attempts, 1)
-  assert.equal(reconciler.getEditableField('a', 'text').mode, 'plain-text')
-  assert.equal(attempts, 2, 'failed mode transition cannot be mistaken for committed projection')
-  assert.equal(reconciler.resolveEditableTarget(field)?.mode, 'plain-text')
+  assert.equal(field.contentEditable, 'false')
+  assert.equal(reconciler.getEditableField('a', 'text'), undefined)
+  assert.equal(attempts, 1, 'repeated queries cannot retry the same failed descriptor mode')
+  assert.equal(reconciler.resolveEditableTarget(field), null)
+
+  mode = 'rich-text'
+  assert.equal(reconciler.getEditableField('a', 'text').mode, 'rich-text')
+  assert.equal(attempts, 2, 'an explicit descriptor mode change permits a fresh attempt')
+  assert.equal(reconciler.resolveEditableTarget(field)?.mode, 'rich-text')
   reconciler.destroy()
 })
 
