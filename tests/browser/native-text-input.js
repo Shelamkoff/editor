@@ -303,16 +303,36 @@ for (const [delimiter, shift] of [[' ', false], ['Enter', false], ['Enter', true
 
 test('Native unmatched color-like word and selected text retain their normal space typing', async () => {
   for (const selected of [false, true]) {
-    const editor = make([para('a', selected ? '#f00' : '#ggg')], {
+    const original = selected ? '#f00' : '#ggg'
+    // Compare with the browser's actual no-Color editing path. At an editing
+    // host's end Chromium may emit NBSP; changing the editor's canonical
+    // sanitizer just to force ASCII space would not test native parity.
+    const baseline = make([para('a', original)])
+    const baselineField = editableField(baseline, 'a')
+    select(baselineField, selected ? 0 : 4, 4)
+    await printable(' ')
+    const expected = baseline.save().blocks[0].data.text
+    const visible = document.createElement('div')
+    visible.innerHTML = expected
+    equal(visible.textContent.replace(/\u00a0/g, ' '), selected ? ' ' : '#ggg ',
+      'No-Color baseline did not perform the intended native Space input')
+
+    const editor = make([para('a', original)], {
       inlinePlugins: [createColorSwatchPlugin()],
     })
+    const before = editor.save().blocks
     const field = editableField(editor, 'a')
-    select(field, selected ? 0 : 4, selected ? 4 : 4)
+    select(field, selected ? 0 : 4, 4)
     await printable(' ')
     const after = editor.save().blocks
-    equal(after[0].data.text, selected ? ' ' : '#ggg ',
-      'An unrecognized or selected word was erroneously turned into an inline widget')
+    equal(after[0].data.text, expected,
+      'Color changed ordinary unmatched/selected-word typing relative to no plugin')
     equal(Object.keys(after[0].inline ?? {}), [], 'A nonmatching native word created inline data')
+    assert(editor.undo(), 'ordinary native Space must remain undoable')
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false, 'one native Space created multiple history actions')
+    assert(editor.redo())
+    equal(editor.save().blocks, after)
   }
 })
 
