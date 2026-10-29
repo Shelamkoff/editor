@@ -7,6 +7,7 @@ import { createSvgIcon, ICON_BACK } from '../shared/editorIcons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
+const TEXT_NODE = 3
 
 /**
  * Bind one tool to its mount-scoped selection authority. A fresh mount gets
@@ -80,7 +81,7 @@ function closestInEditable(el, selector) {
 /**
  * Merge adjacent sibling elements with the same tag name.
  * E.g. `<b>a</b><b>b</b>` → `<b>ab</b>`.
- * Only merges direct siblings; does not recurse into children.
+ * Merges sibling tags separated only by empty Text leaves; does not recurse.
  * @param {Node | null} parent
  * @param {string} tagName — lowercase tag name to merge
  */
@@ -93,13 +94,18 @@ function mergeAdjacentTags(parent, tagName) {
   const host = element.closest('[contenteditable]')
   if (!host || host.getAttribute('contenteditable') !== 'true') return
   const upper = tagName.toUpperCase()
-  // Normalize first so empty text nodes between elements are removed
+  // Normalize only the subtrees owned by the authoring field.
   normalizeAuthoredText(parent)
   /** @type {Node | null} */
   let node = parent.firstChild
   while (node) {
-    const next = node.nextSibling
-    // Only merge if two same-tag elements are truly DOM-adjacent (no text nodes between them)
+    let next = node.nextSibling
+    // Mixed-owner fields cannot be normalized recursively: a native control
+    // owns its descendant nodes. Empty author leaves left by surroundContents
+    // do not separate formatting. Keep their node identity; the owning tool
+    // restores logical selection positions after the wrapper transformation.
+    while (next?.nodeType === TEXT_NODE && next.textContent === '') next = next.nextSibling
+    // Whitespace and other authored content still form a real boundary.
     if (node.nodeType === ELEMENT_NODE
         && next?.nodeType === ELEMENT_NODE
         && /** @type {Element} */ (node).tagName === upper

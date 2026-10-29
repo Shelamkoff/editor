@@ -857,13 +857,18 @@ test('cross-host inline normalization skips locked fields and native control des
 
 test('adjacent tag merging preserves the boundary around native-controlled wrappers', () => {
   const fixture = document.createElement('div')
-  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true"><b>prefix<button type="button">action</button></b>plain<b>suffix</b></div></div>'
+  fixture.innerHTML = '<div class="oe-block"><div contenteditable="true"><b>prefix<button type="button">action</button></b>plain<b>suffix</b> <b>spaced</b><b class="different">styled</b></div></div>'
   document.body.append(fixture)
   try {
     const field = fixture.querySelector('[contenteditable="true"]')
     const protectedWrapper = field.firstElementChild
     const action = protectedWrapper.querySelector('button')
     const plain = protectedWrapper.nextSibling
+    const empty = document.createTextNode('')
+    field.insertBefore(empty, plain.nextSibling)
+    const otherRange = document.createRange()
+    otherRange.setStart(empty, 0)
+    otherRange.collapse(true)
     const range = document.createRange()
     range.selectNodeContents(plain)
     toggleTag('b', range)
@@ -873,6 +878,11 @@ test('adjacent tag merging preserves the boundary around native-controlled wrapp
     assert(protectedWrapper.nextElementSibling?.tagName === 'B', 'New authored bold sibling was not retained')
     equal(protectedWrapper.nextElementSibling?.textContent, 'plainsuffix',
       'Adjacent author-only bold wrappers did not merge')
+    assert(empty.isConnected && otherRange.startContainer === empty,
+      'Merging detached an empty authored Text node used by another live Range')
+    equal([...field.querySelectorAll(':scope > b')].map(element => element.textContent),
+      ['prefixaction', 'plainsuffix', 'spaced', 'styled'],
+      'Merging crossed author whitespace, distinct attributes, or native ownership')
   } finally { fixture.remove() }
 })
 
