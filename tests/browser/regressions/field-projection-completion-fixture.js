@@ -18,6 +18,7 @@ if (!customElements.get(connectedTag)) customElements.define(connectedTag, class
 /** Actual extension methods and existing constructors; no core hooks are replaced. */
 export function createCompletionFixture(options = {}) {
   const h = createPresentationDefinitions(options)
+  if (options.rewriteNestedTextOnUpdate) for (const record of h.records) record.data.front = `<b>${record.data.front}</b>`
   Object.assign(h.state, { completions: [], instances: [], nativeEdits: [], onCompletion: null, poisonCalls: 0 })
   const originalBlock = h.block
   h.block = { ...originalBlock, setup(runtimeContext) {
@@ -35,11 +36,14 @@ export function createCompletionFixture(options = {}) {
       }
       const occurrence = { name: initial.name, source, panel, context, getterReads: 0 }
       h.state.instances.push(occurrence)
-      if (options.repaintFrontOnUpdate) {
+      if (options.repaintFrontOnUpdate || options.rewriteNestedTextOnUpdate) {
         const update = source.update
         source.update = (next, previous) => {
           update.call(source, next, previous)
-          panel.field().innerHTML = next[panel.active()]
+          if (options.rewriteNestedTextOnUpdate) {
+            const text = panel.field().querySelector('b').firstChild
+            text.replaceWith(context.ownerDocument.createTextNode(text.textContent))
+          } else panel.field().innerHTML = next[panel.active()]
         }
       }
       Object.defineProperty(source, 'afterProjection', { configurable: true, get() {

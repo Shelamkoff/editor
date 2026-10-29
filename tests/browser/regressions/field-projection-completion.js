@@ -219,6 +219,21 @@ test('field completion getter failure cleans up the captured instance before pub
   } finally { h.dispose() }
 })
 
+test('field completion recognizes an identical-HTML nested Text replacement by block update', async () => {
+  const h = createCompletionFixture({ rewriteNestedTextOnUpdate: true })
+  try {
+    h.mount(); await pause()
+    const field = h.panels.get('a').field(), mark = field.firstChild, text = mark.firstChild, html = field.innerHTML
+    const note = h.panels.get('a').note, noteWidget = h.latest('a-note')
+    h.state.completions.length = 0
+    h.runtime.update('a', current => ({ data: { ...current.data, metadata: 'same HTML, new descendant' } }))
+    assert(field.firstChild === mark && mark.firstChild !== text, 'The control must replace only the nested Text identity')
+    equal(field.innerHTML, html, 'This control must preserve exact HTML')
+    assert(h.panels.get('a').note === note && h.latest('a-note') === noteWidget)
+    equal(completed(h), [['a', 'front', 'Front a-front']], 'Actual descendant replacement was missed or the untouched sibling was replayed')
+  } finally { h.dispose() }
+})
+
 for (const phase of ['initial', 'canonical']) for (const kind of ['Error', 'undefined', 'thenable']) {
   test(`field completion ${phase} ${kind} failure preserves its original failure and accepted boundary`, async () => {
     const h = createCompletionFixture(), fault = new Error('controlled completion body failure')
