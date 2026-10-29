@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning, Checklist, Spoiler and Columns, each with
+The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning, Checklist, Spoiler, Columns and Table, each with
 separate actual default construction and populated-document cases. Each
 populated case contains both real Mention and Color sidecars inside
 authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
@@ -222,6 +222,29 @@ transition had finished. That was a harness wait failure, separate from
 production parity. The local-cover readiness bound also rejects on timeout;
 cover dimensions and all authoring/history assertions remain required.
 
+Table uses its actual empty 3-by-3 default and a fixed 2-by-2 document
+with a heading row. Mention lives in the first header cell and Color in the
+last body cell; the other header and body retain independent `mark` and
+canonical `i` formatting plus a literal ampersand. The unwrapped control
+keeps both real widgets outside formatting. Native input edits only the
+first declared TD/TH, while every other cell, row order, headings flag,
+sidecar and neighboring Paragraph must remain unchanged through mode and
+one-step Undo/Redo. Current row/cell IDs are checked in data and actual DOM,
+including the same cell IDs in distinct row namespaces. Wrapper, table,
+rows and cell identities are independent observations. All three renderer
+contexts require TABLE/THEAD/TBODY/TR/TH/TD structure and authored cell
+contents. Row/column actions, heading toggles, Table paste, multi-cell
+selection, Tab/Enter behavior and separately typing into sibling cells
+remain separate behavior rows.
+
+The initial exploratory Table fixture incorrectly expected unsupported `u`
+to survive; both historical/current sanitizers omit that tag. A second
+probe used the allowed `em` alias but compared its spelling literally,
+where the current rich-text codec canonicalizes it to `i`. Both traces are
+retained as invalid fixture expectations, not production RED evidence.
+The corrected fixed fixture uses `i`; neither sanitizer policy nor the
+shared markup oracle is changed to admit those earlier failures.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -252,6 +275,9 @@ v1 Columns receives ordered `{ content }` records; the current form adds
 fixed column IDs without changing layout or authored contents. v1 Attaches
 receives the same file names, URLs, sizes, extensions and order without
 current file IDs; filename text is never parsed as rich markup.
+v1 Table receives the identical rectangular text matrix as `content: string[][]`
+with the same `withHeadings`; the current form adds fixed row/cell IDs. The
+adapter does not invent v1 identities or infer expected cells from a save.
 These are fixture adapters, not production compatibility or a legacy
 decoder.
 
@@ -272,7 +298,7 @@ author data from an initial `save()` result.
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
 | Image / 1 | Empty file URL/caption, false flags, empty styles | Local decoded PNG, literal rich caption, fixed appearance; edit `caption` | Implemented: empty source has authoring N/A; populated native caption history and renderer preserved. Widget-caption defect remains separate. |
 | Delimiter / 1 | Empty object | The same data-free separator between Paragraphs | Implemented: actual default has authoring phases N/A; a separately named real neighbor edit proves history preservation. |
-| Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. The separate no-data default repair preserves explicit 1-by-1 data; the full template remains unexecuted here. |
+| Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | Implemented: v1 `content: string[][]`; fixed current rows/cells, headings, all field/renderer slots, native first-cell history and independent identities. The separate default repair preserves explicit 1-by-1 data. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
 | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
 | Embed / 1 | Empty service/video/caption/metadata | Fixed Vimeo/local cover; literal and current widget captions | Implemented: actual empty default, native caption history, actual widgets and retired-host controls. v1 persistent caption widgets are unsupported reference evidence. |
@@ -301,8 +327,9 @@ empty grid. `git blame` attributes that earlier schema default to
 schema`). This was a behavioral difference rather than an ID-only change.
 The separate default repair in `e1790dce` restores no-data 3-by-3
 construction, retaining explicit 1-by-1 and 3-by-3 data and the existing
-one-cell text conversion. Its targeted tests do not execute or accept the
-full Table ROUNDTRIP template listed in this inventory.
+one-cell text conversion. Its targeted tests alone do not accept the
+full Table ROUNDTRIP template. The later Table slice above executes that
+template separately; detailed structural actions retain their own rows.
 
 ## Running the vertical slice
 
@@ -351,9 +378,9 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw and Embed oracle
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed and Table oracle
 classifies only observed historical differences or unsupported reference
-capability, bounded to the forty-two exact scenario IDs in the runner:
+capability, bounded to the forty-five exact scenario IDs in the runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
@@ -470,6 +497,24 @@ capability, bounded to the forty-two exact scenario IDs in the runner:
   generic allowance for content loss or failed Undo/Redo. Literal caption
   and default cases pass that baseline without exceptions.
 
+- Table has a separate classifier limited to its three exact IDs. v1
+  remounts exactly one/three block shells and fourteen/eight Table nodes for
+  default/populated cases, plus exactly two populated widget roots, at the
+  two mode and two history transitions. Its default first Undo focuses the
+  actual generated block's first TD while both selection points remain on
+  that same empty DIV wrapper at child offset 1. Populated first Undo has
+  the exact prefix Paragraph focus defect, with required first-cell offset
+  12. All seven phases must have completed for these classifications.
+- The specification baseline retains its pre-repair 1-by-1 Table default.
+  Its six content phases must have the exact corresponding complete
+  canonical records, with only the first cell changing to `X` at edit/redo.
+  The six admitted property pairs compare that exact 1-by-1 data, fields,
+  DOM IDs and three renderer structures with the fixed 3-by-3 expectation;
+  arbitrary missing rows/content are not allowed. Its formatted populated
+  case stops after load at the exact known inline mode hydration failure.
+  The unwrapped populated control receives no exception and completes the
+  full template.
+
 The runner also records uncaught browser errors in two independent raw
 channels: Playwright's page-error stack and a synchronous `window.error`
 observation carrying source, case ID, phase, name, message and stack. Neither
@@ -491,6 +536,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw or Embed behavior,
-the other 6 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed or Table behavior,
+the other 5 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

@@ -75,6 +75,23 @@ const columns = {
   ] },
 }
 
+const table = {
+  type: 'table', version: 2, className: 'Table', fieldSelector: '.oe-table__cell',
+  defaultData: { withHeadings: false, rows: [
+    { id: 'row-0', cells: [{ id: 'cell-0-0', text: '' }, { id: 'cell-0-1', text: '' }, { id: 'cell-0-2', text: '' }] },
+    { id: 'row-1', cells: [{ id: 'cell-1-0', text: '' }, { id: 'cell-1-1', text: '' }, { id: 'cell-1-2', text: '' }] },
+    { id: 'row-2', cells: [{ id: 'cell-2-0', text: '' }, { id: 'cell-2-1', text: '' }, { id: 'cell-2-2', text: '' }] },
+  ] },
+  populatedData: { withHeadings: true, rows: [
+    { id: 'first', cells: [{ id: 'name', text: '<b>Alpha</b> <i>{{mention}}</i> tail' }, { id: 'value', text: '<mark>Second header</mark>' }] },
+    { id: 'second', cells: [{ id: 'name', text: '<i>Body &amp; more</i>' }, { id: 'value', text: '<mark>Value</mark> <s>{{swatch}}</s>' }] },
+  ] },
+  unwrappedData: { withHeadings: true, rows: [
+    { id: 'first', cells: [{ id: 'name', text: '<b>Alpha</b> {{mention}} tail' }, { id: 'value', text: '<mark>Second header</mark>' }] },
+    { id: 'second', cells: [{ id: 'name', text: '<i>Body &amp; more</i>' }, { id: 'value', text: '<mark>Value</mark> {{swatch}}' }] },
+  ] },
+}
+
 const attaches = {
   type: 'attaches', version: 2, className: 'Attaches', fieldMode: 'plain-text', plainContenteditable: true,
   fieldSelector: '.oe-attaches__name', fieldTag: 'DIV',
@@ -129,11 +146,14 @@ const delimiter = {
 const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : block.type === 'columns' ? { ...data, columns: data.columns.map((column, index) => index ? { ...column } : { ...column, content: text }) }
+  : block.type === 'table' ? { ...data, rows: data.rows.map((row, rowIndex) => ({ ...row,
+    cells: row.cells.map((cell, columnIndex) => rowIndex || columnIndex ? { ...cell } : { ...cell, text }),
+  })) }
   : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -272,6 +292,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) }
       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
         : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
+          : legacy && block.type === 'table' ? { withHeadings: data.withHeadings, content: data.rows.map(row => row.cells.map(cell => cell.text)) }
           : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
@@ -358,12 +379,16 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
     const columnFields = () => [...shell(id).querySelector('.oe-columns__grid').children]
     let previousColumnFields = specification.type === 'columns' ? columnFields() : []
+    const tableRows = () => [...shell(id).querySelector('.oe-table').rows]
+    const tableParts = () => [shell(id).querySelector('.oe-table-wrapper'), shell(id).querySelector('.oe-table'),
+      ...tableRows(), ...tableRows().flatMap(row => [...row.cells])]
+    let previousTableParts = specification.type === 'table' ? tableParts() : []
     const attachmentFields = () => [...shell(id).querySelectorAll('.oe-attaches__name')]
     let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
     const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = noEditableField ? specification.neighborText : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = noEditableField ? specification.neighborText : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
@@ -373,7 +398,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => ['spoiler', 'columns', 'attaches'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => ['spoiler', 'columns', 'attaches', 'table'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
@@ -384,6 +409,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
       : block.type === 'spoiler' ? { ...block.data, label: markupMeaning(block.data.label), content: markupMeaning(block.data.content) }
       : block.type === 'columns' ? { ...block.data, columns: block.data.columns.map(column => ({ ...column, content: markupMeaning(column.content) })) }
+      : block.type === 'table' ? legacy
+        ? { ...block.data, content: block.data.content.map(row => row.map(markupMeaning)) }
+        : { ...block.data, rows: block.data.rows.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell, text: markupMeaning(cell.text) })) })) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
     const imageStyles = picture => Object.fromEntries(['width', 'height', 'objectFit', 'objectPosition', 'borderStyle', 'borderWidth', 'borderColor', 'borderRadius'].map(key => [key, picture.style[key]]))
     const expectedImageStyles = populated => populated
@@ -454,7 +482,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }
       }),
     })
-    const rendererMarkup = element => element.dataset.blockType === 'attaches' ? attachmentRendererMarkup(element) : element.dataset.blockType === 'columns'
+    const rendererMarkup = element => element.dataset.blockType === 'table' ? {
+      children: [...element.children].map(child => child.tagName),
+      sections: [...element.querySelector('table').children].map(section => ({ tag: section.tagName,
+        rows: [...section.children].map(row => ({ tag: row.tagName, cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell) })) })),
+      })),
+    } : element.dataset.blockType === 'attaches' ? attachmentRendererMarkup(element) : element.dataset.blockType === 'columns'
       ? { display: element.style.display, grid: element.style.gridTemplateColumns, gap: element.style.gap,
         columns: [...element.children].map(column => ({ tag: column.tagName, markup: authoredMarkup(column) })),
       } : element.dataset.blockType === 'spoiler' ? spoilerRendererMarkup(element) : element.dataset.blockType === 'toggle'
@@ -481,7 +514,15 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'attaches'
+    const expectedTableRendererMarkup = block => {
+      const rows = legacy ? block.data.content : block.data.rows.map(row => row.cells.map(cell => cell.text))
+      const renderedRows = (sourceRows, tag) => sourceRows.map(cells => ({ tag: 'TR', cells: cells.map(text => ({ tag, markup: markupMeaning(text) })) }))
+      return { children: ['TABLE'], sections: [
+        ...(block.data.withHeadings ? [{ tag: 'THEAD', rows: renderedRows(rows.slice(0, 1), 'TH') }] : []),
+        ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
+      ] }
+    }
+    const expectedRendererMarkup = block => block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
@@ -572,7 +613,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const target = expected.find(block => block.id === id)
       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
       if (hasAuthoring) {
-        check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
+        check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.type === 'table' ? baseData.withHeadings ? 'TH' : 'TD' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
         if (plainField) {
           check(phase, 'editorAuthoredSource', field().value, text)
           check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
@@ -750,6 +791,21 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
             .map(([layout, label]) => ({ label: 'Layout ' + label, pressed: String(baseData.layout === layout) })),
         })
       }
+      if (specification.type === 'table') {
+        const expectedRows = withEditedText(specification, baseData, text).rows
+        const rows = tableRows()
+        const parts = tableParts()
+        check(phase, 'tableFields', rows.map(row => ({ tag: row.tagName,
+          cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell), editable: cell.isContentEditable })),
+        })), expectedRows.map((row, rowIndex) => ({ tag: 'TR', cells: row.cells.map(cell => ({
+          tag: baseData.withHeadings && rowIndex === 0 ? 'TH' : 'TD', markup: markupMeaning(cell.text), editable: !readOnly,
+        })) })))
+        check(phase, 'tableDomIdentity', previousTableParts.map((element, index) => element === parts[index]), previousTableParts.map(() => true))
+        check(phase, 'tableHeadings', shell(id).querySelector('.oe-table-wrapper').dataset.headings, String(baseData.withHeadings))
+        if (!legacy) check(phase, 'tableDomIds', rows.map(row => ({ id: row.dataset.rowId,
+          cells: [...row.cells].map(cell => ({ rowId: cell.dataset.rowId, id: cell.dataset.cellId })),
+        })), expectedRows.map(row => ({ id: row.id, cells: row.cells.map(cell => ({ rowId: row.id, id: cell.id })) })))
+      }
       if (specification.type === 'attaches') {
         const wrapper = shell(id).querySelector('.oe-attaches')
         const fields = attachmentFields()
@@ -804,6 +860,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
       previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
       previousColumnFields = specification.type === 'columns' ? columnFields() : []
+      previousTableParts = specification.type === 'table' ? tableParts() : []
       previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
       previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
       previousPlainFields = plainField ? [field()] : []

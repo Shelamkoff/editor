@@ -167,6 +167,92 @@ function classifyEmbedPageErrors(source, cases, errors, pageErrors, origin) {
     unexpectedErrors: [], unexpectedPageErrors: [] }
 }
 
+// Table has its own exact three-case boundary. Default-grid differences are
+// recognized only for the pinned pre-repair schema, never for the candidate.
+const tableCaseIds = ['BLOCK_TABLE_ROUNDTRIP/default', 'BLOCK_TABLE_ROUNDTRIP/populated',
+  'BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control']
+const tablePhases = ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo']
+function tableDefaultRecord(id, size, edited, canonical = false) {
+  return [{ id, type: 'table', dataVersion: 2, data: { withHeadings: false,
+    rows: Array.from({ length: size }, (_, rowIndex) => ({ id: 'row-' + rowIndex,
+      cells: Array.from({ length: size }, (_, columnIndex) => {
+        const text = edited && rowIndex === 0 && columnIndex === 0 ? 'X' : ''
+        return { id: `cell-${rowIndex}-${columnIndex}`, text: canonical ? text ? [text] : [] : text }
+      }),
+    })),
+  } }]
+}
+function tableDefaultFields(size, edited, readOnly, renderer = false) {
+  return Array.from({ length: size }, (_, rowIndex) => ({ tag: 'TR',
+    cells: Array.from({ length: size }, (_, columnIndex) => ({ tag: 'TD',
+      markup: edited && rowIndex === 0 && columnIndex === 0 ? ['X'] : [],
+      ...(!renderer ? { editable: !readOnly } : {}),
+    })),
+  }))
+}
+function classifyTableDifference(source, entry, failure) {
+  if (!tableCaseIds.includes(entry.id) || !['v1', 'spec-baseline'].includes(source)) return null
+  const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
+  const matches = (actual, expected) => same(failure.actual, actual) && same(failure.expected, expected)
+  const populated = entry.id !== tableCaseIds[0]
+  const phase = name => entry.phases.find(item => item.phase === name)
+  const completed = same(entry.completedPhases, [...tablePhases, 'dispose']) && !entry.incompletePhases?.length
+  if (source === 'v1' && failure.status === 'FAIL' && completed) {
+    const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
+      : failure.property === 'tableDomIdentity' ? populated ? 8 : 14
+        : failure.property === 'widgetDomIdentity' && populated ? 2 : 0
+    if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
+      && matches(Array(size).fill(false), Array(size).fill(true))) {
+      return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-table-mode-remount' : 'repaired-v1-table-history-remount'
+    }
+    if (failure.phase === 'undo' && failure.property === 'nativeSelection') {
+      const id = phase('load')?.blocks[0]?.id
+      if (!populated && typeof id === 'string' && id.length > 0
+        && matches({ focused: true, anchor: null, focus: null, collapsed: true }, { focused: true, anchor: 0, focus: 0, collapsed: true })
+        && same(phase('undo')?.selectionOwner, {
+          active: { block: id, node: 'TD', className: 'oe-table__cell' },
+          anchor: { block: id, node: 'DIV', text: '', offset: 1 },
+          focus: { block: id, node: 'DIV', text: '', offset: 1 },
+        })) return 'repaired-v1-empty-table-caret'
+      if (populated
+        && matches({ focused: false, anchor: null, focus: null, collapsed: true }, { focused: true, anchor: 12, focus: 12, collapsed: true })
+        && same(phase('undo')?.selectionOwner, {
+          active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
+          anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+          focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+        })) return 'repaired-v1-table-history-focus'
+    }
+  }
+  if (source !== 'spec-baseline') return null
+  if (entry.id === tableCaseIds[1] && failure.phase === 'read-only-transition'
+    && failure.property === 'execution' && failure.status === 'ERROR'
+    && matches('Inline widget root left its projection boundary before hydration', undefined)
+    && same(entry.completedPhases, ['load'])
+    && same(entry.incompletePhases, ['read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])) {
+    return 'repaired-baseline-table-formatted-widget-mode'
+  }
+  if (populated || !completed || failure.status !== 'FAIL' || !tablePhases.includes(failure.phase)) return null
+  const id = phase('load')?.blocks[0]?.id
+  if (typeof id !== 'string' || !id.length || !tablePhases.every(name =>
+    same(phase(name)?.blocks, tableDefaultRecord(id, 1, ['edit', 'redo'].includes(name))))) return null
+  const edited = ['edit', 'redo'].includes(failure.phase)
+  const readOnly = failure.phase === 'read-only'
+  const ids = size => Array.from({ length: size }, (_, rowIndex) => ({ id: 'row-' + rowIndex,
+    cells: Array.from({ length: size }, (_, columnIndex) => ({ rowId: 'row-' + rowIndex, id: `cell-${rowIndex}-${columnIndex}` })),
+  }))
+  const rendered = size => [{ children: ['TABLE'], sections: [{ tag: 'TBODY', rows: tableDefaultFields(size, edited, readOnly, true) }] }]
+  const pairs = {
+    canonicalRecords: [tableDefaultRecord(id, 1, edited, true), tableDefaultRecord(id, 3, edited, true)],
+    tableFields: [tableDefaultFields(1, edited, readOnly), tableDefaultFields(3, edited, readOnly)],
+    tableDomIds: [ids(1), ids(3)],
+    detachedAuthoredMarkup: [rendered(1), rendered(3)],
+    attachedDetachedAuthoredMarkup: [rendered(1), rendered(3)],
+    mountedAuthoredMarkup: [rendered(1), rendered(3)],
+  }
+  if (Object.hasOwn(pairs, failure.property) && matches(...pairs[failure.property])) return 'repaired-baseline-table-default-grid'
+  return null
+}
+
 const repo = fileURLToPath(new URL('../../', import.meta.url))
 const digest = bytes => createHash('sha256').update(bytes).digest('hex')
 const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
@@ -312,6 +398,7 @@ try {
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
+        if (tableCaseIds.includes(entry.id)) return classifyTableDifference(source.label, entry, failure)
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
           const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/default'].includes(entry.id)
