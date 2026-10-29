@@ -62,6 +62,20 @@ for (const fixture of pluginParityFixtures) {
         if(target.type==='code')equal(after[1].data.code,'pha\nBravo\nCharlie')
         assert(!window.getSelection().rangeCount || window.getSelection().isCollapsed, 'Conversion retained the previous native text range')
         equal(root.querySelector('.oe-inline-toolbar').checkVisibility(), perBlockTargets.has(target.type), 'Wrong post-conversion toolbar')
+        const nativeButton = {
+          image: '.oe-image__select-link', carousel: '.oe-carousel-block__select-link',
+        }[target.type]
+        if (nativeButton) {
+          const control = root.querySelector(nativeButton)
+          assert(control instanceof HTMLButtonElement && document.activeElement === control,
+            'Conversion must focus its native upload control before the history ownership check')
+          await dispatchKey('z', 'KeyZ', 90, 2)
+          equal(editor.save().blocks, after, 'Native upload control replayed document history')
+          assert(editor.canUndo && !editor.canRedo, 'Ignored native control shortcut changed the history position')
+          assert(document.activeElement === control, 'Ignored native control shortcut changed focus')
+          root.focus({ preventScroll: true })
+          assert(document.activeElement === root, 'The document history gesture did not acquire editor focus')
+        }
         // An empty Embed focuses its auxiliary URL input, whose Undo belongs
         // to that native control. Return to document text for document history.
         if (document.activeElement?.matches('input,select')) await clickNative(editableField(editor, 'a'))
