@@ -2,6 +2,8 @@ import { assembleCanonicalRecord, filterCanonicalInline, remapCanonicalInline } 
 import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
 import { getTextLength, getTextOffset, findNodeAtOffset, editableTextWalker } from '../../shared/textOffset.js'
 import { createPersonPlugin } from '../../plugins/person/index.js'
+import { createListPlugin } from '../../plugins/list/index.js'
+import { createColumnsPlugin } from '../../plugins/columns/index.js'
 import { test, assert, equal, make, blockElement, pause, run } from './regressions/harness.js'
 
 function throws(operation, pattern) {
@@ -259,6 +261,60 @@ test('public editor preserves marker-free widget coordinates through updates, mo
   equal(editor.save().blocks.find(block => block.id === 'a').inline, undefined)
   editor.undo()
   check()
+})
+
+for (const backward of [false, true]) {
+  test(`a sibling rich-field update retains the ${backward ? 'backward range' : 'caret'} in an unchanged List item`, () => {
+    const definition = createListPlugin()
+    const editor = make([{ id: 'a', type: 'list', dataVersion: definition.schema.currentVersion,
+      data: { style: 'unordered', items: [{ id: 'one', text: 'Alpha' }, { id: 'two', text: 'Bravo' }] },
+    }], { plugins: [definition], defaultBlock: 'list' })
+    assert(editor.blocks.focus('a', { fieldKey: 'item:two', offset: 2 }))
+    const field = document.activeElement
+    const selection = window.getSelection()
+    if (backward) selection.setBaseAndExtent(field.firstChild, 4, field.firstChild, 1)
+    const before = editor.save().blocks
+    editor.blocks.update('a', current => ({ data: { ...current.data,
+      items: current.data.items.map(item => item.id === 'one' ? { ...item, text: 'Changed' } : item),
+    } }))
+    assert(document.activeElement === field, 'sibling update lost the active editing host')
+    equal([
+      getTextOffset(field, selection.anchorNode, selection.anchorOffset),
+      getTextOffset(field, selection.focusNode, selection.focusOffset),
+    ], backward ? [4, 1] : [2, 2], 'unchanged field projection moved the accepted native selection')
+    equal(editor.save().blocks[0].data.items.map(item => item.text), ['Changed', 'Bravo'])
+    assert(editor.undo())
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  })
+}
+
+test('a Columns layout-only update preserves the current rich-field caret', () => {
+  const definition = createColumnsPlugin()
+  const editor = make([{ id: 'a', type: 'columns', dataVersion: definition.schema.currentVersion,
+    data: { layout: '1-1', columns: [{ id: 'left', content: 'Alpha' }, { id: 'right', content: 'Bravo' }] },
+  }], { plugins: [definition], defaultBlock: 'columns' })
+  assert(editor.blocks.focus('a', { fieldKey: 'column:right', offset: 3 }))
+  const field = document.activeElement
+  editor.blocks.update('a', current => ({ data: { ...current.data, layout: '1-2' } }))
+  const selection = window.getSelection()
+  assert(document.activeElement === field && selection.isCollapsed)
+  equal(getTextOffset(field, selection.anchorNode, selection.anchorOffset), 3)
+  equal(editor.save().blocks[0].data.layout, '1-2')
+  assert(editor.undo())
+  equal(editor.save().blocks[0].data.layout, '1-1')
+  equal(editor.canUndo, false)
+})
+
+test('canonical-equivalent serialization does not retain undeclared live markup', () => {
+  const projection = new InlineProjectionRuntime({ registry: {}, ownerDocument: document })
+  const element = document.createElement('div')
+  element.innerHTML = '<b onclick="window.__unexpectedProjectionClick = true">Alpha</b>'
+  try {
+    projection.reconcileBlock('a', { data: { fields: [{ key: 'text', html: '<b>Alpha</b>' }] } },
+      { schema }, [{ key: 'text', mode: 'rich-text', element }], {})
+    equal(element.innerHTML, '<b>Alpha</b>', 'projection retained an active attribute discarded by canonical HTML')
+  } finally { projection.destroy() }
 })
 
 

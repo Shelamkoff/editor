@@ -596,9 +596,17 @@ export class InlineProjectionRuntime {
       if(html===undefined)continue
 
       if(!preserveSourceProjection){
-        const template=this.#ownerDocument.createElement('template')
-        template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(html,this.#ownerDocument),this.#ownerDocument))
-        element.replaceChildren(...template.content.childNodes)
+        const normalized=normalizeRichText(html,this.#ownerDocument)
+        // A block plugin can retain an unchanged rich field while updating a
+        // sibling or presentation option. Replacing its identical children
+        // collapses a genuine native caret/range even though the accepted
+        // text has not changed. Compare the actual DOM spelling, not a
+        // sanitized copy, so this does not retain undeclared live markup.
+        if(element.innerHTML!==normalized){
+          const template=this.#ownerDocument.createElement('template')
+          template.innerHTML=/** @type {any} */(toTrustedHtml(normalized,this.#ownerDocument))
+          element.replaceChildren(...template.content.childNodes)
+        }
       }
 
       this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners)
