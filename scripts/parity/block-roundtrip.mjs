@@ -9,6 +9,164 @@ import { createServer } from 'node:http'
 import { extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
+// These fixed values recognize only captured historical Embed failures. They
+// never adapt browser input, rewrite observations or grant candidate exceptions.
+const embedCaseIds = ['BLOCK_EMBED_ROUNDTRIP/default', 'BLOCK_EMBED_ROUNDTRIP/populated',
+  'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_EMBED_ROUNDTRIP/populated-literal']
+const embedPhases = ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo']
+const embedCover = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
+const embedMark = (tag, text) => ({ tag, attributes: {}, children: [text] })
+const embedCaption = (wrapped, edited, canonical = true) => canonical
+  ? [embedMark('b', 'Alpha'), ...(wrapped
+    ? [' ', embedMark('i', '{{mention}}'), ' ', embedMark('s', '{{swatch}}'), ' tail' + (edited ? 'X' : '')]
+    : [' {{mention}} {{swatch}} tail' + (edited ? 'X' : '')])]
+  : '<b>Alpha</b> ' + (wrapped ? '<i>{{mention}}</i> <s>{{swatch}}</s>' : '{{mention}} {{swatch}}') + ' tail' + (edited ? 'X' : '')
+function embedRecords({ legacy = false, wrapped = false, edited = false, sidecars = true, canonical = true }) {
+  const record = (id, type, version, data, inline) => ({ id, type, ...(!legacy ? { dataVersion: version } : {}), data,
+    ...(inline ? { inline } : {}) })
+  const widget = (type, data) => ({ type, ...(!legacy ? { dataVersion: 1 } : {}), data })
+  const inline = { mention: widget('mention', { id: 'ada', name: 'Ada' }), swatch: widget('color', { value: '#123456' }) }
+  return [
+    record('prefix', 'paragraph', 2, { text: canonical ? [embedMark('b', 'Before')] : '<b>Before</b>' }),
+    record('probe', 'embed', 1, { service: 'vimeo', videoId: '12345678', caption: embedCaption(wrapped, edited, canonical),
+      cover: embedCover, title: 'Local preview', duration: '1:23' }, sidecars ? inline : undefined),
+    record('suffix', 'paragraph', 2, { text: canonical ? [embedMark('i', 'After')] : '<i>After</i>' }),
+  ]
+}
+const embedRendered = edited => [[embedMark('b', 'Before')], {
+  children: ['DIV', 'FIGCAPTION'], caption: embedCaption(false, edited),
+  preview: embedCover, previewAlt: 'Local preview', title: 'Local preview', duration: '1:23', frames: 0,
+}, [embedMark('i', 'After')]]
+const embedWidgets = [{ id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
+  { id: 'swatch', type: 'color', text: '#123456', value: '#123456' }]
+const embedCaret = offset => ({ focused: true, anchor: offset, focus: offset, collapsed: true })
+const embedSelectionOwner = (text, offset) => ({
+  active: { block: 'probe', node: 'DIV', className: 'oe-embed__caption' },
+  anchor: { block: 'probe', node: '#text', text, offset },
+  focus: { block: 'probe', node: '#text', text, offset },
+})
+function classifyEmbedDifference(source, entry, failure) {
+  if (!embedCaseIds.includes(entry.id) || !['v1', 'spec-baseline'].includes(source)) return null
+  if (failure.status !== (failure.property === 'execution' ? 'ERROR' : 'FAIL')) return null
+  const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
+  const matches = (actual, expected) => same(failure.actual, actual) && same(failure.expected, expected)
+  const phase = name => entry.phases?.find(item => item.phase === name)
+  const empty = entry.id === 'BLOCK_EMBED_ROUNDTRIP/default'
+  const wrapped = entry.id === 'BLOCK_EMBED_ROUNDTRIP/populated'
+  const widgetCase = wrapped || entry.id === 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'
+  const completed = same(entry.completedPhases, empty ? ['load', 'read-only', 'editable-again', 'dispose'] : [...embedPhases, 'dispose'])
+  if (source === 'v1' && completed) {
+    const mode = ['read-only', 'editable-again'].includes(failure.phase)
+    const remountPhase = mode || !empty && ['undo', 'redo'].includes(failure.phase)
+    const size = failure.property === 'blockDomIdentity' ? empty ? 1 : 3
+      : failure.property === 'embedWrapperIdentity' || failure.property === 'embedCaptionIdentity' && !empty && mode ? 1 : 0
+    if (remountPhase && size && matches(Array(size).fill(false), Array(size).fill(true))) {
+      return mode ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
+    }
+    const id = phase('load')?.blocks?.[0]?.id
+    if (empty && failure.phase === 'editable-again' && failure.property === 'foreignFocusPreserved'
+      && typeof id === 'string' && id.length > 0 && matches(false, true)
+      && same(phase('editable-again')?.selectionOwner, {
+        active: { block: id, node: 'INPUT', className: 'oe-embed__url-input' },
+        anchor: { block: id, node: 'DIV', text: '', offset: 1 },
+        focus: { block: id, node: 'DIV', text: '', offset: 1 },
+      })) return 'repaired-v1-empty-embed-mode-focus'
+    if (widgetCase && embedPhases.includes(failure.phase)) {
+      const edited = ['edit', 'redo'].includes(failure.phase)
+      if (failure.property === 'canonicalRecords'
+        && matches(embedRecords({ legacy: true, wrapped, edited, sidecars: false }), embedRecords({ legacy: true, wrapped, edited }))) {
+        return 'unsupported-v1-embed-caption-sidecars'
+      }
+      if (['editorWidgets', 'detachedWidgets', 'attachedDetachedWidgets', 'mountedWidgets'].includes(failure.property)
+        && matches([], embedWidgets)) return 'unsupported-v1-embed-caption-widgets'
+      const owner = embedSelectionOwner(wrapped ? ' tailX' : ' {{mention}} {{swatch}} tailX', wrapped ? 6 : 29)
+      if (failure.phase === 'edit' && failure.property === 'fixtureCaret' && matches(embedCaret(33), embedCaret(14))
+        && same(phase('edit')?.selectionOwner, owner)) return 'unsupported-v1-embed-widget-caret'
+      if (['edit', 'redo'].includes(failure.phase) && failure.property === 'nativeSelection'
+        && matches(embedCaret(34), embedCaret(15)) && same(phase(failure.phase)?.selectionOwner, owner)) {
+        return 'unsupported-v1-embed-widget-caret'
+      }
+    }
+    if (!empty && failure.phase === 'undo' && failure.property === 'nativeSelection'
+      && matches({ focused: false, anchor: null, focus: null, collapsed: true }, embedCaret(widgetCase ? 14 : 18))
+      && same(phase('undo')?.selectionOwner, {
+        active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
+        anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+        focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+      })) return 'repaired-v1-first-undo-caret'
+  }
+  if (source === 'spec-baseline' && wrapped && failure.phase === 'read-only-transition' && failure.property === 'execution'
+    && failure.actual === 'Inline widget root left its projection boundary before hydration'
+    && !Object.hasOwn(failure, 'expected')
+    && same(entry.completedPhases, ['load'])
+    && same(entry.incompletePhases, ['read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])) {
+    return 'repaired-baseline-formatted-widget-mode-failure'
+  }
+  if (source === 'spec-baseline' && entry.id === 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'
+    && completed && failure.phase === 'redo'
+    && same(phase('edit')?.blocks, embedRecords({ edited: true, canonical: false }))
+    && same(phase('undo')?.blocks, embedRecords({ canonical: false }))
+    && same(phase('redo')?.blocks, embedRecords({ canonical: false }))
+    && same(phase('redo')?.selectionOwner, embedSelectionOwner(' tail', 5))) {
+    const values = {
+      canonicalRecords: [embedRecords({}), embedRecords({ edited: true })],
+      editorAuthoredMarkup: [embedCaption(false, false), embedCaption(false, true)],
+      embedWrapperIdentity: [[false], [true]],
+      historyState: [{ canUndo: false, canRedo: true }, { canUndo: true, canRedo: false }],
+      blockDomIdentity: [[true, false, true], [true, true, true]],
+      widgetDomIdentity: [[false, false], [true, true]],
+      nativeSelection: [embedCaret(14), embedCaret(15)],
+      detachedAuthoredMarkup: [embedRendered(false), embedRendered(true)],
+      attachedDetachedAuthoredMarkup: [embedRendered(false), embedRendered(true)],
+      mountedAuthoredMarkup: [embedRendered(false), embedRendered(true)],
+      exactEditedRecords: [embedRecords({ canonical: false }), embedRecords({ edited: true, canonical: false })],
+    }
+    const value = Object.hasOwn(values, failure.property) ? values[failure.property] : null
+    if (value && matches(value[0], value[1])) return 'repaired-baseline-embed-redo'
+  }
+  return null
+}
+
+function classifyEmbedPageErrors(source, cases, errors, pageErrors, origin) {
+  const unmatched = { classifiedPageErrors: [], unexpectedErrors: errors, unexpectedPageErrors: pageErrors }
+  // Preserve both raw channels. Only the observed one-to-one error pair can
+  // be attributed; duplicates, orphan reports and every other source fail.
+  if (source !== 'spec-baseline' || errors.length !== 1 || pageErrors.length !== 1) return unmatched
+  const error = pageErrors[0]
+  const stack = `Error: Inline widget root left its projection boundary before hydration
+    at #hydrateField (${origin}/spec-baseline/core/InlineProjectionRuntime.js:788:17)
+    at #projectState (${origin}/spec-baseline/core/InlineProjectionRuntime.js:603:25)
+    at InlineProjectionRuntime.reconcileBlock (${origin}/spec-baseline/core/InlineProjectionRuntime.js:99:27)
+    at Object.apply (${origin}/spec-baseline/core/BlockReconciler.js:466:36)
+    at #replayObserved (${origin}/spec-baseline/core/TransactionEngine.js:331:34)
+    at ${origin}/spec-baseline/core/TransactionEngine.js:298:80
+    at #observeCommand (${origin}/spec-baseline/core/TransactionEngine.js:500:14)
+    at #replay (${origin}/spec-baseline/core/TransactionEngine.js:298:32)
+    at TransactionEngine.redo (${origin}/spec-baseline/core/TransactionEngine.js:273:31)
+    at DocumentRuntime.redo (${origin}/spec-baseline/core/DocumentRuntime.js:768:25)`
+  if (error.source !== source || error.caseId !== 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'
+    || error.phase !== 'redo' || error.name !== 'Error'
+    || error.message !== 'Inline widget root left its projection boundary before hydration'
+    || error.stack !== stack || errors[0] !== stack) return unmatched
+  const entry = cases.find(item => item.id === error.caseId)
+  const properties = ['canonicalRecords', 'editorAuthoredMarkup', 'embedWrapperIdentity', 'historyState',
+    'blockDomIdentity', 'widgetDomIdentity', 'nativeSelection', 'detachedAuthoredMarkup',
+    'attachedDetachedAuthoredMarkup', 'mountedAuthoredMarkup', 'exactEditedRecords']
+  if (!entry || entry.failures.length !== properties.length
+    || JSON.stringify(entry.failures.map(failure => failure.property).sort()) !== JSON.stringify(properties.sort())
+    || !entry.failures.every(failure => classifyEmbedDifference(source, entry, failure) === 'repaired-baseline-embed-redo')) return unmatched
+  for (const [phase, actual, expected] of [
+    ['edit', { canUndo: true, canRedo: false }, { canUndo: true, canRedo: false }],
+    ['undo', { canUndo: false, canRedo: true }, { canUndo: false, canRedo: true }],
+    ['redo', { canUndo: false, canRedo: true }, { canUndo: true, canRedo: false }],
+  ]) {
+    const history = entry.observations?.find(item => item.phase === phase && item.property === 'historyState')
+    if (JSON.stringify(history?.actual) !== JSON.stringify(actual) || JSON.stringify(history?.expected) !== JSON.stringify(expected)) return unmatched
+  }
+  return { classifiedPageErrors: [{ ...error, classification: 'repaired-baseline-embed-redo-pageerror' }],
+    unexpectedErrors: [], unexpectedPageErrors: [] }
+}
+
 const repo = fileURLToPath(new URL('../../', import.meta.url))
 const digest = bytes => createHash('sha256').update(bytes).digest('hex')
 const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
@@ -105,13 +263,21 @@ try {
       else throw new Error('Unknown native input action: ' + action)
     })
     await page.goto(origin + '/')
-    const cases = await page.evaluate(async ({ source, filter }) => {
+    const { cases, pageErrors } = await page.evaluate(async ({ source, filter }) => {
       const { blockRoundtripCases, runBlockRoundtripCase } = await import('/fixture.js')
-      const results = []
+      const results = [], pageErrors = []
+      let activeCase = null, activePhase = null
+      const onError = event => pageErrors.push({ source: source.label, caseId: activeCase, phase: activePhase,
+        name: event.error?.name ?? null, message: event.error?.message ?? event.message,
+        stack: event.error?.stack ?? null })
+      window.addEventListener('error', onError)
       for (const specification of blockRoundtripCases.filter(entry => !filter || entry.id.includes(filter))) {
+        activeCase = specification.id
+        activePhase = 'import'
         try {
           results.push(await runBlockRoundtripCase(specification, {
             sourceBase: '/' + source.label + '/', legacy: source.legacy,
+            onPhase: phase => { activePhase = phase },
             focusField: field => {
               const rect = field.getBoundingClientRect()
               return window.__roundtripInput('click', { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
@@ -123,7 +289,8 @@ try {
           results.push({ id: specification.id, error: error.stack ?? String(error), failures: [{ property: 'execution', status: 'ERROR', actual: String(error) }] })
         }
       }
-      return results
+      window.removeEventListener('error', onError)
+      return { cases: results, pageErrors }
     }, { source, filter: requestedFilter })
     assert(cases.length > 0, 'The roundtrip filter selected no cases')
     for (const entry of cases) {
@@ -144,6 +311,7 @@ try {
         'BLOCK_RAW_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/populated']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
+        if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
           const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/default'].includes(entry.id)
@@ -315,21 +483,30 @@ try {
         return classification ? [{ ...failure, classification }] : []
       })
       entry.unexpectedFailures = entry.failures.filter(failure => !classify(failure))
+      if (source.label === 'v1' && ['BLOCK_EMBED_ROUNDTRIP/populated', 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)) {
+        entry.referenceCapability = { supported: false, feature: 'Persistent Embed caption widgets',
+          reason: 'Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity.' }
+      }
     }
-    results.push({ source: source.label, cases, errors })
+    results.push({ source: source.label, cases, errors, pageErrors })
     await page.close()
   }
   for (const { bytes, path } of loaded.values()) assert.deepEqual(await readFile(path), bytes, 'Source changed during probe: ' + path)
   assert.deepEqual(await readFile(fixturePath), fixtureBytes, 'The browser fixture changed during its probe')
   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
-  const failed = results.some(result => result.errors.length || result.cases.some(entry => entry.unexpectedFailures.length))
+  // All source pages are closed before pairing the two independent raw error
+  // channels, so a later Playwright report cannot bypass this decision.
+  for (const result of results) Object.assign(result, classifyEmbedPageErrors(result.source, result.cases, result.errors, result.pageErrors, origin))
+  const failed = results.some(result => result.unexpectedErrors.length || result.unexpectedPageErrors.length || result.cases.some(entry => entry.unexpectedFailures.length))
   console.log(JSON.stringify({
-    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
+    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
     requestedFilter, selectedCaseIds: results[0]?.cases.map(entry => entry.id) ?? [],
     incompleteCases: results.flatMap(source => source.cases.filter(entry => entry.incompletePhases?.length)
       .map(entry => ({ source: source.source, id: entry.id, completed: entry.completedPhases, incomplete: entry.incompletePhases }))),
     notApplicableCases: results.flatMap(source => source.cases.filter(entry => entry.notApplicablePhases?.length)
       .map(entry => ({ source: source.source, id: entry.id, phases: entry.notApplicablePhases, reason: entry.reason }))),
+    unsupportedReferenceCases: results.flatMap(source => source.cases.filter(entry => entry.referenceCapability?.supported === false)
+      .map(entry => ({ source: source.source, id: entry.id, ...entry.referenceCapability }))),
     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
     sourceSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,

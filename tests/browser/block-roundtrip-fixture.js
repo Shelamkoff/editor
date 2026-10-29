@@ -112,6 +112,15 @@ const image = {
   },
 }
 
+const embed = {
+  type: 'embed', version: 1, className: 'Embed', textKey: 'caption',
+  fieldSelector: '.oe-embed__caption', fieldTag: 'DIV',
+  defaultData: { service: '', videoId: '', caption: '', cover: '', title: '', duration: '' },
+  populatedData: { service: 'vimeo', videoId: '12345678',
+    caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail',
+    cover: pixel, title: 'Local preview', duration: '1:23' },
+}
+
 const delimiter = {
   type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
   defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
@@ -124,7 +133,7 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -137,6 +146,8 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
     populatedData: block.unwrappedData ?? withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
   }]).concat(block.type === 'toggle' ? [{ ...block, populated: true, id: prefix + 'populated-closed',
     populatedData: { ...block.populatedData, open: false },
+  }] : []).concat(block.type === 'embed' ? [{ ...block, populated: true, literalCaption: true, id: prefix + 'populated-literal',
+    populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>caption</i> tail' },
   }] : [])
 })
 
@@ -217,15 +228,19 @@ async function settled() {
     await pause(20)
   }
   await document.fonts?.ready
-  await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})))
+  // Perpetual decorative animations have no finished state. Preserve waiting
+  // for finite transitions and animations before observing the settled DOM.
+  const animations = document.getAnimations().filter(animation => animation.effect?.getComputedTiming().endTime !== Infinity)
+  await Promise.all(animations.map(animation => animation.finished.catch(() => {})))
   await pause(20)
 }
 
-export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut }) {
+export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut, onPhase }) {
   const noEditableField = specification.noEditableField === true
   const emptyImage = specification.type === 'image' && !specification.populated
   const emptyAttaches = specification.type === 'attaches' && !specification.populated
-  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches
+  const emptyEmbed = specification.type === 'embed' && !specification.populated
+  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
   const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption
   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
@@ -236,6 +251,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     reason: 'Image without a source has no declared editable caption; authoring/history are covered by the populated image case.',
   } : emptyAttaches ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
     reason: 'Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case.',
+  } : emptyEmbed ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+    reason: 'Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history.',
   } : {}
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
@@ -275,8 +292,22 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
   const check = (phase, property, actual, expected) => observations.push({ phase, property,
     status: JSON.stringify(stable(actual)) === JSON.stringify(stable(expected)) ? 'PASS' : 'FAIL', actual, expected })
   let editor, renderer, destroyed = false, providerCalls = 0, currentPhase = 'create'
+  const setPhase = phase => { currentPhase = phase; onPhase?.(phase) }
+  const decodeEmbedCover = async cover => {
+    let timer
+    try {
+      await Promise.race([cover.decode(), new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Embed local cover did not decode: ' + JSON.stringify({
+          phase: currentPhase, complete: cover.complete, connected: cover.isConnected,
+          loading: cover.loading, top: Math.round(cover.getBoundingClientRect().top),
+        }))), 3000)
+      })])
+    } finally { clearTimeout(timer) }
+  }
   try {
-    const definition = legacy ? new module[specification.className]() : module[`create${specification.className}Plugin`]()
+    setPhase('create')
+    const pluginConfig = specification.type === 'embed' ? { resolvePreview: false } : undefined
+    const definition = legacy ? new module[specification.className](pluginConfig) : module[`create${specification.className}Plugin`](pluginConfig)
     const definitions = specification.type === 'paragraph' ? [definition]
       : [legacy ? new paragraphModule.Paragraph() : paragraphModule.createParagraphPlugin(), definition]
     editor = createEditor({ holder, plugins: definitions, defaultBlock: specification.type,
@@ -302,6 +333,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       return specification.populated ? [wrapper, wrapper.querySelector('.oe-image__image'), wrapper.querySelector('.oe-image__caption')] : [wrapper]
     }
     let previousImageParts = specification.type === 'image' ? imageParts() : []
+    const embedParts = () => {
+      const wrapper = shell(id).querySelector('.oe-embed')
+      return specification.populated ? [wrapper, wrapper.querySelector('.oe-embed__caption')] : [wrapper]
+    }
+    let previousEmbedParts = specification.type === 'embed' ? embedParts() : []
+    let previousEmbedText
     const plainContenteditable = specification.plainContenteditable === true
     const plainField = specification.fieldMode === 'plain-text' && !plainContenteditable
     let previousPlainFields = plainField ? [field()] : []
@@ -336,12 +373,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => ['spoiler', 'columns', 'attaches'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => ['spoiler', 'columns', 'attaches'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
-      : block.type === 'image' ? { ...block.data, caption: markupMeaning(block.data.caption) }
+      : ['image', 'embed'].includes(block.type) ? { ...block.data, caption: markupMeaning(block.data.caption) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
@@ -374,6 +411,25 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       styles: expectedImageStyles(Boolean(block.data.file.url)), background: block.data.withBackground ? 'rgb(255, 238, 204)' : '',
       flags: [block.data.withBorder, block.data.expanded, block.data.withBackground],
     })
+    const embedPreviewMeaning = (root, prefix) => ({
+      preview: root.querySelector('.' + prefix + '-embed__preview')?.getAttribute('src') ?? null,
+      previewAlt: root.querySelector('.' + prefix + '-embed__preview')?.getAttribute('alt') ?? null,
+      title: root.querySelector('.' + prefix + '-embed__title')?.textContent ?? null,
+      duration: root.querySelector('.' + prefix + '-embed__duration')?.textContent ?? null,
+      frames: root.querySelectorAll('iframe').length,
+    })
+    const expectedEmbedPreview = data => ({ preview: data.cover || null, previewAlt: data.cover ? data.title : null,
+      title: data.title || null, duration: data.duration || null, frames: 0 })
+    const embedRendererMarkup = figure => ({
+      children: [...figure.children].map(child => child.tagName),
+      caption: figure.querySelector('.editor-embed__caption') ? authoredMarkup(figure.querySelector('.editor-embed__caption')) : null,
+      ...embedPreviewMeaning(figure, 'editor'),
+    })
+    const expectedEmbedRendererMarkup = block => ({
+      children: block.data.videoId ? ['DIV', ...(block.data.caption ? ['FIGCAPTION'] : [])] : [],
+      caption: block.data.videoId && block.data.caption ? markupMeaning(block.data.caption) : null,
+      ...expectedEmbedPreview(block.data),
+    })
     const spoilerRendererMarkup = element => {
       const header = element.querySelector('.editor-spoiler__header')
       const control = element.querySelector('.editor-spoiler__toggle')
@@ -405,7 +461,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       ? { open: element.open, summaryTag: element.querySelector('.editor-toggle__summary').tagName,
         titleTag: element.querySelector('.editor-toggle__title').tagName, title: authoredMarkup(element.querySelector('.editor-toggle__title')),
         body: element.querySelector('.editor-toggle__body') ? { tag: element.querySelector('.editor-toggle__body').tagName, markup: authoredMarkup(element.querySelector('.editor-toggle__body')) } : null,
-      } : element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
+      } : element.dataset.blockType === 'embed' ? embedRendererMarkup(element)
+      : element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
       ? { childCount: element.childNodes.length, text: element.textContent }
       : element.dataset.blockType === 'code'
       ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
@@ -439,7 +496,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       } : block.type === 'toggle'
       ? { open: block.data.open, summaryTag: 'SUMMARY', titleTag: 'SPAN', title: markupMeaning(block.data.title),
         body: block.data.content ? { tag: 'DIV', markup: markupMeaning(block.data.content) } : null,
-      } : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
+      } : block.type === 'embed' ? expectedEmbedRendererMarkup(block)
+      : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
       ? { childCount: 0, text: '' }
       : block.type === 'raw' ? markupMeaning(block.data.html)
       : block.type === 'code'
@@ -493,6 +551,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         const computed = getComputedStyle(picture)
         check(phase, 'mountedImageComputedPosition', { fit: computed.objectFit, position: computed.objectPosition }, { fit: 'contain', position: '50% 50%' })
       }
+      if (specification.type === 'embed' && specification.populated) {
+        const cover = mounted.querySelector('.editor-embed__preview')
+        cover.scrollIntoView({ block: 'nearest' })
+        await decodeEmbedCover(cover)
+        check(phase, 'mountedEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
+      }
       check(phase, 'rendererInputUnchanged', JSON.stringify(saved), sourceBefore)
       renderer.destroy(detached)
       check(phase, 'detachedDisposal', detached.childNodes.length, 0)
@@ -501,7 +565,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
 
     const snapshots = {}
     async function inspect(phase, text, readOnly, history, selectionOffset) {
-      currentPhase = phase
+      setPhase(phase)
       const saved = editor.save()
       snapshots[phase] = saved.blocks
       const expected = expectedBlocks(text)
@@ -556,6 +620,49 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check(phase, 'emptyImageHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
           check(phase, 'emptyImageHasNoVisibleMedia', [...wrapper.querySelectorAll('img')].filter(picture => picture.getClientRects().length).length, 0)
         }
+      }
+      if (specification.type === 'embed') {
+        const parts = embedParts(), wrapper = parts[0]
+        check(phase, 'embedWrapperIdentity', [wrapper === previousEmbedParts[0]], [true])
+        if (specification.populated) {
+          const previousCaption = previousEmbedParts[1], currentCaption = parts[1]
+          if (['undo', 'redo'].includes(phase) && text !== previousEmbedText) {
+            // Existing Embed update semantics may replace a genuinely changed
+            // caption host. The replacement must retire the old field without
+            // changing current content, history, widgets or native selection.
+            check(phase, 'embedCaptionLifetime', {
+              currentConnected: currentCaption.isConnected,
+              predecessorCurrentOrDetached: previousCaption === currentCaption || !previousCaption.isConnected,
+            }, { currentConnected: true, predecessorCurrentOrDetached: true })
+            if (previousCaption !== currentCaption) {
+              const beforeHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
+              const selection = getSelection()
+              const beforeSelection = { active: document.activeElement,
+                anchor: selection.anchorNode, anchorOffset: selection.anchorOffset,
+                focus: selection.focusNode, focusOffset: selection.focusOffset }
+              previousCaption.textContent = 'stale retired caption'
+              previousCaption.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
+              previousCaption.dispatchEvent(new FocusEvent('blur'))
+              await settled()
+              check(phase, 'embedRetiredCaptionLeavesCanonical', editor.save().blocks, saved.blocks)
+              check(phase, 'embedRetiredCaptionLeavesHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, beforeHistory)
+              check(phase, 'embedRetiredCaptionLeavesField', field() === currentCaption, true)
+              check(phase, 'embedRetiredCaptionLeavesSelection', {
+                active: document.activeElement === beforeSelection.active,
+                anchor: selection.anchorNode === beforeSelection.anchor, anchorOffset: selection.anchorOffset,
+                focus: selection.focusNode === beforeSelection.focus, focusOffset: selection.focusOffset,
+              }, { active: true, anchor: true, anchorOffset: beforeSelection.anchorOffset,
+                focus: true, focusOffset: beforeSelection.focusOffset })
+            }
+          } else check(phase, 'embedCaptionIdentity', [currentCaption === previousCaption], [true])
+        }
+        check(phase, 'editorEmbedPreview', embedPreviewMeaning(wrapper, 'oe'), expectedEmbedPreview(baseData))
+        check(phase, 'editorEmbedCaptionCount', wrapper.querySelectorAll('.oe-embed__caption').length, specification.populated ? 1 : 0)
+        if (specification.populated) {
+          const cover = wrapper.querySelector('.oe-embed__preview')
+          await decodeEmbedCover(cover)
+          check(phase, 'editorEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
+        } else check(phase, 'emptyEmbedHasNoRichAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
       }
       if (specification.type === 'list') {
         const items = [...shell(id).querySelectorAll('.oe-list__item')]
@@ -702,11 +809,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousPlainFields = plainField ? [field()] : []
       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
       previousImageParts = specification.type === 'image' ? imageParts() : []
+      previousEmbedParts = specification.type === 'embed' ? embedParts() : []
+      previousEmbedText = specification.type === 'embed' ? text : undefined
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
     outside.focus()
-    currentPhase = 'read-only-transition'
+    setPhase('read-only-transition')
     editor.setReadOnly(true)
     await settled()
     check('read-only', 'foreignFocusPreserved', document.activeElement === outside, true)
@@ -715,13 +824,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       check('read-only', 'attachmentReadonlyFocusOwner', document.activeElement === outside, true)
     }
     await inspect('read-only', baseText, true, { canUndo: false, canRedo: false })
-    currentPhase = 'editable-transition'
+    setPhase('editable-transition')
     editor.setReadOnly(false)
     await settled()
     check('editable-again', 'foreignFocusPreserved', document.activeElement === outside, true)
     await inspect('editable-again', baseText, false, { canUndo: false, canRedo: false })
     if (hasAuthoring) {
-      currentPhase = 'edit'
+      setPhase('edit')
       if (specification.type === 'attaches' && !legacy) {
         for (const [index, file] of baseData.files.entries()) {
           check('edit', 'attachmentAddress:' + file.id, {
@@ -784,12 +893,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       await settled()
       await inspect('edit', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
       check('edit', 'trustedInput', trusted.some(event => event.type === 'input' && event.inputType === 'insertText' && event.trusted), true)
-      currentPhase = 'undo'
+      setPhase('undo')
       await shortcut('undo')
       await settled()
       await inspect('undo', baseText, false, { canUndo: false, canRedo: true }, offset)
       check('undo', 'exactOriginalRecords', snapshots.undo, snapshots.load)
-      currentPhase = 'redo'
+      setPhase('redo')
       await shortcut('redo')
       await settled()
       await inspect('redo', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
@@ -797,7 +906,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       check('redo', 'trustedHistory', trusted.filter(event => event.type === 'keydown' && event.key.toLowerCase() === 'z').map(event => event.trusted), [true, true])
       check('redo', 'providerNotInvokedByRoundtrip', providerCalls, 0)
     } else check('editable-again', 'providerNotInvokedByRoundtrip', providerCalls, 0)
-    currentPhase = 'dispose'
+    setPhase('dispose')
     renderer.destroy(mounted)
     check('dispose', 'mountedOutputRemoved', mounted.childNodes.length, 0)
     renderer.destroy()

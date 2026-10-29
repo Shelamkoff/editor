@@ -173,6 +173,55 @@ unchanged; it is not required across those intentional mode rebuilds.
 Actual downloads, upload/ZIP actions, variant activation, providers and
 native editing of the second filename remain separate detailed rows.
 
+Embed adds four cases: its actual empty default, a configured literal rich
+caption, a configured caption containing Mention and Color inside formatting,
+and an unwrapped-widget control. All populated cases use Vimeo with the
+existing `resolvePreview: false` configuration, a local one-pixel PNG cover,
+and fixed title/duration metadata. The empty default has a URL input but no
+declared rich caption; only that case records caption authoring, Undo and
+Redo as not applicable. URL configuration, playback and provider actions
+remain separate behavior rows.
+
+Populated Embed cases perform trusted native caption insertion and exact
+one-step Undo/Redo. Canonical marks, actual sidecars, neighboring Paragraphs,
+block IDs and order remain independent fixed expectations. Both the editor
+and all three renderer contexts check caption markup and actual widgets;
+preview URL, alternative text, title, duration, decoded local cover and the
+absence of an activated iframe are also checked. The wrapper stays stable;
+caption identity is required during load, mode changes and native input.
+For a genuinely changed caption during Undo/Redo, the existing update
+contract permits either the same connected host or a fully detached old
+host. In the latter case stale input/blur on that predecessor must preserve
+exact canonical records, history, the current field and active/native
+selection nodes and offsets. Current caption text, actual widgets and
+expected native caret/history remain strict. Player controls intentionally
+rebuild, so the fixture does not invent a player-subtree identity requirement.
+The first diagnostic oracle incorrectly required caption identity even for
+changed Redo content; its three candidate failures are recorded as an
+invalid oracle attempt, not as a production regression or an accepted
+candidate exception. `plugins/embed/reconciliation.test.js` already
+requires a fresh authoring host for externally changed caption content.
+
+The v1 Embed class does not declare `mapTextFields`. Its `core/types.d.ts`
+and extension guide require that hook for persistent inline widgets, and
+`EditorFacade.insertInlinePlugin()` rejects a block without it. The v1
+README does not advertise caption widgets. Therefore the default/literal
+cases establish meaningful v1 parity, while the two widget-caption cases
+preserve a current capability and explicitly report unsupported v1 reference
+coverage. Their inputs keep the real sidecars and all raw failures; no
+adapter removes them. The renderer checks consume saved records, so missing
+v1 output widgets here are downstream of the saved sidecar omission and do
+not constitute an independent intact-input renderer test.
+
+The shared settlement helper waits for finite animations and transitions.
+It excludes only animations whose computed end time is `Infinity`; it does
+not cancel animations, disable CSS, or accept a timeout as success. An actual
+three-source diagnostic observed `oe-embed-pulse` still running after three
+seconds with infinite iterations/end time while the adjacent finite
+transition had finished. That was a harness wait failure, separate from
+production parity. The local-cover readiness bound also rejects on timeout;
+cover dimensions and all authoring/history assertions remain required.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -226,7 +275,7 @@ author data from an initial `save()` result.
 | Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. The separate no-data default repair preserves explicit 1-by-1 data; the full template remains unexecuted here. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
 | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
-| Embed / 1 | Empty service/video/caption/metadata | Controlled service/video with local cover, rich caption | Disable or inject documented metadata provider; caption exists only for a valid embed. |
+| Embed / 1 | Empty service/video/caption/metadata | Fixed Vimeo/local cover; literal and current widget captions | Implemented: actual empty default, native caption history, actual widgets and retired-host controls. v1 persistent caption widgets are unsupported reference evidence. |
 | Raw / 1 | Empty HTML source | Literal multiline authored HTML/entities; edit `html` source | Implemented: exact textarea source, benign rendered markup, existing preview disclosure and native history. HTML confinement/navigation remain separate rows. |
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
 | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
@@ -290,7 +339,7 @@ Every completed case creates the default or populated document, checks
 fixed canonical data, renders both detached and mounted output, switches
 read-only and back while retaining independent host focus, performs real
 pointer focus and native field input where a field exists, then exact
-one-step Undo/Redo. Delimiter, empty-source Image and no-file Attaches cases
+one-step Undo/Redo. Delimiter, empty-source Image, no-file Attaches and unconfigured Embed cases
 expose their explicit non-editable or neighboring-field phase scope as described above. The fixture
 checks marks, sidecars, IDs/order, logical caret, DOM reuse, renderer input
 immutability, disposal and release of newly acquired owned styles. No
@@ -302,9 +351,9 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches and Raw oracle
-classifies only these observed historical differences, bounded to the thirty-eight exact scenario IDs in the
-runner:
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw and Embed oracle
+classifies only observed historical differences or unsupported reference
+capability, bounded to the forty-two exact scenario IDs in the runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
@@ -388,15 +437,60 @@ runner:
   hydration` while entering read-only mode in each formatted-widget case,
   including both the open and closed populated Toggle cases.
   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
-  disposal assertions remain explicitly unexecuted. The unwrapped positive
-  controls exercise the complete template on that baseline.
+  disposal assertions remain explicitly unexecuted. The unwrapped controls
+  execute the complete template on that baseline; the separate Embed Redo
+  failure is recorded below.
+
+- Embed has a separate classifier limited to its four exact IDs. v1 block
+  and wrapper remounts are recorded at the two mode transitions and, where
+  applicable, Undo/Redo. Caption identity is required at unchanged mode
+  transitions; changed history fields instead execute the retirement
+  controls described above. The empty v1 Embed also moves independent host
+  focus to its URL input when editing resumes; classification binds the
+  INPUT and both empty DIV selection points at offset 1 to the generated
+  default block ID.
+- The two v1 Embed widget-caption cases are **unsupported reference
+  capability**, not repaired widget defects or successful v1 widget parity.
+  In all six content phases, the saved record omits the exact Mention/Color
+  sidecars and both editor and the three saved-record renderer contexts
+  contain no actual widgets. The complete expected/actual records and exact
+  widget arrays are matched without changing the browser input or results.
+  Literal tokens give caret offsets 33/34 instead of logical widget offsets
+  14/15. The classifier requires these exact offsets, caption owners and
+  actual wrapped/unwrapped text-node endpoints. First Undo in the populated
+  widget and literal controls has the same independently observed prefix
+  focus defect, with required caption offsets 14 and 18 respectively.
+- The specification baseline's wrapped Embed case fails at the same exact
+  formatted-widget read-only boundary; only `load` completes. Its unwrapped
+  control completes all seven phases but Redo retains the Undo document and
+  history state. This is bounded to that one ID and phase, the exact original
+  and edited complete records (including media metadata and sidecars), the
+  captured active caption and text ` tail` at offset 5, and eleven exact
+  canonical/renderer/history/identity/selection failure pairs. It is not a
+  generic allowance for content loss or failed Undo/Redo. Literal caption
+  and default cases pass that baseline without exceptions.
+
+The runner also records uncaught browser errors in two independent raw
+channels: Playwright's page-error stack and a synchronous `window.error`
+observation carrying source, case ID, phase, name, message and stack. Neither
+channel suppresses the browser event. The only classified page error is the
+observed specification-baseline unwrapped Embed Redo: exactly one matching
+pair, its fixed complete ten-frame stack (only the local server origin
+varies), and all eleven unique exact Redo failure signatures with completed
+phases and canonical/history/selection records. The pairing occurs after
+all source pages close. Current errors, duplicates, unpaired reports and
+any other source, case, phase, message, stack or failure signature remain
+fatal. The raw error arrays stay present alongside classified and unexpected
+error records.
 
 The candidate receives none of these exceptions. Raw failures remain in
-the JSON alongside classifications. `incompleteCases` lists every partial
+the JSON alongside classifications. `unsupportedReferenceCases` explicitly
+lists the two v1 Embed widget controls and does not grant v1 capability
+coverage. `incompleteCases` lists every partial
 scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches or Raw behavior,
-the other 7 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw or Embed behavior,
+the other 6 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.
