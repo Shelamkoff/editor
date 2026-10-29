@@ -207,6 +207,12 @@ test('Code language menu filters by typed text and commits a keyboard-selected l
   equal(editor.save().blocks[0].data, { code: 'Alpha', language: 'python' })
   equal(trigger.getAttribute('aria-expanded'), 'false')
   assert(document.activeElement === trigger, 'Language commit lost trigger focus')
+  // The language button is a plugin-owned native control. Canonical history
+  // starts only after the author explicitly returns to an editor-owned field.
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks[0].data, { code: 'Alpha', language: 'python' },
+    'An auxiliary language button intercepted canonical Undo')
+  await clickNative(blockElement(editor, 'a').querySelector('.oe-code-textarea'))
   await dispatchKey('z', 'KeyZ', 90, 2)
   equal(editor.save().blocks, before)
   equal(editor.canUndo, false)
@@ -983,6 +989,16 @@ for (const target of pluginParityFixtures.filter(fixture => richTargets[fixture.
     const after = editor.save().blocks
     equal(after[0].type, definition.type)
     equal(readPath(after[0].data, richTargets[target.name]), '&lt;b&gt;Alpha&lt;/b&gt;<br>Bravo')
+    if (target.name === 'Image') {
+      // A converted Image without a source has no caption editing field yet.
+      // Its source button retains native ownership; the editor root remains
+      // the authorized history surface for this fieldless block.
+      assert(document.activeElement?.matches('button'), 'Empty Image must focus its source control')
+      await dispatchKey('z', 'KeyZ', 90, 2)
+      equal(editor.save().blocks, after, 'An auxiliary Image source button intercepted canonical Undo')
+      editorRoot(editor).focus()
+      assert(document.activeElement === editorRoot(editor), 'Editor chrome did not receive history focus')
+    }
     await dispatchKey('z', 'KeyZ', 90, 2)
     equal(editor.save().blocks, before)
     equal(editor.canUndo, false)
@@ -1496,7 +1512,8 @@ for (const name of ['Image', 'Gallery', 'Carousel', 'Person', 'Attaches', 'Embed
     const fieldSpec = fixture.fields.find(field =>
       name === 'Person' ? field.key.endsWith(':bio')
         : name === 'Attaches' ? field.key.endsWith(':name')
-          : name === 'LinkPreview' ? field.key === 'url' : field.key.endsWith(':caption'))
+          : name === 'LinkPreview' ? field.key === 'url'
+            : field.key === 'caption' || field.key.endsWith(':caption'))
     assert(fieldSpec, `${name} is missing a caption/name fixture`)
     const editor = pluginEditor(fixture)
     const initial = editor.save().blocks
