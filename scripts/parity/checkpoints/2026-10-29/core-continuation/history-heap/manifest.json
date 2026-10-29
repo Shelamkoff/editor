@@ -1,0 +1,341 @@
+{
+  "slice": "C10 live-editor retained payload heap proof after repeated byte-budget eviction",
+  "createdAt": "2026-10-29T18:31:49.220818+00:00",
+  "base": "97fad198b493624ccd26fc7c61b435b1a14e4ae2",
+  "root": "/tmp/rector-c10-history-heap-20261029",
+  "patch": {
+    "path": "/tmp/rector-c10-history-heap.patch",
+    "sha256": "2be9917c2fdbab83465f0e5f42c9009e51cda84f1aa074cbaff7d5fb3de2f6af"
+  },
+  "files": [
+    {
+      "path": "tests/browser/heap-gate.mjs",
+      "sha256": "004942e2098ee9888f12b809ffc2c9ab6b2f1b4832a4535250356418bfcd1a6b"
+    },
+    {
+      "path": "tests/browser/lifecycle.js",
+      "sha256": "e244b30eae99cb46c2db8b47e54c249c62cde40393b883e44a0847900981398d"
+    }
+  ],
+  "runtimeModified": false,
+  "unchangedRuntimeHashes": {
+    "core/HistoryStore.js": "b34287a1a43bee072fb69d2960a7800f27c640a496cd9efab8efc78adf0d8699",
+    "core/DocumentRuntime.js": "a023fc5e450e854449487cc86c119410a03842ffc93bb9da65005d0eb19f37b6",
+    "core/TransactionEngine.js": "a58e03b1a472df31d8b7fb3d05e7acac97dd73c9c369a12654213d396ded8943",
+    "core/PublicEditorApi.js": "de53cab1c408f5de6cbd170c61f95785997d7d9539f67f25e2151eb51b6631c9",
+    "core/createEditorRuntime.js": "f6e931f6d42b605adb94727a30b632581aa87663f9e4213718a9810d62d3b179"
+  },
+  "proofBoundary": {
+    "runner": "existing tests/browser/heap-gate.mjs",
+    "page": "existing lifecycle.html",
+    "publicOperations": [
+      "createEditor",
+      "blocks.update",
+      "blocks.get",
+      "save",
+      "undo",
+      "redo",
+      "destroy"
+    ],
+    "historyMaxStack": 100,
+    "historyMaxBytes": 1,
+    "payloadBodyBytes": 32768,
+    "authoredActions": 12,
+    "firstSnapshotAfterAction": 2,
+    "laterEvictions": 10,
+    "heapPredicate": "Count actual object nodes with an own marker property pointing to the dynamically generated nonce/case string; do not count source strings or detached public reads as internal history identities.",
+    "strongControl": "Public payload snapshot for state2 is held across eviction, then nulled before GC.",
+    "sensitivityControl": "A separate test-only variant deliberately holds public payload1; identical gate must reject retained payload1 after eviction. This is gate sensitivity, not a production bugfix."
+  },
+  "green": {
+    "base": "97fad198b493624ccd26fc7c61b435b1a14e4ae2",
+    "cwd": "/tmp/rector-c10-history-heap-20261029",
+    "command": [
+      "node",
+      "tests/browser/heap-gate.mjs"
+    ],
+    "classification": "Actual live-editor byte-budget eviction proof with retained and released sentinel controls",
+    "startedAt": "2026-10-29T18:29:17.520502+00:00",
+    "sourceBefore": "9984165ad5a1e2fae851080d7c6dd5a6e1415c847d57f2abb06e7be6995d44b9",
+    "patchSha256": "2be9917c2fdbab83465f0e5f42c9009e51cda84f1aa074cbaff7d5fb3de2f6af",
+    "exitCode": 0,
+    "finishedAt": "2026-10-29T18:29:29.729445+00:00",
+    "durationSeconds": 12.154266255001858,
+    "sourceAfter": "9984165ad5a1e2fae851080d7c6dd5a6e1415c847d57f2abb06e7be6995d44b9",
+    "log": "/tmp/rector-c10-history-heap-green.log",
+    "sourceUnchanged": true,
+    "phases": [
+      {
+        "phase": "before-eviction",
+        "counts": [
+          0,
+          1,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "usedHeapMiB": 14.43,
+        "snapshotMiB": 12.83
+      },
+      {
+        "phase": "after-eviction-with-retained-control",
+        "counts": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "usedHeapMiB": 14.51,
+        "snapshotMiB": 12.87
+      },
+      {
+        "phase": "after-releasing-control",
+        "counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "usedHeapMiB": 14.48,
+        "snapshotMiB": 12.87
+      }
+    ],
+    "environment": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64",
+      "executable": "/tmp/rector-browsers/chrome-linux64/chrome",
+      "protocolVersion": "1.3",
+      "product": "Chrome/142.0.7444.175",
+      "revision": "@302067f14a4ea3f42001580e6101fa25ed343445",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36",
+      "jsVersion": "14.2.231.21"
+    },
+    "result": {
+      "sentinels": 23,
+      "retained": 0,
+      "usedHeapMiB": 14.41,
+      "embedderHeapMiB": 1.23,
+      "historyEviction": {
+        "payloadBytes": 32768,
+        "authoredActions": 12,
+        "historyMaxBytes": 1,
+        "historyMaxStack": 100,
+        "retainedControlReleased": true,
+        "replay": {
+          "currentCase": 12,
+          "undoCase": 11,
+          "editorAlive": true
+        },
+        "phases": [
+          {
+            "phase": "before-eviction",
+            "counts": [
+              0,
+              1,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "usedHeapMiB": 14.43,
+            "snapshotMiB": 12.83
+          },
+          {
+            "phase": "after-eviction-with-retained-control",
+            "counts": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 14.51,
+            "snapshotMiB": 12.87
+          },
+          {
+            "phase": "after-releasing-control",
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 14.48,
+            "snapshotMiB": 12.87
+          }
+        ]
+      }
+    }
+  },
+  "sensitivityRed": {
+    "base": "97fad198b493624ccd26fc7c61b435b1a14e4ae2",
+    "cwd": "/tmp/rector-c10-history-heap-20261029",
+    "command": [
+      "node",
+      "tests/browser/heap-gate.mjs"
+    ],
+    "classification": "Intentional test-only strong retention sensitivity control, not a production defect",
+    "startedAt": "2026-10-29T18:28:49.774083+00:00",
+    "sourceBefore": "01632a2c3218f940b9005cd45e3aebe880bbb44d20edaa89618e5a2c1ceb8064",
+    "patchSha256": "0886b493067114dbb494368038f594e2e72da6036651a3c2fbcd2550a1dc474c",
+    "exitCode": 1,
+    "finishedAt": "2026-10-29T18:28:56.532305+00:00",
+    "durationSeconds": 6.693256034999649,
+    "sourceAfter": "01632a2c3218f940b9005cd45e3aebe880bbb44d20edaa89618e5a2c1ceb8064",
+    "log": "/tmp/rector-c10-history-heap-sensitivity-red.log",
+    "sourceUnchanged": true,
+    "phases": [
+      {
+        "phase": "before-eviction",
+        "counts": [
+          0,
+          2,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "usedHeapMiB": 14.43,
+        "snapshotMiB": 12.83
+      },
+      {
+        "phase": "after-eviction-with-retained-control",
+        "counts": [
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "usedHeapMiB": 14.54,
+        "snapshotMiB": 12.87
+      }
+    ],
+    "environment": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64",
+      "executable": "/tmp/rector-browsers/chrome-linux64/chrome",
+      "protocolVersion": "1.3",
+      "product": "Chrome/142.0.7444.175",
+      "revision": "@302067f14a4ea3f42001580e6101fa25ed343445",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36",
+      "jsVersion": "14.2.231.21"
+    }
+  },
+  "validation": {
+    "nodeSyntax": "passed for both changed files",
+    "gitDiffCheck": "passed",
+    "runtimeSourceUnchanged": true,
+    "oldSnapshotMiBConsumers": "No JS/MJS/PY consumer found outside heap-gate; per-snapshot metrics now reside in explicit historyEviction.phases.",
+    "cleanup": "All 23 existing/new WeakRef sentinels dead after explicit disposal; main proof occurs before editor destruction.",
+    "mandatoryCustomRuntimeDestroy": "Included in final candidate and both valid proof runs."
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/rector-c10-history-heap-sensitivity-red.log",
+      "sha256": "9d790c79c6854f30e1463c9d7d87c45ff76e0be9b42c664e77fd314100d46573"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-sensitivity-red.json",
+      "sha256": "200a1651c9cb0ef8fdc09546989e73036c531fcb90a6a20257ac4f7f8be9c6d7"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-sensitivity-red.patch",
+      "sha256": "0886b493067114dbb494368038f594e2e72da6036651a3c2fbcd2550a1dc474c"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-green.log",
+      "sha256": "6172d0b0c591278329b77f799a97625a89dc0e868ff0bca79b3be14358015f9e"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-green.json",
+      "sha256": "6e3733c1313f42a654f81aa6d2dbc195447e27f9f65dd39efbc84555d54eb29c"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-run.py",
+      "sha256": "d42f375a28098101cee1b70458742d07c9ff10309c291b7301a5765973a04d39"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-fixture-setup-invalid.log",
+      "sha256": "b5f4e9bd12e13e8fc75bf113a679f2389a58a87a2b05f34797d3a4c3fccf4a86"
+    },
+    {
+      "path": "/tmp/rector-c10-history-heap-fixture-setup-invalid.json",
+      "sha256": "881516ba46d1895107cff4679ef5bc95017b07a31d6b889a2e347b460091254e"
+    }
+  ],
+  "limitations": [
+    "Bounded 12-action custom JSON payload scenario at maxBytes1/newest-whole-action exception; not a general maximum-heap SLA or a benchmark.",
+    "Serialized UTF-8 history budget is not heap size; total heap readings are observations only, not pass thresholds or reclaimed-byte claims.",
+    "Initial config data intentionally has no measured payload; the proof concerns authored history payloads rather than config lifetime.",
+    "First attempt failed due to missing mandatory test runtime.destroy before heap snapshots; preserved as fixture-setup-invalid and not counted as sensitivity RED.",
+    "No new production code, public API, runner, page, or dependency. No main/integration edits or commits."
+  ]
+}

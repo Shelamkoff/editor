@@ -1,0 +1,17 @@
+[
+  {
+    "label": "baseline",
+    "commit": "256cc0436d74040e5c5881a07350a14de7b66a96",
+    "root": "/tmp/rector-inline-payload-benchmark/baseline"
+  },
+  {
+    "label": "candidate",
+    "commit": "10d1ee48a83bd2cf0a29802fd33b6a4aed6518b3",
+    "root": "/tmp/rector-inline-payload-benchmark/candidate"
+  },
+  {
+    "label": "linear",
+    "commit": "ede029cc646f0f528c84e3984797e502bd4e37ec",
+    "root": "/tmp/rector-inline-payload-benchmark/linear"
+  }
+]

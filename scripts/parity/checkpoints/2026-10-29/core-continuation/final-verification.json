@@ -1,0 +1,1588 @@
+{
+  "schemaVersion": 1,
+  "classification": "Actual completed command records, not release or complete parity approval. Integration source is reconstructible with the adjacent source map. The merged main source adds only the listed parity fixtures and documentation; its expanded roundtrips were executed separately.",
+  "frozenIntegration": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+  "mergedMain": "1b1db09196fd96b4377b167346385762a3972838",
+  "differencesAfterMerge": [
+    "RECTOR_V2_IMPLEMENTATION_PROGRESS.md",
+    "RECTOR_V2_PROGRESS_2026-10-29.md",
+    "docs/architecture/rector-v2/PRESERVATION.md",
+    "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "docs/ru/architecture/rector-v2/PRESERVATION.md",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "scripts/parity/block-roundtrip.md",
+    "scripts/parity/block-roundtrip.mjs",
+    "scripts/parity/checkpoints/2026-10-29/publication-map.json",
+    "tests/browser/block-roundtrip-fixture.js"
+  ],
+  "runs": [
+    {
+      "label": "full-native-and-heap",
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-presentation-integration-20261029",
+        "startedAt": "2026-10-29T18:37:16.030Z",
+        "finishedAt": "2026-10-29T18:53:37.372Z",
+        "outcome": "passed",
+        "source": {
+          "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+          "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "native": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:37:16.384Z",
+            "finishedAt": "2026-10-29T18:53:24.813Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/physical-history.mjs"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 968422.481426,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          },
+          "heap": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:53:25.011Z",
+            "finishedAt": "2026-10-29T18:53:37.207Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/heap-gate.mjs"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 12193.113985,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+          "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+        },
+        "sourceUnchanged": true
+      },
+      "logDigests": {
+        "native": {
+          "sha256": "865a47492f14e7c8f9f106bddda8d0324be7d49800053dc5823d651a8963bcd9",
+          "bytes": 232224
+        },
+        "heap": {
+          "sha256": "bea5c5c55b270b92e27aae2a39eb0850eff24c7c140558a5148847f7330195cb",
+          "bytes": 1427
+        }
+      }
+    },
+    {
+      "label": "unit-types-browser-package-docs",
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-presentation-integration-20261029",
+        "startedAt": "2026-10-29T18:37:17.265Z",
+        "finishedAt": "2026-10-29T18:39:30.143Z",
+        "outcome": "passed",
+        "source": {
+          "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+          "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "unit": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:37:17.761Z",
+            "finishedAt": "2026-10-29T18:37:45.732Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "npm",
+              "test"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 27964.154689,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          },
+          "typecheck": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:37:45.996Z",
+            "finishedAt": "2026-10-29T18:38:00.678Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "npm",
+              "run",
+              "typecheck"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 14675.172965,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          },
+          "ordinary": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:38:01.287Z",
+            "finishedAt": "2026-10-29T18:38:39.747Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/run.mjs"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 38445.798188,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          },
+          "package": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:38:40.010Z",
+            "finishedAt": "2026-10-29T18:39:24.698Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "npm",
+              "run",
+              "test:package"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 44684.599798999996,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          },
+          "docs-contract": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:39:24.959Z",
+            "finishedAt": "2026-10-29T18:39:30.000Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "npm",
+              "run",
+              "test:docs"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 5037.6787079999995,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+          "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+        },
+        "sourceUnchanged": true
+      },
+      "logDigests": {
+        "unit": {
+          "sha256": "af6481c1a9b58a16df514c017aa8f32e64bf664b8e78bf399b08e62432fd3e9a",
+          "bytes": 190975
+        },
+        "typecheck": {
+          "sha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+          "bytes": 259
+        },
+        "ordinary": {
+          "sha256": "d3157d158715e49005ad99596a648678627d6d40f374bb0014f600b536c37422",
+          "bytes": 75969
+        },
+        "package": {
+          "sha256": "246db02f7d46f6dbe944699c684fc67cc3d965c551690019a7e7b314550ba6a1",
+          "bytes": 19482
+        },
+        "docs-contract": {
+          "sha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7",
+          "bytes": 1137
+        }
+      }
+    },
+    {
+      "label": "integration-28-roundtrips",
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-presentation-integration-20261029",
+        "startedAt": "2026-10-29T18:39:17.343Z",
+        "finishedAt": "2026-10-29T18:40:13.299Z",
+        "outcome": "passed",
+        "source": {
+          "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+          "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "differential": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:39:17.739Z",
+            "finishedAt": "2026-10-29T18:40:13.177Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "env",
+              "EDITOR_V1_ROOT=/tmp/rector-v1-5e5c7f8",
+              "EDITOR_SPEC_BASELINE_ROOT=/tmp/rector-e981ff3",
+              "EDITOR_PLAYWRIGHT_PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+              "node",
+              "scripts/parity/block-roundtrip.mjs"
+            ],
+            "cwd": "/tmp/rector-presentation-integration-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "elapsedMs": 55436.002397000004,
+            "sourceAfter": {
+              "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+              "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+          "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "650413a5ba68a47b75e39cb631075ea7360256a9ed3597d3589478dbb1c8425f"
+        },
+        "sourceUnchanged": true
+      },
+      "logDigests": {
+        "differential": {
+          "sha256": "5c9b0a6d323099580e41819bb0b0deefbdd8a23291606a2747f87970be61b5f1",
+          "bytes": 11875391
+        }
+      }
+    },
+    {
+      "label": "merged-34-roundtrips",
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+        "startedAt": "2026-10-29T18:53:59.337Z",
+        "finishedAt": "2026-10-29T18:55:34.329Z",
+        "outcome": "passed",
+        "source": {
+          "head": "1b1db09196fd96b4377b167346385762a3972838",
+          "tree": "820823b30699871a132d4dab207cd9c871af079e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "35196749c99f7a12b9d8d6a050bc2783cae113b8512e6c07fac8821109e0e6c6"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "differential": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:53:59.756Z",
+            "finishedAt": "2026-10-29T18:55:04.941Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "env",
+              "EDITOR_V1_ROOT=/tmp/rector-v1-5e5c7f8",
+              "EDITOR_SPEC_BASELINE_ROOT=/tmp/rector-e981ff3",
+              "EDITOR_PLAYWRIGHT_PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+              "node",
+              "scripts/parity/block-roundtrip.mjs"
+            ],
+            "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "1b1db09196fd96b4377b167346385762a3972838",
+              "tree": "820823b30699871a132d4dab207cd9c871af079e",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "35196749c99f7a12b9d8d6a050bc2783cae113b8512e6c07fac8821109e0e6c6"
+            },
+            "elapsedMs": 65181.736189,
+            "sourceAfter": {
+              "head": "1b1db09196fd96b4377b167346385762a3972838",
+              "tree": "820823b30699871a132d4dab207cd9c871af079e",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "35196749c99f7a12b9d8d6a050bc2783cae113b8512e6c07fac8821109e0e6c6"
+            },
+            "sourceUnchanged": true
+          },
+          "native-roundtrip": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T18:55:05.157Z",
+            "finishedAt": "2026-10-29T18:55:34.229Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "env",
+              "EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html",
+              "node",
+              "tests/browser/physical-history.mjs"
+            ],
+            "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "1b1db09196fd96b4377b167346385762a3972838",
+              "tree": "820823b30699871a132d4dab207cd9c871af079e",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "35196749c99f7a12b9d8d6a050bc2783cae113b8512e6c07fac8821109e0e6c6"
+            },
+            "elapsedMs": 29069.526117999998,
+            "sourceAfter": {
+              "head": "1b1db09196fd96b4377b167346385762a3972838",
+              "tree": "820823b30699871a132d4dab207cd9c871af079e",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [],
+              "dirty": false,
+              "identity": "35196749c99f7a12b9d8d6a050bc2783cae113b8512e6c07fac8821109e0e6c6"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "1b1db09196fd96b4377b167346385762a3972838",
+          "tree": "820823b30699871a132d4dab207cd9c871af079e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "35196749c99f7a12b9d8d6a050bc2783cae113b8512e6c07fac8821109e0e6c6"
+        },
+        "sourceUnchanged": true
+      },
+      "logDigests": {
+        "differential": {
+          "sha256": "602d5e5f9b8898748949d9ff105b8f37eb38107a4a117d8a21a84cbafbb04184",
+          "bytes": 14940791
+        },
+        "native-roundtrip": {
+          "sha256": "badde0b3d1d1891ca0c7dc444aef46d6ab3792ec1a6e3bec4de23fb0aeb3f599",
+          "bytes": 3334
+        }
+      }
+    }
+  ],
+  "summary": {
+    "unit": {
+      "tests": 1962,
+      "passed": 1962,
+      "failed": 0,
+      "skipped": 0
+    },
+    "checkJsProjects": 2,
+    "ordinaryBrowserPages": [
+      "harness-contract.html",
+      "mode-recovery.html",
+      "scoped-authority.html",
+      "formatting-correspondence.html",
+      "script-panel.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html",
+      "projection-contracts.html",
+      "optional-inline-update.html",
+      "inline-pattern-transfer.html",
+      "toolbar-keyboard.html",
+      "public-extension-contracts.html",
+      "poll-state-contracts.html",
+      "presentation-recovery.html"
+    ],
+    "nativeSuites": {
+      "nativeTextInput": {
+        "cases": 48,
+        "passed": 48
+      },
+      "nativeTools": {
+        "cases": 92,
+        "passed": 92
+      },
+      "nativeClipboard": {
+        "cases": 25,
+        "passed": 25
+      },
+      "nativeIme": {
+        "cases": 16,
+        "passed": 16
+      },
+      "nativeConversion": {
+        "cases": 7,
+        "passed": 7
+      },
+      "nativeBlockMenus": {
+        "cases": 110,
+        "passed": 110
+      },
+      "nativeConversionGrouping": {
+        "cases": 88,
+        "passed": 88
+      },
+      "nativeConversionPreservation": {
+        "cases": 53,
+        "passed": 53
+      },
+      "nativeInteractionSequences": {
+        "cases": 39,
+        "passed": 39
+      },
+      "nativeRetainedTools": {
+        "cases": 64,
+        "passed": 64
+      },
+      "nativeConversionContinuations": {
+        "cases": 65,
+        "passed": 65
+      },
+      "nativeFontCancel": {
+        "cases": 58,
+        "passed": 58
+      },
+      "nativeBackgroundCancel": {
+        "cases": 36,
+        "passed": 36
+      },
+      "nativeLinkCancel": {
+        "cases": 36,
+        "passed": 36
+      },
+      "nativePanelKeyboard": {
+        "cases": 36,
+        "passed": 36
+      },
+      "nativeSourceIndentation": {
+        "cases": 50,
+        "passed": 50
+      },
+      "nativeSourceModes": {
+        "cases": 61,
+        "passed": 61
+      },
+      "nativeConfigSnapshot": {
+        "cases": 30,
+        "passed": 30
+      },
+      "nativePollRuntime": {
+        "cases": 26,
+        "passed": 26
+      },
+      "nativeLibraryBoundaries": {
+        "cases": 30,
+        "passed": 30
+      },
+      "nativeInstanceMethods": {
+        "cases": 8,
+        "passed": 8
+      },
+      "nativeColorPopup": {
+        "cases": 8,
+        "passed": 8
+      },
+      "nativeColorPopupTrusted": {
+        "cases": 8,
+        "passed": 8
+      },
+      "nativeMentionPopup": {
+        "cases": 64,
+        "passed": 64
+      },
+      "nativeAuditEdges": {
+        "cases": 21,
+        "passed": 21
+      },
+      "nativeAuditPoll": {
+        "cases": 4,
+        "passed": 4
+      },
+      "nativeAuditHiddenFields": {
+        "cases": 4,
+        "passed": 4
+      },
+      "nativeAuditRecheck": {
+        "cases": 49,
+        "passed": 49
+      },
+      "nativeStructural": {
+        "cases": 21,
+        "passed": 21
+      },
+      "nativeCrossSelection": {
+        "cases": 32,
+        "passed": 32
+      },
+      "nativeCoreBehavior": {
+        "cases": 57,
+        "passed": 57
+      },
+      "nativePluginParity": {
+        "cases": 228,
+        "passed": 228
+      },
+      "nativeRoundtripPreservation": {
+        "cases": 28,
+        "passed": 28
+      },
+      "nativePresentationRecovery": {
+        "cases": 14,
+        "passed": 14
+      },
+      "nativePluginControls": {
+        "cases": 148,
+        "passed": 148
+      },
+      "nativePluginRanges": {
+        "cases": 116,
+        "passed": 116
+      },
+      "nativePluginLocalRanges": {
+        "cases": 76,
+        "passed": 76
+      },
+      "nativePluginClipboard": {
+        "cases": 48,
+        "passed": 48
+      },
+      "nativePluginFieldClipboard": {
+        "cases": 68,
+        "passed": 68
+      },
+      "nativePluginMedia": {
+        "cases": 72,
+        "passed": 72
+      },
+      "nativePluginDesign": {
+        "cases": 84,
+        "passed": 84
+      }
+    },
+    "nativeArrayCases": 2128,
+    "nativeOtherScenarios": [
+      "enterScenario",
+      "toolboxScenario",
+      "historyMatrix"
+    ],
+    "heap": {
+      "sentinels": 23,
+      "retained": 0,
+      "usedHeapMiB": 14.61,
+      "embedderHeapMiB": 1.23,
+      "historyEviction": {
+        "payloadBytes": 32768,
+        "authoredActions": 12,
+        "historyMaxBytes": 1,
+        "historyMaxStack": 100,
+        "retainedControlReleased": true,
+        "replay": {
+          "currentCase": 12,
+          "undoCase": 11,
+          "editorAlive": true
+        },
+        "phases": [
+          {
+            "phase": "before-eviction",
+            "counts": [
+              0,
+              1,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "usedHeapMiB": 14.64,
+            "snapshotMiB": 12.89
+          },
+          {
+            "phase": "after-eviction-with-retained-control",
+            "counts": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 14.72,
+            "snapshotMiB": 12.93
+          },
+          {
+            "phase": "after-releasing-control",
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 14.69,
+            "snapshotMiB": 12.93
+          }
+        ]
+      }
+    },
+    "package": {
+      "typeModes": [
+        "Bundler",
+        "NodeNext"
+      ],
+      "vite": "passed",
+      "nativeEsmImport": "passed",
+      "externalBrowser": "passed",
+      "cssAssets": 22
+    },
+    "differentials": [
+      {
+        "label": "integration",
+        "sourceHead": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+        "runnerSha256": "49ed30a4e0fcf759fa3ab4307268b3bc7b45cae065c862ec9290951ecfc9177d",
+        "fixtureSha256": "c38fb712c2f1e1e0d67dfa79d37dad3b03244d86ba6b89a30e0bb05c952ca417",
+        "selectedCaseIds": [
+          "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+          "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_HEADING_ROUNDTRIP/default",
+          "BLOCK_HEADING_ROUNDTRIP/populated",
+          "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_LIST_ROUNDTRIP/default",
+          "BLOCK_LIST_ROUNDTRIP/populated",
+          "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_QUOTE_ROUNDTRIP/default",
+          "BLOCK_QUOTE_ROUNDTRIP/populated",
+          "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_WARNING_ROUNDTRIP/default",
+          "BLOCK_WARNING_ROUNDTRIP/populated",
+          "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_CODE_ROUNDTRIP/default",
+          "BLOCK_CODE_ROUNDTRIP/populated",
+          "BLOCK_CHECKLIST_ROUNDTRIP/default",
+          "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_DELIMITER_ROUNDTRIP/default",
+          "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+          "BLOCK_IMAGE_ROUNDTRIP/default",
+          "BLOCK_IMAGE_ROUNDTRIP/populated",
+          "BLOCK_TOGGLE_ROUNDTRIP/default",
+          "BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_TOGGLE_ROUNDTRIP/populated-closed"
+        ],
+        "results": [
+          {
+            "source": "v1",
+            "cases": 28,
+            "observations": 4596,
+            "rawFailures": 276,
+            "unexpectedFailures": 0
+          },
+          {
+            "source": "spec-baseline",
+            "cases": 28,
+            "observations": 3467,
+            "rawFailures": 8,
+            "unexpectedFailures": 0
+          },
+          {
+            "source": "candidate",
+            "cases": 28,
+            "observations": 4632,
+            "rawFailures": 0,
+            "unexpectedFailures": 0
+          }
+        ],
+        "incompleteCases": [
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_LIST_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          }
+        ],
+        "notApplicableCases": [
+          {
+            "source": "v1",
+            "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+          },
+          {
+            "source": "v1",
+            "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+          },
+          {
+            "source": "candidate",
+            "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+          },
+          {
+            "source": "candidate",
+            "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+          }
+        ]
+      },
+      {
+        "label": "main",
+        "sourceHead": "1b1db09196fd96b4377b167346385762a3972838",
+        "runnerSha256": "4f8b4104c329d4d086d2f2d021bfc430239e06d56ecf5e45d20987d9be122a5d",
+        "fixtureSha256": "7c7c064a8a1e1ea6dc5ef3ec769ff028da1ba48524e29c3be6b03fddbb87b342",
+        "selectedCaseIds": [
+          "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+          "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_HEADING_ROUNDTRIP/default",
+          "BLOCK_HEADING_ROUNDTRIP/populated",
+          "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_LIST_ROUNDTRIP/default",
+          "BLOCK_LIST_ROUNDTRIP/populated",
+          "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_QUOTE_ROUNDTRIP/default",
+          "BLOCK_QUOTE_ROUNDTRIP/populated",
+          "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_WARNING_ROUNDTRIP/default",
+          "BLOCK_WARNING_ROUNDTRIP/populated",
+          "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_CODE_ROUNDTRIP/default",
+          "BLOCK_CODE_ROUNDTRIP/populated",
+          "BLOCK_CHECKLIST_ROUNDTRIP/default",
+          "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_DELIMITER_ROUNDTRIP/default",
+          "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+          "BLOCK_IMAGE_ROUNDTRIP/default",
+          "BLOCK_IMAGE_ROUNDTRIP/populated",
+          "BLOCK_TOGGLE_ROUNDTRIP/default",
+          "BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+          "BLOCK_SPOILER_ROUNDTRIP/default",
+          "BLOCK_SPOILER_ROUNDTRIP/populated",
+          "BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+          "BLOCK_COLUMNS_ROUNDTRIP/default",
+          "BLOCK_COLUMNS_ROUNDTRIP/populated",
+          "BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control"
+        ],
+        "results": [
+          {
+            "source": "v1",
+            "cases": 34,
+            "observations": 5652,
+            "rawFailures": 346,
+            "unexpectedFailures": 0
+          },
+          {
+            "source": "spec-baseline",
+            "cases": 34,
+            "observations": 4236,
+            "rawFailures": 10,
+            "unexpectedFailures": 0
+          },
+          {
+            "source": "candidate",
+            "cases": 34,
+            "observations": 5706,
+            "rawFailures": 0,
+            "unexpectedFailures": 0
+          }
+        ],
+        "incompleteCases": [
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_LIST_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+            "completed": [
+              "load"
+            ],
+            "incomplete": [
+              "read-only",
+              "editable-again",
+              "edit",
+              "undo",
+              "redo",
+              "dispose"
+            ]
+          }
+        ],
+        "notApplicableCases": [
+          {
+            "source": "v1",
+            "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+          },
+          {
+            "source": "v1",
+            "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+          },
+          {
+            "source": "spec-baseline",
+            "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+          },
+          {
+            "source": "candidate",
+            "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+          },
+          {
+            "source": "candidate",
+            "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+            "phases": [
+              "edit",
+              "undo",
+              "redo"
+            ],
+            "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Linux/Chromium evidence does not establish Firefox/WebKit/manual OS IME or every platform.",
+    "Native suite case totals overlap the separately rerun roundtrip page and are not added together.",
+    "C09 structural/native/UI/allocation comparisons remain partial; see structural-benchmark-audit.md.",
+    "Full Image caption-widget derived alt remains open; successful range repair is separate.",
+    "Documentation site build/browser smoke for later narrative additions is recorded separately."
+  ],
+  "publishedMain": {
+    "commit": "0fecf490fe8a57188ac9edb502d2803743c29883",
+    "tree": "820823b30699871a132d4dab207cd9c871af079e",
+    "matchesVerifiedMergedTree": true
+  },
+  "sourceReconstruction": {
+    "mapSha256": "b50e9ab5b269afff70ef480ab143944e9b8a6e371c31db9ac1a75b1850001ff9",
+    "restoredCommits": 25,
+    "distinctBlobs": 88,
+    "allBlobsReachableFrom": "0fecf490fe8a57188ac9edb502d2803743c29883",
+    "allRestoredTreesVerified": true,
+    "frozenHead": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+    "frozenTree": "ad395ef5ca1b812033e129baf7fef5149ca47661"
+  },
+  "inlineBenchmarkPrepareOnlyReplay": {
+    "classification": "Historical decision replay; no production patch is applied to the working checkout",
+    "preparedAt": "2026-10-29T18:56:51.949Z",
+    "output": "/tmp/rector-inline-range-replay-VSssaP",
+    "publishedAnchor": "fcd7fbc4e14372147ecf1f08f75c7016b8c4c3b1",
+    "variants": [
+      {
+        "label": "baseline",
+        "commit": "256cc0436d74040e5c5881a07350a14de7b66a96",
+        "root": "/tmp/rector-inline-range-replay-VSssaP/baseline"
+      },
+      {
+        "label": "candidate",
+        "commit": "10d1ee48a83bd2cf0a29802fd33b6a4aed6518b3",
+        "root": "/tmp/rector-inline-range-replay-VSssaP/candidate"
+      },
+      {
+        "label": "linear",
+        "commit": "ede029cc646f0f528c84e3984797e502bd4e37ec",
+        "root": "/tmp/rector-inline-range-replay-VSssaP/linear"
+      }
+    ],
+    "checkedSourceAndDependencyFiles": 258,
+    "fixtureSha256": "f3e0dbcebe690d7ee627c32ac27c28c9c19aadd663c87f69f11b134a0aea36ff",
+    "recordedRunnerSha256": "5aa08d9097fb9ea0533763a2c744ca6d5dc2751d17388d54c34db1b8dc5c44f5",
+    "replayRunnerSha256": "b203bb9392df6e0777041c2670bb54c68cd7d2a5e3e34c371514343703a9c1e6",
+    "relocationChanges": [
+      "Playwright module location",
+      "Replay directory and recorded hash input",
+      "Repository location",
+      "Dependency location",
+      "Verify every served module against its recorded SHA-256",
+      "Chromium executable location",
+      "Use the reconstructed dependency lock"
+    ],
+    "browserRequested": false,
+    "browserExecuted": false
+  }
+}

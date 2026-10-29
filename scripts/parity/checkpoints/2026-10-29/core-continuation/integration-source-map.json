@@ -1,0 +1,649 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Reconstruct exact historical integration verification sources from blobs retained by the published branch, without changing branch or working files. This is source provenance, not a new verification run.",
+  "base": "efae6d0e2b27cc184a53c1870725c6f81823150d",
+  "frozenHead": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+  "frozenTree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+  "records": [
+    {
+      "source": "c638eb856651576a10d64fad1cc76fa3f83f15c4",
+      "parent": "efae6d0e2b27cc184a53c1870725c6f81823150d",
+      "tree": "f76825e08860cca7b89a83d54cd36703746238a6",
+      "changes": [
+        {
+          "path": "tests/browser/native-presentation-recovery.html",
+          "mode": "100644",
+          "blob": "06e970faafd783d3647429562004a5b374d02953"
+        },
+        {
+          "path": "tests/browser/native-presentation-recovery.js",
+          "mode": "100644",
+          "blob": "e5f02bc3967dd86e495eb3e49c7ec8d058141456"
+        },
+        {
+          "path": "tests/browser/physical-history.mjs",
+          "mode": "100644",
+          "blob": "76fd81cedfec2e260b2d8123ce688bac1bff8ec4"
+        },
+        {
+          "path": "tests/browser/presentation-recovery.html",
+          "mode": "100644",
+          "blob": "b06ad015852063c1c2732927e6568474555f0eb9"
+        },
+        {
+          "path": "tests/browser/presentation-recovery.js",
+          "mode": "100644",
+          "blob": "41b6fb750db3af0458aef35ec88b22719551728f"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-decode-owners.js",
+          "mode": "100644",
+          "blob": "cf8ca544bbba6075354fbb5b11b1889da3c8a75f"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-native.js",
+          "mode": "100644",
+          "blob": "18e6dc50012d37c1aa2ae5809227baeec5a6eef4"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-ownership.js",
+          "mode": "100644",
+          "blob": "83727e199e7710bfb099beda6515a53b19d8f757"
+        },
+        {
+          "path": "tests/browser/run.mjs",
+          "mode": "100644",
+          "blob": "4ac33882cc72c429a3cb0ab41b7ed7e604380309"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBmNzY4MjVlMDg4NjBjY2E3Yjg5YTgzZDU0Y2QzNjcwMzc0NjIzOGE2CnBhcmVudCBlZmFlNmQwZTJiMjdjYzE4NGE1M2MxODcwNzI1YzZmODE4MjMxNTBkCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5MzY2MSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTM2NjEgKzAwMDAKCnRlc3QoY29yZSk6IGV4cG9zZSBwcmVzZW50YXRpb24gb3duZXJzaGlwIGFuZCBkZWNvZGVyIHJlY292ZXJ5IGZhaWx1cmVzCg=="
+    },
+    {
+      "source": "fbcdfb6952185aa16bf690303ce1db1c9e4a4695",
+      "parent": "c638eb856651576a10d64fad1cc76fa3f83f15c4",
+      "tree": "7ec647116a57bf3e3ec4c5a540183022d92bcd51",
+      "changes": [
+        {
+          "path": "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md",
+          "mode": "100644",
+          "blob": "e022eb5f060faaf75acfbd1f0504c02010649220"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA3ZWM2NDcxMTZhNTdiZjNlM2VjNGM1YTU0MDE4MzAyMmQ5MmJjZDUxCnBhcmVudCBjNjM4ZWI4NTY2NTE1NzZhMTBkNjRmYWQxY2M3NmZhM2Y4M2YxNWM0CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NDIyOSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTQyMjkgKzAwMDAKCmRvY3MoY29yZSk6IHNldHRsZSBmaWVsZC1sb2NhbCBwcmVzZW50YXRpb24gcmVjb3ZlcnkgYm91bmRhcmllcwo="
+    },
+    {
+      "source": "0bf780bdf4f705fbd3b928603608b8a79376d4e9",
+      "parent": "fbcdfb6952185aa16bf690303ce1db1c9e4a4695",
+      "tree": "9a738142e78259b92002e36574f6e2b08a589d94",
+      "changes": [
+        {
+          "path": "tests/browser/presentation-recovery.js",
+          "mode": "100644",
+          "blob": "3e4ad065c4d2778ce78a41b441e4305d23269563"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-fixture.js",
+          "mode": "100644",
+          "blob": "820b83a59d8da13826087ef8bcd7438aeba0fbf1"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-mode-ownership.js",
+          "mode": "100644",
+          "blob": "e19ba2816145f5e06b5c2ffe164ec90f2f5ffada"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-recovery-cases.js",
+          "mode": "100644",
+          "blob": "ea2f03a24622cfcd23d90e7ded2162e454000a1e"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-terminal.js",
+          "mode": "100644",
+          "blob": "7a49ecaccae3d457ff78d90222c53d47d8050690"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA5YTczODE0MmU3ODI1OWI5MjAwMmUzNjU3NGY2ZTJiMDhhNTg5ZDk0CnBhcmVudCBmYmNkZmI2OTUyMTg1YWExNmJmNjkwMzAzY2UxZGIxYzllNGE0Njk1CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NDI2MCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTQyNjAgKzAwMDAKCnRlc3QoY29yZSk6IGNvdmVyIGZpZWxkLWxvY2FsIHJlY292ZXJ5IGFuZCB0ZXJtaW5hbCBvd25lcnNoaXAgbG9zcwo="
+    },
+    {
+      "source": "9c2347776323e4344d2d256522ee9ba4841d0256",
+      "parent": "0bf780bdf4f705fbd3b928603608b8a79376d4e9",
+      "tree": "d77b41968377cc8208b6e047c69e47ba78636dd1",
+      "changes": [
+        {
+          "path": "tests/browser/native-presentation-recovery.js",
+          "mode": "100644",
+          "blob": "8ebb92c251fff298e816e9120d7bcb539aa00f42"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-native-cases.js",
+          "mode": "100644",
+          "blob": "7fdfa85fc8a709abf1e9ea7a31bb957df10be867"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBkNzdiNDE5NjgzNzdjYzgyMDhiNmUwNDdjNjllNDdiYTc4NjM2ZGQxCnBhcmVudCAwYmY3ODBiZGY0ZjcwNWZiZDNiOTI4NjAzNjA4YjhhNzkzNzZkNGU5CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NDMxOCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTQzMTggKzAwMDAKCnRlc3QoY29yZSk6IHByZXNlcnZlIG5hdGl2ZSBpbnB1dCB0aHJvdWdoIHByZXNlbnRhdGlvbiBmYXVsdHMK"
+    },
+    {
+      "source": "5b8fcd5f58042619556378c8949e27f2c882e297",
+      "parent": "9c2347776323e4344d2d256522ee9ba4841d0256",
+      "tree": "004b1cdb591ee29a5b29f482d51ca22489e38faf",
+      "changes": [
+        {
+          "path": "core/BlockReconciler.js",
+          "mode": "100644",
+          "blob": "44a497aca8af459352c5c2006b196e219d9a9e8a"
+        },
+        {
+          "path": "core/DocumentRuntime.js",
+          "mode": "100644",
+          "blob": "19bf15061672b9b3bc04e99c85b6fb80bd160c40"
+        },
+        {
+          "path": "core/InlineProjectionRuntime.js",
+          "mode": "100644",
+          "blob": "1108688c653f3d2570ee750d929eaf58852d84ab"
+        },
+        {
+          "path": "core/NativeInputController.js",
+          "mode": "100644",
+          "blob": "e86a78d87fee4ac673feab26bde68f55622817a6"
+        },
+        {
+          "path": "core/createEditorRuntime.js",
+          "mode": "100644",
+          "blob": "a9961332426940bff0bdd699cf744df8de8e9482"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSAwMDRiMWNkYjU5MWVlMjlhNWIyOWY0ODJkNTFjYTIyNDg5ZTM4ZmFmCnBhcmVudCA5YzIzNDc3NzYzMjNlNDM0NGQyZDI1NjUyMmVlOWJhNDg0MWQwMjU2CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NDQ0MSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTQ0NDEgKzAwMDAKCmZpeChjb3JlKTogY29udGFpbiBwcmVzZW50YXRpb24gZmFpbHVyZXMgd2l0aGluIGFmZmVjdGVkIGZpZWxkIG93bmVycwo="
+    },
+    {
+      "source": "4b7024da9820c26ad1d1e8ff9aa7a48357f8f452",
+      "parent": "5b8fcd5f58042619556378c8949e27f2c882e297",
+      "tree": "93417a4add1c5f358e05fe9ecb55231bc706148b",
+      "changes": [
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/README.md",
+          "mode": "100644",
+          "blob": "b6c09bd5b400aaaf4a8e16929f2ac872928c8ef0"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/REPRODUCTION-MANIFEST.json",
+          "mode": "100644",
+          "blob": "61667aeebc8473c0e8b06c9bb56349184fbe9625"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/fixture/tests/browser/native-presentation-investigation.html",
+          "mode": "100644",
+          "blob": "05f13193814042b6af63ae05143fabdb780f827a"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/fixture/tests/browser/native-presentation-investigation.js",
+          "mode": "100644",
+          "blob": "250ad736bc0270899d4011c415bdf82d4237fe81"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/fixture/tests/browser/native-presentation-remount-comparison.html",
+          "mode": "100644",
+          "blob": "29e1144365f146a53f95e4aeba28d6d8a3981190"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/fixture/vite.config.mjs",
+          "mode": "100644",
+          "blob": "0f8e16342fe47e80dd8fab9ef51db1d8506a9d82"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/historical-runtime-prototype.patch",
+          "mode": "100644",
+          "blob": "0fda1bb17664e179f71d6d78f3af5545774cf834"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/presentation/observed-results.json",
+          "mode": "100644",
+          "blob": "020076d65e091693f6ebf299541377763d50051b"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA5MzQxN2E0YWRkMWM1ZjM1OGUwNWZlOWVjYjU1MjMxYmM3MDYxNDhiCnBhcmVudCA1YjhmY2Q1ZjU4MDQyNjE5NTU2Mzc4Yzg5NDllMjdmMmM4ODJlMjk3CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NDU1MSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTQ1NTEgKzAwMDAKCmRvY3MoY29yZSk6IHJldGFpbiB0aGUgcmVqZWN0ZWQgd2hvbGUtYmxvY2sgcmVjb3ZlcnkgY29tcGFyaXNvbgo="
+    },
+    {
+      "source": "b4c39b0212dfdb8e33cfd8ee193b3313805bd989",
+      "parent": "4b7024da9820c26ad1d1e8ff9aa7a48357f8f452",
+      "tree": "2e7a836d53da9f703ae792a8b751dd72691f91e3",
+      "changes": [
+        {
+          "path": "tests/browser/presentation-recovery.js",
+          "mode": "100644",
+          "blob": "0bf01ebf41dbda9cf1524699d251142f2f670ed9"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-fixture.js",
+          "mode": "100644",
+          "blob": "277feb34bbef4a261408408ba3b8bd602d45eee5"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-inline-mode-ownership.js",
+          "mode": "100644",
+          "blob": "753fd72940b980ccb21b9cd623c90b660bba37e9"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-settled-mode-ownership.js",
+          "mode": "100644",
+          "blob": "a3fa39999ca2d8625df1b1b4ebcfb07e5942df2a"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSAyZTdhODM2ZDUzZGE5ZjcwM2FlNzkyYThiNzUxZGQ3MjY5MWY5MWUzCnBhcmVudCA0YjcwMjRkYTk4MjBjMjZhZDFkMWU4ZmY5YWE3YTQ4MzU3ZjhmNDUyCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NDY4NSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTQ2ODUgKzAwMDAKCnRlc3QoY29yZSk6IGV4cG9zZSBvd25lcnNoaXAgY2hhbmdlcyBpbiBzZXR0bGVkIG1vZGUgY2FsbGJhY2tzCg=="
+    },
+    {
+      "source": "1227ea6931c1ae10ffaac1e2784a0be296ee675e",
+      "parent": "b4c39b0212dfdb8e33cfd8ee193b3313805bd989",
+      "tree": "ad48799d1f45ff96839baa0134669a78c79d9dd7",
+      "changes": [
+        {
+          "path": "tests/browser/presentation-recovery.js",
+          "mode": "100644",
+          "blob": "cb212bf936a632eba2bae4a0972c49d786f75a70"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-fixture.js",
+          "mode": "100644",
+          "blob": "33439528431d060a51de46849e39145201eb86d2"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-mode-inverse-failure.js",
+          "mode": "100644",
+          "blob": "d4a27e052f31fe3064e12910c44664440dedfa7d"
+        },
+        {
+          "path": "tests/browser/regressions/presentation-mode-scope-ownership.js",
+          "mode": "100644",
+          "blob": "ab97de7c2ccc96bf6f89e61ad21a0a7d8e884570"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBhZDQ4Nzk5ZDFmNDVmZjk2ODM5YmFhMDEzNDY2OWE3OGM3OWQ5ZGQ3CnBhcmVudCBiNGMzOWIwMjEyZGZkYjhlMzNjZmQ4ZWUxOTNiMzMxMzgwNWJkOTg5CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NjY3OCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTY2NzggKzAwMDAKCnRlc3QoY29yZSk6IGV4cG9zZSBtb2RlIHJvbGxiYWNrIGFuZCBzY29wZSBjYW5jZWxsYXRpb24gb3duZXJzaGlwIGdhcHMK"
+    },
+    {
+      "source": "256cc0436d74040e5c5881a07350a14de7b66a96",
+      "parent": "1227ea6931c1ae10ffaac1e2784a0be296ee675e",
+      "tree": "e4b7b5a163358c104f4bae97a424ea03c5d264a4",
+      "changes": [
+        {
+          "path": "core/BlockReconciler.js",
+          "mode": "100644",
+          "blob": "8e0065b4ce85a2e7318a727b3ffb39d6fcb8d1ad"
+        },
+        {
+          "path": "core/InlineProjectionRuntime.js",
+          "mode": "100644",
+          "blob": "f44c4b9d596b6b6d7191dd027e3c674493401ab3"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBlNGI3YjVhMTYzMzU4YzEwNGY0YmFlOTdhNDI0ZWEwM2M1ZDI2NGE0CnBhcmVudCAxMjI3ZWE2OTMxYzFhZTEwZmZhYWMxZTI3ODRhMGJlMjk2ZWU2NzVlCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NjcxMyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTY3MTMgKzAwMDAKCmZpeChjb3JlKTogdmFsaWRhdGUgbW9kZSBvd25lcnNoaXAgYmVmb3JlIGFjY2VwdGluZyBpbmxpbmUgc3RhdGUK"
+    },
+    {
+      "source": "ec1a11e8e3d7fa128084003335e7f70c1ab46a3c",
+      "parent": "256cc0436d74040e5c5881a07350a14de7b66a96",
+      "tree": "98435661f6522a7522f7c8b109e5d3843932c868",
+      "changes": [
+        {
+          "path": "benchmarks/public-snapshots.mjs",
+          "mode": "100644",
+          "blob": "c423f16fa04af5cdb94df1765b3caa85192e99f4"
+        },
+        {
+          "path": "core/PublicEditorApi.snapshots.test.js",
+          "mode": "100644",
+          "blob": "55f99fdb35024aad930a71cc9baffc243d43612b"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA5ODQzNTY2MWY2NTIyYTc1MjJmN2M4YjEwOWU1ZDM4NDM5MzJjODY4CnBhcmVudCAyNTZjYzA0MzZkNzQwNDBlNWM1ODgxYTA3MzUwYTE0ZGU3YjY2YTk2CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NjcxMyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTY3MTMgKzAwMDAKCnRlc3QoY29yZSk6IHByb3ZlIGRldGFjaGVkIHNuYXBzaG90IGlzb2xhdGlvbiBhbmQgcmVkdW5kYW50IHB1YmxpYyBjb3BpZXMK"
+    },
+    {
+      "source": "bc68ae57b7ab18e36067b79ba84ab368e440c5fc",
+      "parent": "ec1a11e8e3d7fa128084003335e7f70c1ab46a3c",
+      "tree": "8916ffc3c7780942b29d1dd32c30196c51b5041d",
+      "changes": [
+        {
+          "path": "core/PublicEditorApi.js",
+          "mode": "100644",
+          "blob": "8eecb142f90fa0df222b5353d89b7ddd155ba4dc"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA4OTE2ZmZjM2M3NzgwOTQyYjI5ZDFkZDMyYzMwMTk2YzUxYjUwNDFkCnBhcmVudCBlYzFhMTFlOGUzZDdmYTEyODA4NDAwMzMzNWU3ZjcwYzFhYjQ2YTNjCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5Njk2OSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTY5NjkgKzAwMDAKCnBlcmYoY29yZSk6IHJldXNlIGRldGFjaGVkIHJlY29yZHMgYXQgdGhlIHB1YmxpYyBzbmFwc2hvdCBib3VuZGFyeQo="
+    },
+    {
+      "source": "05c047717b91d4778fdf0f9b835120f47f52f4f0",
+      "parent": "bc68ae57b7ab18e36067b79ba84ab368e440c5fc",
+      "tree": "7beab065218a921fb06f0a1955cfb9a0b15df44d",
+      "changes": [
+        {
+          "path": "scripts/parity/block-roundtrip.md",
+          "mode": "100644",
+          "blob": "ea5cd766200f6185b067034977f159952082056f"
+        },
+        {
+          "path": "scripts/parity/block-roundtrip.mjs",
+          "mode": "100644",
+          "blob": "ab10dfb3be79999738ad5d781f30cb9ef23b85cb"
+        },
+        {
+          "path": "tests/browser/block-roundtrip-fixture.js",
+          "mode": "100644",
+          "blob": "75efb273f7bb316d07bb0cdd1e22c2936ebace20"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA3YmVhYjA2NTIxOGE5MjFmYjA2ZjBhMTk1NWNmYjlhMGIxNWRmNDRkCnBhcmVudCBiYzY4YWU1N2I3YWIxOGUzNjA2N2I3OWJhODRhYjM2OGU0NDBjNWZjCmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTQwMjcgKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk3MDc3ICswMDAwCgp0ZXN0KHBhcml0eSk6IHByZXNlcnZlIFdhcm5pbmcgZmllbGRzIHRocm91Z2ggcHVibGljIHJvdW5kdHJpcHMKCkxvY2FsLXNvdXJjZS1jb21taXQ6IGY2ODg4Y2ZjMTUxODZiYTY1MDgzN2NlOTk3NDk0ODJjZDBjYTNkNWIKTG9jYWwtc291cmNlLXRyZWU6IDM4OGZlNWMwN2MxZWYyZmYxNGE0ZDRiYzkwMGY0YzAzYzdhNDlmNmI="
+    },
+    {
+      "source": "ca459b50b48626f3d39b30f04f6665a4e4bedba1",
+      "parent": "05c047717b91d4778fdf0f9b835120f47f52f4f0",
+      "tree": "7f110fd4a254eaddebf3b0468f0de10439175537",
+      "changes": [
+        {
+          "path": "scripts/parity/block-roundtrip.md",
+          "mode": "100644",
+          "blob": "c98e6ee5e6c470aef65217c3aa26809df2881f7e"
+        },
+        {
+          "path": "scripts/parity/block-roundtrip.mjs",
+          "mode": "100644",
+          "blob": "8d66bd18b132c335eac9a149ff3e0591a74be4d7"
+        },
+        {
+          "path": "tests/browser/block-roundtrip-fixture.js",
+          "mode": "100644",
+          "blob": "35103b4b4c4b62671a326e64bed7f2dd9818d7ec"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA3ZjExMGZkNGEyNTRlYWRkZWJmM2IwNDY4ZjBkZTEwNDM5MTc1NTM3CnBhcmVudCAwNWMwNDc3MTdiOTFkNDc3OGZkZjBmOWI4MzUxMjBmNDdmNTJmNGYwCmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTQ0MTEgKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk3MDc3ICswMDAwCgp0ZXN0KHBhcml0eSk6IGNvdmVyIGxpdGVyYWwgQ29kZSBzb3VyY2UgYW5kIG5hdGl2ZSBoaXN0b3J5IHJvdW5kdHJpcHMKCkxvY2FsLXNvdXJjZS1jb21taXQ6IDJkOTkyM2MwZTZhODFiMGE3MjcwZjNlMWNmNmVkYjNmM2M1ODEzMDQKTG9jYWwtc291cmNlLXRyZWU6IDM5ZTE0YjM1MGY0ZGYxMjI5NWYwNzc0NTE3ZmM1NjU0NWU2ODQzY2Y="
+    },
+    {
+      "source": "a0d611888ec1a42eacf33866c1eac65ede7f0bb2",
+      "parent": "ca459b50b48626f3d39b30f04f6665a4e4bedba1",
+      "tree": "382c7c9ac316de103209edd7e669bc06af5b673a",
+      "changes": [
+        {
+          "path": "scripts/parity/block-roundtrip.md",
+          "mode": "100644",
+          "blob": "1ef769027e7b91745bcb9c54bec70f39ecc5e12a"
+        },
+        {
+          "path": "scripts/parity/block-roundtrip.mjs",
+          "mode": "100644",
+          "blob": "6f3151fe8edfca072dd95c474ca47d9526df3347"
+        },
+        {
+          "path": "tests/browser/block-roundtrip-fixture.js",
+          "mode": "100644",
+          "blob": "dbbacff454230fff1bff4f2d3f895daa7339811e"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSAzODJjN2M5YWMzMTZkZTEwMzIwOWVkZDdlNjY5YmMwNmFmNWI2NzNhCnBhcmVudCBjYTQ1OWI1MGI0ODYyNmYzZDM5YjMwZjA0ZjY2NjVhNGU0YmVkYmExCmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTY1NjYgKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk3MDc3ICswMDAwCgp0ZXN0KHBhcml0eSk6IHByZXNlcnZlIENoZWNrbGlzdCBsYWJlbHMgc3RhdGVzIGFuZCBpdGVtIGlkZW50aXRpZXMKCkxvY2FsLXNvdXJjZS1jb21taXQ6IGVjODk2ZDU0ZmQ2ZDZiNTczZGM2MmU3NTg5NmE2Yjc3YjMzODNmZTUKTG9jYWwtc291cmNlLXRyZWU6IDdlMGE5MTVlYTNiOWEyNDJkNzNkZDYzY2VhMjVlOWI5NzE5NmQyNmQ="
+    },
+    {
+      "source": "cf0eb29ec397cbd49fcdba3e1539124e3f3f4a74",
+      "parent": "a0d611888ec1a42eacf33866c1eac65ede7f0bb2",
+      "tree": "e771630b11e3a7098130fe9db4171ee9e432fc64",
+      "changes": [
+        {
+          "path": "scripts/parity/block-roundtrip.md",
+          "mode": "100644",
+          "blob": "e07c707b6e56bf225fea6d73a5460af56ad06e98"
+        },
+        {
+          "path": "scripts/parity/block-roundtrip.mjs",
+          "mode": "100644",
+          "blob": "0af00f9e4576d9b376476e611498c21f26b7ddb1"
+        },
+        {
+          "path": "tests/browser/block-roundtrip-fixture.js",
+          "mode": "100644",
+          "blob": "02043905d452f92c2040ef72c44325ab9066852e"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBlNzcxNjMwYjExZTNhNzA5ODEzMGZlOWRiNDE3MWVlOWU0MzJmYzY0CnBhcmVudCBhMGQ2MTE4ODhlYzFhNDJlYWNmMzM4NjZjMWVhYzY1ZWRlN2YwYmIyCmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTcwMjAgKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk3MDc3ICswMDAwCgp0ZXN0KHBhcml0eSk6IHByb3ZlIG5vbi1lZGl0YWJsZSBkZWxpbWl0ZXIgcm91bmR0cmlw"
+    },
+    {
+      "source": "c9a75a5a0a0d06ba062678f4de651b0d999cf569",
+      "parent": "cf0eb29ec397cbd49fcdba3e1539124e3f3f4a74",
+      "tree": "43bdc95b50fdb19bdddb7b20380115ea54133df0",
+      "changes": [
+        {
+          "path": "scripts/parity/block-roundtrip.md",
+          "mode": "100644",
+          "blob": "3995a0fb8ec1ac276e817acd02fcf1b8cf30dd5b"
+        },
+        {
+          "path": "scripts/parity/block-roundtrip.mjs",
+          "mode": "100644",
+          "blob": "204b8bcc09dc902c1bff4af264c269dbc13e7beb"
+        },
+        {
+          "path": "tests/browser/block-roundtrip-fixture.js",
+          "mode": "100644",
+          "blob": "2e14cac9b6f9e54f3f96972b0e160e5977ac0e30"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA0M2JkYzk1YjUwZmRiMTliZGRkYjdiMjAzODAxMTVlYTU0MTMzZGYwCnBhcmVudCBjZjBlYjI5ZWMzOTdjYmQ0OWZjZGJhM2UxNTM5MTI0ZTNmM2Y0YTc0CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NzE1OCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTcyMDcgKzAwMDAKCnRlc3QocGFyaXR5KTogcmVjb3JkIHNjb3BlZCBpbWFnZSBjYXB0aW9uIHJvdW5kdHJpcAo="
+    },
+    {
+      "source": "0ea5de1ebdb85d71cf154bd6637cae28061712c9",
+      "parent": "c9a75a5a0a0d06ba062678f4de651b0d999cf569",
+      "tree": "3861bb7fbea4951fdd98b1ae4278553ae54eecac",
+      "changes": [
+        {
+          "path": "core/BlockReconciler.test.js",
+          "mode": "100644",
+          "blob": "b3b25489a3aa03bbe3bc98f4df39415890a0a05e"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSAzODYxYmI3ZmJlYTQ5NTFmZGQ5OGIxYWU0Mjc4NTUzYWU1NGVlY2FjCnBhcmVudCBjOWE3NWE1YTBhMGQwNmJhMDYyNjc4ZjRkZTY1MWIwZDk5OWNmNTY5CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NzUxNyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTc1MTcgKzAwMDAKCnRlc3QoY29yZSk6IGFsaWduIGZhaWxlZCBmaWVsZCBwcm9iZXMgd2l0aCBleHBsaWNpdCByZXRyeSBjb250cmFjdAo="
+    },
+    {
+      "source": "066b5aa8c32e3d8e3cd9064ec12c910e277598a6",
+      "parent": "0ea5de1ebdb85d71cf154bd6637cae28061712c9",
+      "tree": "2d149e6f4b8870e49870efe16ed2f7897fd284aa",
+      "changes": [
+        {
+          "path": "core/DocumentRuntime.js",
+          "mode": "100644",
+          "blob": "876b2f12e9a34866db5c05383ad6b8a44572ab4e"
+        },
+        {
+          "path": "core/InstanceScope.js",
+          "mode": "100644",
+          "blob": "777b4eff93ade4d1e9583016694e5da5fa1c270a"
+        },
+        {
+          "path": "core/TransactionEngine.js",
+          "mode": "100644",
+          "blob": "5af4f95e22228d51117a191420f635f7aec2daad"
+        },
+        {
+          "path": "core/types.d.ts",
+          "mode": "100644",
+          "blob": "0726ae8dabc31d226b3d0898defbaa9482ec389d"
+        },
+        {
+          "path": "tests/types/core-consumer.ts",
+          "mode": "100644",
+          "blob": "afc5e03a6d63f38765d663082b46a86d6031f21d"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSAyZDE0OWU2ZjRiODg3MGU0OTg3MGVmZTE2ZWQyZjc4OTdmZDI4NGFhCnBhcmVudCAwZWE1ZGUxZWJkYjg1ZDcxY2YxNTRiZDY2MzdjYWUyODA2MTcxMmM5CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5NzUxNyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTc1MTcgKzAwMDAKCnJlZmFjdG9yKGNvcmUpOiB0eXBlIHRyYW5zYWN0aW9uIHBoYXNlcyBhbmQgcnVudGltZSBhZG1pc3Npb24gY29udGV4dHMK"
+    },
+    {
+      "source": "b3c8360b38ac924f5024938e32c2de599534e964",
+      "parent": "066b5aa8c32e3d8e3cd9064ec12c910e277598a6",
+      "tree": "e8a22bea64010277298fd1bff0107e101e3948c4",
+      "changes": [
+        {
+          "path": "RECTOR_V2_PROGRESS_2026-10-29.md",
+          "mode": "100644",
+          "blob": "c3b6b4d1c25b37fa3b62cbb1072f9186d4607397"
+        },
+        {
+          "path": "docs/architecture/rector-v2/PRESERVATION.md",
+          "mode": "100644",
+          "blob": "2dde3b88973c7e827bf83a27566eb19a1e09cec6"
+        },
+        {
+          "path": "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+          "mode": "100644",
+          "blob": "6f93696df105d14a6e1a3c3806b35af903ee8db4"
+        },
+        {
+          "path": "docs/ru/architecture/rector-v2/PRESERVATION.md",
+          "mode": "100644",
+          "blob": "49ba9f4c064bd5c99bf0c12ee4c743010819ce4a"
+        },
+        {
+          "path": "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+          "mode": "100644",
+          "blob": "7549d8b20e52b3fe79b82bd613721a4204cdc92b"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/publication-map.json",
+          "mode": "100644",
+          "blob": "613a33fa0c5aadb9f54ee34371e4ebb4e0e82485"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBlOGEyMmJlYTY0MDEwMjc3Mjk4ZmQxYmZmMDEwN2UxMDFlMzk0OGM0CnBhcmVudCAwNjZiNWFhOGMzMmUzZDhlM2NkOTA2NGVjMTJjOTEwZTI3NzU5OGE2CmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTc1NDggKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk3NzY5ICswMDAwCgpkb2NzKHBhcml0eSk6IHJlY29yZCBlaWdodCBjb21wbGV0ZSBibG9jayB0ZW1wbGF0ZXMgYW5kIHNjb3BlZCBJbWFnZSBldmlkZW5jZQ=="
+    },
+    {
+      "source": "a86e5df22d9f0101e9e813a1b1bcaca8ff00bf9d",
+      "parent": "b3c8360b38ac924f5024938e32c2de599534e964",
+      "tree": "77a723340f5f148d54a810c8474fbdf2b421e2ac",
+      "changes": [
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/PUBLICATION.md",
+          "mode": "100644",
+          "blob": "86df93c0bc1ec1a21dc5749b9ce711bdd6928651"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/core-continuation/README.md",
+          "mode": "100644",
+          "blob": "c2df2f1e0e391347c88552f743345e5b50ebaf95"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/core-continuation/public-snapshot-comparison.json",
+          "mode": "100644",
+          "blob": "7310c64c7a010c6d7ddd33e8672965770ece28ba"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/core-continuation/verification-records.json",
+          "mode": "100644",
+          "blob": "60ea1d32f3e96093d5bc236fbee4c85aa48d6918"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA3N2E3MjMzNDBmNWYxNDhkNTRhODEwYzg0NzRmYmRmMmI0MjFlMmFjCnBhcmVudCBiM2M4MzYwYjM4YWM5MjRmNTAyNDkzOGUzMmMyZGU1OTk1MzRlOTY0CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5Nzg2NSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTc4NjUgKzAwMDAKCmRvY3MoY29yZSk6IHJldGFpbiByZWNvdmVyeSBzbmFwc2hvdCBhbmQgcGhhc2UgdmVyaWZpY2F0aW9uIGV2aWRlbmNlCg=="
+    },
+    {
+      "source": "2c02db0b48fc03431c375bf31267afc8aa436c6d",
+      "parent": "a86e5df22d9f0101e9e813a1b1bcaca8ff00bf9d",
+      "tree": "942376b0cc11066b0789fd9a5fa6b894a317c338",
+      "changes": [
+        {
+          "path": "tests/browser/optional-inline-update.js",
+          "mode": "100644",
+          "blob": "319162b2439813d526b7989264fbad620117c632"
+        },
+        {
+          "path": "tests/browser/projection-contracts.js",
+          "mode": "100644",
+          "blob": "7c08471e5bc80238244ce63b64fdd689d3461888"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSA5NDIzNzZiMGNjMTEwNjZiMDc4OWZkOWE1ZmE2Yjg5NGEzMTdjMzM4CnBhcmVudCBhODZlNWRmMjJkOWYwMTAxZTllODEzYTFiMWJjYWNhOGZmMDBiZjlkCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5ODA0NCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTgwNDQgKzAwMDAKCnRlc3QoY29yZSk6IHByZXNlcnZlIGF1dGhvciByYW5nZXMgYWNyb3NzIGlubGluZSBwYXlsb2FkIHVwZGF0ZXMK"
+    },
+    {
+      "source": "14c5c5ce22d4766198055dd3167c6cc623925e8b",
+      "parent": "2c02db0b48fc03431c375bf31267afc8aa436c6d",
+      "tree": "07ac288f0e9e1c6dc95b9a67701d8e39262334aa",
+      "changes": [
+        {
+          "path": "scripts/parity/block-roundtrip.md",
+          "mode": "100644",
+          "blob": "fd180ddb44b1760e13f1b83f4a66bed74afcc37a"
+        },
+        {
+          "path": "scripts/parity/block-roundtrip.mjs",
+          "mode": "100644",
+          "blob": "10c77bfae9df25274f76d2593cacf3ad6dca80e3"
+        },
+        {
+          "path": "tests/browser/block-roundtrip-fixture.js",
+          "mode": "100644",
+          "blob": "27f2881937e7e43c58376047c22793c8548d118a"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSAwN2FjMjg4ZjBlOWUxYzZkYzk1YjlhNjc3MDFkOGUzOTI2MjMzNGFhCnBhcmVudCAyYzAyZGIwYjQ4ZmMwMzQzMWMzNzViZjMxMjY3YWZjOGFhNDM2YzZkCmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTgzNjggKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk4NDA0ICswMDAwCgp0ZXN0KHBhcml0eSk6IHByZXNlcnZlIFRvZ2dsZSB0aXRsZSBib2R5IGFuZCBkaXNjbG9zdXJlIHN0YXRlCgpMb2NhbC1zb3VyY2UtY29tbWl0OiBiM2EyZjE2YmVkMzhmOTFkNDgyYjNmMjlmMmU0ZGIxZmYwOTZjYjk2CkxvY2FsLXNvdXJjZS10cmVlOiA4YWU3ZTFiZDZjYzc1OGFmZTgwMTQ5NmNlMWU2YjRkNGIyMmMxNDYz"
+    },
+    {
+      "source": "94850bc835a1e644b950201eac90f3d3dca590ba",
+      "parent": "14c5c5ce22d4766198055dd3167c6cc623925e8b",
+      "tree": "c004d6405ef5525dd223ce22ad76195fa089f214",
+      "changes": [
+        {
+          "path": "core/InlineProjectionRuntime.js",
+          "mode": "100644",
+          "blob": "74bb6e9dce936b5db600fb35af1cbae1402450c3"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBjMDA0ZDY0MDVlZjU1MjVkZDIyM2NlMjJhZDc2MTk1ZmEwODlmMjE0CnBhcmVudCAxNGM1YzVjZTIyZDQ3NjYxOTgwNTVkZDMxNjdjNmNjNjIzOTI1ZThiCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5ODY0OCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTg2NDggKzAwMDAKCmZpeChjb3JlKTogcmV0YWluIGF1dGhvciByYW5nZXMgZHVyaW5nIG93bmVkIGlubGluZSBwYXlsb2FkIHVwZGF0ZXMK"
+    },
+    {
+      "source": "e4f21f917682e461942e9b38a13d8aaacc2767c6",
+      "parent": "94850bc835a1e644b950201eac90f3d3dca590ba",
+      "tree": "b54ca280ab97fd6c58ecfd1f0926755596b86507",
+      "changes": [
+        {
+          "path": "RECTOR_V2_PROGRESS_2026-10-29.md",
+          "mode": "100644",
+          "blob": "2d23e866b5cd8b8892f3a305dfb78b50aadef088"
+        },
+        {
+          "path": "docs/architecture/rector-v2/PRESERVATION.md",
+          "mode": "100644",
+          "blob": "f68c71855408b1d53701ee7534a8bb42cc256597"
+        },
+        {
+          "path": "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+          "mode": "100644",
+          "blob": "c91f5813eed926e796c6d5d71c7a6a1240e81145"
+        },
+        {
+          "path": "docs/ru/architecture/rector-v2/PRESERVATION.md",
+          "mode": "100644",
+          "blob": "453bdbb31b1a4709766bb4d05b007a2f4630b818"
+        },
+        {
+          "path": "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+          "mode": "100644",
+          "blob": "896e78eac54c2ee1dfe5b6064418279a1e549ca2"
+        },
+        {
+          "path": "scripts/parity/checkpoints/2026-10-29/publication-map.json",
+          "mode": "100644",
+          "blob": "a33e957b3e6084cdbda49bce9f63c9f6f870fe8c"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBiNTRjYTI4MGFiOTdmZDZjNThlY2ZkMWYwOTI2NzU1NTk2Yjg2NTA3CnBhcmVudCA5NDg1MGJjODM1YTFlNjQ0Yjk1MDIwMWVhYzkwZjNkM2RjYTU5MGJhCmF1dGhvciBBbmRyZXkgU2hlbGFta29mZiA8aW5ib3guc2hlbGFta29mZkBnbWFpbC5jb20+IDE3OTMyOTg2NjMgKzAyMDAKY29tbWl0dGVyIENvZGV4IDxjb2RleEBvcGVuYWkuY29tPiAxNzkzMjk4NzAxICswMDAwCgpkb2NzKHBhcml0eSk6IHJlY29yZCBvcGVuIGFuZCBjbG9zZWQgVG9nZ2xlIHByZXNlcnZhdGlvbgoKTG9jYWwtc291cmNlLWNvbW1pdDogMmI5MzllZDFmMjYxMGEzZWJiMjU5MmUwMGFhOTE0NDJhOTJkMzFjMwpMb2NhbC1zb3VyY2UtdHJlZTogMjFlMzdkOTE3M2UzYjMwOWYyNjM2MzJmMDc3ODVkMTNlN2E1MDAwOQ=="
+    },
+    {
+      "source": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+      "parent": "e4f21f917682e461942e9b38a13d8aaacc2767c6",
+      "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+      "changes": [
+        {
+          "path": "tests/browser/heap-gate.mjs",
+          "mode": "100644",
+          "blob": "5d73d372dae1a8f1a0aa08c5e52d502b1cdf6ce8"
+        },
+        {
+          "path": "tests/browser/lifecycle.js",
+          "mode": "100644",
+          "blob": "9c8a9c15e74b9cc6ee1e0befa7c94584b50fc83a"
+        }
+      ],
+      "originalCommitBase64": "dHJlZSBhZDM5NWVmNWNhMWI4MTIwMzNlMTI5YmFmN2ZlZjUxNDljYTQ3NjYxCnBhcmVudCBlNGYyMWY5MTc2ODJlNDYxOTQyZTliMzhhMTNkOGFhYWNjMjc2N2M2CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5OTAxMiArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTkwMTIgKzAwMDAKCnRlc3QoaGlzdG9yeSk6IHByb3ZlIGV2aWN0ZWQgcGF5bG9hZHMgYXJlIHJlbGVhc2VkIHdoaWxlIGVkaXRvciBzdGF5cyBhbGl2ZQo="
+    }
+  ]
+}

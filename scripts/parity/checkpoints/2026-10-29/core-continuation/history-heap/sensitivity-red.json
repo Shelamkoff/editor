@@ -1,0 +1,71 @@
+{
+  "base": "97fad198b493624ccd26fc7c61b435b1a14e4ae2",
+  "cwd": "/tmp/rector-c10-history-heap-20261029",
+  "command": [
+    "node",
+    "tests/browser/heap-gate.mjs"
+  ],
+  "classification": "Intentional test-only strong retention sensitivity control, not a production defect",
+  "startedAt": "2026-10-29T18:28:49.774083+00:00",
+  "sourceBefore": "01632a2c3218f940b9005cd45e3aebe880bbb44d20edaa89618e5a2c1ceb8064",
+  "patchSha256": "0886b493067114dbb494368038f594e2e72da6036651a3c2fbcd2550a1dc474c",
+  "exitCode": 1,
+  "finishedAt": "2026-10-29T18:28:56.532305+00:00",
+  "durationSeconds": 6.693256034999649,
+  "sourceAfter": "01632a2c3218f940b9005cd45e3aebe880bbb44d20edaa89618e5a2c1ceb8064",
+  "log": "/tmp/rector-c10-history-heap-sensitivity-red.log",
+  "sourceUnchanged": true,
+  "phases": [
+    {
+      "phase": "before-eviction",
+      "counts": [
+        0,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "usedHeapMiB": 14.43,
+      "snapshotMiB": 12.83
+    },
+    {
+      "phase": "after-eviction-with-retained-control",
+      "counts": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2
+      ],
+      "usedHeapMiB": 14.54,
+      "snapshotMiB": 12.87
+    }
+  ],
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64",
+    "executable": "/tmp/rector-browsers/chrome-linux64/chrome",
+    "protocolVersion": "1.3",
+    "product": "Chrome/142.0.7444.175",
+    "revision": "@302067f14a4ea3f42001580e6101fa25ed343445",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36",
+    "jsVersion": "14.2.231.21"
+  }
+}

@@ -1,0 +1,13 @@
+Heap environment: {"node":"v24.22.1","platform":"linux","architecture":"x64","executable":"/tmp/rector-browsers/chrome-linux64/chrome","protocolVersion":"1.3","product":"Chrome/142.0.7444.175","revision":"@302067f14a4ea3f42001580e6101fa25ed343445","userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36","jsVersion":"14.2.231.21"}
+History heap phase: {"phase":"before-eviction","counts":[0,2,3,0,0,0,0,0,0,0,0,0,0],"usedHeapMiB":14.43,"snapshotMiB":12.83}
+History heap phase: {"phase":"after-eviction-with-retained-control","counts":[0,1,1,0,0,0,0,0,0,0,0,1,2],"usedHeapMiB":14.54,"snapshotMiB":12.87}
+file:///tmp/rector-c10-history-heap-20261029/tests/browser/heap-gate.mjs:232
+      throw new Error(`${phase}: evicted history payload ${index} retained after GC; counts=${JSON.stringify(counts)}`)
+            ^
+
+Error: after-eviction: evicted history payload 1 retained after GC; counts=[0,1,1,0,0,0,0,0,0,0,0,1,2]
+    at requireAbsent (file:///tmp/rector-c10-history-heap-20261029/tests/browser/heap-gate.mjs:232:13)
+    at proveHistoryEviction (file:///tmp/rector-c10-history-heap-20261029/tests/browser/heap-gate.mjs:242:3)
+    at async file:///tmp/rector-c10-history-heap-20261029/tests/browser/heap-gate.mjs:310:27
+
+Node.js v24.22.1

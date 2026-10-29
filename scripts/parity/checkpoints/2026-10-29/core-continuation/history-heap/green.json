@@ -1,0 +1,171 @@
+{
+  "base": "97fad198b493624ccd26fc7c61b435b1a14e4ae2",
+  "cwd": "/tmp/rector-c10-history-heap-20261029",
+  "command": [
+    "node",
+    "tests/browser/heap-gate.mjs"
+  ],
+  "classification": "Actual live-editor byte-budget eviction proof with retained and released sentinel controls",
+  "startedAt": "2026-10-29T18:29:17.520502+00:00",
+  "sourceBefore": "9984165ad5a1e2fae851080d7c6dd5a6e1415c847d57f2abb06e7be6995d44b9",
+  "patchSha256": "2be9917c2fdbab83465f0e5f42c9009e51cda84f1aa074cbaff7d5fb3de2f6af",
+  "exitCode": 0,
+  "finishedAt": "2026-10-29T18:29:29.729445+00:00",
+  "durationSeconds": 12.154266255001858,
+  "sourceAfter": "9984165ad5a1e2fae851080d7c6dd5a6e1415c847d57f2abb06e7be6995d44b9",
+  "log": "/tmp/rector-c10-history-heap-green.log",
+  "sourceUnchanged": true,
+  "phases": [
+    {
+      "phase": "before-eviction",
+      "counts": [
+        0,
+        1,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "usedHeapMiB": 14.43,
+      "snapshotMiB": 12.83
+    },
+    {
+      "phase": "after-eviction-with-retained-control",
+      "counts": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2
+      ],
+      "usedHeapMiB": 14.51,
+      "snapshotMiB": 12.87
+    },
+    {
+      "phase": "after-releasing-control",
+      "counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2
+      ],
+      "usedHeapMiB": 14.48,
+      "snapshotMiB": 12.87
+    }
+  ],
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64",
+    "executable": "/tmp/rector-browsers/chrome-linux64/chrome",
+    "protocolVersion": "1.3",
+    "product": "Chrome/142.0.7444.175",
+    "revision": "@302067f14a4ea3f42001580e6101fa25ed343445",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36",
+    "jsVersion": "14.2.231.21"
+  },
+  "result": {
+    "sentinels": 23,
+    "retained": 0,
+    "usedHeapMiB": 14.41,
+    "embedderHeapMiB": 1.23,
+    "historyEviction": {
+      "payloadBytes": 32768,
+      "authoredActions": 12,
+      "historyMaxBytes": 1,
+      "historyMaxStack": 100,
+      "retainedControlReleased": true,
+      "replay": {
+        "currentCase": 12,
+        "undoCase": 11,
+        "editorAlive": true
+      },
+      "phases": [
+        {
+          "phase": "before-eviction",
+          "counts": [
+            0,
+            1,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "usedHeapMiB": 14.43,
+          "snapshotMiB": 12.83
+        },
+        {
+          "phase": "after-eviction-with-retained-control",
+          "counts": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 14.51,
+          "snapshotMiB": 12.87
+        },
+        {
+          "phase": "after-releasing-control",
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 14.48,
+          "snapshotMiB": 12.87
+        }
+      ]
+    }
+  }
+}

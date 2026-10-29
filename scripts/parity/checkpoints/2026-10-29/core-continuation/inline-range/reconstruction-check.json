@@ -1,0 +1,38 @@
+{
+  "classification": "Historical decision replay; no production patch is applied to the working checkout",
+  "preparedAt": "2026-10-29T18:45:02.455Z",
+  "output": "/tmp/rector-inline-range-replay-fUb23h",
+  "publishedAnchor": "fcd7fbc4e14372147ecf1f08f75c7016b8c4c3b1",
+  "variants": [
+    {
+      "label": "baseline",
+      "commit": "256cc0436d74040e5c5881a07350a14de7b66a96",
+      "root": "/tmp/rector-inline-range-replay-fUb23h/baseline"
+    },
+    {
+      "label": "candidate",
+      "commit": "10d1ee48a83bd2cf0a29802fd33b6a4aed6518b3",
+      "root": "/tmp/rector-inline-range-replay-fUb23h/candidate"
+    },
+    {
+      "label": "linear",
+      "commit": "ede029cc646f0f528c84e3984797e502bd4e37ec",
+      "root": "/tmp/rector-inline-range-replay-fUb23h/linear"
+    }
+  ],
+  "checkedSourceAndDependencyFiles": 258,
+  "fixtureSha256": "f3e0dbcebe690d7ee627c32ac27c28c9c19aadd663c87f69f11b134a0aea36ff",
+  "recordedRunnerSha256": "5aa08d9097fb9ea0533763a2c744ca6d5dc2751d17388d54c34db1b8dc5c44f5",
+  "replayRunnerSha256": "60d1db526671eeeec1d3bbf53a2cae78facf9c1f87d879f30be04d8b63b4878a",
+  "relocationChanges": [
+    "Playwright module location",
+    "Replay directory and recorded hash input",
+    "Repository location",
+    "Dependency location",
+    "Verify every served module against its recorded SHA-256",
+    "Chromium executable location",
+    "Use the reconstructed dependency lock"
+  ],
+  "browserRequested": false,
+  "browserExecuted": false
+}

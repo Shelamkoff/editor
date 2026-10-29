@@ -1,0 +1,175 @@
+{
+  "classification": "Historical public inline-update comparison and read-only Image alt lifecycle finding; no full-library acceptance claim",
+  "publishedAnchor": "fcd7fbc4e14372147ecf1f08f75c7016b8c4c3b1",
+  "publishedAnchorTree": "21e37d9173e3b309f263632f07785d13e7a50009",
+  "variants": [
+    {
+      "label": "baseline",
+      "commit": "256cc0436d74040e5c5881a07350a14de7b66a96",
+      "tree": "e4b7b5a163358c104f4bae97a424ea03c5d264a4",
+      "patches": [
+        "published-to-baseline.patch"
+      ],
+      "runtimeSha256": "9ee25748687e14a086d4479102ec4ce18291751902e3465b98b0e7f432a78fa7"
+    },
+    {
+      "label": "candidate",
+      "commit": "10d1ee48a83bd2cf0a29802fd33b6a4aed6518b3",
+      "tree": "42a8cb2f2d242f26e41d452cfc3a1b680ea69bac",
+      "patches": [
+        "published-to-baseline.patch",
+        "baseline-to-quadratic.patch"
+      ],
+      "runtimeSha256": "3a84be1803a98e921d2d8b8c34efde30d8aa3c1dd18e20a2bcb204c5a699f257"
+    },
+    {
+      "label": "linear",
+      "commit": "ede029cc646f0f528c84e3984797e502bd4e37ec",
+      "tree": "f2bcb85521af77e75856a52d771999d21c4cd5e7",
+      "patches": [
+        "published-to-baseline.patch",
+        "baseline-to-linear.patch"
+      ],
+      "runtimeSha256": "23524a0844c51a922044e2956dea1616ecc4c2ddc7287643450729793f502595"
+    }
+  ],
+  "originalCommand": {
+    "cwd": "/tmp/rector-image-recovery-20261029",
+    "env": {
+      "RECTOR_INLINE_VARIANTS": "/tmp/rector-inline-payload-benchmark/variants-three.json"
+    },
+    "argv": [
+      "node",
+      "/tmp/rector-inline-payload-benchmark/run.mjs",
+      "/tmp/rector-inline-payload-benchmark/result-linear.json"
+    ]
+  },
+  "originalProvenance": {
+    "startedAt": "2026-10-29T18:30:02.262Z",
+    "finishedAt": "2026-10-29T18:30:10.288Z",
+    "sourceUnchanged": true,
+    "environment": {
+      "node": "v24.22.1",
+      "v8": "13.6.233.17-node.58",
+      "chrome": "142.0.7444.175",
+      "platform": "linux",
+      "architecture": "x64",
+      "osRelease": "6.18.55",
+      "cpuModel": "AMD EPYC 7763 64-Core Processor",
+      "cpuCount": 9,
+      "totalMemoryBytes": 10451439616,
+      "loadBefore": [
+        0.32,
+        0.49,
+        0.55
+      ],
+      "loadAfter": [
+        0.42,
+        0.51,
+        0.56
+      ]
+    },
+    "boundary": "Synchronous public registered InlineWidgetContext.updateData with actual scope, DOM projection, schema/store/history/events; one middle sidecar per update",
+    "excluded": [
+      "editor construction/disposal",
+      "asynchronous MutationObserver/UI work after return",
+      "layout/paint",
+      "native input/IME",
+      "retained memory",
+      "universal timing thresholds"
+    ],
+    "historyMaxStack": 1,
+    "order": "alternate the configured variant list and its reverse for each warmup and measured sample; settle rAF between updates",
+    "warmup": 3,
+    "samples": 9,
+    "sizes": [
+      50,
+      200,
+      800
+    ],
+    "fixtureSha256": "f3e0dbcebe690d7ee627c32ac27c28c9c19aadd663c87f69f11b134a0aea36ff",
+    "runnerSha256": "5aa08d9097fb9ea0533763a2c744ca6d5dc2751d17388d54c34db1b8dc5c44f5",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf"
+  },
+  "allMeasuredSourceHashes": {
+    "path": "result-linear.json",
+    "jsonMember": "files",
+    "count": 258,
+    "sourceModuleCount": 255,
+    "dependencyModuleCount": 3
+  },
+  "replayCommand": [
+    "node",
+    "scripts/parity/checkpoints/2026-10-29/core-continuation/inline-range/replay.mjs"
+  ],
+  "replayRequirements": [
+    "Published anchor Git object",
+    "Node supporting the frozen runner",
+    "Dependency tree whose three served module hashes match the result",
+    "Playwright module configured by RECTOR_INLINE_PLAYWRIGHT or resolvable as playwright",
+    "Chromium executable configured by EDITOR_CHROME_PATH; recorded version142.0.7444.175"
+  ],
+  "replaySourcePolicy": "Reconstruct only the measured modules plus dependency metadata in fresh temporary directories. Apply frozen patches there, compare every recorded module hash and every lockfile. Never patch the working checkout. Historical local candidate Git objects are not required.",
+  "replayChanges": [
+    "Environment paths/import locations",
+    "Git-object byte verification replaced with exact recorded SHA-256 verification for all served modules",
+    "Reconstructed lockfile path"
+  ],
+  "readOnlyAltAudit": {
+    "sourceCommit": "ede029cc646f0f528c84e3984797e502bd4e37ec",
+    "sourceHashes": {
+      "plugins/image/index.js": "d17abc5f10a8db59d97da04ef978dd2e8ef1f5eda974438789b49f75488496e5",
+      "core/BlockReconciler.js": "2b23824d557ea3c269c52f31cf0eacaee614dfa941a89d27ec3ce9705ebe35a1",
+      "core/InlineProjectionRuntime.js": "23524a0844c51a922044e2956dea1616ecc4c2ddc7287643450729793f502595",
+      "core/InstanceScope.js": "1a2484764712b96ca9b6dc62691095f3595bb82cf349ce71689f7cc8df0e6f9b",
+      "core/ExtensionRegistry.js": "384271a88d76114fc20826608752d03455e864ad112d11e417f5dc421d4ea824",
+      "shared/snapshotDataSchema.js": "9f352791fcb65983403c0c147bfbedc79dab2f84531bde0cb3ddc31cdf0025f0",
+      "shared/cloneEditorData.js": "529f335cc5c583434375043f96041fb072e481ef74500e3c6fe7db838b171fb2",
+      "plugin-kit/types.d.ts": "499e5bc492b3dfd32d3bd537c39f800f1d2be57ff5f4dfbb909c7cc3d4128aff"
+    },
+    "peer": "v1_parity_audit; independent read-only review, no new browser claim",
+    "conclusion": "No settled block post-hydration notification or exact editor-boundary admission is exposed. Image derived-alt parity remains OPEN; no production workaround/new API added.",
+    "historicalImage10": {
+      "sourceCommit": "10d1ee48a83bd2cf0a29802fd33b6a4aed6518b3",
+      "fixtureSha256": "b73a0b9924144225fcdbc8d0e12389edc79c66da06aa14bee6eecae0d48a784a",
+      "traceSha256": "fcb9b5c9948ab3d654c9f90d2713c2dade0d6c25103141b4bc42a8ecf73c8658",
+      "passed": 5,
+      "failed": 5,
+      "notRerunOnLinear": true
+    }
+  },
+  "limits": [
+    "No performance threshold or general editor SLA",
+    "No native input, paint/layout, asynchronous UI or retained-heap measurement",
+    "Single Paragraph field with synthetic registered widgets; actual public scope/schema/store/history/events/DOM path",
+    "Historical evidence does not accept final combined integration",
+    "No Image derived-alt fix or complete Image parity"
+  ],
+  "artifactHashes": {
+    "IMAGE-ALT-SEAM.md": "fb2cc99e67bd09eb5585708b027d1bd727dd415857da42cd95172b0ed790b900",
+    "README.md": "40d9bc7bbbe6e44cc93a36e26ceef388213486352bf3107f14d7fb386036b47b",
+    "baseline-to-linear.patch": "bcafc23c77a87783c2c55bbc78816d4fd6c7baaee47837f68ab21ada81087e92",
+    "baseline-to-quadratic.patch": "471039bb77f15a87983c79287b79efb8b4fdcf07ad7e07cacd0d9e8d62b18ffa",
+    "fixture.js": "f3e0dbcebe690d7ee627c32ac27c28c9c19aadd663c87f69f11b134a0aea36ff",
+    "published-to-baseline.patch": "e78dc898a2dd7dcb2d82e1faaff1acda3e04892250c0ba78122a277e43e6c772",
+    "reconstruction-check.json": "139b03d3c239f5bec048034ee27732340ca01cce31a17cf752339cdda1d87a03",
+    "recorded-runner.mjs": "5aa08d9097fb9ea0533763a2c744ca6d5dc2751d17388d54c34db1b8dc5c44f5",
+    "recorded-variants.json": "89c4d86ef4be91ddd5b043b701ffadc28710633139e35059573c96e4e901f49f",
+    "replay.mjs": "80801b1323a712e3dcc05890deeea76706f8d6cfb4c3b905de17834c30cfec39",
+    "result-linear.json": "1661a7ef1b89b6213093150a4eac3bdb95a6f1e5996d942b99c3334b69dc80f7"
+  },
+  "archiveValidation": {
+    "outcome": "passed",
+    "argv": [
+      "node",
+      "scripts/parity/checkpoints/2026-10-29/core-continuation/inline-range/replay.mjs",
+      "--prepare-only"
+    ],
+    "record": "reconstruction-check.json",
+    "checkedSourceAndDependencyFiles": 258,
+    "checkedLockfiles": 3,
+    "relocatedRunnerSyntax": "passed",
+    "browserExecuted": false,
+    "note": "Final archival reconstruction only; original measured comparison was not rerun."
+  }
+}
