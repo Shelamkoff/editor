@@ -114,7 +114,7 @@ export function createScriptTool(labels) {
 
       panel.appendChild(createBackButton(ctx))
 
-      const current = getCurrentScript(cbs?.range || ctx.range, doc)
+      const current = getCurrentScript(initialRange, doc)
 
       for (const mode of modes) {
         const btn = doc.createElement('button')
@@ -130,30 +130,27 @@ export function createScriptTool(labels) {
         btn.addEventListener('click', (e) => {
           e.preventDefault()
           e.stopPropagation()
-          const currentRange = ctx.range
-          const bookmark = currentRange ? cbs.capture(currentRange) : null
-          if (!bookmark) return
-
-          let applied = false
-          ctx.mutate(range => {
+          // The action panel owns a separate selection continuation. Its
+          // mounted-button port may already be retired while the panel lives.
+          const applied = ctx.mutate(range => {
             // Remove the old wrappers, then reconstruct this same logical
             // author selection before potentially wrapping it with a new mode.
             removeAllScriptTags(range)
-            if (!cbs.restore(bookmark)) {
+            if (!ctx.restoreSelection()) {
               throw new Error('Formatting selection became unavailable after removing script tags')
             }
 
             if (mode.tag && mode.key !== current) {
-              const resolved = cbs.range
+              const resolved = ctx.range
               if (!resolved) throw new Error('Script formatting selection is unavailable')
               toggleTag(mode.tag, resolved)
-              if (!cbs.restore(bookmark)) {
+              if (!ctx.restoreSelection()) {
                 throw new Error('Formatting selection became unavailable after applying script')
               }
             }
-            applied = true
+            return true
           })
-          if (applied) ctx.close()
+          if (applied === true) ctx.close()
         })
         panel.appendChild(btn)
       }
