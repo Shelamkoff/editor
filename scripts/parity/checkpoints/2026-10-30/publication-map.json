@@ -1,0 +1,121 @@
+{
+  "format": 1,
+  "repository": "Shelamkoff/editor",
+  "branch": "refactor/rector-v2-architecture",
+  "base": "a7d0dcecb927fa8166a149b05a5428ffb7d5b4d6",
+  "verifiedThrough": "86e4a1f4e3edeb8ee2f1ca9c8fd29c317a1c417d",
+  "verifiedAt": "2026-10-29T22:49:20.956Z",
+  "reason": "Git CLI could read but had no push credentials. The authorized GitHub connector published all ten local commits in order, preserving each complete Git tree.",
+  "commits": [
+    {
+      "original": "8acb1ee1e352987a5ac5fe397ffdb87c95388e76",
+      "published": "4c2433a7a7abc06f9b025150e474735bfa9b6b80",
+      "tree": "443aff095a5e26179641c353ee5d9748ee6e5f69",
+      "originalParents": [
+        "a7d0dcecb927fa8166a149b05a5428ffb7d5b4d6"
+      ],
+      "publishedParents": [
+        "a7d0dcecb927fa8166a149b05a5428ffb7d5b4d6"
+      ]
+    },
+    {
+      "original": "9dbd297cfa3aadffa9eb762d1e1802037c9c1ead",
+      "published": "03c134f467b6587661c1336dbb243ff60d971c14",
+      "tree": "30c6cd9ed3ffd9b5eabed19eee7a4a227305b430",
+      "originalParents": [
+        "8acb1ee1e352987a5ac5fe397ffdb87c95388e76"
+      ],
+      "publishedParents": [
+        "4c2433a7a7abc06f9b025150e474735bfa9b6b80"
+      ]
+    },
+    {
+      "original": "6e14c96f1f435e8c75936b40162fdd9476e13420",
+      "published": "2dbd055e732fd1546a145ec0fe39b08c97218415",
+      "tree": "8f649f728450d3b410b2bf30e48974313407ebfe",
+      "originalParents": [
+        "9dbd297cfa3aadffa9eb762d1e1802037c9c1ead"
+      ],
+      "publishedParents": [
+        "03c134f467b6587661c1336dbb243ff60d971c14"
+      ]
+    },
+    {
+      "original": "8207fe0695302bbc8eb7656f6c4303eb5ae5cb5e",
+      "published": "7701de08886a2eae97834345ce9a626960c6ddbe",
+      "tree": "b87dee5a324e2a371fc0349ccee27377c32d4083",
+      "originalParents": [
+        "6e14c96f1f435e8c75936b40162fdd9476e13420"
+      ],
+      "publishedParents": [
+        "2dbd055e732fd1546a145ec0fe39b08c97218415"
+      ]
+    },
+    {
+      "original": "936bf0a77218bbd46e7706744ad3a360ecf6af18",
+      "published": "5b2137e62edbabda9e3dea30fca0ae4b095f207c",
+      "tree": "3313bba377987994decca313f54df48c0d9ad778",
+      "originalParents": [
+        "8207fe0695302bbc8eb7656f6c4303eb5ae5cb5e"
+      ],
+      "publishedParents": [
+        "7701de08886a2eae97834345ce9a626960c6ddbe"
+      ]
+    },
+    {
+      "original": "208ed118d113ee8ce73e295f0b18dae9163ddcd3",
+      "published": "f5a1f19997d179bc3c6d3be9098ac4645d47fd5b",
+      "tree": "5cdb993acb2f012288b61801941e5e86ebf3f0ef",
+      "originalParents": [
+        "936bf0a77218bbd46e7706744ad3a360ecf6af18"
+      ],
+      "publishedParents": [
+        "5b2137e62edbabda9e3dea30fca0ae4b095f207c"
+      ]
+    },
+    {
+      "original": "0b1c75563cf1c032c38f9a749448070e9e2152fd",
+      "published": "64565765eb002e5dfdcff7f27313c29bb5a88efe",
+      "tree": "b229bef26822759eccb0239a0f978c7c2532e364",
+      "originalParents": [
+        "208ed118d113ee8ce73e295f0b18dae9163ddcd3"
+      ],
+      "publishedParents": [
+        "f5a1f19997d179bc3c6d3be9098ac4645d47fd5b"
+      ]
+    },
+    {
+      "original": "2eb61a0a2d0483fca08fefeca658c3ac6876a452",
+      "published": "cad545d5c6e8e7e5da0806120a4e1e0aec465770",
+      "tree": "4cdb4c0f09445bc7e361e9c120d9217e961a2f53",
+      "originalParents": [
+        "0b1c75563cf1c032c38f9a749448070e9e2152fd"
+      ],
+      "publishedParents": [
+        "64565765eb002e5dfdcff7f27313c29bb5a88efe"
+      ]
+    },
+    {
+      "original": "14c9d03c016c5141940e7b9727adb0eee93a8381",
+      "published": "137644ca3645b76acd8d23872d2e54a4e665596e",
+      "tree": "56618cf55ff8a73c95fab3f4b541cb8a53a7c02f",
+      "originalParents": [
+        "2eb61a0a2d0483fca08fefeca658c3ac6876a452"
+      ],
+      "publishedParents": [
+        "cad545d5c6e8e7e5da0806120a4e1e0aec465770"
+      ]
+    },
+    {
+      "original": "1547de28ee66498d649555d69e212b58be7fcf31",
+      "published": "86e4a1f4e3edeb8ee2f1ca9c8fd29c317a1c417d",
+      "tree": "45a3caa66988edd6f1ed8acc8d4150eec220a864",
+      "originalParents": [
+        "14c9d03c016c5141940e7b9727adb0eee93a8381"
+      ],
+      "publishedParents": [
+        "137644ca3645b76acd8d23872d2e54a4e665596e"
+      ]
+    }
+  ]
+}

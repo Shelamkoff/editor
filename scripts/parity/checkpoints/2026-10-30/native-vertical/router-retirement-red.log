@@ -1,0 +1,215 @@
+✔ Enter delegates an editable split to one runtime transaction (5.709366ms)
+✔ ArrowUp from block start focuses the previous block last editable field (0.751621ms)
+✔ Backspace at field start merges with the preceding block (0.855525ms)
+✔ Delete at field end merges the following block (0.532022ms)
+✔ Ctrl/Meta Z, Shift+Z and Y route exclusively through canonical history (0.906971ms)
+✔ already handled plugin keydown events never execute generic structural logic (0.332971ms)
+✔ auxiliary controls keep native history ownership; editor chrome owns document history (1.386035ms)
+✔ keyboard split focus is revoked across a read-only round trip without a document change (0.532754ms)
+✔ keyboard split still gives the new block focus with unchanged author and mode ownership (0.698302ms)
+✔ queued keyboard split never overwrites a later user caret inside the new block (0.636667ms)
+✔ failed empty-block eligibility consumes Enter without native or history fallback (0.568199ms)
+✔ failed empty-block eligibility consumes Backspace without native or history fallback (0.247572ms)
+✔ failed empty-block eligibility consumes Delete without native or history fallback (0.258092ms)
+✔ retired KeyboardRouter ignores captured editor shortcuts and does not intercept native keys (0.151242ms)
+✔ retired KeyboardRouter public structural entry points cannot modify document (0.273059ms)
+✔ undo publication that destroys its keyboard owner does not reconcile retired UI (0.179384ms)
+✔ split keeps a committed block operation but skips UI after synchronous owner teardown (0.286234ms)
+✔ exit keeps a committed block operation but skips UI after synchronous owner teardown (0.141945ms)
+✔ appendDefault does not focus a destroyed editor after a successful insertion (0.282336ms)
+✔ Backspace canonical merge does not reconcile after commit observer destroys editor (0.449578ms)
+✔ Delete canonical merge does not reconcile after commit observer destroys editor (0.154759ms)
+✔ block shortcut commit observer teardown cannot reconcile a detached view (0.346326ms)
+✔ cancelled shortcut preparation cannot fall through to another structural command (0.271175ms)
+✔ typed inline color before Space replaces exactly the preceding word and suppresses native space (0.985258ms)
+✔ typed inline color before Enter wins over block split without appending a newline (0.286284ms)
+✔ unmatched typed word leaves Space native and Enter with the normal split handler (0.565986ms)
+✔ typed matcher never receives text from selected ranges or inline widget labels (0.829917ms)
+✔ typed pattern conversion does not hijack control shortcuts or non-text native selection (0.505994ms)
+✔ typed word recognition respects the last ordinary or nonbreaking space in its text node (0.671292ms)
+✔ a failing typed pattern consumes Enter without a partial model split (0.500483ms)
+✔ typed inline pattern retains v1 Shift+Enter recognition without a native line break (0.349501ms)
+✔ retired typed-pattern owner never consumes a key after destroy (0.231191ms)
+✔ retired typed-pattern owner never consumes a key after throw (0.16088ms)
+✔ typed-pattern callback mode epoch change cannot fall through into Enter structural edit (0.32131ms)
+✔ an input-mode round trip during shortcut snapshot cannot replay old keyboard history (0.308034ms)
+✔ Ctrl+A cannot select all after its selection reader destroys the keyboard owner (0.251369ms)
+✔ Ctrl+A cannot overwrite a newer mode decision made during selection capture (0.189393ms)
+✔ failed inline-toolbar shortcut cannot replay history after its callback replaces edit mode (0.404515ms)
+✔ shortcut selection capture that destroys the owner cannot dispatch a canonical edit (0.427126ms)
+✔ appendDefault does not touch a retired view after cross-selection cleanup destroys the router (0.347097ms)
+✔ undo reconciliation teardown does not focus an already retired keyboard root (0.22547ms)
+✔ arrow navigation never focuses a block after setCurrent publishes a newer author choice (0.404705ms)
+✔ Shift+ArrowUp dismisses the floating toolbar before native vertical selection (0.566887ms)
+✔ Shift+ArrowDown dismisses the floating toolbar before native vertical selection (0.11229ms)
+✖ vertical navigation yields a stale key when toolbar dismissal causes document revision (1.717102ms)
+✖ vertical navigation yields a stale key when toolbar dismissal causes document replacement (0.522465ms)
+✔ vertical navigation yields a stale key when toolbar dismissal causes mode round trip (0.161081ms)
+✔ vertical navigation yields a stale key when toolbar dismissal causes owner destruction (0.146423ms)
+✖ vertical navigation yields a stale key when toolbar dismissal causes foreign active focus (1.087749ms)
+✖ vertical navigation yields a stale key when toolbar dismissal causes new native range (0.405686ms)
+✖ vertical navigation yields a stale key when toolbar dismissal causes replaced native endpoint (1.83913ms)
+✖ vertical navigation yields a stale key when toolbar dismissal causes replaced mounted author field (0.351686ms)
+✔ vertical selection still works without an optional floating toolbar (0.199622ms)
+✔ Shift+Home does not dismiss unrelated toolbar presentation (0.301863ms)
+✔ Shift+End does not dismiss unrelated toolbar presentation (0.180326ms)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 49
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.640704
+
+✖ failing tests:
+
+test at core/KeyboardRouter.test.js:806:3
+✖ vertical navigation yields a stale key when toolbar dismissal causes document revision (1.717102ms)
+  AssertionError [ERR_ASSERTION]: retired key still changed the directed author range
+  + actual - expected
+  
+    [
+      'hide',
+  +   'extend'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:819:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at core/KeyboardRouter.test.js:806:3
+✖ vertical navigation yields a stale key when toolbar dismissal causes document replacement (0.522465ms)
+  AssertionError [ERR_ASSERTION]: retired key still changed the directed author range
+  + actual - expected
+  
+    [
+      'hide',
+  +   'extend'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:819:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at core/KeyboardRouter.test.js:806:3
+✖ vertical navigation yields a stale key when toolbar dismissal causes foreign active focus (1.087749ms)
+  AssertionError [ERR_ASSERTION]: retired key still changed the directed author range
+  + actual - expected
+  
+    [
+      'hide',
+  +   'extend'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:819:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at core/KeyboardRouter.test.js:806:3
+✖ vertical navigation yields a stale key when toolbar dismissal causes new native range (0.405686ms)
+  AssertionError [ERR_ASSERTION]: retired key still changed the directed author range
+  + actual - expected
+  
+    [
+      'hide',
+  +   'extend'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:819:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at core/KeyboardRouter.test.js:806:3
+✖ vertical navigation yields a stale key when toolbar dismissal causes replaced native endpoint (1.83913ms)
+  AssertionError [ERR_ASSERTION]: retired key still changed the directed author range
+  + actual - expected
+  
+    [
+      'hide',
+  +   'extend'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:819:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at core/KeyboardRouter.test.js:806:3
+✖ vertical navigation yields a stale key when toolbar dismissal causes replaced mounted author field (0.351686ms)
+  AssertionError [ERR_ASSERTION]: retired key still changed the directed author range
+  + actual - expected
+  
+    [
+      'hide',
+  +   'extend'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:819:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

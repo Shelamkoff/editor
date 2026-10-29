@@ -179,6 +179,10 @@ export class KeyboardRouter {
       event.preventDefault?.()
       return
     }
+    if (keys.shiftKey && (key === 'ArrowUp' || key === 'ArrowDown')
+      && ownership.owner.mode === 'rich-text' && this.#crossSelection) {
+      if (!this.#hideToolbarForVerticalSelection(ownership.owner) || !stillOwnKey()) return
+    }
     if (keys.shiftKey && ['ArrowUp','ArrowDown','Home','End'].includes(key)
       && this.#crossSelection?.extend(
         key === 'ArrowUp' || key === 'Home' ? 'backward' : 'forward',
@@ -477,6 +481,36 @@ export class KeyboardRouter {
     }
     if(result.focus)this.#restoreShortcutFocus(result.focus)
     return result.handled
+  }
+
+  #hideToolbarForVerticalSelection(owner) {
+    if (!this.#inlineToolbar) return true
+    const document = this.#root.ownerDocument
+    const generation = this.#runtime.generation, revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch, active = document.activeElement
+    const native = document.defaultView?.getSelection?.()
+    const anchorNode = native?.anchorNode, anchorOffset = native?.anchorOffset
+    const focusNode = native?.focusNode, focusOffset = native?.focusOffset
+    const bookmark = this.#selection.capture()
+    if (!bookmark || !anchorNode || !focusNode) return false
+    const points = [bookmark.anchor, bookmark.focus]
+    const fields = points.map(point => this.#reconciler.getEditableField(point.blockId, point.fieldKey)?.element)
+    if (fields.some(field => !field)) return false
+    const ownsState = () => this.#canPresent()
+      && this.#runtime.generation === generation && this.#runtime.revision === revision
+      && this.#runtime.modeEpoch === modeEpoch && document.activeElement === active
+      && native.anchorNode === anchorNode && native.anchorOffset === anchorOffset
+      && native.focusNode === focusNode && native.focusOffset === focusOffset
+    const ownsFields = () => this.#reconciler.getEditableField(owner.blockId, owner.fieldKey)?.element === owner.element
+      && points.every((point, index) => this.#reconciler.getEditableField(point.blockId, point.fieldKey)?.element === fields[index])
+    if (!ownsState() || !ownsFields() || !ownsState()) return false
+    // The floating toolbar can cover the target text line. Dismiss it before
+    // native hit testing; action-panel teardown can synchronously replace the
+    // document, mounted field, focus or range, so the old key must be rechecked.
+    this.#inlineToolbar.hide()
+    return ownsState()
+      && sameLogicalSelection(bookmark, this.#selection.capture())
+      && ownsFields() && ownsState()
   }
 
   #canPresent() {

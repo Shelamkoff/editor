@@ -1,0 +1,16 @@
+file:///workspace/scratch/40cb45010ec4/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Shift navigation ArrowUp preserves cross-host intent and native endpoints",
+    "status": "FAIL",
+    "error": "Error: \nexpected 2, got 5\n    at equal (http://127.0.0.1:37415/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:37415/tests/browser/native-cross-selection.js:385:5\n    at async run (http://127.0.0.1:37415/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:37415/tests/browser/native-cross-selection.js:472:1"
+  }
+]
+    at waitForHistoryMatrix (file:///workspace/scratch/40cb45010ec4/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///workspace/scratch/40cb45010ec4/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///workspace/scratch/40cb45010ec4/editor/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

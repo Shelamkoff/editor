@@ -1,0 +1,2 @@
+Native native-cross-selection.html: 1 passed
+{"native-cross-selection.html":[{"name":"Shift navigation ArrowUp preserves cross-host intent and native endpoints","status":"PASS"}]}

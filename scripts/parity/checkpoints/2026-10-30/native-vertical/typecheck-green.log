@@ -1,0 +1,5 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @shelamkoff/rector@2.0.0 typecheck
+> node node_modules/typescript/bin/tsc -p jsconfig.json && node node_modules/typescript/bin/tsc -p jsconfig.runtime.json
+

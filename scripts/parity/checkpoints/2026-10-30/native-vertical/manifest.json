@@ -1,0 +1,114 @@
+{
+  "baseHead": "1547de28ee66498d649555d69e212b58be7fcf31",
+  "scope": "Vertical native cross-host selection and toolbar teardown ownership; bounded regression evidence only",
+  "node": "24.22.1",
+  "browsers": [
+    "142.0.7444.175",
+    "156.0.8078.47"
+  ],
+  "sourceFiles": [
+    {
+      "path": "core/KeyboardRouter.js",
+      "sha256": "796417ff4453c45d30147d86ac80a7a0828666c678bc0c943f003e03d4062276"
+    },
+    {
+      "path": "core/KeyboardRouter.test.js",
+      "sha256": "e573dadf43a98a80b9ca184dce56bb46432ad5b9dc07aa3d6c54a410d1d712f7"
+    },
+    {
+      "path": "tests/browser/native-cross-selection.js",
+      "sha256": "1297f00129ec1c427af1e4d49492b1e24dc58de5a6534b4d511e49e12c774263"
+    }
+  ],
+  "results": {
+    "routerDismissalRed": {
+      "pass": 42,
+      "fail": 2
+    },
+    "routerDismissalGreen": {
+      "pass": 44,
+      "fail": 0
+    },
+    "routerRetirementRed": {
+      "pass": 49,
+      "fail": 6
+    },
+    "routerRetirementGreen": {
+      "pass": 55,
+      "fail": 0
+    },
+    "nativeUpRed": {
+      "pass": 0,
+      "fail": 1,
+      "expectedOffset": 2,
+      "actualOffset": 5
+    },
+    "nativeNoGuardNegativeControl": {
+      "pass": 0,
+      "fail": 2
+    },
+    "nativeChrome142": {
+      "pass": 42,
+      "fail": 0
+    },
+    "nativeChrome156": {
+      "pass": 42,
+      "fail": 0
+    },
+    "selectionUnits": {
+      "pass": 138,
+      "fail": 0
+    },
+    "typecheck": "pass"
+  },
+  "logs": [
+    {
+      "path": "router-dismissal-red.log",
+      "sha256": "6e8af710d6bb05b9cfbd60fabc83acae5106ab94880f4b27c86624edc29e6820"
+    },
+    {
+      "path": "router-dismissal-green.log",
+      "sha256": "1139408eae3e6f51f3b0056102846fc5ff5dc441fae5b45449acae7fb82bbd8d"
+    },
+    {
+      "path": "router-retirement-red.log",
+      "sha256": "e32c6355df3f45935e3738e88b4fb36b0dec962eb05132783868e9d3f0818e8f"
+    },
+    {
+      "path": "router-retirement-green.log",
+      "sha256": "3cc4ad9d5b1df08acf73a559162e98e1566c74a0bf6e0b7b7d2d9d1906ab5100"
+    },
+    {
+      "path": "native-up-red-chrome156.log",
+      "sha256": "5dba58d444eefeeba8ac1b1405e9f038f83dfdc07d1dfec202ae969576c61a4d"
+    },
+    {
+      "path": "native-up-green-chrome156.log",
+      "sha256": "35d2716487ab50b97d09ece7411ad26e0dad5b4394db8368f3fb4d27707189e5"
+    },
+    {
+      "path": "native-panel-green-chrome156.log",
+      "sha256": "e101f5d293264304c7b7ba4d9140d51413ea2e013e78adce601640b405f40d04"
+    },
+    {
+      "path": "native-no-guard-negative-control.log",
+      "sha256": "9e75e498eff9557dd549a0d8bf5defa41c25e995adadf7ae107251cea9f462bc"
+    },
+    {
+      "path": "native-final-chrome142.log",
+      "sha256": "23412f99b3440a4d4adc5053c42d69638dc1e189024deecdb0f2e65fca7e47b1"
+    },
+    {
+      "path": "native-final-chrome156.log",
+      "sha256": "23412f99b3440a4d4adc5053c42d69638dc1e189024deecdb0f2e65fca7e47b1"
+    },
+    {
+      "path": "selection-units-green.log",
+      "sha256": "b9c8b62e3f11bfa86a935fe95797ff3e892b7332408c184fdf4410ecd55dcb14"
+    },
+    {
+      "path": "typecheck-green.log",
+      "sha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    }
+  ]
+}

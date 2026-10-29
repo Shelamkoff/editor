@@ -1,0 +1,2 @@
+Native native-cross-selection.html: 2 passed
+{"native-cross-selection.html":[{"name":"native vertical selection yields to foreign focus from public action-panel teardown","status":"PASS"},{"name":"native vertical selection yields to unrelated document revision from public action-panel teardown","status":"PASS"}]}

@@ -767,3 +767,87 @@ test('arrow navigation never focuses a block after setCurrent publishes a newer 
     h.router.destroy()
   }
 })
+
+
+for (const key of ['ArrowUp', 'ArrowDown']) {
+  test(`Shift+${key} dismisses the floating toolbar before native vertical selection`, () => {
+    const calls = []
+    const h = harness({
+      inlineToolbar: { hide() { calls.push('hide') } },
+      crossSelection: {
+        active: true,
+        extend(direction, granularity) { calls.push([direction, granularity]); return true },
+      },
+    })
+    h.owner.mode = 'rich-text'
+    h.root.ownerDocument.activeElement = h.field
+    const native = { anchorNode: h.field, anchorOffset: 0, focusNode: h.field, focusOffset: 1 }
+    h.root.ownerDocument.defaultView.getSelection = () => native
+    const event = h.event(key, { shiftKey: true })
+    h.router.handleKeydown(event)
+    assert.deepEqual(calls, ['hide', [key === 'ArrowUp' ? 'backward' : 'forward', 'line']])
+    assert.equal(event.prevented, true)
+    h.router.destroy()
+  })
+}
+
+for (const [name, retire] of [
+  ['document revision', h => { h.runtime.revision++ }],
+  ['document replacement', h => { h.runtime.generation++ }],
+  ['mode round trip', h => { h.runtime.modeEpoch += 2 }],
+  ['owner destruction', h => { h.router.destroy() }],
+  ['foreign active focus', h => { h.root.ownerDocument.activeElement = {} }],
+  ['new native range', (_h, native) => { native.focusOffset = 2 }],
+  ['replaced native endpoint', (_h, native) => { native.anchorNode = {} }],
+  ['replaced mounted author field', h => {
+    h.reconciler.getEditableField = () => ({ ...h.owner, element: {} })
+  }],
+]) {
+  test(`vertical navigation yields a stale key when toolbar dismissal causes ${name}`, () => {
+    const calls = []
+    let h, native
+    h = harness({
+      inlineToolbar: { hide() { calls.push('hide'); retire(h, native) } },
+      crossSelection: { active: true, extend() { calls.push('extend'); return true } },
+    })
+    h.owner.mode = 'rich-text'
+    h.root.ownerDocument.activeElement = h.field
+    native = { anchorNode: h.field, anchorOffset: 0, focusNode: h.field, focusOffset: 1 }
+    h.root.ownerDocument.defaultView.getSelection = () => native
+    const event = h.event('ArrowUp', { shiftKey: true })
+    h.router.handleKeydown(event)
+    assert.deepEqual(calls, ['hide'], 'retired key still changed the directed author range')
+    assert.equal(event.prevented, false, 'retired key consumed a newer native interaction')
+    assert.deepEqual(h.calls, [], 'retired navigation changed canonical document/history')
+    h.router.destroy()
+  })
+}
+
+test('vertical selection still works without an optional floating toolbar', () => {
+  const calls = []
+  const h = harness({ crossSelection: {
+    active: true, extend(...args) { calls.push(args); return true },
+  } })
+  h.owner.mode = 'rich-text'
+  const event = h.event('ArrowDown', { shiftKey: true })
+  h.router.handleKeydown(event)
+  assert.deepEqual(calls, [['forward', 'line']])
+  assert.equal(event.prevented, true)
+  h.router.destroy()
+})
+
+for (const key of ['Home', 'End']) {
+  test(`Shift+${key} does not dismiss unrelated toolbar presentation`, () => {
+    const calls = []
+    const h = harness({
+      inlineToolbar: { hide() { calls.push('hide') } },
+      crossSelection: { active: true, extend(...args) { calls.push(args); return true } },
+    })
+    h.owner.mode = 'rich-text'
+    const event = h.event(key, { shiftKey: true })
+    h.router.handleKeydown(event)
+    assert.deepEqual(calls, [[key === 'Home' ? 'backward' : 'forward', 'lineboundary']])
+    assert.equal(event.prevented, true)
+    h.router.destroy()
+  })
+}

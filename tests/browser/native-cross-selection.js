@@ -16,6 +16,52 @@ function mount(blocks = demo.ru) {
   })
 }
 
+
+// Predict the destination column with an independent, plain native text host.
+// A rounded mouse coordinate is not the current keyboard caret column, and the
+// real destination may be covered by the editor's floating toolbar before the key.
+function verticalTargetOffset(editor, fieldId) {
+  const selection = window.getSelection(), origin = editableField(editor, 'b')
+  assert(origin.contains(selection.focusNode), 'Vertical navigation must start in the middle field')
+  equal(getTextOffset(origin, selection.focusNode, selection.focusOffset), 2)
+  const caret = document.createRange()
+  caret.setStart(selection.focusNode, selection.focusOffset)
+  caret.collapse(true)
+  const x = caret.getBoundingClientRect().left
+  const destination = editableField(editor, fieldId), style = getComputedStyle(destination)
+  const bounds = destination.getBoundingClientRect(), text = document.createRange()
+  text.selectNodeContents(destination)
+  equal(text.getClientRects().length, 1, 'Vertical fixture must expose one plain text line')
+  const line = text.getBoundingClientRect()
+  const reference = document.createElement('div')
+  reference.contentEditable = 'true'
+  reference.textContent = destination.textContent
+  reference.style.cssText = `position:fixed;left:${bounds.left}px;top:${innerHeight - 60}px;width:${bounds.width}px;margin:0;padding:0;font:${style.font};white-space:${style.whiteSpace};letter-spacing:${style.letterSpacing};text-indent:${style.textIndent};z-index:2147483647`
+  const before = { anchorNode: selection.anchorNode, anchorOffset: selection.anchorOffset,
+    focusNode: selection.focusNode, focusOffset: selection.focusOffset, active: document.activeElement }
+  let offset
+  document.body.append(reference)
+  try {
+    const referenceText = document.createRange()
+    referenceText.selectNodeContents(reference)
+    const referenceLine = referenceText.getBoundingClientRect()
+    equal(referenceLine.left, line.left, 'Native reference changed the destination text origin')
+    equal(referenceLine.width, line.width, 'Native reference changed text metrics')
+    const y = referenceLine.top + referenceLine.height / 2
+    const position = document.caretPositionFromPoint?.(x, y)
+    const range = position ? null : document.caretRangeFromPoint(x, y)
+    const node = position?.offsetNode ?? range?.startContainer
+    assert(node === reference.firstChild, 'Native reference did not own the predicted text caret')
+    offset = position?.offset ?? range.startOffset
+  } finally { reference.remove() }
+  equal(selection.anchorNode, before.anchorNode, 'Reference changed the native selection anchor')
+  equal(selection.anchorOffset, before.anchorOffset)
+  equal(selection.focusNode, before.focusNode, 'Reference changed the native selection focus')
+  equal(selection.focusOffset, before.focusOffset)
+  equal(document.activeElement, before.active, 'Reference stole author focus')
+  return offset
+}
+
 test('mixed demo drag shows a visible highlight through Heading, widgets, List and both Quote fields', async () => {
   const editor = mount()
   const before = editor.save().blocks
@@ -330,11 +376,7 @@ for(const [key,code,keyCode,modifiers,anchorId,anchorOffset,focusId,focusOffset]
     await dragAcross(editor,editableField(editor,key==='ArrowUp'?'b':'a'),2,editableField(editor,key==='ArrowUp'?'c':'b'),key==='ArrowDown'?2:3,key==='ArrowUp')
     let expectedFocus=focusOffset
     if(key==='ArrowUp'||key==='ArrowDown'){
-      const origin=pointAt(editableField(editor,'b'),2)
-      const destination=pointAt(editableField(editor,focusId),2)
-      const position=document.caretPositionFromPoint?.(origin.clientX-0.1,destination.clientY)
-      const range=position?null:document.caretRangeFromPoint(origin.clientX-0.1,destination.clientY)
-      expectedFocus=getTextOffset(editableField(editor,focusId),position?.offsetNode??range.startContainer,position?.offset??range.startOffset)
+      expectedFocus=verticalTargetOffset(editor,focusId)
     }
     await dispatchKey(key,code,keyCode,modifiers)
     const selection=window.getSelection(),anchor=editableField(editor,anchorId),focus=editableField(editor,focusId)
@@ -406,4 +448,103 @@ for (const { shift, backwards, widgetFirst } of [
     equal(editor.canRedo, false)
   })
 }
+
+for (const shift of [0, 0.25, 0.5, 0.75]) {
+  test(`Shift vertical navigation at ${shift}px keeps the caret column across a fractional indent`, async () => {
+    const editor = mount([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie')])
+    editorRoot(editor).style.transform = `translateX(${shift}px)`
+    const destination = editableField(editor, 'c')
+    destination.style.textIndent = '1.5px'
+    const before = editor.save().blocks
+    await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 2)
+    const expectedFocus = verticalTargetOffset(editor, 'c')
+    await dispatchKey('ArrowDown', 'ArrowDown', 40, 8)
+    const selection = window.getSelection(), anchor = editableField(editor, 'a')
+    assert(anchor.contains(selection.anchorNode) && destination.contains(selection.focusNode),
+      'Vertical navigation lost its directed editing hosts')
+    equal(getTextOffset(anchor, selection.anchorNode, selection.anchorOffset), 2)
+    equal(getTextOffset(destination, selection.focusNode, selection.focusOffset), expectedFocus)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  })
+}
+
+
+const verticalPanelTag = 'rector-vertical-dismissal-probe'
+if (!customElements.get(verticalPanelTag)) customElements.define(verticalPanelTag, class extends HTMLElement {
+  disconnectedCallback() { this.onDismiss?.() }
+})
+
+for (const retirement of ['foreign focus', 'unrelated document revision']) {
+  test(`native vertical selection yields to ${retirement} from public action-panel teardown`, async () => {
+    let panel
+    const tool = {
+      type: 'verticalDismissal', title: 'Vertical dismissal', icon: 'V',
+      isActive() { return false }, toggle() {},
+      renderActions() {
+        panel = document.createElement(verticalPanelTag)
+        panel.textContent = 'Action panel'
+        return panel
+      },
+    }
+    const editor = make([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie')], {
+      injectStyles: true, inlineTools: [tool],
+    })
+    const foreign = document.createElement('textarea')
+    foreign.value = 'Foreign control'
+    document.body.append(foreign)
+    const before = editor.save().blocks
+    await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 2)
+    await clickNative(editorRoot(editor).querySelector('[data-tool="verticalDismissal"]'))
+    assert(panel?.isConnected, 'Public action panel did not remain mounted for the key')
+    const active = document.activeElement
+    assert(active === editableField(editor, 'a') || active === editableField(editor, 'b'),
+      'Opening the non-focusable action panel lost the original editing host')
+    const snapshot = () => {
+      const native = window.getSelection()
+      return { active: document.activeElement, anchorNode: native.anchorNode, anchorOffset: native.anchorOffset,
+        focusNode: native.focusNode, focusOffset: native.focusOffset }
+    }
+    let dismissed = 0, afterDismiss = null, observed = null, currentKey = null, dismissedDuringKey = false
+    panel.onDismiss = () => {
+      dismissed++
+      dismissedDuringKey = Boolean(currentKey)
+      if (retirement === 'foreign focus') {
+        foreign.focus()
+        foreign.setSelectionRange(2, 4)
+      } else editor.blocks.update('c', () => ({ data: { text: 'Newer content' } }))
+      afterDismiss = snapshot()
+    }
+    const begin = event => { if (event.key === 'ArrowDown') currentKey = event }
+    const observe = event => {
+      if (event.key === 'ArrowDown') {
+        observed = { trusted: event.isTrusted, prevented: event.defaultPrevented, ...snapshot() }
+        currentKey = null
+      }
+    }
+    document.addEventListener('keydown', begin, true)
+    document.addEventListener('keydown', observe)
+    try {
+      await dispatchKey('ArrowDown', 'ArrowDown', 40, 8)
+      equal(dismissed, 1, 'Native vertical key did not dismiss exactly its current action panel')
+      assert(observed?.trusted, 'The retirement control did not use a real native key')
+      assert(dismissedDuringKey, 'Action panel closed outside the native key handler')
+      equal(observed.prevented, false, 'Retired navigation consumed a newer author interaction')
+      for (const property of ['active', 'anchorNode', 'anchorOffset', 'focusNode', 'focusOffset']) {
+        equal(observed[property], afterDismiss[property], `Old vertical selection replaced ${property} after teardown`)
+      }
+      const expected = retirement === 'foreign focus' ? before
+        : before.map(block => block.id === 'c' ? { ...block, data: { text: 'Newer content' } } : block)
+      equal(editor.save().blocks, expected, 'Old key changed canonical content after panel teardown')
+      equal(editor.canUndo, retirement !== 'foreign focus', 'Navigation created an authored history action')
+      if (retirement === 'foreign focus') equal(document.activeElement, foreign, 'Old vertical key stole foreign focus')
+    } finally {
+      panel.onDismiss = null
+      document.removeEventListener('keydown', begin, true)
+      document.removeEventListener('keydown', observe)
+      foreign.remove()
+    }
+  })
+}
+
 await run()

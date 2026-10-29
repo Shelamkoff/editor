@@ -1,0 +1,110 @@
+✔ Enter delegates an editable split to one runtime transaction (5.634191ms)
+✔ ArrowUp from block start focuses the previous block last editable field (0.674668ms)
+✔ Backspace at field start merges with the preceding block (0.89647ms)
+✔ Delete at field end merges the following block (0.447424ms)
+✔ Ctrl/Meta Z, Shift+Z and Y route exclusively through canonical history (0.50966ms)
+✔ already handled plugin keydown events never execute generic structural logic (0.35368ms)
+✔ auxiliary controls keep native history ownership; editor chrome owns document history (2.088693ms)
+✔ keyboard split focus is revoked across a read-only round trip without a document change (1.073435ms)
+✔ keyboard split still gives the new block focus with unchanged author and mode ownership (0.730251ms)
+✔ queued keyboard split never overwrites a later user caret inside the new block (0.648839ms)
+✔ failed empty-block eligibility consumes Enter without native or history fallback (0.857848ms)
+✔ failed empty-block eligibility consumes Backspace without native or history fallback (0.374268ms)
+✔ failed empty-block eligibility consumes Delete without native or history fallback (0.258161ms)
+✔ retired KeyboardRouter ignores captured editor shortcuts and does not intercept native keys (0.227825ms)
+✔ retired KeyboardRouter public structural entry points cannot modify document (0.461851ms)
+✔ undo publication that destroys its keyboard owner does not reconcile retired UI (0.296392ms)
+✔ split keeps a committed block operation but skips UI after synchronous owner teardown (0.290511ms)
+✔ exit keeps a committed block operation but skips UI after synchronous owner teardown (0.269202ms)
+✔ appendDefault does not focus a destroyed editor after a successful insertion (0.26297ms)
+✔ Backspace canonical merge does not reconcile after commit observer destroys editor (0.393743ms)
+✔ Delete canonical merge does not reconcile after commit observer destroys editor (0.25744ms)
+✔ block shortcut commit observer teardown cannot reconcile a detached view (0.350022ms)
+✔ cancelled shortcut preparation cannot fall through to another structural command (0.291964ms)
+✔ typed inline color before Space replaces exactly the preceding word and suppresses native space (0.996217ms)
+✔ typed inline color before Enter wins over block split without appending a newline (0.432516ms)
+✔ unmatched typed word leaves Space native and Enter with the normal split handler (0.622631ms)
+✔ typed matcher never receives text from selected ranges or inline widget labels (0.471038ms)
+✔ typed pattern conversion does not hijack control shortcuts or non-text native selection (0.436935ms)
+✔ typed word recognition respects the last ordinary or nonbreaking space in its text node (0.522273ms)
+✔ a failing typed pattern consumes Enter without a partial model split (0.506815ms)
+✔ typed inline pattern retains v1 Shift+Enter recognition without a native line break (0.372253ms)
+✔ retired typed-pattern owner never consumes a key after destroy (0.368327ms)
+✔ retired typed-pattern owner never consumes a key after throw (0.287947ms)
+✔ typed-pattern callback mode epoch change cannot fall through into Enter structural edit (0.283859ms)
+✔ an input-mode round trip during shortcut snapshot cannot replay old keyboard history (0.372625ms)
+✔ Ctrl+A cannot select all after its selection reader destroys the keyboard owner (0.351616ms)
+✔ Ctrl+A cannot overwrite a newer mode decision made during selection capture (0.315979ms)
+✔ failed inline-toolbar shortcut cannot replay history after its callback replaces edit mode (0.432566ms)
+✔ shortcut selection capture that destroys the owner cannot dispatch a canonical edit (0.32145ms)
+✔ appendDefault does not touch a retired view after cross-selection cleanup destroys the router (0.349912ms)
+✔ undo reconciliation teardown does not focus an already retired keyboard root (0.411327ms)
+✔ arrow navigation never focuses a block after setCurrent publishes a newer author choice (0.526652ms)
+✖ Shift+ArrowUp dismisses the floating toolbar before native vertical selection (2.457751ms)
+✖ Shift+ArrowDown dismisses the floating toolbar before native vertical selection (0.60087ms)
+ℹ tests 44
+ℹ suites 0
+ℹ pass 42
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.597877
+
+✖ failing tests:
+
+test at core/KeyboardRouter.test.js:773:3
+✖ Shift+ArrowUp dismisses the floating toolbar before native vertical selection (2.457751ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   'hide',
+      [
+        'backward',
+        'line'
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:788:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at core/KeyboardRouter.test.js:773:3
+✖ Shift+ArrowDown dismisses the floating toolbar before native vertical selection (0.60087ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   'hide',
+      [
+        'forward',
+        'line'
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/40cb45010ec4/editor/core/KeyboardRouter.test.js:788:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,21 @@
+file:///tmp/rector-vertical-unguarded-20261030/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native vertical selection yields to foreign focus from public action-panel teardown",
+    "status": "FAIL",
+    "error": "Error: Retired navigation consumed a newer author interaction\nexpected false, got true\n    at equal (http://127.0.0.1:46107/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:46107/tests/browser/native-cross-selection.js:532:7\n    at async run (http://127.0.0.1:46107/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:46107/tests/browser/native-cross-selection.js:550:1"
+  },
+  {
+    "name": "native vertical selection yields to unrelated document revision from public action-panel teardown",
+    "status": "FAIL",
+    "error": "Error: Retired navigation consumed a newer author interaction\nexpected false, got true\n    at equal (http://127.0.0.1:46107/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:46107/tests/browser/native-cross-selection.js:532:7\n    at async run (http://127.0.0.1:46107/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:46107/tests/browser/native-cross-selection.js:550:1"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-vertical-unguarded-20261030/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-vertical-unguarded-20261030/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-vertical-unguarded-20261030/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1
