@@ -104,6 +104,7 @@ function singleSelection(s, view, start, end, target, targetDefinition, reserved
     const targetId = residual.remaining ? s.allocateId(target.type, reserved) : current.id
     const targetRecord = s.recordFromData(targetId, target.type, targetDefinition, targetData, current.tunes, sourceInline)
     s.assertConversionInlinePreserved(sliced.selected, sourceInline, targetDefinition, targetRecord)
+    /** @type {CanonicalEdit[]} */
     const edits = residual.remaining
       ? [...updatedRecord(current.id, current, residual.remaining), { kind: 'insert', index: index + 1, record: targetRecord }]
       : updatedRecord(current.id, current, targetRecord)

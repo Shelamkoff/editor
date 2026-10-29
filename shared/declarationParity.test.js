@@ -4,6 +4,7 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { after, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { generateDeclarations } from '../scripts/generate-declarations.mjs'
+import { auditRuntimeDependencies } from '../scripts/plugin-source-audit.mjs'
 
 const editorRoot = new URL('../', import.meta.url)
 const declarationRoot = new URL(`.package-tmp/declaration-tests-${process.pid}/`, editorRoot)
@@ -197,6 +198,21 @@ test('public editor and renderer derive document shapes from the neutral shared 
   assert.doesNotMatch(blockDataTypes, /(?:from\s*|import\()['"](?:\.\.\/)+(?:core|renderer)\//)
   assert.doesNotMatch(pluginLoader, /(?:from\s*|import\()['"][^'"]*renderer\//)
   assert.match(pluginLoader, /shared\/blockDataTypes\.js/)
+})
+
+test('generated declarations preserve type ownership and reject canonical or loader back-edges', async () => {
+  const declarations = new Map(await Promise.all((await collectDeclarationFiles()).map(async file => [
+    file.pathname.slice(declarationRoot.pathname.length), await readFile(file, 'utf8'),
+  ])))
+  assert.deepEqual(auditRuntimeDependencies(declarations), [])
+
+  for (const [file, owner] of [['shared/blockDataTypes.d.ts', 'shared'], ['plugins/async.d.ts', 'extension']]) {
+    const invalid = new Map(declarations)
+    invalid.set(file, invalid.get(file) + "\nimport type { RendererConfig } from '../renderer/types.js'\n")
+    const failures = auditRuntimeDependencies(invalid)
+    assert.equal(failures.length, 1, failures.join('\n'))
+    assert.match(failures[0], new RegExp(`^${file.replaceAll('.', '\\.')}:[0-9]+: forbidden ${owner} type dependency on renderer/types\\.d\\.ts$`))
+  }
 })
 
 test('async preset declarations require the current document envelope', async () => {

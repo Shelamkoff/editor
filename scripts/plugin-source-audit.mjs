@@ -6,14 +6,15 @@ import ts from 'typescript'
 const root = process.cwd()
 const errors = []
 
-function sourceFilesUnder(relativeDirectory, { includeLocale = false } = {}) {
+function sourceFilesUnder(relativeDirectory, { includeLocale = false, includeTypes = false } = {}) {
   const result = []
   const visit = directory => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       const file = path.join(directory, entry.name)
       if (entry.isDirectory()) {
         if (includeLocale || entry.name !== 'locale') visit(file)
-      } else if (entry.name.endsWith('.js') && !entry.name.endsWith('.test.js')) {
+      } else if (entry.name.endsWith('.js') && !entry.name.endsWith('.test.js')
+        || includeTypes && entry.name.endsWith('.d.ts')) {
         result.push(file)
       }
     }
@@ -151,52 +152,102 @@ function inspect(file) {
   }
 }
 
-/** Inspect static and literal-dynamic runtime edges using the existing TS parser. */
+/** Inspect runtime and type/JSDoc directions; only executable edges form cycles. */
 export function auditRuntimeDependencies(sources) {
   const failures = []
   const graph = new Map()
   const preparations = new Set(['DocumentIngestion.js', 'CanonicalTransforms.js', 'projectionFields.js',
     'LogicalRangePlans.js', 'ClipboardPlans.js', 'SelectionConversionPlans.js', 'ClipboardFragment.js'])
   const owner = file => file.startsWith('core/')
-    ? preparations.has(path.posix.basename(file)) ? 'preparation' : 'editor'
+    ? preparations.has(path.posix.basename(file).replace(/\.d\.ts$/, '.js')) ? 'preparation' : 'editor'
     : /^(plugins|inline-plugins|inline-tools)\//.test(file) ? 'extension'
       : file.startsWith('shared/') ? 'shared' : file.startsWith('plugin-kit/') ? 'kit'
         : file.startsWith('renderer/') ? 'renderer' : 'editor'
-  const resolve = (from, specifier) => {
+  const resolve = (from, specifier, kind) => {
     const clean = specifier.split(/[?#]/)[0]
     let target
     if (clean.startsWith('.')) target = path.posix.normalize(path.posix.join(path.posix.dirname(from), clean))
-    else if (clean === '@shelamkoff/rector') target = 'index.js'
-    else if (clean.startsWith('@shelamkoff/rector/')) target = clean.slice('@shelamkoff/rector/'.length)
+    else if (clean === manifest.name || clean.startsWith(manifest.name + '/')) {
+      const route = clean === manifest.name ? '.' : '.' + clean.slice(manifest.name.length)
+      let entry = manifest.exports[route], replacement
+      if (!entry) {
+        const pattern = Object.keys(manifest.exports)
+          .filter(key => key.includes('*') && route.startsWith(key.split('*')[0]) && route.endsWith(key.split('*')[1]))
+          .sort((left, right) => right.indexOf('*') - left.indexOf('*') || right.length - left.length)[0]
+        if (pattern) {
+          const [prefix, suffix] = pattern.split('*')
+          replacement = route.slice(prefix.length, suffix ? -suffix.length : undefined)
+          entry = manifest.exports[pattern]
+        }
+      }
+      if (!entry) return { error: `unpublished self-package dependency ${clean}` }
+      const published = typeof entry === 'string' ? entry : kind === 'type' ? entry.types ?? entry.import : entry.import
+      if (!published) return { error: `no ${kind} export for self-package dependency ${clean}` }
+      // Generated package declarations share source owners. A generated .d.ts
+      // entry can therefore resolve to its checked JSDoc source before build.
+      target = published.replace(/^\.\/(?:dist\/)?/, '')
+      if (replacement !== undefined) target = target.replaceAll('*', replacement)
+    }
     else return null
-    const resolved = [target, target + '.js', target + '/index.js'].find(candidate => sources.has(candidate))
-    if (resolved) return resolved
+    const candidates = kind === 'type'
+      ? /\.[cm]?js$/.test(target)
+        ? [target.replace(/\.([cm]?)js$/, '.d.$1ts'), target]
+        : /\.d\.[cm]?ts$/.test(target)
+          ? [target, target.replace(/\.d\.([cm]?)ts$/, '.$1js')]
+          : [target, target + '.d.ts', target + '.js', target + '/index.d.ts', target + '/index.js']
+      : [target, target + '.js', target + '/index.js'].filter(candidate => !candidate.endsWith('.d.ts'))
+    const resolved = candidates.find(candidate => sources.has(candidate))
+    if (resolved) return { target: resolved }
     // A self-package or relative runtime import must resolve, including
     // extensionless paths. Non-JavaScript assets (CSS, JSON, etc.) are not
     // runtime modules in this graph and remain outside its audit.
-    return !path.posix.extname(target) || /\.[cm]?js$/.test(target) ? target : null
+    return !path.posix.extname(target) || /\.[cm]?js$|\.d\.[cm]?ts$/.test(target) ? { target } : null
   }
   for (const [file, text] of sources) {
-    const ast = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
+    const ast = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith('.js') ? ts.ScriptKind.JS : ts.ScriptKind.TS)
     const edges = new Set()
     const inspectEdge = node => {
       let literal
-      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) literal = node.moduleSpecifier
+      let kind = ast.isDeclarationFile ? 'type' : 'runtime'
+      if (ts.isImportDeclaration(node)) {
+        literal = node.moduleSpecifier
+        const clause = node.importClause, named = clause?.namedBindings
+        if (clause?.isTypeOnly || !clause?.name && named && ts.isNamedImports(named)
+          && named.elements.length > 0 && named.elements.every(element => element.isTypeOnly)) kind = 'type'
+      } else if (ts.isExportDeclaration(node)) {
+        literal = node.moduleSpecifier
+        if (node.isTypeOnly || node.exportClause && ts.isNamedExports(node.exportClause)
+          && node.exportClause.elements.length > 0 && node.exportClause.elements.every(element => element.isTypeOnly)) kind = 'type'
+      } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+        literal = node.moduleReference.expression
+        if (node.isTypeOnly) kind = 'type'
+      } else if (ts.isImportTypeNode(node)) {
+        literal = ts.isLiteralTypeNode(node.argument) ? node.argument.literal : null
+        kind = 'type'
+      } else if (ts.isJSDocImportTag(node)) {
+        literal = node.moduleSpecifier
+        kind = 'type'
+      }
       else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) literal = node.arguments[0]
       if (literal && ts.isStringLiteralLike(literal)) {
-        const target = resolve(file, literal.text)
+        const resolved = resolve(file, literal.text, kind)
+        const line = ast.getLineAndCharacterOfPosition(literal.getStart(ast)).line + 1
+        if (resolved?.error) failures.push(`${file}:${line}: ${resolved.error}`)
+        const target = resolved?.target
         if (target) {
           const sourceOwner = owner(file), targetOwner = owner(target)
           const forbidden = sourceOwner === 'extension' && target.startsWith('core/')
             || sourceOwner === 'renderer' && !['renderer','shared','kit'].includes(targetOwner)
             || (sourceOwner === 'shared' || sourceOwner === 'kit') && !['shared', 'kit'].includes(targetOwner)
             || sourceOwner === 'preparation' && !['shared', 'kit', 'preparation'].includes(targetOwner)
-          const line = ast.getLineAndCharacterOfPosition(literal.getStart(ast)).line + 1
-          if (forbidden) failures.push(`${file}:${line}: forbidden ${sourceOwner} dependency on ${target}`)
-          if (!sources.has(target)) failures.push(`${file}:${line}: unresolved runtime dependency ${target}`)
-          else edges.add(target)
+            || kind === 'type' && targetOwner === 'renderer'
+              && (file.startsWith('core/') || /^plugins\/async\.(?:js|d\.ts)$/.test(file))
+          if (forbidden) failures.push(`${file}:${line}: forbidden ${sourceOwner}${kind === 'type' ? ' type' : ''} dependency on ${target}`)
+          if (!sources.has(target) || kind === 'runtime' && target.endsWith('.d.ts')) failures.push(`${file}:${line}: unresolved ${kind} dependency ${target}`)
+          else if (kind === 'runtime') edges.add(target)
         }
       }
+      for (const doc of node.jsDoc ?? []) inspectEdge(doc)
       ts.forEachChild(node, inspectEdge)
     }
     inspectEdge(ast)
@@ -298,11 +349,13 @@ for (const symbol of removedRuntimeSymbols) {
 }
 
 for (const file of auditedSourceFiles()) inspect(file)
-const runtimeSources = new Map(['core', 'plugins', 'inline-plugins', 'inline-tools', 'plugin-kit', 'renderer', 'shared', 'locale', 'preset']
-  .flatMap(directory => sourceFilesUnder(directory, { includeLocale: true }))
+const dependencySources = new Map(['core', 'plugins', 'inline-plugins', 'inline-tools', 'plugin-kit', 'renderer', 'shared', 'locale', 'preset']
+  .flatMap(directory => sourceFilesUnder(directory, { includeLocale: true, includeTypes: true }))
   .map(file => [path.relative(root, file).replaceAll('\\', '/'), fs.readFileSync(file, 'utf8')]))
-runtimeSources.set('index.js', fs.readFileSync(path.join(root, 'index.js'), 'utf8'))
-errors.push(...auditRuntimeDependencies(runtimeSources))
+for (const entry of ['index.js', 'index.d.ts', 'types.d.ts', 'I18n.d.ts']) {
+  dependencySources.set(entry, fs.readFileSync(path.join(root, entry), 'utf8'))
+}
+errors.push(...auditRuntimeDependencies(dependencySources))
 
 if (errors.length > 0) {
   console.error(`Plugin source audit found ${errors.length} issue(s):`)

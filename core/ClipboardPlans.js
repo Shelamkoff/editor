@@ -6,6 +6,7 @@ import { remapCanonicalFragment } from './CanonicalTransforms.js'
 import { decodeCurrentBlock } from '../shared/DocumentSchema.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 import { richTextFields, orderedLogicalRange, replaceBlockRichTextRange, splitClipboardResiduals, sliceLogicalFields, logicalPoint, validateTextReplacement, updatedRecord } from './LogicalRangePlans.js'
+/** @typedef {import('./CanonicalTransforms.js').CanonicalEdit} CanonicalEdit */
 const cloneInline = value => value === undefined ? undefined : cloneEditorData(value)
 
 function focusAt(s,record,key,position) {
@@ -359,6 +360,7 @@ export function prepareClipboardCut(s,view,plan) {
     )
   }
 
+  /** @type {CanonicalEdit[]} */
   const edits=[]
   for(const entry of entries){
     if(entry.remaining===null)edits.push({kind:'remove',id:entry.id})
@@ -396,6 +398,7 @@ export function prepareReplaceClipboardSlice(s,view,plan,parts) {
     throw new TypeError('Clipboard part must be block, local-block, or rich-text')
   })
 
+  /** @type {CanonicalEdit[]} */
   const edits=[],ids=[...view.ids]
   for(const entry of plan.blocks){
     if(entry.remaining===null){edits.push({kind:'remove',id:entry.id});ids.splice(ids.indexOf(entry.id),1)}
@@ -461,6 +464,7 @@ export function prepareInsertClipboardParts(s,view,blockId,fieldKey,range,parts)
     &&preparedBlocks.length>0
   const anchorIndex=view.ids.indexOf(blockId)
   const inserted=[]
+  /** @type {CanonicalEdit[]} */
   const edits=[]
   let start=0,index=anchorIndex+1
   if(replaceEmpty){
@@ -623,6 +627,7 @@ export function prepareReplaceClipboardRange(s,view,bookmark,parts) {
     }
   }
 
+  /** @type {CanonicalEdit[]} */
   const edits=[],live=[...ids]
   if(beforeKeep)edits.push(...updatedRecord(start.blockId,startRecord,before))
   else {edits.push({kind:'remove',id:start.blockId});live.splice(live.indexOf(start.blockId),1)}
@@ -679,6 +684,7 @@ export function prepareInsertLocalBlocks(s,view,anchorId,inputs,options={}) {
 
   const replaceEmpty=options.replaceEmpty===true&&isClipboardResidualEmpty(s,view.peek(anchorId))
   const inserted=[]
+  /** @type {CanonicalEdit[]} */
   const edits=[]
   let offset=1,start=0
   if(replaceEmpty){
@@ -740,6 +746,7 @@ export function preparePasteResults(s,view,blockId,fieldKey,range,entries) {
 
   const anchorIndex=view.ids.indexOf(blockId)
   const inserted=[]
+  /** @type {CanonicalEdit[]} */
   const edits=[]
   if(rich)edits.push(...updatedRecord(blockId,current,targetNext))
   let start=0,index=anchorIndex+1
@@ -911,6 +918,7 @@ export function prepareInlineSegments(s,view,blockId,fieldKey,range,segments) {
   }
 
   const sourceIndex = view.ids.indexOf(blockId)
+  /** @type {CanonicalEdit[]} */
   const edits=updatedRecord(blockId,current,sourceNext)
   for(let index=0;index<records.length;index++)edits.push({kind:'insert',index:sourceIndex+index+1,record:records[index]})
 
