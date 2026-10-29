@@ -378,5 +378,361 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
     window.removeEventListener('error', capture); window.removeEventListener('unhandledrejection', capture)
     results.push(failures.length ? { name, status: 'FAIL', error: failures.join('\n') } : { name, status: 'PASS' })
   }
+  return [...results, ...await runRendererOutputConformance({ EditorRenderer })]
+}
+
+// Public-only renderer cases also run against installed package consumers.
+// Keep DOM ownership observations here, outside the minimal unit DOM doubles.
+export async function runRendererOutputConformance({ EditorRenderer, legacyEnvelope = false }) {
+  const results = []
+  const check = (condition, message) => { if (!condition) throw new Error(message) }
+  const equal = (actual, expected, message) => check(JSON.stringify(actual) === JSON.stringify(expected),
+    message + ': ' + JSON.stringify({ actual, expected }))
+  const schema = {
+    currentVersion: 1, createDefault: () => ({ text: '' }),
+    decode({ dataVersion, data }) {
+      if (dataVersion !== 1 || typeof data?.text !== 'string') throw new TypeError('Invalid output fixture')
+      return { dataVersion: 1, data }
+    },
+    encode(data) { return { dataVersion: 1, data } },
+  }
+  // The differential runner adapts only the public wire envelope and schema.
+  const definition = value => ({ ...value, ...(!legacyEnvelope ? { schema } : {}) })
+  const block = (id, type = 'owned-note', value = { text: 'Owned author text' }) => ({ id, type, ...(!legacyEnvelope ? { dataVersion: 1 } : {}), data: value })
+  const data = blocks => ({ ...(!legacyEnvelope ? { version: '2.0.0' } : {}), blocks })
+  const cases = []
+  for (const revisionKind of ['string', 'number']) {
+    cases.push([`renderer revisions: ${revisionKind} revisions skip deep reads and isolate a changed block`, context => {
+      const renderer = context.renderer(), target = context.holder(), rendered = [], disposed = [], reads = []
+      renderer.registerRenderer(definition({ type: 'owned-note',
+        render(record) { rendered.push(record.id); const element = document.createElement('article'); element.textContent = record.data.text; return element },
+        destroy(element) { disposed.push(element.dataset.blockId) },
+      }))
+      const initial = data(['a', 'b'].map(id => ({ ...block(id, 'owned-note', { text: id === 'a' ? 'Alpha' : 'Bravo' }),
+        revision: revisionKind === 'string' ? id + ':r1' : 1,
+        tunes: { textAlign: 'left' }, inline: { badge: { type: 'future-inline', dataVersion: 1, data: { label: 'Badge' } } },
+      })))
+      renderer.renderTo(initial, target)
+      const wrapper = target.firstChild, first = wrapper.firstChild, second = wrapper.lastChild
+      const watched = (name, value) => new Proxy(value, {
+        get(object, key, receiver) { reads.push(name + ':get:' + String(key)); return Reflect.get(object, key, receiver) },
+        ownKeys(object) { reads.push(name + ':ownKeys'); return Reflect.ownKeys(object) },
+        getOwnPropertyDescriptor(object, key) { reads.push(name + ':descriptor:' + String(key)); return Reflect.getOwnPropertyDescriptor(object, key) },
+      })
+      const opaque = data(initial.blocks.map(record => ({ ...record,
+        data: watched(record.id + '.data', { text: 'A stale producer revision must not traverse this replacement' }),
+        tunes: watched(record.id + '.tunes', record.tunes), inline: watched(record.id + '.inline', record.inline),
+      })))
+      renderer.renderTo(opaque, target)
+      context.observe({ phase: 'same revision', reads: [...reads], rendered: [...rendered], disposed: [...disposed],
+        sameWrapper: target.firstChild === wrapper, sameBlocks: wrapper.firstChild === first && wrapper.lastChild === second })
+      equal(reads, [], 'Unchanged producer revision traversed author payload')
+      equal(rendered, ['a', 'b'], 'Unchanged producer revision rendered a block')
+      equal(disposed, [], 'Unchanged producer revision disposed a block')
+      check(target.firstChild === wrapper && wrapper.firstChild === first && wrapper.lastChild === second, 'Unchanged producer revision replaced output DOM')
+      equal([first.textContent, second.textContent], ['Alpha', 'Bravo'], 'Opaque same-revision data changed mounted output')
+      const changed = data([opaque.blocks[0], { ...initial.blocks[1], revision: revisionKind === 'string' ? 'b:r2' : 2, data: { text: 'Bravo changed' } }])
+      renderer.renderTo(changed, target)
+      context.observe({ phase: 'changed revision', reads: [...reads], rendered: [...rendered], disposed: [...disposed],
+        firstPreserved: wrapper.firstChild === first, secondReplaced: wrapper.lastChild !== second, text: wrapper.textContent })
+      equal(reads, [], 'Changing one revision traversed the unchanged neighbor payload')
+      equal(rendered, ['a', 'b', 'b'], 'Changed revision repainted the wrong occurrences')
+      equal(disposed, ['b'], 'Changed revision disposed an unrelated occurrence')
+      check(target.firstChild === wrapper && wrapper.firstChild === first && wrapper.lastChild !== second, 'Changed revision failed to isolate output replacement')
+      equal([first.textContent, wrapper.lastChild.textContent], ['Alpha', 'Bravo changed'], 'Changed revision did not update authored output')
+    }])
+  }
+  cases.push(['renderer revisions: unchanged live output retains focus and custom-element connection state', context => {
+    if (!customElements.get('rector-output-state-probe')) customElements.define('rector-output-state-probe', class extends HTMLElement {
+      connectedCount = 0
+      disconnectedCount = 0
+      connectedCallback() { this.connectedCount++ }
+      disconnectedCallback() { this.disconnectedCount++ }
+    })
+    const renderer = context.renderer(), target = context.holder(), disposed = []
+    renderer.registerRenderer(definition({ type: 'owned-note',
+      render(record) { const element = document.createElement('rector-output-state-probe'); const input = document.createElement('input'); input.value = record.data.text; element.append(input); return element },
+      destroy(element) { disposed.push(element.dataset.blockId) },
+    }))
+    const initial = data([{ ...block('a'), revision: 1 }, { ...block('b'), revision: 1 }])
+    renderer.renderTo(initial, target)
+    const wrapper = target.firstChild, first = wrapper.firstChild, second = wrapper.lastChild, input = first.firstChild
+    input.focus(); input.setSelectionRange(1, 5, 'backward')
+    check(document.activeElement === input, 'Fixture could not focus the live renderer input')
+    renderer.renderTo(initial, target)
+    const observe = phase => context.observe({ phase, focused: document.activeElement === input,
+      selection: [input.selectionStart, input.selectionEnd, input.selectionDirection],
+      firstLifecycle: [first.connectedCount, first.disconnectedCount], secondLifecycle: [second.connectedCount, second.disconnectedCount] })
+    observe('same revision')
+    check(wrapper.firstChild === first && wrapper.lastChild === second, 'Unchanged live output replaced a DOM occurrence')
+    check(document.activeElement === input, 'Unchanged live output lost author focus')
+    equal([input.selectionStart, input.selectionEnd, input.selectionDirection], [1, 5, 'backward'], 'Unchanged live output lost its native input interval')
+    equal([first.connectedCount, first.disconnectedCount, second.connectedCount, second.disconnectedCount], [1, 0, 1, 0], 'Unchanged live output reconnected a custom element')
+    renderer.renderTo(data([initial.blocks[0], { ...initial.blocks[1], revision: 2, data: { text: 'Changed' } }]), target)
+    observe('changed neighbor')
+    check(wrapper.firstChild === first && wrapper.lastChild !== second && document.activeElement === input, 'Changed neighbor disturbed live author focus')
+    equal([first.connectedCount, first.disconnectedCount, second.connectedCount, second.disconnectedCount], [1, 0, 1, 1], 'Changed neighbor reconnected an unaffected custom element')
+    equal(disposed, ['b'], 'Changed neighbor disposed the focused occurrence')
+  }])
+  cases.push(['renderer revisions: unrevisioned in-place data changes replace only the affected output', context => {
+    const renderer = context.renderer(), target = context.holder(), rendered = [], disposed = []
+    renderer.registerRenderer(definition({ type: 'owned-note',
+      render(record) { rendered.push(record.id); const element = document.createElement('article'); element.textContent = record.data.text + ':' + record.data.nested.count; return element },
+      destroy(element) { disposed.push(element.dataset.blockId) },
+    }))
+    const initial = data(['a', 'b'].map(id => block(id, 'owned-note', { text: id === 'a' ? 'Alpha' : 'Bravo', nested: { count: 1 } })))
+    renderer.renderTo(initial, target)
+    const wrapper = target.firstChild, first = wrapper.firstChild, second = wrapper.lastChild
+    initial.blocks[1].data.text = 'Bravo changed'; initial.blocks[1].data.nested.count = 2
+    renderer.renderTo(initial, target)
+    context.observe({ rendered: [...rendered], disposed: [...disposed], firstPreserved: wrapper.firstChild === first,
+      secondReplaced: wrapper.lastChild !== second, text: [first.textContent, wrapper.lastChild.textContent] })
+    equal(rendered, ['a', 'b', 'b'], 'In-place JSON change repainted the wrong occurrences')
+    equal(disposed, ['b'], 'In-place JSON change disposed an unrelated occurrence')
+    check(wrapper.firstChild === first && wrapper.lastChild !== second, 'In-place JSON mutation was not detected or replaced its neighbor')
+    equal([first.textContent, wrapper.lastChild.textContent], ['Alpha:1', 'Bravo changed:2'], 'In-place JSON mutation lost authored data')
+  }])
+  cases.push(['renderer revisions: JSON object key order preserves output while array order changes it', context => {
+    const renderer = context.renderer(), target = context.holder(), disposed = []
+    let rendered = 0
+    renderer.registerRenderer(definition({ type: 'owned-note',
+      render(record) { rendered++; const element = document.createElement('article'); element.textContent = record.data.text + ':' + record.data.items.map(item => item.label).join(','); return element },
+      destroy(element) { disposed.push(element.dataset.blockId) },
+    }))
+    const initial = { ...block('a', 'owned-note', { text: 'Alpha', nested: { left: 'L', right: 'R' }, items: [{ id: 'one', label: 'First' }, { id: 'two', label: 'Second' }] }),
+      tunes: { textAlign: 'center', padding: 2 }, inline: { badge: { type: 'future-inline', dataVersion: 1, data: { id: 1, name: 'Ada' } } } }
+    const reordered = { ...block('a', 'owned-note', { items: [{ label: 'First', id: 'one' }, { label: 'Second', id: 'two' }], nested: { right: 'R', left: 'L' }, text: 'Alpha' }),
+      tunes: { padding: 2, textAlign: 'center' }, inline: { badge: { data: { name: 'Ada', id: 1 }, dataVersion: 1, type: 'future-inline' } } }
+    renderer.renderTo(data([initial]), target)
+    const wrapper = target.firstChild, first = wrapper.firstChild
+    renderer.renderTo(data([reordered]), target)
+    context.observe({ phase: 'object key order', rendered, disposed: [...disposed], sameBlock: wrapper.firstChild === first, text: wrapper.textContent })
+    check(rendered === 1 && wrapper.firstChild === first && disposed.length === 0, 'Equivalent object key order repainted live output')
+    reordered.data.items.reverse()
+    renderer.renderTo(data([reordered]), target)
+    context.observe({ phase: 'array order', rendered, disposed: [...disposed], blockReplaced: wrapper.firstChild !== first, text: wrapper.textContent })
+    check(rendered === 2 && wrapper.firstChild !== first, 'Array reordering did not invalidate output')
+    equal(disposed, ['a'], 'Array reordering did not release exactly the replaced output')
+    equal(wrapper.textContent, 'Alpha:Second,First', 'Array reordering lost author order')
+  }])
+  for (const connection of ['connected', 'detached']) {
+    for (const method of ['renderBlock', 'render', 'renderTo']) cases.push([`renderer output ownership: ${method} rejects ${connection} application descendants`, context => {
+      const renderer = context.renderer(), applicationOwner = context.holder(), target = context.holder()
+      const foreign = document.createElement('article'); foreign.className = 'application-note'; foreign.dataset.owner = 'application'
+      const input = document.createElement('input'); input.value = 'Application input'; foreign.append(input); applicationOwner.append(foreign)
+      const targetOutput = document.createElement('nav'); target.append(targetOutput)
+      if (connection === 'detached') applicationOwner.remove()
+      else { input.focus(); input.setSelectionRange(2, 6, 'backward') }
+      const before = foreign.outerHTML
+      let disposed = 0
+      renderer.registerRenderer(definition({ type: 'owned-note', render() { return foreign }, destroy() { disposed++ } }))
+      let failure
+      try {
+        if (method === 'renderBlock') renderer.renderBlock(block('borrowed'))
+        else if (method === 'render') renderer.render(data([block('borrowed')]))
+        else renderer.renderTo(data([block('borrowed')]), target)
+      } catch (error) { failure = error }
+      context.observe({ method, connection, rejected: failure instanceof TypeError, htmlUnchanged: foreign.outerHTML === before,
+        parentUnchanged: foreign.parentNode === applicationOwner, targetUnchanged: target.firstChild === targetOutput,
+        focused: document.activeElement === input, disposed })
+      check(failure instanceof TypeError, 'Renderer accepted a node belonging to an application subtree')
+      check(foreign.parentNode === applicationOwner && applicationOwner.childNodes.length === 1 && foreign.outerHTML === before, 'Rejected renderer decorated or stole application DOM')
+      check(target.firstChild === targetOutput && target.childNodes.length === 1 && disposed === 0, 'Rejected renderer changed target DOM or disposed an unacquired node')
+      if (connection === 'connected') {
+        check(document.activeElement === input, 'Rejected renderer lost application focus')
+        equal([input.selectionStart, input.selectionEnd, input.selectionDirection], [2, 6, 'backward'], 'Rejected renderer changed application input selection')
+      }
+      renderer.registerRenderer(definition({ type: 'owned-note', render() { return document.createElement('article') }, destroy() { disposed++ } }))
+      const fresh = renderer.renderBlock(block('fresh'))
+      check(fresh !== foreign && fresh.parentNode === null, 'Rejected render did not permit a fresh detached output')
+      renderer.destroy(fresh)
+      check(disposed === 1 && foreign.parentNode === applicationOwner, 'Fresh output cleanup affected the application owner')
+    }])
+  }
+  for (const replacement of ['application', 'successor renderer']) {
+    for (const release of ['target', 'all']) cases.push([`renderer output ownership: destroy ${release} preserves displaced ${replacement} output`, context => {
+      const first = context.renderer(), second = context.renderer(), target = context.holder()
+      let releasedFirst = 0, releasedSecond = 0
+      const render = record => { const element = document.createElement('article'); element.textContent = record.data.text; return element }
+      first.registerRenderer(definition({ type: 'owned-note', render, destroy() { releasedFirst++ } }))
+      second.registerRenderer(definition({ type: 'owned-note', render, destroy() { releasedSecond++ } }))
+      first.renderTo(data([block('first')]), target)
+      const original = target.firstChild
+      if (replacement === 'application') {
+        const application = document.createElement('aside'); application.textContent = 'Application replacement'; target.replaceChildren(application)
+      } else second.renderTo(data([block('second', 'owned-note', { text: 'Successor output' })]), target)
+      const retained = target.firstChild, before = target.innerHTML
+      if (release === 'all') first.destroy()
+      else first.destroy(target)
+      context.observe({ releasedFirst, releasedSecond, replacementPreserved: target.firstChild === retained && target.innerHTML === before,
+        originalDetached: original.parentNode === null })
+      check(releasedFirst === 1 && releasedSecond === 0, 'Displaced renderer did not isolate its resource release')
+      check(target.firstChild === retained && target.childNodes.length === 1 && target.innerHTML === before, 'Displaced renderer removed replacement application or successor output')
+      first.destroy()
+      const reused = first.renderBlock(block('again'))
+      first.destroy(reused)
+      check(releasedFirst === 2 && releasedSecond === 0 && target.firstChild === retained, 'Displaced renderer could not be reused without affecting its successor')
+      if (replacement === 'successor renderer') {
+        second.destroy(target); second.destroy(target)
+        check(releasedSecond === 1 && target.childNodes.length === 0, 'Successor did not retain exclusive disposal ownership')
+      }
+    }])
+  }
+  for (const origin of ['render', 'displaced renderTo', 'unknown renderBlock', 'registered renderBlock']) {
+    for (const release of ['target', 'all']) cases.push([`renderer output ownership: ${origin}, destroy ${release}, then reuse`, context => {
+      const first = context.renderer({ throwOnUnknown: false })
+      const second = context.renderer()
+      const target = context.holder()
+      const application = document.createElement('aside')
+      application.textContent = 'Application output'
+      target.append(application)
+      let releasedFirst = 0, releasedSecond = 0
+      first.registerRenderer(definition({ type: 'owned-note',
+        render(record) { const element = document.createElement('article'); element.textContent = record.data.text; return element },
+        destroy() { releasedFirst++ },
+      }))
+      let owned, originalTarget, replacement
+      if (origin === 'render') owned = first.render(data([block('owned')]))
+      else if (origin === 'displaced renderTo') {
+        originalTarget = context.holder()
+        first.renderTo(data([block('owned')]), originalTarget)
+        owned = originalTarget.firstElementChild
+        replacement = document.createElement('nav')
+        originalTarget.replaceChildren(replacement)
+      } else owned = first.renderBlock(block('single', origin === 'unknown renderBlock' ? 'unregistered-output' : 'owned-note'))
+      const before = owned.outerHTML
+      check(owned.parentNode === null && !owned.isConnected, 'The fixture must exercise an unparented owned output')
+      second.registerRenderer(definition({ type: 'borrowed-output',
+        render() { return owned }, destroy() { releasedSecond++ },
+      }))
+      let failure = null
+      try { second.renderTo(data([block('borrower', 'borrowed-output')]), target) }
+      catch (error) { failure = error }
+      context.observe({ origin, rejected: failure instanceof TypeError, ownerHtmlUnchanged: owned.outerHTML === before,
+        ownerRemainedDetached: owned.parentNode === null, applicationPreserved: target.firstChild === application,
+        releasedFirst, releasedSecond })
+      check(failure instanceof TypeError, 'A live renderer-owned output was accepted as another renderer\'s fresh block')
+      check(owned.outerHTML === before && owned.parentNode === null, 'Rejected borrowing changed the original output')
+      check(target.childNodes.length === 1 && target.firstChild === application, 'Rejected borrowing replaced application output')
+      check(releasedFirst === 0 && releasedSecond === 0, 'Rejected borrowing disposed an unacquired resource')
+      if (release === 'all') first.destroy()
+      else first.destroy(originalTarget ?? owned)
+      check(releasedFirst === (origin === 'unknown renderBlock' ? 0 : 1), 'The original output was not released exactly once')
+      if (originalTarget) check(originalTarget.firstChild === replacement && originalTarget.childNodes.length === 1, 'Original disposal removed replacement application DOM')
+      const reused = second.renderBlock(block('released', 'borrowed-output'))
+      check(reused === owned, 'A previously released output cannot be reused')
+      const reusedHtml = reused.outerHTML
+      first.destroy()
+      check(reused.outerHTML === reusedHtml && releasedSecond === 0, 'Retired owner changed or disposed the successor output')
+      second.destroy(reused)
+      second.destroy(reused)
+      check(releasedSecond === 1, 'Reused output disposal was not exactly once')
+      context.observe({ release, originalReleased: releasedFirst, successorReleased: releasedSecond, reusable: true })
+    }])
+  }
+  cases.push(['renderer output ownership: failed render releases its provisional wrapper', context => {
+    const first = context.renderer(), second = context.renderer()
+    const expected = new Error('Expected block failure')
+    let element, failedWrapper, released = 0, borrowedReleased = 0
+    first.registerRenderer(definition({ type: 'owned-note',
+      render(record) {
+        if (record.id === 'fail') throw expected
+        element = document.createElement('article'); element.textContent = record.data.text; return element
+      },
+      destroy(value) { released++; failedWrapper = value.parentElement },
+    }))
+    let failure
+    try { first.render(data([block('ok'), block('fail')])) } catch (error) { failure = error }
+    check(failure === expected && released === 1, 'Failed render did not release the successfully created occurrence')
+    check(failedWrapper && failedWrapper.parentNode === null && failedWrapper.firstChild === element, 'Fixture lost the unreturned provisional wrapper')
+    second.registerRenderer(definition({ type: 'borrowed-output', render() { return failedWrapper }, destroy() { borrowedReleased++ } }))
+    const reused = second.renderBlock(block('recovered', 'borrowed-output'))
+    check(reused === failedWrapper, 'Failed render leaked its provisional wrapper ownership')
+    first.destroy()
+    check(borrowedReleased === 0 && released === 1, 'Failed operation retained or disposed the successor lease')
+    second.destroy(reused)
+    check(borrowedReleased === 1, 'Recovered wrapper did not release once')
+    context.observe({ originalReleased: released, successorReleased: borrowedReleased, provisionalWrapperReusable: true })
+  }])
+  cases.push(['renderer output ownership: failed renderTo restores application DOM and releases its wrapper', context => {
+    const first = context.renderer(), second = context.renderer(), target = context.holder()
+    const application = document.createElement('aside'); application.textContent = 'Application output'; target.append(application)
+    let failedWrapper, released = 0, borrowedReleased = 0
+    first.registerRenderer(definition({ type: 'owned-note',
+      render(record) { const element = document.createElement('article'); element.textContent = record.data.text; return element },
+      destroy() { released++ },
+    }))
+    const originalReplace = target.replaceChildren, expected = new Error('Expected post-mutation host failure')
+    target.replaceChildren = function (...children) {
+      failedWrapper = children[0]
+      originalReplace.apply(this, children)
+      throw expected
+    }
+    let failure
+    try { first.renderTo(data([block('failed')]), target) } catch (error) { failure = error }
+    finally { target.replaceChildren = originalReplace }
+    context.observe({ originalError: failure === expected, originalReleased: released,
+      applicationPreserved: target.firstChild === application && target.childNodes.length === 1,
+      provisionalWrapperDetached: failedWrapper?.parentNode === null })
+    check(failure === expected && released === 1, 'Failed renderTo did not release its created occurrence')
+    check(target.firstChild === application && target.childNodes.length === 1, 'Failed renderTo lost application DOM')
+    check(failedWrapper?.parentNode === null, 'Failed renderTo left its wrapper mounted')
+    second.registerRenderer(definition({ type: 'borrowed-output', render() { return failedWrapper }, destroy() { borrowedReleased++ } }))
+    const reused = second.renderBlock(block('recovered', 'borrowed-output'))
+    check(reused === failedWrapper, 'Failed renderTo leaked its provisional wrapper ownership')
+    first.destroy()
+    check(borrowedReleased === 0 && released === 1 && target.firstChild === application, 'Failed operation retained a published owner')
+    second.destroy(reused)
+    check(borrowedReleased === 1, 'Recovered wrapper did not release once')
+  }])
+  for (const origin of ['block callback', 'style callback']) {
+    cases.push([`renderer output ownership: nested detached result survives a failed ${origin}`, context => {
+      let nested, active = false
+      const expected = new Error('Expected outer acquisition failure')
+      class StyleCallbackRenderer extends EditorRenderer {
+        getStyleUrls() {
+          if (active) { active = false; nested = this.render(data([])); throw expected }
+          return []
+        }
+      }
+      const first = context.renderer({ injectStyles: origin === 'style callback' }, origin === 'style callback' ? StyleCallbackRenderer : EditorRenderer)
+      const second = context.renderer()
+      first.registerRenderer(definition({ type: 'owned-note', render() {
+        nested = first.render(data([])); throw expected
+      } }))
+      active = origin === 'style callback'
+      let failure
+      try { first.render(data([block('fail')])) } catch (error) { failure = error }
+      check(failure === expected && nested?.parentNode === null, 'Fixture did not retain its independent nested output')
+      let disposed = 0
+      second.registerRenderer(definition({ type: 'borrowed-output', render() { return nested }, destroy() { disposed++ } }))
+      let rejected
+      try { second.renderBlock(block('borrowed', 'borrowed-output')) } catch (error) { rejected = error }
+      context.observe({ rejected: rejected instanceof TypeError, originalDetached: nested.parentNode === null, borrowedReleased: disposed })
+      check(rejected instanceof TypeError && disposed === 0, 'Failed outer acquisition lost ownership of its nested output')
+      first.destroy(nested)
+      check(second.renderBlock(block('released', 'borrowed-output')) === nested, 'Released nested output cannot be reused')
+      second.destroy()
+      check(disposed === 1, 'Nested successor resources did not release once')
+    }])
+  }
+  for (const [name, operation] of cases) {
+    const renderers = [], holders = [], observations = [], failures = [], failureMessages = []
+    const context = {
+      renderer(config = {}, Renderer = EditorRenderer) { const renderer = new Renderer({ blockTypes: [], injectStyles: false, ...config }); renderers.push(renderer); return renderer },
+      holder() { const holder = document.createElement('section'); document.body.append(holder); holders.push(holder); return holder },
+      observe(value) { observations.push(value) },
+    }
+    const fail = error => { failures.push(String(error?.stack ?? error)); failureMessages.push(error?.message ?? String(error)) }
+    const capture = event => { fail(event.error ?? event.reason ?? event.message); event.preventDefault() }
+    window.addEventListener('error', capture); window.addEventListener('unhandledrejection', capture)
+    try { await operation(context) } catch (error) { fail(error) }
+    for (const renderer of renderers) { try { renderer.destroy() } catch (error) { fail(error) } }
+    for (const holder of holders) holder.remove()
+    await new Promise(resolve => setTimeout(resolve, 0))
+    window.removeEventListener('error', capture); window.removeEventListener('unhandledrejection', capture)
+    results.push({ name, status: failures.length ? 'FAIL' : 'PASS', observations, failureCount: failures.length,
+      ...(failures.length ? { firstErrorMessage: failureMessages[0], error: failures.join('\n') } : {}) })
+  }
   return results
 }

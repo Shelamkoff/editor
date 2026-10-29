@@ -302,6 +302,7 @@ export class EditorRenderer {
       const placeholder = ownerDocument.createElement('div')
       placeholder.className = this.#withStableClass(`${this.#config.classPrefix}-unknown`)
       placeholder.dataset.blockType = block.type
+      liveRenderedElements.set(placeholder, this)
       return { element: placeholder, type: block.type }
     }
 
@@ -387,12 +388,15 @@ export class EditorRenderer {
     const ownerDocument = globalThis.document
     /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
     const created = []
+    /** @type {HTMLElement | null} */
+    let wrapper = null
     try {
       // Style acquisition and wrapper creation are one provisional lease.
       // Even an early DOM allocation failure leaves no detached result to
       // own the stylesheet references acquired immediately beforehand.
       this.#ensureStyles(ownerDocument)
-      const wrapper = ownerDocument.createElement('div')
+      wrapper = ownerDocument.createElement('div')
+      liveRenderedElements.set(wrapper, this)
       const theme = this.#config.theme
       wrapper.className = this.#contentClassName(theme)
       if (blocks.length) {
@@ -406,6 +410,7 @@ export class EditorRenderer {
       return wrapper
     } catch (error) {
       for (const entry of created) this.#disposeRenderedElement(entry)
+      if (wrapper && liveRenderedElements.get(wrapper) === this) liveRenderedElements.delete(wrapper)
       this.#releaseAutomaticStylesIfIdle()
       throw error
     }
@@ -466,6 +471,8 @@ export class EditorRenderer {
     }
     this.#renderingContainers.add(container)
     this.#activeRenderToCount++
+    /** @type {HTMLElement | null} */
+    let provisionalWrapper = null
     try {
       // Snapshot before acquisition may invoke DOM/extension callbacks.
       const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
@@ -474,6 +481,8 @@ export class EditorRenderer {
       const mounted = this.#mountedContainers.get(container)
       const wrapper = mounted?.wrapper ?? ownerDocument.createElement('div')
       if (!mounted) {
+        liveRenderedElements.set(wrapper, this)
+        provisionalWrapper = wrapper
         const theme = this.#config.theme
         wrapper.className = this.#contentClassName(theme)
       }
@@ -575,6 +584,7 @@ export class EditorRenderer {
       // Publish ownership before calling third-party destroy hooks. On any
       // failed DOM commit the previous entries remain owned and undestroyed.
       this.#mountedContainers.set(container, { wrapper, blocks: next })
+      provisionalWrapper = null
       for (const [key, entry] of previous) {
         if (next.get(key)?.element !== entry.element) this.#disposeRenderedElement(entry)
       }
@@ -583,6 +593,9 @@ export class EditorRenderer {
       try { this.#ensureStyles(ownerDocument) }
       catch (error) { console.warn('[EditorRenderer] Failed to refresh styles after render:', error) }
     } catch (error) {
+      if (provisionalWrapper && liveRenderedElements.get(provisionalWrapper) === this) {
+        liveRenderedElements.delete(provisionalWrapper)
+      }
       // A failed initial renderTo() may have acquired styles before its
       // wrapper existed or before block staging acquired any live results.
       // Preserve styles used by existing mounts or reentrant independent
@@ -629,6 +642,7 @@ export class EditorRenderer {
         // Retire only the original owned wrapper, never unrelated DOM nodes.
         mounted.wrapper.remove()
       } finally {
+        if (liveRenderedElements.get(mounted.wrapper) === this) liveRenderedElements.delete(mounted.wrapper)
         this.#destroyingTargets.delete(container)
       }
     }
@@ -642,6 +656,7 @@ export class EditorRenderer {
         for (const entry of entries) this.#disposeRenderedElement(entry)
         wrapper.replaceChildren()
       } finally {
+        if (liveRenderedElements.get(wrapper) === this) liveRenderedElements.delete(wrapper)
         this.#destroyingTargets.delete(wrapper)
       }
     }
