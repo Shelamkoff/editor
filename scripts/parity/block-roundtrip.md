@@ -81,6 +81,25 @@ Delimiter payload, ID/order, HR DOM identity and renderer output without
 pretending to edit the separator. Delimiter insertion, selection, move
 and deletion remain a separate structural row.
 
+Image adds a real empty-source default and a populated local PNG with a
+literal rich caption. The valid one-pixel image decodes in both the editor
+and mounted renderer; no uploader or remote provider is invoked. Fixed
+file dimensions, appearance flags and benign CSS values remain canonical;
+editor and detached/attached/mounted output preserve caption marks,
+alternative text, media URL, dimensions and presentation. A native CSSOM
+control distinguishes authored `object-position: center` from its
+serialized `center center` and computed `50% 50%`; canonical data retains
+the original authored value. Native input and one Undo/Redo operate on the
+populated caption. The empty-source image declares no caption field, so
+its authoring/history phases are explicitly N/A. The populated case has
+no inline sidecars. These two cases are scoped evidence only and do not
+complete `BLOCK_IMAGE_ROUNDTRIP`: the supported caption-widget capability
+also needs to preserve visible text, alternative text and native range.
+The separately confirmed stale-alt and inline-update range-collapse
+defects remain open; no widget data is discarded by a historical adapter.
+Upload/source actions, caption widgets, hostile styles and the full
+appearance/settings matrix are not accepted by this literal-caption slice.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -125,7 +144,7 @@ author data from an initial `save()` result.
 | List / 2 | One empty unordered item | Ordered pair with marks/sidecars; edit `item:first` | Implemented: v1 string array; fixed content/order plus current item IDs and item DOM. |
 | Quote / 1 | Empty quotation and caption | Rich quotation/Mention and independent rich caption/Color; edit `text` | Implemented: fields share the wire shape; caption data, DOM and output survive the sibling edit. |
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
-| Image / 1 | Empty file URL/caption, false flags, empty styles | Controlled local image, rich caption, appearance; edit `caption` | Caption is declared only with an image source. |
+| Image / 1 | Empty file URL/caption, false flags, empty styles | Local decoded PNG, literal rich caption, fixed appearance; edit `caption` | Implemented: empty source has authoring N/A; populated native caption history and renderer preserved. Widget-caption defect remains separate. |
 | Delimiter / 1 | Empty object | The same data-free separator between Paragraphs | Implemented: actual default has authoring phases N/A; a separately named real neighbor edit proves history preservation. |
 | Table / 2 | One empty cell with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. Default size difference remains unresolved. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
@@ -193,8 +212,8 @@ Every completed case creates the default or populated document, checks
 fixed canonical data, renders both detached and mounted output, switches
 read-only and back while retaining independent host focus, performs real
 pointer focus and native field input where a field exists, then exact
-one-step Undo/Redo. The Delimiter cases expose their explicit non-editable
-or neighboring-field phase scope as described above. The fixture
+one-step Undo/Redo. Delimiter and empty-source Image cases expose their
+explicit non-editable or neighboring-field phase scope as described above. The fixture
 checks marks, sidecars, IDs/order, logical caret, DOM reuse, renderer input
 immutability, disposal and release of newly acquired owned styles. No
 private editor transaction or compatibility implementation is invoked.
@@ -205,20 +224,24 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist and Delimiter oracle
-classifies only these observed historical differences, bounded to the twenty-two exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter and Image oracle
+classifies only these observed historical differences, bounded to the twenty-four exact scenario IDs in the
 runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning fields, Code textarea and
-  Checklist rows/buttons/labels and Delimiter HR during read-only/editable mode
-  changes and Undo/Redo. Default Delimiter admits only its two executed mode
-  phases; its neighbor-edit case admits the two mode and two history phases.
-  No caret or widget exception applies to Delimiter. Author data and sidecars
+  Checklist rows/buttons/labels, Delimiter HR and Image wrapper/picture/caption
+  during read-only/editable mode
+  changes and Undo/Redo. Default Delimiter and empty-source Image admit only
+  their two executed mode phases; their populated cases admit the two mode
+  and two history phases.
+  No caret exception applies to Delimiter; no widget exception applies to
+  either Delimiter or literal-caption Image. Author data and sidecars
   must still be exact.
 - The first v1 Undo in each rich-field block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
-  offset 12 for Quote/Warning. The full active/anchor/focus
+  offset 12 for Quote/Warning. Populated literal-caption Image has the same
+  exact prefix-owner defect, with required probe offset 18. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
   native selection points are on that same block's UL at child offset 1.
@@ -262,6 +285,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist or Delimiter behavior,
-the other 13 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter or Image behavior,
+the other 12 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

@@ -52,6 +52,19 @@ const code = {
   populatedData: { code: 'const tag = "<b>&copy;</b>";\nconsole.log(tag); // {{literal}}', language: 'javascript' },
 }
 
+// Valid one-pixel PNG; no network or provider is involved in media loading.
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
+const image = {
+  type: 'image', version: 1, className: 'Image', textKey: 'caption', literalCaption: true,
+  fieldSelector: '.oe-image__caption', fieldTag: 'DIV',
+  defaultData: { file: { url: '' }, caption: '', withBorder: false, expanded: false, withBackground: false, styles: {} },
+  populatedData: { file: { url: pixel, width: 1, height: 1 }, caption: '<b>Alpha</b> <i>caption</i> tail',
+    withBorder: true, expanded: false, withBackground: true,
+    styles: { width: '120px', height: '64px', objectFit: 'contain', objectPosition: 'center',
+      borderStyle: 'dashed', borderWidth: '2px', borderColor: '#123456', borderRadius: '6px', backgroundColor: '#ffeecc' },
+  },
+}
+
 const delimiter = {
   type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
   defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
@@ -62,7 +75,7 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -70,7 +83,7 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
   ]
   return [false, true].map(populated => ({
     ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
-  })).concat(block.fieldMode === 'plain-text' ? [] : [{
+  })).concat(block.fieldMode === 'plain-text' || block.literalCaption ? [] : [{
     ...block, populated: true, id: prefix + 'populated-unwrapped-control',
     populatedData: block.unwrappedData ?? withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
   }])
@@ -159,13 +172,16 @@ async function settled() {
 
 export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut }) {
   const noEditableField = specification.noEditableField === true
-  const hasAuthoring = !noEditableField || specification.populated
-  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text'
+  const emptyImage = specification.type === 'image' && !specification.populated
+  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage
+  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption
   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
     authoringTarget: specification.populated ? { blockId: 'prefix', type: 'paragraph', relation: 'neighbor' } : null,
     notApplicablePhases: hasAuthoring ? [] : ['edit', 'undo', 'redo'],
     reason: 'Delimiter has no editable field; only the populated case edits a real neighboring Paragraph.',
+  } : emptyImage ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+    reason: 'Image without a source has no declared editable caption; authoring/history are covered by the populated image case.',
   } : {}
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
@@ -225,6 +241,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       ? specification.populated ? shell('prefix').querySelector('.oe-paragraph') : null
       : shell(id).querySelector(specification.fieldSelector)
     let previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
+    const imageParts = () => {
+      const wrapper = shell(id).querySelector('.oe-image')
+      return specification.populated ? [wrapper, wrapper.querySelector('.oe-image__image'), wrapper.querySelector('.oe-image__caption')] : [wrapper]
+    }
+    let previousImageParts = specification.type === 'image' ? imageParts() : []
     const plainField = specification.fieldMode === 'plain-text'
     let previousPlainFields = plainField ? [field()] : []
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
@@ -248,15 +269,42 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
+      : block.type === 'image' ? { ...block.data, caption: markupMeaning(block.data.caption) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
-    const rendererMarkup = element => element.dataset.blockType === 'delimiter'
+    const imageStyles = picture => Object.fromEntries(['width', 'height', 'objectFit', 'objectPosition', 'borderStyle', 'borderWidth', 'borderColor', 'borderRadius'].map(key => [key, picture.style[key]]))
+    const expectedImageStyles = populated => populated
+      ? { width: '120px', height: '64px', objectFit: 'contain', objectPosition: 'center center', borderStyle: 'dashed', borderWidth: '2px', borderColor: 'rgb(18, 52, 86)', borderRadius: '6px' }
+      : { width: '', height: '', objectFit: '', objectPosition: '', borderStyle: '', borderWidth: '', borderColor: '', borderRadius: '' }
+    const literalText = html => {
+      const template = document.createElement('template')
+      template.innerHTML = html
+      return template.content.textContent.trim()
+    }
+    const imageRendererMarkup = figure => {
+      const picture = figure.querySelector('.editor-image__picture')
+      const caption = figure.querySelector('.editor-image__caption')
+      return { children: [...figure.children].map(child => child.tagName),
+        src: picture.getAttribute('src'), alt: picture.alt, width: picture.getAttribute('width'), height: picture.getAttribute('height'), loading: picture.loading,
+        caption: caption ? authoredMarkup(caption) : null, styles: imageStyles(picture), background: figure.style.backgroundColor,
+        flags: ['bordered', 'expanded', 'background'].map(flag => figure.classList.contains('editor-image--' + flag)),
+      }
+    }
+    const expectedImageRendererMarkup = block => ({
+      children: ['IMG', ...(block.data.caption ? ['FIGCAPTION'] : [])],
+      src: block.data.file.url || null, alt: literalText(block.data.caption),
+      width: block.data.file.width ? String(block.data.file.width) : null, height: block.data.file.height ? String(block.data.file.height) : null, loading: 'lazy',
+      caption: block.data.caption ? markupMeaning(block.data.caption) : null,
+      styles: expectedImageStyles(Boolean(block.data.file.url)), background: block.data.withBackground ? 'rgb(255, 238, 204)' : '',
+      flags: [block.data.withBorder, block.data.expanded, block.data.withBackground],
+    })
+    const rendererMarkup = element => element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
       ? { childCount: element.childNodes.length, text: element.textContent }
       : element.dataset.blockType === 'code'
       ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
@@ -275,7 +323,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'delimiter'
+    const expectedRendererMarkup = block => block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
       ? { childCount: 0, text: '' }
       : block.type === 'code'
       ? { tag: 'CODE', source: block.data.code }
@@ -320,6 +368,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       renderer.renderTo(saved, mounted)
       await settled()
       inspectOutput(mounted, 'mounted')
+      if (specification.type === 'image' && specification.populated) {
+        const picture = mounted.querySelector('.editor-image__picture')
+        picture.scrollIntoView({ block: 'nearest' })
+        await picture.decode()
+        check(phase, 'mountedImageDecoded', { complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight }, { complete: true, width: 1, height: 1 })
+        const computed = getComputedStyle(picture)
+        check(phase, 'mountedImageComputedPosition', { fit: computed.objectFit, position: computed.objectPosition }, { fit: 'contain', position: '50% 50%' })
+      }
       check(phase, 'rendererInputUnchanged', JSON.stringify(saved), sourceBefore)
       renderer.destroy(detached)
       check(phase, 'detachedDisposal', detached.childNodes.length, 0)
@@ -348,6 +404,23 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           childCount: rule.childNodes.length, authorControls: rule.querySelectorAll('[contenteditable="true"],input,textarea').length,
         }, { tag: 'HR', editable: false, childCount: 0, authorControls: 0 })
         check(phase, 'delimiterDomIdentity', [rule === previousDelimiter], [true])
+      }
+      if (specification.type === 'image') {
+        const parts = imageParts()
+        const wrapper = parts[0]
+        check(phase, 'imageDomIdentity', previousImageParts.map((element, index) => element === parts[index]), previousImageParts.map(() => true))
+        check(phase, 'editorImageFlags', ['with-border', 'expanded', 'with-bg'].map(flag => wrapper.classList.contains('oe-image--' + flag)), [baseData.withBorder, baseData.expanded, baseData.withBackground])
+        if (specification.populated) {
+          const picture = parts[1]
+          await picture.decode()
+          check(phase, 'editorImageDecoded', { complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight }, { complete: true, width: 1, height: 1 })
+          check(phase, 'editorImageMeaning', { src: picture.getAttribute('src'), alt: picture.alt, styles: imageStyles(picture),
+            background: wrapper.querySelector('.oe-image__image-container').style.backgroundColor,
+          }, { src: pixel, alt: literalText(text), styles: expectedImageStyles(true), background: 'rgb(255, 238, 204)' })
+        } else {
+          check(phase, 'emptyImageHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
+          check(phase, 'emptyImageHasNoVisibleMedia', [...wrapper.querySelectorAll('img')].filter(picture => picture.getClientRects().length).length, 0)
+        }
       }
       if (specification.type === 'list') {
         const items = [...shell(id).querySelectorAll('.oe-list__item')]
@@ -408,6 +481,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
       previousPlainFields = plainField ? [field()] : []
       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
+      previousImageParts = specification.type === 'image' ? imageParts() : []
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
