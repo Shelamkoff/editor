@@ -1,0 +1,569 @@
+{
+  "schemaVersion": 1,
+  "classification": "Two repeated unresolved CI native-drag failures and bounded local reproduction observations. The committed change only enriches an original assertion failure; it is not a production repair or evidence that either CI failure is resolved.",
+  "integration": {
+    "base": "a0fabcaa0bd7a430a9e69f4240ad0ca763b80217",
+    "diagnostics": {
+      "sha": "3778e4a892ef9df477c71a5ef708051f296608d6",
+      "tree": "04b37c5f39e7f98fc7d7232ce00566c5710f45ab",
+      "path": "tests/browser/native-input-helpers.js",
+      "sha256": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a"
+    }
+  },
+  "diagnosticSource": {
+    "base": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+    "path": "tests/browser/native-input-helpers.js",
+    "beforeSha256": "0ce91fb36ebfe94b77ac09b5cf77e7883cc1cbd03af92dee24e221c89b696c32",
+    "afterSha256": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a",
+    "patch": "/tmp/rector-ci156-drag-diagnostics.patch",
+    "patchSha256": "5dc36226a66801081af556144940bb351546a620f741cce7ac1d8c911d1d22bf",
+    "checks": {
+      "nodeSyntax": true,
+      "gestureCodeBeforeAssertionsByteIdentical": true,
+      "assertionStatementsIdenticalIgnoringIndentation": true
+    },
+    "scope": "Failure-only diagnostics after original assertions fail. No coordinate, timing, assertion or runtime changes. Not a repair or acceptance of the repeated CI failure.",
+    "initialReviewedPatchSha256": "3585a2f615a492e4c039cefe7332401b9ff7edfce6940dde1df34532147bb6f2",
+    "reviewFollowup": "Root requested optional error?.stack and Error cause preservation; both applied without changing gesture/assertion code."
+  },
+  "ciFailures": [
+    {
+      "headPrefix": "9ad",
+      "runId": "40940818306",
+      "jobId": "123683816210",
+      "logPath": "/tmp/rector-ci-9ad-browser.log",
+      "logSha256": "b6d579decfced5814ce504383e7f378b5eedaab3b48273050fff8d391dc5f957",
+      "crossSelectionResults": {
+        "executed": 32,
+        "pass": 31,
+        "fail": 1,
+        "failure": {
+          "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+          "status": "FAIL",
+          "error": "Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:32853/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:32853/tests/browser/native-input-helpers.js:123:3)\n    at async http://127.0.0.1:32853/tests/browser/native-cross-selection.js:253:3\n    at async run (http://127.0.0.1:32853/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:32853/tests/browser/native-cross-selection.js:348:1"
+        }
+      }
+    },
+    {
+      "headPrefix": "a0f",
+      "runId": "40943630102",
+      "jobId": "123693145243",
+      "logPath": "/tmp/rector-ci-a0f-browser.log",
+      "logSha256": "71cb5c78e1d79a722a58c9343d7be62aba5d06bc626e83119fac5f93de9b214b",
+      "crossSelectionResults": {
+        "executed": 32,
+        "pass": 31,
+        "fail": 1,
+        "failure": {
+          "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+          "status": "FAIL",
+          "error": "Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:36287/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:36287/tests/browser/native-input-helpers.js:123:3)\n    at async http://127.0.0.1:36287/tests/browser/native-cross-selection.js:253:3\n    at async run (http://127.0.0.1:36287/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:36287/tests/browser/native-cross-selection.js:348:1"
+        }
+      }
+    }
+  ],
+  "ciEnvironment": {
+    "os": "Ubuntu24.04.5 LTS",
+    "runnerImage": "ubuntu-24.04 /20261025.353.1",
+    "node": "24.22.1",
+    "browserProduct": "Chrome/156.0.8078.47",
+    "browserRevision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+    "executable": "/usr/bin/google-chrome"
+  },
+  "localEnvironment": {
+    "osRelease": [
+      "PRETTY_NAME=\"Ubuntu 24.04.3 LTS\"",
+      "NAME=\"Ubuntu\"",
+      "VERSION_ID=\"24.04\"",
+      "VERSION=\"24.04.3 LTS (Noble Numbat)\"",
+      "VERSION_CODENAME=noble",
+      "ID=ubuntu",
+      "ID_LIKE=debian",
+      "HOME_URL=\"https://www.ubuntu.com/\"",
+      "SUPPORT_URL=\"https://help.ubuntu.com/\"",
+      "BUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"",
+      "PRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"",
+      "UBUNTU_CODENAME=noble",
+      "LOGO=ubuntu-logo"
+    ],
+    "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+    "download": {
+      "url": "https://storage.googleapis.com/chrome-for-testing-public/156.0.8078.47/linux64/chrome-linux64.zip",
+      "bytes": 200206486,
+      "md5": "72fa68617cc55ecf4e2bbe697e2f7584",
+      "sha256": "e6c94490f0b6b337225aeb2d2a5034858516b7017356980ba94f5176d8774a50",
+      "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "binarySha256": "230f0db8c5086182f46c59c867c0d461eb525d6552dfad226ea6b4d9ec249db2",
+      "headHeaders": "/tmp/rector-chrome156-download-head.txt"
+    }
+  },
+  "runs": [
+    {
+      "label": "unchanged-exact-case142-and156",
+      "summary": {
+        "scope": "Unmodified pinned9ad native atomic-widget drag/Shift case with actual trusted input",
+        "cwd": "/tmp/rector-ci156-cross-selection-20261029",
+        "wrapper": "/tmp/rector-run-ci156-unchanged.py",
+        "wrapperSha256": "6e8dda6a3a47e4261223820db44df6590bb0001096348ff34180431e2d799bfd",
+        "manifest": "/tmp/rector-ci156-cross-selection-20261029/test-results/run-GdHwo9/manifest.json",
+        "results": [
+          {
+            "label": "chrome142",
+            "version": "Google Chrome for Testing 142.0.7444.175",
+            "chrome": "/tmp/rector-browsers/chrome-linux64/chrome",
+            "exitCode": 0,
+            "log": "/tmp/rector-ci156-unchanged-chrome142.log",
+            "logSha256": "bbfd5ccd958a4b64b606a1f85d90413d9a648781c40ff7e33b47d09b48f96957"
+          },
+          {
+            "label": "chrome156",
+            "version": "Google Chrome for Testing 156.0.8078.47",
+            "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+            "exitCode": 0,
+            "log": "/tmp/rector-ci156-unchanged-chrome156.log",
+            "logSha256": "bbfd5ccd958a4b64b606a1f85d90413d9a648781c40ff7e33b47d09b48f96957"
+          }
+        ],
+        "finishExitCode": 0,
+        "sourceUnchanged": true
+      },
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-ci156-cross-selection-20261029",
+        "startedAt": "2026-10-29T19:51:59.144Z",
+        "finishedAt": "2026-10-29T19:52:14.651Z",
+        "outcome": "passed",
+        "source": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            }
+          ],
+          "dirty": true,
+          "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_NATIVE_PAGE": "native-cross-selection.html",
+            "EDITOR_NATIVE_FILTER": "Shift navigation treats an inline widget as one atomic step and preserves its payload"
+          }
+        },
+        "context": {},
+        "gates": {
+          "chrome142": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T19:51:59.662Z",
+            "finishedAt": "2026-10-29T19:52:06.991Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/physical-history.mjs"
+            ],
+            "cwd": "/tmp/rector-ci156-cross-selection-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_NATIVE_PAGE": "native-cross-selection.html",
+                "EDITOR_NATIVE_FILTER": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                }
+              ],
+              "dirty": true,
+              "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+            },
+            "elapsedMs": 7326.054201,
+            "sourceAfter": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                }
+              ],
+              "dirty": true,
+              "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+            },
+            "sourceUnchanged": true
+          },
+          "chrome156": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T19:52:07.438Z",
+            "finishedAt": "2026-10-29T19:52:14.340Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/physical-history.mjs"
+            ],
+            "cwd": "/tmp/rector-ci156-cross-selection-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_NATIVE_PAGE": "native-cross-selection.html",
+                "EDITOR_NATIVE_FILTER": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                }
+              ],
+              "dirty": true,
+              "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+            },
+            "elapsedMs": 6894.677905,
+            "sourceAfter": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                }
+              ],
+              "dirty": true,
+              "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            }
+          ],
+          "dirty": true,
+          "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+        },
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "label": "unchanged-full-native-cross-selection32-on156",
+      "summary": {
+        "manifest": "/tmp/rector-ci156-cross-selection-20261029/test-results/run-xZTpVS/manifest.json",
+        "exitCode": 0,
+        "outcome": "passed",
+        "log": "/tmp/rector-ci156-full32.log",
+        "logSha256": "e88544ac08d16998a43364637cb03f993168314160ac882705f95ad96dbc1cce",
+        "sourceUnchanged": true,
+        "startedAt": "2026-10-29T20:06:23.898Z",
+        "finishedAt": "2026-10-29T20:06:40.929Z"
+      },
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-ci156-cross-selection-20261029",
+        "startedAt": "2026-10-29T20:06:23.438Z",
+        "finishedAt": "2026-10-29T20:06:41.196Z",
+        "outcome": "passed",
+        "source": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            }
+          ],
+          "dirty": true,
+          "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_NATIVE_PAGE": "native-cross-selection.html",
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "native-cross32-chrome156": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T20:06:23.898Z",
+            "finishedAt": "2026-10-29T20:06:40.929Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/physical-history.mjs"
+            ],
+            "cwd": "/tmp/rector-ci156-cross-selection-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_NATIVE_PAGE": "native-cross-selection.html",
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                }
+              ],
+              "dirty": true,
+              "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+            },
+            "elapsedMs": 17027.349553,
+            "sourceAfter": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                }
+              ],
+              "dirty": true,
+              "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            }
+          ],
+          "dirty": true,
+          "identity": "a0989fb812b765042bd31baba0e810c25b0047fcc9fddd6f820f0816edb0a9f7"
+        },
+        "sourceUnchanged": true
+      },
+      "results": [
+        {
+          "name": "mixed demo drag shows a visible highlight through Heading, widgets, List and both Quote fields",
+          "status": "PASS"
+        },
+        {
+          "name": "mixed cross-block toolbar retains the starting Heading controls and selection through a level change",
+          "status": "PASS"
+        },
+        {
+          "name": "a drag beyond the editor edge supports format and one native Undo/Redo",
+          "status": "PASS"
+        },
+        {
+          "name": "a drag beyond the editor edge supports convert and one native Undo/Redo",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the right margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the below margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the above margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the gap margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the left margin still extends through the next block",
+          "status": "PASS"
+        },
+        {
+          "name": "a left margin drag uses the nearest visual line in a multiline field",
+          "status": "PASS"
+        },
+        {
+          "name": "a right margin drag uses the nearest visual line in a multiline field",
+          "status": "PASS"
+        },
+        {
+          "name": "returning the drag to its original field selects only the final local range",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft shrinks a cross-block selection before typing",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowRight retains forward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains backward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowRight retains backward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains forward cross-block intent with A😀B",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains forward cross-block intent with A👨‍👩‍👧‍👦B",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation can shrink a cross-block range back into its original field",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift horizontal navigation starts a forward range across editing hosts",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift horizontal navigation starts a backward range across editing hosts",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+Enter replaces a forward cross-block range with one line break",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+Enter replaces a backward cross-block range with one line break",
+          "status": "PASS"
+        },
+        {
+          "name": "Enter splits a forward cross-block text range as one action",
+          "status": "PASS"
+        },
+        {
+          "name": "Enter splits a backward cross-block text range as one action",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation End preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Home preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Ctrl+ArrowRight preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Ctrl+ArrowLeft preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation ArrowDown preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation ArrowUp preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "diagnosticValidation": {
+    "nodeSyntax": true,
+    "originalGesturePrefixByteIdentical": true,
+    "originalAssertionsIdenticalIgnoringIndentation": true,
+    "mainHelperSha256Verified": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a",
+    "review": "Root reviewed the complete failure-only patch, requested null-safe error stack and cause preservation, and approved integration after those changes.",
+    "localBrowserScope": "All recorded local browser runs used the original unchanged9ad helper before this diagnostics-only patch. They did not reproduce the two CI failures."
+  },
+  "nextEvidenceNeeded": [
+    "A repeated CI failure must record the original fixed points together with actual geometry, native endpoints, caret APIs, overlay hit targets and font/viewport.",
+    "Compare CI versus local pixel-to-logical-offset mapping and any changed geometry before assigning a runtime or fixture root cause.",
+    "Expected focus remains2; no retries, accepted-zero outcome, synthetic selection substitution or production change has been introduced."
+  ]
+}
