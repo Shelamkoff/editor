@@ -168,7 +168,12 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
     populatedData: { ...block.populatedData, open: false },
   }] : []).concat(block.type === 'embed' ? [{ ...block, populated: true, literalCaption: true, id: prefix + 'populated-literal',
     populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>caption</i> tail' },
-  }] : [])
+  }] : []).concat(block.type === 'image' ? [
+    { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets',
+      populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' } },
+    { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets-unwrapped-control',
+      populatedData: { ...block.populatedData, caption: '<b>Alpha</b> {{mention}} {{swatch}} tail' } },
+  ] : [])
 })
 
 const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -422,6 +427,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       template.innerHTML = html
       return template.content.textContent.trim()
     }
+    const imageCaptionText = html => literalText(hasSidecars
+      ? html.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : html)
     const imageRendererMarkup = figure => {
       const picture = figure.querySelector('.editor-image__picture')
       const caption = figure.querySelector('.editor-image__caption')
@@ -433,7 +440,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     }
     const expectedImageRendererMarkup = block => ({
       children: ['IMG', ...(block.data.caption ? ['FIGCAPTION'] : [])],
-      src: block.data.file.url || null, alt: literalText(block.data.caption),
+      src: block.data.file.url || null, alt: imageCaptionText(block.data.caption),
       width: block.data.file.width ? String(block.data.file.width) : null, height: block.data.file.height ? String(block.data.file.height) : null, loading: 'lazy',
       caption: block.data.caption ? markupMeaning(block.data.caption) : null,
       styles: expectedImageStyles(Boolean(block.data.file.url)), background: block.data.withBackground ? 'rgb(255, 238, 204)' : '',
@@ -656,7 +663,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check(phase, 'editorImageDecoded', { complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight }, { complete: true, width: 1, height: 1 })
           check(phase, 'editorImageMeaning', { src: picture.getAttribute('src'), alt: picture.alt, styles: imageStyles(picture),
             background: wrapper.querySelector('.oe-image__image-container').style.backgroundColor,
-          }, { src: pixel, alt: literalText(text), styles: expectedImageStyles(true), background: 'rgb(255, 238, 204)' })
+          }, { src: pixel, alt: imageCaptionText(text), styles: expectedImageStyles(true), background: 'rgb(255, 238, 204)' })
         } else {
           check(phase, 'emptyImageHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
           check(phase, 'emptyImageHasNoVisibleMedia', [...wrapper.querySelectorAll('img')].filter(picture => picture.getClientRects().length).length, 0)
