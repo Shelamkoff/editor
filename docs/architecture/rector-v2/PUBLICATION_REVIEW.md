@@ -103,3 +103,25 @@ The exact probe is retained as `scripts/parity/checkpoints/2026-10-29/rector-quo
 The final unfiltered command was `EDITOR_NATIVE_PAGE=native-plugin-parity.html node tests/browser/physical-history.mjs`, with the recorded Chromium path. Clean candidate fixture commit `22ef58405326be1e4e61aff334f4f4538cdab3c0` passed **217/217** cases, zero failures, from 15:37:15 to 15:38:11 UTC (56.125 seconds), with unchanged source before/after. Its published equivalent is `1acc8ec9dedd3348f0ba0783930e9a7369cafe22`; publication checked the exact tree, not a new runtime execution. The original-to-published mapping and reconstructible commit objects are in the adjacent publication provenance files.
 
 This row does not accept all Quote fields/roundtrip cases, other clipboard rows or whole-library parity. With construction accepted separately, 207 register rows retain their individual proof obligations. `B-HTML`, `B-STYLE` and `B-PRESENTATION` still require their own decisions and implementation evidence.
+
+
+## Renderer output parity 2026-10-29
+
+**Accepted scenario: `RENDERER_OUTPUTS`.** Candidate `6b0ef0e8bd4b50adf5c294ba6cddadd4313f0a26`, published with the identical tree as `a39aaf3264aae1578aa03ffac1646fa2c07ea0f1`. The exact-source differential executes 27 cases for each of v1 `5e5c7f8`, specification baseline `e981ff3` and candidate. Candidate: **27/27 PASS**. The same fixture is registered in the ordinary public-extension page and copied into the independent installed-package consumer; both passed **39/39** checks (12 existing extension contracts and 27 renderer cases).
+
+The preserved controls include string and numeric producer revisions with zero `get`, `ownKeys` or property-descriptor reads of unchanged opaque payloads, replacement of only the changed block, unchanged focus/custom-element connectivity, unrevisioned in-place JSON changes, semantic object-key order and meaningful array order. Ownership controls cover detached application descendants, all three rendering methods, application and successor-renderer replacement of a mount, target/global disposal and reuse, partial acquisition/DOM failures, and independent outputs acquired inside block/style callbacks.
+
+The new RED exposed missing ownership of aggregate `render()`/`renderTo()` wrappers and unknown-block placeholders: another renderer could accept an already-owned detached root as fresh output. The complete pre-fix candidate run had eight intended failures. The repair extends the existing `liveRenderedElements` WeakMap to those roots and releases provisional/retired wrapper ownership through existing cleanup. It adds no runtime API, registry, transaction or remount manager. Exact-once cleanup, zero disposal of unacquired foreign resources and successful reuse after release are positive controls.
+
+The v1 comparison records four preserved cases, 22 repaired-defect cases and one object-key-order performance improvement; the specification baseline records 19 preserved cases and eight repaired ownership cases. Historical differences are constrained to exactly one expected failure, its exact first message and fixed independent DOM/resource observations. Additional cleanup/window errors are not accepted as part of an expected baseline defect. No unexpected verification error occurred.
+
+The real browser served 54 v1 and 88 files for each current-format source directly from their pinned Git objects. Browser/dependency scope: Linux, Node `24.22.1`, Chromium `142.0.7444.175`, shared installed dependencies, custom block definitions. Reproduction source: `scripts/parity/checkpoints/2026-10-29/rector-renderer-output-parity.mjs`, SHA-256 `06f412b2eeb703d55559b5a5bcd9aef79fbf70298fc0b4daf5a3ee516b50bfcd`; shared fixture SHA-256 `e60741f82d52469da5d2949102e378d7b827c504d5f310a1dd602f6421065647`.
+
+| Command on clean `6b0ef0e8` | Actual result | UTC interval |
+| --- | --- | --- |
+| `EDITOR_BROWSER_PAGE=public-extension-contracts.html node tests/browser/run.mjs` | 39/39, exit 0 | 15:56:05–15:56:08 |
+| `node scripts/parity/checkpoints/2026-10-29/rector-renderer-output-parity.mjs` | 27 cases × 3 sources, candidate 27/27; no unexpected errors, exit 0 | 15:56:06–15:56:11 |
+| `npm test` | 1916/1916, zero failures/skips, exit 0 | 15:56:19–15:56:49 |
+| `npm run test:package` | 285 generated runtime declarations, zero source diagnostics; strict Bundler/NodeNext, Vite/runtime imports, installed browser 39/39, 22 CSS assets; exit 0 | 15:56:18–15:56:59 |
+
+All four wrappers recorded a clean identical source before/after. Package verification also exercises the C08 canonical type migration and negative removed imports. The row does not accept every built-in renderer, cross-realm/CSP/style behavior or the entire library. Three bounded rows are accepted in the preservation register; 206 remain subject to their own evidence and decision gates.

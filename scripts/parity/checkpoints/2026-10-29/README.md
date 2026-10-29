@@ -114,3 +114,36 @@ clean `22ef58405326be1e4e61aff334f4f4538cdab3c0` (published identical tree at
 This accepts the bounded `BLOCK_QUOTE_PASTE_MERGE` row, with its documented
 repaired-defect differences. `BLOCK_QUOTE_FIELDS`, `BLOCK_QUOTE_ROUNDTRIP` and
 the other clipboard rows remain independent obligations.
+
+
+## Expanded renderer-output comparison
+
+`rector-renderer-output-parity.mjs` serves the real production bytes directly
+from the v1, specification-baseline and candidate Git objects. The candidate
+is HEAD by default, or `EDITOR_RENDERER_CANDIDATE_SHA`. It imports exactly the
+`runRendererOutputConformance` fixture used by the ordinary public-extension
+page and installed-package browser gate. The final source hashes are:
+
+```text
+06f412b2eeb703d55559b5a5bcd9aef79fbf70298fc0b4daf5a3ee516b50bfcd  rector-renderer-output-parity.mjs
+e60741f82d52469da5d2949102e378d7b827c504d5f310a1dd602f6421065647  tests/browser/public-extension-conformance.js
+```
+
+Candidate `6b0ef0e8` passed all 27 output cases at 15:56:06–15:56:11 UTC. The
+standard page and installed-package consumer both passed 39/39 cases. The
+successful tree is published as `a39aaf32`; the adjacent provenance map permits
+reconstruction of the original verification ID. v1 has four preserved cases,
+22 explicitly repaired-defect differences and one object-key-order improvement;
+the specification baseline has 19 preserved cases and eight ownership defects.
+Every expected historical difference requires exactly one failure, its exact
+first message and fixed DOM/resource observations. Additional errors fail the
+probe. The pre-fix candidate had eight intended RED cases.
+
+Coverage includes producer-revision zero-read behavior, incremental identity,
+foreign application/renderer roots, target/global disposal and reuse, partial
+failure recovery and nested independent output ownership. It does not accept
+all built-in renderer payloads, cross-realm behavior or CSP/style confinement.
+`EDITOR_PLAYWRIGHT_PATH` and `EDITOR_CHROME_PATH` select the recorded tooling.
+Unlike the initial archived renderer probes, baseline archives are unnecessary:
+this runner reads each required source directly from the Git object database.
+Its shared fixture and installed dependencies must match the recorded run.
