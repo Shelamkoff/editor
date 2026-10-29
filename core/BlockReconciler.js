@@ -480,7 +480,7 @@ export class BlockReconciler {
               item.entry.definition,
               item.entry.fields,
               item.entry.baseContext,
-              { preserveSourceProjection: item.id === sourceBlockId },
+              { preserveSourceProjection: item.id === sourceBlockId, projectionRoot: item.entry.element },
             )
           }
           this.#applyTunes(item.entry, item.after)
@@ -858,6 +858,7 @@ export class BlockReconciler {
           entry.fields,
           context,
           generation,
+          { projectionRoot: entry.element },
         )
       }
       return entry
@@ -956,7 +957,8 @@ export class BlockReconciler {
     }
     try{
       if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
-        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext)
+        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext,
+          {projectionRoot:entry.element})
       }
     }catch(error){
       // A child projection may have failed after partial DOM mutation. Do

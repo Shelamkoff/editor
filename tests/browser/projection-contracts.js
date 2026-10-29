@@ -105,6 +105,201 @@ test('marker-free widget has host identity and exactly one field coordinate', ()
   } finally { projection.destroy() }
 })
 
+for (const replacement of ['projection', 'contents', 'host', 'container']) for (const changed of [false, true]) test(`formatted inline projection retains its owned instance with ${changed ? 'changed' : 'unchanged'} data / replaced ${replacement}`, () => {
+  const created = [], updated = [], destroyed = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        created.push(element)
+        return {
+          element,
+          update(next) {
+            equal(element.parentNode, null, 'owned formatting must be released before the update callback')
+            updated.push(next.label)
+            element.textContent = next.label
+          },
+          setReadOnly() {},
+          destroy() { destroyed.push(id) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const shell = document.createElement('section'), container = document.createElement('div')
+  let field = document.createElement('div')
+  field.contentEditable = 'true'
+  container.append(field); shell.append(container); document.body.append(shell)
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '<b>Alpha <i>{{x}}</i></b> Omega' }] },
+    inline: { x: { ...payload, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    const original = created[0]
+    if (replacement === 'contents') field.innerHTML = record('old').data.fields[0].html
+    if (replacement === 'host' || replacement === 'container') {
+      const successor = document.createElement('div')
+      successor.contentEditable = 'true'
+      successor.innerHTML = record('old').data.fields[0].html
+      if (replacement === 'host') field.replaceWith(successor)
+      else {
+        const nextContainer = document.createElement('div')
+        nextContainer.append(successor)
+        container.replaceWith(nextContainer)
+      }
+      field = successor
+      fields[0].element = field
+    }
+    projection.reconcileBlock('a', record(changed ? 'new' : 'old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    equal(created.length, 1, 'formatting alone must not recreate the widget')
+    equal(field.querySelector('b > i > [data-id="x"]'), original)
+    equal(original.textContent, changed ? 'new' : 'old')
+    equal(updated, changed ? ['new'] : [])
+    equal(getTextLength(field), 13, 'the formatted occurrence must still occupy one field coordinate')
+    equal(destroyed, [])
+  } finally { projection.destroy(); shell.remove() }
+})
+
+test('formatted inline update rejects a root adopted by a detached foreign container', () => {
+  const foreign = document.createElement('aside')
+  const releasedFrom = []
+  let widget
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        widget = element
+        return {
+          element,
+          update(next) { element.textContent = next.label; foreign.append(element) },
+          setReadOnly() {},
+          destroy() { releasedFrom.push(element.parentNode) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  document.body.append(field)
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '<b>Alpha {{x}}</b> Omega' }] },
+    inline: { x: { ...payload, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }), /root left its projection boundary/)
+    equal(releasedFrom, [foreign], 'the failed owner must retire before any foreign root is republished')
+    assert(!field.contains(widget), 'a detached foreign container must not be treated as discarded formatting')
+  } finally { projection.destroy(); field.remove() }
+})
+
+for (const adopted of ['formatting', 'field', 'container', 'shell']) test(`a detached foreign container cannot acquire an owned ${adopted} subtree and return its widget to projection`, () => {
+  const foreign = document.createElement('aside')
+  const releasedFrom = []
+  let widget
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        widget = element
+        return {
+          element, update(next) { element.textContent = next.label }, setReadOnly() {},
+          destroy() { releasedFrom.push(element.parentNode) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const shell = document.createElement('section'), container = document.createElement('div')
+  let currentShell = shell
+  const field = document.createElement('div')
+  container.append(field); shell.append(container); document.body.append(shell)
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '<b>Alpha {{x}}</b> Omega' }] },
+    inline: { x: { ...payload, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    const wrapper = widget.parentNode
+    if (adopted === 'formatting') {
+      field.innerHTML = record('old').data.fields[0].html
+      foreign.append(wrapper)
+    } else {
+      const successor = document.createElement('div')
+      successor.innerHTML = record('old').data.fields[0].html
+      fields[0].element = successor
+      if (adopted === 'field') {
+        field.replaceWith(successor)
+        foreign.append(field)
+      } else {
+        const replacement = document.createElement('div')
+        replacement.append(successor)
+        if (adopted === 'container') {
+          container.replaceWith(replacement)
+          foreign.append(container)
+        } else {
+          shell.replaceWith(replacement)
+          currentShell = replacement
+          foreign.append(shell)
+        }
+      }
+    }
+    throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: currentShell }), /root left its projection boundary/)
+    equal(releasedFrom, [wrapper], 'an adopted old wrapper cannot authorize detaching its widget')
+    assert(!fields[0].element.contains(widget))
+  } finally { projection.destroy(); shell.remove(); currentShell.remove() }
+})
+
+for (const adopted of ['field', 'shell']) test(`inline update cannot publish into a ${adopted} moved across its block boundary by a callback`, () => {
+  const foreign = document.createElement('aside'), shell = document.createElement('section')
+  const field = document.createElement('div')
+  shell.append(field); document.body.append(shell)
+  let destroyed = 0
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        return {
+          element,
+          update(next) { element.textContent = next.label; foreign.append(adopted === 'field' ? field : shell) },
+          setReadOnly() {}, destroy() { destroyed++ },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '<b>Alpha {{x}}</b> Omega' }] },
+    inline: { x: { ...payload, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell }), /block boundary/)
+    equal(destroyed, 1, 'the invalidated projection must retire its widget once')
+  } finally { projection.destroy(); shell.remove() }
+})
+
 test('partial projection preserves hidden values by key, candidate membership and new fields', () => {
   const projection = new InlineProjectionRuntime({ registry: {}, ownerDocument: document })
   const element = document.createElement('div')

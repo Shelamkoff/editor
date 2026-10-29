@@ -14,6 +14,7 @@ import { richTextFieldMap, mapRichTextFields, mountedRichFields } from './projec
 import { synchronousResult } from '../shared/synchronousResult.js'
 
 const liveWidgetRoots=new WeakMap()
+const inlineOwnershipBoundary='[data-inline-plugin], [contenteditable], span.oe-inline-literal, button, input, textarea, select, option, [role="button"]'
 
 /** A widget or author Text node belongs to its registered rich field only
  * when the path to that field does not enter another DOM owner. Connectivity
@@ -25,12 +26,34 @@ function belongsToAuthorField(field,node){
   if(!field?.contains?.(node))return false
   let parent=node.parentNode
   while(parent&&parent!==field){
-    if(parent.nodeType===1&&/** @type {Element} */(parent).matches(
-      '[data-inline-plugin], [contenteditable], span.oe-inline-literal, button, input, textarea, select, option, [role="button"]',
-    ))return false
+    if(parent.nodeType===1&&/** @type {Element} */(parent).matches(inlineOwnershipBoundary))return false
     parent=parent.parentNode
   }
   return parent===field
+}
+
+/** A block update may discard an owned formatting subtree before inline
+ * reconciliation runs. Only the exact previously published ancestor chain
+ * can prove that this is still our detached subtree, rather than another
+ * owner that has adopted the root or any of its former wrappers.
+ * @param {Element} field
+ * @param {Node} node
+ * @param {Node[]|undefined} ancestors
+ */
+function hasDetachedOwnedAncestry(field,node,ancestors){
+  if(node.isConnected)return false
+  let descendant=node
+  let insideField=true
+  for(const ancestor of ancestors??[]){
+    const parent=descendant.parentNode
+    if(!parent)return descendant!==node
+    if(parent!==ancestor)return false
+    if(parent===field)insideField=false
+    else if(insideField&&parent.nodeType===1
+      &&/** @type {Element} */(parent).matches(inlineOwnershipBoundary))return false
+    descendant=parent
+  }
+  return !descendant.parentNode
 }
 
 function object(value){
@@ -84,7 +107,7 @@ export class InlineProjectionRuntime {
     this.#readOnly=readOnly===true
   }
 
-  reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
+  reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
     this.#assertLive()
     if(this.#projectingBlocks.has(blockId)){
       throw new Error('Cannot reenter inline projection for the same block')
@@ -98,7 +121,7 @@ export class InlineProjectionRuntime {
       }
       try{
         this.#projectState(
-          blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
+          blockId,state,record,definition,fields,baseContext,{preserveSourceProjection,projectionRoot},
         )
         if(this.#destroyed||this.#blocks.get(blockId)!==state){
           throw new Error('Inline projection owner was revoked during reconciliation')
@@ -116,7 +139,7 @@ export class InlineProjectionRuntime {
     }
   }
 
-  prepareBlock(blockId,record,definition,fields,baseContext,generation){
+  prepareBlock(blockId,record,definition,fields,baseContext,generation,{projectionRoot=null}={}){
     this.#assertLive()
     if(this.#projectingBlocks.has(blockId)){
       throw new Error('Cannot reenter inline projection for the same block')
@@ -126,7 +149,7 @@ export class InlineProjectionRuntime {
     const state={widgets:new Map(),opaque:new Map(),staged:true,generation}
     try{
       this.#projectState(
-        blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
+        blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false,projectionRoot},
       )
       if(this.#destroyed||this.#blocks.get(blockId)!==previous
         ||this.#invalidatedProjectionBlocks.has(blockId)){
@@ -576,7 +599,8 @@ export class InlineProjectionRuntime {
     this.#pendingPreparations.clear()
   }
 
-  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
+  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
+    const projectionParent=projectionRoot?.parentNode
     const canonical=richTextFieldMap(definition,record.data)
     const richFields=mountedRichFields(fields,canonical)
     const inline=object(record.inline)
@@ -605,6 +629,19 @@ export class InlineProjectionRuntime {
         if(element.innerHTML!==normalized){
           const template=this.#ownerDocument.createElement('template')
           template.innerHTML=/** @type {any} */(toTrustedHtml(normalized,this.#ownerDocument))
+          // Release owned roots while their exact author-field ancestry is
+          // still provable. Otherwise a formatted root keeps its discarded
+          // parent after replaceChildren(), indistinguishable from a root
+          // adopted by a foreign detached container in an extension callback.
+          for(const entry of state.widgets.values()){
+            if(entry.fieldKey!==fieldKey||entry.fieldElement!==element
+              ||!belongsToAuthorField(element,entry.element))continue
+            entry.element.remove()
+            if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
+              ||(!state.staged&&this.#blocks.get(blockId)!==state)){
+              throw new Error('Inline projection owner was revoked during reconciliation')
+            }
+          }
           element.replaceChildren(...template.content.childNodes)
         }
       }
@@ -622,6 +659,23 @@ export class InlineProjectionRuntime {
       if(liveOpaque.has(id))continue
       state.opaque.delete(id)
       if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
+    }
+
+    // Capture only a completed projection under the reconciler's exact
+    // owned shell. Later block callbacks may discard a card/stage containing
+    // the field; an arbitrary detached replacement parent is never proof.
+    if(projectionRoot&&(projectionRoot.parentNode!==projectionParent
+      ||[...richFields.values()].some(field=>!projectionRoot.contains(field)))){
+      throw new Error('Inline projection root or field left its block boundary')
+    }
+    for(const entry of state.widgets.values()){
+      entry.ancestors=[]
+      if(!belongsToAuthorField(entry.fieldElement,entry.element))continue
+      const boundary=projectionRoot??entry.fieldElement
+      for(let parent=entry.element.parentNode;parent;parent=parent.parentNode){
+        entry.ancestors.push(parent)
+        if(parent===boundary)break
+      }
     }
   }
 
@@ -725,6 +779,20 @@ export class InlineProjectionRuntime {
           entry=null
           // Cancellation/disposal callbacks can revoke this projection too.
           // Do not acquire a successor after its owner has been retired.
+          if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
+            ||(!state.staged&&this.#blocks.get(blockId)!==state)){
+            throw new Error('Inline projection owner was revoked during reconciliation')
+          }
+        }
+
+        // A block plugin can replace its field contents or the whole host
+        // before this owner is called, including during Undo/Redo. Release
+        // only a retired exact field or its unchanged detached ancestry;
+        // unrelated detached parents remain subject to the strict guard.
+        if(entry?.element.parentNode&&!entry.element.isConnected
+          &&((entry.fieldElement.parentNode===null&&belongsToAuthorField(entry.fieldElement,entry.element))
+            ||hasDetachedOwnedAncestry(entry.fieldElement,entry.element,entry.ancestors))){
+          entry.element.remove()
           if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
             ||(!state.staged&&this.#blocks.get(blockId)!==state)){
             throw new Error('Inline projection owner was revoked during reconciliation')
