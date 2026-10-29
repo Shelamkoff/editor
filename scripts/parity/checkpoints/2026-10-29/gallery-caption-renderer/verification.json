@@ -1,0 +1,703 @@
+{
+  "schemaVersion": 1,
+  "classification": "Actual bounded Gallery renderer regression and verification records. This is not complete Gallery ROUNDTRIP acceptance, full v1 parity, a viewer policy change, or a release approval.",
+  "scope": "Gallery renderer grid image alternative text and figure accessible names only. Editor-derived alt, open Expose/native-dialog captions and full Gallery ROUNDTRIP remain open.",
+  "integration": {
+    "base": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+    "testFirst": {
+      "sha": "3c6c3f855f7d17eeae48c0c3713b5f6852960670",
+      "tree": "dd21911cd8f6d5b33bd59c8881ceb894a369a714",
+      "files": {
+        "tests/browser/gallery-accessible-captions.js": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185",
+        "tests/browser/gallery-layout-registry.js": "5a46148be3a135130d30f42741087a60999742f5db54fb1798893da4888c6f27"
+      }
+    },
+    "production": {
+      "sha": "46c136b4a5148cd7590794440db3b5109e1cb41c",
+      "tree": "e929e1aaba43a56fd3e8f1dc6b0129b492222e69",
+      "files": {
+        "renderer/renderers/gallery/index.js": "97bef072f73bfe66335357586cd45651ab35d7a8ebfb36884b76a5087f2b81bf"
+      }
+    }
+  },
+  "sourceRelationship": "The two browser source files were identical in RED and GREEN. The only production delta was renderer/renderers/gallery/index.js. Main commits contain byte-for-byte copies of the reviewed, executed files; C11 manifests below retain their original isolated base-plus-diff identities and external dependency symlink.",
+  "provenance": {
+    "scope": "Gallery renderer grid image alternative text and figure accessible names only. Editor-derived alt, open Expose/native-dialog captions and full Gallery ROUNDTRIP remain open.",
+    "cwd": "/tmp/rector-gallery-renderer-20261029",
+    "base": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+    "reviewPatch": {
+      "path": "/tmp/rector-gallery-renderer-review.patch",
+      "sha256": "70cd6d628b081cb1e499336cb10bc830e5667eeb5bbd940b868e6280e07cce49"
+    },
+    "files": {
+      "renderer/renderers/gallery/index.js": "97bef072f73bfe66335357586cd45651ab35d7a8ebfb36884b76a5087f2b81bf",
+      "tests/browser/gallery-accessible-captions.js": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185",
+      "tests/browser/gallery-layout-registry.js": "5a46148be3a135130d30f42741087a60999742f5db54fb1798893da4888c6f27"
+    },
+    "verificationWrapper": {
+      "path": "scripts/verification-results.mjs",
+      "sha256": "35aac5e0cb74f43310db0eea8d5923ae7522bbde429cd67a35fb65ba4ab49d00"
+    },
+    "browserRunner": {
+      "path": "tests/browser/run.mjs",
+      "sha256": "257b74302de1167f8155f1321ad8d3ab91bd086000385139d9879c2e4ffa3a1f"
+    },
+    "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+    "packageLockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "red": {
+      "manifest": "/tmp/rector-gallery-renderer-20261029/test-results/run-hWSVbC/manifest.json",
+      "manifestSha256": "68d03e141ccd59873782ed2ad214cbedfa25b9079768ee4c8c544e85b18424e0",
+      "sourceIdentity": "90287e0c31f5ec6cd3da591f11803a9f8562f2483a4f2b57505d0e8a62b0aab4",
+      "outcome": "failed",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "startedAt": "2026-10-29T19:38:31.454Z",
+      "finishedAt": "2026-10-29T19:38:33.843Z",
+      "seconds": 2.389,
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "results": "/tmp/rector-gallery-renderer-20261029/test-results/run-hWSVbC/browser-gallery-layout-registry.html.json",
+      "resultsSha256": "045a780a51f2f370f54bc9276f1166c5d168611a80a0677b9c127dca94d40ed6",
+      "counts": {
+        "executed": 150,
+        "pass": 84,
+        "fail": 66
+      }
+    },
+    "green": {
+      "manifest": "/tmp/rector-gallery-renderer-20261029/test-results/run-Pt6xot/manifest.json",
+      "manifestSha256": "c4dbdf9a692fe9d389e63647a4e434f0840ca5fc4ef629f69f1e7889ad98d886",
+      "sourceIdentity": "0074289e6c40ecf96ee4c707415e4a1b67ce27cd12289a8980ad0e911f635b7c",
+      "outcome": "passed",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "startedAt": "2026-10-29T19:43:19.418Z",
+      "finishedAt": "2026-10-29T19:43:20.692Z",
+      "seconds": 1.274,
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "results": "/tmp/rector-gallery-renderer-green-results.json",
+      "resultsSha256": "774b5ac17d2a56e10e3086629c09171d7542500f973b5902c7bf93ad9465d1cb",
+      "counts": {
+        "executed": 150,
+        "pass": 150,
+        "fail": 0
+      }
+    },
+    "supportingGates": {
+      "rendererUnit": {
+        "command": "node --test renderer/*.test.js",
+        "exitCode": 0,
+        "pass": 122,
+        "fail": 0,
+        "log": "/tmp/rector-gallery-renderer-unit.log",
+        "logSha256": "342d36d2b0f476c662867ef287b69c80692cbd2e464032acc833c0569d0d3785",
+        "nodeReportedDurationMs": 534.020172
+      },
+      "typecheck": {
+        "command": "npm run typecheck",
+        "exitCode": 0,
+        "configs": [
+          "jsconfig.json",
+          "jsconfig.runtime.json"
+        ],
+        "log": "/tmp/rector-gallery-renderer-typecheck.log",
+        "logSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+      }
+    },
+    "relatedEvidence": {
+      "threeSourceInventory": "/tmp/rector-gallery-caption-final-provenance.json",
+      "exposeInstalledContract": "/tmp/rector-gallery-expose-installed-contract.json"
+    },
+    "nonTestSetupAttempts": [
+      "The first C11 init in default sandbox failed spawnSync git EPERM before a browser ran.",
+      "The first C11 run invocation omitted EDITOR_RESULTS_DIR and did not start its gate; the same still-unstarted planned gate then ran with the required variable."
+    ],
+    "limits": [
+      "Node_modules is an external recorded symlink; source is a pinned base plus exact reviewed test/runtime diff, not an entirely clean checkout.",
+      "150 are executed assertions on one standard browser page, including4 unchanged prototype-layout controls; this is not150 separate full user journeys.",
+      "The parser oracle includes fixed once-decoded literals, token-looking unknown references, real Mention/Color labels, saved and intact input, auto/specific/masonry layout, detached/mounted/renderTo main/iframe, empty-caption fallback, canonical preservation and cleanup.",
+      "No viewer policy or editor state/history mechanism changes."
+    ]
+  },
+  "runs": [
+    {
+      "label": "gallery-renderer-red",
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-gallery-renderer-20261029",
+        "startedAt": "2026-10-29T19:38:06.120Z",
+        "finishedAt": "2026-10-29T19:39:57.121Z",
+        "outcome": "failed",
+        "source": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "b280462c3ec4f91878a2590d0fd57973d607ee38ef2f201827aa7b60ff64a528",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            },
+            {
+              "path": "tests/browser/gallery-accessible-captions.js",
+              "mode": 33188,
+              "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+            }
+          ],
+          "dirty": true,
+          "identity": "90287e0c31f5ec6cd3da591f11803a9f8562f2483a4f2b57505d0e8a62b0aab4"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_BROWSER_PAGE": "gallery-layout-registry.html",
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "gallery-renderer-red": {
+            "outcome": "failed",
+            "startedAt": "2026-10-29T19:38:31.454Z",
+            "finishedAt": "2026-10-29T19:38:33.843Z",
+            "exitCode": 1,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/run.mjs"
+            ],
+            "cwd": "/tmp/rector-gallery-renderer-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_BROWSER_PAGE": "gallery-layout-registry.html",
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "b280462c3ec4f91878a2590d0fd57973d607ee38ef2f201827aa7b60ff64a528",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                },
+                {
+                  "path": "tests/browser/gallery-accessible-captions.js",
+                  "mode": 33188,
+                  "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+                }
+              ],
+              "dirty": true,
+              "identity": "90287e0c31f5ec6cd3da591f11803a9f8562f2483a4f2b57505d0e8a62b0aab4"
+            },
+            "elapsedMs": 2385.900193,
+            "sourceAfter": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "b280462c3ec4f91878a2590d0fd57973d607ee38ef2f201827aa7b60ff64a528",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                },
+                {
+                  "path": "tests/browser/gallery-accessible-captions.js",
+                  "mode": 33188,
+                  "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+                }
+              ],
+              "dirty": true,
+              "identity": "90287e0c31f5ec6cd3da591f11803a9f8562f2483a4f2b57505d0e8a62b0aab4"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "b280462c3ec4f91878a2590d0fd57973d607ee38ef2f201827aa7b60ff64a528",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            },
+            {
+              "path": "tests/browser/gallery-accessible-captions.js",
+              "mode": 33188,
+              "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+            }
+          ],
+          "dirty": true,
+          "identity": "90287e0c31f5ec6cd3da591f11803a9f8562f2483a4f2b57505d0e8a62b0aab4"
+        },
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "label": "gallery-renderer-green",
+      "manifest": {
+        "schemaVersion": 1,
+        "cwd": "/tmp/rector-gallery-renderer-20261029",
+        "startedAt": "2026-10-29T19:41:35.306Z",
+        "finishedAt": "2026-10-29T19:43:44.551Z",
+        "outcome": "passed",
+        "source": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "972f1ad5c4045d315d537cca4d4784599e7d9daa3f312dbae6149875e3238c27",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            },
+            {
+              "path": "tests/browser/gallery-accessible-captions.js",
+              "mode": 33188,
+              "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+            }
+          ],
+          "dirty": true,
+          "identity": "0074289e6c40ecf96ee4c707415e4a1b67ce27cd12289a8980ad0e911f635b7c"
+        },
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {
+            "EDITOR_BROWSER_PAGE": "gallery-layout-registry.html",
+            "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+          }
+        },
+        "context": {},
+        "gates": {
+          "gallery-renderer-green": {
+            "outcome": "passed",
+            "startedAt": "2026-10-29T19:43:19.418Z",
+            "finishedAt": "2026-10-29T19:43:20.692Z",
+            "exitCode": 0,
+            "signal": null,
+            "command": [
+              "node",
+              "tests/browser/run.mjs"
+            ],
+            "cwd": "/tmp/rector-gallery-renderer-20261029",
+            "environment": {
+              "node": "v24.22.1",
+              "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+              "npm": "11.9.0",
+              "platform": "linux",
+              "architecture": "x64",
+              "release": "6.18.55",
+              "runner": {},
+              "selection": {
+                "EDITOR_BROWSER_PAGE": "gallery-layout-registry.html",
+                "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+              }
+            },
+            "sourceBefore": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "972f1ad5c4045d315d537cca4d4784599e7d9daa3f312dbae6149875e3238c27",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                },
+                {
+                  "path": "tests/browser/gallery-accessible-captions.js",
+                  "mode": 33188,
+                  "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+                }
+              ],
+              "dirty": true,
+              "identity": "0074289e6c40ecf96ee4c707415e4a1b67ce27cd12289a8980ad0e911f635b7c"
+            },
+            "elapsedMs": 1269.204356,
+            "sourceAfter": {
+              "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+              "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+              "patchSha256": "972f1ad5c4045d315d537cca4d4784599e7d9daa3f312dbae6149875e3238c27",
+              "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+              "untracked": [
+                {
+                  "path": "node_modules",
+                  "mode": 41471,
+                  "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+                },
+                {
+                  "path": "tests/browser/gallery-accessible-captions.js",
+                  "mode": 33188,
+                  "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+                }
+              ],
+              "dirty": true,
+              "identity": "0074289e6c40ecf96ee4c707415e4a1b67ce27cd12289a8980ad0e911f635b7c"
+            },
+            "sourceUnchanged": true
+          }
+        },
+        "sourceAfter": {
+          "head": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+          "tree": "d77b23d70ad3adefffd7bdedbbfe43fba28345c2",
+          "patchSha256": "972f1ad5c4045d315d537cca4d4784599e7d9daa3f312dbae6149875e3238c27",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [
+            {
+              "path": "node_modules",
+              "mode": 41471,
+              "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+            },
+            {
+              "path": "tests/browser/gallery-accessible-captions.js",
+              "mode": 33188,
+              "sha256": "821c1c08cdb51e7a3182a3e803d4bc2a09f1dd178883d02d618ef344875eb185"
+            }
+          ],
+          "dirty": true,
+          "identity": "0074289e6c40ecf96ee4c707415e4a1b67ce27cd12289a8980ad0e911f635b7c"
+        },
+        "sourceUnchanged": true
+      }
+    }
+  ],
+  "browserResults": {
+    "red": {
+      "executed": 150,
+      "passed": 84,
+      "failed": 66,
+      "failedNames": [
+        "auto/intact input/detached render: literal and widget image alternatives",
+        "auto/intact input/detached render: literal and widget accessible names",
+        "auto/intact input/detached render: real widget renderer documents",
+        "auto/intact input/mounted render result: literal and widget image alternatives",
+        "auto/intact input/mounted render result: literal and widget accessible names",
+        "auto/intact input/renderTo main document: literal and widget image alternatives",
+        "auto/intact input/renderTo main document: literal and widget accessible names",
+        "auto/intact input/renderTo main document: real widget renderer documents",
+        "auto/intact input/renderTo owning iframe document: literal and widget image alternatives",
+        "auto/intact input/renderTo owning iframe document: literal and widget accessible names",
+        "auto/intact input/renderTo owning iframe document: real widget renderer documents",
+        "auto/saved input/detached render: literal and widget image alternatives",
+        "auto/saved input/detached render: literal and widget accessible names",
+        "auto/saved input/detached render: real widget renderer documents",
+        "auto/saved input/mounted render result: literal and widget image alternatives",
+        "auto/saved input/mounted render result: literal and widget accessible names",
+        "auto/saved input/renderTo main document: literal and widget image alternatives",
+        "auto/saved input/renderTo main document: literal and widget accessible names",
+        "auto/saved input/renderTo main document: real widget renderer documents",
+        "auto/saved input/renderTo owning iframe document: literal and widget image alternatives",
+        "auto/saved input/renderTo owning iframe document: literal and widget accessible names",
+        "auto/saved input/renderTo owning iframe document: real widget renderer documents",
+        "3a/intact input/detached render: literal and widget image alternatives",
+        "3a/intact input/detached render: literal and widget accessible names",
+        "3a/intact input/detached render: real widget renderer documents",
+        "3a/intact input/mounted render result: literal and widget image alternatives",
+        "3a/intact input/mounted render result: literal and widget accessible names",
+        "3a/intact input/renderTo main document: literal and widget image alternatives",
+        "3a/intact input/renderTo main document: literal and widget accessible names",
+        "3a/intact input/renderTo main document: real widget renderer documents",
+        "3a/intact input/renderTo owning iframe document: literal and widget image alternatives",
+        "3a/intact input/renderTo owning iframe document: literal and widget accessible names",
+        "3a/intact input/renderTo owning iframe document: real widget renderer documents",
+        "3a/saved input/detached render: literal and widget image alternatives",
+        "3a/saved input/detached render: literal and widget accessible names",
+        "3a/saved input/detached render: real widget renderer documents",
+        "3a/saved input/mounted render result: literal and widget image alternatives",
+        "3a/saved input/mounted render result: literal and widget accessible names",
+        "3a/saved input/renderTo main document: literal and widget image alternatives",
+        "3a/saved input/renderTo main document: literal and widget accessible names",
+        "3a/saved input/renderTo main document: real widget renderer documents",
+        "3a/saved input/renderTo owning iframe document: literal and widget image alternatives",
+        "3a/saved input/renderTo owning iframe document: literal and widget accessible names",
+        "3a/saved input/renderTo owning iframe document: real widget renderer documents",
+        "masonry/intact input/detached render: literal and widget image alternatives",
+        "masonry/intact input/detached render: literal and widget accessible names",
+        "masonry/intact input/detached render: real widget renderer documents",
+        "masonry/intact input/mounted render result: literal and widget image alternatives",
+        "masonry/intact input/mounted render result: literal and widget accessible names",
+        "masonry/intact input/renderTo main document: literal and widget image alternatives",
+        "masonry/intact input/renderTo main document: literal and widget accessible names",
+        "masonry/intact input/renderTo main document: real widget renderer documents",
+        "masonry/intact input/renderTo owning iframe document: literal and widget image alternatives",
+        "masonry/intact input/renderTo owning iframe document: literal and widget accessible names",
+        "masonry/intact input/renderTo owning iframe document: real widget renderer documents",
+        "masonry/saved input/detached render: literal and widget image alternatives",
+        "masonry/saved input/detached render: literal and widget accessible names",
+        "masonry/saved input/detached render: real widget renderer documents",
+        "masonry/saved input/mounted render result: literal and widget image alternatives",
+        "masonry/saved input/mounted render result: literal and widget accessible names",
+        "masonry/saved input/renderTo main document: literal and widget image alternatives",
+        "masonry/saved input/renderTo main document: literal and widget accessible names",
+        "masonry/saved input/renderTo main document: real widget renderer documents",
+        "masonry/saved input/renderTo owning iframe document: literal and widget image alternatives",
+        "masonry/saved input/renderTo owning iframe document: literal and widget accessible names",
+        "masonry/saved input/renderTo owning iframe document: real widget renderer documents"
+      ],
+      "representativeFailures": [
+        {
+          "name": "auto/intact input/detached render: literal and widget image alternatives",
+          "status": "FAIL",
+          "actual": [
+            "Literal &lt;b&gt;name&lt;/b&gt; &amp; {{literal}} &amp;lt;twice&amp;gt;",
+            "<b>Alpha</b> <i>{{mention}}</i> <mark>{{swatch}}</mark> tail"
+          ],
+          "expected": [
+            "Literal <b>name</b> & {{literal}} &lt;twice&gt;",
+            "Alpha @Ada <&> #123456 tail"
+          ],
+          "error": "{\"actual\":[\"Literal &lt;b&gt;name&lt;/b&gt; &amp; {{literal}} &amp;lt;twice&amp;gt;\",\"<b>Alpha</b> <i>{{mention}}</i> <mark>{{swatch}}</mark> tail\"],\"expected\":[\"Literal <b>name</b> & {{literal}} &lt;twice&gt;\",\"Alpha @Ada <&> #123456 tail\"]}"
+        },
+        {
+          "name": "auto/intact input/detached render: literal and widget accessible names",
+          "status": "FAIL",
+          "actual": [
+            "Open image: Literal &lt;b&gt;name&lt;/b&gt; &amp; {{literal}} &amp;lt;twice&amp;gt;",
+            "Open image: <b>Alpha</b> <i>{{mention}}</i> <mark>{{swatch}}</mark> tail"
+          ],
+          "expected": [
+            "Open image: Literal <b>name</b> & {{literal}} &lt;twice&gt;",
+            "Open image: Alpha @Ada <&> #123456 tail"
+          ],
+          "error": "{\"actual\":[\"Open image: Literal &lt;b&gt;name&lt;/b&gt; &amp; {{literal}} &amp;lt;twice&amp;gt;\",\"Open image: <b>Alpha</b> <i>{{mention}}</i> <mark>{{swatch}}</mark> tail\"],\"expected\":[\"Open image: Literal <b>name</b> & {{literal}} &lt;twice&gt;\",\"Open image: Alpha @Ada <&> #123456 tail\"]}"
+        },
+        {
+          "name": "auto/intact input/detached render: real widget renderer documents",
+          "status": "FAIL",
+          "actual": [],
+          "expected": [
+            {
+              "id": "mention",
+              "context": true,
+              "output": true
+            },
+            {
+              "id": "swatch",
+              "context": true,
+              "output": true
+            }
+          ],
+          "error": "{\"actual\":[],\"expected\":[{\"id\":\"mention\",\"context\":true,\"output\":true},{\"id\":\"swatch\",\"context\":true,\"output\":true}]}"
+        }
+      ]
+    },
+    "green": {
+      "executed": 150,
+      "passed": 150,
+      "failed": 0,
+      "passedNames": [
+        "Gallery prototype layout __proto__",
+        "Gallery prototype layout constructor",
+        "Gallery prototype layout toString",
+        "Gallery prototype layout hasOwnProperty",
+        "auto: saved canonical captions and IDs",
+        "auto: saved canonical inline records",
+        "auto: editor input unchanged",
+        "auto/intact input/render: initially detached",
+        "auto/intact input/detached render: literal and widget image alternatives",
+        "auto/intact input/detached render: literal and widget accessible names",
+        "auto/intact input/detached render: empty-caption fallback",
+        "auto/intact input/detached render: output structure and document",
+        "auto/intact input/detached render: real widget renderer documents",
+        "auto/intact input/mounted render result: literal and widget image alternatives",
+        "auto/intact input/mounted render result: literal and widget accessible names",
+        "auto/intact input/mounted render result: empty-caption fallback",
+        "auto/intact input/mounted render result: output structure and document",
+        "auto/intact input/renderTo main document: literal and widget image alternatives",
+        "auto/intact input/renderTo main document: literal and widget accessible names",
+        "auto/intact input/renderTo main document: empty-caption fallback",
+        "auto/intact input/renderTo main document: output structure and document",
+        "auto/intact input/renderTo main document: real widget renderer documents",
+        "auto/intact input/renderTo owning iframe document: literal and widget image alternatives",
+        "auto/intact input/renderTo owning iframe document: literal and widget accessible names",
+        "auto/intact input/renderTo owning iframe document: empty-caption fallback",
+        "auto/intact input/renderTo owning iframe document: output structure and document",
+        "auto/intact input/renderTo owning iframe document: real widget renderer documents",
+        "auto/intact input: renderer input unchanged",
+        "auto/intact input: output disposal",
+        "auto/saved input/render: initially detached",
+        "auto/saved input/detached render: literal and widget image alternatives",
+        "auto/saved input/detached render: literal and widget accessible names",
+        "auto/saved input/detached render: empty-caption fallback",
+        "auto/saved input/detached render: output structure and document",
+        "auto/saved input/detached render: real widget renderer documents",
+        "auto/saved input/mounted render result: literal and widget image alternatives",
+        "auto/saved input/mounted render result: literal and widget accessible names",
+        "auto/saved input/mounted render result: empty-caption fallback",
+        "auto/saved input/mounted render result: output structure and document",
+        "auto/saved input/renderTo main document: literal and widget image alternatives",
+        "auto/saved input/renderTo main document: literal and widget accessible names",
+        "auto/saved input/renderTo main document: empty-caption fallback",
+        "auto/saved input/renderTo main document: output structure and document",
+        "auto/saved input/renderTo main document: real widget renderer documents",
+        "auto/saved input/renderTo owning iframe document: literal and widget image alternatives",
+        "auto/saved input/renderTo owning iframe document: literal and widget accessible names",
+        "auto/saved input/renderTo owning iframe document: empty-caption fallback",
+        "auto/saved input/renderTo owning iframe document: output structure and document",
+        "auto/saved input/renderTo owning iframe document: real widget renderer documents",
+        "auto/saved input: renderer input unchanged",
+        "auto/saved input: output disposal",
+        "auto: editor disposal",
+        "3a: saved canonical captions and IDs",
+        "3a: saved canonical inline records",
+        "3a: editor input unchanged",
+        "3a/intact input/render: initially detached",
+        "3a/intact input/detached render: literal and widget image alternatives",
+        "3a/intact input/detached render: literal and widget accessible names",
+        "3a/intact input/detached render: empty-caption fallback",
+        "3a/intact input/detached render: output structure and document",
+        "3a/intact input/detached render: real widget renderer documents",
+        "3a/intact input/mounted render result: literal and widget image alternatives",
+        "3a/intact input/mounted render result: literal and widget accessible names",
+        "3a/intact input/mounted render result: empty-caption fallback",
+        "3a/intact input/mounted render result: output structure and document",
+        "3a/intact input/renderTo main document: literal and widget image alternatives",
+        "3a/intact input/renderTo main document: literal and widget accessible names",
+        "3a/intact input/renderTo main document: empty-caption fallback",
+        "3a/intact input/renderTo main document: output structure and document",
+        "3a/intact input/renderTo main document: real widget renderer documents",
+        "3a/intact input/renderTo owning iframe document: literal and widget image alternatives",
+        "3a/intact input/renderTo owning iframe document: literal and widget accessible names",
+        "3a/intact input/renderTo owning iframe document: empty-caption fallback",
+        "3a/intact input/renderTo owning iframe document: output structure and document",
+        "3a/intact input/renderTo owning iframe document: real widget renderer documents",
+        "3a/intact input: renderer input unchanged",
+        "3a/intact input: output disposal",
+        "3a/saved input/render: initially detached",
+        "3a/saved input/detached render: literal and widget image alternatives",
+        "3a/saved input/detached render: literal and widget accessible names",
+        "3a/saved input/detached render: empty-caption fallback",
+        "3a/saved input/detached render: output structure and document",
+        "3a/saved input/detached render: real widget renderer documents",
+        "3a/saved input/mounted render result: literal and widget image alternatives",
+        "3a/saved input/mounted render result: literal and widget accessible names",
+        "3a/saved input/mounted render result: empty-caption fallback",
+        "3a/saved input/mounted render result: output structure and document",
+        "3a/saved input/renderTo main document: literal and widget image alternatives",
+        "3a/saved input/renderTo main document: literal and widget accessible names",
+        "3a/saved input/renderTo main document: empty-caption fallback",
+        "3a/saved input/renderTo main document: output structure and document",
+        "3a/saved input/renderTo main document: real widget renderer documents",
+        "3a/saved input/renderTo owning iframe document: literal and widget image alternatives",
+        "3a/saved input/renderTo owning iframe document: literal and widget accessible names",
+        "3a/saved input/renderTo owning iframe document: empty-caption fallback",
+        "3a/saved input/renderTo owning iframe document: output structure and document",
+        "3a/saved input/renderTo owning iframe document: real widget renderer documents",
+        "3a/saved input: renderer input unchanged",
+        "3a/saved input: output disposal",
+        "3a: editor disposal",
+        "masonry: saved canonical captions and IDs",
+        "masonry: saved canonical inline records",
+        "masonry: editor input unchanged",
+        "masonry/intact input/render: initially detached",
+        "masonry/intact input/detached render: literal and widget image alternatives",
+        "masonry/intact input/detached render: literal and widget accessible names",
+        "masonry/intact input/detached render: empty-caption fallback",
+        "masonry/intact input/detached render: output structure and document",
+        "masonry/intact input/detached render: real widget renderer documents",
+        "masonry/intact input/mounted render result: literal and widget image alternatives",
+        "masonry/intact input/mounted render result: literal and widget accessible names",
+        "masonry/intact input/mounted render result: empty-caption fallback",
+        "masonry/intact input/mounted render result: output structure and document",
+        "masonry/intact input/renderTo main document: literal and widget image alternatives",
+        "masonry/intact input/renderTo main document: literal and widget accessible names",
+        "masonry/intact input/renderTo main document: empty-caption fallback",
+        "masonry/intact input/renderTo main document: output structure and document",
+        "masonry/intact input/renderTo main document: real widget renderer documents",
+        "masonry/intact input/renderTo owning iframe document: literal and widget image alternatives",
+        "masonry/intact input/renderTo owning iframe document: literal and widget accessible names",
+        "masonry/intact input/renderTo owning iframe document: empty-caption fallback",
+        "masonry/intact input/renderTo owning iframe document: output structure and document",
+        "masonry/intact input/renderTo owning iframe document: real widget renderer documents",
+        "masonry/intact input: renderer input unchanged",
+        "masonry/intact input: output disposal",
+        "masonry/saved input/render: initially detached",
+        "masonry/saved input/detached render: literal and widget image alternatives",
+        "masonry/saved input/detached render: literal and widget accessible names",
+        "masonry/saved input/detached render: empty-caption fallback",
+        "masonry/saved input/detached render: output structure and document",
+        "masonry/saved input/detached render: real widget renderer documents",
+        "masonry/saved input/mounted render result: literal and widget image alternatives",
+        "masonry/saved input/mounted render result: literal and widget accessible names",
+        "masonry/saved input/mounted render result: empty-caption fallback",
+        "masonry/saved input/mounted render result: output structure and document",
+        "masonry/saved input/renderTo main document: literal and widget image alternatives",
+        "masonry/saved input/renderTo main document: literal and widget accessible names",
+        "masonry/saved input/renderTo main document: empty-caption fallback",
+        "masonry/saved input/renderTo main document: output structure and document",
+        "masonry/saved input/renderTo main document: real widget renderer documents",
+        "masonry/saved input/renderTo owning iframe document: literal and widget image alternatives",
+        "masonry/saved input/renderTo owning iframe document: literal and widget accessible names",
+        "masonry/saved input/renderTo owning iframe document: empty-caption fallback",
+        "masonry/saved input/renderTo owning iframe document: output structure and document",
+        "masonry/saved input/renderTo owning iframe document: real widget renderer documents",
+        "masonry/saved input: renderer input unchanged",
+        "masonry/saved input: output disposal",
+        "masonry: editor disposal",
+        "Gallery captions do not invoke a provider",
+        "Gallery captions have no page errors"
+      ]
+    }
+  },
+  "installedViewerContract": {
+    "installedVersion": "1.0.0",
+    "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+    "files": {
+      "node_modules/@shelamkoff/expose/package.json": "442df5ed5b8ffedbc834f29e4e855a85390ae5c11f89cd38bc9710a5622eb1c4",
+      "node_modules/@shelamkoff/expose/dist/src/plugins/captions.js": "cc50c5ab915e13a882bbabbfee6b3622afee49cb4701b5cf6cf67fa557b6cdb6",
+      "node_modules/@shelamkoff/expose/dist/src/plugins/captions/README.md": "a888a4aac620dea3f6c31105c724cd2e03eed53ac852c9b001f473517e462845",
+      "node_modules/@shelamkoff/expose/dist/src/SlideRenderer.js": "0ec4b5254f3d9baa794b5d07bbba4137c62ca8fc083280a99285d1cc71289c82",
+      "node_modules/@shelamkoff/expose/dist/src/types.d.ts": "0b7a7a8eac3234399bb0b37a834b65cd280d97ccfd3ed337579bdd2babb49fa6"
+    },
+    "observations": {
+      "captions": "createCaptions.update assigns slide.caption to captionEl.textContent; missing or empty values hide the caption",
+      "imageAlternative": "SlideRenderer assigns slide.alt || empty string to img.alt",
+      "currentRectorFallback": "openOwnedGalleryDialog assigns canonical caption directly to image.alt and caption.textContent",
+      "scopeDecision": "Current repair changes only grid img.alt and figure aria-label. Open Expose/fallback viewer remains unchanged and outside acceptance; native viewer controls are required for a later repair."
+    }
+  },
+  "peerReview": {
+    "reviewer": "image_parity_recovery",
+    "kind": "Independent read-only review; reviewer did not rerun browser or unit gates.",
+    "patchSha256": "70cd6d628b081cb1e499336cb10bc830e5667eeb5bbd940b868e6280e07cce49",
+    "findings": "No blockers in the bounded grid-label repair: all three createItem paths receive the existing owning-document inline parser, one derived textContent value serves alt and ARIA, and literal/widget/saved/iframe/cleanup controls are independent. Editor and open viewer paths remain outside the change."
+  },
+  "remainingObligations": [
+    "Gallery editor image alt still derives from canonical markup before hydrated widget labels; it needs its separately approved projection-completion contract.",
+    "Open Expose captions/slide alt and the owning-document native-dialog caption/alt remain unchanged; viewer interaction and navigation controls have not been run for this repair.",
+    "The complete Gallery ROUNDTRIP template, native caption edit and history, viewer controls and all layout actions are not accepted by these 150 assertions."
+  ]
+}
