@@ -95,8 +95,9 @@ its authoring/history phases are explicitly N/A. The populated case has
 no inline sidecars. These two cases are scoped evidence only and do not
 complete `BLOCK_IMAGE_ROUNDTRIP`: the supported caption-widget capability
 also needs to preserve visible text, alternative text and native range.
-The separately confirmed stale-alt and inline-update range-collapse
-defects remain open; no widget data is discarded by a historical adapter.
+These literal cases do not test the separately recorded stale-alt and
+inline-update range-collapse defects; resolving them requires the distinct
+widget-capability evidence. No widget data is discarded by a historical adapter.
 Upload/source actions, caption widgets, hostile styles and the full
 appearance/settings matrix are not accepted by this literal-caption slice.
 
@@ -137,6 +138,27 @@ marks/widget and neighboring Paragraphs must remain unchanged. Layout
 activation, three-column conversion, responsive sizing and native editing
 in the second column remain separate detailed rows.
 
+Attaches adds an actual no-file default and a fixed two-file document in
+variant `f`. File URLs, IDs, order, sizes and extensions are independent
+literal expectations. Names include literal `<`, `>`, `&` and token-looking
+characters; they remain plain text in the editor's declared DIV fields,
+canonical records and all three renderer contexts. Renderer anchors retain
+exact href/download values, tags and formatted sizes. The empty default
+has no invented filename or native authoring/history phase. Populated
+native input and exact one-step Undo/Redo edit only the first filename;
+the second file and both neighboring Paragraphs remain unchanged.
+
+Attaches deliberately rebuilds its mode-specific controls. The fixture
+requires stable instance/block wrappers across mode changes, exact new
+public `file:<id>:name` addresses, and rejection of read-only focus without
+moving an independent host control. Retired filename hosts and the original
+remove button must be detached and unable to change canonical data or
+history, including after editing is enabled again. Filename field identity
+is required during native input and Undo/Redo while file structure stays
+unchanged; it is not required across those intentional mode rebuilds.
+Actual downloads, upload/ZIP actions, variant activation, providers and
+native editing of the second filename remain separate detailed rows.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -164,7 +186,9 @@ order are fixed in both forms, without inventing historical item IDs.
 v1 Checklist likewise receives `{ text, checked }` items; current Checklist
 adds explicit IDs without changing their order or checked values.
 v1 Columns receives ordered `{ content }` records; the current form adds
-fixed column IDs without changing layout or authored contents.
+fixed column IDs without changing layout or authored contents. v1 Attaches
+receives the same file names, URLs, sizes, extensions and order without
+current file IDs; filename text is never parsed as rich markup.
 These are fixture adapters, not production compatibility or a legacy
 decoder.
 
@@ -192,7 +216,7 @@ author data from an initial `save()` result.
 | Raw / 1 | Empty HTML source | Safe multiline authored HTML; edit `html` source | Source field is plain text; preview confinement/navigation remain separate rows. |
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
 | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
-| Attaches / 2 | No files, variant `f` | Controlled file URL/name/size/extension; edit filename | v1 file IDs absent; name is plain text. |
+| Attaches / 2 | No files, variant `f` | Two controlled file URLs, literal names, size/extension; edit first filename | Implemented: v1 file IDs absent; plain text, current keyed focus, retired mode controls, native history and renderer anchors are checked. |
 | LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated metadata; edit declared URL | URL field disclosure and metadata replacement need the documented provider contract. |
 | Toggle / 1 | Empty title/content, closed | Rich title/Mention and content/Color, explicit open/closed state; edit title | Implemented: both fields, hidden populated content, open state, accessibility relationship and renderer structure survive mode/history. |
 | Columns / 2 | Two empty columns, `1-1` layout | Fixed `1-2` rich columns with independent widgets; edit first column | Implemented: v1 column IDs absent; current IDs, both fields/order, grid/layout controls and renderer columns are checked. |
@@ -251,8 +275,8 @@ Every completed case creates the default or populated document, checks
 fixed canonical data, renders both detached and mounted output, switches
 read-only and back while retaining independent host focus, performs real
 pointer focus and native field input where a field exists, then exact
-one-step Undo/Redo. Delimiter and empty-source Image cases expose their
-explicit non-editable or neighboring-field phase scope as described above. The fixture
+one-step Undo/Redo. Delimiter, empty-source Image and no-file Attaches cases
+expose their explicit non-editable or neighboring-field phase scope as described above. The fixture
 checks marks, sidecars, IDs/order, logical caret, DOM reuse, renderer input
 immutability, disposal and release of newly acquired owned styles. No
 private editor transaction or compatibility implementation is invoked.
@@ -263,24 +287,27 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler and Columns oracle
-classifies only these observed historical differences, bounded to the thirty-four exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns and Attaches oracle
+classifies only these observed historical differences, bounded to the thirty-six exact scenario IDs in the
 runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code textarea and
-  Checklist rows/buttons/labels, Delimiter HR and Image wrapper/picture/caption
-  during read-only/editable mode
-  changes and Undo/Redo. Default Delimiter and empty-source Image admit only
-  their two executed mode phases; their populated cases admit the two mode
-  and two history phases.
+  Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
+  and Attaches wrapper during read-only/editable mode
+  changes and Undo/Redo. Default Delimiter, empty-source Image and no-file
+  Attaches admit only their two executed mode phases; their populated cases
+  admit the two mode and two history phases. Attaches filename remount
+  differences apply only to populated Undo/Redo, since mode rebuilds are
+  explicit and separately checked for retirement.
   No caret exception applies to Delimiter; no widget exception applies to
-  either Delimiter or literal-caption Image. Author data and sidecars
+  Delimiter, literal-caption Image or plain-text Attaches. Author data and sidecars
   must still be exact.
 - The first v1 Undo in each rich-field block's populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
   offset 12 for Quote/Warning/Toggle/Spoiler/Columns. Populated literal-caption Image has the same
-  exact prefix-owner defect, with required probe offset 18. The full active/anchor/focus
+  exact prefix-owner defect, with required probe offset 18; populated
+  Attaches requires filename offset 26. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
   native selection points are on that same block's UL at child offset 1.
@@ -324,6 +351,15 @@ runner:
   class and owners, binding the default owner to its generated ID. v1's
   `SelectionManager` restores a DOM Range in block contents rather than a
   textarea selection. Both later sources must restore the textarea caret.
+- e981 reports `false` from public keyed focus for each populated Attaches
+  filename even though the exact requested DIV becomes active. The
+  classification requires only this scenario, the `edit` phase, the two
+  exact address properties and `{ accepted: false, active: true }`, with
+  all phases completed. Its `focusin` handler calls `setCurrent` during
+  plugin focus and therefore invalidates the older request's claim. The
+  existing same-occurrence native-acknowledgment repair in `0a535f75149606fa`
+  corrects this behavior; the candidate must return true and focus the
+  declared field. This is not a generic exception for rejected focus.
 - e981 throws `Inline widget root left its projection boundary before
   hydration` while entering read-only mode in each formatted-widget case,
   including both the open and closed populated Toggle cases.
@@ -337,6 +373,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler or Columns behavior,
-the other 9 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns or Attaches behavior,
+the other 8 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

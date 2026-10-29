@@ -75,6 +75,16 @@ const columns = {
   ] },
 }
 
+const attaches = {
+  type: 'attaches', version: 2, className: 'Attaches', fieldMode: 'plain-text', plainContenteditable: true,
+  fieldSelector: '.oe-attaches__name', fieldTag: 'DIV',
+  defaultData: { files: [], variant: 'f' },
+  populatedData: { variant: 'f', files: [
+    { id: 'first', url: 'https://example.test/manual.pdf', name: 'Manual <&> {{literal}}.pdf', extension: 'pdf', size: 2048 },
+    { id: 'second', url: 'https://example.test/notes.txt', name: 'Appendix & notes.txt', extension: 'txt', size: 4096 },
+  ] },
+}
+
 const code = {
   type: 'code', version: 1, className: 'Code', textKey: 'code', fieldMode: 'plain-text',
   fieldSelector: '.oe-code-textarea',
@@ -103,10 +113,11 @@ const delimiter = {
 const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : block.type === 'columns' ? { ...data, columns: data.columns.map((column, index) => index ? { ...column } : { ...column, content: text }) }
+  : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -206,7 +217,8 @@ async function settled() {
 export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut }) {
   const noEditableField = specification.noEditableField === true
   const emptyImage = specification.type === 'image' && !specification.populated
-  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage
+  const emptyAttaches = specification.type === 'attaches' && !specification.populated
+  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches
   const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption
   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
@@ -215,6 +227,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     reason: 'Delimiter has no editable field; only the populated case edits a real neighboring Paragraph.',
   } : emptyImage ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
     reason: 'Image without a source has no declared editable caption; authoring/history are covered by the populated image case.',
+  } : emptyAttaches ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+    reason: 'Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case.',
   } : {}
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
@@ -233,7 +247,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
   const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}),
     data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) }
       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
-        : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) } : data,
+        : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
+          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
@@ -280,7 +295,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       return specification.populated ? [wrapper, wrapper.querySelector('.oe-image__image'), wrapper.querySelector('.oe-image__caption')] : [wrapper]
     }
     let previousImageParts = specification.type === 'image' ? imageParts() : []
-    const plainField = specification.fieldMode === 'plain-text'
+    const plainContenteditable = specification.plainContenteditable === true
+    const plainField = specification.fieldMode === 'plain-text' && !plainContenteditable
     let previousPlainFields = plainField ? [field()] : []
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
     let previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
@@ -298,8 +314,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
     const columnFields = () => [...shell(id).querySelector('.oe-columns__grid').children]
     let previousColumnFields = specification.type === 'columns' ? columnFields() : []
+    const attachmentFields = () => [...shell(id).querySelectorAll('.oe-attaches__name')]
+    let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
+    let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
+    const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = noEditableField ? specification.neighborText : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = noEditableField ? specification.neighborText : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
@@ -309,9 +329,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => ['spoiler', 'columns'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => ['spoiler', 'columns', 'attaches'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : block.type === 'image' ? { ...block.data, caption: markupMeaning(block.data.caption) }
@@ -360,7 +380,18 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         expanded: element.classList.contains('editor-spoiler--open'),
       }
     }
-    const rendererMarkup = element => element.dataset.blockType === 'columns'
+    const attachmentRendererMarkup = element => ({
+      children: element.children.length,
+      rows: [...element.querySelectorAll('.editor-attaches__notion-row')].map(row => {
+        const name = row.querySelector('.editor-attaches__notion-name')
+        return { tag: row.tagName, nameTag: name.tagName, name: name.textContent, nameElements: name.childElementCount,
+          href: name.getAttribute('href'), download: name.getAttribute('download'),
+          extension: row.querySelector('.editor-attaches__notion-tag').textContent,
+          size: row.querySelector('.editor-attaches__notion-size').textContent,
+        }
+      }),
+    })
+    const rendererMarkup = element => element.dataset.blockType === 'attaches' ? attachmentRendererMarkup(element) : element.dataset.blockType === 'columns'
       ? { display: element.style.display, grid: element.style.gridTemplateColumns, gap: element.style.gap,
         columns: [...element.children].map(column => ({ tag: column.tagName, markup: authoredMarkup(column) })),
       } : element.dataset.blockType === 'spoiler' ? spoilerRendererMarkup(element) : element.dataset.blockType === 'toggle'
@@ -386,7 +417,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'columns'
+    const expectedRendererMarkup = block => block.type === 'attaches'
+      ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
+        tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
+        extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
+      })) } : block.type === 'columns'
       ? { display: 'grid', grid: block.data.layout === '1-2' ? '1fr 2fr' : '1fr 1fr', gap: '1rem',
         columns: block.data.columns.map(column => ({ tag: 'DIV', markup: markupMeaning(column.content) })),
       } : block.type === 'spoiler'
@@ -470,7 +505,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check(phase, 'editorAuthoredSource', field().value, text)
           check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
           check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
-        } else check(phase, noEditableField ? 'neighborAuthoredMarkup' : 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+        } else if (plainContenteditable) check(phase, 'editorAuthoredPlainText', { text: field().textContent, elements: field().childElementCount }, { text, elements: 0 })
+        else check(phase, noEditableField ? 'neighborAuthoredMarkup' : 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
       }
       if (noEditableField) {
         const rule = shell(id).querySelector('.oe-delimiter')
@@ -582,6 +618,38 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
             .map(([layout, label]) => ({ label: 'Layout ' + label, pressed: String(baseData.layout === layout) })),
         })
       }
+      if (specification.type === 'attaches') {
+        const wrapper = shell(id).querySelector('.oe-attaches')
+        const fields = attachmentFields()
+        const expectedFiles = baseData.files.map((file, index) => ({ ...file, name: index ? file.name : text }))
+        check(phase, 'attachmentWrapperIdentity', [wrapper === previousAttachmentWrapper], [true])
+        check(phase, 'attachmentFields', fields.map(element => ({ tag: element.tagName, text: element.textContent,
+          elements: element.childElementCount, editable: element.isContentEditable })),
+        expectedFiles.map(file => ({ tag: 'DIV', text: file.name, elements: 0, editable: !readOnly })))
+        if (emptyAttaches) check(phase, 'emptyAttachesHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
+        else {
+          check(phase, 'attachmentMetadata', [...wrapper.querySelectorAll('.oe-attaches__notion-row')].map(row => ({
+            extension: row.querySelector('.oe-attaches__notion-tag').textContent,
+            size: row.querySelector('.oe-attaches__notion-size').textContent,
+          })), [{ extension: 'PDF', size: '2KB' }, { extension: 'TXT', size: '4KB' }])
+          if (['read-only', 'editable-again'].includes(phase)) {
+            // This plugin deliberately rebuilds mode-specific controls. Old
+            // hosts and their callbacks must lose authority while the block
+            // wrapper and its canonical file identities remain accepted.
+            check(phase, 'attachmentRetiredHosts', previousAttachmentFields.map(element => !element.isConnected && !fields.includes(element)), [true, true])
+            check(phase, 'attachmentRetiredControl', Boolean(originalAttachmentRemove) && !originalAttachmentRemove.isConnected, true)
+            for (const old of previousAttachmentFields) {
+              old.textContent = 'stale retired filename'
+              old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
+              old.dispatchEvent(new FocusEvent('blur'))
+            }
+            originalAttachmentRemove.click()
+            await settled()
+            check(phase, 'attachmentRetiredActionsLeaveCanonical', editor.save().blocks, saved.blocks)
+            check(phase, 'attachmentRetiredActionsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
+          } else check(phase, 'attachmentFieldDomIdentity', previousAttachmentFields.map((element, index) => element === fields[index]), [true, true])
+        }
+      }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
@@ -604,6 +672,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
       previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
       previousColumnFields = specification.type === 'columns' ? columnFields() : []
+      previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
+      previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
       previousPlainFields = plainField ? [field()] : []
       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
       previousImageParts = specification.type === 'image' ? imageParts() : []
@@ -615,6 +685,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     editor.setReadOnly(true)
     await settled()
     check('read-only', 'foreignFocusPreserved', document.activeElement === outside, true)
+    if (specification.type === 'attaches' && specification.populated && !legacy) {
+      check('read-only', 'attachmentFocusRejected', editor.blocks.focus(id, { fieldKey: 'file:first:name', offset: 'end' }), false)
+      check('read-only', 'attachmentReadonlyFocusOwner', document.activeElement === outside, true)
+    }
     await inspect('read-only', baseText, true, { canUndo: false, canRedo: false })
     currentPhase = 'editable-transition'
     editor.setReadOnly(false)
@@ -623,6 +697,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     await inspect('editable-again', baseText, false, { canUndo: false, canRedo: false })
     if (hasAuthoring) {
       currentPhase = 'edit'
+      if (specification.type === 'attaches' && !legacy) {
+        for (const [index, file] of baseData.files.entries()) {
+          check('edit', 'attachmentAddress:' + file.id, {
+            accepted: editor.blocks.focus(id, { fieldKey: 'file:' + file.id + ':name', offset: 'end' }),
+            active: document.activeElement === attachmentFields()[index],
+          }, { accepted: true, active: true })
+        }
+      }
       if (plainField && !shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
         const editControl = shell(id).querySelector('.oe-code-btn--edit')
         editControl.scrollIntoView({ block: 'nearest' })
@@ -644,7 +726,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }, { editing: true, hidden: false, visible: true, receivesPointer: true })
       }
       await focusField(author)
-      const offset = plainField ? baseText.length : logicalLength(baseText)
+      const offset = plainField || plainContenteditable ? baseText.length : logicalLength(baseText)
       if (plainField) author.setSelectionRange(offset, offset)
       else {
         const range = document.createRange()

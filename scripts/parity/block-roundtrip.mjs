@@ -139,12 +139,13 @@ try {
         'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/populated',
         'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/populated', 'BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_TOGGLE_ROUNDTRIP/populated-closed',
         'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/populated', 'BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control',
-        'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/populated', 'BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control']
+        'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/populated', 'BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control',
+        'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/populated']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default'].includes(entry.id)
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default'].includes(entry.id)
           const listCase = ['BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const quoteCase = ['BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const warningCase = ['BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
@@ -155,19 +156,22 @@ try {
           const toggleCase = ['BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/populated', 'BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_TOGGLE_ROUNDTRIP/populated-closed'].includes(entry.id)
           const spoilerCase = ['BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/populated', 'BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const columnsCase = ['BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/populated', 'BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
+          const attachesCase = ['BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/populated'].includes(entry.id)
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
-            : failure.property === 'widgetDomIdentity' && populated && !codeCase && !delimiterCase && !imageCase ? 2
+            : failure.property === 'widgetDomIdentity' && populated && !codeCase && !delimiterCase && !imageCase && !attachesCase ? 2
               : failure.property === 'itemDomIdentity' && listCase ? populated ? 2 : 1
                 : failure.property === 'quoteFieldDomIdentity' && quoteCase ? 2
                   : failure.property === 'warningFieldDomIdentity' && warningCase ? 2
                     : failure.property === 'toggleFieldDomIdentity' && toggleCase ? 2
                     : failure.property === 'spoilerFieldDomIdentity' && spoilerCase ? 2
                     : failure.property === 'columnDomIdentity' && columnsCase ? 2
+                    : failure.property === 'attachmentWrapperIdentity' && attachesCase ? 1
+                    : failure.property === 'attachmentFieldDomIdentity' && attachesCase && populated && ['undo', 'redo'].includes(failure.phase) ? 2
                     : failure.property === 'plainFieldDomIdentity' && codeCase ? 1
                       : failure.property === 'checklistDomIdentity' && checklistCase ? populated ? 6 : 3
                         : failure.property === 'delimiterDomIdentity' && delimiterCase ? 1
                           : failure.property === 'imageDomIdentity' && imageCase ? populated ? 3 : 1 : 0
-          const remountPhases = ['BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default'].includes(entry.id) ? ['read-only', 'editable-again'] : ['read-only', 'editable-again', 'undo', 'redo']
+          const remountPhases = ['BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default'].includes(entry.id) ? ['read-only', 'editable-again'] : ['read-only', 'editable-again', 'undo', 'redo']
           if (size && remountPhases.includes(failure.phase)
             && same(failure.actual, Array(size).fill(false)) && same(failure.expected, Array(size).fill(true))) {
             return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
@@ -257,7 +261,7 @@ try {
               anchor: { block: codeId, node: '#text', text: '\n', offset: 1 },
               focus: { block: codeId, node: '#text', text: '\n', offset: 1 },
             })) return 'repaired-v1-code-redo-caret'
-          const offset = imageCase ? 18 : quoteCase || warningCase || toggleCase || spoilerCase || columnsCase ? 12 : 14
+          const offset = attachesCase ? 26 : imageCase ? 18 : quoteCase || warningCase || toggleCase || spoilerCase || columnsCase ? 12 : 14
           if (populated && !codeCase && !delimiterCase && failure.phase === 'undo' && failure.property === 'nativeSelection'
             && same(failure.actual, { focused: false, anchor: null, focus: null, collapsed: true })
             && same(failure.expected, { focused: true, anchor: offset, focus: offset, collapsed: true })
@@ -266,6 +270,13 @@ try {
               anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
               focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
             })) return 'repaired-v1-first-undo-caret'
+        }
+        if (source.label === 'spec-baseline' && entry.id === 'BLOCK_ATTACHES_ROUNDTRIP/populated'
+          && failure.phase === 'edit' && ['attachmentAddress:first', 'attachmentAddress:second'].includes(failure.property)
+          && same(failure.actual, { accepted: false, active: true })
+          && same(failure.expected, { accepted: true, active: true })
+          && same(entry.completedPhases, ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])) {
+          return 'repaired-baseline-native-focus-acknowledgment'
         }
         if (source.label === 'spec-baseline'
           && ['BLOCK_PARAGRAPH_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated', 'BLOCK_TOGGLE_ROUNDTRIP/populated', 'BLOCK_TOGGLE_ROUNDTRIP/populated-closed', 'BLOCK_SPOILER_ROUNDTRIP/populated', 'BLOCK_COLUMNS_ROUNDTRIP/populated'].includes(entry.id)
@@ -291,7 +302,7 @@ try {
   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
   const failed = results.some(result => result.errors.length || result.cases.some(entry => entry.unexpectedFailures.length))
   console.log(JSON.stringify({
-    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
+    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
     requestedFilter, selectedCaseIds: results[0]?.cases.map(entry => entry.id) ?? [],
     incompleteCases: results.flatMap(source => source.cases.filter(entry => entry.incompletePhases?.length)
       .map(entry => ({ source: source.source, id: entry.id, completed: entry.completedPhases, incomplete: entry.incompletePhases }))),
