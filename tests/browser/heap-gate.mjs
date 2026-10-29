@@ -150,6 +150,105 @@ async function stopProcess(child) {
   ])
 }
 
+async function collectGarbage(client) {
+  // A WeakRef dereference or an evaluated callback keeps its result alive for
+  // that job. Let it return before requesting the same real collections used
+  // by the existing lifecycle sentinels.
+  await new Promise(resolveDelay => setTimeout(resolveDelay, 100))
+  for (let pass = 0; pass < 3; pass++) {
+    await client.send('HeapProfiler.collectGarbage')
+    await new Promise(resolveDelay => setTimeout(resolveDelay, 50))
+  }
+}
+
+function countPayloadObjects(snapshot, { nonce, markerProperty, latestCase }) {
+  const { nodes, edges, strings } = snapshot
+  const meta = snapshot.snapshot.meta
+  const nodeWidth = meta.node_fields.length, edgeWidth = meta.edge_fields.length
+  const nodeType = meta.node_fields.indexOf('type'), nodeName = meta.node_fields.indexOf('name')
+  const edgeCount = meta.node_fields.indexOf('edge_count')
+  const edgeType = meta.edge_fields.indexOf('type'), edgeName = meta.edge_fields.indexOf('name_or_index')
+  const toNode = meta.edge_fields.indexOf('to_node')
+  if ([nodeType, nodeName, edgeCount, edgeType, edgeName, toNode].some(index => index < 0)) {
+    throw new Error('Heap snapshot lacks the object/property metadata required by the history proof')
+  }
+  const nodeTypes = meta.node_types[nodeType], edgeTypes = meta.edge_types[edgeType]
+  const counts = Array(latestCase + 1).fill(0)
+  const prefix = nonce + ':'
+  let edgeOffset = 0
+  for (let nodeOffset = 0; nodeOffset < nodes.length; nodeOffset += nodeWidth) {
+    const end = edgeOffset + nodes[nodeOffset + edgeCount] * edgeWidth
+    if (nodeTypes[nodes[nodeOffset + nodeType]] === 'object') {
+      for (let offset = edgeOffset; offset < end; offset += edgeWidth) {
+        if (edgeTypes[edges[offset + edgeType]] !== 'property'
+          || strings[edges[offset + edgeName]] !== markerProperty) continue
+        const target = edges[offset + toNode]
+        if (nodeTypes[nodes[target + nodeType]] !== 'string') continue
+        const marker = strings[nodes[target + nodeName]]
+        if (!marker.startsWith(prefix)) continue
+        const suffix = marker.slice(prefix.length), index = Number(suffix)
+        if (Number.isInteger(index) && index >= 1 && index <= latestCase && String(index) === suffix) counts[index]++
+      }
+    }
+    edgeOffset = end
+  }
+  return counts
+}
+
+async function proveHistoryEviction(client) {
+  const phases = []
+  let chunks = null
+  client.on('HeapProfiler.addHeapSnapshotChunk', ({ chunk }) => { chunks?.push(chunk) })
+  const metadata = await evaluate(client, 'window.__editorHistoryHeap.start()')
+  if (!metadata?.nonce || metadata.payloadBytes !== 32 * 1024 || metadata.latestCase !== 12) {
+    throw new Error('History heap scenario did not initialize the expected live public editor')
+  }
+  async function capture(phase) {
+    await collectGarbage(client)
+    const usage = await client.send('Runtime.getHeapUsage')
+    chunks = []
+    await client.send('HeapProfiler.takeHeapSnapshot', {
+      reportProgress: false, captureNumericValue: true, exposeInternals: false,
+    })
+    const source = chunks.join('')
+    chunks = null
+    const counts = countPayloadObjects(JSON.parse(source), metadata)
+    const result = {
+      phase, counts,
+      usedHeapMiB: Number((usage.usedSize / 1024 / 1024).toFixed(2)),
+      snapshotMiB: Number((Buffer.byteLength(source) / 1024 / 1024).toFixed(2)),
+    }
+    phases.push(result)
+    console.log('History heap phase: ' + JSON.stringify(result))
+    return counts
+  }
+  const requirePresent = (counts, indices, phase) => {
+    for (const index of indices) if (counts[index] === 0) {
+      throw new Error(`${phase}: missing retained payload control ${index}; counts=${JSON.stringify(counts)}`)
+    }
+  }
+  const requireAbsent = (counts, indices, phase) => {
+    for (const index of indices) if (counts[index] !== 0) {
+      throw new Error(`${phase}: evicted history payload ${index} retained after GC; counts=${JSON.stringify(counts)}`)
+    }
+  }
+  const before = await capture('before-eviction')
+  requirePresent(before, [1, 2], 'before-eviction')
+  await evaluate(client, 'window.__editorHistoryHeap.evict()')
+  const evicted = Array.from({ length: metadata.latestCase - 2 }, (_, index) => index + 1)
+  const retained = [metadata.latestCase - 1, metadata.latestCase]
+  const after = await capture('after-eviction-with-retained-control')
+  requirePresent(after, [metadata.retainedCase, ...retained], 'after-eviction')
+  requireAbsent(after, evicted.filter(index => index !== metadata.retainedCase), 'after-eviction')
+  await evaluate(client, 'window.__editorHistoryHeap.releaseControl()')
+  const released = await capture('after-releasing-control')
+  requirePresent(released, retained, 'after-releasing-control')
+  requireAbsent(released, evicted, 'after-releasing-control')
+  const replay = await evaluate(client, 'window.__editorHistoryHeap.verify()')
+  return { payloadBytes: metadata.payloadBytes, authoredActions: metadata.latestCase, historyMaxBytes: 1,
+    historyMaxStack: 100, retainedControlReleased: true, replay, phases }
+}
+
 const vitePort = await freePort()
 const debugPort = await freePort()
 const pageUrl = `http://127.0.0.1:${vitePort}/tests/browser/lifecycle.html`
@@ -190,15 +289,13 @@ try {
   client = await CdpClient.connect(target.webSocketDebuggerUrl)
   await client.send('Runtime.enable')
   await client.send('HeapProfiler.enable')
+  console.log('Heap environment: ' + JSON.stringify({
+    node: process.version, platform: process.platform, architecture: process.arch,
+    executable: chromePath, ...await client.send('Browser.getVersion'),
+  }))
   await waitForLifecycle(client)
 
-  // WeakRef targets created by the lifecycle page are eligible only after its
-  // final async job returns. Multiple explicit collections remove timing noise.
-  await new Promise(resolveDelay => setTimeout(resolveDelay, 100))
-  for (let pass = 0; pass < 3; pass++) {
-    await client.send('HeapProfiler.collectGarbage')
-    await new Promise(resolveDelay => setTimeout(resolveDelay, 50))
-  }
+  await collectGarbage(client)
 
   const sentinels = await evaluate(client, 'window.__editorHeapReport?.()')
   if (!sentinels || sentinels.total === 0) throw new Error('Lifecycle page exposed no heap sentinels')
@@ -206,25 +303,32 @@ try {
     throw new Error(`Destroyed editor resources retained after GC: ${sentinels.alive.join(', ')}`)
   }
 
+  const historyErrors = []
+  client.on('Runtime.exceptionThrown', ({ exceptionDetails }) => {
+    historyErrors.push(exceptionDetails.exception?.description ?? exceptionDetails.text)
+  })
+  const historyEviction = await proveHistoryEviction(client)
+  await evaluate(client, 'window.__editorHistoryHeap.dispose()')
+  await collectGarbage(client)
+  const disposed = await evaluate(client, 'window.__editorHeapReport()')
+  if (disposed.alive.length > 0) {
+    throw new Error(`History scenario cleanup retained editor resources: ${disposed.alive.join(', ')}`)
+  }
+  if (historyErrors.length > 0) throw new Error(`History heap scenario raised browser errors: ${historyErrors.join('\n')}`)
   const usage = await client.send('Runtime.getHeapUsage')
-  let snapshotBytes = 0
-  client.on('HeapProfiler.addHeapSnapshotChunk', ({ chunk }) => {
-    snapshotBytes += Buffer.byteLength(chunk)
-  })
-  await client.send('HeapProfiler.takeHeapSnapshot', {
-    reportProgress: false,
-    captureNumericValue: true,
-    exposeInternals: false,
-  })
 
   console.log(JSON.stringify({
-    sentinels: sentinels.total,
-    retained: sentinels.alive.length,
+    sentinels: disposed.total,
+    retained: disposed.alive.length,
     usedHeapMiB: Number((usage.usedSize / 1024 / 1024).toFixed(2)),
     embedderHeapMiB: Number(((usage.embedderHeapUsedSize ?? 0) / 1024 / 1024).toFixed(2)),
-    snapshotMiB: Number((snapshotBytes / 1024 / 1024).toFixed(2)),
+    historyEviction,
   }))
 } finally {
+  if (client) {
+    try { await evaluate(client, 'window.__editorHistoryHeap?.dispose()') }
+    catch (error) { console.error('History heap cleanup failed:', error); process.exitCode = 1 }
+  }
   client?.close()
   await Promise.all([stopProcess(chrome), stopProcess(vite)])
   await rm(userDataDir, {

@@ -230,6 +230,123 @@ function oneBlock(type, data, id = type) {
   return { version: '2.0.0', blocks: [{ id, type, dataVersion, data }] }
 }
 
+// Started only by heap-gate after the ordinary lifecycle matrix has settled.
+// Public reads are detached copies, so the gate inspects actual heap objects
+// carrying these author-data markers instead of WeakRefs to returned snapshots.
+window.__editorHistoryHeap = (() => {
+  const markerProperty = '__rectorHistoryHeapPayload'
+  const payloadBytes = 32 * 1024
+  const latestCase = 12
+  let nonce = '', editor = null, holder = null, retainedPayload = null
+
+  function dataFor(index) {
+    const marker = [nonce, index].join(':')
+    const chunk = [marker, '|'].join('').padEnd(128, 'x')
+    return {
+      label: 'History state ' + index,
+      payload: { [markerProperty]: marker, body: new Array(256).fill(chunk).join('') },
+    }
+  }
+
+  function assertCurrent(index) {
+    const output = editor.save()
+    assert(holder.isConnected && holder.querySelector('.oe-editor'), 'heap proof requires a live mounted editor')
+    assert(output.blocks.length === 1 && output.blocks[0].id === 'heap'
+      && output.blocks[0].type === 'history-heap' && output.blocks[0].dataVersion === 1,
+    'history replay changed the complete block identity')
+    assert(JSON.stringify(output.blocks[0].data) === JSON.stringify(dataFor(index)),
+      'history replay truncated or changed payload ' + index)
+  }
+
+  function verifyReplay(index) {
+    assertCurrent(index)
+    assert(editor.canUndo && !editor.canRedo, 'newest whole action must remain available')
+    assert(editor.undo() === true, 'newest oversized action lost Undo')
+    assertCurrent(index - 1)
+    assert(!editor.canUndo && editor.canRedo && editor.undo() === false,
+      'byte eviction must leave one complete action, below the count limit')
+    assert(editor.redo() === true, 'moving the retained record to Redo must not evict it')
+    assertCurrent(index)
+    assert(editor.canUndo && !editor.canRedo && editor.redo() === false,
+      'Redo changed the retained action count')
+    return { currentCase: index, undoCase: index - 1, editorAlive: true }
+  }
+
+  function update(index) {
+    editor.blocks.update('heap', () => ({ data: dataFor(index) }))
+    assertCurrent(index)
+  }
+
+  return {
+    start() {
+      assert(!editor && !holder, 'history heap scenario already started')
+      nonce = crypto.randomUUID()
+      holder = document.createElement('section')
+      document.querySelector('#sandbox').append(holder)
+      const baseline = () => ({ label: 'Baseline without a measured payload', payload: null })
+      const definition = {
+        type: 'history-heap', label: { key: 'title', fallback: 'History heap' }, icon: '',
+        schema: {
+          currentVersion: 1, createDefault: baseline,
+          decode(input) { return input },
+          encode(data) { return { dataVersion: 1, data } },
+        },
+        setup() {
+          return {
+            create(initial) {
+              let current = initial
+              const element = document.createElement('div')
+              element.textContent = current.label
+              return {
+                element,
+                read() { return current },
+                update(next) { current = next; element.textContent = next.label },
+                editableFields() { return [] },
+                setReadOnly() {},
+                destroy() { current = null },
+              }
+            },
+            destroy() {},
+          }
+        },
+      }
+      editor = createEditor({
+        holder, plugins: [definition], defaultBlock: definition.type, injectStyles: false,
+        historyMaxStack: 100, historyMaxBytes: 1, changeDebounceMs: 0,
+        data: { version: '2.0.0', blocks: [{ id: 'heap', type: definition.type, dataVersion: 1, data: baseline() }] },
+      })
+      trackHeap('history-budget-editor', editor)
+      trackHeap('history-budget-root', holder.querySelector('.oe-editor'))
+      update(1)
+      update(2)
+      // The fixture intentionally retains one public copy. Its presence and
+      // later disappearance are positive controls for actual object matching.
+      retainedPayload = editor.blocks.get('heap').data.payload
+      return { nonce, markerProperty, payloadBytes, latestCase, retainedCase: 2, ...verifyReplay(2) }
+    },
+    evict() {
+      for (let index = 3; index <= latestCase; index++) update(index)
+      assert(retainedPayload[markerProperty] === [nonce, 2].join(':')
+        && retainedPayload.body.length === payloadBytes, 'retained payload control was lost')
+      return verifyReplay(latestCase)
+    },
+    releaseControl() {
+      retainedPayload = null
+      return { released: true }
+    },
+    verify() { return verifyReplay(latestCase) },
+    dispose() {
+      const previousEditor = editor, previousHolder = holder
+      editor = null
+      holder = null
+      retainedPayload = null
+      try { previousEditor?.destroy() }
+      finally { previousHolder?.remove() }
+      return { disposed: true }
+    },
+  }
+})()
+
 async function run() {
   const sandbox = document.querySelector('#sandbox')
   const runtimeErrors = []
