@@ -6,7 +6,10 @@ export const tableDataSchema=createVersionedDataSchema({
   currentVersion:2,
   createDefault:()=>({
     withHeadings:false,
-    rows:[{id:'row-0',cells:[{id:'cell-0-0',text:''}]}],
+    rows:Array.from({length:3},(_,rowIndex)=>({
+      id:`row-${rowIndex}`,
+      cells:Array.from({length:3},(_,cellIndex)=>({id:`cell-${rowIndex}-${cellIndex}`,text:''})),
+    })),
   }),
   normalize(input){
     if(input?.withHeadings!==undefined&&typeof input.withHeadings!=='boolean'){

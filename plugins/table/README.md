@@ -60,7 +60,7 @@ The registered block type is `table`. Its factory is also exported by the comple
 
 | Field | Required | Meaning and constraints |
 | --- | --- | --- |
-| `rows` | yes | Non-empty rectangular array of row objects with unique non-empty `id` values. Each row contains a non-empty `cells` array of equal width. Every cell has a non-empty row-local `id` and a string `text` value. New tables start as a 1-by-1 empty grid. |
+| `rows` | yes | Non-empty rectangular array of row objects with unique non-empty `id` values. Each row contains a non-empty `cells` array of equal width. Every cell has a non-empty row-local `id` and a string `text` value. New tables start as a 3-by-3 empty grid. Explicitly supplied tables keep their dimensions, including a 1-by-1 grid. |
 | `withHeadings` | no | Boolean indicating whether the first row is a heading row; defaults to `false`. |
 
 Cells store sanitized inline HTML. Every cell supports the editor's enabled inline tools and persistent inline widgets; widget data is marshalled through the block-level `inline` map in the same way as other rich-text blocks.
