@@ -166,3 +166,39 @@ ownership and is not an automatic consequence of the Raw experiment.
 record the concrete hostile-class failure, keep B-STYLE open, and amend C06 only
 after one candidate policy demonstrates both preservation and confinement.
 This memo awards no additional preservation row and makes no full-parity claim.
+
+## 5. Additional inline paint-containment control
+
+A later decision-only experiment appended `contain:paint` to the actual
+Paragraph editor/renderer hosts, with no production source transformation. It
+used the same pinned v1/current archives and explicit fixture-owned stylesheet.
+Each of the four proposal arms passed the five existing grouped properties:
+computed nine-size/class/code presentation, outside host-click protection, and
+actual self/blank/named navigation. The unmodified product and bare-browser
+controls still reproduced the fixed class overlay. This establishes that paint
+containment can stop that particular inline overlay; it does not establish a
+complete style policy.
+
+A separate positive typography control rejects this unqualified proposal. A
+legitimate authored `201px` italic `j` extends 14 pixels to the left of the
+Paragraph box. With paint containment its visible left stroke is clipped in
+both editor and renderer, even though canonical markup and computed size/color
+are unchanged. On the recorded Chromium/font environment, each original image
+contains 3245 red glyph pixels, including 177 outside the field's left edge;
+the proposal has 3068 and zero respectively. The original screenshots were
+visually inspected and the independent pixel counter reproduced the counts.
+This is a bounded visual regression, not a cross-platform pixel threshold.
+
+The reproduction sources are `rector-inline-paint-containment-decision.mjs`,
+`rector-inline-paint-ink-control.mjs` and `rector-inline-paint-ink-pixels.py`.
+The browser probe creates the source screenshots in `/tmp`; generated images
+and result logs are not committed. The first script intentionally exits 1 for
+the unchanged negative controls. The second captures observations for the
+Python/Pillow analyzer and does not itself label glyph preservation as a pass.
+The source hashes and commands are in the adjacent README.
+
+**Disposition:** do not apply blanket paint containment as the B-STYLE repair.
+Preserving computed font-size alone is insufficient when visible glyphs are
+lost. No arbitrary clip margin, padding, font-size cap or class stripping was
+introduced to conceal the failed positive control. The earlier B-STYLE decision
+remains open, with this additional rejected candidate preserved as evidence.

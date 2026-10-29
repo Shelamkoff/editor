@@ -122,6 +122,32 @@ source with its own hash and results for a new run. Normal diff whitespace tools
 may report the single-space context lines inside the `.patch` artifacts; those
 are required unified-diff context, retained byte-for-byte.
 
+## Additional inline paint-containment investigation
+
+Three later immutable sources retain a separate inline-only proposal and its
+failed positive typography control. They use the same source/archive/browser
+paths listed above. No existing probe bytes or product modules were changed.
+
+```sh
+node rector-inline-paint-containment-decision.mjs > /tmp/rector-inline-paint-containment-decision.json
+node rector-inline-paint-ink-control.mjs > /tmp/rector-inline-paint-ink-control.json
+python3 rector-inline-paint-ink-pixels.py > /tmp/rector-inline-paint-ink-pixels.json
+```
+
+The first script has expected exit 1 because the unmodified product/control
+arms still fail the known host overlay. All four appended `contain:paint`
+proposal arms passed the five grouped computed-style/host-click/navigation
+properties. The second script creates four unedited PNGs in `/tmp`, keeping
+actual and proposal editor/renderer screenshots separate. The Python analyzer
+requires Pillow and reads only those original PNGs and the second script's JSON.
+
+The visible `201px` italic glyph loses its left overhang in both proposal arms:
+3245→3068 red pixels, with 177→0 left of the field. Both computed font size and
+canonical HTML still match. These measured observations and visual inspection
+reject blanket paint containment as a complete preservation repair; they do
+not create a portable font/pixel performance threshold. See section 5 of the
+decision memo. The proposal CSS remains fixture-owned and unshipped.
+
 ## Exact source hashes
 
 ```text
@@ -143,6 +169,9 @@ e7f83091542c2ca52b8fc67be9c9ba85b1bb67f9acfd4e36472e7f6bfed9b6fd  rector-iframe-
 c6549fbe5648986017700a798e474a7dcc10e364f5ebfc08f282feeb3df85075  rector-style-cascade-and-navigation-controls.mjs
 9799fc1926c8bd7d1f33a57b34899bd493a07ce1d5a8eb4f43e0b2378cab8c9a  rector-style-cascade-and-navigation-final.mjs
 91f94426dd2a0bc4322fb279ab7c5f3c66281ed0ec7fbd1ad0d2a7ef665059fa  rector-style-positive-negative.mjs
+d9444405772a294f38b1ef1e20a43ab65ce86a703075325614ffd9e384b44079  rector-inline-paint-containment-decision.mjs
+51bbfb3422c00e07d968c4e5a955b9addc7e10383dbd9ea909afbd513e8d04c4  rector-inline-paint-ink-control.mjs
+1f6fad88367f27ee604d8a713045670ca2068e76f1b41618a578b412fabca050  rector-inline-paint-ink-pixels.py
 ```
 
 This folder adds scoped evidence and a reviewable proposal. It does not close
