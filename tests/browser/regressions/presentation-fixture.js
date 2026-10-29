@@ -12,7 +12,7 @@ export function createPresentationDefinitions(options = {}) {
   const state = {
     attempts: [], reports: [], reportOriginals: [], diagnostics: [], validation: [], transactions: [],
     created: [], destroyed: [], blocks: [], blockDestroyed: [], capHit: false,
-    descriptorFailure: null, repurposed: new Set(), onCreate: null, onWidgetDestroy: null, onBlockMode: null,
+    descriptorFailure: null, repurposed: new Set(), onCreate: null, onWidgetDestroy: null, onBlockMode: null, onDecode: null, onInlineMode: null,
   }
   const arm = (kind, label, count = 1, error = new Error(`controlled ${kind} failure ${label}`)) => {
     faults.set(`${kind}:${label}`, { remaining: count, attempts: 0, error }); return error
@@ -96,16 +96,16 @@ export function createPresentationDefinitions(options = {}) {
     type: 'presentation-fixture-widget', icon: '', label: { key: 'title', fallback: 'Widget' },
     schema: {
       currentVersion: 1, createDefault: () => ({ label: '' }),
-      decode(input) { maybeFail('decode', input.data.label); return { dataVersion: 1, data: clone(input.data) } },
+      decode(input) { state.onDecode?.(input); maybeFail('decode', input.data.label); return { dataVersion: 1, data: clone(input.data) } },
       encode: data => ({ dataVersion: 1, data: clone(data) }),
     },
     setup({ ownerDocument }) { return { create(id, data, context) {
       state.onCreate?.(id, data, context); maybeFail('create', data.label)
       const element = ownerDocument.createElement('span'); element.contentEditable = 'false'; element.textContent = data.label
-      const instance = { id, element, context, ordinal: widgets.get(id)?.length ?? 0 }
+      const instance = { id, element, context, ordinal: widgets.get(id)?.length ?? 0, readOnly: context.isReadOnly() }
       if (!widgets.has(id)) widgets.set(id, [])
       widgets.get(id).push(instance); state.created.push(instance)
-      return { element, update(next) { element.textContent = next.label }, setReadOnly() {},
+      return { element, update(next) { element.textContent = next.label }, setReadOnly(value) { instance.readOnly = value; state.onInlineMode?.(value, instance) },
         destroy() { state.destroyed.push(instance); state.onWidgetDestroy?.(instance) } }
     }, destroy() {} } },
   }
