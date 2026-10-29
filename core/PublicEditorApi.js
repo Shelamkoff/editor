@@ -1,9 +1,11 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 
-function snapshot(runtime, record, knownStatus = undefined) {
-  if (!record) return undefined
-  const value = cloneEditorData(record)
+// Runtime reads/update inputs and view conversion results already transfer a
+// detached owned record. Freeze the public envelope, keeping its data mutable
+// for this caller without recapturing the same payload at the adapter boundary.
+function snapshot(runtime, value, knownStatus = undefined) {
+  if (!value) return undefined
   return Object.freeze({
     id: value.id,
     type: value.type,
