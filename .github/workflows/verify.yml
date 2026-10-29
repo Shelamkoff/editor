@@ -21,42 +21,40 @@ jobs:
       matrix:
         node: ['20.19.0', '22', '24']
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: Initialize current-run results
-        run: |
-          rm -rf -- test-results
-          mkdir -p test-results
-          printf '{"head_sha":"%s","run_id":"%s","run_attempt":"%s","job":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_JOB" > test-results/source.json
-      - uses: actions/setup-node@v7
+        id: results
+        run: node scripts/verification-results.mjs init install typecheck unit
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: ${{ matrix.node }}
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: node scripts/verification-results.mjs run install -- npm ci --ignore-scripts
       - name: Check types
-        run: npm run typecheck
+        run: node scripts/verification-results.mjs run typecheck --require install -- npm run typecheck
       - name: Unit tests
         if: ${{ !cancelled() }}
-        run: |
-          set -o pipefail
-          mkdir -p test-results
-          npm test 2>&1 | tee test-results/unit.log
+        run: node scripts/verification-results.mjs run unit --require install -- npm test
       - name: Archive reproducible test inputs
         if: ${{ !cancelled() }}
         run: |
-          mkdir -p test-results
-          git archive --format=tar HEAD > test-results/source.tar
-          test ! -f package-lock.json || cp package-lock.json test-results/resolved-package-lock.json
+          test -n "${EDITOR_RESULTS_DIR:?Initialize current-run results first}"
+          git archive --format=tar HEAD > "$EDITOR_RESULTS_DIR/source.tar"
+          test ! -f package-lock.json || cp package-lock.json "$EDITOR_RESULTS_DIR/resolved-package-lock.json"
           if test -d node_modules; then
-            tar -czf test-results/dependencies.tar.gz node_modules
+            tar -czf "$EDITOR_RESULTS_DIR/dependencies.tar.gz" node_modules
           fi
+      - name: Finalize current-run results
+        if: ${{ always() }}
+        run: node scripts/verification-results.mjs finish
       - name: Upload verification inputs and results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: verification-node-${{ matrix.node }}-${{ github.sha }}
-          path: test-results/
+          path: ${{ steps.results.outputs.directory }}
           retention-days: 1
           compression-level: 0
 
@@ -69,38 +67,38 @@ jobs:
       matrix:
         gate: [browser, package, docs, size-report]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: Initialize current-run results
-        run: |
-          rm -rf -- test-results
-          mkdir -p test-results
-          printf '{"head_sha":"%s","run_id":"%s","run_attempt":"%s","job":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_JOB" > test-results/source.json
-      - uses: actions/setup-node@v7
+        id: results
+        env:
+          GATE: ${{ matrix.gate }}
+        run: node scripts/verification-results.mjs init install build "$GATE"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: node scripts/verification-results.mjs run install -- npm ci --ignore-scripts
       - name: Build package
-        run: npm run build
+        run: node scripts/verification-results.mjs run build --require install -- npm run build
       - name: Run release gate
         env:
           GATE: ${{ matrix.gate }}
         run: |
-          set -o pipefail
-          mkdir -p test-results
           case "$GATE" in
-            browser) npm run test:browser 2>&1 | tee test-results/browser.log ;;
-            package) npm run test:package 2>&1 | tee test-results/package.log ;;
-            docs) { npm run test:docs && npm run docs:check; } 2>&1 | tee test-results/docs.log ;;
-            size-report) node benchmarks/bundle-budget.mjs --enforce 2>&1 | tee test-results/size-report.log ;;
+            browser|package) node scripts/verification-results.mjs run "$GATE" --require build -- npm run "test:$GATE" ;;
+            docs) node scripts/verification-results.mjs run docs --require build -- bash -c 'npm run test:docs && npm run docs:check' ;;
+            size-report) node scripts/verification-results.mjs run size-report --require build -- node benchmarks/bundle-budget.mjs --enforce ;;
             *) exit 2 ;;
           esac
+      - name: Finalize current-run results
+        if: ${{ always() }}
+        run: node scripts/verification-results.mjs finish
       - name: Upload release gate results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ${{ matrix.gate }}-${{ github.sha }}
-          path: test-results/
+          path: ${{ steps.results.outputs.directory }}
           retention-days: 3

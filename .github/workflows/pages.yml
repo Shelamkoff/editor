@@ -35,30 +35,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Initialize current-run results
+        id: results
+        run: node scripts/verification-results.mjs init install docs-build
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: node scripts/verification-results.mjs run install -- npm ci --ignore-scripts
 
       - name: Build documentation
-        run: npm run docs:build
+        run: node scripts/verification-results.mjs run docs-build --require install -- npm run docs:build
         env:
           DOCS_BASE: /editor/
 
       - name: Configure Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: docs/.vitepress/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+
+      - name: Finalize current-run results
+        if: ${{ always() }}
+        run: node scripts/verification-results.mjs finish
+
+      - name: Upload documentation build results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: documentation-build-${{ github.sha }}
+          path: ${{ steps.results.outputs.directory }}
+          retention-days: 3

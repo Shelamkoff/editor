@@ -126,7 +126,7 @@ async function runPage(client, chrome, url, label) {
       return
     }
     if (last?.url === url && last.status === 'fail') {
-      const directory = join(fileURLToPath(editorRoot), 'test-results')
+      const directory = resolve(process.env.EDITOR_RESULTS_DIR || join(fileURLToPath(editorRoot), 'test-results'))
       await mkdir(directory, { recursive: true })
       await writeFile(join(directory, `browser-${label}.json`), last.summary ?? 'summary unavailable')
       throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
@@ -171,6 +171,7 @@ try {
   chrome = start(chromePath, ['--headless=new', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--window-size=1400,1000', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`, `http://127.0.0.1:${port}/tests/browser/${pages[0]}`])
   const target = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`, chrome, targets => targets.find(target => target.type === 'page' && target.webSocketDebuggerUrl))
   client = await CdpClient.connect(target.webSocketDebuggerUrl)
+  if (process.env.EDITOR_RESULTS_DIR) console.log('Browser environment: ' + JSON.stringify({ executable: chromePath, ...await client.send('Browser.getVersion') }))
   await client.send('Page.enable')
   await client.send('Runtime.enable')
   await client.send('Emulation.setFocusEmulationEnabled', { enabled: true })
