@@ -254,7 +254,9 @@ test('Person retires body event listeners only when the active record actually c
     const currentIcon = control.parentNode.querySelector('.oe-person__link-icon')
     currentIcon.innerHTML = 'pending icon'
     control.dispatch('input')
-    assert.notEqual(currentIcon.innerHTML, 'pending icon', 'the current URL control no longer updates its social icon')
+    assert.equal(currentIcon.innerHTML, 'pending icon', 'a direct URL listener bypassed the projection read owner')
+    instance.read()
+    assert.notEqual(currentIcon.innerHTML, 'pending icon', 'the current URL control no longer updates its icon during read')
   }
   assertLiveControl(url)
   const sibling = structuredClone(initial)

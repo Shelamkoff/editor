@@ -361,16 +361,27 @@ export class BlockReconciler {
   readBlock(id) {
     const entry = this.#entries.get(id)
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
-    if(entry.element.parentNode!==this.#container){
-      throw new Error('Projected block is no longer mounted: '+id)
-    }
+    // An unchanged detached shell can still be reattached by its host.
+    if(entry.element.parentNode===null)throw new Error('Projected block is no longer mounted: '+id)
     const assertOwner=()=>{
-      if(!this.#isCurrentMountedEntry(id,entry)){
+      if(!this.#isCurrentMountedEntry(id,entry)||!entry.element.contains(entry.instance.element)){
+        if(this.#entries.get(id)===entry&&!entry.destroyed){
+          if(entry.fields)this.#revalidateSettledFields(id,entry,null,false)
+          if(this.#entries.get(id)===entry)this.#retirePresentationEntry(id,entry)
+        }
         throw new Error('Projected block ownership changed during read: '+id)
       }
     }
-    const data = cloneEditorData(entry.instance.read())
     assertOwner()
+    let data,failed=false,error
+    try{data=cloneEditorData(entry.instance.read())}
+    catch(failure){failed=true;error=failure}
+    try{assertOwner()}
+    catch(failure){
+      if(failed)throw new AggregateError([error,failure],'Projected read and ownership validation failed',{cause:error})
+      throw failure
+    }
+    if(failed)throw error
     const observedFields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     assertOwner()
     const fields=entry.presentationFailure?observedFields.filter(field=>entry.fields.some(accepted=>
@@ -777,14 +788,33 @@ export class BlockReconciler {
     const modeSnapshots=[]
     const disabledModes=new Map()
     let modeBoundaryFailed=false
+    const assertOwner=entry=>{
+      const id=entry.record.id
+      if(this.#isCurrentMountedEntry(id,entry)&&entry.element.contains(entry.instance.element))return
+      modeBoundaryFailed=true
+      if(this.#entries.get(id)===entry&&!entry.destroyed){
+        if(entry.fields)this.#revalidateSettledFields(id,entry,null,false)
+        if(this.#entries.get(id)===entry)this.#retirePresentationEntry(id,entry)
+      }
+      throw new Error('Read-only block left its accepted ownership boundary')
+    }
     try {
       for (const entry of this.#entries.values()) {
+        assertOwner(entry)
         changed.push(entry)
         const snapshots=this.#captureFieldModes(entry)
         modeSnapshots.push(...snapshots)
         const disabled=this.#captureDisabledFields(entry)
         disabledModes.set(entry,disabled)
-        entry.instance.setReadOnly(next)
+        let failed=false,error
+        try{entry.instance.setReadOnly(next)}
+        catch(failure){failed=true;error=failure}
+        try{assertOwner(entry)}
+        catch(failure){
+          if(failed)throw new AggregateError([error,failure],'Read-only hook and ownership validation failed',{cause:error})
+          throw failure
+        }
+        if(failed)throw error
         this.#applyOwnedFieldModes(entry,snapshots)
         this.#disableFailedFields(entry,disabled)
         this.#refreshFields(entry.record.id, entry, true, true, next)
@@ -825,6 +855,7 @@ export class BlockReconciler {
         }
       }
       for (let index = changed.length - 1; index >= 0; index--) {
+        if(changed[index].destroyed)continue
         try { changed[index].instance.setReadOnly(this.#readOnly) }
         catch (failure) {
           needsRestore = true
