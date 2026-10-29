@@ -690,7 +690,22 @@ test('font-size reset splits shared styled author text away from protected desce
   range.setStart(outer.firstChild, 0)
   range.setEnd(outer.lastChild, outer.lastChild.length)
   const tool = createFontSizeTool('Font size')
-  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+  tool.bindSelectionPort({
+    get range() { return range },
+    capture: () => ({
+      start: getTextOffset(field, range.startContainer, range.startOffset),
+      end: getTextOffset(field, range.endContainer, range.endOffset),
+    }),
+    restore(bookmark) {
+      // A formatting tool restores logical positions after moving DOM nodes.
+      // A no-op restore leaves this live Range collapsed by wrapper removal.
+      const start = findNodeAtOffset(field, bookmark.start, 'start')
+      const end = findNodeAtOffset(field, bookmark.end, 'end')
+      range.setStart(start.node, start.offset)
+      range.setEnd(end.node, end.offset)
+      return true
+    },
+  })
   try {
     tool.onMount(fixture.querySelector('.oe-inline-tool'), {
       mutate: (_bookmark, change) => change(range),
@@ -1111,7 +1126,7 @@ test('editable text walker skips native labels but discovers separate fields in 
       'Single-host text traversal included native UI or a nested editor')
     equal(read(fixture.querySelector('[data-plugin-shell]')), ['Alpha'],
       'Plugin block shell did not find its legitimate editor or traversed private UI labels')
-    equal(read(fixture), ['A', 'B', 'nested editor', 'Alpha', 'Bravo'],
+    equal(read(fixture), ['A', 'nested editor', 'B', 'Alpha', 'Bravo'],
       'Cross-block traversal did not retain separate editing hosts in DOM order')
   } finally { fixture.remove() }
 })
@@ -1921,7 +1936,7 @@ test('canonical literal inline markers remain plain text through transforms and 
   assert(scan.literals.has('inline-1'),'Literal marker was not reserved as author text')
   equal(getRichTextLogicalLength(html,inline,document),15,
     'Literal marker incorrectly consumed one widget caret unit')
-  equal(replaceRichTextReference(html,inline,'inline-1',''), 'AB'+literal,
+  equal(replaceRichTextReference(html,inline,'inline-1','',document), 'AB'+literal,
     'Removing an inline widget also deleted the author literal')
   const moved=remapRichTextReferences(html,inline,new Map([['inline-1','remapped']]),document)
   equal(moved,'A{{remapped}}B'+literal,
