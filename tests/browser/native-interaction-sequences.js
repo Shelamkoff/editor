@@ -260,7 +260,7 @@ for (const type of ['align', 'bold']) for (const backwards of [false, true]) {
   })
 }
 
-for (const retirement of ['foreign focus', 'document revision during press', 'field replacement during press', 'native selection during press']) {
+for (const retirement of ['foreign focus', 'foreign focus during press', 'document revision during press', 'field replacement during press', 'native selection during press']) {
   test(`native Tune pointer activation does not reuse a retired author interval / ${retirement}`, async () => {
     let replaceField = null
     const base = createParagraphPlugin()
@@ -294,6 +294,7 @@ for (const retirement of ['foreign focus', 'document revision during press', 'fi
     await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 3)
     const tune = root.querySelector('.oe-toolbar__drag')
     let expected = editor.save().blocks, undoBefore = editor.canUndo
+    let expectedFocus, expectedNative
     let outside
     if (retirement === 'foreign focus') {
       outside = document.createElement('button')
@@ -302,7 +303,11 @@ for (const retirement of ['foreign focus', 'document revision during press', 'fi
     } else {
       tune.addEventListener('mousedown', event => {
         assert(event.isTrusted, 'retirement did not occur in a native press')
-        if (retirement === 'document revision during press') {
+        if (retirement === 'foreign focus during press') {
+          outside = document.createElement('button')
+          document.body.append(outside)
+          outside.focus()
+        } else if (retirement === 'document revision during press') {
           editor.blocks.update('a', () => ({ data: { text: 'Changed elsewhere' } }))
         } else if (retirement === 'field replacement during press') {
           assert(replaceField)
@@ -313,6 +318,9 @@ for (const retirement of ['foreign focus', 'document revision during press', 'fi
         }
         expected = editor.save().blocks
         undoBefore = editor.canUndo
+        expectedFocus = document.activeElement
+        const native = window.getSelection()
+        expectedNative = [native.anchorNode, native.anchorOffset, native.focusNode, native.focusOffset]
       }, { once: true })
     }
     try {
@@ -321,7 +329,10 @@ for (const retirement of ['foreign focus', 'document revision during press', 'fi
         assert(!root.querySelector('.oe-settings-menu').checkVisibility(), 'revoked pointer capture opened current-block settings')
         equal(editor.save().blocks, expected, 'rejected pointer capture changed author data')
         equal(editor.canUndo, undoBefore, 'rejected pointer capture changed history')
-        assert(document.activeElement === tune, 'rejected pointer capture restored the retired author focus')
+        assert(document.activeElement === expectedFocus, 'rejected pointer capture restored the retired author focus')
+        const native = window.getSelection()
+        assert([native.anchorNode, native.anchorOffset, native.focusNode, native.focusOffset]
+          .every((value, index) => value === expectedNative[index]), 'rejected pointer capture restored the retired author range')
         return
       }
       await convert(editor, 'heading', 'tune')

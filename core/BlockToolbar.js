@@ -140,6 +140,9 @@ export class BlockToolbar {
     this.#settingsButton.addEventListener('mousedown', event => {
       if (this.#destroyed || event.button !== 0) return
       this.#captureMenuSelection()
+      // The custom pointer drag records history before it opens a menu.
+      // Keep its author host focused so the engine can capture that caret.
+      event.preventDefault()
     })
     this.#plus.addEventListener('click', event => {
       if (this.#destroyed) return
@@ -180,7 +183,7 @@ export class BlockToolbar {
       this.closeSettings()
     }
     this.#documentSelectionChange = () => {
-      if (this.#destroyed || this.#ownsMenuFocus(document.activeElement)) return
+      if (this.#destroyed || this.#pointerTransfer || this.#ownsMenuFocus(document.activeElement)) return
       this.#captureMenuSelection()
     }
     document.addEventListener('focusout', this.#documentFocusOut)
@@ -395,7 +398,9 @@ export class BlockToolbar {
   }
 
   #menuBookmark() {
-    if (!this.#ownsMenuFocus(this.#root.ownerDocument.activeElement)) this.#captureMenuSelection()
+    // A drag press keeps the author host focused. Its captured interval must
+    // still pass validation; do not recapture a retired press on its click.
+    if (!this.#bookmark && !this.#ownsMenuFocus(this.#root.ownerDocument.activeElement)) this.#captureMenuSelection()
     const owner = this.#bookmarkOwner
     const active = this.#root.ownerDocument.activeElement
     const owns = () => owner && owner === this.#bookmarkOwner
@@ -857,6 +862,7 @@ export class BlockToolbar {
     this.#view.setCurrent(id)
     this.showFor(id)
     // Rebuild boundary actions while keeping the menu and author caret usable.
+    this.#captureMenuSelection()
     this.openSettings()
   }
 
