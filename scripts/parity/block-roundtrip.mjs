@@ -253,6 +253,111 @@ function classifyTableDifference(source, entry, failure) {
   return null
 }
 
+// Image's two current widget-capability controls have their own captured
+// records and phase guards. The earlier literal Image cases stay unchanged.
+const imageRichCaseIds = ['BLOCK_IMAGE_ROUNDTRIP/populated-widgets', 'BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control']
+const imageRichPhases = ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo']
+const imageRichPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
+const imageRichMark = (tag, text) => ({ tag, attributes: {}, children: [text] })
+const imageRichCaption = (wrapped, edited, canonical = false) => canonical
+  ? [imageRichMark('b', 'Alpha'), ...(wrapped
+    ? [' ', imageRichMark('i', '{{mention}}'), ' ', imageRichMark('s', '{{swatch}}'), ' tail' + (edited ? 'X' : '')]
+    : [' {{mention}} {{swatch}} tail' + (edited ? 'X' : '')])]
+  : '<b>Alpha</b> ' + (wrapped ? '<i>{{mention}}</i> <s>{{swatch}}</s>' : '{{mention}} {{swatch}}') + ' tail' + (edited ? 'X' : '')
+const imageRichStyles = {
+  width: '120px', height: '64px', objectFit: 'contain', objectPosition: 'center',
+  borderStyle: 'dashed', borderWidth: '2px', borderColor: '#123456', borderRadius: '6px', backgroundColor: '#ffeecc',
+}
+const imageRichCss = {
+  width: '120px', height: '64px', objectFit: 'contain', objectPosition: 'center center',
+  borderStyle: 'dashed', borderWidth: '2px', borderColor: 'rgb(18, 52, 86)', borderRadius: '6px',
+}
+const imageRichAlt = (edited, resolved) => (resolved ? 'Alpha @Ada #123456 tail' : 'Alpha {{mention}} {{swatch}} tail') + (edited ? 'X' : '')
+const imageRichMeaning = (edited, resolved) => ({ src: imageRichPixel, alt: imageRichAlt(edited, resolved),
+  styles: imageRichCss, background: 'rgb(255, 238, 204)' })
+function imageRichRecords({ legacy, wrapped, edited, sidecars, canonical = false }) {
+  const record = (id, type, dataVersion, data, inline) => ({ id, type, ...(!legacy ? { dataVersion } : {}), data,
+    ...(inline ? { inline } : {}) })
+  const widget = (type, data) => ({ type, ...(!legacy ? { dataVersion: 1 } : {}), data })
+  const inline = { mention: widget('mention', { id: 'ada', name: 'Ada' }), swatch: widget('color', { value: '#123456' }) }
+  return [
+    record('prefix', 'paragraph', 2, { text: canonical ? [imageRichMark('b', 'Before')] : '<b>Before</b>' }),
+    record('probe', 'image', 1, { file: { url: imageRichPixel, width: 1, height: 1 }, caption: imageRichCaption(wrapped, edited, canonical),
+      withBorder: true, expanded: false, withBackground: true, styles: imageRichStyles }, sidecars ? inline : undefined),
+    record('suffix', 'paragraph', 2, { text: canonical ? [imageRichMark('i', 'After')] : '<i>After</i>' }),
+  ]
+}
+const imageRichRendered = (wrapped, edited, resolved) => [[imageRichMark('b', 'Before')], {
+  children: ['IMG', 'FIGCAPTION'], src: imageRichPixel, alt: imageRichAlt(edited, resolved), width: '1', height: '1', loading: 'lazy',
+  caption: imageRichCaption(wrapped, edited, true), styles: imageRichCss, background: 'rgb(255, 238, 204)', flags: [true, false, true],
+}, [imageRichMark('i', 'After')]]
+const imageRichWidgets = [{ id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
+  { id: 'swatch', type: 'color', text: '#123456', value: '#123456' }]
+const imageRichCaret = offset => ({ focused: true, anchor: offset, focus: offset, collapsed: true })
+function classifyImageRichDifference(source, entry, failure) {
+  if (!imageRichCaseIds.includes(entry.id) || !['v1', 'spec-baseline'].includes(source)) return null
+  if (failure.status !== (failure.property === 'execution' ? 'ERROR' : 'FAIL')) return null
+  const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
+  const matches = (actual, expected) => same(failure.actual, actual) && same(failure.expected, expected)
+  const phase = name => entry.phases?.find(item => item.phase === name)
+  const wrapped = entry.id === imageRichCaseIds[0]
+  const legacy = source === 'v1'
+  const partial = !legacy && wrapped
+  const executed = partial ? ['load'] : imageRichPhases
+  if (!same(entry.completedPhases, partial ? ['load'] : [...imageRichPhases, 'dispose'])
+    || !same(entry.incompletePhases ?? [], partial ? ['read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'] : [])
+    || !same(entry.phases?.map(item => item.phase), executed)
+    || !executed.every(name => same(phase(name)?.blocks, imageRichRecords({ legacy, wrapped,
+      edited: ['edit', 'redo'].includes(name), sidecars: !legacy })) && phase(name)?.readOnly === (name === 'read-only'))) return null
+  for (const name of executed) {
+    const history = entry.observations?.filter(item => item.phase === name && item.property === 'historyState')
+    const expected = { canUndo: ['edit', 'redo'].includes(name), canRedo: name === 'undo' }
+    if (history?.length !== 1 || !same(history[0].actual, expected) || !same(history[0].expected, expected)) return null
+  }
+  const edited = ['edit', 'redo'].includes(failure.phase)
+  if (legacy) {
+    if (imageRichPhases.includes(failure.phase)) {
+      if (failure.property === 'canonicalRecords' && matches(
+        imageRichRecords({ legacy, wrapped, edited, sidecars: false, canonical: true }),
+        imageRichRecords({ legacy, wrapped, edited, sidecars: true, canonical: true }))) return 'unsupported-v1-image-caption-sidecars'
+      if (['editorWidgets', 'detachedWidgets', 'attachedDetachedWidgets', 'mountedWidgets'].includes(failure.property)
+        && matches([], imageRichWidgets)) return 'unsupported-v1-image-caption-widgets'
+      if (failure.property === 'editorImageMeaning'
+        && matches(imageRichMeaning(edited, false), imageRichMeaning(edited, true))) return 'unsupported-v1-image-caption-labels'
+      if (['detachedAuthoredMarkup', 'attachedDetachedAuthoredMarkup', 'mountedAuthoredMarkup'].includes(failure.property)
+        && matches(imageRichRendered(wrapped, edited, false), imageRichRendered(wrapped, edited, true))) return 'unsupported-v1-image-caption-labels'
+    }
+    if (['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
+      && ['imageDomIdentity', 'blockDomIdentity'].includes(failure.property)
+      && matches([false, false, false], [true, true, true])) {
+      return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-image-mode-remount' : 'repaired-v1-image-history-remount'
+    }
+    const text = wrapped ? ' tailX' : ' {{mention}} {{swatch}} tailX'
+    const offset = wrapped ? 6 : 29
+    const owner = { active: { block: 'probe', node: 'DIV', className: 'oe-image__caption' },
+      anchor: { block: 'probe', node: '#text', text, offset }, focus: { block: 'probe', node: '#text', text, offset } }
+    if (failure.phase === 'edit' && failure.property === 'fixtureCaret'
+      && matches(imageRichCaret(33), imageRichCaret(14)) && same(phase('edit')?.selectionOwner, owner)) return 'unsupported-v1-image-widget-caret'
+    if (['edit', 'redo'].includes(failure.phase) && failure.property === 'nativeSelection'
+      && matches(imageRichCaret(34), imageRichCaret(15)) && same(phase(failure.phase)?.selectionOwner, owner)) return 'unsupported-v1-image-widget-caret'
+    if (failure.phase === 'undo' && failure.property === 'nativeSelection'
+      && matches({ focused: false, anchor: null, focus: null, collapsed: true }, imageRichCaret(14))
+      && same(phase('undo')?.selectionOwner, {
+        active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
+        anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+        focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+      })) return 'repaired-v1-image-first-undo-caret'
+    return null
+  }
+  if (partial && failure.phase === 'read-only-transition' && failure.property === 'execution'
+    && failure.actual === 'Inline widget root left its projection boundary before hydration'
+    && !Object.hasOwn(failure, 'expected')) return 'repaired-baseline-image-formatted-widget-mode'
+  if ((partial ? ['load'] : ['load', 'read-only', 'editable-again', 'undo', 'redo']).includes(failure.phase)
+    && failure.property === 'editorImageMeaning'
+    && matches(imageRichMeaning(edited, false), imageRichMeaning(edited, true))) return 'repaired-baseline-image-derived-alt'
+  return null
+}
+
 const repo = fileURLToPath(new URL('../../', import.meta.url))
 const digest = bytes => createHash('sha256').update(bytes).digest('hex')
 const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
@@ -399,6 +504,7 @@ try {
       const classify = failure => {
         if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
         if (tableCaseIds.includes(entry.id)) return classifyTableDifference(source.label, entry, failure)
+        if (imageRichCaseIds.includes(entry.id)) return classifyImageRichDifference(source.label, entry, failure)
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
           const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/default'].includes(entry.id)
@@ -573,6 +679,10 @@ try {
       if (source.label === 'v1' && ['BLOCK_EMBED_ROUNDTRIP/populated', 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)) {
         entry.referenceCapability = { supported: false, feature: 'Persistent Embed caption widgets',
           reason: 'Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity.' }
+      }
+      if (source.label === 'v1' && imageRichCaseIds.includes(entry.id)) {
+        entry.referenceCapability = { supported: false, feature: 'Persistent Image caption widgets',
+          reason: 'Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity.' }
       }
     }
     results.push({ source: source.label, cases, errors, pageErrors })

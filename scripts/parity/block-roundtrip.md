@@ -95,8 +95,9 @@ Delimiter payload, ID/order, HR DOM identity and renderer output without
 pretending to edit the separator. Delimiter insertion, selection, move
 and deletion remain a separate structural row.
 
-Image adds a real empty-source default and a populated local PNG with a
-literal rich caption. The valid one-pixel image decodes in both the editor
+Image has a real empty-source default, a populated local PNG with a literal
+rich caption, and two additional widget-caption controls with Mention and
+Color inside and outside authored formatting. The valid one-pixel image decodes in both the editor
 and mounted renderer; no uploader or remote provider is invoked. Fixed
 file dimensions, appearance flags and benign CSS values remain canonical;
 editor and detached/attached/mounted output preserve caption marks,
@@ -105,15 +106,24 @@ control distinguishes authored `object-position: center` from its
 serialized `center center` and computed `50% 50%`; canonical data retains
 the original authored value. Native input and one Undo/Redo operate on the
 populated caption. The empty-source image declares no caption field, so
-its authoring/history phases are explicitly N/A. The populated case has
-no inline sidecars. These two cases are scoped evidence only and do not
-complete `BLOCK_IMAGE_ROUNDTRIP`: the supported caption-widget capability
-also needs to preserve visible text, alternative text and native range.
-These literal cases do not test the separately recorded stale-alt and
-inline-update range-collapse defects; resolving them requires the distinct
-widget-capability evidence. No widget data is discarded by a historical adapter.
-Upload/source actions, caption widgets, hostile styles and the full
-appearance/settings matrix are not accepted by this literal-caption slice.
+its authoring/history phases are explicitly N/A. The original literal case
+still has no inline sidecars. The two new cases retain the exact image data,
+styles and neighbors while exercising actual caption widgets through load,
+both mode transitions, native caption input and one Undo/Redo. Visible
+labels, derived alternative text, canonical marks and sidecars, widget and
+Image DOM identity, and exact native range must all survive. Expected label
+text comes from the fixed `@Ada` and `#123456` fixture values, independent
+of Rector's projection or parser implementation.
+
+Pinned v1 Image has no `mapTextFields` hook, including in its abstract base;
+its public inline insertion gate rejects such blocks. The two widget cases
+therefore record unsupported reference capability explicitly. They do not
+silently remove input sidecars or claim v1 widget parity. The existing
+literal controls remain separate. The new roundtrips exercise the accepted
+field-completion hook's visible result, but do not replace its independent
+pre-commit, native no-op, sidecar-update, ownership and cancellation tests.
+Upload/source actions, hostile styles and the full appearance/settings
+matrix remain separate detailed behavior rows.
 
 Toggle adds four cases: its actual empty closed default, rich open content,
 an unwrapped-widget open control, and the same rich populated document
@@ -296,7 +306,7 @@ author data from an initial `save()` result.
 | List / 2 | One empty unordered item | Ordered pair with marks/sidecars; edit `item:first` | Implemented: v1 string array; fixed content/order plus current item IDs and item DOM. |
 | Quote / 1 | Empty quotation and caption | Rich quotation/Mention and independent rich caption/Color; edit `text` | Implemented: fields share the wire shape; caption data, DOM and output survive the sibling edit. |
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
-| Image / 1 | Empty file URL/caption, false flags, empty styles | Local decoded PNG, literal rich caption, fixed appearance; edit `caption` | Implemented: empty source has authoring N/A; populated native caption history and renderer preserved. Widget-caption defect remains separate. |
+| Image / 1 | Empty file URL/caption, false flags, empty styles | Local decoded PNG, literal and wrapped/unwrapped widget captions, fixed appearance; edit `caption` | Implemented: empty source has authoring N/A; three populated caption controls preserve actual supported sidecars, labels, history and renderer output. v1 widget capability is explicitly unsupported. |
 | Delimiter / 1 | Empty object | The same data-free separator between Paragraphs | Implemented: actual default has authoring phases N/A; a separately named real neighbor edit proves history preservation. |
 | Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | Implemented: v1 `content: string[][]`; fixed current rows/cells, headings, all field/renderer slots, native first-cell history and independent identities. The separate default repair preserves explicit 1-by-1 data. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
@@ -380,7 +390,7 @@ unrelated candidate or baseline failures must remain fatal.
 
 The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed and Table oracle
 classifies only observed historical differences or unsupported reference
-capability, bounded to the forty-five exact scenario IDs in the runner:
+capability, bounded to the forty-seven exact scenario IDs in the runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
@@ -397,7 +407,8 @@ capability, bounded to the forty-five exact scenario IDs in the runner:
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
   offset 12 for Quote/Warning/Toggle/Spoiler/Columns. Populated literal-caption Image has the same
-  exact prefix-owner defect, with required probe offset 18; populated
+  exact prefix-owner defect, with required probe offset 18; Image's separate
+  widget controls require offset 14. Populated
   Attaches requires filename offset 26. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
@@ -497,6 +508,27 @@ capability, bounded to the forty-five exact scenario IDs in the runner:
   generic allowance for content loss or failed Undo/Redo. Literal caption
   and default cases pass that baseline without exceptions.
 
+- Image's two widget-caption controls have a separate classifier with fixed
+  complete Image records, local PNG metadata, appearance data and decoded
+  label expectations. All six content phases, exact mode values and exact
+  history states must match before a v1 difference is recognized; all seven
+  phases must complete. The 114 unsupported-capability observations retain
+  exact missing sidecars/widgets, token-based alternative text and literal
+  caret offsets 33/34 instead of 14/15. Caret classifications additionally
+  require the exact wrapped/unwrapped text node and caption owner. The
+  sixteen three-node block/Image remount observations and two first-Undo
+  prefix-focus observations are separately recorded historical defects.
+- The specification baseline's wrapped Image control completes only load,
+  then throws the exact known formatted-widget ownership error during the
+  read-only transition. Its load alternative text still contains tokens.
+  The unwrapped control completes all seven phases; only the five observed
+  load/mode/Undo/Redo alternative-text pairs are classified. Native editing
+  already updates its alternative text and receives no exception. These
+  six alternative-text observations require full fixed media/style objects
+  and exact canonical/history records; missing media, lost sidecars or
+  other data changes are not accepted. The remaining wrapped phases stay
+  explicitly incomplete. Candidate failures receive no exception.
+
 - Table has a separate classifier limited to its three exact IDs. v1
   remounts exactly one/three block shells and fourteen/eight Table nodes for
   default/populated cases, plus exactly two populated widget roots, at the
@@ -530,7 +562,7 @@ error records.
 
 The candidate receives none of these exceptions. Raw failures remain in
 the JSON alongside classifications. `unsupportedReferenceCases` explicitly
-lists the two v1 Embed widget controls and does not grant v1 capability
+lists the two v1 Embed and two v1 Image widget controls and does not grant v1 capability
 coverage. `incompleteCases` lists every partial
 scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
