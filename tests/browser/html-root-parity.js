@@ -1,5 +1,6 @@
 import { prepareHtmlImport } from '../../core/HtmlImportRouter.js'
-import { createHeadingPlugin, createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
+import { sanitizeHtml } from '../../shared/sanitize/sanitizeHtml.js'
+import { createHeadingPlugin, createParagraphPlugin, createQuotePlugin, createTablePlugin } from '../../plugins/index.js'
 import { test, make, para, editableField, select, paste, equal, texts } from './regressions/harness.js'
 
 // Register in native-clipboard's existing runner. These cases use the actual
@@ -98,6 +99,64 @@ test('external HTML Table preserves headers after an empty leading tr', async ()
   equal(editor.canUndo, false)
   equal(editor.redo(), true)
   equal(editor.save().blocks[0].data.withHeadings, true)
+})
+
+for (const tag of ['cite', 'footer', 'figcaption']) {
+  test(`external HTML Quote preserves its nested ${tag} attribution as a separate rich field`, async () => {
+    const editor = make([para('a', '')], {
+      plugins: [createParagraphPlugin(), createQuotePlugin()],
+    })
+    const target = editableField(editor, 'a')
+    const before = editor.save().blocks
+    select(target, 0)
+    await paste(target, {
+      'text/html': `<blockquote><b>Quoted &amp; marked</b><${tag}><i>Author &amp; source</i></${tag}></blockquote>`,
+      'text/plain': 'must not use plain fallback',
+    })
+    const after = editor.save().blocks
+    equal(after.length, 1)
+    equal(after[0].type, 'quote')
+    equal(after[0].data, {
+      text: '<b>Quoted &amp; marked</b>',
+      caption: '<i>Author &amp; source</i>',
+    }, 'Quote attribution must not become part of the quotation text')
+    equal(editableField(editor, 0, '.oe-quote__text').innerHTML, after[0].data.text)
+    equal(editableField(editor, 0, '.oe-quote__caption').innerHTML, after[0].data.caption)
+    equal(editor.undo(), true)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false, 'Quote Paste must be exactly one history action')
+    equal(editor.redo(), true)
+    equal(editor.save().blocks, after)
+  })
+}
+
+test('external HTML Quote import preserves source DOM and existing Figure attribution', () => {
+  const importer = createQuotePlugin().capabilities.htmlImport
+  const examples = [
+    ['<blockquote><b>Quoted</b><cite><i>Author</i></cite></blockquote>',
+      { text: '<b>Quoted</b>', caption: '<i>Author</i>' }],
+    ['<blockquote><b>Quoted</b></blockquote>',
+      { text: '<b>Quoted</b>', caption: '' }],
+    ['<figure><blockquote><b>Quoted</b></blockquote><figcaption><i>Author</i></figcaption></figure>',
+      { text: '<b>Quoted</b>', caption: '<i>Author</i>' }],
+    ['<figure><blockquote><b>Quoted</b></blockquote><cite><i>Author</i></cite></figure>',
+      { text: '<b>Quoted</b>', caption: '<i>Author</i>' }],
+    ['<figure><blockquote><b>Quoted</b><footer><i>Author</i></footer></blockquote></figure>',
+      { text: '<b>Quoted</b>', caption: '<i>Author</i>' }],
+    ['<figure><blockquote>Text <cite>in context</cite></blockquote><figcaption>Outer author</figcaption></figure>',
+      { text: 'Text in context', caption: 'Outer author' }],
+  ]
+  for (const [html, expected] of examples) {
+    const template = document.createElement('template')
+    template.innerHTML = html
+    const root = template.content.firstElementChild
+    const before = root.outerHTML
+    equal(importer.matchesRoot(root), true)
+    equal(importer.importRoot(root, {
+      serializeRichText: element => sanitizeHtml(element.innerHTML, element.ownerDocument),
+    }), expected)
+    equal(root.outerHTML, before, 'Quote importer modified the caller-owned source DOM')
+  }
 })
 
 

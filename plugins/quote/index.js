@@ -85,11 +85,18 @@ export function createQuotePlugin(config = {}) {
           ?element
           :element.querySelector(':scope > blockquote')
         if(!blockquote)throw new TypeError('Quote HTML root is missing blockquote content')
-        const caption=element.tagName==='FIGURE'
+        const figureCaption=element.tagName==='FIGURE'
           ?element.querySelector(':scope > figcaption, :scope > cite')
           :null
+        // Keep an embedded attribution separate from quotation text, as in
+        // the public Quote Paste contract. Clone before removing it so the
+        // importer never changes the caller's detached HTML input.
+        const text=/** @type {Element} */(blockquote.cloneNode(true))
+        const nestedCaption=figureCaption?null:text.querySelector('cite, footer, figcaption')
+        const caption=figureCaption??nestedCaption
+        nestedCaption?.remove()
         return {
-          text:context.serializeRichText(blockquote),
+          text:context.serializeRichText(text),
           caption:caption?context.serializeRichText(caption):'',
         }
       },
