@@ -1,0 +1,17 @@
+--- a/src/plugins/swipe.js
++++ b/src/plugins/swipe.js
+@@ -80,7 +80,13 @@
+         if (!enableMouse && e.pointerType === 'mouse') return
+         if (e.button !== 0) return
+         if (dragging || (e.pointerType === 'touch' && !e.isPrimary)) return
+-        if (/** @type {HTMLElement} */ (e.target).closest('.carousel__arrow, .carousel__dot, .carousel__thumb')) return
++        const target = /** @type {HTMLElement} */ (e.target)
++        // Native controls and author fields own both activation and drag gestures.
++        if (target.isContentEditable || target.closest(
++          '.carousel__arrow, .carousel__dot, .carousel__thumb, '
++          + 'a[href], button, input, select, textarea, label, summary, '
++          + 'audio[controls], video[controls]',
++        )) return
+ 
+         // Take over: grab current position, stop animation cleanly
+         startPosition = context.getPosition()

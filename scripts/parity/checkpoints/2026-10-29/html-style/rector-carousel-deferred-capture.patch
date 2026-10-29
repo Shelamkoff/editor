@@ -1,0 +1,19 @@
+--- a/src/plugins/swipe.js
++++ b/src/plugins/swipe.js
+@@ -99,7 +99,6 @@
+         cachedN = context.getSlideCount()
+         cachedPerView = context.getSlidesPerView()
+ 
+-        try { viewport?.setPointerCapture(e.pointerId) } catch { /* detached pointer */ }
+       }
+ 
+       onMove = /** @param {PointerEvent} e */ (e) => {
+@@ -117,6 +116,8 @@
+             context.snapBack(startIndex)
+             return
+           }
++          // A press is not yet a swipe: keep native clicks on their original target.
++          try { viewport?.setPointerCapture(e.pointerId) } catch { /* detached pointer */ }
+         }
+ 
+         trackMoved = true
