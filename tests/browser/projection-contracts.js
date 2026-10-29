@@ -1,3 +1,5 @@
+import './regressions/field-projection-completion.js'
+import './regressions/image-derived-alt.js'
 import { assembleCanonicalRecord, filterCanonicalInline, remapCanonicalInline } from '../../core/CanonicalTransforms.js'
 import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
 import { getTextLength, getTextOffset, findNodeAtOffset, editableTextWalker } from '../../shared/textOffset.js'

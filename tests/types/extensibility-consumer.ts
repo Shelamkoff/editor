@@ -1,5 +1,5 @@
 import { createEditor, type BlockPluginDefinition, type InlinePluginDefinition, type EditorConfig } from '../../.package-tmp/declaration-tests/core/index.js'
-import type { EditorBlockData, EditorInlineWidget, EditorOutputData, InlineTool, ParagraphBlock, PollData, Block, BlockType } from '../../.package-tmp/declaration-tests/types.js'
+import type { EditorBlockData, EditorInlineWidget, EditorOutputData, InlineTool, ParagraphBlock, PollData, Block, BlockType, BlockInstance, EditableField } from '../../.package-tmp/declaration-tests/types.js'
 import { EditorRenderer } from '../../.package-tmp/declaration-tests/renderer/index.js'
 import type { BlockRendererDefinition, InlineWidgetRenderer, PollDataSource } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import { setSanitizedHtml } from '../../.package-tmp/declaration-tests/plugin-kit/index.js'
@@ -18,6 +18,21 @@ type RemovedRendererParagraph = import('../../.package-tmp/declaration-tests/ren
 
 interface NoteData { text: string; items: Array<{ id: string; html: string }> }
 interface BadgeData { label: string }
+const completeProjectedField: NonNullable<BlockInstance<NoteData>['afterProjection']> = (field: EditableField): void => {
+  const key: string = field.key
+  const element: HTMLElement = field.element
+  const mode: 'rich-text' | 'plain-text' = field.mode
+  void [key, element, mode]
+  // @ts-expect-error completion receives an immutable field address
+  field.key = 'successor'
+  // @ts-expect-error a completed field is not a mutation or scheduling context
+  field.updateData(() => ({ text: 'forbidden' }))
+}
+completeProjectedField({ key: 'text', mode: 'rich-text', element: document.createElement('div') })
+// @ts-expect-error completion requires the full declared field descriptor
+completeProjectedField({ key: 'text', element: document.createElement('div') })
+// @ts-expect-error a DOM Text node is not a declared HTMLElement field
+completeProjectedField({ key: 'text', mode: 'rich-text', element: document.createTextNode('text') })
 const note: NoteData = { text: 'Note', items: [{ id: 'first', html: 'Content' }] }
 const badge: BadgeData = { label: 'Badge' }
 function decodeNote(data: unknown): NoteData {
@@ -55,6 +70,7 @@ const noteDefinition: BlockPluginDefinition<NoteData> = {
         element, read: () => decodeNote(data),
         update(next) { data = decodeNote(next); setSanitizedHtml(element, data.text) },
         editableFields: () => [{ key: 'text', mode: 'rich-text', element }],
+        afterProjection: completeProjectedField,
         setReadOnly(value) { element.contentEditable = String(!value) },
         destroy() { element.remove() },
       }

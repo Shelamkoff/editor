@@ -1,3 +1,4 @@
+import './regressions/field-projection-completion-native.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
