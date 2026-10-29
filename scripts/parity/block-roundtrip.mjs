@@ -133,22 +133,25 @@ try {
         'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control',
-        'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated']
+        'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated',
+        'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default'].includes(entry.id)
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default'].includes(entry.id)
           const listCase = ['BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const quoteCase = ['BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const warningCase = ['BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const codeCase = ['BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated'].includes(entry.id)
+          const checklistCase = ['BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
             : failure.property === 'widgetDomIdentity' && populated && !codeCase ? 2
               : failure.property === 'itemDomIdentity' && listCase ? populated ? 2 : 1
                 : failure.property === 'quoteFieldDomIdentity' && quoteCase ? 2
                   : failure.property === 'warningFieldDomIdentity' && warningCase ? 2
-                    : failure.property === 'plainFieldDomIdentity' && codeCase ? 1 : 0
+                    : failure.property === 'plainFieldDomIdentity' && codeCase ? 1
+                      : failure.property === 'checklistDomIdentity' && checklistCase ? populated ? 6 : 3 : 0
           if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
             && same(failure.actual, Array(size).fill(false)) && same(failure.expected, Array(size).fill(true))) {
             return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
@@ -182,6 +185,15 @@ try {
               anchor: { block: generatedId, node: 'DIV', text: '', offset: 2 },
               focus: { block: generatedId, node: 'DIV', text: '', offset: 2 },
             })) return 'repaired-v1-empty-warning-caret'
+          if (entry.id === 'BLOCK_CHECKLIST_ROUNDTRIP/default' && failure.phase === 'undo' && failure.property === 'nativeSelection'
+            && typeof generatedId === 'string' && generatedId.length > 0
+            && same(failure.actual, { focused: true, anchor: null, focus: null, collapsed: true })
+            && same(failure.expected, { focused: true, anchor: 0, focus: 0, collapsed: true })
+            && same(undo?.selectionOwner, {
+              active: { block: generatedId, node: 'DIV', className: 'oe-checklist__text' },
+              anchor: { block: generatedId, node: 'DIV', text: '', offset: 1 },
+              focus: { block: generatedId, node: 'DIV', text: '', offset: 1 },
+            })) return 'repaired-v1-empty-checklist-caret'
           if (entry.id === 'BLOCK_CODE_ROUNDTRIP/populated' && failure.phase === 'undo' && failure.property === 'nativeSelection'
             && same(failure.actual, { focused: false, anchor: 61, focus: 61, collapsed: true })
             && same(failure.expected, { focused: true, anchor: 61, focus: 61, collapsed: true })
@@ -213,7 +225,7 @@ try {
             })) return 'repaired-v1-first-undo-caret'
         }
         if (source.label === 'spec-baseline'
-          && ['BLOCK_PARAGRAPH_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated'].includes(entry.id)
+          && ['BLOCK_PARAGRAPH_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated'].includes(entry.id)
           && failure.phase === 'read-only-transition' && failure.property === 'execution'
           && failure.actual === 'Inline widget root left its projection boundary before hydration'
           && same(entry.completedPhases, ['load'])

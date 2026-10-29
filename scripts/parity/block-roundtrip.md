@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The implemented rich-field slices are Paragraph, Heading, List, Quote and Warning, each with
+The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning and Checklist, each with
 separate actual default construction and populated-document cases. Each
 populated case contains both real Mention and Color sidecars inside
 authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
@@ -42,6 +42,16 @@ only the slot whose saved value is empty. Native input and one-step
 Undo/Redo operate on the declared title field; message data and live DOM
 must survive that sibling edit. A separate native message-authoring cycle
 is outside this template.
+
+Checklist uses its real one-item unchecked default and a fixed checked /
+unchecked pair. Only the first declared text label is edited; its checkbox
+is a separate control. The fixture checks both labels, checked classes,
+button `aria-pressed` and read-only disabled state, row/button/label DOM
+identities, and current item IDs. Renderer UL/LI/SPAN structure, rich label
+contents and checkbox role/`aria-checked` must match the saved states in all
+three contexts. v1 receives the same item text and checked state without
+invented IDs. Checkbox activation, Enter/Backspace and selection actions
+remain separate detailed behavior rows.
 
 Code adds two plain-text cases: its real empty/`auto` default and literal
 multiline source with a fixed `javascript` language. Source containing HTML
@@ -82,6 +92,8 @@ Current block and inline `dataVersion` fields are supplied only to the
 versions that define them. The v1 List fixture uses `items: string[]`;
 current List uses explicit identified item records. Expected contents and
 order are fixed in both forms, without inventing historical item IDs.
+v1 Checklist likewise receives `{ text, checked }` items; current Checklist
+adds explicit IDs without changing their order or checked values.
 These are fixture adapters, not production compatibility or a legacy
 decoder.
 
@@ -103,7 +115,7 @@ author data from an initial `save()` result.
 | Image / 1 | Empty file URL/caption, false flags, empty styles | Controlled local image, rich caption, appearance; edit `caption` | Caption is declared only with an image source. |
 | Delimiter / 1 | Empty object | The same data-free separator | No editable field or fabricated authoring step. |
 | Table / 2 | One empty cell with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. Default size difference remains unresolved. |
-| Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | v1 item IDs absent; checkbox is not the editable label. |
+| Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
 | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
 | Embed / 1 | Empty service/video/caption/metadata | Controlled service/video with local cover, rich caption | Disable or inject documented metadata provider; caption exists only for a valid embed. |
 | Raw / 1 | Empty HTML source | Safe multiline authored HTML; edit `html` source | Source field is plain text; preview confinement/navigation remain separate rows. |
@@ -178,15 +190,16 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning and Code oracle classifies only these
-observed historical differences, bounded to the seventeen exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code and Checklist oracle classifies
+only these observed historical differences, bounded to the twenty exact scenario IDs in the
 runner:
 
-- v1 remounts the exact block/widget arrays, List items, Quote/Warning fields and Code textarea during read-only/editable mode
+- v1 remounts the exact block/widget arrays, List items, Quote/Warning fields, Code textarea and
+  Checklist rows/buttons/labels during read-only/editable mode
   changes and Undo/Redo. Its author data and sidecars must still be exact.
 - The first v1 Undo in each rich-field block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
-  The required `probe` caret is offset 14 for Paragraph/Heading/List and
+  The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
   offset 12 for Quote/Warning. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
@@ -205,6 +218,11 @@ runner:
   offset 2. The exact title class and actual generated block ID are required
   for this classification; current selection must be inside the declared
   title field at offset 0.
+- The first v1 Undo in the default Checklist focuses its empty label DIV,
+  while both native points are on the same block's outer DIV at child
+  offset 1. Classification requires the exact label class and actual
+  generated block ID. Current selection must be inside the declared label
+  at offset 0.
 - The first v1 Undo in populated Code focuses that same exact prefix
   Paragraph, while the recreated textarea retains its selection at offset
   61 without focus. After Redo, both Code cases focus their textarea but
@@ -226,6 +244,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning or Code behavior,
-the other 15 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code or Checklist behavior,
+the other 14 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

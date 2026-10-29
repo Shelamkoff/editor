@@ -21,6 +21,15 @@ const list = {
     { id: 'second', text: '<mark>Second item</mark>' },
   ] },
 }
+const checklist = {
+  type: 'checklist', version: 2, className: 'Checklist',
+  fieldSelector: '.oe-checklist__text', fieldTag: 'DIV',
+  defaultData: { items: [{ id: 'item-0', text: '', checked: false }] },
+  populatedData: { items: [
+    { id: 'first', text: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail', checked: true },
+    { id: 'second', text: '<mark>Second item</mark>', checked: false },
+  ] },
+}
 const quote = {
   type: 'quote', version: 1, className: 'Quote',
   fieldSelector: '.oe-quote__text',
@@ -43,12 +52,12 @@ const code = {
   populatedData: { code: 'const tag = "<b>&copy;</b>";\nconsole.log(tag); // {{literal}}', language: 'javascript' },
 }
 
-const withEditedText = (block, data, text) => block.type === 'list'
+const withEditedText = (block, data, text) => ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   return [false, true].map(populated => ({
     ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
@@ -155,7 +164,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     swatch: widget('color', { value: '#123456' }),
   }
   const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}),
-    data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) } : data,
+    data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) }
+      : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
@@ -199,21 +209,24 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
     let previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
     let previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
+    const checklistRows = () => [...shell(id).querySelectorAll('.oe-checklist__item')]
+    const checklistParts = () => checklistRows().flatMap(row => [row, row.querySelector('.oe-checklist__checkbox'), row.querySelector('.oe-checklist__text')])
+    let previousChecklistParts = specification.type === 'checklist' ? checklistParts() : []
     const quoteFields = () => ['.oe-quote__text', '.oe-quote__caption'].map(selector => shell(id).querySelector(selector))
     let previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
     const warningFields = () => ['.oe-warning__title', '.oe-warning__message'].map(selector => shell(id).querySelector(selector))
     let previousWarningFields = specification.type === 'warning' ? warningFields() : []
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = specification.type === 'list' ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       const data = withEditedText(specification, baseData, text)
       return specification.populated
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, plainField ? undefined : clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'code' ? { ...block.data } : block.type === 'list'
+    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'code' ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
@@ -221,6 +234,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : { ...block.data, text: markupMeaning(block.data.text) } }))
     const rendererMarkup = element => element.dataset.blockType === 'code'
       ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
+      : element.dataset.blockType === 'checklist'
+        ? [...element.children].map(child => ({ tag: child.tagName,
+          fieldTag: child.querySelector('.editor-checklist__text').tagName,
+          markup: authoredMarkup(child.querySelector('.editor-checklist__text')),
+          checked: child.classList.contains('editor-checklist__item--checked'),
+          role: child.querySelector('.editor-checklist__checkbox').getAttribute('role'),
+          ariaChecked: child.querySelector('.editor-checklist__checkbox').getAttribute('aria-checked'),
+        }))
       : element.dataset.blockType === 'list'
       ? [...element.children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : element.dataset.blockType === 'quote'
@@ -230,6 +251,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : authoredMarkup(element)
     const expectedRendererMarkup = block => block.type === 'code'
       ? { tag: 'CODE', source: block.data.code }
+      : block.type === 'checklist'
+        ? block.data.items.map(item => ({ tag: 'LI', fieldTag: 'SPAN', markup: markupMeaning(item.text),
+          checked: item.checked, role: 'checkbox', ariaChecked: String(item.checked) }))
       : block.type === 'list'
       ? block.data.items.map(item => ({ tag: 'LI', markup: markupMeaning(listItemText(item)) }))
       : block.type === 'quote'
@@ -282,7 +306,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const expected = expectedBlocks(text)
       const target = expected.find(block => block.id === id)
       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
-      check(phase, 'editorFieldTag', field().tagName, plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target))
+      check(phase, 'editorFieldTag', field().tagName, specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
       if (plainField) {
         check(phase, 'editorAuthoredSource', field().value, text)
         check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
@@ -294,6 +318,21 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, 'editorItemMarkup', items.map(authoredMarkup), target.data.items.map(item => markupMeaning(listItemText(item))))
         check(phase, 'itemDomIdentity', previousItems.map((element, index) => items[index] === element), previousItems.map(() => true))
         if (!legacy) check(phase, 'editorItemIds', items.map(element => element.dataset.itemId), baseData.items.map(item => item.id))
+      }
+      if (specification.type === 'checklist') {
+        const rows = checklistRows()
+        check(phase, 'editorChecklistItems', rows.map(row => ({ tag: row.tagName,
+          fieldTag: row.querySelector('.oe-checklist__text').tagName,
+          markup: authoredMarkup(row.querySelector('.oe-checklist__text')),
+          editable: row.querySelector('.oe-checklist__text').isContentEditable,
+          checked: row.classList.contains('oe-checklist__item--checked'),
+          pressed: row.querySelector('.oe-checklist__checkbox').getAttribute('aria-pressed'),
+          disabled: row.querySelector('.oe-checklist__checkbox').disabled,
+        })), target.data.items.map(item => ({ tag: 'DIV', fieldTag: 'DIV', markup: markupMeaning(item.text),
+          editable: !readOnly, checked: item.checked, pressed: String(item.checked), disabled: readOnly })))
+        const parts = checklistParts()
+        check(phase, 'checklistDomIdentity', previousChecklistParts.map((element, index) => parts[index] === element), previousChecklistParts.map(() => true))
+        if (!legacy) check(phase, 'editorItemIds', rows.map(row => row.dataset.itemId), baseData.items.map(item => item.id))
       }
       if (specification.type === 'quote') {
         const fields = quoteFields()
@@ -327,6 +366,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
       previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
       previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
+      previousChecklistParts = specification.type === 'checklist' ? checklistParts() : []
       previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
       previousPlainFields = plainField ? [field()] : []
