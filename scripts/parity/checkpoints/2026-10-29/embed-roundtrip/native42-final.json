@@ -1,0 +1,186 @@
+{
+  "root": "/tmp/rector-embed-pageerror-attribution-20261029",
+  "headBefore": "4da6735f7e13f7456aba6f167dde714ad645010d",
+  "headAfter": "4da6735f7e13f7456aba6f167dde714ad645010d",
+  "startedAt": "2026-10-29T20:10:24.229245+00:00",
+  "finishedAt": "2026-10-29T20:11:00.912703+00:00",
+  "elapsedSeconds": 36.68,
+  "exitCode": 0,
+  "caseCount": 42,
+  "sourceUnchanged": true,
+  "trackedFileCount": 1794,
+  "trackedFilesSha256": "a184af57a72253a58d5515a0d596573303f395e177ed7afc7519eb9a37dc5d52",
+  "logSha256": "005fdcdcd3cc6567541dd1554427c07e7089004c97b14d2eeddfac618e362366",
+  "changedPaths": [],
+  "command": "EDITOR_CHROME_PATH=/tmp/rector-browsers/chrome-linux64/chrome EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html EDITOR_NATIVE_FILTER= node tests/browser/physical-history.mjs",
+  "cases": [
+    {
+      "name": "Block roundtrip differential: BLOCK_PARAGRAPH_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_HEADING_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_HEADING_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_LIST_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_LIST_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_QUOTE_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_QUOTE_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_WARNING_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_WARNING_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_CODE_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_CODE_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_CHECKLIST_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_CHECKLIST_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_DELIMITER_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_IMAGE_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_IMAGE_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_SPOILER_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_SPOILER_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_COLUMNS_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_COLUMNS_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_ATTACHES_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_ATTACHES_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_RAW_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_RAW_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_EMBED_ROUNDTRIP/default",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_EMBED_ROUNDTRIP/populated",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+      "status": "PASS"
+    },
+    {
+      "name": "Block roundtrip differential: BLOCK_EMBED_ROUNDTRIP/populated-literal",
+      "status": "PASS"
+    }
+  ]
+}

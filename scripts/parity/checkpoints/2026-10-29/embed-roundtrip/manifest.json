@@ -1,0 +1,573 @@
+{
+  "root": "/tmp/rector-embed-pageerror-attribution-20261029",
+  "base": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+  "head": "4da6735f7e13f7456aba6f167dde714ad645010d",
+  "files": {
+    "scripts/parity/block-roundtrip.mjs": "a48c4527ca9a980ac12eba2a628abcffa0c004fead0879a2896b1ce46e7c3ba3",
+    "scripts/parity/block-roundtrip.md": "49198e8c54685aae497175addf8f285ce248789022fcbc162e3a7b88105aa7c5",
+    "tests/browser/block-roundtrip-fixture.js": "28594ea87a7997791449c3a5f00be634d0985ed113cb4def025d6285b8b7ef8f"
+  },
+  "patch": "/tmp/rector-embed-final42-review.patch",
+  "patchSha256": "99f86fabfb9bc05cf2edca520029ea0dbbda2dd79cab84ec03192b05879a2349",
+  "evidence": {
+    "/tmp/rector-embed-animation-diagnostic.json": "e90b5a57fe3072bc307e347e9ec8983173cc7c4c341ffaa04d5025a9ffb555be",
+    "/tmp/rector-embed-roundtrip-finite-raw.json": "35546cf4c7f3774eda70a70b124b6f3f3923e535b218b8c03e3bd9edb04ea103",
+    "/tmp/rector-embed-roundtrip-corrected-raw.json": "8c9729ef8023daf4037721a37a77ce1e6d5bf39e34ea5e3f24aaa11b8572a716",
+    "/tmp/rector-embed-classification-check.json": "5ddb9fab00ba6153e3f3c2db9455b7bd96672d5ce19be1c36d5f08ede1383817",
+    "/tmp/rector-embed-animation-diagnostic-manifest.json": "2184272366183328321380de3246b908ba36ddd00eaf9079a8c7932a9bd7ebc6",
+    "/tmp/rector-embed-roundtrip-full42.json": "3dfbe7c7e0aa5e107eef2700f085b76f8694e175490f0082011827ab4f7ba31d",
+    "/tmp/rector-embed-roundtrip-full42.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/rector-embed-native42.json": "be60ced9945de8f986b9961ae9077fdb1c355ac0bb418721ac03cb4dcf980f6c",
+    "/tmp/rector-embed-native42.log": "005fdcdcd3cc6567541dd1554427c07e7089004c97b14d2eeddfac618e362366",
+    "/tmp/rector-embed-pageerror-attribution-raw.json": "fc58f6394e7d85d1ca2c74d276b0df09021fcd1525b155037352d6fce1662cc7",
+    "/tmp/rector-embed-pageerror-attribution-raw.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/rector-embed-pageerror-classification-check.mjs": "ef19258e25cb3a0a10ef8fa0b637b8bedbc3d5cb51455e5ed0bc1e1f1096ea81",
+    "/tmp/rector-embed-pageerror-classification-check.json": "4435fe30d870fa6a3e1ca188b643c69cd61e1f7a2a45ecf0ea24145bd35738fb",
+    "/tmp/rector-embed-roundtrip-final42.json": "ea3e15a1ee3d06e3dd4f1f70bb58422cf74de966e0b0d09583293e27d319fdca",
+    "/tmp/rector-embed-roundtrip-final42.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/rector-embed-native-final42.json": "444e5a6fc4e05ca12186f474819861cfe65ae43a2dc1f01f964eaff7bd8bdbe9",
+    "/tmp/rector-embed-native-final42.log": "005fdcdcd3cc6567541dd1554427c07e7089004c97b14d2eeddfac618e362366",
+    "/tmp/rector-embed-native-final42-run.py": "ce28fc6bf80ef0ba88e39a1e2a1db76f630d41c9971f2c13c6039cad8029d8e1",
+    "/tmp/rector-embed-pageerror-review.patch": "2dda043939ffdf787fa9d9eb16c96deb78e55a8bdb678576379d8f4ac9c527b0"
+  },
+  "attempts": [
+    {
+      "kind": "two stopped attempts",
+      "result": "no completed trace; neither RED nor PASS"
+    },
+    {
+      "kind": "infinite-animation diagnostic",
+      "result": "harness rejection; actual oe-embed-pulse endTime/iterations Infinity across three sources"
+    },
+    {
+      "kind": "first finite raw",
+      "result": "candidate649/652; three failures caused by invalid unconditional changed-caption identity oracle; not production RED"
+    },
+    {
+      "kind": "corrected raw",
+      "result": "candidate682/682 assertions,4/4cases,all applicable phases; historical failures retained"
+    },
+    {
+      "kind": "original full42 d055",
+      "result": "FAILED exit1: current7007/7007 passes, exact baseline Redo global pageerror was unclassified. Original JSON/log retained; not relabeled GREEN."
+    },
+    {
+      "kind": "original native42 d055",
+      "result": "PASS42/42 on the pre-attribution fixture; retained as its own exact-source proof."
+    },
+    {
+      "kind": "pageerror attribution raw949",
+      "result": "FAILED exit1 as intended: one pinned baseline unwrapped Embed Redo error captured in both window and Playwright channels; candidate200/200, no candidate pageerror. No event suppression."
+    },
+    {
+      "kind": "final full42 4da",
+      "result": "PASS exit0 with raw historical observations retained and exact paired pageerror classification. No candidate exception."
+    },
+    {
+      "kind": "final native42 4da",
+      "result": "PASS42/42 with all1794 tracked source files and HEAD unchanged."
+    }
+  ],
+  "historicalEmbedBreakdown": {
+    "v1Unsupported": 66,
+    "v1RepairedModeHistoryFocus": 38,
+    "specBaselineIncomplete": 1,
+    "specBaselineRedoDifferences": 11
+  },
+  "full42": {
+    "status": "PASS",
+    "exitCode": 0,
+    "startedAt": "2026-10-29T20:08:21.118Z",
+    "finishedAt": "2026-10-29T20:10:03.691Z",
+    "elapsedSeconds": 102.573,
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "headBefore": "4da6735f7e13f7456aba6f167dde714ad645010d",
+    "headAfter": "4da6735f7e13f7456aba6f167dde714ad645010d",
+    "runnerSha256": "a48c4527ca9a980ac12eba2a628abcffa0c004fead0879a2896b1ce46e7c3ba3",
+    "fixtureSha256": "28594ea87a7997791449c3a5f00be634d0985ed113cb4def025d6285b8b7ef8f",
+    "caseCount": 42,
+    "serverErrors": [],
+    "sourceSummary": [
+      {
+        "source": "v1",
+        "cases": 42,
+        "observations": 6959,
+        "rawFailures": 484,
+        "unexpectedFailures": 0,
+        "rawPlaywrightErrors": 0,
+        "rawWindowPageErrors": 0,
+        "classifiedPageErrors": 0,
+        "unexpectedPlaywrightErrors": 0,
+        "unexpectedWindowPageErrors": 0,
+        "classificationCounts": {
+          "repaired-v1-mode-remount": 200,
+          "repaired-v1-history-remount": 180,
+          "repaired-v1-first-undo-caret": 26,
+          "repaired-v1-empty-list-caret": 1,
+          "repaired-v1-empty-quote-caret": 1,
+          "repaired-v1-empty-warning-caret": 1,
+          "repaired-v1-code-redo-caret": 2,
+          "repaired-v1-empty-checklist-caret": 1,
+          "repaired-v1-empty-toggle-caret": 1,
+          "repaired-v1-empty-spoiler-caret": 1,
+          "repaired-v1-empty-columns-caret": 1,
+          "repaired-v1-raw-redo-caret": 2,
+          "repaired-v1-empty-embed-mode-focus": 1,
+          "unsupported-v1-embed-caption-sidecars": 12,
+          "unsupported-v1-embed-caption-widgets": 48,
+          "unsupported-v1-embed-widget-caret": 6
+        }
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 42,
+        "observations": 5368,
+        "rawFailures": 24,
+        "unexpectedFailures": 0,
+        "rawPlaywrightErrors": 1,
+        "rawWindowPageErrors": 1,
+        "classifiedPageErrors": 1,
+        "unexpectedPlaywrightErrors": 0,
+        "unexpectedWindowPageErrors": 0,
+        "classificationCounts": {
+          "repaired-baseline-formatted-widget-mode-failure": 11,
+          "repaired-baseline-native-focus-acknowledgment": 2,
+          "repaired-baseline-embed-redo": 11
+        }
+      },
+      {
+        "source": "candidate",
+        "cases": 42,
+        "observations": 7007,
+        "rawFailures": 0,
+        "unexpectedFailures": 0,
+        "rawPlaywrightErrors": 0,
+        "rawWindowPageErrors": 0,
+        "classifiedPageErrors": 0,
+        "unexpectedPlaywrightErrors": 0,
+        "unexpectedWindowPageErrors": 0,
+        "classificationCounts": {}
+      }
+    ],
+    "embedSummary": [
+      {
+        "source": "v1",
+        "cases": 4,
+        "observations": 694,
+        "rawFailures": 104,
+        "classificationCounts": {
+          "repaired-v1-mode-remount": 22,
+          "repaired-v1-empty-embed-mode-focus": 1,
+          "unsupported-v1-embed-caption-sidecars": 12,
+          "unsupported-v1-embed-caption-widgets": 48,
+          "unsupported-v1-embed-widget-caret": 6,
+          "repaired-v1-history-remount": 12,
+          "repaired-v1-first-undo-caret": 3
+        }
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 4,
+        "observations": 513,
+        "rawFailures": 12,
+        "classificationCounts": {
+          "repaired-baseline-formatted-widget-mode-failure": 1,
+          "repaired-baseline-embed-redo": 11
+        }
+      },
+      {
+        "source": "candidate",
+        "cases": 4,
+        "observations": 682,
+        "rawFailures": 0,
+        "classificationCounts": {}
+      }
+    ],
+    "incompleteCases": [
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_LIST_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      }
+    ],
+    "unsupportedReferenceCases": [
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+        "supported": false,
+        "feature": "Persistent Embed caption widgets",
+        "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Embed caption widgets",
+        "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+      }
+    ]
+  },
+  "native42": {
+    "root": "/tmp/rector-embed-pageerror-attribution-20261029",
+    "headBefore": "4da6735f7e13f7456aba6f167dde714ad645010d",
+    "headAfter": "4da6735f7e13f7456aba6f167dde714ad645010d",
+    "startedAt": "2026-10-29T20:10:24.229245+00:00",
+    "finishedAt": "2026-10-29T20:11:00.912703+00:00",
+    "elapsedSeconds": 36.68,
+    "exitCode": 0,
+    "caseCount": 42,
+    "sourceUnchanged": true,
+    "trackedFileCount": 1794,
+    "trackedFilesSha256": "a184af57a72253a58d5515a0d596573303f395e177ed7afc7519eb9a37dc5d52",
+    "logSha256": "005fdcdcd3cc6567541dd1554427c07e7089004c97b14d2eeddfac618e362366",
+    "changedPaths": [],
+    "command": "EDITOR_CHROME_PATH=/tmp/rector-browsers/chrome-linux64/chrome EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html EDITOR_NATIVE_FILTER= node tests/browser/physical-history.mjs"
+  },
+  "v1CapabilityEvidence": {
+    "source": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "basis": "Persistent inline widgets require mapTextFields in the v1 types and extension guide; public insertion and load admission require that hook. Embed declares none, inlineTools=false, and its README advertises video/cover/preview/settings instead of widgets. The two rich-widget cases are unsupported reference controls, not evidence of a repaired v1 widget feature.",
+    "fileSha256": {
+      "core/types.d.ts": "2a090eb2558f02f023542aba7f90f60a4a3464e2fc2e0c40334527ea4813259c",
+      "core/EditorFacade.js": "c73946f10188d60dac37d483e5236280dff2a310ff07c07e83095ddc58ae4167",
+      "core/BlockManager.js": "18e13a75a13edf872bdf38c4a48545101c01a23e48c9432eb15262495345dede",
+      "docs/guide/extensions.md": "aba10fd21ddcbf2baaf978153c8bbe33f097ce99511afc23ad84c100fd5ba328",
+      "plugins/embed/index.js": "92da9273f39ee434a2f00ea0347caf258654d495e2f2e7c1976dc564fe5ecd13",
+      "plugins/embed/README.md": "23a0f44adf92de4e204eef49f1522dbea277fd24292a49fbbed4c43e3640a7f9",
+      "renderer/renderers/embed/index.js": "08340efbc18f33865b3d7fab72cbf13dba7dbd47e074b2a574eb98eda12ffe9d"
+    }
+  },
+  "commands": {
+    "full42": "EDITOR_ROUNDTRIP_FILTER= EDITOR_V1_ROOT=/tmp/rector-v1-5e5c7f8 EDITOR_SPEC_BASELINE_ROOT=/tmp/rector-e981ff3 EDITOR_DEPENDENCIES_ROOT=/tmp/rector-image-recovery-20261029/node_modules EDITOR_PLAYWRIGHT_PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs EDITOR_CHROME_PATH=/tmp/rector-browsers/chrome-linux64/chrome node scripts/parity/block-roundtrip.mjs",
+    "native42": "EDITOR_CHROME_PATH=/tmp/rector-browsers/chrome-linux64/chrome EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html EDITOR_NATIVE_FILTER= node tests/browser/physical-history.mjs",
+    "nativeIntegrityWrapper": "python /tmp/rector-embed-native-final42-run.py"
+  },
+  "reviews": {
+    "parent": "approved complete exact paired pageerror patch 2dda043939ffdf787fa9d9eb16c96deb78e55a8bdb678576379d8f4ac9c527b0 before final rerun",
+    "v1_parity_audit": "read-only approval of finite animation settlement, conditional Embed caption retirement, exact historical classifier and final pageerror classifier; peer did not rerun browser/negative controls"
+  },
+  "mainIntegration": {
+    "status": "committed",
+    "commit": "6b80631fbbb46e973e1f8273b354ad1791d51c60",
+    "parent": "c2b084bd49b1d5a40528c114eaade15a839d7427",
+    "files": {
+      "scripts/parity/block-roundtrip.mjs": "a48c4527ca9a980ac12eba2a628abcffa0c004fead0879a2896b1ce46e7c3ba3",
+      "scripts/parity/block-roundtrip.md": "49198e8c54685aae497175addf8f285ce248789022fcbc162e3a7b88105aa7c5",
+      "tests/browser/block-roundtrip-fixture.js": "28594ea87a7997791449c3a5f00be634d0985ed113cb4def025d6285b8b7ef8f"
+    },
+    "scope": "Exact three approved Embed test/runner/README blobs. Production untouched. The42 gates remain evidence for frozen4da, not a new gate on this integration commit."
+  },
+  "limits": [
+    "These four Embed scenarios and the shared42-case gate do not accept all Embed actions or full library parity.",
+    "Empty Embed has a URL configuration control but no declared caption, so default authoring phases are explicitly N/A.",
+    "v1 widget-caption controls remain unsupported capability evidence; their66 observations are separate from38 repaired mode/history/focus observations.",
+    "11 baseline cases remain incomplete and are not labeled as completed passes.",
+    "Provider requests, playback activation, iframe lifecycle, URL configuration and settings actions are separate rows.",
+    "Finite animations continue to be awaited; no timeout is accepted as PASS.",
+    "Image derived alt and Person empty-default semantic decisions remain separate work."
+  ],
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "root": "/tmp/rector-v1-5e5c7f8",
+      "legacy": true,
+      "loadedFileCount": 209
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "root": "/tmp/rector-e981ff3",
+      "legacy": false,
+      "loadedFileCount": 231
+    },
+    {
+      "label": "candidate",
+      "sha": "4da6735f7e13f7456aba6f167dde714ad645010d",
+      "root": "/tmp/rector-embed-pageerror-attribution-20261029",
+      "legacy": false,
+      "loadedFileCount": 231
+    }
+  ],
+  "runtime": {
+    "node": "v24.22.1",
+    "browser": "142.0.7444.175"
+  },
+  "checkpoint": {
+    "path": "scripts/parity/checkpoints/2026-10-29/embed-roundtrip",
+    "files": {
+      "full42-final.json.gz": {
+        "originalPath": "/tmp/rector-embed-roundtrip-final42.json",
+        "sha256": "5e6f2e11b447cef94e0c29a0ae257cfe9cb39877b3991998f24a8752393958a8",
+        "bytes": 531479,
+        "uncompressedSha256": "ea3e15a1ee3d06e3dd4f1f70bb58422cf74de966e0b0d09583293e27d319fdca",
+        "uncompressedBytes": 18403405
+      },
+      "full42-original-failed.json.gz": {
+        "originalPath": "/tmp/rector-embed-roundtrip-full42.json",
+        "sha256": "6d934da6b11383aec4f482cffefe425996e83db9954be1d9b05f53caff6b1496",
+        "bytes": 531226,
+        "uncompressedSha256": "3dfbe7c7e0aa5e107eef2700f085b76f8694e175490f0082011827ab4f7ba31d",
+        "uncompressedBytes": 18400267
+      },
+      "embed-corrected-raw.json.gz": {
+        "originalPath": "/tmp/rector-embed-roundtrip-corrected-raw.json",
+        "sha256": "f274de31d72e9c27d95cd8e0a0e130b6f4bd829148069cf7f43c79a57ba9e11b",
+        "bytes": 75858,
+        "uncompressedSha256": "8c9729ef8023daf4037721a37a77ce1e6d5bf39e34ea5e3f24aaa11b8572a716",
+        "uncompressedBytes": 2151022
+      },
+      "embed-invalid-identity-oracle.json.gz": {
+        "originalPath": "/tmp/rector-embed-roundtrip-finite-raw.json",
+        "sha256": "f4b83a59b9292da1aa048ae2a571892a426cf76f826308bbef15a7b3f4cdba4f",
+        "bytes": 72969,
+        "uncompressedSha256": "35546cf4c7f3774eda70a70b124b6f3f3923e535b218b8c03e3bd9edb04ea103",
+        "uncompressedBytes": 2096781
+      },
+      "infinite-animation-diagnostic.json.gz": {
+        "originalPath": "/tmp/rector-embed-animation-diagnostic.json",
+        "sha256": "5b37ede86e26c90223d41390ac6562ff9ff1de40fc74f66402cc30a85ed84b47",
+        "bytes": 33910,
+        "uncompressedSha256": "e90b5a57fe3072bc307e347e9ec8983173cc7c4c341ffaa04d5025a9ffb555be",
+        "uncompressedBytes": 524538
+      },
+      "pageerror-attribution-raw.json.gz": {
+        "originalPath": "/tmp/rector-embed-pageerror-attribution-raw.json",
+        "sha256": "b352b68f7a6a6ad88a0a07c3e91ebbb49849a19ecfe2af30c30f01057508220b",
+        "bytes": 40358,
+        "uncompressedSha256": "fc58f6394e7d85d1ca2c74d276b0df09021fcd1525b155037352d6fce1662cc7",
+        "uncompressedBytes": 836663
+      },
+      "native42-final.json": {
+        "originalPath": "/tmp/rector-embed-native-final42.json",
+        "sha256": "444e5a6fc4e05ca12186f474819861cfe65ae43a2dc1f01f964eaff7bd8bdbe9",
+        "bytes": 5879,
+        "uncompressedSha256": "444e5a6fc4e05ca12186f474819861cfe65ae43a2dc1f01f964eaff7bd8bdbe9",
+        "uncompressedBytes": 5879
+      },
+      "native42-final.log": {
+        "originalPath": "/tmp/rector-embed-native-final42.log",
+        "sha256": "005fdcdcd3cc6567541dd1554427c07e7089004c97b14d2eeddfac618e362366",
+        "bytes": 4068,
+        "uncompressedSha256": "005fdcdcd3cc6567541dd1554427c07e7089004c97b14d2eeddfac618e362366",
+        "uncompressedBytes": 4068
+      },
+      "native42-original.json": {
+        "originalPath": "/tmp/rector-embed-native42.json",
+        "sha256": "be60ced9945de8f986b9961ae9077fdb1c355ac0bb418721ac03cb4dcf980f6c",
+        "bytes": 5874,
+        "uncompressedSha256": "be60ced9945de8f986b9961ae9077fdb1c355ac0bb418721ac03cb4dcf980f6c",
+        "uncompressedBytes": 5874
+      },
+      "classifications-check.mjs": {
+        "originalPath": "/tmp/rector-embed-classification-check.mjs",
+        "sha256": "65cb400869f747ad400db81f3ad476b8bb0e08be134e5df37a8099213fc12460",
+        "bytes": 3054,
+        "uncompressedSha256": "65cb400869f747ad400db81f3ad476b8bb0e08be134e5df37a8099213fc12460",
+        "uncompressedBytes": 3054
+      },
+      "classifications-check.json": {
+        "originalPath": "/tmp/rector-embed-classification-check.json",
+        "sha256": "5ddb9fab00ba6153e3f3c2db9455b7bd96672d5ce19be1c36d5f08ede1383817",
+        "bytes": 1051,
+        "uncompressedSha256": "5ddb9fab00ba6153e3f3c2db9455b7bd96672d5ce19be1c36d5f08ede1383817",
+        "uncompressedBytes": 1051
+      },
+      "pageerror-classifications-check.mjs": {
+        "originalPath": "/tmp/rector-embed-pageerror-classification-check.mjs",
+        "sha256": "ef19258e25cb3a0a10ef8fa0b637b8bedbc3d5cb51455e5ed0bc1e1f1096ea81",
+        "bytes": 3741,
+        "uncompressedSha256": "ef19258e25cb3a0a10ef8fa0b637b8bedbc3d5cb51455e5ed0bc1e1f1096ea81",
+        "uncompressedBytes": 3741
+      },
+      "pageerror-classifications-check.json": {
+        "originalPath": "/tmp/rector-embed-pageerror-classification-check.json",
+        "sha256": "4435fe30d870fa6a3e1ca188b643c69cd61e1f7a2a45ecf0ea24145bd35738fb",
+        "bytes": 782,
+        "uncompressedSha256": "4435fe30d870fa6a3e1ca188b643c69cd61e1f7a2a45ecf0ea24145bd35738fb",
+        "uncompressedBytes": 782
+      },
+      "native-integrity-wrapper.py": {
+        "originalPath": "/tmp/rector-embed-native-final42-run.py",
+        "sha256": "ce28fc6bf80ef0ba88e39a1e2a1db76f630d41c9971f2c13c6039cad8029d8e1",
+        "bytes": 2152,
+        "uncompressedSha256": "ce28fc6bf80ef0ba88e39a1e2a1db76f630d41c9971f2c13c6039cad8029d8e1",
+        "uncompressedBytes": 2152
+      },
+      "source.patch": {
+        "originalPath": "/tmp/rector-embed-final42-review.patch",
+        "sha256": "99f86fabfb9bc05cf2edca520029ea0dbbda2dd79cab84ec03192b05879a2349",
+        "bytes": 52622,
+        "uncompressedSha256": "99f86fabfb9bc05cf2edca520029ea0dbbda2dd79cab84ec03192b05879a2349",
+        "uncompressedBytes": 52622
+      }
+    },
+    "originalManifestSha256": "51c2d4b784a71352e5037ba75ef3efe2172c4266092999bafa018756eac5093b",
+    "reconstruction": {
+      "base": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+      "patch": "source.patch",
+      "fixtureCommit": "6b80631fbbb46e973e1f8273b354ad1791d51c60",
+      "note": "Apply source.patch to the pinned base to reproduce the original frozen served bytes. A new local commit has a different SHA; record that replay identity honestly."
+    }
+  }
+}

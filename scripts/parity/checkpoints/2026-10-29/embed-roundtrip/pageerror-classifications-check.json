@@ -1,0 +1,30 @@
+{
+  "runnerSha256": "a48c4527ca9a980ac12eba2a628abcffa0c004fead0879a2896b1ce46e7c3ba3",
+  "positive": "one exact observed e981 unwrapped Redo window/Playwright pair",
+  "positiveCount": 1,
+  "negativeCount": 21,
+  "rejectedControls": [
+    "candidate",
+    "unknownSource",
+    "origin",
+    "sourceContext",
+    "caseContext",
+    "phaseContext",
+    "errorName",
+    "errorMessage",
+    "errorStack",
+    "changedMatchingStackPair",
+    "duplicateWindowError",
+    "duplicatePlaywrightError",
+    "orphanWindowError",
+    "orphanPlaywrightError",
+    "missingFailure",
+    "duplicateFailureProperty",
+    "changedHistoryFailure",
+    "changedHistoryObservation",
+    "changedCanonicalSnapshot",
+    "changedNativeOwner",
+    "incompletePhases"
+  ],
+  "rawErrorsUnchanged": true
+}

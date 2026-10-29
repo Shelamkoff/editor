@@ -1,0 +1,42 @@
+{
+  "runnerSha256": "2371de28cb40a45b8cd0810a407c61e3f9f8a6ea5c8f7369a172c7e2434536c0",
+  "rawPath": "/tmp/rector-embed-roundtrip-corrected-raw.json",
+  "sources": [
+    {
+      "source": "v1",
+      "failures": 104,
+      "counts": {
+        "repaired-v1-mode-remount": 22,
+        "repaired-v1-empty-embed-mode-focus": 1,
+        "unsupported-v1-embed-caption-sidecars": 12,
+        "unsupported-v1-embed-caption-widgets": 48,
+        "unsupported-v1-embed-widget-caret": 6,
+        "repaired-v1-history-remount": 12,
+        "repaired-v1-first-undo-caret": 3
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "failures": 12,
+      "counts": {
+        "repaired-baseline-formatted-widget-mode-failure": 1,
+        "repaired-baseline-embed-redo": 11
+      }
+    },
+    {
+      "source": "candidate",
+      "failures": 0,
+      "counts": {}
+    }
+  ],
+  "rejects": {
+    "candidate": 116,
+    "source": 116,
+    "caseId": 116,
+    "phase": 116,
+    "property": 116,
+    "prototypeProperty": 116,
+    "actual": 116,
+    "expected": 116
+  }
+}
