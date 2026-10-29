@@ -1,0 +1,1532 @@
+{
+  "schemaVersion": 1,
+  "classification": "Test-only native pointer coordinate repair with a recorded geometric RED, strict corrected native regressions, and local full cross-selection GREEN on Chrome142 and156. Remote CI and the combined full library gate are not claimed by this checkpoint.",
+  "source": {
+    "base": "c2b084bd49b1d5a40528c114eaade15a839d7427",
+    "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+    "patch": "/tmp/rector-native-point-review.patch",
+    "patchSha256": "fd92903383fa43091caf201fb9e0a31b08943ad9e4b8cc449394d6e3b8d2063a",
+    "paths": {
+      "tests/browser/native-cross-selection.js": "4bb8c4494eff143d0630eaf409236ce6966e9ed2bdd711f971b3af00edadefc8",
+      "tests/browser/native-input-helpers.js": "be973b1d6b907b9441c272122d8166a9f6eec82c82b15b6c2a4237a0f8b9b2d0"
+    },
+    "original32SourcePrefixIdentical": true,
+    "dragAcrossBytesAndTimingIdentical": true,
+    "productionFilesChanged": [],
+    "isolatedCommits": [
+      "a928385d67e2cee21516f3bce392cee8783b44bc",
+      "a508f3c46e33741c98883cf5a27d3ab32982a89b",
+      "e8356c0241293c0f4156f0c89d87fb0be0beba49"
+    ],
+    "worktreeStatus": [
+      "?? node_modules"
+    ]
+  },
+  "sourceTrees": {
+    "a928385d67e2cee21516f3bce392cee8783b44bc": "e50c9aa9ec304f52fa584d0740264df9e139c7ba",
+    "a508f3c46e33741c98883cf5a27d3ab32982a89b": "da0ab7332187690a4b57829b5044b82fd656e211",
+    "e8356c0241293c0f4156f0c89d87fb0be0beba49": "72a4042e98828938593a4687dfa5e59c390afe0d"
+  },
+  "change": {
+    "path": "tests/browser/native-input-helpers.js",
+    "before": "caretRect.left + 0.1; caretRect.top + caretRect.height / 2",
+    "after": "Math.ceil(caretRect.left + 0.1); Math.floor(caretRect.top + caretRect.height / 2)",
+    "scope": "Only the collapsed-caret branch in pointAt. The original fallback branch, native driver, drag timing, original32 cases/order, assertions and production ownership remain byte-identical.",
+    "newTests": "Four appended cases cover the fractional forward focus, an unshifted backward control, a fractional backward anchor, and a fractional backward focus crossing the widget. Each observes one trusted gesture, exact author-owned native hit at logical2, Shift movement, exact canonical edit, one Undo/Redo, and directed selection in freshly resolved restored hosts.",
+    "noRetry": true,
+    "programmaticSelectionAdded": false,
+    "productionFilesChanged": []
+  },
+  "ciBeforeRepair": {
+    "previousEvidence": "scripts/parity/checkpoints/2026-10-29/native-drag-ci156/verification.json",
+    "repeatedRuns": [
+      {
+        "headPrefix": "9ad",
+        "runId": "40940818306",
+        "jobId": "123683816210",
+        "logPath": "/tmp/rector-ci-9ad-browser.log",
+        "logSha256": "b6d579decfced5814ce504383e7f378b5eedaab3b48273050fff8d391dc5f957",
+        "crossSelectionResults": {
+          "executed": 32,
+          "pass": 31,
+          "fail": 1,
+          "failure": {
+            "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+            "status": "FAIL",
+            "error": "Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:32853/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:32853/tests/browser/native-input-helpers.js:123:3)\n    at async http://127.0.0.1:32853/tests/browser/native-cross-selection.js:253:3\n    at async run (http://127.0.0.1:32853/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:32853/tests/browser/native-cross-selection.js:348:1"
+          }
+        }
+      },
+      {
+        "headPrefix": "a0f",
+        "runId": "40943630102",
+        "jobId": "123693145243",
+        "logPath": "/tmp/rector-ci-a0f-browser.log",
+        "logSha256": "71cb5c78e1d79a722a58c9343d7be62aba5d06bc626e83119fac5f93de9b214b",
+        "crossSelectionResults": {
+          "executed": 32,
+          "pass": 31,
+          "fail": 1,
+          "failure": {
+            "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+            "status": "FAIL",
+            "error": "Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:36287/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:36287/tests/browser/native-input-helpers.js:123:3)\n    at async http://127.0.0.1:36287/tests/browser/native-cross-selection.js:253:3\n    at async run (http://127.0.0.1:36287/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:36287/tests/browser/native-cross-selection.js:348:1"
+          }
+        }
+      }
+    ],
+    "diagnosticRun": {
+      "recordPath": "/tmp/rector-ci-c2-drag-diagnostics.json",
+      "recordSha256": "df1daffc8c87a2400be8e1c136e73e2e65fd2016cc4e6972c7004e73dc9f1e08",
+      "rawLog": "/tmp/rector-ci-c2-browser.log",
+      "rawLogSha256": "98305eafb4ce2cac6ca556917d0dc2951158f3b97df985540cdedca1be87441d",
+      "counts": {
+        "executed": 32,
+        "pass": 31,
+        "fail": 1
+      },
+      "exactDiagnosticRecord": {
+        "runId": 40954873366,
+        "jobId": 123732244369,
+        "source": "c2b084bd49b1d5a40528c114eaade15a839d7427",
+        "error": "Error: Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:34889/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:34889/tests/browser/native-input-helpers.js:181:5)\n    at async http://127.0.0.1:34889/tests/browser/native-cross-selection.js:253:3\n    at async run (http://127.0.0.1:34889/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34889/tests/browser/native-cross-selection.js:348:1\n",
+        "diagnostics": {
+          "phase": "after-original-drag-assertion-failure",
+          "backwards": false,
+          "fixedGesturePoints": {
+            "from": {
+              "clientX": 73.428125,
+              "clientY": 80.5
+            },
+            "to": {
+              "clientX": 154.85,
+              "clientY": 122
+            }
+          },
+          "expected": {
+            "startOffset": 2,
+            "endOffset": 2
+          },
+          "selection": {
+            "anchor": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "Alpha",
+                "className": "oe-paragraph",
+                "blockId": "a",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 2,
+              "startLogicalOffset": 2,
+              "endLogicalOffset": null
+            },
+            "focus": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "A",
+                "className": "oe-paragraph",
+                "blockId": "b",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 0,
+              "startLogicalOffset": null,
+              "endLogicalOffset": 0
+            },
+            "collapsed": false,
+            "ranges": 1,
+            "text": "pha",
+            "active": {
+              "name": "P",
+              "type": 1,
+              "text": "Alpha",
+              "className": "oe-paragraph",
+              "blockId": "a",
+              "editable": "true",
+              "widget": null
+            }
+          },
+          "start": {
+            "node": {
+              "name": "P",
+              "type": 1,
+              "text": "Alpha",
+              "className": "oe-paragraph",
+              "blockId": "a",
+              "editable": "true",
+              "widget": null
+            },
+            "html": "Alpha",
+            "connected": true,
+            "rect": {
+              "x": 60,
+              "y": 68,
+              "width": 640,
+              "height": 25.5,
+              "top": 68,
+              "right": 700,
+              "bottom": 93.5,
+              "left": 60
+            },
+            "rects": [
+              {
+                "x": 60,
+                "y": 68,
+                "width": 640,
+                "height": 25.5,
+                "top": 68,
+                "right": 700,
+                "bottom": 93.5,
+                "left": 60
+              }
+            ],
+            "expectedBoundary": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "Alpha",
+                "className": "oe-paragraph",
+                "blockId": "a",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 2,
+              "startLogicalOffset": 2,
+              "endLogicalOffset": null
+            },
+            "collapsedRect": {
+              "x": 73.328125,
+              "y": 72,
+              "width": 0,
+              "height": 17,
+              "top": 72,
+              "right": 73.328125,
+              "bottom": 89,
+              "left": 73.328125
+            },
+            "collapsedRects": [
+              {
+                "x": 73.328125,
+                "y": 72,
+                "width": 0,
+                "height": 17,
+                "top": 72,
+                "right": 73.328125,
+                "bottom": 89,
+                "left": 73.328125
+              }
+            ],
+            "widgets": [],
+            "font": {
+              "font": "15px / 25.5px sans-serif",
+              "family": "sans-serif",
+              "size": "15px",
+              "lineHeight": "25.5px",
+              "letterSpacing": "normal",
+              "direction": "ltr",
+              "whiteSpace": "pre-wrap",
+              "transform": "none",
+              "zoom": "1"
+            }
+          },
+          "end": {
+            "node": {
+              "name": "P",
+              "type": 1,
+              "text": "A#ff0000B",
+              "className": "oe-paragraph",
+              "blockId": "b",
+              "editable": "true",
+              "widget": null
+            },
+            "html": "A<span contenteditable=\"false\" class=\"oe-ip oe-ip--color\" data-value=\"#ff0000\" aria-label=\"#ff0000\" tabindex=\"0\" data-inline-plugin=\"color\" data-id=\"swatch\"><span class=\"oe-ip__dot\" style=\"background-color: rgb(255, 0, 0);\"></span><span class=\"oe-ip__label\">#ff0000</span></span>B",
+            "connected": true,
+            "rect": {
+              "x": 60,
+              "y": 109.5,
+              "width": 640,
+              "height": 25.5,
+              "top": 109.5,
+              "right": 700,
+              "bottom": 135,
+              "left": 60
+            },
+            "rects": [
+              {
+                "x": 60,
+                "y": 109.5,
+                "width": 640,
+                "height": 25.5,
+                "top": 109.5,
+                "right": 700,
+                "bottom": 135,
+                "left": 60
+              }
+            ],
+            "expectedBoundary": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "B",
+                "className": "oe-paragraph",
+                "blockId": "b",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 0,
+              "startLogicalOffset": null,
+              "endLogicalOffset": 2
+            },
+            "collapsedRect": {
+              "x": 154.75,
+              "y": 113.5,
+              "width": 0,
+              "height": 17,
+              "top": 113.5,
+              "right": 154.75,
+              "bottom": 130.5,
+              "left": 154.75
+            },
+            "collapsedRects": [
+              {
+                "x": 154.75,
+                "y": 113.5,
+                "width": 0,
+                "height": 17,
+                "top": 113.5,
+                "right": 154.75,
+                "bottom": 130.5,
+                "left": 154.75
+              }
+            ],
+            "widgets": [
+              {
+                "node": {
+                  "name": "SPAN",
+                  "type": 1,
+                  "text": "#ff0000",
+                  "className": "oe-ip oe-ip--color",
+                  "blockId": "b",
+                  "editable": "false",
+                  "widget": "color"
+                },
+                "rect": {
+                  "x": 70.015625,
+                  "y": 112.609375,
+                  "width": 84.734375,
+                  "height": 21.84375,
+                  "top": 112.609375,
+                  "right": 154.75,
+                  "bottom": 134.453125,
+                  "left": 70.015625
+                }
+              }
+            ],
+            "font": {
+              "font": "15px / 25.5px sans-serif",
+              "family": "sans-serif",
+              "size": "15px",
+              "lineHeight": "25.5px",
+              "letterSpacing": "normal",
+              "direction": "ltr",
+              "whiteSpace": "pre-wrap",
+              "transform": "none",
+              "zoom": "1"
+            }
+          },
+          "hitFrom": {
+            "element": {
+              "name": "P",
+              "type": 1,
+              "text": "Alpha",
+              "className": "oe-paragraph",
+              "blockId": "a",
+              "editable": "true",
+              "widget": null
+            },
+            "elements": [
+              {
+                "name": "P",
+                "type": 1,
+                "text": "Alpha",
+                "className": "oe-paragraph",
+                "blockId": "a",
+                "editable": "true",
+                "widget": null
+              },
+              {
+                "name": "DIV",
+                "type": 1,
+                "text": "Alpha",
+                "className": "oe-block oe-block--focused",
+                "blockId": "a",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "DIV",
+                "type": 1,
+                "text": "AlphaA#ff0000B",
+                "className": "oe-blocks",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "DIV",
+                "type": 1,
+                "text": "AlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+                "className": "oe-editor oe-theme-dark oe-editor--cross-selecting",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "SECTION",
+                "type": 1,
+                "text": "AlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+                "className": "",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "BODY",
+                "type": 1,
+                "text": "running\n\nAlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+                "className": "",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "HTML",
+                "type": 1,
+                "text": "\n  \nVisible cross-block selection parity\n\n\n\n\n\n\n\n\nbody{margin:0;padding:20px;font-family:sans-serif}section{width:640px;max-width:calc(100% - 80px);margin:20px 40px}\nrunning\n\nAlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMe",
+                "className": "",
+                "editable": null,
+                "widget": null
+              }
+            ],
+            "caretPosition": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "Alpha",
+                "className": "oe-paragraph",
+                "blockId": "a",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 2,
+              "startLogicalOffset": 2,
+              "endLogicalOffset": null
+            },
+            "caretRange": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "Alpha",
+                "className": "oe-paragraph",
+                "blockId": "a",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 2,
+              "startLogicalOffset": 2,
+              "endLogicalOffset": null
+            }
+          },
+          "hitTo": {
+            "element": {
+              "name": "P",
+              "type": 1,
+              "text": "A#ff0000B",
+              "className": "oe-paragraph",
+              "blockId": "b",
+              "editable": "true",
+              "widget": null
+            },
+            "elements": [
+              {
+                "name": "P",
+                "type": 1,
+                "text": "A#ff0000B",
+                "className": "oe-paragraph",
+                "blockId": "b",
+                "editable": "true",
+                "widget": null
+              },
+              {
+                "name": "DIV",
+                "type": 1,
+                "text": "A#ff0000B",
+                "className": "oe-block",
+                "blockId": "b",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "DIV",
+                "type": 1,
+                "text": "AlphaA#ff0000B",
+                "className": "oe-blocks",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "DIV",
+                "type": 1,
+                "text": "AlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+                "className": "oe-editor oe-theme-dark oe-editor--cross-selecting",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "SECTION",
+                "type": 1,
+                "text": "AlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+                "className": "",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "BODY",
+                "type": 1,
+                "text": "running\n\nAlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+                "className": "",
+                "editable": null,
+                "widget": null
+              },
+              {
+                "name": "HTML",
+                "type": 1,
+                "text": "\n  \nVisible cross-block selection parity\n\n\n\n\n\n\n\n\nbody{margin:0;padding:20px;font-family:sans-serif}section{width:640px;max-width:calc(100% - 80px);margin:20px 40px}\nrunning\n\nAlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMe",
+                "className": "",
+                "editable": null,
+                "widget": null
+              }
+            ],
+            "caretPosition": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "B",
+                "className": "oe-paragraph",
+                "blockId": "b",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 0,
+              "startLogicalOffset": null,
+              "endLogicalOffset": 2
+            },
+            "caretRange": {
+              "node": {
+                "name": "#text",
+                "type": 3,
+                "text": "#ff0000",
+                "className": "oe-ip__label",
+                "blockId": "b",
+                "editable": null,
+                "widget": null
+              },
+              "offset": 7,
+              "startLogicalOffset": null,
+              "endLogicalOffset": 2
+            }
+          },
+          "selectedIds": [
+            "a",
+            "b"
+          ],
+          "editorRoot": {
+            "name": "DIV",
+            "type": 1,
+            "text": "AlphaA#ff0000BTextHeadingBulleted ListQuoteWarningDelimiterColorMentionText▾16pxHEX12px14px16px18px20px24px28px32px40px48px64px",
+            "className": "oe-editor oe-theme-dark oe-editor--cross-selecting",
+            "editable": null,
+            "widget": null
+          },
+          "viewport": {
+            "width": 1400,
+            "height": 857,
+            "devicePixelRatio": 1,
+            "scrollX": 0,
+            "scrollY": 0,
+            "visual": {
+              "width": 1400,
+              "height": 857,
+              "scale": 1,
+              "offsetLeft": 0,
+              "offsetTop": 0
+            },
+            "fonts": "loaded",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36"
+          }
+        },
+        "rawLogSha256": "98305eafb4ce2cac6ca556917d0dc2951158f3b97df985540cdedca1be87441d"
+      }
+    }
+  },
+  "localGeometry": {
+    "scope": "One unshifted observer control and one controlled quarter-pixel layout variant, exact same original native input and focus=2 assertion. These are local geometric controls; CI environment attribution and repair remain open.",
+    "sourceBase": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
+    "chrome": "156.0.8078.47",
+    "controls": [
+      {
+        "case": "unshifted",
+        "editorRootTranslateX": 0,
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:20:10.641Z",
+        "finishedAt": "2026-10-29T20:20:17.998Z",
+        "elapsedMs": 7353.867471,
+        "expectedFocus": 2,
+        "actualFocus": {
+          "node": {
+            "tag": "P",
+            "text": "A#ff0000B",
+            "parent": "oe-block",
+            "editable": null
+          },
+          "offset": 2,
+          "start": null,
+          "end": 2
+        },
+        "requestedPoint": {
+          "clientX": 155.1,
+          "clientY": 121.5
+        },
+        "actualMouseEvent": {
+          "x": 155,
+          "y": 121,
+          "trusted": true
+        },
+        "expectedCaretLeft": 155,
+        "widgetRight": 155,
+        "actualEventHit": {
+          "position": {
+            "node": {
+              "tag": "#text",
+              "text": "B",
+              "parent": "oe-paragraph",
+              "editable": "true"
+            },
+            "offset": 0,
+            "start": null,
+            "end": 2
+          },
+          "range": {
+            "node": {
+              "tag": "#text",
+              "text": "B",
+              "parent": "oe-paragraph",
+              "editable": "true"
+            },
+            "offset": 0,
+            "start": null,
+            "end": 2
+          },
+          "element": {
+            "tag": "P",
+            "text": "A#ff0000B",
+            "parent": "oe-block",
+            "editable": null
+          }
+        },
+        "trace": "/tmp/rector-ci156-native-geometry.json",
+        "traceSha256": "ae4bcbca4fddc9d8e7942f21ea1204d585295a8729a6ed77192cfba9f249cf01",
+        "manifest": "/tmp/rector-ci156-cross-selection-20261029/test-results/run-vkkmGK/manifest.json",
+        "sourceUnchanged": true,
+        "sources": {
+          "tests/browser/native-input-helpers.js": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a",
+          "tests/browser/native-cross-selection.js": "5dcd5dae9dd8329362d665529c605224a16e56533a019e428a470644318d1654",
+          "tests/browser/physical-history.mjs": "6322e0053068e3362a3b250281b5f0dffb9384d1f73a094fc7b0c4d7b76c7c68",
+          "tests/browser/regressions/native-drag-observation.js": "420984e2dc185d191c0485f221e0342538aa445208fb6955ad8422a40392b847"
+        }
+      },
+      {
+        "case": "quarterPixel",
+        "editorRootTranslateX": 0.25,
+        "outcome": "failed",
+        "startedAt": "2026-10-29T20:25:30.521Z",
+        "finishedAt": "2026-10-29T20:25:32.350Z",
+        "elapsedMs": 1826.1759399999999,
+        "expectedFocus": 2,
+        "actualFocus": {
+          "node": {
+            "tag": "#text",
+            "text": "A",
+            "parent": "oe-paragraph",
+            "editable": "true"
+          },
+          "offset": 0,
+          "start": null,
+          "end": 0
+        },
+        "requestedPoint": {
+          "clientX": 155.35,
+          "clientY": 121.5
+        },
+        "actualMouseEvent": {
+          "x": 155,
+          "y": 121,
+          "trusted": true
+        },
+        "expectedCaretLeft": 155.25,
+        "widgetRight": 155.25,
+        "actualEventHit": {
+          "position": {
+            "node": {
+              "tag": "#text",
+              "text": "#ff0000",
+              "parent": "oe-ip__label",
+              "editable": null
+            },
+            "offset": 7,
+            "start": null,
+            "end": 2
+          },
+          "range": {
+            "node": {
+              "tag": "#text",
+              "text": "#ff0000",
+              "parent": "oe-ip__label",
+              "editable": null
+            },
+            "offset": 7,
+            "start": null,
+            "end": 2
+          },
+          "element": {
+            "tag": "P",
+            "text": "A#ff0000B",
+            "parent": "oe-block",
+            "editable": null
+          }
+        },
+        "trace": "/tmp/rector-ci156-native-geometry-quarter.json",
+        "traceSha256": "770de00864d73b961465677960c1b07515f57453042882b95135b85e0d4a2571",
+        "manifest": "/tmp/rector-ci156-cross-selection-20261029/test-results/run-IywzFb/manifest.json",
+        "sourceUnchanged": true,
+        "sources": {
+          "tests/browser/native-input-helpers.js": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a",
+          "tests/browser/native-cross-selection.js": "c403966960bf542fee3466d6d18899e9c4c8786aa2e5921559ce25189fbf33c1",
+          "tests/browser/physical-history.mjs": "6322e0053068e3362a3b250281b5f0dffb9384d1f73a094fc7b0c4d7b76c7c68",
+          "tests/browser/regressions/native-drag-observation.js": "420984e2dc185d191c0485f221e0342538aa445208fb6955ad8422a40392b847"
+        }
+      }
+    ],
+    "interpretation": "At the final integer DOM MouseEvent coordinate, the quarter-pixel variant hits private inline-widget label text. The exact original fixture fails expected focus 2/got 0. The unshifted control final event hits the following author Text B offset0 and passes."
+  },
+  "causalBoundary": {
+    "ciDirectObservation": "Expected B0 caret and widget right edge154.75; requested point154.85/y122; native focus remained Text A0. At the requested fractional point, caretPositionFromPoint returned B0 while caretRangeFromPoint returned the private #ff0000 label offset7.",
+    "localDirectObservation": "An unshifted point155.1 at boundary155 produced trusted MouseEvent x155 and PASS. Changing only editorRoot translateX to0.25px moved the boundary155.25 and request155.35, while the final trusted MouseEvent remained x155 inside the private label and the original expected2/got0 assertion failed.",
+    "ciEventCoordinate": null,
+    "qualification": "The integer delivered MouseEvent was measured directly in the local controlled pair. The CI diagnostic did not record that event coordinate. CI geometry agrees with the mechanism, but this checkpoint does not invent a directly observed CI integer event or assert that the new remote CI gate has passed."
+  },
+  "fixtureDevelopment": {
+    "firstFrozenTestCommit": "a928385d67e2cee21516f3bce392cee8783b44bc",
+    "correctionCommit": "a508f3c46e33741c98883cf5a27d3ab32982a89b",
+    "initialCeilRun": "green156-ceil is an intended label only; its actual outcome is FAILED and is preserved above.",
+    "error": "Two newly added post-Undo checks incorrectly reused the removed old block field. getTextOffset returns the old container length if the current native endpoint is outside that container, producing2 or5.",
+    "correction": "Resolve both restored fields again through editableField(editor,id), assert each current field contains its corresponding native endpoint, retain the original exact expected offsets2 and1/3. No runtime history expectation was relaxed."
+  },
+  "runs": [
+    {
+      "label": "red156",
+      "summary": {
+        "scope": "Test-only native pointer coordinate repair verification; original production source unchanged.",
+        "cwd": "/tmp/rector-native-drag-point-20261029",
+        "sourceHead": "a928385d67e2cee21516f3bce392cee8783b44bc",
+        "wrapper": "/tmp/rector-run-native-point-gate.py",
+        "wrapperSha256": "f602ae40b163ad2322682e4d966e9eecc85d1099be29e86e66939892149ee52c",
+        "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+        "sourceFiles": {
+          "tests/browser/native-input-helpers.js": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a",
+          "tests/browser/native-cross-selection.js": "c1e3894f8fcdef07afb477f96aab9cdb183bf945e1769ab72731c2dafb6dcd1a",
+          "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+        },
+        "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "chromeVersion": "Google Chrome for Testing 156.0.8078.47",
+        "caseFilter": "native atomic-boundary drag",
+        "manifest": "/tmp/rector-native-drag-point-20261029/test-results/run-LpPXav/manifest.json",
+        "manifestSha256": "cd02651732c9ed99edaf32c392fefbfa45c3237cffefbc7679a97a77f77fab8a",
+        "outcome": "failed",
+        "startedAt": "2026-10-29T21:09:47.830Z",
+        "finishedAt": "2026-10-29T21:09:51.042Z",
+        "elapsedMs": 3208.837984,
+        "exitCode": 1,
+        "finishExitCode": 1,
+        "sourceUnchanged": true,
+        "sourceBytesUnchanged": true,
+        "log": "/tmp/rector-native-point-red156.log",
+        "logSha256": "6646de88d3b6272b00ec3a4e1f82c6e06905124bf9441a584db33f722e03e1e8"
+      },
+      "counts": {
+        "executed": 4,
+        "pass": 1,
+        "fail": 3
+      },
+      "results": [
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a forward range with the widget in its last field",
+          "status": "FAIL",
+          "error": "Error: Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:40309/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:40309/tests/browser/native-input-helpers.js:181:5)\n    at async http://127.0.0.1:40309/tests/browser/native-cross-selection.js:366:11\n    at async run (http://127.0.0.1:40309/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40309/tests/browser/native-cross-selection.js:405:1\n"
+        },
+        {
+          "name": "native atomic-boundary drag at 0px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its last field",
+          "status": "FAIL",
+          "error": "Error: Error: native mouse drag lost selected block ids: {\"ids\":[\"a\",\"b\"],\"selected\":[],\"from\":{\"clientX\":155.35,\"clientY\":121.5},\"to\":{\"clientX\":74.771875,\"clientY\":80}}\nexpected 2, got 0\n    at equal (http://127.0.0.1:40309/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:40309/tests/browser/native-input-helpers.js:176:5)\n    at async http://127.0.0.1:40309/tests/browser/native-cross-selection.js:366:11\n    at async run (http://127.0.0.1:40309/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40309/tests/browser/native-cross-selection.js:405:1\n"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its first field",
+          "status": "FAIL",
+          "error": "Error: The actual mouse point landed inside a private inline widget\n    at assert (http://127.0.0.1:40309/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:40309/tests/browser/native-cross-selection.js:377:5\n    at async run (http://127.0.0.1:40309/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40309/tests/browser/native-cross-selection.js:405:1"
+        }
+      ],
+      "c11SourceBefore": {
+        "head": "a928385d67e2cee21516f3bce392cee8783b44bc",
+        "tree": "e50c9aa9ec304f52fa584d0740264df9e139c7ba",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "06377462695033e9594d69774c8d8cb5d888f2d82af929dc699179069fa3da9a"
+      },
+      "c11SourceAfter": {
+        "head": "a928385d67e2cee21516f3bce392cee8783b44bc",
+        "tree": "e50c9aa9ec304f52fa584d0740264df9e139c7ba",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "06377462695033e9594d69774c8d8cb5d888f2d82af929dc699179069fa3da9a"
+      }
+    },
+    {
+      "label": "green156-ceil",
+      "summary": {
+        "scope": "Test-only native pointer coordinate repair verification; original production source unchanged.",
+        "cwd": "/tmp/rector-native-drag-point-20261029",
+        "sourceHead": "a928385d67e2cee21516f3bce392cee8783b44bc",
+        "wrapper": "/tmp/rector-run-native-point-gate.py",
+        "wrapperSha256": "f602ae40b163ad2322682e4d966e9eecc85d1099be29e86e66939892149ee52c",
+        "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+        "sourceFiles": {
+          "tests/browser/native-input-helpers.js": "07a340173534836f561a90e5406166e7dbb30f1b61b86fd274e5042bb89af70b",
+          "tests/browser/native-cross-selection.js": "c1e3894f8fcdef07afb477f96aab9cdb183bf945e1769ab72731c2dafb6dcd1a",
+          "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+        },
+        "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "chromeVersion": "Google Chrome for Testing 156.0.8078.47",
+        "caseFilter": "native atomic-boundary drag",
+        "manifest": "/tmp/rector-native-drag-point-20261029/test-results/run-SUWL3z/manifest.json",
+        "manifestSha256": "c47df17da771af88c02624a4bfffc9b5d705741ff184296a30509c8018348490",
+        "outcome": "failed",
+        "startedAt": "2026-10-29T21:10:36.433Z",
+        "finishedAt": "2026-10-29T21:10:39.581Z",
+        "elapsedMs": 3144.551634,
+        "exitCode": 1,
+        "finishExitCode": 1,
+        "sourceUnchanged": true,
+        "sourceBytesUnchanged": true,
+        "log": "/tmp/rector-native-point-green156-ceil.log",
+        "logSha256": "d69c835a61818209a253f4839766585458442d444882d28c5cb45fecb76c095f"
+      },
+      "counts": {
+        "executed": 4,
+        "pass": 2,
+        "fail": 2
+      },
+      "results": [
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a forward range with the widget in its last field",
+          "status": "FAIL",
+          "error": "Error: \nexpected 1, got 2\n    at equal (http://127.0.0.1:34911/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34911/tests/browser/native-cross-selection.js:399:5\n    at async run (http://127.0.0.1:34911/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34911/tests/browser/native-cross-selection.js:405:1"
+        },
+        {
+          "name": "native atomic-boundary drag at 0px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its first field",
+          "status": "FAIL",
+          "error": "Error: \nexpected 2, got 5\n    at equal (http://127.0.0.1:34911/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34911/tests/browser/native-cross-selection.js:398:5\n    at async run (http://127.0.0.1:34911/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34911/tests/browser/native-cross-selection.js:405:1"
+        }
+      ],
+      "c11SourceBefore": {
+        "head": "a928385d67e2cee21516f3bce392cee8783b44bc",
+        "tree": "e50c9aa9ec304f52fa584d0740264df9e139c7ba",
+        "patchSha256": "c9b10e2b775e81d26df3cf0806d02d5dc5da4064f7e32322cd893f346ccde420",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "418b9cef2d68e42c3226ee6a3d6bab8cdb07186344eb31247b18506656108099"
+      },
+      "c11SourceAfter": {
+        "head": "a928385d67e2cee21516f3bce392cee8783b44bc",
+        "tree": "e50c9aa9ec304f52fa584d0740264df9e139c7ba",
+        "patchSha256": "c9b10e2b775e81d26df3cf0806d02d5dc5da4064f7e32322cd893f346ccde420",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "418b9cef2d68e42c3226ee6a3d6bab8cdb07186344eb31247b18506656108099"
+      }
+    },
+    {
+      "label": "red156-current-hosts",
+      "summary": {
+        "scope": "Test-only native pointer coordinate repair verification; original production source unchanged.",
+        "cwd": "/tmp/rector-native-drag-point-20261029",
+        "sourceHead": "a508f3c46e33741c98883cf5a27d3ab32982a89b",
+        "wrapper": "/tmp/rector-run-native-point-gate.py",
+        "wrapperSha256": "f602ae40b163ad2322682e4d966e9eecc85d1099be29e86e66939892149ee52c",
+        "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+        "sourceFiles": {
+          "tests/browser/native-input-helpers.js": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a",
+          "tests/browser/native-cross-selection.js": "4bb8c4494eff143d0630eaf409236ce6966e9ed2bdd711f971b3af00edadefc8",
+          "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+        },
+        "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "chromeVersion": "Google Chrome for Testing 156.0.8078.47",
+        "caseFilter": "native atomic-boundary drag",
+        "manifest": "/tmp/rector-native-drag-point-20261029/test-results/run-N2PEyI/manifest.json",
+        "manifestSha256": "b079647eeb9ef9056934a99bc952457572e9f666048b50d7efc4c8be16607989",
+        "outcome": "failed",
+        "startedAt": "2026-10-29T21:12:37.711Z",
+        "finishedAt": "2026-10-29T21:12:40.596Z",
+        "elapsedMs": 2878.984134,
+        "exitCode": 1,
+        "finishExitCode": 1,
+        "sourceUnchanged": true,
+        "sourceBytesUnchanged": true,
+        "log": "/tmp/rector-native-point-red156-current-hosts.log",
+        "logSha256": "e07d391cbf51cf655be0f0f5e8bfe895eb75a4cb345d2e44af2132fddad2fdf5"
+      },
+      "counts": {
+        "executed": 4,
+        "pass": 1,
+        "fail": 3
+      },
+      "results": [
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a forward range with the widget in its last field",
+          "status": "FAIL",
+          "error": "Error: Error: native drag changed the focus\nexpected 2, got 0\n    at equal (http://127.0.0.1:35573/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:35573/tests/browser/native-input-helpers.js:181:5)\n    at async http://127.0.0.1:35573/tests/browser/native-cross-selection.js:366:11\n    at async run (http://127.0.0.1:35573/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:35573/tests/browser/native-cross-selection.js:409:1\n"
+        },
+        {
+          "name": "native atomic-boundary drag at 0px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its last field",
+          "status": "FAIL",
+          "error": "Error: Error: native mouse drag lost selected block ids: {\"ids\":[\"a\",\"b\"],\"selected\":[],\"from\":{\"clientX\":155.35,\"clientY\":121.5},\"to\":{\"clientX\":74.771875,\"clientY\":80}}\nexpected 2, got 0\n    at equal (http://127.0.0.1:35573/tests/browser/regressions/harness.js:22:43)\n    at dragAcross (http://127.0.0.1:35573/tests/browser/native-input-helpers.js:176:5)\n    at async http://127.0.0.1:35573/tests/browser/native-cross-selection.js:366:11\n    at async run (http://127.0.0.1:35573/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:35573/tests/browser/native-cross-selection.js:409:1\n"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its first field",
+          "status": "FAIL",
+          "error": "Error: The actual mouse point landed inside a private inline widget\n    at assert (http://127.0.0.1:35573/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:35573/tests/browser/native-cross-selection.js:377:5\n    at async run (http://127.0.0.1:35573/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:35573/tests/browser/native-cross-selection.js:409:1"
+        }
+      ],
+      "c11SourceBefore": {
+        "head": "a508f3c46e33741c98883cf5a27d3ab32982a89b",
+        "tree": "da0ab7332187690a4b57829b5044b82fd656e211",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "e26b40bba82b7b4b0a13705efa7adf77a3c9f46a3baaec1ac9cf7c11c06781ba"
+      },
+      "c11SourceAfter": {
+        "head": "a508f3c46e33741c98883cf5a27d3ab32982a89b",
+        "tree": "da0ab7332187690a4b57829b5044b82fd656e211",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "e26b40bba82b7b4b0a13705efa7adf77a3c9f46a3baaec1ac9cf7c11c06781ba"
+      }
+    },
+    {
+      "label": "green156",
+      "summary": {
+        "scope": "Test-only native pointer coordinate repair verification; original production source unchanged.",
+        "cwd": "/tmp/rector-native-drag-point-20261029",
+        "sourceHead": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "wrapper": "/tmp/rector-run-native-point-gate.py",
+        "wrapperSha256": "f602ae40b163ad2322682e4d966e9eecc85d1099be29e86e66939892149ee52c",
+        "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+        "sourceFiles": {
+          "tests/browser/native-input-helpers.js": "be973b1d6b907b9441c272122d8166a9f6eec82c82b15b6c2a4237a0f8b9b2d0",
+          "tests/browser/native-cross-selection.js": "4bb8c4494eff143d0630eaf409236ce6966e9ed2bdd711f971b3af00edadefc8",
+          "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+        },
+        "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "chromeVersion": "Google Chrome for Testing 156.0.8078.47",
+        "caseFilter": "native atomic-boundary drag",
+        "manifest": "/tmp/rector-native-drag-point-20261029/test-results/run-0sUNtT/manifest.json",
+        "manifestSha256": "e2b5238bf7858dbffc727cd54f0d3c9a5b937940671d629688c1aff4fad79ffd",
+        "outcome": "passed",
+        "startedAt": "2026-10-29T21:13:08.373Z",
+        "finishedAt": "2026-10-29T21:13:16.587Z",
+        "elapsedMs": 8211.04107,
+        "exitCode": 0,
+        "finishExitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBytesUnchanged": true,
+        "log": "/tmp/rector-native-point-green156.log",
+        "logSha256": "070a9230aeda9690a31c154673ce81e40037ed77ad6ec4e416aad298591e072a"
+      },
+      "counts": {
+        "executed": 4,
+        "pass": 4,
+        "fail": 0
+      },
+      "results": [
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a forward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its first field",
+          "status": "PASS"
+        }
+      ],
+      "c11SourceBefore": {
+        "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "tree": "72a4042e98828938593a4687dfa5e59c390afe0d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "88dad83fecca40e54d977b4e2f98a04661c00605228e6139e99dbdc5abce7d49"
+      },
+      "c11SourceAfter": {
+        "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "tree": "72a4042e98828938593a4687dfa5e59c390afe0d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "88dad83fecca40e54d977b4e2f98a04661c00605228e6139e99dbdc5abce7d49"
+      }
+    },
+    {
+      "label": "full142",
+      "summary": {
+        "scope": "Test-only native pointer coordinate repair verification; original production source unchanged.",
+        "cwd": "/tmp/rector-native-drag-point-20261029",
+        "sourceHead": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "wrapper": "/tmp/rector-run-native-point-gate.py",
+        "wrapperSha256": "f602ae40b163ad2322682e4d966e9eecc85d1099be29e86e66939892149ee52c",
+        "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+        "sourceFiles": {
+          "tests/browser/native-input-helpers.js": "be973b1d6b907b9441c272122d8166a9f6eec82c82b15b6c2a4237a0f8b9b2d0",
+          "tests/browser/native-cross-selection.js": "4bb8c4494eff143d0630eaf409236ce6966e9ed2bdd711f971b3af00edadefc8",
+          "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+        },
+        "chrome": "/tmp/rector-browsers/chrome-linux64/chrome",
+        "chromeVersion": "Google Chrome for Testing 142.0.7444.175",
+        "caseFilter": null,
+        "manifest": "/tmp/rector-native-drag-point-20261029/test-results/run-QkN997/manifest.json",
+        "manifestSha256": "62e3866a1a3a59d2e690532ff2123fac8a87d33e0297702f55a969ad08d8396c",
+        "outcome": "passed",
+        "startedAt": "2026-10-29T21:20:05.287Z",
+        "finishedAt": "2026-10-29T21:20:23.568Z",
+        "elapsedMs": 18278.319097,
+        "exitCode": 0,
+        "finishExitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBytesUnchanged": true,
+        "log": "/tmp/rector-native-point-full142.log",
+        "logSha256": "b202d60f691d3bdeed848b266a01aed6c7e566e85ae1be4a72bb827d1407d0cc"
+      },
+      "counts": {
+        "executed": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "results": [
+        {
+          "name": "mixed demo drag shows a visible highlight through Heading, widgets, List and both Quote fields",
+          "status": "PASS"
+        },
+        {
+          "name": "mixed cross-block toolbar retains the starting Heading controls and selection through a level change",
+          "status": "PASS"
+        },
+        {
+          "name": "a drag beyond the editor edge supports format and one native Undo/Redo",
+          "status": "PASS"
+        },
+        {
+          "name": "a drag beyond the editor edge supports convert and one native Undo/Redo",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the right margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the below margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the above margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the gap margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the left margin still extends through the next block",
+          "status": "PASS"
+        },
+        {
+          "name": "a left margin drag uses the nearest visual line in a multiline field",
+          "status": "PASS"
+        },
+        {
+          "name": "a right margin drag uses the nearest visual line in a multiline field",
+          "status": "PASS"
+        },
+        {
+          "name": "returning the drag to its original field selects only the final local range",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft shrinks a cross-block selection before typing",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowRight retains forward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains backward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowRight retains backward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains forward cross-block intent with A😀B",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains forward cross-block intent with A👨‍👩‍👧‍👦B",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation can shrink a cross-block range back into its original field",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift horizontal navigation starts a forward range across editing hosts",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift horizontal navigation starts a backward range across editing hosts",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+Enter replaces a forward cross-block range with one line break",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+Enter replaces a backward cross-block range with one line break",
+          "status": "PASS"
+        },
+        {
+          "name": "Enter splits a forward cross-block text range as one action",
+          "status": "PASS"
+        },
+        {
+          "name": "Enter splits a backward cross-block text range as one action",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation End preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Home preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Ctrl+ArrowRight preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Ctrl+ArrowLeft preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation ArrowDown preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation ArrowUp preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a forward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its first field",
+          "status": "PASS"
+        }
+      ],
+      "c11SourceBefore": {
+        "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "tree": "72a4042e98828938593a4687dfa5e59c390afe0d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "88dad83fecca40e54d977b4e2f98a04661c00605228e6139e99dbdc5abce7d49"
+      },
+      "c11SourceAfter": {
+        "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "tree": "72a4042e98828938593a4687dfa5e59c390afe0d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "88dad83fecca40e54d977b4e2f98a04661c00605228e6139e99dbdc5abce7d49"
+      }
+    },
+    {
+      "label": "full156",
+      "summary": {
+        "scope": "Test-only native pointer coordinate repair verification; original production source unchanged.",
+        "cwd": "/tmp/rector-native-drag-point-20261029",
+        "sourceHead": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "wrapper": "/tmp/rector-run-native-point-gate.py",
+        "wrapperSha256": "f602ae40b163ad2322682e4d966e9eecc85d1099be29e86e66939892149ee52c",
+        "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+        "sourceFiles": {
+          "tests/browser/native-input-helpers.js": "be973b1d6b907b9441c272122d8166a9f6eec82c82b15b6c2a4237a0f8b9b2d0",
+          "tests/browser/native-cross-selection.js": "4bb8c4494eff143d0630eaf409236ce6966e9ed2bdd711f971b3af00edadefc8",
+          "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+        },
+        "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "chromeVersion": "Google Chrome for Testing 156.0.8078.47",
+        "caseFilter": null,
+        "manifest": "/tmp/rector-native-drag-point-20261029/test-results/run-o0mi7a/manifest.json",
+        "manifestSha256": "9eabfabef5ca25091be560286960a5aa34e573ec9d3c9840d2907bd7724b2a53",
+        "outcome": "passed",
+        "startedAt": "2026-10-29T21:20:43.629Z",
+        "finishedAt": "2026-10-29T21:21:02.250Z",
+        "elapsedMs": 18618.012389,
+        "exitCode": 0,
+        "finishExitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBytesUnchanged": true,
+        "log": "/tmp/rector-native-point-full156.log",
+        "logSha256": "b202d60f691d3bdeed848b266a01aed6c7e566e85ae1be4a72bb827d1407d0cc"
+      },
+      "counts": {
+        "executed": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "results": [
+        {
+          "name": "mixed demo drag shows a visible highlight through Heading, widgets, List and both Quote fields",
+          "status": "PASS"
+        },
+        {
+          "name": "mixed cross-block toolbar retains the starting Heading controls and selection through a level change",
+          "status": "PASS"
+        },
+        {
+          "name": "a drag beyond the editor edge supports format and one native Undo/Redo",
+          "status": "PASS"
+        },
+        {
+          "name": "a drag beyond the editor edge supports convert and one native Undo/Redo",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the right margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the below margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the above margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the gap margin keeps its logical cross-block endpoint",
+          "status": "PASS"
+        },
+        {
+          "name": "dragging in the left margin still extends through the next block",
+          "status": "PASS"
+        },
+        {
+          "name": "a left margin drag uses the nearest visual line in a multiline field",
+          "status": "PASS"
+        },
+        {
+          "name": "a right margin drag uses the nearest visual line in a multiline field",
+          "status": "PASS"
+        },
+        {
+          "name": "returning the drag to its original field selects only the final local range",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft shrinks a cross-block selection before typing",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowRight retains forward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains backward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowRight retains backward cross-block intent with Bravo",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains forward cross-block intent with A😀B",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+ArrowLeft retains forward cross-block intent with A👨‍👩‍👧‍👦B",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation can shrink a cross-block range back into its original field",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation treats an inline widget as one atomic step and preserves its payload",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift horizontal navigation starts a forward range across editing hosts",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift horizontal navigation starts a backward range across editing hosts",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+Enter replaces a forward cross-block range with one line break",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift+Enter replaces a backward cross-block range with one line break",
+          "status": "PASS"
+        },
+        {
+          "name": "Enter splits a forward cross-block text range as one action",
+          "status": "PASS"
+        },
+        {
+          "name": "Enter splits a backward cross-block text range as one action",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation End preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Home preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Ctrl+ArrowRight preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation Ctrl+ArrowLeft preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation ArrowDown preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "Shift navigation ArrowUp preserves cross-host intent and native endpoints",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a forward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its last field",
+          "status": "PASS"
+        },
+        {
+          "name": "native atomic-boundary drag at 0.25px keeps a backward range with the widget in its first field",
+          "status": "PASS"
+        }
+      ],
+      "c11SourceBefore": {
+        "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "tree": "72a4042e98828938593a4687dfa5e59c390afe0d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "88dad83fecca40e54d977b4e2f98a04661c00605228e6139e99dbdc5abce7d49"
+      },
+      "c11SourceAfter": {
+        "head": "e8356c0241293c0f4156f0c89d87fb0be0beba49",
+        "tree": "72a4042e98828938593a4687dfa5e59c390afe0d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "88dad83fecca40e54d977b4e2f98a04661c00605228e6139e99dbdc5abce7d49"
+      }
+    }
+  ],
+  "sourceAndEnvironmentLimits": {
+    "candidateCwd": "/tmp/rector-native-drag-point-20261029",
+    "trackedSource": "Clean committed test source at e8356c02 for the accepted focused/full GREEN runs; node_modules is the only untracked entry.",
+    "dependencySymlink": "/workspace/scratch/61a2ad7355f4/editor/node_modules",
+    "dependencyAttestation": "C11 records source, package-lock and the external dependency symlink identity. This slice did not independently hash every file in the external node_modules tree before/after each run.",
+    "chrome156Artifact": {
+      "url": "https://storage.googleapis.com/chrome-for-testing-public/156.0.8078.47/linux64/chrome-linux64.zip",
+      "bytes": 200206486,
+      "md5": "72fa68617cc55ecf4e2bbe697e2f7584",
+      "sha256": "e6c94490f0b6b337225aeb2d2a5034858516b7017356980ba94f5176d8774a50",
+      "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "binarySha256": "230f0db8c5086182f46c59c867c0d461eb525d6552dfad226ea6b4d9ec249db2",
+      "headHeaders": "/tmp/rector-chrome156-download-head.txt"
+    },
+    "commands": [
+      "EDITOR_CHROME_PATH=<chrome142-or156> EDITOR_NATIVE_PAGE=native-cross-selection.html node scripts/verification-results.mjs init native-cross-selection",
+      "EDITOR_RESULTS_DIR=<fresh-run-directory> EDITOR_CHROME_PATH=<same-chrome> EDITOR_NATIVE_PAGE=native-cross-selection.html node scripts/verification-results.mjs run native-cross-selection -- node tests/browser/physical-history.mjs",
+      "EDITOR_RESULTS_DIR=<same-run-directory> node scripts/verification-results.mjs finish"
+    ]
+  },
+  "review": {
+    "root": "Reviewed exact fd929033 patch and approved unchanged original32, corrected current-host post-Undo assertions, and the minimal collapsed point ceil/floor change.",
+    "peer": "toolbar_continuation read-only review found no blockers; checked endpoint selection for backward/widgetFirst, trusted single gesture, strict native edit/history direction and unchanged original32/dragAcross. It did not claim to execute these runs."
+  },
+  "remainingAcceptance": [
+    "The final integrated full native library on Chrome156 and the next actual remote CI browser gate remain separate required evidence.",
+    "This is a fixture coordinate repair, with no change to editor ownership and no new claim of complete v1 functional parity."
+  ]
+}
