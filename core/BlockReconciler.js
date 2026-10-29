@@ -4,7 +4,8 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { ProjectionAnimator } from './ProjectionAnimator.js'
-import { captureEditableFields } from './projectionFields.js'
+import { captureEditableFields, richTextFieldMap } from './projectionFields.js'
+import { scanRichTextPlaceholders } from '../shared/richTextOperations.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
 const liveBlockRoots=new WeakMap()
@@ -92,6 +93,7 @@ export class BlockReconciler {
   #registry
   #contextFactory
   #projectPresentation
+  #reportPresentationFailure
   #activationResolver
   #entries = new Map()
   /** @type {Set<() => void>} */
@@ -110,6 +112,7 @@ export class BlockReconciler {
     registry,
     contextFactory,
     projectPresentation = operation => operation(),
+    reportPresentationFailure = /** @type {(error:unknown,original?:unknown)=>void} */ (() => {}),
     activationResolver,
     inlineProjection = null,
     readOnly = false,
@@ -122,6 +125,7 @@ export class BlockReconciler {
     this.#registry = registry
     this.#contextFactory = contextFactory
     this.#projectPresentation = projectPresentation
+    this.#reportPresentationFailure = reportPresentationFailure
     this.#activationResolver = typeof activationResolver === 'function'
       ? activationResolver
       : (_id, record) => registry.hasBlock(record.type)
@@ -136,7 +140,17 @@ export class BlockReconciler {
         const ids = new Set(records.map(record => this.resolveBlockTarget(record.target)).filter(Boolean))
         for (const id of ids) {
           const entry = this.#entries.get(id)
-          if (entry?.element.isConnected) this.#refreshFields(id, entry, true)
+          if (!entry?.element.isConnected)continue
+          const previousFailure=entry.presentationFailure,previousError=previousFailure?.error
+          try{this.#refreshFields(id,entry,true,false)}
+          catch(error){
+            // Only a result published during this call has already reported.
+            // An absent/unchanged result cannot suppress an actual delivery.
+            const failure=entry.presentationFailure
+            const reported=failure&&failure.error===error
+              &&(failure!==previousFailure||failure.error!==previousError)
+            if(!reported)this.#reportPresentationFailure(error)
+          }
         }
       })
       this.#fieldObserver.observe(container, { childList: true, subtree: true })
@@ -271,7 +285,10 @@ export class BlockReconciler {
 
   getEditableFields(id) {
     const entry = this.#entries.get(id)
-    if (!this.#isCurrentMountedEntry(id,entry)) return []
+    if (!this.#isCurrentMountedEntry(id,entry)) {
+      if(entry?.presentationFailure)this.#projectPresentation(()=>this.#revalidateSettledFields(id,entry,entry.presentationFailure))
+      return []
+    }
     this.#refreshFields(id, entry, true)
     return this.#isCurrentMountedEntry(id,entry) ? [...(entry.fields ?? [])] : []
   }
@@ -322,8 +339,10 @@ export class BlockReconciler {
     }
     const data = cloneEditorData(entry.instance.read())
     assertOwner()
-    const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
+    const observedFields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     assertOwner()
+    const fields=entry.presentationFailure?observedFields.filter(field=>entry.fields.some(accepted=>
+      field.key===accepted.key&&field.element===accepted.element&&field.mode===accepted.mode)):observedFields
     this.#validateFieldOwnership(entry,fields)
     if (!this.#inlineProjection || entry.unregistered) {
       return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
@@ -381,7 +400,7 @@ export class BlockReconciler {
         }
 
         if (!before || !current) {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring:restoring||Boolean(before&&!current) })
           staged.set(id, entry)
           insertions.push({ id, entry, after })
           continue
@@ -419,7 +438,7 @@ export class BlockReconciler {
     let finalOrder
     let removalSnapshots
     try {
-      finalOrder = structuralChange ? draft.ids() : null
+      finalOrder = structuralChange||insertions.length>0 ? draft.ids() : null
       removalSnapshots = removals.flatMap(item => {
         const snapshot = this.#animator.captureRemoval(
           item.entry.element,
@@ -467,6 +486,7 @@ export class BlockReconciler {
         const nextEntries = new Map(previousEntries)
 
         for (const item of updates) {
+          const failedPresentation=item.entry.presentationFailure
           item.entry.lifetime.candidate = item.after
           if (item.dataChanged && item.id !== sourceBlockId) {
             item.entry.instance.update(item.after.data, item.before.data)
@@ -483,6 +503,7 @@ export class BlockReconciler {
               { preserveSourceProjection: item.id === sourceBlockId, projectionRoot: item.entry.element },
             )
           }
+          if(failedPresentation&&!item.entry.presentationFailure)this.#restoreRecoveredFieldModes(item.entry,failedPresentation)
           this.#applyTunes(item.entry, item.after)
         }
 
@@ -675,11 +696,19 @@ export class BlockReconciler {
     if (next === this.#readOnly) return
 
     const changed = []
+    const modeSnapshots=[]
+    const disabledModes=new Map()
     try {
       for (const entry of this.#entries.values()) {
         changed.push(entry)
+        const snapshots=this.#captureFieldModes(entry)
+        modeSnapshots.push(...snapshots)
+        const disabled=this.#captureDisabledFields(entry)
+        disabledModes.set(entry,disabled)
         entry.instance.setReadOnly(next)
-        this.#refreshFields(entry.record.id, entry, true, true)
+        this.#applyOwnedFieldModes(entry,snapshots)
+        this.#disableFailedFields(entry,disabled)
+        this.#refreshFields(entry.record.id, entry, true, true, next)
       }
       this.#inlineProjection?.setReadOnly?.(next)
       for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
@@ -697,6 +726,8 @@ export class BlockReconciler {
           failures.push(failure)
         }
       }
+      for(const snapshot of modeSnapshots)snapshot.owner.ancestors=snapshot.ancestors
+      for(const entry of changed)this.#disableFailedFields(entry,disabledModes.get(entry)??[])
       if (needsRestore && this.#store) {
         try { this.#restore(this.#store, new Map()) }
         catch (failure) {
@@ -932,52 +963,306 @@ export class BlockReconciler {
       || !entry.element.contains(node)) return null
     const current=entry.fields?.some(field=>field.element===node
       && field.key===owner.fieldKey && field.mode===owner.mode)
-    return current ? { ...owner } : null
+    return current&&this.#hasFieldAncestry(owner,entry)?{blockId:owner.blockId,fieldKey:owner.fieldKey,element:owner.element,mode:owner.mode}:null
   }
 
-  #refreshFields(id, entry, projectPresentation = false, forceProjection = false) {
-    return this.#projectPresentation(() => this.#registerFields(id, entry, projectPresentation, forceProjection))
+  #refreshFields(id, entry, projectPresentation = false, forceProjection = false, readOnly = this.#readOnly) {
+    return this.#projectPresentation(() => this.#registerFields(id, entry, projectPresentation, forceProjection, readOnly))
   }
 
-  #registerFields(id, entry, projectPresentation, forceProjection) {
-    const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
-    this.#validateFieldOwnership(entry,fields)
-    const changed = entry.fields && (fields.length !== entry.fields.length
-      || fields.some((field, index) => field.key !== entry.fields[index]?.key
-        || field.element !== entry.fields[index]?.element
-        || field.mode !== entry.fields[index]?.mode))
-    const previousFields=entry.fields
-    if(changed)for(const field of previousFields)this.#fieldOwners.delete(field.element)
-    entry.fields=fields
-    const publishedOwners=[]
-    for(const field of fields){
-      const owner={blockId:id,fieldKey:field.key,element:field.element,mode:field.mode}
-      this.#fieldOwners.set(field.element,owner)
-      publishedOwners.push(owner)
-    }
-    try{
-      if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
-        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext,
-          {projectionRoot:entry.element})
-      }
-    }catch(error){
-      // A child projection may have failed after partial DOM mutation. Do
-      // not mark the changed field set as successfully projected: a later
-      // refresh must reattempt it or let owner recovery restore the block.
-      // Reentrant callbacks can install a newer owner; never revoke it.
-      if(entry.fields===fields){
-        for(const owner of publishedOwners){
-          if(this.#fieldOwners.get(owner.element)===owner)this.#fieldOwners.delete(owner.element)
-        }
-        entry.fields=previousFields
-        for(const field of previousFields??[]){
-          this.#fieldOwners.set(field.element,{
-            blockId:id,fieldKey:field.key,element:field.element,mode:field.mode,
-          })
-        }
-      }
+  #registerFields(id, entry, projectPresentation, forceProjection, readOnly) {
+    let fields
+    try{fields=captureEditableFields(entry.instance.editableFields?.()??[])}
+    catch(error){
+      if(entry.scope?.active)this.#revalidateSettledFields(id,entry,entry.presentationFailure??null,false)
       throw error
     }
+    const sameFields=(left,right)=>left?.length===right?.length&&left.every((field,index)=>
+      field.key===right[index]?.key&&field.element===right[index]?.element&&field.mode===right[index]?.mode)
+    const previousFields=entry.fields??[]
+    const failed=entry.presentationFailure
+    if(failed&&sameFields(fields,failed.fields)&&this.#sameFailedContent(entry,failed)){
+      this.#revalidateSettledFields(id,entry,failed)
+      failed.record=entry.record
+      if(forceProjection&&this.#inlineProjection){
+        try{
+          this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,entry.fields,entry.baseContext,{projectionRoot:entry.element})
+        }catch(error){
+          this.#reportPresentationFailure(error)
+          throw new ReadOnlyRecoveryError([error],'Read-only field projection requires recovery')
+        }
+      }
+      // A legitimate edit of a healthy sibling must not publish the failed
+      // descriptor or silently retry unchanged failed canonical content.
+      return
+    }
+    const changed=!sameFields(fields,previousFields)
+    if(!changed&&!failed&&!forceProjection&&entry.scope?.active){
+      this.#revalidateSettledFields(id,entry)
+      return
+    }
+    try{this.#validateFieldOwnership(entry,fields)}
+    catch(error){
+      if(entry.scope?.active)this.#revalidateSettledFields(id,entry,failed??null,false)
+      throw error
+    }
+    const previousByElement=new Map(previousFields.map(field=>[field.element,field]))
+    const failedByElement=new Map(failed?.fields.map(field=>[field.element,field])??[])
+    const capturedOwners=new Map(fields.map(field=>{
+      const prior=previousByElement.get(field.element),failedField=failedByElement.get(field.element)
+      const previous=prior?.key===field.key&&prior?.mode===field.mode
+      const failedOwner=failedField?.key===field.key&&failedField?.mode===field.mode
+        ?failed.owners?.get(field.element):null
+      return [field.element,previous?this.#fieldOwners.get(field.element):failedOwner??this.#makeFieldOwner(id,entry,field)]
+    }))
+    const ownsField=field=>{
+      const owner=capturedOwners.get(field.element)
+      return this.#isCurrentMountedEntry(id,entry)&&owner?.blockId===id&&owner.fieldKey===field.key
+        &&owner.mode===field.mode&&this.#hasFieldAncestry(owner,entry)
+    }
+    if(!projectPresentation&&failed&&fields.some(field=>!ownsField(field))){
+      throw new Error('Failed presentation field left its canonical recovery boundary')
+    }
+    const publish=(next,retain=false)=>{
+      for(const field of entry.fields??[])this.#fieldOwners.delete(field.element)
+      entry.fields=next
+      for(const field of next){
+        if(retain)this.#fieldOwners.set(field.element,capturedOwners.get(field.element))
+        else this.#fieldOwners.set(field.element,this.#makeFieldOwner(id,entry,field))
+      }
+    }
+    if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
+      let retained=[]
+      try{
+        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext,{
+          projectionRoot:entry.element,
+          presentationFields:forceProjection?null:previousFields,
+          knownPresentationFields:failed?.fields??previousFields,
+          onFailedFields:healthy=>{retained=healthy;publish(healthy,true)},
+          canRetainField:ownsField,
+        })
+      }catch(error){
+        if(forceProjection){
+          this.#reportPresentationFailure(error)
+          throw new ReadOnlyRecoveryError([error],'Read-only field projection requires recovery')
+        }
+        let reported=error
+        const disabled=[]
+        const retainedElements=new Set(retained.map(field=>field.element))
+        try{
+          for(const field of fields){
+            if(retainedElements.has(field.element))continue
+            if(!ownsField(field)){
+              throw new Error('Failed presentation field left its recovery boundary')
+            }
+            const boundary=this.#fieldBoundary(field.element).split('\u0000');boundary[0]='false'
+            disabled.push({...field,value:field.element.getAttribute('contenteditable'),owner:capturedOwners.get(field.element),
+              boundary:boundary.join('\u0000'),
+              parents:this.#fieldParents(field.element,entry.element).map(node=>({node,boundary:this.#fieldBoundary(node),blockOwner:liveBlockRoots.get(node)??this.#blockOwners.get(node)})),
+            })
+            field.element.contentEditable='false'
+            if(!ownsField(field))throw new Error('Failed presentation field left its recovery boundary')
+            field.element.replaceChildren()
+          }
+        }catch(recoveryError){
+          reported=new AggregateError([error,recoveryError],'Presentation field recovery failed',{cause:error})
+        }
+        // Field clearing can run disconnected callbacks after inline cleanup.
+        // Keep the original leases and finish revoking any newly lost fields.
+        for(;;){
+          const lost=retained.filter(field=>!ownsField(field))
+          if(!lost.length)break
+          const lostFields=new Set(lost)
+          retained=retained.filter(field=>!lostFields.has(field))
+          publish(retained,true)
+          this.#inlineProjection.retirePresentationFields(id,lost)
+        }
+        entry.presentationFailure={fields,error:reported,record:entry.record,disabled,owners:capturedOwners}
+        publish(retained,true)
+        if(!this.#isCurrentMountedEntry(id,entry))this.#retirePresentationEntry(id,entry)
+        this.#reportPresentationFailure(reported,error)
+        throw reported
+      }
+    }
+    publish(fields)
+    entry.presentationFailure=null
+    if(projectPresentation&&failed)this.#restoreRecoveredFieldModes(entry,failed,readOnly)
+  }
+
+  #fieldParents(element,root){
+    const parents=[]
+    for(let node=element.parentNode;node;node=node.parentNode){
+      parents.push(node)
+      if(node===root)break
+    }
+    return parents
+  }
+
+  #captureFieldModes(entry){
+    const owners=new Set([
+      ...entry.fields.map(field=>this.#fieldOwners.get(field.element)),
+      ...(entry.presentationFailure?.owners?.values()??[]),
+    ])
+    return [...owners].filter(owner=>owner&&this.#hasFieldAncestry(owner,entry)).map(owner=>({
+      owner,ancestors:owner.ancestors,parents:this.#fieldParents(owner.element,entry.element),
+    }))
+  }
+
+  #applyOwnedFieldModes(entry,snapshots){
+    if(!this.#isCurrentMountedEntry(entry.record.id,entry))return
+    for(const {owner,ancestors,parents} of snapshots){
+      const currentParents=this.#fieldParents(owner.element,entry.element)
+      if(currentParents.length!==parents.length||currentParents.some((node,index)=>node!==parents[index]))continue
+      const current=this.#makeFieldOwner(owner.blockId,entry,{key:owner.fieldKey,element:owner.element,mode:owner.mode})
+      if(current.ancestors.length!==ancestors.length||current.ancestors.some((item,index)=>{
+        const before=ancestors[index]
+        if(item.node!==before.node||item.blockOwner!==before.blockOwner)return true
+        if(item.boundary===before.boundary)return false
+        const [editable,...rest]=item.boundary.split('\u0000')
+        const [oldEditable,...oldRest]=before.boundary.split('\u0000')
+        return !['true','false'].includes(editable)||!['true','false'].includes(oldEditable)
+          ||rest.some((value,part)=>value!==oldRest[part])
+      }))continue
+      owner.ancestors=current.ancestors
+    }
+  }
+
+  #captureDisabledFields(entry){
+    if(!this.#isCurrentMountedEntry(entry.record.id,entry))return []
+    return (entry.presentationFailure?.disabled??[]).filter(field=>
+      this.#fieldBoundary(field.element)===field.boundary&&this.#hasFieldAncestry(field.owner,entry))
+  }
+
+  #disableFailedFields(entry,captured){
+    if(!this.#isCurrentMountedEntry(entry.record.id,entry))return
+    const current=new Set(entry.presentationFailure?.disabled??[])
+    for(const field of captured){
+      if(!current.has(field)||!this.#hasFieldAncestry(field.owner,entry))continue
+      const boundary=this.#fieldBoundary(field.element).split('\u0000')
+      if(!['true','false',field.value??''].includes(boundary[0]))continue
+      boundary[0]='false'
+      if(boundary.join('\u0000')===field.boundary)field.element.contentEditable='false'
+    }
+  }
+
+  #fieldBoundary(node){
+    return node.nodeType===1?[node.getAttribute('contenteditable'),node.getAttribute('data-inline-plugin'),node.getAttribute('role')].join('\u0000'):''
+  }
+
+  #makeFieldOwner(id,entry,field,ancestryCache=null){
+    const parent=field.element.parentNode
+    let ancestors=ancestryCache?.get(parent)
+    if(!ancestors){
+      ancestors=[]
+      for(let node=parent;node;node=node.parentNode){
+      if(node===entry.element||isIndependentEditableBoundary(node)||this.#blockOwners.has(node)||liveBlockRoots.has(node)){
+        ancestors.push({node,boundary:this.#fieldBoundary(node),blockOwner:liveBlockRoots.get(node)??this.#blockOwners.get(node)})
+      }
+        if(node===entry.element)break
+      }
+      ancestryCache?.set(parent,ancestors)
+    }
+    return {blockId:id,fieldKey:field.key,element:field.element,mode:field.mode,ancestors}
+  }
+
+  #hasFieldAncestry(owner,entry,ancestryCache=null){
+    const current=this.#makeFieldOwner(owner.blockId,entry,{
+      key:owner.fieldKey,element:owner.element,mode:owner.mode,
+    },ancestryCache)
+    return current.ancestors.at(-1)?.node===entry.element
+      &&current.ancestors.length===owner.ancestors.length
+      &&current.ancestors.every((item,index)=>item.node===owner.ancestors[index].node
+        &&item.boundary===owner.ancestors[index].boundary
+        &&item.blockOwner===owner.ancestors[index].blockOwner)
+  }
+
+  #retirePresentationEntry(id,entry){
+    for(const field of entry.fields??[])this.#fieldOwners.delete(field.element)
+    entry.fields=[]
+    if(this.#entries.get(id)!==entry)return
+    this.#entries.delete(id)
+    this.#inlineProjection?.destroyBlock(id)
+    this.#destroyEntry(entry,true)
+  }
+
+  #revalidateSettledFields(id,entry,failed=null,settle=true){
+    const lostFields=()=>{
+      // This index is only a readonly scan of this call's current ancestors.
+      // Destroy callbacks below discard it before another ownership check.
+      const ancestryCache=new Map()
+      return entry.fields.filter(field=>{
+        const owner=this.#fieldOwners.get(field.element)
+        return !this.#isCurrentMountedEntry(id,entry)||owner?.blockId!==id||owner.fieldKey!==field.key
+          ||owner.mode!==field.mode||!this.#hasFieldAncestry(owner,entry,ancestryCache)
+      })
+    }
+    let invalid=lostFields()
+    if(!invalid.length&&this.#isCurrentMountedEntry(id,entry))return
+    let error
+    if(settle){
+      const boundaryError=new Error('Presentation field left its accepted ownership boundary')
+      error=failed
+        ?new AggregateError([failed.error,boundaryError],'Presentation field ownership recovery failed',{cause:failed.error})
+        :boundaryError
+      const failure=failed??{fields:entry.fields,record:entry.record,disabled:[],
+        owners:new Map(entry.fields.map(field=>[field.element,this.#fieldOwners.get(field.element)])),
+      }
+      failure.error=error
+      entry.presentationFailure=failure
+    }
+    for(;;){
+      const invalidFields=new Set(invalid)
+      for(const field of invalid)this.#fieldOwners.delete(field.element)
+      entry.fields=entry.fields.filter(field=>!invalidFields.has(field))
+      this.#inlineProjection?.retirePresentationFields(id,invalid)
+      invalid=lostFields()
+      if(!invalid.length)break
+    }
+    if(!this.#isCurrentMountedEntry(id,entry))this.#retirePresentationEntry(id,entry)
+    if(!settle)return
+    this.#reportPresentationFailure(error)
+    throw error
+  }
+
+  #restoreRecoveredFieldModes(entry,failed,readOnly=this.#readOnly){
+    if(!this.#isCurrentMountedEntry(entry.record.id,entry))return
+    const currentFields=new Map(entry.fields.map(field=>[field.element,field]))
+    for(const field of failed.disabled??[]){
+      const descriptor=currentFields.get(field.element)
+      const current=descriptor?.key===field.key&&descriptor?.mode===field.mode&&this.#hasFieldAncestry(field.owner,entry)
+      if((current?readOnly:!this.#isRetiredField(field))||this.#fieldBoundary(field.element)!==field.boundary)continue
+      if(field.value===null)field.element.removeAttribute('contenteditable')
+      else field.element.setAttribute('contenteditable',field.value)
+    }
+  }
+
+  #isRetiredField(field){
+    let node=field.element
+    for(const parent of field.parents??[]){
+      if(node.parentNode===null)return true
+      if(node.parentNode!==parent.node||this.#fieldBoundary(parent.node)!==parent.boundary
+        ||(liveBlockRoots.get(parent.node)??this.#blockOwners.get(parent.node))!==parent.blockOwner)return false
+      node=parent.node
+    }
+    return false
+  }
+
+  #sameFailedContent(entry,failed){
+    if(failed.record===entry.record)return true
+    if(failed.record.type!==entry.record.type||failed.record.dataVersion!==entry.record.dataVersion)return false
+    const before=richTextFieldMap(entry.definition,failed.record.data)
+    const after=richTextFieldMap(entry.definition,entry.record.data)
+    const healthyFields=new Map(entry.fields.map(field=>[field.element,field]))
+    for(const field of failed.fields){
+      if(healthyFields.get(field.element)?.key===field.key)continue
+      if(field.mode!=='rich-text')return sameJson(failed.record,entry.record)
+      const html=before.get(field.key)
+      if(html!==after.get(field.key))return false
+      for(const [id] of scanRichTextPlaceholders(html??'',failed.record.inline??{},this.#container.ownerDocument).occurrences){
+        if(!sameJson(failed.record.inline?.[id],entry.record.inline?.[id]))return false
+      }
+    }
+    return true
   }
 
   #applyTunes(entry, record) {
@@ -1045,13 +1330,13 @@ export class BlockReconciler {
     this.#assertPublicationOwner(fresh,'Block restoration owner changed after predecessor cleanup')
   }
 
-  #destroyEntry(entry) {
+  #destroyEntry(entry,onlyOwnedRoot=false) {
     if (!entry) return
     try { this.#discardPreparedInline(entry) } catch {}
     try { entry.scope?.revoke?.() } catch {}
     try { entry.controller?.abort() } catch {}
     try { entry.instance?.destroy?.() } catch {}
-    try { entry.element?.remove?.() } catch {}
+    try { if(!onlyOwnedRoot||entry.element?.parentNode===this.#container)entry.element?.remove?.() } catch {}
     if(entry.scope&&liveBlockRoots.get(entry.instance?.element)===entry.scope){
       liveBlockRoots.delete(entry.instance.element)
     }

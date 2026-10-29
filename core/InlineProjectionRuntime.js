@@ -7,6 +7,7 @@ import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { normalizeRichText, canonicalizeRichTextSubtree } from '../shared/richTextCodec.js'
 import { sanitizeSubtree } from '../shared/sanitize/walker.js'
+import { ALLOWED_TAGS, ALLOWED_ATTRS } from '../shared/sanitize/allowlist.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 import { scanRichTextPlaceholders, richTextPlaceholderMatches, protectInlineLiteralTokens } from '../shared/richTextOperations.js'
@@ -97,21 +98,26 @@ export class InlineProjectionRuntime {
   // Never authorize these through extension runtime or attribute matching.
   #opaqueOwned=new WeakMap()
   #readOnly
+  /** @type {(blockId:string,fieldKey:string,element:HTMLElement)=>boolean} */
+  #preservePendingField
   #destroyed=false
 
-  constructor({registry,ownerDocument,readOnly=false}){
+  constructor({registry,ownerDocument,readOnly=false,preservePendingField=()=>false}){
     if(!registry)throw new TypeError('InlineProjectionRuntime requires an ExtensionRegistry')
     if(!ownerDocument?.createElement)throw new TypeError('InlineProjectionRuntime requires an ownerDocument')
     this.#registry=registry
     this.#ownerDocument=ownerDocument
     this.#readOnly=readOnly===true
+    this.#preservePendingField=preservePendingField
   }
 
-  reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
+  reconcileBlock(blockId,record,definition,fields,baseContext,{
+    preserveSourceProjection=false,projectionRoot=null,presentationFields=null,
+    knownPresentationFields=presentationFields,onFailedFields=null,
+    canRetainField=/** @type {(field:import('../plugin-kit/types').EditableField)=>boolean} */ (()=>true),
+  }={}){
     this.#assertLive()
-    if(this.#projectingBlocks.has(blockId)){
-      throw new Error('Cannot reenter inline projection for the same block')
-    }
+    if(this.#projectingBlocks.has(blockId))throw new Error('Cannot reenter inline projection for the same block')
     this.#projectingBlocks.add(blockId)
     try{
       let state=this.#blocks.get(blockId)
@@ -119,18 +125,61 @@ export class InlineProjectionRuntime {
         state={widgets:new Map(),opaque:new Map(),staged:false}
         this.#blocks.set(blockId,state)
       }
+      const retained=new Map()
       try{
-        this.#projectState(
-          blockId,state,record,definition,fields,baseContext,{preserveSourceProjection,projectionRoot},
-        )
+        if(presentationFields){
+          const canonical=richTextFieldMap(definition,record.data)
+          const same=(left,right)=>left?.key===right.key&&left?.mode===right.mode
+          const knownByElement=new Map(knownPresentationFields?.map(field=>[field.element,field])??[])
+          const previousByElement=new Map(presentationFields.map(field=>[field.element,field]))
+          let ownershipFailed=false
+          for(const field of fields){
+            if(same(knownByElement.get(field.element),field)&&!canRetainField(field)){
+              ownershipFailed=true
+              continue
+            }
+            if(!same(previousByElement.get(field.element),field))continue
+            if(field.mode!=='rich-text'){retained.set(field.key,field);continue}
+            const authored=this.#readSafeAuthoredField(blockId,field.key,field.element,state)
+            if(authored!==null&&(authored===normalizeRichText(canonical.get(field.key)??'',this.#ownerDocument)
+              ||this.#preservePendingField(blockId,field.key,field.element)))retained.set(field.key,field)
+          }
+          if(ownershipFailed)throw new Error('Presentation field left its accepted ownership boundary')
+        }
+        this.#projectState(blockId,state,record,definition,fields,baseContext,{
+          preserveSourceProjection,projectionRoot,retained,
+          canProjectField:canRetainField,
+        })
         if(this.#destroyed||this.#blocks.get(blockId)!==state){
           throw new Error('Inline projection owner was revoked during reconciliation')
         }
+        if(fields.some(field=>!canRetainField(field))){
+          throw new Error('Presentation field left its accepted ownership boundary')
+        }
       }catch(error){
-        // A callback may mutate an instance or retire this block. Never keep
-        // partly written widget DOM/cache as authoritative canonical state.
-        if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
-        this.#destroyState(state)
+        if(presentationFields&&this.#blocks.get(blockId)===state&&!this.#destroyed){
+          let valid=new Map([...retained].filter(([,field])=>canRetainField(field)))
+          // Cleanup can execute extension destroy/disconnected callbacks.
+          // Each pass can only retire more fields; no occurrence is retried.
+          for(;;){
+            onFailedFields?.([...valid.values()])
+            for(const [id,entry] of state.widgets){
+              if(valid.get(entry.fieldKey)?.element===entry.fieldElement)continue
+              state.widgets.delete(id);this.#destroyWidget(entry)
+            }
+            for(const [id,entry] of state.opaque){
+              if(valid.get(entry.fieldKey)?.element===entry.fieldElement)continue
+              state.opaque.delete(id)
+              if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
+            }
+            const next=new Map([...valid].filter(([,field])=>canRetainField(field)))
+            if(next.size===valid.size)break
+            valid=next
+          }
+        }else{
+          if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
+          this.#destroyState(state)
+        }
         throw error
       }
     }finally{
@@ -576,6 +625,23 @@ export class InlineProjectionRuntime {
     }
   }
 
+  retirePresentationFields(blockId,fields){
+    const state=this.#blocks.get(blockId)
+    if(!state)return
+    const affected=entry=>fields.some(field=>field.key===entry.fieldKey&&field.element===entry.fieldElement)
+    const retired=[]
+    for(const [id,entry] of state.widgets){
+      if(!affected(entry))continue
+      state.widgets.delete(id);retired.push(entry)
+    }
+    for(const [id,entry] of state.opaque){
+      if(!affected(entry))continue
+      state.opaque.delete(id)
+      if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
+    }
+    for(const entry of retired)this.#destroyWidget(entry)
+  }
+
   destroyBlock(blockId){
     // Block removal revokes detached prepared candidates as well as a
     // mounted state. A candidate must not republish this ID afterward.
@@ -599,9 +665,12 @@ export class InlineProjectionRuntime {
     this.#pendingPreparations.clear()
   }
 
-  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
+  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,retained=new Map(),canProjectField=null}={}){
     const projectionParent=projectionRoot?.parentNode
-    const assertFieldBoundary=field=>{
+    const assertFieldBoundary=(fieldKey,field)=>{
+      if(canProjectField&&!canProjectField({key:fieldKey,element:field,mode:'rich-text'})){
+        throw new Error('Presentation field left its accepted ownership boundary')
+      }
       if(projectionRoot&&(projectionRoot.parentNode!==projectionParent||!projectionRoot.contains(field))){
         throw new Error('Inline projection root or field left its block boundary')
       }
@@ -619,10 +688,19 @@ export class InlineProjectionRuntime {
     }
     const live=new Set()
     const liveOpaque=new Set()
+    for(const [id,entry] of state.widgets)if(retained.get(entry.fieldKey)?.element===entry.fieldElement)live.add(id)
+    for(const [id,entry] of state.opaque)if(retained.get(entry.fieldKey)?.element===entry.fieldElement)liveOpaque.add(id)
 
     for(const [fieldKey,element] of richFields){
       const html=canonical.get(fieldKey)
       if(html===undefined)continue
+
+      assertFieldBoundary(fieldKey,element)
+      if(retained.get(fieldKey)?.element===element){
+        // The native owner will settle these occurrences. A sibling tab does
+        // not hydrate or retire an in-progress native field.
+        continue
+      }
 
       if(!preserveSourceProjection){
         const normalized=normalizeRichText(html,this.#ownerDocument)
@@ -652,7 +730,7 @@ export class InlineProjectionRuntime {
       }
 
       this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners,
-        ()=>assertFieldBoundary(element))
+        ()=>assertFieldBoundary(fieldKey,element))
       projectRichTextCaretPadding(element)
     }
 
@@ -683,6 +761,35 @@ export class InlineProjectionRuntime {
         if(parent===boundary)break
       }
     }
+  }
+
+  #readSafeAuthoredField(blockId,fieldKey,field,state){
+    const authored=this.#ownerDocument.createElement('div')
+    const append=(source,target)=>{
+      for(const node of source.childNodes){
+        if(isRichTextCaretPadding(node))continue
+        const lease=this.#owned.get(node)
+        const widget=lease?.blockId===blockId?state.widgets.get(lease.id):null
+        const opaque=this.#opaqueOwned.get(node)
+        const entry=widget?.element===node?widget:
+          opaque?.blockId===blockId&&state.opaque.get(opaque.id)===opaque?opaque:null
+        if(entry){
+          if(entry.fieldKey!==fieldKey||entry.fieldElement!==field||!belongsToAuthorField(field,node))return false
+          target.append(this.#ownerDocument.createTextNode('{{'+entry.id+'}}'))
+          continue
+        }
+        if(node.nodeType===3){target.append(this.#ownerDocument.createTextNode(node.textContent??''));continue}
+        if(node.nodeType!==1)return false
+        const tag=node.tagName.toLowerCase(),allowed=ALLOWED_ATTRS[tag]
+        if(!ALLOWED_TAGS.has(tag)||[...node.attributes].some(attr=>!allowed?.has(attr.name)))return false
+        const clone=node.cloneNode(false)
+        if(!append(node,clone))return false
+        target.append(clone)
+      }
+      return true
+    }
+    if(!append(field,authored))return null
+    return authored.innerHTML===normalizeRichText(authored.innerHTML,this.#ownerDocument)?authored.innerHTML:null
   }
 
   #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{}){
@@ -762,12 +869,7 @@ export class InlineProjectionRuntime {
           continue
         }
 
-        let decoded
-        try{
-          decoded=definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data})
-        }catch{
-          continue
-        }
+        const decoded=definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data})
 
         if(match.index>cursor)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
 

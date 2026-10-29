@@ -65,6 +65,37 @@ export class NativeInputController {
 
   get isComposing() { return this.#composition !== null }
 
+  /** Observe an existing native envelope without granting mutation rights.
+   * @param {string} blockId
+   * @param {string} fieldKey
+   * @param {HTMLElement} element
+   * @returns {boolean}
+   */
+  canPreservePresentationField(blockId,fieldKey,element) {
+    if(this.#controller.signal.aborted||this.#runtime.readOnly
+      ||this.#runtime.health!=='ready'||!element?.isConnected
+      ||!this.#root.contains(element))return false
+    const current=envelope=>envelope?.trusted===true
+      &&envelope.generation===this.#runtime.generation
+      &&envelope.revision===this.#runtime.revision
+      &&envelope.modeEpoch===this.#runtime.modeEpoch
+    for(const session of [this.#composition,this.#endingComposition]){
+      if(current(session)&&session.owner.blockId===blockId
+        &&session.owner.fieldKey===fieldKey&&session.owner.element===element)return true
+    }
+    const pending=this.#pendingInput
+    if(pending?.kind==='field')return current(pending)
+      &&pending.blockId===blockId&&pending.fieldKey===fieldKey
+      &&pending.element===element&&!pending.originalEvent.defaultPrevented
+    if(pending?.kind==='inline'){
+      const snapshot=pending.snapshot
+      return pending.valid&&current({...snapshot,modeEpoch:pending.modeEpoch})
+        &&snapshot.blockId===blockId&&snapshot.fieldKey===fieldKey
+        &&snapshot.fieldElement===element&&!snapshot.originalEvent.defaultPrevented
+    }
+    return false
+  }
+
   /** Called when the earlier root-capture inline owner consumes beforeinput
    * and stops propagation before this controller's bubble listener can retire
    * its old native input envelope. No canonical command is performed here.
@@ -158,14 +189,15 @@ export class NativeInputController {
     const native = this.#root.ownerDocument.defaultView?.getSelection?.()
     const inline = this.#inlineWidgetInput?.captureNativeDeletion(owner,event,native)
     if (inline) {
-      this.#pendingInput = {kind:'inline',snapshot:inline,valid:true}
+      this.#pendingInput = {kind:'inline',snapshot:inline,valid:true,modeEpoch:this.#runtime.modeEpoch}
       this.#lastGroup = null
       this.#endingComposition = null
       return
     }
     this.#pendingInput = this.#selection ? {
       kind:'field',
-      blockId: owner.blockId, fieldKey: owner.fieldKey,
+      blockId: owner.blockId, fieldKey: owner.fieldKey, element:owner.element,
+      trusted:event?.isTrusted===true,originalEvent:event,modeEpoch:this.#runtime.modeEpoch,
       generation: this.#runtime.generation, revision: this.#runtime.revision,
       bookmark: this.#selection.capture(),
     } : null
@@ -286,6 +318,7 @@ export class NativeInputController {
     this.#composition = {
       owner: replacement ? this.#resolve(this.#root.ownerDocument.activeElement) ?? owner : owner,
       replacement,
+      trusted:event?.isTrusted===true,modeEpoch:this.#runtime.modeEpoch,
       generation: this.#runtime.generation,
       revision: this.#runtime.revision,
       selectionBefore: this.#selection?.capture(),

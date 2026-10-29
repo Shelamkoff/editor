@@ -118,6 +118,7 @@ export class DocumentRuntime {
    *     activationResolver: (id: string, record: any) => boolean,
    *     contextFactory: (id: string, type: string, signal: AbortSignal, readRecord: () => any) => any,
    *     projectPresentation: (operation: () => any) => any,
+   *     reportPresentationFailure: (error: unknown, original?: unknown) => void,
    *   }) => any,
    *   selection?: any,
    *   onCommit?: (event: any) => void,
@@ -166,6 +167,10 @@ export class DocumentRuntime {
           store: this.#store,
           activationResolver,
           contextFactory,
+          reportPresentationFailure:(error,original=error)=>{
+            this.#reportValidation(original)
+            this.#reportDiagnosticError('projection.presentation',error)
+          },
           projectPresentation: operation => {
             const previous = this.#projectingPresentation
             this.#projectingPresentation = true

@@ -263,7 +263,10 @@ export function createEditorRuntime(input){
   }))
 
   const styles=config.injectStyles===false?null:lifecycle.register(acquireStyleUrls(CORE_STYLE_URLS,document))
+  /** @type {NativeInputController | null} */
+  let nativeInput=null
   const inlineProjection=new InlineProjectionRuntime({
+    preservePendingField:(blockId,key,element)=>nativeInput?.canPreservePresentationField(blockId,key,element)??false,
     registry,
     ownerDocument:document,
     readOnly:config.readOnly===true,
@@ -316,12 +319,13 @@ export function createEditorRuntime(input){
       }),'document-event')
       complete(()=>emit('history:changed',event.history),'history-event')
     },
-    projectorFactory:({activationResolver,contextFactory,projectPresentation})=>{
+    projectorFactory:({activationResolver,contextFactory,projectPresentation,reportPresentationFailure})=>{
       reconciler=new BlockReconciler({
         container:blocksElement,
         registry,
         contextFactory,
         projectPresentation,
+        reportPresentationFailure,
         activationResolver,
         inlineProjection,
         readOnly:config.readOnly===true,
@@ -363,8 +367,6 @@ export function createEditorRuntime(input){
       if(!destroyed&&runtime.modeEpoch===modeEpoch)triggerController?.refresh()
     })
   }
-  /** @type {NativeInputController} */
-  let nativeInput
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
     root,
     runtime,
