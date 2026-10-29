@@ -8,6 +8,8 @@ The latest completed core publication is `0fecf490fe8a57188ac9edb502d2803743c298
 
 Each subsection below records its own historical implementation checkpoint and verification scope. The section titled Final local integration acceptance refers to its dated 2026-10-16 source/environment; those green suites do not establish acceptance of a later branch head.
 
+The subsequent [Gallery renderer caption slice](./RECTOR_V2_PROGRESS_2026-10-29.md#gallery-renderer-caption-continuation-2026-10-29) has a fixed-oracle 66-failure RED followed by 150/150 browser assertions, 122/122 renderer units and both typecheck projects. It accepts no full Gallery row. The latest completed GitHub run on `9ad09132` has a Chrome 156 native drag-selection failure under investigation; its other Node, package and documentation jobs passed. Earlier complete Chrome 142 native results do not supersede that failure.
+
 ## Preserved baseline
 
 Commit `75b7870` preserves all pre-existing local source fixes, native audit fixtures and reviewed plans. Commit `8c80a7f` integrates the five documentation updates from the remote branch while retaining the latest reviewed specification.
