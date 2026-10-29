@@ -100,6 +100,19 @@ defects remain open; no widget data is discarded by a historical adapter.
 Upload/source actions, caption widgets, hostile styles and the full
 appearance/settings matrix are not accepted by this literal-caption slice.
 
+Toggle adds four cases: its actual empty closed default, rich open content,
+an unwrapped-widget open control, and the same rich populated document
+with `open: false`. Mention belongs to the title; Color belongs to the
+independent content field. Both editor DIV fields retain canonical markup,
+editability and DOM identity. The fixture checks the open class, actual
+body display, `aria-expanded` and the exact `aria-controls` relationship.
+All three renderer contexts require DETAILS/SUMMARY/title-SPAN structure,
+the saved open state and a body DIV only when content is nonempty. Native
+input and exact one-step Undo/Redo edit the title. The independent body,
+including closed hidden content and its widget, must survive that sibling
+edit. This does not accept toggle-button activation, Enter behavior or a
+separate native content-field authoring cycle.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -155,7 +168,7 @@ author data from an initial `save()` result.
 | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
 | Attaches / 2 | No files, variant `f` | Controlled file URL/name/size/extension; edit filename | v1 file IDs absent; name is plain text. |
 | LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated metadata; edit declared URL | URL field disclosure and metadata replacement need the documented provider contract. |
-| Toggle / 1 | Empty title/content, closed | Rich title/content and explicit open state | Hidden content must survive mode changes. |
+| Toggle / 1 | Empty title/content, closed | Rich title/Mention and content/Color, explicit open/closed state; edit title | Implemented: both fields, hidden populated content, open state, accessibility relationship and renderer structure survive mode/history. |
 | Columns / 2 | Two empty columns, `1-1` layout | Two rich columns; edit first declared column | v1 column IDs absent; retain content/order/layout. |
 | Spoiler / 1 | Empty label/content | Rich label and content | Hidden content and rendered placeholder labels need separate assertions. |
 | Poll / 1 | Single choice, two empty options, always-visible results | Identified choices/question and fixed result data | Canonical results/provider effects must be distinguished; no external voting provider. |
@@ -224,11 +237,11 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter and Image oracle
-classifies only these observed historical differences, bounded to the twenty-four exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image and Toggle oracle
+classifies only these observed historical differences, bounded to the twenty-eight exact scenario IDs in the
 runner:
 
-- v1 remounts the exact block/widget arrays, List items, Quote/Warning fields, Code textarea and
+- v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle fields, Code textarea and
   Checklist rows/buttons/labels, Delimiter HR and Image wrapper/picture/caption
   during read-only/editable mode
   changes and Undo/Redo. Default Delimiter and empty-source Image admit only
@@ -237,10 +250,10 @@ runner:
   No caret exception applies to Delimiter; no widget exception applies to
   either Delimiter or literal-caption Image. Author data and sidecars
   must still be exact.
-- The first v1 Undo in each rich-field block's two populated cases focuses the preceding
+- The first v1 Undo in each rich-field block's populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
-  offset 12 for Quote/Warning. Populated literal-caption Image has the same
+  offset 12 for Quote/Warning/Toggle. Populated literal-caption Image has the same
   exact prefix-owner defect, with required probe offset 18. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
@@ -259,6 +272,10 @@ runner:
   offset 2. The exact title class and actual generated block ID are required
   for this classification; current selection must be inside the declared
   title field at offset 0.
+- The first v1 Undo in the default Toggle focuses its empty title DIV,
+  while both native points are on that block's outer DIV at child offset 2.
+  Classification requires the exact title class and actual generated block
+  ID. Current selection must be inside the declared title at offset 0.
 - The first v1 Undo in the default Checklist focuses its empty label DIV,
   while both native points are on the same block's outer DIV at child
   offset 1. Classification requires the exact label class and actual
@@ -274,7 +291,8 @@ runner:
   `SelectionManager` restores a DOM Range in block contents rather than a
   textarea selection. Both later sources must restore the textarea caret.
 - e981 throws `Inline widget root left its projection boundary before
-  hydration` while entering read-only mode in each formatted-widget case.
+  hydration` while entering read-only mode in each formatted-widget case,
+  including both the open and closed populated Toggle cases.
   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
   disposal assertions remain explicitly unexecuted. The unwrapped positive
   controls exercise the complete template on that baseline.
@@ -285,6 +303,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter or Image behavior,
-the other 12 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image or Toggle behavior,
+the other 11 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

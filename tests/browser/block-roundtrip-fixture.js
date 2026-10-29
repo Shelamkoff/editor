@@ -45,6 +45,14 @@ const warning = {
   unwrappedData: { title: '<b>Alpha</b> {{mention}} tail', message: '<mark>Message</mark> {{swatch}}' },
 }
 
+const toggle = {
+  type: 'toggle', version: 1, className: 'Toggle', textKey: 'title',
+  fieldSelector: '.oe-toggle__title', fieldTag: 'DIV',
+  defaultData: { title: '', content: '', open: false },
+  populatedData: { title: '<b>Alpha</b> <i>{{mention}}</i> tail', content: '<mark>Body</mark> <s>{{swatch}}</s>', open: true },
+  unwrappedData: { title: '<b>Alpha</b> {{mention}} tail', content: '<mark>Body</mark> {{swatch}}', open: true },
+}
+
 const code = {
   type: 'code', version: 1, className: 'Code', textKey: 'code', fieldMode: 'plain-text',
   fieldSelector: '.oe-code-textarea',
@@ -75,7 +83,7 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -86,7 +94,9 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
   })).concat(block.fieldMode === 'plain-text' || block.literalCaption ? [] : [{
     ...block, populated: true, id: prefix + 'populated-unwrapped-control',
     populatedData: block.unwrappedData ?? withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
-  }])
+  }]).concat(block.type === 'toggle' ? [{ ...block, populated: true, id: prefix + 'populated-closed',
+    populatedData: { ...block.populatedData, open: false },
+  }] : [])
 })
 
 const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -258,6 +268,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
     const warningFields = () => ['.oe-warning__title', '.oe-warning__message'].map(selector => shell(id).querySelector(selector))
     let previousWarningFields = specification.type === 'warning' ? warningFields() : []
+    const toggleFields = () => ['.oe-toggle__title', '.oe-toggle__body'].map(selector => shell(id).querySelector(selector))
+    let previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
     const baseText = noEditableField ? specification.neighborText : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
@@ -269,7 +281,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
@@ -277,6 +289,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : block.type === 'image' ? { ...block.data, caption: markupMeaning(block.data.caption) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
+      : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
     const imageStyles = picture => Object.fromEntries(['width', 'height', 'objectFit', 'objectPosition', 'borderStyle', 'borderWidth', 'borderColor', 'borderRadius'].map(key => [key, picture.style[key]]))
     const expectedImageStyles = populated => populated
@@ -304,7 +317,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       styles: expectedImageStyles(Boolean(block.data.file.url)), background: block.data.withBackground ? 'rgb(255, 238, 204)' : '',
       flags: [block.data.withBorder, block.data.expanded, block.data.withBackground],
     })
-    const rendererMarkup = element => element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
+    const rendererMarkup = element => element.dataset.blockType === 'toggle'
+      ? { open: element.open, summaryTag: element.querySelector('.editor-toggle__summary').tagName,
+        titleTag: element.querySelector('.editor-toggle__title').tagName, title: authoredMarkup(element.querySelector('.editor-toggle__title')),
+        body: element.querySelector('.editor-toggle__body') ? { tag: element.querySelector('.editor-toggle__body').tagName, markup: authoredMarkup(element.querySelector('.editor-toggle__body')) } : null,
+      } : element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
       ? { childCount: element.childNodes.length, text: element.textContent }
       : element.dataset.blockType === 'code'
       ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
@@ -323,7 +340,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
+    const expectedRendererMarkup = block => block.type === 'toggle'
+      ? { open: block.data.open, summaryTag: 'SUMMARY', titleTag: 'SPAN', title: markupMeaning(block.data.title),
+        body: block.data.content ? { tag: 'DIV', markup: markupMeaning(block.data.content) } : null,
+      } : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
       ? { childCount: 0, text: '' }
       : block.type === 'code'
       ? { tag: 'CODE', source: block.data.code }
@@ -460,6 +480,21 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ])
         check(phase, 'warningFieldDomIdentity', previousWarningFields.map((element, index) => fields[index] === element), [true, true])
       }
+      if (specification.type === 'toggle') {
+        const fields = toggleFields()
+        check(phase, 'toggleFields', fields.map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })), [
+          { tag: 'DIV', markup: markupMeaning(text), editable: !readOnly },
+          { tag: 'DIV', markup: markupMeaning(baseData.content), editable: !readOnly },
+        ])
+        check(phase, 'toggleFieldDomIdentity', previousToggleFields.map((element, index) => element === fields[index]), [true, true])
+        const control = shell(id).querySelector('.oe-toggle__chevron')
+        check(phase, 'togglePresentation', {
+          expanded: shell(id).querySelector('.oe-toggle').classList.contains('oe-toggle--open'),
+          ariaExpanded: control.getAttribute('aria-expanded'),
+          controlsBody: fields[1].id.length > 0 && control.getAttribute('aria-controls') === fields[1].id,
+          bodyDisplayed: getComputedStyle(fields[1]).display !== 'none',
+        }, { expanded: baseData.open, ariaExpanded: String(baseData.open), controlsBody: true, bodyDisplayed: baseData.open })
+      }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
@@ -479,6 +514,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousChecklistParts = specification.type === 'checklist' ? checklistParts() : []
       previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
+      previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
       previousPlainFields = plainField ? [field()] : []
       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
       previousImageParts = specification.type === 'image' ? imageParts() : []
