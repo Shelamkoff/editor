@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-image-rich-roundtrip-20261029",
+  "startedAt": "2026-10-29T21:35:53.049Z",
+  "finishedAt": "2026-10-29T21:38:17.080Z",
+  "outcome": "passed",
+  "source": {
+    "head": "daeca9e976f60caa3e37728e0ed8cc12dd914857",
+    "tree": "75783cad5711e4a5f879e28d1a2ac3f423477019",
+    "patchSha256": "d4778045bea01b222a85af6689c896b06c3e60628b5e1f1ef0153f177528d4b4",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+      }
+    ],
+    "dirty": true,
+    "identity": "a4671de2ca74435613237147d4219676cc8a6d05c492ccfbcf1b3f7f972f815a"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "differential47": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T21:35:53.369Z",
+      "finishedAt": "2026-10-29T21:37:41.164Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "cwd": "/tmp/rector-image-rich-roundtrip-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "daeca9e976f60caa3e37728e0ed8cc12dd914857",
+        "tree": "75783cad5711e4a5f879e28d1a2ac3f423477019",
+        "patchSha256": "d4778045bea01b222a85af6689c896b06c3e60628b5e1f1ef0153f177528d4b4",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "a4671de2ca74435613237147d4219676cc8a6d05c492ccfbcf1b3f7f972f815a"
+      },
+      "elapsedMs": 107792.202346,
+      "sourceAfter": {
+        "head": "daeca9e976f60caa3e37728e0ed8cc12dd914857",
+        "tree": "75783cad5711e4a5f879e28d1a2ac3f423477019",
+        "patchSha256": "d4778045bea01b222a85af6689c896b06c3e60628b5e1f1ef0153f177528d4b4",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "a4671de2ca74435613237147d4219676cc8a6d05c492ccfbcf1b3f7f972f815a"
+      },
+      "sourceUnchanged": true
+    },
+    "native47": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T21:37:41.420Z",
+      "finishedAt": "2026-10-29T21:38:16.962Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-image-rich-roundtrip-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "daeca9e976f60caa3e37728e0ed8cc12dd914857",
+        "tree": "75783cad5711e4a5f879e28d1a2ac3f423477019",
+        "patchSha256": "d4778045bea01b222a85af6689c896b06c3e60628b5e1f1ef0153f177528d4b4",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "a4671de2ca74435613237147d4219676cc8a6d05c492ccfbcf1b3f7f972f815a"
+      },
+      "elapsedMs": 35539.167962,
+      "sourceAfter": {
+        "head": "daeca9e976f60caa3e37728e0ed8cc12dd914857",
+        "tree": "75783cad5711e4a5f879e28d1a2ac3f423477019",
+        "patchSha256": "d4778045bea01b222a85af6689c896b06c3e60628b5e1f1ef0153f177528d4b4",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "a4671de2ca74435613237147d4219676cc8a6d05c492ccfbcf1b3f7f972f815a"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "daeca9e976f60caa3e37728e0ed8cc12dd914857",
+    "tree": "75783cad5711e4a5f879e28d1a2ac3f423477019",
+    "patchSha256": "d4778045bea01b222a85af6689c896b06c3e60628b5e1f1ef0153f177528d4b4",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+      }
+    ],
+    "dirty": true,
+    "identity": "a4671de2ca74435613237147d4219676cc8a6d05c492ccfbcf1b3f7f972f815a"
+  },
+  "sourceUnchanged": true
+}

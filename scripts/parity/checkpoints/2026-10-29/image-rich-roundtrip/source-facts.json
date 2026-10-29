@@ -1,0 +1,53 @@
+{
+  "scope": "Source facts supporting the exact v1 Image unsupported-caption-widget classification and current capability. Observed behavior still comes from the browser trace; source inventory alone is not acceptance.",
+  "references": [
+    {
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "path": "plugins/image/index.js",
+      "sha256": "e0599beca5c5442bcea0765cd9f0878879504a0cb9f6b88ed7685b7a060ff5f8",
+      "fact": "Image extends BlockPluginAbstract, declares inlineTools=false, and does not implement mapTextFields."
+    },
+    {
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "path": "plugins/BlockPluginAbstract.js",
+      "sha256": "85815ce99132ae5103925f841a3d2a5af95949d9f02fbcf237a2ee4920f0549b",
+      "fact": "The inherited abstract base also has no mapTextFields method."
+    },
+    {
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "path": "core/types.d.ts",
+      "sha256": "2a090eb2558f02f023542aba7f90f60a4a3464e2fc2e0c40334527ea4813259c",
+      "fact": "The block contract says mapTextFields drives widget marshalling and undefined leaves it disabled."
+    },
+    {
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "path": "core/EditorFacade.js",
+      "sha256": "c73946f10188d60dac37d483e5236280dff2a310ff07c07e83095ddc58ae4167",
+      "fact": "Public insertInlinePlugin rejects a target whose block plugin has no mapTextFields function."
+    },
+    {
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "path": "docs/guide/document-format.md",
+      "sha256": "4678e9e32f118251aa7276b90883fdcd7f7570f0132ed1d9ac80a2bd68ea7b59",
+      "fact": "The owning text plugin enumerates HTML fields so widgets persist through save/load."
+    },
+    {
+      "sourceSha": "fe44cc57f5cbac1daffd031f5c8e791d707fb828",
+      "path": "shared/blockSchemas/image.js",
+      "sha256": "7ccfd664f4aeeb8c9c76a5a3d71f5a8cdc37993c2e4af02465a41c2ac9271c75",
+      "fact": "Current Image schema declares caption as a rich field, enabling its persistent inline sidecars."
+    },
+    {
+      "sourceSha": "fe44cc57f5cbac1daffd031f5c8e791d707fb828",
+      "path": "plugins/image/index.js",
+      "sha256": "2fda9e8c8a048add4ceccac9b4b1e58e2ac009f062fc0d8ee831a758924c9409",
+      "fact": "Image derives alt from its completed exact caption field through afterProjection and retains ownership guards."
+    },
+    {
+      "sourceSha": "fe44cc57f5cbac1daffd031f5c8e791d707fb828",
+      "path": "renderer/renderers/image/index.js",
+      "sha256": "537850c8252d810984bf6dd12cbebd666404a8baa57aa0c7ad63f47d65c8b1f2",
+      "fact": "Renderer derives img.alt from the fragment returned by its existing parseInline path."
+    }
+  ]
+}

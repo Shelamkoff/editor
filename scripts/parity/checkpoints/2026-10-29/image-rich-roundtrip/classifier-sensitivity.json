@@ -1,0 +1,40 @@
+{
+  "scope": "Offline sensitivity of the exact two Image widget-caption historical classifiers. No browser rerun or current capability acceptance is implied.",
+  "runnerPath": "/tmp/rector-image-rich-roundtrip-20261029/scripts/parity/block-roundtrip.mjs",
+  "runnerSha256": "142385fcdf2b4567f3bf83a0df648e621c70345a16cc60209e8179aa77c58e70",
+  "rawPath": "/tmp/rector-image-rich-raw2.json",
+  "rawSha256": "db0b1db7461ef244b12b17b1cfca334f1d50978c77091e885a0b1b99a2948f49",
+  "sourceSha256": "0f65e2734432f27cfea6115a102b340b28a1cb22f1110f3b16248c3023d90112",
+  "classifiedVectors": 139,
+  "rejectedVectors": 2093,
+  "rejectionClasses": {
+    "candidate": 139,
+    "other-source": 139,
+    "other-id": 139,
+    "other-known-id": 139,
+    "other-phase": 139,
+    "other-property": 139,
+    "other-status": 139,
+    "different-actual": 139,
+    "different-expected": 139,
+    "healthy-pair": 139,
+    "incomplete": 139,
+    "additional-incomplete": 139,
+    "wrong-record": 139,
+    "wrong-mode": 139,
+    "wrong-history": 139,
+    "wrong-native-owner": 8
+  },
+  "classifications": {
+    "unsupported-v1-image-caption-sidecars": 12,
+    "unsupported-v1-image-caption-labels": 48,
+    "unsupported-v1-image-caption-widgets": 48,
+    "repaired-v1-image-mode-remount": 8,
+    "unsupported-v1-image-widget-caret": 6,
+    "repaired-v1-image-history-remount": 8,
+    "repaired-v1-image-first-undo-caret": 2,
+    "repaired-baseline-image-derived-alt": 6,
+    "repaired-baseline-image-formatted-widget-mode": 1
+  },
+  "allChecksPassed": true
+}
