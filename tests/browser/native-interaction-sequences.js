@@ -29,6 +29,7 @@ function source(){
 for(const menuKind of ['inline','tune'])for(const backwards of [false,true]){
 test('native cut uses the retained converted interval despite the collapsed end caret'+' / '+menuKind+' / '+(backwards?'backward':'forward'),async()=>{
  const editor=source()
+ const before=editor.save().blocks
  await dragAcross(editor,editableField(editor,'a'),2,editableField(editor,'b'),3,backwards)
  await convert(editor,'heading',menuKind)
  const converted=editor.save().blocks, root=editorRoot(editor)
@@ -40,17 +41,28 @@ test('native cut uses the retained converted interval despite the collapsed end 
  },{once:true})
  await dispatchKey('x','KeyX',88,2)
  assert(copied,'Collapsed conversion caret suppressed the native clipboard event')
- equal(copied.parts.map(part=>part.block?.data?.text??part.html),['<b>pha</b>','Bra'],'Cut copied only the last field')
+ equal(copied.parts,[{kind:'rich-text',html:'<b>pha</b>'},{kind:'rich-text',html:'Bra'}],'Cut changed the complete converted fragment')
  const cut=editor.save().blocks
- equal(cut.map(block=>block.type),['paragraph','heading','paragraph'])
- equal(cut[0].data.text,'A<b>l</b>');equal(cut[2].data.text,'vo &amp; Co')
- equal(editableField(editor,cut[1].id).textContent,'','Cut did not remove the entire converted range')
+ // Both selected headings are complete blocks; remaining:null removes them.
+ // The unselected paragraphs survive exactly, so no default block is needed.
+ equal(cut,[converted[0],converted[3]],'Cut changed unselected records or retained an empty selected block')
  await dispatchKey('z','KeyZ',90,2)
  equal(editor.save().blocks,converted)
+ equal(editor.blocks.selectedIds(),[converted[1].id,converted[2].id],'Undo lost the exact converted interval')
  assert(root.classList.contains('oe-editor--cross-selecting'),'Undo lost the logical interval')
  const last=editableField(editor,converted[2].id),native=window.getSelection()
  assert(native.isCollapsed&&document.activeElement===last,'Undo lost the conversion end caret')
  equal(getTextOffset(last,native.anchorNode,native.anchorOffset),3)
+ await dispatchKey('z','KeyZ',90,2)
+ equal(editor.save().blocks,before)
+ equal(editor.canUndo,false,'Conversion and Cut created extra history entries')
+ const anchor=editableField(editor,backwards?'b':'a'),focus=editableField(editor,backwards?'a':'b')
+ assert(anchor.contains(native.anchorNode)&&focus.contains(native.focusNode),'Conversion Undo changed the source range direction')
+ equal(getTextOffset(anchor,native.anchorNode,native.anchorOffset),backwards?3:2)
+ equal(getTextOffset(focus,native.focusNode,native.focusOffset),backwards?2:3)
+ await dispatchKey('z','KeyZ',90,10)
+ equal(editor.save().blocks,converted)
+ equal(editor.blocks.selectedIds(),[converted[1].id,converted[2].id])
  await dispatchKey('z','KeyZ',90,10)
  equal(editor.save().blocks,cut)
 })
