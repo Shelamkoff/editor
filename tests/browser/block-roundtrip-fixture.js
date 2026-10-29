@@ -85,6 +85,13 @@ const attaches = {
   ] },
 }
 
+const raw = {
+  type: 'raw', version: 1, className: 'Raw', textKey: 'html', fieldMode: 'plain-text',
+  fieldSelector: '.oe-raw__textarea',
+  defaultData: { html: '' },
+  populatedData: { html: '<section><b>Alpha</b> &amp; {{literal}}</section>\n<p><em>Tail</em> &lt;safe&gt;</p>' },
+}
+
 const code = {
   type: 'code', version: 1, className: 'Code', textKey: 'code', fieldMode: 'plain-text',
   fieldSelector: '.oe-code-textarea',
@@ -117,7 +124,7 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -330,8 +337,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         : [record(id, data, undefined, specification)]
     }
     const expectedTag = block => ['spoiler', 'columns', 'attaches'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
-      : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+      : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
+    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : block.type === 'image' ? { ...block.data, caption: markupMeaning(block.data.caption) }
@@ -434,6 +441,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         body: block.data.content ? { tag: 'DIV', markup: markupMeaning(block.data.content) } : null,
       } : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
       ? { childCount: 0, text: '' }
+      : block.type === 'raw' ? markupMeaning(block.data.html)
       : block.type === 'code'
       ? { tag: 'CODE', source: block.data.code }
       : block.type === 'checklist'
@@ -504,9 +512,26 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         if (plainField) {
           check(phase, 'editorAuthoredSource', field().value, text)
           check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
-          check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
+          if (specification.type === 'code') check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
         } else if (plainContenteditable) check(phase, 'editorAuthoredPlainText', { text: field().textContent, elements: field().childElementCount }, { text, elements: 0 })
         else check(phase, noEditableField ? 'neighborAuthoredMarkup' : 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+      }
+      if (specification.type === 'raw') {
+        const preview = shell(id).querySelector('.oe-raw__preview')
+        const control = shell(id).querySelector('.oe-raw__toggle')
+        const frames = [...preview.querySelectorAll('iframe')]
+        check(phase, 'rawControls', { tag: control.tagName, text: control.textContent,
+          hidden: control.hidden, disabled: control.disabled,
+          controlsPreview: Boolean(preview.id) && control.getAttribute('aria-controls') === preview.id,
+        }, { tag: 'BUTTON', text: 'Preview', hidden: readOnly, disabled: readOnly, controlsPreview: true })
+        if (readOnly) check(phase, 'rawReadonlyPreview', {
+          sourceHidden: getComputedStyle(field()).display === 'none',
+          previewVisible: getComputedStyle(preview).display !== 'none',
+          pressed: control.getAttribute('aria-pressed'), frames: frames.length,
+        }, { sourceHidden: true, previewVisible: true, pressed: 'true', frames: 1 })
+        for (const frame of frames) check(phase, 'rawBenignPreview', {
+          sandbox: frame.getAttribute('sandbox'), title: frame.title, markup: markupMeaning(frame.srcdoc),
+        }, { sandbox: '', title: 'HTML preview', markup: markupMeaning(text) })
       }
       if (noEditableField) {
         const rule = shell(id).querySelector('.oe-delimiter')
@@ -705,17 +730,24 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           }, { accepted: true, active: true })
         }
       }
-      if (plainField && !shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
+      if (specification.type === 'code' && !shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
         const editControl = shell(id).querySelector('.oe-code-btn--edit')
         editControl.scrollIntoView({ block: 'nearest' })
         await settled()
         await focusField(editControl)
         await settled()
       }
+      if (specification.type === 'raw' && getComputedStyle(field()).display === 'none') {
+        const previewControl = shell(id).querySelector('.oe-raw__toggle')
+        previewControl.scrollIntoView({ block: 'nearest' })
+        await settled()
+        await focusField(previewControl)
+        await settled()
+      }
       const author = field()
       author.scrollIntoView({ block: 'nearest' })
       await settled()
-      if (plainField) {
+      if (specification.type === 'code') {
         const rect = author.getBoundingClientRect()
         const style = getComputedStyle(author)
         check('edit', 'plainFieldDisclosure', {
@@ -724,6 +756,17 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           visible: rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility === 'visible',
           receivesPointer: document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === author,
         }, { editing: true, hidden: false, visible: true, receivesPointer: true })
+      }
+      if (specification.type === 'raw') {
+        const rect = author.getBoundingClientRect()
+        const style = getComputedStyle(author)
+        check('edit', 'rawFieldDisclosure', {
+          previewPressed: shell(id).querySelector('.oe-raw__toggle').getAttribute('aria-pressed'),
+          frames: shell(id).querySelectorAll('.oe-raw__preview iframe').length,
+          hidden: author.hidden,
+          visible: rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility === 'visible',
+          receivesPointer: document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === author,
+        }, { previewPressed: 'false', frames: 0, hidden: false, visible: true, receivesPointer: true })
       }
       await focusField(author)
       const offset = plainField || plainContenteditable ? baseText.length : logicalLength(baseText)

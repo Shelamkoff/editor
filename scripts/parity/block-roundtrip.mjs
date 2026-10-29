@@ -140,12 +140,13 @@ try {
         'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/populated', 'BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_TOGGLE_ROUNDTRIP/populated-closed',
         'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/populated', 'BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/populated', 'BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control',
-        'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/populated']
+        'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/populated',
+        'BLOCK_RAW_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/populated']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default'].includes(entry.id)
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/default'].includes(entry.id)
           const listCase = ['BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const quoteCase = ['BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const warningCase = ['BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
@@ -157,8 +158,10 @@ try {
           const spoilerCase = ['BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/populated', 'BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const columnsCase = ['BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/populated', 'BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const attachesCase = ['BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/populated'].includes(entry.id)
+          const rawCase = ['BLOCK_RAW_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/populated'].includes(entry.id)
+          if (rawCase && !same(entry.completedPhases, ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])) return null
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
-            : failure.property === 'widgetDomIdentity' && populated && !codeCase && !delimiterCase && !imageCase && !attachesCase ? 2
+            : failure.property === 'widgetDomIdentity' && populated && !codeCase && !delimiterCase && !imageCase && !attachesCase && !rawCase ? 2
               : failure.property === 'itemDomIdentity' && listCase ? populated ? 2 : 1
                 : failure.property === 'quoteFieldDomIdentity' && quoteCase ? 2
                   : failure.property === 'warningFieldDomIdentity' && warningCase ? 2
@@ -167,7 +170,7 @@ try {
                     : failure.property === 'columnDomIdentity' && columnsCase ? 2
                     : failure.property === 'attachmentWrapperIdentity' && attachesCase ? 1
                     : failure.property === 'attachmentFieldDomIdentity' && attachesCase && populated && ['undo', 'redo'].includes(failure.phase) ? 2
-                    : failure.property === 'plainFieldDomIdentity' && codeCase ? 1
+                    : failure.property === 'plainFieldDomIdentity' && (codeCase || rawCase) ? 1
                       : failure.property === 'checklistDomIdentity' && checklistCase ? populated ? 6 : 3
                         : failure.property === 'delimiterDomIdentity' && delimiterCase ? 1
                           : failure.property === 'imageDomIdentity' && imageCase ? populated ? 3 : 1 : 0
@@ -249,6 +252,25 @@ try {
               anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
               focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
             })) return 'repaired-v1-first-undo-caret'
+          if (entry.id === 'BLOCK_RAW_ROUNDTRIP/populated' && failure.phase === 'undo' && failure.property === 'nativeSelection'
+            && same(failure.actual, { focused: false, anchor: 83, focus: 83, collapsed: true })
+            && same(failure.expected, { focused: true, anchor: 83, focus: 83, collapsed: true })
+            && same(undo?.selectionOwner, {
+              active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
+              anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+              focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+            })) return 'repaired-v1-first-undo-caret'
+          const rawId = populated ? 'probe' : generatedId
+          const rawEnd = populated ? 84 : 1
+          if (rawCase && failure.phase === 'redo' && failure.property === 'nativeSelection'
+            && typeof rawId === 'string' && rawId.length > 0
+            && same(failure.actual, { focused: true, anchor: 0, focus: 0, collapsed: true })
+            && same(failure.expected, { focused: true, anchor: rawEnd, focus: rawEnd, collapsed: true })
+            && same(entry.phases?.find(phase => phase.phase === 'redo')?.selectionOwner, {
+              active: { block: rawId, node: 'TEXTAREA', className: 'oe-raw__textarea' },
+              anchor: { block: rawId, node: '#text', text: 'Preview', offset: 7 },
+              focus: { block: rawId, node: '#text', text: 'Preview', offset: 7 },
+            })) return 'repaired-v1-raw-redo-caret'
           const codeId = populated ? 'probe' : generatedId
           const redo = entry.phases?.find(phase => phase.phase === 'redo')
           const codeEnd = populated ? 62 : 1
@@ -262,7 +284,7 @@ try {
               focus: { block: codeId, node: '#text', text: '\n', offset: 1 },
             })) return 'repaired-v1-code-redo-caret'
           const offset = attachesCase ? 26 : imageCase ? 18 : quoteCase || warningCase || toggleCase || spoilerCase || columnsCase ? 12 : 14
-          if (populated && !codeCase && !delimiterCase && failure.phase === 'undo' && failure.property === 'nativeSelection'
+          if (populated && !codeCase && !rawCase && !delimiterCase && failure.phase === 'undo' && failure.property === 'nativeSelection'
             && same(failure.actual, { focused: false, anchor: null, focus: null, collapsed: true })
             && same(failure.expected, { focused: true, anchor: offset, focus: offset, collapsed: true })
             && same(undo?.selectionOwner, {

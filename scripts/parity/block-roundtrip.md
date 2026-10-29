@@ -68,6 +68,20 @@ bare optional highlighter import cannot resolve. The standard Vite native
 page supplies the installed highlighting dependency. Token colors and
 highlighter injection are not accepted by this roundtrip template.
 
+Raw adds two plain-text textarea cases: its actual empty default and a fixed
+multiline HTML source containing entities and token-looking literal text.
+Canonical `html` and textarea value remain exact strings; only the renderer's
+separate authored output is compared as parsed benign markup. All three
+renderer contexts retain that markup. Read-only mode exposes the existing
+sandboxed preview with its exact benign `srcdoc`, title and control
+relationship. Returning to editing can retain transient preview state;
+when the source is hidden, the fixture activates the actual Preview button
+and requires a visible pointer-targetable textarea before native input.
+Textarea identity, selection and exact one-step Undo/Redo are checked for
+both cases. This does not accept Tab indentation, hostile HTML, frame sizing,
+themes, media, downloads or navigation/confinement policy. Those remain
+separate source, preview and HTML-boundary rows.
+
 Delimiter adds two explicit non-editable scenarios. Its actual default
 has payload `{}`, an editor HR and renderer HR, no text or source control,
 and no invented sidecar. It executes load/render, read-only and return,
@@ -209,11 +223,11 @@ author data from an initial `save()` result.
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
 | Image / 1 | Empty file URL/caption, false flags, empty styles | Local decoded PNG, literal rich caption, fixed appearance; edit `caption` | Implemented: empty source has authoring N/A; populated native caption history and renderer preserved. Widget-caption defect remains separate. |
 | Delimiter / 1 | Empty object | The same data-free separator between Paragraphs | Implemented: actual default has authoring phases N/A; a separately named real neighbor edit proves history preservation. |
-| Table / 2 | One empty cell with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. Default size difference remains unresolved. |
+| Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. The separate no-data default repair preserves explicit 1-by-1 data; the full template remains unexecuted here. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
 | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
 | Embed / 1 | Empty service/video/caption/metadata | Controlled service/video with local cover, rich caption | Disable or inject documented metadata provider; caption exists only for a valid embed. |
-| Raw / 1 | Empty HTML source | Safe multiline authored HTML; edit `html` source | Source field is plain text; preview confinement/navigation remain separate rows. |
+| Raw / 1 | Empty HTML source | Literal multiline authored HTML/entities; edit `html` source | Implemented: exact textarea source, benign rendered markup, existing preview disclosure and native history. HTML confinement/navigation remain separate rows. |
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
 | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
 | Attaches / 2 | No files, variant `f` | Two controlled file URLs, literal names, size/extension; edit first filename | Implemented: v1 file IDs absent; plain text, current keyed focus, retired mode controls, native history and renderer anchors are checked. |
@@ -231,14 +245,15 @@ mode, sidecar, rendering and three-source requirements.
 ### Default Table investigation
 
 v1 `plugins/table/index.js` constructs a 3-by-3 grid when no content is
-supplied, and its README explicitly documents that default. The current
-README explicitly documents a 1-by-1 empty grid. `git blame` attributes
-the current schema default to
+supplied, and its README explicitly documents that default. At the initial
+investigation, the candidate README and schema instead specified a 1-by-1
+empty grid. `git blame` attributes that earlier schema default to
 `fab6eb36d92cc6583bcb39d49f9503b3be3a5db6` (`feat: add table stable-id
-schema`). This is a documented behavioral difference, not merely the
-addition of IDs. Its public construction, preserved configuration route
-and contract disposition must be established before treating it as either
-a regression or an accepted change.
+schema`). This was a behavioral difference rather than an ID-only change.
+The separate default repair in `e1790dce` restores no-data 3-by-3
+construction, retaining explicit 1-by-1 and 3-by-3 data and the existing
+one-cell text conversion. Its targeted tests do not execute or accept the
+full Table ROUNDTRIP template listed in this inventory.
 
 ## Running the vertical slice
 
@@ -287,11 +302,11 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns and Attaches oracle
-classifies only these observed historical differences, bounded to the thirty-six exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches and Raw oracle
+classifies only these observed historical differences, bounded to the thirty-eight exact scenario IDs in the
 runner:
 
-- v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code textarea and
+- v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
   and Attaches wrapper during read-only/editable mode
   changes and Undo/Redo. Default Delimiter, empty-source Image and no-file
@@ -300,7 +315,7 @@ runner:
   differences apply only to populated Undo/Redo, since mode rebuilds are
   explicit and separately checked for retirement.
   No caret exception applies to Delimiter; no widget exception applies to
-  Delimiter, literal-caption Image or plain-text Attaches. Author data and sidecars
+  Delimiter, literal-caption Image, plain-text Attaches or Raw. Author data and sidecars
   must still be exact.
 - The first v1 Undo in each rich-field block's populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
@@ -351,6 +366,15 @@ runner:
   class and owners, binding the default owner to its generated ID. v1's
   `SelectionManager` restores a DOM Range in block contents rather than a
   textarea selection. Both later sources must restore the textarea caret.
+- The first v1 Undo in populated Raw retains textarea offset 83 but focuses
+  the exact prefix Paragraph (`Before`, offset 6). Both Raw Redo cases focus
+  their textarea at offset 0 instead of 1 (default) or 84 (populated).
+  The native DOM Range points to that same Raw block's `Preview` text at
+  offset 7. Classification requires the exact textarea class, full owner
+  snapshot and all seven completed phases; default ownership is bound to
+  the actual generated block ID. The v1 history code restores a block DOM
+  Range rather than the textarea's selection. e981 and the candidate have
+  no Raw exceptions and must retain the correct source caret.
 - e981 reports `false` from public keyed focus for each populated Attaches
   filename even though the exact requested DIV becomes active. The
   classification requires only this scenario, the `edit` phase, the two
@@ -373,6 +397,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns or Attaches behavior,
-the other 8 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches or Raw behavior,
+the other 7 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.
