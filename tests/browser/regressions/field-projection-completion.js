@@ -1,6 +1,8 @@
 import { DocumentStore } from '../../../core/DocumentStore.js'
+import { createImagePlugin } from '../../../plugins/image/index.js'
 import { createCompletionFixture } from './field-projection-completion-fixture.js'
-import { test, assert, equal, pause } from './harness.js'
+import { pixel } from '../plugin-parity-fixtures.js'
+import { test, assert, equal, pause, make, blockElement } from './harness.js'
 
 const completed = h => h.state.completions.map(item => [item.name, item.key, item.text])
 const accepted = h => ({ blocks: h.runtime.save().blocks, revision: h.runtime.revision,
@@ -11,6 +13,22 @@ function captureFailure(operation) {
   assert(failed, 'The operation must actually fail')
   return value
 }
+
+test('Image completion does not update a foreign auxiliary image during a mode transition', async () => {
+  const image = createImagePlugin({ injectStyles: false }), foreign = document.createElement('aside')
+  document.body.append(foreign)
+  const editor = make([{ id: 'image', type: 'image', dataVersion: image.schema.currentVersion,
+    data: { ...image.schema.createDefault(), file: { url: pixel }, caption: 'Owned caption' } }], { plugins: [image], defaultBlock: 'image' })
+  try {
+    await pause()
+    const node = blockElement(editor, 'image').querySelector('img'), before = editor.save().blocks
+    foreign.append(node); node.alt = 'foreign auxiliary sentinel'
+    editor.setReadOnly(true)
+    assert(node.parentNode === foreign)
+    equal(node.alt, 'foreign auxiliary sentinel', 'A legacy mode projection wrote the foreign image before completion')
+    equal(editor.save().blocks, before); assert(!editor.canUndo)
+  } finally { editor.destroy(); foreign.remove() }
+})
 
 test('field completion observes mounted connected-widget labels with an exact frozen descriptor', () => {
   const h = createCompletionFixture({ connectedWidget: true })
@@ -360,6 +378,68 @@ test('field completion cannot acquire scoped writes, tasks or public mutation an
     assert(h.editor.undo()); equal(h.editor.save().blocks, before); assert(!h.editor.canUndo)
   } finally { h.dispose(); foreign.remove() }
 })
+
+test('field completion cannot rewrite its passed author Text through a direct DOM write', async () => {
+  const h = createCompletionFixture()
+  try {
+    h.mount(); await pause()
+    const before = accepted(h)
+    let altered = false, failed = false
+    h.state.onCompletion = (notice, field) => {
+      if (altered || notice.name !== 'a' || notice.key !== 'front') return
+      altered = true
+      field.element.firstChild.data = 'Uncommitted callback author text '
+    }
+    try { h.runtime.update('a', current => ({ data: { ...current.data, front: 'Changed {{a-front}}' } })) }
+    catch { failed = true }
+    assert(altered, 'The callback must actually perform its forbidden author write')
+    assert(failed, 'Completion silently accepted author DOM changed by its callback')
+    equal(accepted(h), before); equal(h.state.transactions, [])
+    equal(h.panels.get('a').field().textContent, 'Front a-front')
+    equal(h.panels.get('a').derived.get('front').textContent, 'Front a-front')
+  } finally { h.dispose() }
+})
+
+for (const phase of ['canonical', 'standalone']) for (const changed of ['widget', 'text']) {
+  test(`field completion rejects a ${phase} callback that changes its sibling ${changed} without moving the field host`, async () => {
+    const h = createCompletionFixture(), foreign = document.createElement('aside'), sentinel = document.createElement('button')
+    foreign.append(sentinel); document.body.append(foreign)
+    try {
+      h.mount(); await pause()
+      const before = accepted(h), panel = h.panels.get('a'), note = h.latest('a-note'), task = note.context.beginTask(), independent = h.latest('b-note')
+      let edited = false, failed = false
+      h.state.onCompletion = notice => {
+        if (edited || notice.name !== 'a' || notice.key !== (phase === 'canonical' ? 'front' : 'back')) return
+        edited = true
+        if (changed === 'widget') foreign.append(note.element)
+        else panel.note.firstChild.data = 'Uncommitted sibling author text '
+      }
+      try {
+        if (phase === 'canonical') h.runtime.update('a', current => ({ data: { ...current.data, front: 'Changed {{a-front}}' } }))
+        else { panel.switchTab('back'); h.reconciler.getEditableFields('a') }
+      } catch { failed = true }
+      assert(edited, 'The real completion callback must change the sibling while retaining its field host')
+      assert(failed, 'Completion accepted a stale sibling projection')
+      equal(accepted(h), before); equal(h.state.transactions, [])
+      assert(note.context.signal.aborted && task.signal.aborted, 'The damaged sibling occurrence retained its scoped authority')
+      assert(h.latest('b-note') === independent && !independent.context.signal.aborted && independent.element.isConnected)
+      assert(sentinel.parentNode === foreign, 'Recovery removed foreign application content')
+      if (changed === 'widget') assert(!panel.note.contains(note.element), 'Recovery reclaimed the displaced old widget')
+      if (phase === 'canonical') {
+        equal(h.panels.get('a').note.textContent, 'Note a-note tail')
+        equal(h.panels.get('a').derived.get('note').textContent, 'Note a-note tail')
+      } else {
+        equal(h.reconciler.getEditableFields('a'), [])
+        equal([panel.note.contentEditable, panel.field().contentEditable], ['false', 'false'])
+        equal([panel.note.innerHTML, panel.field().innerHTML], ['', ''])
+        const calls = h.state.completions.length
+        for (let index = 0; index < 3; index++) h.reconciler.getEditableFields('a')
+        await pause(30)
+        equal(h.state.completions.length, calls, 'A settled damaged sibling retried completion')
+      }
+    } finally { h.dispose(); foreign.remove() }
+  })
+}
 
 test('field completion does not revive a removed instance when history recreates its serialized id', async () => {
   const h = createCompletionFixture()

@@ -113,3 +113,31 @@ for (const normalize of [false, true]) test(`field completion native ${normalize
     assert(h.editor.undo()); equal(h.editor.save().blocks, before); assert(!h.editor.canUndo)
   } finally { h.dispose() }
 })
+
+test('field completion native removal completes the remaining author field before retiring the removed occurrence', async () => {
+  const h = createCompletionFixture({ publicEditor: true, native: 'remove' })
+  h.records[0].data.front = 'L{{a-front}}R'
+  h.records[0].inline['a-front'].data.label = 'X'
+  try {
+    h.mount(); await pause(20)
+    const before = h.editor.save().blocks, field = h.panels.get('a').field(), widget = h.latest('a-front')
+    let trusted = false
+    field.addEventListener('input', event => { trusted = event.isTrusted }, { once: true })
+    field.focus(); window.getSelection().setBaseAndExtent(widget.element.firstChild, 1, widget.element.firstChild, 1)
+    h.state.completions.length = 0
+    await dispatchKey('Backspace', 'Backspace', 8)
+    assert(trusted, 'The control requires an actual browser removal')
+    const expected = structuredClone(before)
+    expected[0].data.front = 'LR'
+    delete expected[0].inline['a-front']
+    equal(h.editor.save().blocks, expected, 'Completion rejected the native owner\'s pending removed occurrence')
+    equal(completed(h), [['a', 'front', 'LR']])
+    equal(h.panels.get('a').derived.get('front').textContent, 'LR')
+    assert(widget.context.signal.aborted)
+    equal(h.state.transactions.length, 1)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before); assert(!h.editor.canUndo)
+    equal(h.panels.get('a').derived.get('front').textContent, 'LXR')
+    assert(h.editor.redo()); equal(h.editor.save().blocks, expected)
+    equal(h.panels.get('a').derived.get('front').textContent, 'LR')
+  } finally { h.dispose() }
+})

@@ -71,6 +71,7 @@ export function createCompletionFixture(options = {}) {
       handle() { return null },
       reconcileNative(input) {
         h.state.nativeEdits.push({ ...input })
+        if (options.native === 'remove' && !input.text) return { kind: 'remove' }
         return { kind: 'update', data: { label: input.text } }
       },
     } } : {}),
