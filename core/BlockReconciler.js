@@ -698,6 +698,7 @@ export class BlockReconciler {
     const changed = []
     const modeSnapshots=[]
     const disabledModes=new Map()
+    let modeBoundaryFailed=false
     try {
       for (const entry of this.#entries.values()) {
         changed.push(entry)
@@ -710,15 +711,39 @@ export class BlockReconciler {
         this.#disableFailedFields(entry,disabled)
         this.#refreshFields(entry.record.id, entry, true, true, next)
       }
-      this.#inlineProjection?.setReadOnly?.(next)
-      for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
+      const modeFields=[...this.#entries].map(([id,entry])=>({id,entry,fields:entry.fields,
+        owners:new Map(entry.fields.map(field=>[field.element,this.#fieldOwners.get(field.element)])),
+      }))
+      const beforeAccept=()=>{
+        for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
+        for(const {id,entry,fields,owners} of modeFields){
+          const ancestryCache=new Map()
+          if(this.#isCurrentMountedEntry(id,entry)&&fields.every(field=>{
+            const owner=owners.get(field.element)
+            return owner?.blockId===id&&owner.fieldKey===field.key&&owner.mode===field.mode
+              &&this.#hasFieldAncestry(owner,entry,ancestryCache)
+          }))continue
+          modeBoundaryFailed=true
+          const error=new Error('Read-only field left its accepted ownership boundary')
+          this.#reportPresentationFailure(error)
+          throw error
+        }
+      }
+      if(this.#inlineProjection?.setReadOnly)this.#inlineProjection.setReadOnly(next,beforeAccept)
+      else beforeAccept()
       this.#readOnly = next
     } catch (error) {
       // Failure occurrence is independent of the thrown payload: null,
       // undefined and every other falsy value still require reconstruction.
       // A child owner can already have reported its own failed rollback.
       const failures = error instanceof ReadOnlyRecoveryError ? [...error.errors] : [error]
-      let needsRestore = error instanceof ReadOnlyRecoveryError
+      let needsRestore = error instanceof ReadOnlyRecoveryError||modeBoundaryFailed
+      if(modeBoundaryFailed){
+        for(const [id,entry] of this.#entries){
+          try{this.#revalidateSettledFields(id,entry,entry.presentationFailure??null,false)}
+          catch(failure){failures.push(failure)}
+        }
+      }
       for (let index = changed.length - 1; index >= 0; index--) {
         try { changed[index].instance.setReadOnly(this.#readOnly) }
         catch (failure) {
@@ -985,8 +1010,16 @@ export class BlockReconciler {
       this.#revalidateSettledFields(id,entry,failed)
       failed.record=entry.record
       if(forceProjection&&this.#inlineProjection){
+        const owners=new Map(entry.fields.map(field=>[field.element,this.#fieldOwners.get(field.element)]))
         try{
-          this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,entry.fields,entry.baseContext,{projectionRoot:entry.element})
+          this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,entry.fields,entry.baseContext,{
+            projectionRoot:entry.element,
+            canRetainField:field=>{
+              const owner=owners.get(field.element)
+              return this.#isCurrentMountedEntry(id,entry)&&owner?.blockId===id&&owner.fieldKey===field.key
+                &&owner.mode===field.mode&&this.#hasFieldAncestry(owner,entry)
+            },
+          })
         }catch(error){
           this.#reportPresentationFailure(error)
           throw new ReadOnlyRecoveryError([error],'Read-only field projection requires recovery')

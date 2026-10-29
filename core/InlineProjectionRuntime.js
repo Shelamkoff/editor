@@ -593,7 +593,11 @@ export class InlineProjectionRuntime {
     }
   }
 
-  setReadOnly(value){
+  /**
+   * @param {boolean} value
+   * @param {() => void} [beforeAccept] Enclosing owner scope and boundary checks, before either mode is accepted.
+   */
+  setReadOnly(value,beforeAccept=()=>{}){
     this.#assertLive()
     const next=value===true
     if(next===this.#readOnly)return
@@ -608,6 +612,7 @@ export class InlineProjectionRuntime {
         }
       }
       for(const entry of changed)entry.scope?.setReadOnly?.(next)
+      beforeAccept()
       this.#readOnly=next
     }catch(error){
       const failures=[error]
