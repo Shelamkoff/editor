@@ -1545,4 +1545,214 @@ test('native inline update fails if plugin moves its root outside the original f
   } finally { projection.destroy(); host.remove() }
 })
 
+
+test('inline payload decoder cannot silently discard an adopted sibling occurrence', () => {
+  const shell = document.createElement('section')
+  const field = document.createElement('div')
+  field.contentEditable = 'true'
+  shell.append(field)
+  const foreign = document.createElement('button')
+  foreign.textContent = 'Independent owner: '
+  document.body.append(shell, foreign)
+  const roots = new Map(), events = []
+  let armed = false, adopted = null
+  const definition = { schema: { decode(input) {
+    events.push('decode:' + input.data.label)
+    if (armed && input.data.label === 'A-new') {
+      armed = false
+      adopted = roots.get('b')
+      foreign.append(adopted)
+      events.push('adopt:b')
+    }
+    return input
+  } } }
+  const runtime = { create(id, data) {
+    const element = document.createElement('span')
+    element.textContent = data.label
+    roots.set(id, element)
+    events.push('create:' + id)
+    return { element,
+      update(next) { element.textContent = next.label; events.push('update:' + id) },
+      setReadOnly() {}, destroy() { events.push('destroy:' + id) },
+    }
+  } }
+  const projection = new InlineProjectionRuntime({
+    registry: { getInlineDefinition: () => definition, getInlineRuntime: () => runtime },
+    ownerDocument: document,
+  })
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({ data: { fields: [{ key: 'text', html: '{{a}} {{b}} tail' }] },
+    inline: {
+      a: { type: 'probe', dataVersion: 1, data: { label } },
+      b: { type: 'probe', dataVersion: 1, data: { label: 'B-kept' } },
+    },
+  })
+  try {
+    projection.reconcileBlock('a', record('A-old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    equal(field.textContent, 'A-old B-kept tail', 'Initial projection control failed')
+    const originalB = roots.get('b')
+    armed = true
+    events.length = 0
+    let rejection = null
+    try {
+      projection.reconcileBlock('a', record('A-new'), { schema }, fields,
+        { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    } catch (error) { rejection = error }
+    assert(adopted === originalB, 'The decoder did not exercise actual sibling adoption')
+    if (rejection) {
+      equal(rejection.message, 'Inline widget root left its projection boundary before hydration',
+        'Only the explicit ownership rejection is an accepted failure outcome')
+    } else {
+      // A successful owner call must finish the canonical projection. Merely
+      // retiring the adopted sibling leaves a healthy-looking missing token.
+      equal({ text: field.textContent,
+        ids: [...field.querySelectorAll('[data-inline-plugin]')].map(element => element.dataset.id),
+      }, { text: 'A-new B-kept tail', ids: ['a', 'b'] },
+      'Successful reconciliation silently lost canonical sibling B; events=' + JSON.stringify(events))
+    }
+  } finally { projection.destroy(); shell.remove(); foreign.remove() }
+})
+
+
+test('inline identity marker callback cannot silently discard an adopted sibling occurrence', () => {
+  const shell = document.createElement('section')
+  const field = document.createElement('div')
+  field.contentEditable = 'true'
+  shell.append(field)
+  const foreign = document.createElement('button')
+  foreign.textContent = 'Independent owner: '
+  document.body.append(shell, foreign)
+  const roots = new Map(), events = []
+  let armed = false, adopted = null
+  const markerTag = 'rector-parity-marker-sibling'
+  customElements.define(markerTag, class extends HTMLElement {
+    static observedAttributes = ['data-inline-plugin']
+    attributeChangedCallback() {
+      if (!armed) return
+      armed = false
+      adopted = this
+      foreign.append(this)
+      events.push('adopt:b')
+    }
+  })
+  const definition = { schema: { decode(input) {
+    events.push('decode:' + input.data.label)
+    return input
+  } } }
+  const runtime = { create(id, data) {
+    const element = document.createElement(id === 'b' ? markerTag : 'span')
+    element.textContent = data.label
+    roots.set(id, element)
+    events.push('create:' + id)
+    return { element,
+      update(next) { element.textContent = next.label; events.push('update:' + id) },
+      setReadOnly() {}, destroy() { events.push('destroy:' + id) },
+    }
+  } }
+  const projection = new InlineProjectionRuntime({
+    registry: { getInlineDefinition: () => definition, getInlineRuntime: () => runtime },
+    ownerDocument: document,
+  })
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({ data: { fields: [{ key: 'text', html: '{{a}} {{b}} tail' }] },
+    inline: {
+      a: { type: 'probe', dataVersion: 1, data: { label } },
+      b: { type: 'probe', dataVersion: 1, data: { label: 'B-kept' } },
+    },
+  })
+  try {
+    projection.reconcileBlock('a', record('A-old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    equal(field.textContent, 'A-old B-kept tail', 'Initial projection control failed')
+    const originalB = roots.get('b')
+    armed = true
+    events.length = 0
+    let rejection = null
+    try {
+      projection.reconcileBlock('a', record('A-new'), { schema }, fields,
+        { createInlineWidgetContext: () => ({}) }, { projectionRoot: shell })
+    } catch (error) { rejection = error }
+    assert(adopted === originalB, 'The custom-element marker callback did not exercise actual sibling adoption')
+    if (rejection) {
+      equal(rejection.message, 'Inline widget root left its projection boundary before hydration',
+        'Only the explicit ownership rejection is an accepted failure outcome')
+    } else {
+      // A successful owner call must finish the canonical projection. Merely
+      // retiring the adopted sibling leaves a healthy-looking missing token.
+      equal({ text: field.textContent,
+        ids: [...field.querySelectorAll('[data-inline-plugin]')].map(element => element.dataset.id),
+      }, { text: 'A-new B-kept tail', ids: ['a', 'b'] },
+      'Successful reconciliation silently lost canonical sibling B; events=' + JSON.stringify(events))
+    }
+  } finally { projection.destroy(); shell.remove(); foreign.remove() }
+})
+
+test('inline sidecar release stops acquisition after a disconnected callback revokes its owner', () => {
+  const afterRevocation = [], created = [], released = [], scopes = []
+  let projection, armed = false, revoked = false, disconnected = 0
+  const observe = operation => { if (revoked) afterRevocation.push(operation) }
+  const tag = 'oe-inline-sidecar-release-revocation'
+  customElements.define(tag, class extends HTMLElement {
+    disconnectedCallback() {
+      if (!armed) return
+      armed = false
+      disconnected++
+      revoked = true
+      projection.destroyBlock('a')
+    }
+  })
+  const definition = { schema: { decode(input) { observe('decode'); return input } } }
+  const runtime = {
+    create(id, data) {
+      observe('create:' + id)
+      const element = document.createElement(tag)
+      element.textContent = data.label
+      created.push(element)
+      return {
+        element,
+        update(next) { observe('update:' + id); element.textContent = next.label },
+        setReadOnly() { observe('mode:' + id) },
+        destroy() { released.push(element) },
+      }
+    },
+  }
+  const registry = {
+    getInlineDefinition() { observe('definition'); return definition },
+    getInlineRuntime() { observe('runtime'); return runtime },
+  }
+  const host = document.createElement('section'), field = document.createElement('div')
+  field.contentEditable = 'true'
+  host.append(field); document.body.append(host)
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const context = {
+    createInlineWidgetContext(_fieldKey, id, _type, _signal, scope) {
+      observe('context:' + id)
+      scopes.push(scope)
+      return {}
+    },
+  }
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: 'Before {{x}} after' }] },
+    inline: { x: { ...payload, data: { label } } },
+  })
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields, context, { projectionRoot: host })
+    equal(created.length, 1)
+    assert(created[0].isConnected, 'the callback must run on a mounted custom-element root')
+    assert(scopes[0].active, 'the original owner must be live before release')
+    armed = true
+    throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields, context,
+      { projectionRoot: host }), /Inline projection owner was revoked during reconciliation/)
+    equal(disconnected, 1, 'native custom-element disconnection must revoke exactly once')
+    assert(scopes[0].revoked, 'the callback must retire the original inline scope')
+    equal(afterRevocation, [], 'revoked projection must not decode, acquire, update or notify mode')
+    equal(created.length, 1, 'no successor may be acquired after block revocation')
+    equal(released.length, 1)
+    assert(released[0] === created[0], 'the original occurrence must dispose exactly once')
+    assert(!field.contains(created[0]), 'the revoked root must not be reattached')
+  } finally { armed = false; projection.destroy(); host.remove() }
+})
+
 await run()

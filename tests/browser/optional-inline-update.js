@@ -111,6 +111,36 @@ test('no-op and unrelated edits retain a static widget occurrence and its pendin
   equal(pending.commit(() => ({ label: 'Repeated' })), false)
 })
 
+for (const withUpdate of [false, true]) test(`inline payload ${withUpdate ? 'update' : 'replacement'} preserves unrelated author text and a backward range`, () => {
+  const h = fixture({ withUpdate })
+  const field = blockElement(h.editor, 'a').querySelector('[contenteditable="true"]')
+  const tail = field.lastChild, sibling = h.root('y'), original = h.root('x')
+  const siblingContext = h.context('y'), task = siblingContext.beginTask()
+  assert(tail?.nodeType === Node.TEXT_NODE && tail.textContent === ' Z')
+  field.focus()
+  const selection = window.getSelection()
+  selection.setBaseAndExtent(tail, 2, tail, 1)
+  const before = h.data()
+  h.context('x').updateData(() => ({ label: 'Updated' }))
+  const after = h.data()
+  equal(after[0].inline.x.data, { label: 'Updated' })
+  equal(h.root('x').textContent, 'Updated')
+  assert(withUpdate ? h.root('x') === original : h.root('x') !== original)
+  assert(h.root('y') === sibling && !siblingContext.signal.aborted && !task.signal.aborted,
+    'Another widget occurrence and its pending task must retain their lifetime')
+  assert(field.lastChild === tail, 'Changing a widget payload replaced unrelated author text')
+  assert(selection.anchorNode === tail && selection.anchorOffset === 2
+    && selection.focusNode === tail && selection.focusOffset === 1
+    && selection.toString() === 'Z' && document.activeElement === field,
+  'Changing a widget payload moved or collapsed the exact backward range')
+  assert(h.editor.undo())
+  equal(h.data(), before)
+  assert(!h.editor.canUndo && h.editor.canRedo, 'One payload update must create exactly one history action')
+  assert(h.editor.redo())
+  equal(h.data(), after)
+  assert(h.editor.canUndo && !h.editor.canRedo)
+})
+
 
 function caught(operation) {
   try { operation() } catch (error) { return error }
