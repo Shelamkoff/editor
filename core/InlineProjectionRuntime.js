@@ -707,6 +707,8 @@ export class InlineProjectionRuntime {
         continue
       }
 
+      let decodedWidgets=null
+      let retainedHtml=null
       if(!preserveSourceProjection){
         const normalized=normalizeRichText(html,this.#ownerDocument)
         // A block plugin can retain an unchanged rich field while updating a
@@ -714,7 +716,15 @@ export class InlineProjectionRuntime {
         // collapses a genuine native caret/range even though the accepted
         // text has not changed. Compare the actual DOM spelling, not a
         // sanitized copy, so this does not retain undeclared live markup.
-        if(element.innerHTML!==normalized){
+        if(element.innerHTML!==normalized
+          &&this.#readSafeAuthoredField(blockId,fieldKey,element,state)===normalized){
+          // A changed sidecar does not change the authored field. Release
+          // only its changed occurrence for the existing hydration path;
+          // unrelated Text nodes, ranges and widget lifetimes stay mounted.
+          retainedHtml=normalized
+          decodedWidgets=this.#releaseChangedInlineRoots(blockId,fieldKey,element,inline,state,
+            ()=>assertFieldBoundary(fieldKey,element))
+        }else if(element.innerHTML!==normalized){
           const template=this.#ownerDocument.createElement('template')
           template.innerHTML=/** @type {any} */(toTrustedHtml(normalized,this.#ownerDocument))
           // Release owned roots while their exact author-field ancestry is
@@ -735,7 +745,19 @@ export class InlineProjectionRuntime {
       }
 
       this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque,canonicalOwners,
-        ()=>assertFieldBoundary(fieldKey,element))
+        ()=>assertFieldBoundary(fieldKey,element),decodedWidgets)
+      if(retainedHtml!==null){
+        if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
+          ||(!state.staged&&this.#blocks.get(blockId)!==state)){
+          throw new Error('Inline projection owner was revoked during reconciliation')
+        }
+        assertFieldBoundary(fieldKey,element)
+        // Even an unchanged occurrence has identity-marker callbacks. They
+        // cannot silently remove a canonical sibling or alter author text.
+        if(this.#readSafeAuthoredField(blockId,fieldKey,element,state)!==retainedHtml){
+          throw new Error('Inline widget root left its projection boundary before hydration')
+        }
+      }
       projectRichTextCaretPadding(element)
     }
 
@@ -797,7 +819,58 @@ export class InlineProjectionRuntime {
     return authored.innerHTML===normalizeRichText(authored.innerHTML,this.#ownerDocument)?authored.innerHTML:null
   }
 
-  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{}){
+  #releaseChangedInlineRoots(blockId,fieldKey,field,inline,state,assertBoundary){
+    const decodedWidgets=new Map()
+    const slots=new Map()
+    for(const entry of [...state.widgets.values(),...state.opaque.values()]){
+      if(entry.fieldKey!==fieldKey||entry.fieldElement!==field
+        ||!belongsToAuthorField(field,entry.element))continue
+      slots.set(entry.element,{entry,parent:entry.element.parentNode,
+        nextSibling:entry.element.nextSibling,node:entry.element})
+    }
+    const assertOwner=()=>{
+      if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
+        ||(!state.staged&&this.#blocks.get(blockId)!==state)){
+        throw new Error('Inline projection owner was revoked during reconciliation')
+      }
+      assertBoundary()
+    }
+    const assertSlot=({parent,nextSibling,node})=>{
+      if(node.parentNode!==parent||node.nextSibling!==(slots.get(nextSibling)?.node??nextSibling)
+        ||!belongsToAuthorField(field,node)){
+        throw new Error('Inline widget root left its projection boundary before hydration')
+      }
+    }
+    const ordered=[...slots.values()]
+    for(let index=0;index<ordered.length;index++){
+      const slot=ordered[index],next=ordered[index+1]
+      const assertCurrent=()=>{assertOwner();assertSlot(slot);if(next)assertSlot(next)}
+      assertCurrent()
+      const {entry}=slot
+      const ref=Object.hasOwn(inline,entry.id)?inline[entry.id]:null
+      const type=typeof ref?.type==='string'?ref.type:''
+      const definition=this.#registry.getInlineDefinition(type)
+      const runtime=this.#registry.getInlineRuntime(type)
+      const decoded=definition&&runtime
+        ?definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data}):null
+      // Validate each exact occurrence before its hooks or mutation. A
+      // decoder may move a later sibling; its captured slot is never skipped.
+      assertCurrent()
+      const known=state.widgets.get(entry.id)===entry
+      if(entry.type===type&&(known?decoded&&equalJsonValue(entry.data,decoded.data):!decoded))continue
+      if(decoded)decodedWidgets.set(entry.id,decoded)
+      slot.node=this.#ownerDocument.createTextNode('{{'+entry.id+'}}')
+      entry.element.replaceWith(slot.node)
+      assertCurrent()
+    }
+    // A later callback can also displace an earlier occurrence. One final
+    // pass settles those slots before hydration, without a scan per decoder.
+    assertOwner()
+    for(const slot of ordered)assertSlot(slot)
+    return decodedWidgets
+  }
+
+  #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{},decodedWidgets=null){
     const textNodes=[]
     const walker=this.#ownerDocument.createTreeWalker(element,4)
     let current=walker.nextNode()
@@ -874,7 +947,8 @@ export class InlineProjectionRuntime {
           continue
         }
 
-        const decoded=definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data})
+        const decoded=decodedWidgets?.has(id)?decodedWidgets.get(id)
+          :definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data})
 
         if(match.index>cursor)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
 
