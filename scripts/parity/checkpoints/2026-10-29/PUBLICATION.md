@@ -9,8 +9,10 @@ The API assigns commit metadata, so published commit IDs differ from the local
 verification IDs. Every individual source tree and the ordered published parent
 chain were compared after fetching the actual remote objects. No working files
 were reset, no source changes were combined, and no remote history was forced.
-Each published commit records its original ID and exact tree in
-`Local-source-commit` and `Local-source-tree` trailers.
+The verified original IDs and exact trees are recorded in the publication map.
+`Local-source-commit` and `Local-source-tree` trailers provide the same mapping
+where present; three continuation publications (`7bfa26df`, `3f2c9acf`,
+`97fad198`) omit those optional message trailers but retain verified map pairs.
 
 `publication-map.json` records the verified pairs through the stated
 `verifiedThrough` revision. Its base64 values contain only the original Git
