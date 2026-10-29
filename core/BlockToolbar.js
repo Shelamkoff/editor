@@ -42,11 +42,16 @@ export class BlockToolbar {
   #settingsButton
   #currentId = null
   #bookmark = null
-  #menuSelectionPending = false
+  #bookmarkOwner = null
+  #pointerTransfer = false
   #filterThreshold
   #destroyed = false
   #documentClick
   #documentMouseDown
+  #documentMouseUp
+  #documentFocusOut
+  #documentFocusIn
+  #documentSelectionChange
   #viewportChange
   /** @type {number | null} */
   #positionFrame = null
@@ -130,33 +135,57 @@ export class BlockToolbar {
 
     this.#plus.addEventListener('mousedown', event => {
       if (this.#destroyed || event.button !== 0) return
-      this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
-      this.#menuSelectionPending = true
+      this.#captureMenuSelection()
     })
     this.#settingsButton.addEventListener('mousedown', event => {
       if (this.#destroyed || event.button !== 0) return
-      this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
-      this.#menuSelectionPending = true
+      this.#captureMenuSelection()
     })
     this.#plus.addEventListener('click', event => {
       if (this.#destroyed) return
-      if (event.detail === 0) this.#menuSelectionPending = false
       event.stopPropagation()
       if (this.#toolbox.style.display === 'none') this.openToolbox()
       else this.closeToolbox()
     })
     this.#settingsButton.addEventListener('click', event => {
       if (this.#destroyed) return
-      if (event.detail === 0) this.#menuSelectionPending = false
       event.stopPropagation()
       if (this.#settings.style.display === 'none') this.openSettings()
       else this.closeSettings()
     })
 
-    // A capture belongs only to its completing pointer click. A later gesture
-    // or keyboard activation must read the author's current selection.
-    this.#documentMouseDown = () => { if (!this.#destroyed) this.#menuSelectionPending = false }
+    // A new author gesture retires the previous capture. Pointer activation
+    // owns its interval only while the document, fields and selection match.
+    this.#documentMouseDown = event => {
+      if (this.#destroyed || this.#toolbox.contains(event.target) || this.#settings.contains(event.target)) return
+      this.#bookmarkOwner = null
+      this.#pointerTransfer = event.button === 0 && this.#toolbar.contains(event.target)
+    }
+    this.#documentMouseUp = () => { this.#pointerTransfer = false }
     document.addEventListener('mousedown', this.#documentMouseDown, true)
+    document.addEventListener('mouseup', this.#documentMouseUp, true)
+    this.#documentFocusOut = event => {
+      if (this.#destroyed || ![this.#plus, this.#settingsButton].includes(event.relatedTarget)) return
+      // A pointer press already captured its interval. Focus transfer cannot
+      // restamp it after a callback changes the document, field or selection.
+      if (this.#pointerTransfer || this.#ownsMenuFocus(event.target)) return
+      // Logical capture intentionally refuses a focused toolbar button. Take
+      // the author interval during its direct focus handoff to this toolbar.
+      this.#captureMenuSelection(event.target)
+    }
+    this.#documentFocusIn = event => {
+      if (this.#destroyed || this.#ownsMenuFocus(event.target)) return
+      this.#bookmarkOwner = null
+      this.closeToolbox()
+      this.closeSettings()
+    }
+    this.#documentSelectionChange = () => {
+      if (this.#destroyed || this.#ownsMenuFocus(document.activeElement)) return
+      this.#captureMenuSelection()
+    }
+    document.addEventListener('focusout', this.#documentFocusOut)
+    document.addEventListener('focusin', this.#documentFocusIn)
+    document.addEventListener('selectionchange', this.#documentSelectionChange)
     this.#documentClick = event => {
       if (this.#destroyed) return
       const target = event.target
@@ -248,8 +277,9 @@ export class BlockToolbar {
 
   openToolbox() {
     if (this.#destroyed || this.#runtime.readOnly) return
-    if(!this.#menuSelectionPending)this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture() ?? this.#bookmark
-    this.#menuSelectionPending = false
+    const bookmark = this.#menuBookmark()
+    if (this.#bookmark && !bookmark) return
+    this.#bookmark = bookmark
     this.closeSettings()
     this.#toolboxQuery = ''
     this.#buildToolbox()
@@ -271,8 +301,9 @@ export class BlockToolbar {
 
   openSettings() {
     if (this.#destroyed || this.#runtime.readOnly || !this.#currentId) return
-    if(!this.#menuSelectionPending)this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture() ?? this.#bookmark
-    this.#menuSelectionPending = false
+    const bookmark = this.#menuBookmark()
+    if (this.#bookmark && !bookmark) return
+    this.#bookmark = bookmark
     this.closeToolbox()
     this.#buildSettings()
     this.#settings.style.display = ''
@@ -297,6 +328,10 @@ export class BlockToolbar {
     this.#cancelPositionFrame()
     this.#resizeObserver?.disconnect()
     this.#root.ownerDocument.removeEventListener('mousedown', this.#documentMouseDown, true)
+    this.#root.ownerDocument.removeEventListener('mouseup', this.#documentMouseUp, true)
+    this.#root.ownerDocument.removeEventListener('focusout', this.#documentFocusOut)
+    this.#root.ownerDocument.removeEventListener('focusin', this.#documentFocusIn)
+    this.#root.ownerDocument.removeEventListener('selectionchange', this.#documentSelectionChange)
     this.#root.ownerDocument.removeEventListener('click', this.#documentClick, true)
     this.#root.ownerDocument.defaultView?.removeEventListener('resize', this.#viewportChange)
     this.#tooltip.destroy()
@@ -304,6 +339,79 @@ export class BlockToolbar {
     this.#toolbox.remove()
     this.#settings.remove()
     this.#backdrop.remove()
+  }
+
+  #ownsMenuFocus(element) {
+    return this.#toolbar.contains(element) || this.#toolbox.contains(element) || this.#settings.contains(element)
+  }
+
+  #nativeSelection(element = null) {
+    const start = element?.selectionStart
+    if (typeof start === 'number') return [element, start, element.selectionEnd, element.selectionDirection]
+    const native = this.#root.ownerDocument.defaultView?.getSelection()
+    return native ? [native.anchorNode, native.anchorOffset, native.focusNode, native.focusOffset] : []
+  }
+
+  #captureMenuSelection(source = this.#root.ownerDocument.activeElement) {
+    this.#bookmarkOwner = null
+    this.#bookmark = null
+    if (this.#destroyed || this.#runtime.readOnly
+      || this.#runtime.canAccessFormattingSelection?.() !== true) return
+    const generation = this.#runtime.generation, revision = this.#runtime.revision, modeEpoch = this.#runtime.modeEpoch
+    const active = this.#root.ownerDocument.activeElement
+    const sourceField = this.#currentId
+      ? this.#view.fields(this.#currentId).find(field => field.element === source) : null
+    let captured = this.#selection.capture()
+    if (!captured && source !== active && sourceField?.mode === 'plain-text') {
+      // A real input loses activeElement before focusout. Its direct handoff
+      // owns these native coordinates; a toolbar button cannot capture them.
+      const start = source.selectionStart, end = source.selectionEnd, backward = source.selectionDirection === 'backward'
+      if (typeof start === 'number' && typeof end === 'number') captured = {
+        anchor: { blockId: this.#currentId, fieldKey: sourceField.key, offset: backward ? end : start },
+        focus: { blockId: this.#currentId, fieldKey: sourceField.key, offset: backward ? start : end },
+      }
+    }
+    if (!captured) return
+    const bookmark = sourceField?.mode === 'plain-text' ? captured : this.#selectionPort?.bookmark ?? captured
+    const native = this.#nativeSelection(source)
+    const owners = [bookmark.anchor, bookmark.focus].map(point => {
+      const block = this.#view.element(point.blockId)
+      const fields = this.#view.fields(point.blockId)
+      const field = fields.find(field => field.key === point.fieldKey)
+      return { blockId: point.blockId, fieldKey: point.fieldKey, block,
+        element: field?.element ?? (point.fieldKey === '' && fields.length === 0 ? block : null) }
+    })
+    const after = this.#nativeSelection(source)
+    if (!owners.every(owner => owner.element?.isConnected && owner.block?.contains(owner.element))
+      || !owners.some(owner => owner.element === source)
+      || this.#destroyed || this.#runtime.readOnly || this.#runtime.canAccessFormattingSelection?.() !== true
+      || active !== this.#root.ownerDocument.activeElement
+      || generation !== this.#runtime.generation || revision !== this.#runtime.revision || modeEpoch !== this.#runtime.modeEpoch
+      || !native.every((value, index) => value === after[index])) return
+    this.#bookmark = bookmark
+    this.#bookmarkOwner = {
+      generation, revision, modeEpoch, owners, native, source,
+    }
+  }
+
+  #menuBookmark() {
+    if (!this.#ownsMenuFocus(this.#root.ownerDocument.activeElement)) this.#captureMenuSelection()
+    const owner = this.#bookmarkOwner
+    const active = this.#root.ownerDocument.activeElement
+    const owns = () => owner && owner === this.#bookmarkOwner
+      && !this.#destroyed && !this.#runtime.readOnly && this.#runtime.canAccessFormattingSelection?.() === true
+      && owner.generation === this.#runtime.generation && owner.revision === this.#runtime.revision
+      && owner.modeEpoch === this.#runtime.modeEpoch && active === this.#root.ownerDocument.activeElement
+    if (!owns()) return null
+    const native = this.#nativeSelection(owner.source)
+    if (!owner.native.every((value, index) => value === native[index])) return null
+    if (!owner.owners.every(field => field.element.isConnected && field.block === this.#view.element(field.blockId)
+      && field.block?.contains(field.element)
+      && (field.fieldKey === '' ? this.#view.fields(field.blockId).length === 0
+        : this.#view.fields(field.blockId).some(current => current.key === field.fieldKey && current.element === field.element)))) return null
+    const after = this.#nativeSelection(owner.source)
+    return owns() && owner.owners.every(field => field.element.isConnected && field.block?.contains(field.element))
+      && owner.native.every((value, index) => value === after[index]) ? this.#bookmark : null
   }
 
   #label(scope, type, label) {
@@ -415,12 +523,14 @@ export class BlockToolbar {
     const generation = this.#runtime.generation
     const ownerId = this.#currentId
     const owner = ownerId ? this.#view.element(ownerId) : null
+    item.addEventListener('mousedown', event => event.preventDefault())
     item.addEventListener('click', event => {
       if (this.#destroyed) return
       event.preventDefault()
       event.stopPropagation()
       if (this.#runtime.readOnly || version !== this.#toolboxVersion || generation !== this.#runtime.generation) return
       if (ownerId && owner !== this.#view.element(ownerId)) return
+      if (this.#bookmark && !this.#menuBookmark()) return
       action()
     })
     return item
@@ -718,12 +828,14 @@ export class BlockToolbar {
     const generation = this.#runtime.generation
     const ownerId = this.#currentId
     const owner = ownerId ? this.#view.element(ownerId) : null
+    item.addEventListener('mousedown', event => event.preventDefault())
     if (!disabled) item.addEventListener('click', event => {
       if (this.#destroyed) return
       event.preventDefault()
       event.stopPropagation()
       if (this.#runtime.readOnly || version !== this.#settingsVersion || generation !== this.#runtime.generation) return
       if (ownerId && owner !== this.#view.element(ownerId)) return
+      if (this.#bookmark && !this.#menuBookmark()) return
       action()
     })
     return item

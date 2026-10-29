@@ -1,5 +1,5 @@
 import { createDefaultInlineTools } from '../../inline-tools/defaults.js'
-import { createParagraphPlugin, createHeadingPlugin } from '../../plugins/index.js'
+import { createParagraphPlugin, createHeadingPlugin, createCodePlugin } from '../../plugins/index.js'
 import { CLIPBOARD_FRAGMENT_MIME } from '../../core/ClipboardFragment.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import ru from '../../locale/ru.js'
@@ -257,6 +257,196 @@ for (const type of ['align', 'bold']) for (const backwards of [false, true]) {
     equal(editor.canUndo, false, 'one keyboard activation created multiple actions')
     await dispatchKey('z', 'KeyZ', 90, 10)
     equal(editor.save().blocks, after)
+  })
+}
+
+for (const retirement of ['foreign focus', 'document revision during press', 'field replacement during press', 'native selection during press']) {
+  test(`native Tune pointer activation does not reuse a retired author interval / ${retirement}`, async () => {
+    let replaceField = null
+    const base = createParagraphPlugin()
+    const paragraph = retirement !== 'field replacement during press' ? base : { ...base, setup() {
+      return { create(initial, context) {
+        const host = context.ownerDocument.createElement('div')
+        let field, data = { ...initial }
+        const paint = value => {
+          const next = context.ownerDocument.createElement('p')
+          next.contentEditable = 'true'
+          next.textContent = value.text
+          if (field) field.replaceWith(next)
+          else host.append(next)
+          field = next
+          data = { ...value }
+        }
+        paint(data)
+        if (initial.text === 'Bravo') replaceField = () => paint(data)
+        return {
+          element: host, read: () => ({ ...data, text: field.textContent }), update: paint,
+          editableFields: () => [{ key: 'text', mode: 'rich-text', element: field }],
+          setReadOnly(value) { field.contentEditable = String(!value) },
+          focus() { field.focus() }, destroy() {},
+        }
+      }, destroy() {} }
+    } }
+    const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], {
+      injectStyles: true, locale: ru, plugins: [paragraph, createHeadingPlugin()], inlineTools: createDefaultInlineTools(),
+    })
+    const root = editorRoot(editor)
+    await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 3)
+    const tune = root.querySelector('.oe-toolbar__drag')
+    let expected = editor.save().blocks, undoBefore = editor.canUndo
+    let outside
+    if (retirement === 'foreign focus') {
+      outside = document.createElement('button')
+      document.body.append(outside)
+      outside.focus()
+    } else {
+      tune.addEventListener('mousedown', event => {
+        assert(event.isTrusted, 'retirement did not occur in a native press')
+        if (retirement === 'document revision during press') {
+          editor.blocks.update('a', () => ({ data: { text: 'Changed elsewhere' } }))
+        } else if (retirement === 'field replacement during press') {
+          assert(replaceField)
+          replaceField()
+        } else {
+          const field = editableField(editor, 'b')
+          window.getSelection().setBaseAndExtent(field.firstChild, 4, field.firstChild, 3)
+        }
+        expected = editor.save().blocks
+        undoBefore = editor.canUndo
+      }, { once: true })
+    }
+    try {
+      if (retirement !== 'foreign focus') {
+        await clickNative(tune)
+        assert(!root.querySelector('.oe-settings-menu').checkVisibility(), 'revoked pointer capture opened current-block settings')
+        equal(editor.save().blocks, expected, 'rejected pointer capture changed author data')
+        equal(editor.canUndo, undoBefore, 'rejected pointer capture changed history')
+        assert(document.activeElement === tune, 'rejected pointer capture restored the retired author focus')
+        return
+      }
+      await convert(editor, 'heading', 'tune')
+      const after = editor.save().blocks
+      equal(after.map(block => block.id), ['a', 'b'], 'retired interval split unrelated author blocks')
+      equal(after.map(block => [block.type, block.data.text]), [
+        ['heading', 'Alpha'],
+        ['paragraph', 'Bravo'],
+      ], 'fresh settings action reused the previous partial selection')
+      await dispatchKey('z', 'KeyZ', 90, 2)
+      equal(editor.save().blocks, [para('a', 'Alpha'), para('b', 'Bravo')])
+    } finally { outside?.remove() }
+  })
+}
+
+for (const retirement of ['foreign focus', 'native selection']) {
+  test(`retained native Tune conversion rejects a newer ${retirement} after opening`, async () => {
+    const editor = make([para('a', 'Alpha bravo')], {
+      injectStyles: true, locale: ru, plugins: [createParagraphPlugin(), createHeadingPlugin()],
+    })
+    const root = editorRoot(editor), field = editableField(editor, 'a'), before = editor.save().blocks
+    field.focus()
+    window.getSelection().setBaseAndExtent(field.firstChild, 1, field.firstChild, 5)
+    await pause(30)
+    root.querySelector('.oe-toolbar__drag').focus()
+    await dispatchKey('Enter', 'Enter', 13)
+    const menu = root.querySelector('.oe-settings-menu')
+    await clickNative(menu.querySelector('[data-menu-convert]'))
+    const retained = menu.querySelector('[data-plugin-type="heading"]')
+    assert(retained, 'precondition: open conversion item')
+    let outside
+    if (retirement === 'foreign focus') {
+      outside = document.createElement('button')
+      document.body.append(outside)
+      outside.focus()
+    } else {
+      field.focus()
+      window.getSelection().setBaseAndExtent(field.firstChild, 6, field.firstChild, 11)
+    }
+    const active = document.activeElement, native = window.getSelection()
+    const endpoints = [native.anchorNode, native.anchorOffset, native.focusNode, native.focusOffset]
+    try {
+      retained.click()
+      equal(editor.save().blocks, before)
+      equal(editor.canUndo, false)
+      assert(document.activeElement === active, 'retired menu took focus from the newer owner')
+      assert(native.anchorNode === endpoints[0] && native.anchorOffset === endpoints[1]
+        && native.focusNode === endpoints[2] && native.focusOffset === endpoints[3], 'retired menu changed the newer range')
+    } finally { outside?.remove() }
+  })
+}
+
+test('native Tune pointer drilldown can cancel and reopen the same selected interval from keyboard', async () => {
+  const editor = make([para('a', 'Alpha bravo')], {
+    injectStyles: true, locale: ru, plugins: [createParagraphPlugin(), createHeadingPlugin()],
+  })
+  const root = editorRoot(editor), field = editableField(editor, 'a'), before = editor.save().blocks
+  field.focus()
+  window.getSelection().setBaseAndExtent(field.firstChild, 5, field.firstChild, 1)
+  await pause(30)
+  const trigger = root.querySelector('.oe-toolbar__drag'), menu = root.querySelector('.oe-settings-menu')
+  trigger.focus()
+  await dispatchKey('Enter', 'Enter', 13)
+  await clickNative(menu.querySelector('[data-menu-convert]'))
+  await dispatchKey('Escape', 'Escape', 27)
+  await dispatchKey('Escape', 'Escape', 27)
+  assert(document.activeElement === trigger, 'Escape did not return focus to Tune')
+  await dispatchKey('Enter', 'Enter', 13)
+  await clickNative(menu.querySelector('[data-menu-convert]'))
+  await clickNative(menu.querySelector('[data-plugin-type="heading"]'))
+  equal(editor.save().blocks.map(block => [block.type, block.data.text]), [
+    ['paragraph', 'A'], ['heading', 'lpha'], ['paragraph', ' bravo'],
+  ])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+})
+
+test('native Tune keyboard handoff captures a newer range before queued selectionchange', async () => {
+  const editor = make([para('a', 'Alpha bravo')], {
+    injectStyles: true, locale: ru, plugins: [createParagraphPlugin(), createHeadingPlugin()],
+  })
+  const root = editorRoot(editor), field = editableField(editor, 'a'), before = editor.save().blocks
+  field.focus()
+  window.getSelection().setBaseAndExtent(field.firstChild, 1, field.firstChild, 5)
+  await pause(30)
+  window.getSelection().setBaseAndExtent(field.firstChild, 11, field.firstChild, 6)
+  root.querySelector('.oe-toolbar__drag').focus()
+  await dispatchKey('Enter', 'Enter', 13)
+  const menu = root.querySelector('.oe-settings-menu')
+  await clickNative(menu.querySelector('[data-menu-convert]'))
+  await clickNative(menu.querySelector('[data-plugin-type="heading"]'))
+  equal(editor.save().blocks.map(block => [block.type, block.data.text]), [['paragraph', 'Alpha '], ['heading', 'bravo']])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+})
+
+for (const activation of ['keyboard', 'pointer']) {
+  test(`native Tune ${activation} handoff preserves a plain-text input selection through conversion Undo`, async () => {
+    const code = createCodePlugin()
+    const editor = make([{ id: 'a', type: 'code', dataVersion: code.schema.currentVersion,
+      data: { ...code.schema.createDefault(), code: 'Alpha bravo', language: 'plaintext' } }], {
+      injectStyles: true, locale: ru, plugins: [createParagraphPlugin(), createHeadingPlugin(), code],
+    })
+    const root = editorRoot(editor), before = editor.save().blocks
+    assert(editor.blocks.focus('a', { fieldKey: 'code', offset: 1 }))
+    const input = root.querySelector('textarea')
+    input.setSelectionRange(1, 5, 'backward')
+    const trigger = root.querySelector('.oe-toolbar__drag')
+    if (activation === 'keyboard') {
+      trigger.focus()
+      await dispatchKey('Enter', 'Enter', 13)
+    } else await clickNative(trigger)
+    const menu = root.querySelector('.oe-settings-menu')
+    await clickNative(menu.querySelector('[data-menu-convert]'))
+    await clickNative(menu.querySelector('[data-plugin-type="heading"]'))
+    equal(editor.save().blocks.map(block => [block.type, block.data.text]), [['heading', 'Alpha bravo']],
+      'plain-text source selection was treated as a rich-text slice')
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+    const restored = root.querySelector('textarea')
+    assert(document.activeElement === restored, 'conversion Undo did not restore the source input')
+    equal([restored.selectionStart, restored.selectionEnd, restored.selectionDirection], [1, 5, 'backward'])
   })
 }
 
