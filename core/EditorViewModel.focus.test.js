@@ -5,6 +5,7 @@ import { EditorViewModel } from './EditorViewModel.js'
 function harness({ canFocus = false } = {}) {
   const calls = []
   const runtime = {
+    health: 'ready',
     list: () => [],
     has: id => id === 'a',
     idAt: i => i === 0 ? 'a' : undefined,
@@ -41,12 +42,12 @@ test('rejected plugin focus does not move logical caret into an unrelated field'
 test('successful plugin focus preserves explicit caret placement', () => {
   const { view, calls } = harness({ canFocus: true })
   assert.equal(view.focus('a', { fieldKey: 'title', offset: 2 }), true)
-  assert.deepEqual(calls, ['focus', 'setCaret'])
+  assert.deepEqual(calls, ['focus', 'setCaret', 'setCurrent'])
 })
 
 test('a failed logical caret placement is not reported as successful focus', () => {
   const calls = []
-  const runtime = { list: () => [] }
+  const runtime = { health: 'ready', has: id => id === 'a', list: () => [] }
   const interaction = {
     currentId: null,
     setCurrent() { calls.push('setCurrent') },

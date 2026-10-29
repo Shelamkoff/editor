@@ -21,7 +21,10 @@ function authorHost(element) {
   return host?.getAttribute('contenteditable') === 'true' ? host : null
 }
 
-/** @param {Node} node @returns {boolean} */
+/** Identify independently owned controls and editing hosts inside a subtree.
+ * @param {Node} node
+ * @returns {boolean}
+ */
 export function hasProtectedDomContent(node) {
   if (node.nodeType !== ELEMENT_NODE && node.nodeType !== DOCUMENT_FRAGMENT_NODE) return false
   const element = /** @type {Element | DocumentFragment} */ (node)
@@ -34,6 +37,7 @@ export function hasProtectedDomContent(node) {
  * a whole editing host is recursive, so invoking it directly also normalizes
  * locked input/widget descendants.
  * @param {Node | null} root
+ * @returns {void}
  */
 export function normalizeAuthoredText(root) {
   if (!root || root.nodeType !== ELEMENT_NODE) return

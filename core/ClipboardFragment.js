@@ -60,9 +60,13 @@ export function transferBlockFromRecord(record){
   return block
 }
 
+/** @typedef {{kind: 'rich-text', html: string, inline?: Record<string, import('../shared/documentTypes.js').EditorInlineWidget>}} ClipboardRichTextPart */
+/** @typedef {ClipboardRichTextPart | {kind: 'block', block: ReturnType<typeof transferBlockFromRecord>}} ClipboardFragmentPart */
+
 export function createClipboardFragment(parts){
   const length=dense(parts)
   // Do not call methods or iterators supplied by a caller-owned Array.
+  /** @type {ClipboardFragmentPart[]} */
   const owned=[]
   for(let index=0;index<length;index++){
     const source=object(parts[index],`Clipboard fragment part[${index}]`)
@@ -70,6 +74,7 @@ export function createClipboardFragment(parts){
     if(kind==='rich-text'){
       const html=source.html
       if(typeof html!=='string')throw new TypeError('Clipboard rich-text html must be a string')
+      /** @type {ClipboardRichTextPart} */
       const result={kind:'rich-text',html}
       const inline=optionalObject(source.inline,'Clipboard rich-text inline')
       if(inline!==undefined)result.inline=inline

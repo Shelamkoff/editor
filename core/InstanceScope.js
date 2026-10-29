@@ -168,7 +168,7 @@ export class InstanceScope{
     // its teardown has not run yet.
     if(this.#state==='active'){
       const generation=this.#generation
-      if(this.#currentGeneration()!==generation||this.#state==='revoked'
+      if(this.#currentGeneration()!==generation||this.revoked
         ||this.#interactionEpoch!==epoch||this.#generation!==generation){
         throw createAbortError('Instance generation is stale')
       }

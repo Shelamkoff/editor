@@ -10,7 +10,9 @@ function harness() {
     setBaseAndExtent(anchor, anchorOffset, focus, focusOffset) {
       calls.push({ anchor, anchorOffset, focus, focusOffset })
       this.anchorNode = anchor
+      this.anchorOffset = anchorOffset
       this.focusNode = focus
+      this.focusOffset = focusOffset
     },
     removeAllRanges() { this.anchorNode = this.focusNode = null },
   }

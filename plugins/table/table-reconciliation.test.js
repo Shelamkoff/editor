@@ -1,12 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { plainTextTemplate } from '../../tests/helpers/plainTextTemplate.js'
 import { createTablePlugin } from './index.js'
 
 // This DOM adapter intentionally models node identity/moves, not the editor's
 // reconciliation rules. Expected heading placement comes from the Table
 // authoring contract and v1's positional <th>/<td> rendering.
 class FakeElement {
-  constructor(tag) {
+  constructor(tag, ownerDocument) {
+    this.ownerDocument = ownerDocument
     this.tagName = tag.toUpperCase()
     this.parentNode = null
     this.children = []
@@ -59,7 +61,11 @@ class FakeElement {
   focus() {}
 }
 
-const ownerDocument = { createElement: tag => new FakeElement(tag) }
+const ownerDocument = {
+  createElement: tag => tag === 'template'
+    ? plainTextTemplate(ownerDocument)
+    : new FakeElement(tag, ownerDocument),
+}
 
 function data(ids, withHeadings = true) {
   return {

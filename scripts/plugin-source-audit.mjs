@@ -156,7 +156,7 @@ export function auditRuntimeDependencies(sources) {
   const failures = []
   const graph = new Map()
   const preparations = new Set(['DocumentIngestion.js', 'CanonicalTransforms.js', 'projectionFields.js',
-    'LogicalRangePlans.js', 'ClipboardPlans.js', 'SelectionConversionPlans.js'])
+    'LogicalRangePlans.js', 'ClipboardPlans.js', 'SelectionConversionPlans.js', 'ClipboardFragment.js'])
   const owner = file => file.startsWith('core/')
     ? preparations.has(path.posix.basename(file)) ? 'preparation' : 'editor'
     : /^(plugins|inline-plugins|inline-tools)\//.test(file) ? 'extension'

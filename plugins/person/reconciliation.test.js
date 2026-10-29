@@ -1,10 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { plainTextTemplate } from '../../tests/helpers/plainTextTemplate.js'
 import { createPersonPlugin } from './index.js'
 
 // Minimal DOM ownership fixture. The tests concern whether update() moves a
-// mounted editing host, not browser parsing or rich-text sanitation. Empty
-// author text keeps the real sanitizer's inert template path unnecessary.
+// mounted editing host, not browser parsing or rich-text sanitation. The
+// template adapter accepts only plain author text; markup is tested in Chromium.
 class FakeElement {
   constructor(tagName, ownerDocument) {
     this.tagName = tagName.toUpperCase()
@@ -104,7 +105,9 @@ function mount(initial = input()) {
   let canonical = initial
   const ownerDocument = {
     activeElement: null,
-    createElement(tag) { return new FakeElement(tag, ownerDocument) },
+    createElement(tag) {
+      return tag === 'template' ? plainTextTemplate(ownerDocument) : new FakeElement(tag, ownerDocument)
+    },
   }
   const definition = createPersonPlugin({ injectStyles: false })
   const instance = definition.setup({ t: (_key, fallback) => fallback }).create(initial, {

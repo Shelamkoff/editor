@@ -115,6 +115,10 @@ class Node {
     return found
   }
   querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null }
+  contains(target) {
+    for (let node = target; node; node = node.parentNode) if (node === this) return true
+    return false
+  }
   focus() { this.ownerDocument.activeElement = this }
   getClientRects() { return [] }
   closest() { return null }

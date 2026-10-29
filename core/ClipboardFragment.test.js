@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import {
   CLIPBOARD_FRAGMENT_MIME,
+  CLIPBOARD_FRAGMENT_VERSION,
   createClipboardFragment,
   decodeClipboardFragment,
   encodeClipboardFragment,

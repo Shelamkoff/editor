@@ -126,6 +126,7 @@ export type EditorDiagnosticCode =
   | 'command.failed'
   | 'command.slow'
   | 'paste.failed'
+  | 'cut.failed'
   | 'paste.slow'
   | 'save.failed'
   | 'save.slow'

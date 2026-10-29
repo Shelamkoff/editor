@@ -53,3 +53,22 @@ test('dependency audit resolves existing extensionless files and ignores non-Jav
   ])
   assert.deepEqual(auditRuntimeDependencies(sources), [])
 })
+
+test('preparation may consume the pure current clipboard codec without editor authority', () => {
+  const sources = new Map([
+    ['core/ClipboardPlans.js', "import { encode } from './ClipboardFragment.js'"],
+    ['core/ClipboardFragment.js', "import '../shared/jsonData.js'; export const encode = value => value"],
+    ['shared/jsonData.js', 'export {}'],
+  ])
+  assert.deepEqual(auditRuntimeDependencies(sources), [])
+})
+
+for (const owner of ['DocumentRuntime', 'HistoryStore', 'InteractionState']) {
+  test(`a codec cannot acquire ${owner} authority by using a preparation filename`, () => {
+    const sources = new Map([
+      ['core/ClipboardFragment.js', `import './${owner}.js'`],
+      [`core/${owner}.js`, 'export {}'],
+    ])
+    assert.match(auditRuntimeDependencies(sources).join('\n'), /forbidden preparation dependency/)
+  })
+}

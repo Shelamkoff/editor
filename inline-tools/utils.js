@@ -139,6 +139,7 @@ function haveSameAttributes(left, right) {
  * protected descendants, native controls, or inline-widget DOM ownership.
  * @param {Text} text
  * @param {HTMLElement} ancestor
+ * @returns {void}
  */
 export function isolateAncestor(text, ancestor) {
   /** @type {Node} */

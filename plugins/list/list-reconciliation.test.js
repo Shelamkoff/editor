@@ -1,12 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { plainTextTemplate } from '../../tests/helpers/plainTextTemplate.js'
 import { createListPlugin } from './index.js'
 
 // Track actual DOM moves: removing/reappending a focused contenteditable node
 // collapses the native selection in Chromium. The fixture does not implement
 // reconciliation; it only enforces basic Element tree semantics.
 class FakeElement {
-  constructor(tag) {
+  constructor(tag, ownerDocument) {
+    this.ownerDocument = ownerDocument
     this.tagName = tag.toUpperCase()
     this.children = []
     this.parentNode = null
@@ -52,7 +54,11 @@ class FakeElement {
   focus() {}
 }
 
-const ownerDocument = { createElement: tag => new FakeElement(tag) }
+const ownerDocument = {
+  createElement: tag => tag === 'template'
+    ? plainTextTemplate(ownerDocument)
+    : new FakeElement(tag, ownerDocument),
+}
 const items = ids => ({ style: 'unordered', items: ids.map(id => ({ id, text: '' })) })
 function mount(ids) {
   return createListPlugin({ injectStyles: false }).setup().create(items(ids), {

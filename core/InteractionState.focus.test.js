@@ -7,6 +7,7 @@ function harness(focusResult = false) {
   const events = []
   const runtime = {
     generation: 1,
+    health: 'ready',
     list: () => ids.map(id => ({ id })),
     ids: () => [...ids],
     has: id => ids.includes(id),
