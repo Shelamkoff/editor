@@ -73,21 +73,33 @@ function compatibleContinuation(previous, next, token) {
   return equalJsonValue(prior.after, update.before)
 }
 
+/** @typedef {{ record: ReturnType<typeof ownRecord>, bytes: number }} HistoryEntry */
+
 export class HistoryStore {
+  /** @type {HistoryEntry[]} */
   #undo = []
+  /** @type {HistoryEntry[]} */
   #redo = []
+  #undoBytes = 0
   #maxStack
+  #maxBytes
   #coalesceAllowed = false
   // Prepared record/replay cursors are snapshots, not perpetual write leases.
   // Clearing history or committing another plan revokes all earlier plans.
   #epoch = 0
 
+  /** @param {{ maxStack?: number, maxBytes?: number }} [options] */
   constructor(options = {}) {
     const maxStack = options.maxStack ?? 100
     if (!Number.isSafeInteger(maxStack) || maxStack < 1) {
       throw new RangeError('History maxStack must be a positive safe integer')
     }
+    const maxBytes = options.maxBytes
+    if (maxBytes !== undefined && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) {
+      throw new RangeError('History maxBytes must be a positive safe integer')
+    }
     this.#maxStack = maxStack
+    this.#maxBytes = maxBytes
   }
 
   get canUndo() { return this.#undo.length > 0 }
@@ -97,15 +109,17 @@ export class HistoryStore {
 
   /**
    * Validate and prepare the next history state without mutating the cursor.
-   * commit() only swaps already-prepared arrays and cannot invoke user/schema code.
+   * commit() only swaps prepared state and cannot invoke user/schema code.
    */
   prepareRecord(record, { coalesce = false, continuation = null } = {}) {
     const next = ownRecord(record)
     let undo = [...this.#undo]
     const redo = []
     let coalesced = false
+    let candidate = next
 
-    const previous = undo[undo.length - 1]
+    const previousEntry = undo[undo.length - 1]
+    const previous = previousEntry?.record
     const continued = this.#coalesceAllowed && this.#redo.length === 0
       && compatibleContinuation(previous, next, continuation)
     if (continued) {
@@ -124,7 +138,7 @@ export class HistoryStore {
           ? cloneEditorData(next.selectionAfter)
           : null,
       })
-      undo[undo.length - 1] = merged
+      candidate = merged
       coalesced = true
     } else if (coalesce && this.#coalesceAllowed && previous && compatibleUpdate(previous, next)) {
       const previousChange = previous.changes[0]
@@ -144,12 +158,37 @@ export class HistoryStore {
           ? cloneEditorData(next.selectionAfter)
           : null,
       })
-      undo[undo.length - 1] = merged
+      candidate = merged
       coalesced = true
-    } else {
-      undo.push(next)
-      if (undo.length > this.#maxStack) undo = undo.slice(undo.length - this.#maxStack)
     }
+
+    // Only an owned record is serialized, never the caller's accessors/toJSON.
+    // Cache its complete cost after coalescence, outside the commit phase.
+    // The disabled path retains count-only behavior without byte traversals.
+    const entry = {
+      record: candidate,
+      bytes: this.#maxBytes === undefined
+        ? 0
+        : new TextEncoder().encode(JSON.stringify(candidate)).byteLength,
+    }
+    let undoBytes = this.#undoBytes + entry.bytes
+    if (coalesced) {
+      undo[undo.length - 1] = entry
+      undoBytes -= previousEntry.bytes
+    } else {
+      undo.push(entry)
+    }
+
+    let first = 0
+    while (undo.length - first > this.#maxStack) {
+      undoBytes -= undo[first++].bytes
+    }
+    // Keep the newest whole action even when it exceeds the configured budget.
+    // Redo is cleared by this authoring action; its costs need not be retained.
+    while (this.#maxBytes !== undefined && undoBytes > this.#maxBytes && undo.length - first > 1) {
+      undoBytes -= undo[first++].bytes
+    }
+    if (first > 0) undo = undo.slice(first)
 
     const expectedEpoch = this.#epoch
     let committed = false
@@ -163,6 +202,7 @@ export class HistoryStore {
         }
         this.#undo = undo
         this.#redo = redo
+        this.#undoBytes = undoBytes
         // Async completion seals this authoring action: further typing must
         // not accidentally merge into the previously captured native group.
         this.#coalesceAllowed = !continued
@@ -184,14 +224,20 @@ export class HistoryStore {
     const current = source[source.length - 1]
     if (!current) return null
 
-    const record = cloneEditorData(current)
+    const record = cloneEditorData(current.record)
     const undo = [...this.#undo]
     const redo = [...this.#redo]
+    let undoBytes = this.#undoBytes
+    // Replay transfers the same entry and cached cost between stacks. The
+    // combined retained history is unchanged: never serialize or evict here.
     if (action === 'undo') {
-      redo.push(undo.pop())
+      undo.pop()
+      redo.push(current)
+      undoBytes -= current.bytes
     } else {
-      undo.push(redo.pop())
-      if (undo.length > this.#maxStack) undo.shift()
+      redo.pop()
+      undo.push(current)
+      undoBytes += current.bytes
     }
 
     const expectedEpoch = this.#epoch
@@ -206,6 +252,7 @@ export class HistoryStore {
         }
         this.#undo = undo
         this.#redo = redo
+        this.#undoBytes = undoBytes
         // A successful replay ends the previous typing gesture, including
         // programmatic/keyboard replay that bypasses native beforeinput.
         this.#coalesceAllowed = false
@@ -227,12 +274,12 @@ export class HistoryStore {
   }
 
   peekUndo() {
-    const record = this.#undo[this.#undo.length - 1]
+    const record = this.#undo[this.#undo.length - 1]?.record
     return record ? cloneEditorData(record) : undefined
   }
 
   peekRedo() {
-    const record = this.#redo[this.#redo.length - 1]
+    const record = this.#redo[this.#redo.length - 1]?.record
     return record ? cloneEditorData(record) : undefined
   }
 
@@ -253,6 +300,7 @@ export class HistoryStore {
   clear() {
     this.#undo = []
     this.#redo = []
+    this.#undoBytes = 0
     this.#coalesceAllowed = false
     this.#epoch++
   }
