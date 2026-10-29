@@ -723,7 +723,7 @@ test('irrecoverable inline controls stop producers but preserve the committed do
   let failure
   try {editor.setReadOnly(true)} catch(error) {failure=error}
   assert.ok(failure instanceof AggregateError)
-  assert.deepEqual(failure.errors[0].errors.map(error => error.message),['Inline apply failed','Inline rollback failed'])
+  assert.deepEqual(failure.errors.map(error => error.message),['Inline apply failed','Inline rollback failed','Inline remount failed'])
   assert.ok(failure.errors.at(-1) === remountError)
   assert.equal(editor.readOnly,false)
   assert.deepEqual(editor.save().blocks,before)
@@ -2467,10 +2467,10 @@ test('Public keyed focus does not publish current block when its field is missin
     assert.equal(editor.blocks.focus('b', { fieldKey: 'missing-title', offset: 1 }), false)
     equal(editor.blocks.currentId, 'a')
     equal(events, [], 'Rejected keyed focus published a current block that never got its caret')
-    assert(document.activeElement === previousField,
+    assert.ok(document.activeElement === previousField,
       'Rejected keyed focus left native DOM focus in the destination block')
     const native = window.getSelection()
-    assert(native?.isCollapsed && previousField.contains(native.anchorNode),
+    assert.ok(native?.isCollapsed && previousField.contains(native.anchorNode),
       'Rejected keyed focus lost its previous native selection owner')
     equal(getTextOffset(previousField, native.anchorNode, native.anchorOffset), 2,
       'Rejected keyed focus moved the original author caret')
