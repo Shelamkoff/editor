@@ -40,11 +40,11 @@ export function createGalleryRenderer(classPrefix, locale) {
 
     /**
      * @param {import('../../../shared/blockDataTypes.js').GalleryBlock} block
-     * @param {import('../../types').InlineParser} _parseInline
+     * @param {import('../../types').InlineParser} parseInline
      * @param {import('../../types').RendererContext} context
      * @returns {HTMLElement}
      */
-    render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { images, styles, options } = block.data
       const ownerDocument = context.ownerDocument
       const layout = block.data.layout
@@ -83,7 +83,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         }
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
           const img = item.querySelector('img')
           if (img) {
             let settled = false
@@ -111,7 +111,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         masonryItems = []
 
         images.forEach((image) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
           const img = item.querySelector('img')
           if (img) img.loading = 'eager'
           masonryItems?.push(item)
@@ -122,7 +122,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         container.classList.add(`eg--${layout}`)
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
           if (overflowCount > 0 && i === visibleImages.length - 1) {
             item.appendChild(createOverflow(overflowCount, classPrefix, ownerDocument))
           }
@@ -325,14 +325,16 @@ function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, 
  * @param {string} classPrefix
  * @param {string} openLabel
  * @param {Document} ownerDocument
+ * @param {import('../../types').InlineParser} parseInline
  * @returns {HTMLElement}
  */
-function createItem(image, classPrefix, openLabel, ownerDocument) {
+function createItem(image, classPrefix, openLabel, ownerDocument, parseInline) {
+  const caption = image.caption ? parseInline(image.caption).textContent || '' : ''
   const figure = ownerDocument.createElement('figure')
   figure.className = `${classPrefix}-gallery__item`
   figure.tabIndex = 0
   figure.setAttribute('role', 'button')
-  figure.setAttribute('aria-label', image.caption ? `${openLabel}: ${image.caption}` : openLabel)
+  figure.setAttribute('aria-label', caption ? `${openLabel}: ${caption}` : openLabel)
   figure.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
@@ -342,7 +344,7 @@ function createItem(image, classPrefix, openLabel, ownerDocument) {
   const img = ownerDocument.createElement('img')
   img.className = `${classPrefix}-gallery__image`
   setSafeUrlAttribute(img, 'src', image.url, 'media')
-  img.alt = image.caption || ''
+  img.alt = caption
   img.loading = 'lazy'
   figure.appendChild(img)
 
