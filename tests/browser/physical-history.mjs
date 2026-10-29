@@ -509,6 +509,7 @@ try {
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
   const nativePluginParity = await runNativePage(client, pageUrl, 'native-plugin-parity.html')
   const nativeRoundtripPreservation = await runNativePage(client, pageUrl, 'native-roundtrip-preservation.html')
+  const nativePresentationRecovery = await runNativePage(client, pageUrl, 'native-presentation-recovery.html')
   const nativePluginControls = await runNativePage(client, pageUrl, 'native-plugin-controls.html')
   const nativePluginRanges = await runNativePage(client, pageUrl, 'native-plugin-ranges.html')
   const nativePluginLocalRanges = await runNativePage(client, pageUrl, 'native-plugin-local-ranges.html')
@@ -563,6 +564,7 @@ try {
     nativeCoreBehavior,
     nativePluginParity,
     nativeRoundtripPreservation,
+    nativePresentationRecovery,
     nativePluginControls,
     nativePluginRanges,
     nativePluginLocalRanges,

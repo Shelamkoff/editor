@@ -151,6 +151,7 @@ labels.push('inline-pattern-transfer.html')
 labels.push('toolbar-keyboard.html')
 labels.push('public-extension-contracts.html')
 labels.push('poll-state-contracts.html')
+labels.push('presentation-recovery.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()
