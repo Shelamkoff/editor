@@ -499,9 +499,19 @@ export class InlineWidgetInputController {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const field=this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element
+    // Bind this accepted edit to its exact resulting occurrence now. A valid
+    // optional-update fallback can have retired target.element. The queued
+    // continuation may never discover an arbitrary later same-ID successor.
+    const completed=inside&&localCaret!==null&&field
+      ?this.#runtime.prepareExtensionValue(()=>this.#projection.captureNativeField(
+        target.blockId,target.fieldKey,field)?.occurrences.find(source=>(
+          source.id===target.inlineId&&source.type===target.type
+        )))
+      :null
     const focusOwner=field?.ownerDocument?.activeElement
     const selection=field?.ownerDocument?.defaultView?.getSelection?.()
     const expected=selection?.anchorNode&&selection.focusNode
+      &&field.contains(selection.anchorNode)&&field.contains(selection.focusNode)
       ?{
         anchorNode:selection.anchorNode,anchorOffset:selection.anchorOffset,
         focusNode:selection.focusNode,focusOffset:selection.focusOffset,
@@ -521,8 +531,10 @@ export class InlineWidgetInputController {
         ||current.anchorOffset!==expected.anchorOffset
         ||current.focusNode!==expected.focusNode
         ||current.focusOffset!==expected.focusOffset)return
-      if(inside){
-        if(this.#projection.resolveWidgetElement(target.element)!==target.element)return
+      if(inside&&localCaret!==null){
+        if(!completed
+          ||!this.#projection.isCurrentNativeOccurrence(target.blockId,target.fieldKey,completed)
+          ||this.#projection.resolveWidgetElement(completed.element)!==completed.element)return
         // The projection lookup is an external owner callback. It may
         // synchronously destroy the controller or replace the input mode;
         // a retired edit cannot restore the native caret afterward.
@@ -530,8 +542,8 @@ export class InlineWidgetInputController {
           ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
           ||modeEpoch!==this.#runtime.modeEpoch
           ||field.ownerDocument.activeElement!==focusOwner)return
-        const node=target.element.firstChild
-        if(localCaret!==null&&node?.nodeType===3){
+        const node=completed.element.firstChild
+        if(node?.nodeType===3){
           const caret=Math.max(0,Math.min(localCaret,node.textContent?.length??0))
           if(current?.setBaseAndExtent){
             try {

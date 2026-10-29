@@ -53,6 +53,9 @@ function fixture(handle = () => null, { onClaim = null } = {}) {
     }),
     resolveWidgetElement:node=>node===widget?widget:null,
   }
+  const occurrence={id:'mention-1',type:'mention',fieldKey:'text',element:widget,instance:{}}
+  projection.captureNativeField=()=>({fieldElement:field,occurrences:[occurrence]})
+  projection.isCurrentNativeOccurrence=(_blockId,_fieldKey,source)=>source===occurrence
   const reconciler={getEditableField:()=>({key:'text',mode:'rich-text',element:field})}
   const selection={
     setCaret(...args) {writes.push(['caret',...args])},
@@ -841,4 +844,78 @@ test('native inline notices stop when caret restoration destroys their owner', (
   assert.equal(restorations,1, 'native caret restoration did not run')
   assert.deepEqual(notices,[],
     'a destroyed inline controller still sent plugin notices after native focus callbacks')
+})
+
+// The projection adapter models a permitted successful recreation, not the
+// controller's completion algorithm. Its occurrence identity can change at
+// the same public id, independently from the captured DOM selection.
+function recreatedCaretFixture(caret = 2) {
+  const action={kind:'update',data:{id:'ada',name:'Updated'}}
+  if(caret!==null)action.caret=caret
+  const h=fixture(()=>action)
+  const applied=[]
+  const doc=h.root.ownerDocument
+  h.field.ownerDocument=doc
+  doc.activeElement=h.field
+  const native={isCollapsed:true,anchorNode:h.widget.firstChild,focusNode:h.widget.firstChild,
+    anchorOffset:3,focusOffset:3,setBaseAndExtent(...args){applied.push(args)}}
+  doc.defaultView.getSelection=()=>native
+  let current={id:'mention-1',type:'mention',fieldKey:'text',element:h.widget,instance:{}}
+  h.projection.captureNativeField=()=>{
+    assert.equal(h.runtime.preparing,true,'result occurrence must be read under preparation')
+    return {fieldElement:h.field,occurrences:[current]}
+  }
+  h.projection.isCurrentNativeOccurrence=(_blockId,_fieldKey,source)=>source===current
+  h.projection.resolveWidgetElement=element=>element===current.element?element:null
+  const successor=()=>{
+    const text={nodeType:3,textContent:'Updated'}
+    const element={isConnected:true,isContentEditable:true,firstChild:text,
+      contains(node){return node===this||node===text}}
+    text.parentElement=element
+    return {id:'mention-1',type:'mention',fieldKey:'text',element,instance:{}}
+  }
+  h.runtime.updateInlineWidget=(_blockId,_id,producer)=>{
+    producer()
+    h.widget.isConnected=false
+    current=successor()
+    // The real transaction's logical selection is outside the atomic widget
+    // before the controller performs its one allowed label-local completion.
+    native.anchorNode=native.focusNode=h.field
+    native.anchorOffset=native.focusOffset=1
+  }
+  return {h,applied,native,doc,get current(){return current},replace(){current=successor()}}
+}
+
+test('immediate inline caret is bound to the accepted replacement, not the retired target', async()=>{
+  const f=recreatedCaretFixture()
+  assert.equal(f.h.emit().canceled,true)
+  assert.deepEqual(f.applied,[],'completion must remain queued')
+  const text=f.current.element.firstChild
+  await Promise.resolve()
+  assert.deepEqual(f.applied,[[text,2,text,2]])
+  assert.deepEqual(f.h.diagnostics,[])
+})
+
+for(const supersede of ['occurrence','selection','field','mode','revision','destroy']){
+  test(`queued replacement caret cannot outlive a newer ${supersede}`,async()=>{
+    const f=recreatedCaretFixture()
+    f.h.emit()
+    if(supersede==='occurrence')f.replace()
+    if(supersede==='selection')f.native.anchorOffset++
+    if(supersede==='field')f.h.reconciler.getEditableField=()=>({element:{}})
+    if(supersede==='mode')f.h.runtime.modeEpoch+=2
+    if(supersede==='revision')f.h.runtime.revision++
+    if(supersede==='destroy')f.h.controller.destroy()
+    await Promise.resolve()
+    assert.deepEqual(f.applied,[])
+    assert.deepEqual(f.h.writes.filter(item=>item[0]==='caret'),[])
+  })
+}
+
+test('accepted replacement without an inline caret retains exterior logical completion',async()=>{
+  const f=recreatedCaretFixture(null)
+  f.h.emit()
+  await Promise.resolve()
+  assert.deepEqual(f.applied,[])
+  assert.deepEqual(f.h.writes,[['caret','a',{fieldKey:'text',offset:6}]])
 })

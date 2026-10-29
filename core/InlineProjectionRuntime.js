@@ -1,6 +1,7 @@
 // @ts-check
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { equalJsonValue } from '../shared/jsonData.js'
 import { getTextOffset } from '../shared/textOffset.js'
 import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
@@ -703,12 +704,23 @@ export class InlineProjectionRuntime {
         if(match.index>cursor)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
 
         let entry=state.widgets.get(id)
+        const payloadChanged=entry&&!equalJsonValue(entry.data,decoded.data)
         if(entry&&(entry.type!==type||entry.fieldKey!==fieldKey
-          ||(entry.element.isConnected&&!belongsToAuthorField(element,entry.element)))){
+          ||(entry.element.isConnected&&!belongsToAuthorField(element,entry.element))
+          ||(payloadChanged&&typeof entry.instance.update!=='function'))){
+          // Missing update() is a valid contract: changed data needs a new
+          // occurrence through this existing acquisition/rollback owner.
+          // Equal data keeps its DOM, scope and outstanding tasks.
           // Never reuse a root adopted by a button or a nested editor.
           state.widgets.delete(id)
           this.#destroyWidget(entry)
           entry=null
+          // Cancellation/disposal callbacks can revoke this projection too.
+          // Do not acquire a successor after its owner has been retired.
+          if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
+            ||(!state.staged&&this.#blocks.get(blockId)!==state)){
+            throw new Error('Inline projection owner was revoked during reconciliation')
+          }
         }
 
         if(!entry){
@@ -760,7 +772,7 @@ export class InlineProjectionRuntime {
         }else{
           entry.fieldKey=fieldKey
           entry.fieldElement=element
-          if(typeof entry.instance.update==='function'&&JSON.stringify(entry.data)!==JSON.stringify(decoded.data)){
+          if(payloadChanged&&typeof entry.instance.update==='function'){
             entry.instance.update(decoded.data,entry.data)
           }
           entry.data=decoded.data
