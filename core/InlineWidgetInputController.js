@@ -152,15 +152,22 @@ export class InlineWidgetInputController {
         range.setStart(candidate.startContainer,candidate.startOffset)
         range.setEnd(candidate.endContainer,candidate.endOffset)
       }catch{return null}
-      const crosses=state.occurrences.some(entry=>{
+      const eligible=state.occurrences.some(entry=>{
         if(!entry.optedIn)return false
         try{
           if(!range.intersectsNode(entry.element))return false
-          return !(entry.element.contains(range.startContainer)
-            &&entry.element.contains(range.endContainer))
+          const inside=entry.element.contains(range.startContainer)
+            &&entry.element.contains(range.endContainer)
+          if(!inside)return true
+          // An opted-in definition can decline an immediate character edit.
+          // Its supplied target range predicts the edit; the native input's
+          // observed text remains authoritative for Unicode deletion.
+          return candidate===supplied&&native.isCollapsed
+            &&(event.inputType==='deleteContentBackward'||event.inputType==='deleteContentForward')
+            &&entry.element.contains(native.anchorNode)&&entry.element.contains(native.focusNode)
         }catch{return false}
       })
-      if(!crosses)return null
+      if(!eligible)return null
     }else if(!WORD_OR_LINE_DELETIONS.has(event.inputType))return null
 
     const current=this.#runtime.get(owner.blockId)

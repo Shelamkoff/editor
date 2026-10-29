@@ -73,6 +73,13 @@ export function createMentionPlugin(options={}){
         if(!deleting&&!inserting)return null
         const display=trigger+data.name
 
+        // A browser target range can cover a whole grapheme while native
+        // Backspace removes only its final combining mark. For an interior
+        // character edit, reconcile the browser's actual label through the
+        // existing native-input owner instead of predicting its text change.
+        if(input.position==='inside'&&input.deletionRange
+          &&(inputType==='deleteContentBackward'||inputType==='deleteContentForward'))return null
+
         let interval=input.deletionRange??null
         if(!interval){
           // Word/line deletions without an explicit target interval belong
@@ -600,6 +607,8 @@ export function createMentionPlugin(options={}){
         }
 
         const deletionRange=containedTextRange(span,browserRange)
+        if(deletionRange&&native?.isCollapsed&&inside===entry
+          &&(event.inputType==='deleteContentBackward'||event.inputType==='deleteContentForward'))return
         if(deletionRange){
           event.preventDefault()
           replaceLabelRange(entry,text,deletionRange.start,deletionRange.end,'')

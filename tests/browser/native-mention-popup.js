@@ -4,7 +4,7 @@ import { createColumnsPlugin } from '../../plugins/columns/index.js'
 import { test, make, blockElement, editorRoot, assert, equal, pause, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 
-for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','🇷🇺','👨‍👩‍👧‍👦','👍🏽'])test('Mention '+key+' matches native text deletion for '+name,async()=>{
+for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','e\u0301\u0308','🇷🇺','👨‍👩‍👧‍👦','👍🏽'])test('Mention '+key+' matches native text deletion for '+name,async()=>{
   const editor=make([
     {id:'plain',type:'paragraph',dataVersion:2,data:{text:'@'+name}},
     {id:'mention',type:'paragraph',dataVersion:2,data:{text:'{{person}}'},inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name}}}},
@@ -13,14 +13,72 @@ for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','🇷🇺',
   const at=key==='Backspace'?name.length+1:1,keyCode=key==='Backspace'?8:46
   plain.focus();window.getSelection().setBaseAndExtent(plain.firstChild,at,plain.firstChild,at)
   await dispatchKey(key,key,keyCode)
-  const expected=plain.textContent,before=editor.save().blocks
+  const expected=plain.textContent,expectedCaret=window.getSelection().focusOffset,before=editor.save().blocks
   const field=blockElement(editor,'mention').querySelector('.oe-paragraph'),span=field.querySelector('[data-inline-plugin="mention"]')
+  let nativeInputs=0
+  field.addEventListener('input',event=>{
+    if(event.inputType===(key==='Backspace'?'deleteContentBackward':'deleteContentForward'))nativeInputs++
+  })
   field.focus();window.getSelection().setBaseAndExtent(span.firstChild,at,span.firstChild,at)
   await dispatchKey(key,key,keyCode)
   equal(span.textContent,expected,'Mention deleted a different Unicode boundary from native text')
+  equal(nativeInputs,1,'Mention prevented the native character deletion instead of reconciling its result')
   equal(editor.save().blocks[1].inline.person.data.name,expected.slice(1))
+  equal(editor.save().blocks[1].inline.person.data.id,'unicode','Native deletion changed Mention identity')
+  assert(span.contains(window.getSelection().focusNode),'Native deletion lost its label-local caret')
+  equal(window.getSelection().focusOffset,expectedCaret,'Native deletion changed the observed label caret')
+  const after=editor.save().blocks
   await dispatchKey('z','KeyZ',90,2)
   equal(editor.save().blocks,before)
+  await dispatchKey('z','KeyZ',90,10)
+  equal(editor.save().blocks,after)
+})
+
+test('Mention native character deletion settles its data before the next label edit',async()=>{
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'{{person}}'},
+    inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name:'e\u0301'}}}}],
+  {inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})]})
+  const field=blockElement(editor,'a').querySelector('.oe-paragraph')
+  const span=field.querySelector('[data-inline-plugin="mention"]')
+  const before=editor.save().blocks
+  field.focus();window.getSelection().setBaseAndExtent(span.firstChild,3,span.firstChild,3)
+  await dispatchKey('Backspace','Backspace',8)
+  const deleted=editor.save().blocks
+  equal(deleted[0].inline.person.data,{id:'unicode',name:'e'})
+  await printable('X')
+  const typed=editor.save().blocks
+  equal(typed[0].inline.person.data,{id:'unicode',name:'eX'},'The next edit read a stale pre-deletion payload')
+  equal(span.textContent,'@eX')
+  await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,deleted)
+  await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,before)
+  equal(editor.canUndo,false,'Native deletion and subsequent typing created extra history')
+  await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,deleted)
+  await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,typed)
+})
+
+test('Mention native character deletion canceled after capture creates no history or stale completion',async()=>{
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'{{person}}'},
+    inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name:'e\u0301'}}}}],
+  {inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})]})
+  const field=blockElement(editor,'a').querySelector('.oe-paragraph')
+  const span=field.querySelector('[data-inline-plugin="mention"]')
+  const before=editor.save().blocks
+  let inputs=0
+  field.addEventListener('input',()=>inputs++)
+  // Registered after the controller's bubble listener, so this cancels an
+  // already captured native envelope rather than preventing its admission.
+  editorRoot(editor).addEventListener('beforeinput',event=>event.preventDefault(),{once:true})
+  field.focus();window.getSelection().setBaseAndExtent(span.firstChild,3,span.firstChild,3)
+  await dispatchKey('Backspace','Backspace',8)
+  equal(inputs,0)
+  equal(span.textContent,'@e\u0301')
+  equal(editor.save().blocks,before)
+  equal(editor.canUndo,false,'Canceled native input manufactured a history action')
+  await dispatchKey('Backspace','Backspace',8)
+  equal(inputs,1)
+  equal(editor.save().blocks[0].inline.person.data,{id:'unicode',name:'e'})
+  await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,before)
+  equal(editor.canUndo,false,'A retired canceled envelope committed during the next input')
 })
 
 test('native Ctrl+Backspace inside Mention matches an independent editable text control',async()=>{
