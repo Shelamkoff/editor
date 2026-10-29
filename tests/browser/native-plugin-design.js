@@ -1,6 +1,7 @@
 import { test, make, blockElement, editorRoot, editorHolder, assert, equal, run } from './regressions/harness.js'
-import { waitForStyles } from './native-input-helpers.js'
+import { clickNative, dispatchKey, printable, waitForStyles } from './native-input-helpers.js'
 import { createParagraphPlugin } from '../../plugins/index.js'
+import { getTextOffset } from '../../shared/textOffset.js'
 import { pluginParityFixtures, pixel } from './plugin-parity-fixtures.js'
 import en from '../../locale/en.js'
 
@@ -64,8 +65,20 @@ function designContract(editor, fixture, theme, state) {
   }
   for (const element of block.querySelectorAll('input,textarea,[contenteditable="true"]')) {
     if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) || !element.getBoundingClientRect().height) continue
+    const tableCell = fixture.name === 'Table' && element.matches('.oe-table__cell')
+    if (tableCell) {
+      assert(element.closest('.oe-table-wrapper') === host, 'Table cell lost its own scroll viewport')
+      equal(getComputedStyle(host).overflowX, 'auto', 'Table lost its horizontal scroll affordance')
+      const viewport = host.getBoundingClientRect()
+      assert(viewport.left >= rect.left - 1 && viewport.right <= rect.right + 1, 'Table viewport escapes the block')
+      element.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    }
     const field = element.getBoundingClientRect()
     assert(field.left >= rect.left - 1 && field.right <= rect.right + 1, 'Visible authoring field escapes the block')
+    if (tableCell) {
+      const hit = document.elementFromPoint(field.left + field.width / 2, field.top + field.height / 2)
+      assert(hit === element || element.contains(hit), 'Scrolled table cell is not reachable')
+    }
     if (element.matches('.oe-code-textarea')) {
       const paint = block.querySelector('.oe-code-pre')
       assert(paint.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }), 'Code lost its highlight layer')
@@ -96,6 +109,36 @@ function designContract(editor, fixture, theme, state) {
     if (fixture.name === 'Person') { equal(getComputedStyle(host.querySelector('.oe-person__card')).display, 'flex'); equal(getComputedStyle(host.querySelector('.oe-person__avatar-wrap')).borderRadius, '50%') }
     if (fixture.name === 'Delimiter') equal(getComputedStyle(host, '::after').content, '"***"')
   }
+}
+
+async function editLastTableCell(editor) {
+  const before = editor.save().blocks
+  const wrapper = blockElement(editor, 'a').querySelector('.oe-table-wrapper')
+  const cells = [...wrapper.querySelectorAll('.oe-table__cell')]
+  equal(before[0].data.rows.map(row => row.cells.length), [3, 3, 3], 'The narrow-table control lost its default grid')
+  assert(wrapper.scrollWidth > wrapper.clientWidth, 'The narrow-table control must exercise horizontal scrolling')
+  const last = cells.at(-1)
+  const caret = offset => {
+    const selection = window.getSelection()
+    assert(selection.isCollapsed && last.contains(selection.focusNode), 'Native input left the last table cell')
+    equal(getTextOffset(last, selection.focusNode, selection.focusOffset), offset)
+  }
+  await clickNative(last)
+  equal(document.activeElement, last, 'Trusted pointer input did not focus the last cell')
+  await printable('X')
+  const after = structuredClone(before)
+  after[0].data.rows[2].cells[2].text = 'X'
+  equal(editor.save().blocks, after, 'Last-cell typing changed another cell or its identity')
+  caret(1)
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before, 'One Undo did not restore the empty grid')
+  equal(editor.canUndo, false)
+  caret(0)
+  await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+  equal(editor.save().blocks, after, 'One Redo did not restore last-cell input')
+  equal(editor.canRedo, false)
+  caret(1)
+  equal([...wrapper.querySelectorAll('.oe-table__cell')], cells, 'History replaced table cell hosts')
 }
 
 if (new URL(location.href).searchParams.has('visual')) {
@@ -149,6 +192,7 @@ if (new URL(location.href).searchParams.has('visual')) {
           designContract(editor, fixture, theme, state)
           equal(editor.save().blocks, before, 'Rendering a theme/state changed authoring data')
           equal(editor.canUndo, false)
+          if (fixture.name === 'Table' && width === 288 && state === 'empty') await editLastTableCell(editor)
         }
       } finally { await window.__testInput('Viewport.reset') }
     })
