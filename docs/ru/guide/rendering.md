@@ -69,29 +69,38 @@ interface RendererConfig {
 
 ## Контракты типизации
 
-Исполняемые значения рендерера импортируются из `@shelamkoff/rector/renderer`, а его декларации — из отдельной точки входа только для типов:
+Исполняемые значения импортируются из `@shelamkoff/rector/renderer`. Общие типы документа и встроенных блоков доступны редактору и рендереру через `@shelamkoff/rector/types`; специальные контракты рендерера имеют отдельную точку входа только для типов:
 
 ```ts
 import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import type {
+  EditorOutputData,
+  EditorBlockData,
+  EditorInlineWidget,
+  ParagraphBlock,
+} from '@shelamkoff/rector/types'
+import type {
   BlockRenderer,
   BlockRendererDefinition,
-  OutputData,
-  ParagraphBlock,
   RendererConfig,
   InlineWidgetRenderer,
 } from '@shelamkoff/rector/renderer/types'
 ```
 
-Точка входа типов экспортирует:
+Общая точка входа экспортирует оболочку документа `EditorOutputData`, универсальный блок `EditorBlockData` и внутристрочную запись `EditorInlineWidget`. Здесь же находятся `Block`, `BlockType`, типы данных и элементов всех 21 встроенных блоков, включая `ParagraphBlock`, `ImageBlock`, `PollBlock`, `GalleryData`, `CarouselData` и `PersonData`. Импорт этих типов не создаёт исполняемой зависимости от редактора.
 
-- оболочку документа `OutputData`, общую форму блока `OutputBlockData` и `InlineWidget`;
-- `Block`, `BlockType` и отдельный псевдоним наподобие `ParagraphBlock`, `ImageBlock` или `PollBlock` для каждого встроенного рендерера;
-- соответствующие контракты данных, включая `ParagraphData`, `ImageData`, `GalleryData`, `CarouselData`, `PollData` и `PersonData`;
-- контракты расширения `BlockRenderer`, привязанный к схеме `BlockRendererDefinition`, `InlineParser`, `InlineWidgetRenderer` и `RendererConfig`;
-- контракты интеграции опроса `PollDataSource`, `PollResults`, `PollVoter` и `PollRendererConfig`.
+`editor.save()` возвращает `EditorOutputData`, который можно напрямую передать в `renderer.render()` или `renderer.renderTo()`. Для известных встроенных данных используйте соответствующий тип блока, а для собственных — `EditorBlockData<'callout', CalloutData>`. Тип `EditorOutputData<ParagraphBlock>` описывает документ только с абзацами; без параметра типа документ также допускает пользовательские блоки.
 
-Используйте `OutputData`, если приложение только отображает документы и не зависит от типов редактора. `EditorDocument` из `editor.save()` структурно совместим с ним и не требует преобразования. Для рендерера известного встроенного типа используйте соответствующий псевдоним блока, а для собственного типа приложения — `OutputBlockData<'callout', CalloutData>`.
+Точка входа типов рендерера экспортирует `BlockRenderer`, привязанный к схеме `BlockRendererDefinition`, `InlineParser`, `RendererContext`, `InlineWidgetRenderer` и `RendererConfig`. Обработчики и параметры опроса остаются здесь как `PollDataSource` и `PollRendererConfig`; его данные (`PollData`, `PollResults`, `PollVoter`) импортируются из общей точки входа.
+
+При обновлении существующих импортов используйте канонические имена ниже. Прежние псевдонимы удалены из текущего API:
+
+| Прежний тип | Текущий тип из `@shelamkoff/rector/types` |
+| --- | --- |
+| `EditorDocument`, `OutputData` рендерера | `EditorOutputData` |
+| `OutputBlockData<T, D>` рендерера | `EditorBlockData<T, D>` |
+| `InlineWidget<T, D>` рендерера | `EditorInlineWidget<T, D>` |
+| Встроенные типы рендерера, например `ParagraphBlock` | То же имя в общей точке входа |
 
 ## Методы отображения
 

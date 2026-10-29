@@ -2,11 +2,11 @@ import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
 import { synchronousResult } from './synchronousResult.js'
 
 /**
- * @typedef {{ id: string, text: string }} PollOption Author-owned option with a stable document id and inline-text label.
- * @typedef {{ id: string, votes: number }} PollOptionResult Vote count for one author-owned option id.
- * @typedef {{ id: string, name?: string, avatar?: string, optionIds?: string[] }} PollVoter Optional application-owned voter summary.
- * @typedef {{ revision?: string, total: number, options: PollOptionResult[], voters?: PollVoter[], votersTotal?: number, currentUserVote?: string[] }} PollResults Runtime result snapshot. `total` is the ballot-count denominator used for percentages; multiple-choice option percentages may therefore sum above 100%.
- * @typedef {{ pollId?: string, question: string, type: 'single' | 'multiple', options: PollOption[], resultsMode: 'always' | 'afterVote' | 'hidden', initialResults?: PollResults }} PollData Persisted poll authoring data plus an optional initial/local result snapshot.
+ * @typedef {import('./blockDataTypes.js').PollOption} PollOption
+ * @typedef {import('./blockDataTypes.js').PollOptionResult} PollOptionResult
+ * @typedef {import('./blockDataTypes.js').PollVoter} PollVoter
+ * @typedef {import('./blockDataTypes.js').PollResults} PollResults
+ * @typedef {import('./blockDataTypes.js').PollData} PollData
  */
 
 export const POLL_RESULTS_MODES = Object.freeze(['always', 'afterVote', 'hidden'])

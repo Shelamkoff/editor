@@ -15,7 +15,7 @@ const LAYOUT_GRIDS = {
  * Columns layout block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').ColumnsBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').ColumnsBlock>}
  */
 export function createColumnsRenderer(classPrefix, _locale) {
     return {
@@ -24,7 +24,7 @@ export function createColumnsRenderer(classPrefix, _locale) {
         styles: [styles],
 
         /**
-         * @param {import('../../types').ColumnsBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').ColumnsBlock} block
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */

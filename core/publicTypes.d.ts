@@ -27,11 +27,6 @@ export interface BlockTunes extends Record<string, unknown> {
   textAlign?: TextAlign
 }
 
-export interface EditorDocument extends EditorOutputData<EditorBlockData> {
-  version: '2.0.0'
-  blocks: EditorBlockData[]
-}
-
 export interface EditorBlockSnapshot {
   readonly id: string
   readonly type: string
@@ -87,7 +82,7 @@ export type DocumentChange =
   | { kind: 'block.remove'; index: number; block: EditorBlockData }
   | { kind: 'block.update'; id: string; before: EditorBlockData; after: EditorBlockData }
   | { kind: 'block.move'; id: string; from: number; to: number }
-  | { kind: 'document.replace'; before: EditorDocument; after: EditorDocument }
+  | { kind: 'document.replace'; before: EditorOutputData; after: EditorOutputData }
 
 export interface TransactionCommitted {
   readonly sequence: number
@@ -156,7 +151,7 @@ export interface EditorConfig {
   plugins: readonly BlockPluginDefinition[]
   inlinePlugins?: readonly InlinePluginDefinition[]
   inlineTools?: readonly InlineTool[]
-  data?: EditorDocument
+  data?: EditorOutputData
   defaultBlock?: string
   placeholder?: string
   readOnly?: boolean
@@ -177,7 +172,7 @@ export interface EditorConfig {
   blockMoveAnimationMs?: number
   blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
-  onChange?: (document: EditorDocument) => void | Promise<void>
+  onChange?: (document: EditorOutputData) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void | Promise<void>
   onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   diagnosticThresholds?: Partial<DiagnosticThresholds>
@@ -190,8 +185,8 @@ export interface IEditor {
   readonly canRedo: boolean
   readonly readOnly: boolean
 
-  save(): EditorDocument
-  render(document: EditorDocument): void
+  save(): EditorOutputData
+  render(document: EditorOutputData): void
   clear(): void
   undo(): boolean
   redo(): boolean

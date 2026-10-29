@@ -27,7 +27,7 @@ import { BLOCK_TYPES } from '../../shared/blockTypes.js'
  */
 
 // Factory functions map for Rector document block types.
-/** @type {Record<import('../types').BlockType, RendererFactory>} */
+/** @type {Record<import('../../shared/blockDataTypes.js').BlockType, RendererFactory>} */
 const rendererFactories = {
   paragraph: createParagraphRenderer,
   heading: createHeaderRenderer,
@@ -54,7 +54,7 @@ const rendererFactories = {
 
 /**
  * Get all supported block types
- * @returns {import('../types').BlockType[]}
+ * @returns {import('../../shared/blockDataTypes.js').BlockType[]}
  */
 export function getSupportedBlockTypes() {
   return [...BLOCK_TYPES]
@@ -64,7 +64,7 @@ export function getSupportedBlockTypes() {
  * Create all default renderers
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} locale
- * @param {import('../types').BlockType[]} [types]
+ * @param {import('../../shared/blockDataTypes.js').BlockType[]} [types]
  * @param {Record<string, unknown>} [configs]
  * @returns {Map<string, import('../types').BlockRendererDefinition>}
  */
@@ -89,7 +89,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
 
 /**
  * Create a single renderer by type
- * @template {import('../types').OutputBlockData} T
+ * @template {import('../../shared/documentTypes.js').EditorBlockData} T
  * @param {T['type']} type
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
@@ -98,7 +98,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
  */
 export function createRenderer(type, classPrefix, locale, config) {
   if (!Object.hasOwn(rendererFactories, type)) return null
-  const factory = rendererFactories[/** @type {import('../types').BlockType} */ (type)]
+  const factory = rendererFactories[/** @type {import('../../shared/blockDataTypes.js').BlockType} */ (type)]
 
   if (!factory) {
     return null

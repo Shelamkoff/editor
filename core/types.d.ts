@@ -1,8 +1,8 @@
 import enLocale from './locale/en.js'
-import type { EditorConfig as PublicEditorConfig, EditorDocument } from './publicTypes.js'
+import type { EditorConfig as PublicEditorConfig } from './publicTypes.js'
 import type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 
-export type { EditorDocument, LocaleValue, PluralForms }
+export type { LocaleValue, PluralForms }
 export type { InlineTool, InlineMutationContext, InlineToolActionContext, InlineSelection } from '../inline-tools/types.js'
 
 /** Explicit DOM alias used by JavaScript JSDoc without colliding with Node.js types. */

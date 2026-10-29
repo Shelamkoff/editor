@@ -12,7 +12,7 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
  * Data: { service, videoId, caption?, cover?, title?, duration? }
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').EmbedBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').EmbedBlock>}
  */
 export function createEmbedRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, () => void>} */
@@ -25,7 +25,7 @@ export function createEmbedRenderer(classPrefix, locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').EmbedBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').EmbedBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

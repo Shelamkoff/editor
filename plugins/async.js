@@ -7,7 +7,7 @@ import { snapshotBlockPluginConfig } from './shared/configRecords.js'
 /** @typedef {(config?: Record<string, unknown>) => import('../plugin-kit/types').BlockPluginDefinition} BlockPluginFactory */
 /** @typedef {() => Promise<BlockPluginFactory>} BlockPluginLoader */
 
-/** @type {Record<import('../renderer/types').BlockType, BlockPluginLoader>} */
+/** @type {Record<import('../shared/blockDataTypes.js').BlockType, BlockPluginLoader>} */
 const pluginLoaders = {
   paragraph: () => import('./paragraph/index.js').then(module => module.createParagraphPlugin),
   heading: () => import('./heading/index.js').then(module => module.createHeadingPlugin),
@@ -65,7 +65,9 @@ function requestedTypes(source) {
   return [...new Set(types)]
 }
 
-/** Return the canonical block types supported by the async plugin preset.\n * @returns {import('../renderer/types').BlockType[]}\n */
+/** Return the canonical block types supported by the async plugin preset.
+ * @returns {import('../shared/blockDataTypes.js').BlockType[]}
+ */
 export function getAsyncBlockPluginTypes() {
   return [...BLOCK_TYPES]
 }
@@ -79,14 +81,14 @@ export function getAsyncBlockPluginTypes() {
 export async function loadBlockPluginDefinition(type, config = {}) {
   if (!Object.hasOwn(pluginLoaders, type)) throw new RangeError(`Unknown editor block plugin type: ${type}`)
   const snapshot = snapshotBlockPluginConfig(requireRecord(config, `config for ${type}`))
-  const factory = await pluginLoaders[/** @type {import('../renderer/types').BlockType} */ (type)]()
+  const factory = await pluginLoaders[/** @type {import('../shared/blockDataTypes.js').BlockType} */ (type)]()
   return factory(snapshot)
 }
 
 /**
  * Preload and create unique definitions for a type list or document.
  * @param {readonly string[] | { version: '2.0.0', blocks: readonly import('../shared/documentTypes').EditorBlockData[] }} [source]
- * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
+ * @param {Partial<Record<import('../shared/blockDataTypes.js').BlockType, Record<string, unknown>>>} [configs]
  * @returns {Promise<Map<string, import('../plugin-kit/types').BlockPluginDefinition>>}
  */
 export async function preloadBlockPluginDefinitions(source, configs = {}) {
@@ -105,7 +107,7 @@ export async function preloadBlockPluginDefinitions(source, configs = {}) {
 /**
  * Create the deterministic async block-plugin preset.
  * @param {readonly string[] | { version: '2.0.0', blocks: readonly import('../shared/documentTypes').EditorBlockData[] }} [source]
- * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
+ * @param {Partial<Record<import('../shared/blockDataTypes.js').BlockType, Record<string, unknown>>>} [configs]
  * @returns {Promise<import('../plugin-kit/types').BlockPluginDefinition[]>}
  */
 export async function createBlockPluginsAsync(source, configs = {}) {

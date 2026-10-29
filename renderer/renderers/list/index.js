@@ -8,7 +8,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Data: { style: 'ordered' | 'unordered', items: Array<{ id: string, text: string }> }
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').ListBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').ListBlock>}
  */
 export function createListRenderer(classPrefix, _locale) {
   return {
@@ -17,7 +17,7 @@ export function createListRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').ListBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').ListBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

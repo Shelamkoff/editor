@@ -7,7 +7,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Paragraph block renderer for the Rector document format.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').ParagraphBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').ParagraphBlock>}
  */
 export function createParagraphRenderer(classPrefix, _locale) {
   return {
@@ -16,7 +16,7 @@ export function createParagraphRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').ParagraphBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').ParagraphBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

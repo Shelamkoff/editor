@@ -15,7 +15,7 @@ let spoilerSequence = 0
  *
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').SpoilerBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').SpoilerBlock>}
  */
 export function createSpoilerRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
@@ -27,7 +27,7 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
         styles: [styles],
 
         /**
-         * @param {import('../../types').SpoilerBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').SpoilerBlock} block
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */

@@ -7,7 +7,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Table block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').TableBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').TableBlock>}
  */
 export function createTableRenderer(classPrefix, _locale) {
   return {
@@ -16,7 +16,7 @@ export function createTableRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').TableBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').TableBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

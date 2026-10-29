@@ -33,7 +33,8 @@ import {
 } from '../../.package-tmp/declaration-tests/renderer/index.js'
 import { createRendererAsync } from '../../.package-tmp/declaration-tests/renderer/renderers/async.js'
 import type { BlockPluginDefinition } from '../../.package-tmp/declaration-tests/core/index.js'
-import type { BlockRendererDefinition, OutputBlockData } from '../../.package-tmp/declaration-tests/renderer/types.js'
+import type { BlockRendererDefinition } from '../../.package-tmp/declaration-tests/renderer/types.js'
+import type { EditorBlockData } from '../../.package-tmp/declaration-tests/types.js'
 import { CropperDialog } from '@shelamkoff/cropper'
 
 const factories = [
@@ -94,7 +95,7 @@ const customSchema = {
     return { dataVersion: 1, data: { text: data.text } }
   },
 }
-const customRenderer: BlockRendererDefinition<OutputBlockData<'custom', { text: string }>> = {
+const customRenderer: BlockRendererDefinition<EditorBlockData<'custom', { text: string }>> = {
   type: 'custom',
   schema: customSchema,
   render: block => {

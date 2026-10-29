@@ -25,7 +25,7 @@ const SOCIAL_ICONS = Object.assign(Object.create(null), {
  * Person/author card block renderer — supports multi-person with carousel
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').PersonBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').PersonBlock>}
  */
 export function createPersonRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
@@ -38,7 +38,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
         styles: [styles, carouselStyles],
 
         /**
-         * @param {import('../../types').PersonBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').PersonBlock} block
          * @param {import('../../types').InlineParser} parseInline
          * @param {import('../../types').RendererContext} context
          * @returns {HTMLElement}
@@ -196,7 +196,7 @@ function renderCard(person, parseInline, p, t, ownerDocument) {
         info.appendChild(bioEl)
     }
 
-    const validLinks = (links || []).filter(/** @type {(l: import('../../types').PersonLink) => boolean} */ (l => !!l.url))
+    const validLinks = (links || []).filter(/** @type {(l: import('../../../shared/blockDataTypes.js').PersonLink) => boolean} */ (l => !!l.url))
     if (validLinks.length > 0) {
         const linksEl = ownerDocument.createElement('div')
         linksEl.className = `${p}__links`

@@ -12,8 +12,8 @@ interface IEditor {
   readonly canRedo: boolean
   readonly readOnly: boolean
 
-  save(): EditorDocument
-  render(document: EditorDocument): void
+  save(): EditorOutputData
+  render(document: EditorOutputData): void
   clear(): void
   undo(): boolean
   redo(): boolean

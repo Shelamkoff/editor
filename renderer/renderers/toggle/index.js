@@ -11,7 +11,7 @@ const ICON_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
  * Toggle (accordion) block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').ToggleBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').ToggleBlock>}
  */
 export function createToggleRenderer(classPrefix, _locale) {
     return {
@@ -20,7 +20,7 @@ export function createToggleRenderer(classPrefix, _locale) {
         styles: [styles],
 
         /**
-         * @param {import('../../types').ToggleBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').ToggleBlock} block
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */

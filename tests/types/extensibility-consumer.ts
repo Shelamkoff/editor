@@ -1,8 +1,20 @@
 import { createEditor, type BlockPluginDefinition, type InlinePluginDefinition, type EditorConfig } from '../../.package-tmp/declaration-tests/core/index.js'
-import type { InlineTool } from '../../.package-tmp/declaration-tests/types.js'
+import type { EditorBlockData, EditorInlineWidget, EditorOutputData, InlineTool, ParagraphBlock, PollData, Block, BlockType } from '../../.package-tmp/declaration-tests/types.js'
 import { EditorRenderer } from '../../.package-tmp/declaration-tests/renderer/index.js'
-import type { BlockRendererDefinition, OutputBlockData, InlineWidgetRenderer } from '../../.package-tmp/declaration-tests/renderer/types.js'
+import type { BlockRendererDefinition, InlineWidgetRenderer, PollDataSource } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import { setSanitizedHtml } from '../../.package-tmp/declaration-tests/plugin-kit/index.js'
+
+// These former aliases must not keep a second document vocabulary alive.
+// @ts-expect-error use EditorOutputData from the public types entry
+type RemovedOutputData = import('../../.package-tmp/declaration-tests/renderer/types.js').OutputData
+// @ts-expect-error use EditorBlockData from the public types entry
+type RemovedOutputBlockData = import('../../.package-tmp/declaration-tests/renderer/types.js').OutputBlockData
+// @ts-expect-error use EditorInlineWidget from the public types entry
+type RemovedInlineWidget = import('../../.package-tmp/declaration-tests/renderer/types.js').InlineWidget
+// @ts-expect-error editor save and renderer input use the same EditorOutputData
+type RemovedEditorDocument = import('../../.package-tmp/declaration-tests/types.js').EditorDocument
+// @ts-expect-error built-in data belongs to the neutral public types entry
+type RemovedRendererParagraph = import('../../.package-tmp/declaration-tests/renderer/types.js').ParagraphBlock
 
 interface NoteData { text: string; items: Array<{ id: string; html: string }> }
 interface BadgeData { label: string }
@@ -115,7 +127,7 @@ const editor = createEditor(config)
 editor.blocks.insert({ type: 'external-note', data: note })
 editor.blocks.update('note', () => ({ data: note }))
 editor.insertInlinePlugin('external-badge', badge)
-const noteRenderer: BlockRendererDefinition<OutputBlockData<'external-note', NoteData>> = {
+const noteRenderer: BlockRendererDefinition<EditorBlockData<'external-note', NoteData>> = {
   type: 'external-note', schema: noteSchema,
   render(block, parseInline, context) {
     const ownerDocument = context?.ownerDocument ?? document
@@ -129,9 +141,49 @@ const badgeRenderer: InlineWidgetRenderer<BadgeData> = {
   render(_id, data, { ownerDocument }) { const element = ownerDocument.createElement('span'); element.textContent = data.label; return element },
 }
 class ArticleRenderer extends EditorRenderer {
-  override renderBlock(block: OutputBlockData) {
+  override renderBlock(block: EditorBlockData) {
     return super.renderBlock(block)
   }
 }
 const renderer = new ArticleRenderer({ blockTypes: [], inlineRenderers: [badgeRenderer] })
 renderer.registerRenderer(noteRenderer)
+
+const widget: EditorInlineWidget<'external-badge', BadgeData> = {
+  type: 'external-badge', dataVersion: 1, data: badge,
+}
+const noteBlock: EditorBlockData<'external-note', NoteData> = {
+  id: 'note', type: 'external-note', dataVersion: 1, data: note, inline: { badge: widget },
+}
+const documentData: EditorOutputData<typeof noteBlock> = { version: '2.0.0', blocks: [noteBlock] }
+editor.render(documentData)
+renderer.render(documentData)
+renderer.render(editor.save())
+
+const paragraph: ParagraphBlock = { id: 'p', type: 'paragraph', dataVersion: 1, data: { text: 'Text' } }
+const builtinDocument: EditorOutputData<Block> = { version: '2.0.0', blocks: [paragraph] }
+renderer.render(builtinDocument)
+// @ts-expect-error the named block keeps its exact payload type
+paragraph.data.text = 42
+// @ts-expect-error the canonical widget still requires an exact schema version
+const unversionedWidget: EditorInlineWidget = { type: 'external-badge', data: badge }
+
+const builtinTypes: Record<BlockType, true> = {
+  paragraph: true, heading: true, list: true, quote: true, code: true, image: true,
+  delimiter: true, table: true, checklist: true, warning: true, embed: true, raw: true,
+  gallery: true, carousel: true, attaches: true, linkPreview: true, toggle: true,
+  columns: true, spoiler: true, poll: true, person: true,
+}
+// @ts-expect-error the built-in union remains closed while EditorBlockData permits extensions
+builtinTypes.external = true
+declare const block: Block
+if (block.type === 'heading') {
+  const level: 2 | 3 | 4 | 5 | 6 = block.data.level
+  void level
+}
+
+declare const poll: PollData
+const pollSource: PollDataSource = {
+  load: async () => poll.initialResults ?? { total: 0, options: [] },
+  vote: async ({ optionIds }) => ({ total: 1, options: optionIds.map(id => ({ id, votes: 1 })) }),
+}
+void [builtinTypes, pollSource]

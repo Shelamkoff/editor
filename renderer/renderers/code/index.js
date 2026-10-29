@@ -36,7 +36,7 @@ const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="1
  * @see https://highlightjs.org/
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').CodeBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').CodeBlock>}
  */
 export function createCodeRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
     /** @type {WeakMap<HTMLElement, number>} */
@@ -50,7 +50,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
         styles: [styles],
 
         /**
-         * @param {import('../../types').CodeBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').CodeBlock} block
          * @param {import('../../types').InlineParser} _parseInline
          * @param {import('../../types').RendererContext} context
          * @returns {HTMLElement}

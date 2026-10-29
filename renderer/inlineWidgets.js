@@ -9,7 +9,7 @@ const PLACEHOLDER_RE = /\{\{([A-Za-z0-9_-]+)\}\}/g
  * payloads; schema and projection errors abort the render operation.
  *
  * @param {DocumentFragment} fragment
- * @param {Record<string, import('./types').InlineWidget> | null | undefined} inline
+ * @param {Record<string, import('../shared/documentTypes.js').EditorInlineWidget> | null | undefined} inline
  * @param {Map<string, import('./types').InlineWidgetRenderer>} registry
  * @param {Document} ownerDocument
  * @returns {DocumentFragment}

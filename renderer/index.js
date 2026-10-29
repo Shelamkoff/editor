@@ -49,7 +49,7 @@ function validateRendererConfig(config) {
     }
     assertDenseArray(config.blockTypes, 'blockTypes')
     const supported = new Set(getSupportedBlockTypes())
-    /** @type {import('./types').BlockType[]} */
+    /** @type {import('../shared/blockDataTypes.js').BlockType[]} */
     const snapshot = []
     for (let index = 0; index < config.blockTypes.length; index++) {
       const type = config.blockTypes[index]
@@ -139,10 +139,10 @@ function snapshotOutputBlockEnvelope(block) {
  * then deep-owns every unrevisioned block before invoking a renderer callback.
  * Producer-revision reuse must never inspect unchanged deep payloads.
  * @param {unknown} data
- * @returns {import('./types').OutputData}
+ * @returns {import('../shared/documentTypes.js').EditorOutputData}
  */
 function prepareOutputData(data) {
-  return /** @type {import('./types').OutputData} */ (snapshotCurrentDocumentEnvelope(data, {
+  return /** @type {import('../shared/documentTypes.js').EditorOutputData} */ (snapshotCurrentDocumentEnvelope(data, {
     snapshotBlock: snapshotOutputBlockEnvelope,
   }))
 }
@@ -151,7 +151,7 @@ function prepareOutputData(data) {
  * Snapshot only configs for renderers that will actually be constructed.
  * Unused accessor-backed config members must remain completely unobserved.
  * @param {unknown} input
- * @param {import('./types').BlockType[] | undefined} blockTypes
+ * @param {import('../shared/blockDataTypes.js').BlockType[] | undefined} blockTypes
  * @returns {Record<string, unknown> | undefined}
  */
 function snapshotBlockConfigs(input, blockTypes) {
@@ -243,18 +243,18 @@ export class EditorRenderer extends EditorRendererImpl {
     return super.registerRenderer(stable, stable.type)
   }
 
-  /** @param {import('./types').OutputBlockData} block */
+  /** @param {import('../shared/documentTypes.js').EditorBlockData} block */
   renderBlock(block) {
     const source = snapshotOutputBlockEnvelope(block)
     return super.renderBlock(source)
   }
 
-  /** @param {import('./types').OutputData} data */
+  /** @param {import('../shared/documentTypes.js').EditorOutputData} data */
   render(data) {
     return super.render(prepareOutputData(data))
   }
 
-  /** @param {import('./types').OutputData} data @param {HTMLElement} container */
+  /** @param {import('../shared/documentTypes.js').EditorOutputData} data @param {HTMLElement} container */
   renderTo(data, container) {
     return super.renderTo(prepareOutputData(data), container)
   }

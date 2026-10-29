@@ -180,7 +180,7 @@ export class EditorRenderer {
 
   /**
    * Render a single block to HTMLElement
-   * @param {import('./types').OutputBlockData} block
+   * @param {import('../shared/documentTypes.js').EditorBlockData} block
    * @returns {HTMLElement}
    */
   renderBlock(block) {
@@ -204,7 +204,7 @@ export class EditorRenderer {
 
   /** Version admission never inspects block.data or inline payloads.
    * The revision fast path still skips deep data for a reused block.
-   * @param {import('./types').OutputBlockData} block
+   * @param {import('../shared/documentTypes.js').EditorBlockData} block
    * @param {object} validationSource
    */
   #assertBlockVersion(block, validationSource) {
@@ -218,7 +218,7 @@ export class EditorRenderer {
   }
 
   /** Report one rejected current-schema block before rejecting the operation.
-   * @param {import('./types').OutputBlockData} block
+   * @param {import('../shared/documentTypes.js').EditorBlockData} block
    * @param {object} validationSource
    * @param {unknown} error
    * @returns {never}
@@ -259,7 +259,7 @@ export class EditorRenderer {
   /** Admit all registered versions before deep-owning any unrevisioned block.
    * A callback for an earlier block cannot mutate the later candidate's data
    * after this snapshot; revisioned blocks retain their O(1) reuse contract.
-   * @param {import('./types').OutputBlockData[]} blocks
+   * @param {import('../shared/documentTypes.js').EditorBlockData[]} blocks
    */
   #prepareDocumentBlocks(blocks) {
     for (const block of blocks) {
@@ -280,7 +280,7 @@ export class EditorRenderer {
    * Create a block together with the exact renderer that owns its resources.
    * Internal aggregate rendering uses this method so ownership is registered
    * exactly once by the public operation that returns or mounts the result.
-   * @param {import('./types').OutputBlockData} block
+   * @param {import('../shared/documentTypes.js').EditorBlockData} block
    * @param {Document} ownerDocument
    * @param {object} [validationSource] Original identity, not a signature clone.
    * @param {boolean} [alreadyOwned] Whether JSON was already cloned by this owner.
@@ -376,7 +376,7 @@ export class EditorRenderer {
 
   /**
    * Render all blocks into a wrapper element with CSS variable scope.
-   * @param {import('./types').OutputData} data
+   * @param {import('../shared/documentTypes.js').EditorOutputData} data
    * @returns {HTMLElement}
    */
   render(data) {
@@ -436,7 +436,7 @@ export class EditorRenderer {
    * Prefer a producer-owned O(1) content revision. Plain JSON documents keep
    * the deep signature fallback and therefore retain in-place mutation
    * detection without requiring a new contract.
-   * @param {import('./types').OutputBlockData} block
+   * @param {import('../shared/documentTypes.js').EditorBlockData} block
    * @param {number} rendererRevision
    */
   #blockSignature(block, rendererRevision) {
@@ -456,7 +456,7 @@ export class EditorRenderer {
   /**
    * Incrementally render blocks to a container. Stable block ids reuse their
    * DOM and renderer resources; changed blocks alone are replaced.
-   * @param {import('./types').OutputData} data
+   * @param {import('../shared/documentTypes.js').EditorOutputData} data
    * @param {HTMLElement} container
    * @returns {void}
    */

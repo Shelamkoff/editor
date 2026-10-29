@@ -16,7 +16,7 @@ const TEMPLATES = ['horizontal', 'compact', 'large-top', 'minimal', 'twitter', '
  *
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').LinkPreviewBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').LinkPreviewBlock>}
  */
 export function createLinkPreviewRenderer(classPrefix, _locale) {
     const p = `${classPrefix}-link-preview`
@@ -27,7 +27,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
         styles: [styles],
 
         /**
-         * @param {import('../../types').LinkPreviewBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').LinkPreviewBlock} block
          * @param {import('../../types').InlineParser} _parseInline
          * @returns {HTMLElement}
          */

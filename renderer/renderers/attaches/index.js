@@ -278,7 +278,7 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
  * Create the attachment-list renderer and its archive-download lifecycle.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').AttachesBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').AttachesBlock>}
  */
 export function createAttachesRenderer(classPrefix, locale) {
   const cls = classPrefix

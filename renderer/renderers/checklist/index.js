@@ -7,7 +7,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Checklist block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').ChecklistBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').ChecklistBlock>}
  */
 export function createChecklistRenderer(classPrefix, _locale) {
   return {
@@ -16,7 +16,7 @@ export function createChecklistRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').ChecklistBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').ChecklistBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

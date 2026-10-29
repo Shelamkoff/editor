@@ -4,7 +4,7 @@ import {
 import type {
   BlockPluginDefinition,
   EditorConfig,
-  EditorDocument,
+  EditorOutputData,
   EditorEventMap,
   IEditor,
   TransactionCommitted,
@@ -95,7 +95,7 @@ const config: EditorConfig = {
 }
 
 const editor: IEditor = createEditor(config)
-const document: EditorDocument = editor.save()
+const document: EditorOutputData = editor.save()
 const unsubscribe = editor.on('transaction:committed', (event: TransactionCommitted) => {
   // @ts-expect-error committed observer payloads are immutable
   event.changes.push({ kind: 'block.move', id: 'a', from: 0, to: 1 })

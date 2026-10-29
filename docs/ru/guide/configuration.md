@@ -10,7 +10,7 @@ interface EditorConfig {
   plugins: readonly BlockPluginDefinition[]
   inlinePlugins?: readonly InlinePluginDefinition[]
   inlineTools?: readonly InlineTool[]
-  data?: EditorDocument
+  data?: EditorOutputData
   defaultBlock?: string
   placeholder?: string
   readOnly?: boolean
@@ -30,7 +30,7 @@ interface EditorConfig {
   blockMoveAnimationMs?: number
   blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
-  onChange?: (document: EditorDocument) => void | Promise<void>
+  onChange?: (document: EditorOutputData) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void | Promise<void>
   onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   diagnosticThresholds?: Partial<DiagnosticThresholds>

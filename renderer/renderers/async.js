@@ -7,7 +7,7 @@ import { snapshotPollRendererConfig } from '../pollConfigSnapshot.js'
 /** @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRendererDefinition} RendererFactory */
 /** @typedef {() => Promise<RendererFactory>} RendererLoader */
 
-/** @type {Record<import('../types').BlockType, RendererLoader>} */
+/** @type {Record<import('../../shared/blockDataTypes.js').BlockType, RendererLoader>} */
 const rendererLoaders = {
   paragraph: () => import('./paragraph/index.js').then(module => module.createParagraphRenderer),
   heading: () => import('./heading/index.js').then(module => module.createHeaderRenderer),
@@ -62,7 +62,7 @@ function snapshotRendererConfig(type, value) {
   return value
 }
 
-/** @param {readonly string[] | import('../types').OutputData | undefined} source */
+/** @param {readonly string[] | import('../../shared/documentTypes.js').EditorOutputData | undefined} source */
 function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
   if (Array.isArray(source)) {
@@ -89,7 +89,7 @@ function requestedTypes(source) {
 
 /**
  * List every built-in block type supported by the asynchronous renderer loader.
- * @returns {import('../types').BlockType[]}
+ * @returns {import('../../shared/blockDataTypes.js').BlockType[]}
  */
 export function getAsyncRendererTypes() {
   return [...BLOCK_TYPES]
@@ -103,7 +103,7 @@ export function getAsyncRendererTypes() {
  */
 export async function loadRendererFactory(type) {
   if (!Object.hasOwn(rendererLoaders, type)) throw new RangeError(`Unknown editor renderer type: ${type}`)
-  const loader = rendererLoaders[/** @type {import('../types').BlockType} */ (type)]
+  const loader = rendererLoaders[/** @type {import('../../shared/blockDataTypes.js').BlockType} */ (type)]
   return loader()
 }
 
@@ -111,7 +111,7 @@ export async function loadRendererFactory(type) {
  * Preload factories for explicit types or for the types present in a document.
  * Duplicate type names are loaded once and map order follows first occurrence.
  *
- * @param {readonly string[] | import('../types').OutputData} [source]
+ * @param {readonly string[] | import('../../shared/documentTypes.js').EditorOutputData} [source]
  * @returns {Promise<Map<string, RendererFactory>>}
  */
 export async function preloadRendererFactories(source) {
@@ -145,7 +145,7 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
  *
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
- * @param {readonly string[] | import('../types').OutputData} [source]
+ * @param {readonly string[] | import('../../shared/documentTypes.js').EditorOutputData} [source]
  * @param {Record<string, unknown>} [configs]
  * @returns {Promise<Map<string, import('../types').BlockRendererDefinition>>}
  */

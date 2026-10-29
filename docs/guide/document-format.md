@@ -5,7 +5,7 @@ Rector accepts one serialized document format. The current wire version is `2.0.
 ## Document envelope
 
 ```ts
-interface EditorDocument {
+interface EditorOutputData {
   version: '2.0.0'
   time?: number
   blocks: BlockData[]

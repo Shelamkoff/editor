@@ -9,7 +9,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Width-related styles are skipped when expanded mode is active.
  * @param {HTMLImageElement} img
  * @param {HTMLElement} figure
- * @param {import('../../types').ImageStyles} styles
+ * @param {import('../../../shared/blockDataTypes.js').ImageStyles} styles
  * @param {boolean} [expanded]
  * @param {boolean} [withBackground]
  * @returns {void}
@@ -41,7 +41,7 @@ function applyInlineStyles(img, figure, styles, expanded, withBackground) {
  * Image block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').ImageBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').ImageBlock>}
  */
 export function createImageRenderer(classPrefix, _locale) {
   return {
@@ -50,7 +50,7 @@ export function createImageRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').ImageBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').ImageBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

@@ -28,7 +28,7 @@ The handle deliberately does not expose the block manager, command dispatcher, u
 
 ## The document boundary
 
-An `EditorDocument` is plain serializable data in one explicit current wire format. Rector exact-decodes the current envelope on ingress and returns detached data on save. Missing, older, or future document/schema versions are rejected; migration and preserved-document modes are not part of the runtime. The live DOM is never the storage contract.
+An `EditorOutputData` is plain serializable data in one explicit current wire format. Rector exact-decodes the current envelope on ingress and returns detached data on save. Missing, older, or future document/schema versions are rejected; migration and preserved-document modes are not part of the runtime. The live DOM is never the storage contract.
 
 Each block has a stable `id`, a registered `type`, plugin-owned `data`, and optional `revision`, `tunes`, and `inline` fields. The core owns the envelope and identities; a plugin owns only the shape of its own `data`. A producer-owned `revision` is an optimization token for incremental rendering, not another schema version.
 

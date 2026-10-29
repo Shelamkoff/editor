@@ -7,7 +7,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Delimiter block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').DelimiterBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').DelimiterBlock>}
  */
 export function createDelimiterRenderer(classPrefix, _locale) {
   return {
@@ -16,7 +16,7 @@ export function createDelimiterRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').DelimiterBlock} _block
+     * @param {import('../../../shared/blockDataTypes.js').DelimiterBlock} _block
      * @param {import('../../types').InlineParser} _parseInline
      * @returns {HTMLElement}
      */

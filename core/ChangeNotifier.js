@@ -8,10 +8,10 @@ export class ChangeNotifier {
   /** @type {ReturnType<typeof setTimeout> | null} */
   #timer = null
 
-  /** @type {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} */
+  /** @type {() => import('../shared/documentTypes.js').EditorOutputData | Promise<import('../shared/documentTypes.js').EditorOutputData>} */
   #saveFn
 
-  /** @type {((data: import('./types').EditorDocument) => void | Promise<void>) | undefined} */
+  /** @type {((data: import('../shared/documentTypes.js').EditorOutputData) => void | Promise<void>) | undefined} */
   #onChange
 
   /** @type {number} */
@@ -30,8 +30,8 @@ export class ChangeNotifier {
   #generation = 0
 
   /**
-   * @param {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} saveFn
-   * @param {((data: import('./types').EditorDocument) => void | Promise<void>)} [onChange]
+   * @param {() => import('../shared/documentTypes.js').EditorOutputData | Promise<import('../shared/documentTypes.js').EditorOutputData>} saveFn
+   * @param {((data: import('../shared/documentTypes.js').EditorOutputData) => void | Promise<void>)} [onChange]
    * @param {number} [delay]
    * @param {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} [timerHost]
    * @param {(error: unknown) => void} [onError]

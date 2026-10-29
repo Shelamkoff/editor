@@ -11,7 +11,7 @@ const ICON_WARNING = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height=
  * Warning block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').WarningBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').WarningBlock>}
  */
 export function createWarningRenderer(classPrefix, _locale) {
     return {
@@ -20,7 +20,7 @@ export function createWarningRenderer(classPrefix, _locale) {
         styles: [styles],
 
         /**
-         * @param {import('../../types').WarningBlock} block
+         * @param {import('../../../shared/blockDataTypes.js').WarningBlock} block
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */

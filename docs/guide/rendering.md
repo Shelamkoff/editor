@@ -69,29 +69,38 @@ Before any registered renderer runs, Rector validates the current block envelope
 
 ## TypeScript contracts
 
-Import renderer values from `@shelamkoff/rector/renderer` and renderer-only declarations from the type-only entry:
+Import runtime values from `@shelamkoff/rector/renderer`. Document and built-in data contracts are shared by editing and rendering through `@shelamkoff/rector/types`; renderer-specific contracts have their own type-only entry:
 
 ```ts
 import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import type {
+  EditorOutputData,
+  EditorBlockData,
+  EditorInlineWidget,
+  ParagraphBlock,
+} from '@shelamkoff/rector/types'
+import type {
   BlockRenderer,
   BlockRendererDefinition,
-  OutputData,
-  ParagraphBlock,
   RendererConfig,
   InlineWidgetRenderer,
 } from '@shelamkoff/rector/renderer/types'
 ```
 
-The type entry exports:
+The shared type entry exports the canonical document envelope `EditorOutputData`, generic block `EditorBlockData`, and inline record `EditorInlineWidget`. It also exports `Block`, `BlockType`, and the payload/item types and named block aliases for all 21 built-ins, including `ParagraphBlock`, `ImageBlock`, `PollBlock`, `GalleryData`, `CarouselData`, and `PersonData`. The neutral data types introduce no runtime editor dependency.
 
-- the document envelope `OutputData`, the generic block shape `OutputBlockData`, and `InlineWidget`;
-- `Block`, `BlockType`, and a named block alias such as `ParagraphBlock`, `ImageBlock`, or `PollBlock` for every built-in renderer;
-- the matching data contracts such as `ParagraphData`, `ImageData`, `GalleryData`, `CarouselData`, `PollData`, and `PersonData`;
-- extension contracts `BlockRenderer`, schema-bound `BlockRendererDefinition`, `InlineParser`, `InlineWidgetRenderer`, and `RendererConfig`;
-- poll integration contracts `PollDataSource`, `PollResults`, `PollVoter`, and `PollRendererConfig`.
+`editor.save()` returns `EditorOutputData`, which can be passed directly to `renderer.render()` or `renderer.renderTo()`. Use a named block alias for a known built-in payload or `EditorBlockData<'callout', CalloutData>` for an application-defined type. `EditorOutputData<ParagraphBlock>` can describe a document restricted to paragraphs; the generic default also supports custom block types.
 
-Use `OutputData` when a renderer-only application does not depend on editor types. An `EditorDocument` returned by `editor.save()` is structurally compatible and does not need conversion. Use a named block alias when implementing a renderer for a known built-in data shape; use `OutputBlockData<'callout', CalloutData>` for an application-defined type.
+The renderer type entry exports `BlockRenderer`, schema-bound `BlockRendererDefinition`, `InlineParser`, `RendererContext`, `InlineWidgetRenderer`, and `RendererConfig`. Poll callbacks and renderer options remain here as `PollDataSource` and `PollRendererConfig`; canonical initial/result data (`PollData`, `PollResults`, `PollVoter`) comes from the shared type entry.
+
+When updating existing imports, use the canonical names below. These former aliases are removed from the current API:
+
+| Former type | Current type in `@shelamkoff/rector/types` |
+| --- | --- |
+| `EditorDocument`, renderer `OutputData` | `EditorOutputData` |
+| renderer `OutputBlockData<T, D>` | `EditorBlockData<T, D>` |
+| renderer `InlineWidget<T, D>` | `EditorInlineWidget<T, D>` |
+| renderer built-in types such as `ParagraphBlock` | Same name in the shared type entry |
 
 ## Rendering methods
 

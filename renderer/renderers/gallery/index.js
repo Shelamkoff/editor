@@ -26,7 +26,7 @@ const MAX_VISIBLE = 6
  * Create the gallery renderer and own every opened Expose instance.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').GalleryBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').GalleryBlock>}
  */
 export function createGalleryRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, Set<{ destroy(): void }>>} */
@@ -39,7 +39,7 @@ export function createGalleryRenderer(classPrefix, locale) {
     styles: [styles, exposeStyles],
 
     /**
-     * @param {import('../../types').GalleryBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').GalleryBlock} block
      * @param {import('../../types').InlineParser} _parseInline
      * @param {import('../../types').RendererContext} context
      * @returns {HTMLElement}
@@ -364,7 +364,7 @@ function createOverflow(count, classPrefix, ownerDocument) {
 
 /**
  * @param {HTMLElement} container
- * @param {import('../../types').GalleryStyles} styles
+ * @param {import('../../../shared/blockDataTypes.js').GalleryStyles} styles
  * @param {string} classPrefix
  * @returns {void}
  */

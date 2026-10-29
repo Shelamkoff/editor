@@ -19,14 +19,14 @@ const styles = new URL('./styles.css', import.meta.url).href
  * @param {string} classPrefix
  * @param {Record<string, any>} locale
  * @param {import('../../types').PollRendererConfig} [config]
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').PollBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').PollBlock>}
  */
 export function createPollRenderer(classPrefix, locale, config = {}) {
   config = snapshotPollRendererConfig(config) ?? {}
   const p = `${classPrefix}-poll`
   /** @type {WeakMap<HTMLElement, {
-   *   data: import('../../types').PollData,
-   *   results: import('../../types').PollResults,
+   *   data: import('../../../shared/blockDataTypes.js').PollData,
+   *   results: import('../../../shared/blockDataTypes.js').PollResults,
    *   selected: Set<string>,
    *   hasVoted: boolean,
    *   loading: boolean,

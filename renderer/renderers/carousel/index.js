@@ -21,7 +21,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Create the mixed-media carousel renderer and own its Carousel instances.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').CarouselBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').CarouselBlock>}
  */
 export function createCarouselRenderer(classPrefix, locale) {
   const p = `${classPrefix}-carousel-block`

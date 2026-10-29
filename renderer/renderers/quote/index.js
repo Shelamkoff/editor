@@ -11,7 +11,7 @@ const ICON_QUOTE = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="2
  * Quote block renderer — callout style with icon
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').QuoteBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').QuoteBlock>}
  */
 export function createQuoteRenderer(classPrefix, _locale) {
   return {
@@ -20,7 +20,7 @@ export function createQuoteRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').QuoteBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').QuoteBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

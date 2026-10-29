@@ -178,10 +178,12 @@ test('public declarations compile for NodeNext and Bundler consumers', () => {
 })
 
 test('public editor and renderer derive document shapes from the neutral shared contract', async () => {
-  const [publicTypes, rendererTypes, sharedTypes] = await Promise.all([
+  const [publicTypes, rendererTypes, sharedTypes, blockDataTypes, pluginLoader] = await Promise.all([
     readFile(new URL('core/publicTypes.d.ts', declarationRoot), 'utf8'),
     readFile(new URL('renderer/types.d.ts', declarationRoot), 'utf8'),
     readFile(new URL('shared/documentTypes.d.ts', declarationRoot), 'utf8'),
+    readFile(new URL('shared/blockDataTypes.d.ts', declarationRoot), 'utf8'),
+    readFile(new URL('plugins/async.d.ts', declarationRoot), 'utf8'),
   ])
 
   assert.doesNotMatch(publicTypes, /from ['"]\.\.\/renderer\//)
@@ -192,6 +194,9 @@ test('public editor and renderer derive document shapes from the neutral shared 
   assert.match(sharedTypes, /export interface EditorInlineWidget/)
   assert.match(sharedTypes, /version:\s*'2\.0\.0'/)
   assert.match(sharedTypes, /dataVersion:\s*number/)
+  assert.doesNotMatch(blockDataTypes, /(?:from\s*|import\()['"](?:\.\.\/)+(?:core|renderer)\//)
+  assert.doesNotMatch(pluginLoader, /(?:from\s*|import\()['"][^'"]*renderer\//)
+  assert.match(pluginLoader, /shared\/blockDataTypes\.js/)
 })
 
 test('async preset declarations require the current document envelope', async () => {

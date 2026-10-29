@@ -271,13 +271,13 @@ void [createEditor, normalizeRichText, sanitizePluginHtml, createParagraphPlugin
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
   const consumerTypeSource = `${consumerSource}
-import type { BlockPluginDefinition, EditorConfig, IEditor, InlinePluginDefinition } from '@shelamkoff/rector/types'
-import type { OutputData, ParagraphBlock, RendererConfig } from '@shelamkoff/rector/renderer/types'
+import type { BlockPluginDefinition, EditorConfig, EditorOutputData, IEditor, InlinePluginDefinition, ParagraphBlock } from '@shelamkoff/rector/types'
+import type { RendererConfig } from '@shelamkoff/rector/renderer/types'
 declare const publicEditor: IEditor
 declare const editorConfig: EditorConfig
 declare const blockPlugin: BlockPluginDefinition
 declare const inlinePlugin: InlinePluginDefinition
-declare const output: OutputData
+declare const output: EditorOutputData
 declare const paragraph: ParagraphBlock
 declare const rendererConfig: RendererConfig
 void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, rendererConfig]

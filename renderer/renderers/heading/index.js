@@ -8,7 +8,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Block type: 'heading' (not 'header')
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRendererDefinition<import('../../types').HeadingBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').HeadingBlock>}
  */
 export function createHeaderRenderer(classPrefix, _locale) {
   return {
@@ -17,7 +17,7 @@ export function createHeaderRenderer(classPrefix, _locale) {
     styles: [styles],
 
     /**
-     * @param {import('../../types').HeadingBlock} block
+     * @param {import('../../../shared/blockDataTypes.js').HeadingBlock} block
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */

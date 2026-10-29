@@ -5,7 +5,7 @@ Rector принимает один сериализованный формат �
 ## Оболочка документа
 
 ```ts
-interface EditorDocument {
+interface EditorOutputData {
   version: '2.0.0'
   time?: number
   blocks: BlockData[]
