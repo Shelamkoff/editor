@@ -6,6 +6,11 @@ They are reproduction evidence for that checkpoint, not a portable CI runner,
 package entrypoint, compatibility runtime or new dependency installation path.
 No generated trace or screenshot is stored here.
 
+Published commit IDs and the original verification IDs are related by the
+tree-verified [publication provenance](PUBLICATION.md). The accompanying map
+retains original commit bytes so a fresh checkout can reproduce probes that
+name the original local IDs.
+
 ## Source identities and results
 
 | Source | Executed scope | Result |
@@ -14,6 +19,7 @@ No generated trace or screenshot is stored here.
 | `rector-renderer-v1-oracle.mjs` | Pinned v1 and candidate public renderer: subclass/override, custom registration, output, incremental reuse and disposal | 14 checks passed per version; 12 resources created/disposed per version |
 | `rector-renderer-factory-parity.mjs` | v1 and specification-baseline constructor/factory controls, candidate class/factory absence, subclass/override and custom output/disposal | Passed; 7 resources created/disposed per construction branch |
 | `rector-renderer-factory-control.mjs` | Initial factory-probe development source with an incorrect expected dark-theme CSS modifier | **Failed fixture; not acceptance evidence** |
+| `rector-quote-paste-merge.mjs` | v1, specification baseline and candidate: trusted system paste, compatible merges, boundary negatives, public export and conversion | 16 cases per source; 48 classified observations; candidate passed |
 
 The first two successful runs used candidate production source
 `fa13888a66e660e2893e5fc493bd600588f13b10`; the successful factory control used
@@ -29,6 +35,7 @@ SHA-256 values of the exact executed files:
 42266203aba29552651e118efe2ac68dac942c1ed88f35fa707b23b0b452b9c8  rector-renderer-v1-oracle.mjs
 bccac37befe9041536e24d035465f82fe43d7763f60709315b26e2cc6fc5a6cc  rector-renderer-factory-parity.mjs
 dd6c8a159b2d745531c7a1ce6edfe5a81e9c9502172e9424b42cd8b29a8e9364  rector-renderer-factory-control.mjs
+e38cde196974587f5a743c268448b98251a4d97e78a5b55e6ae4ff24c93601e3  rector-quote-paste-merge.mjs
 ```
 
 ## Original environment and required paths
@@ -76,3 +83,34 @@ Quote executes the original importer directly in a real DOM. Its corresponding
 candidate regressions are registered in `tests/browser/html-root-parity.js` and
 use a controlled ClipboardEvent; this comparison does not prove system-clipboard
 HTML transfer. None of these probes establishes whole-library functional parity.
+
+## Expanded Quote comparison
+
+The separate `rector-quote-paste-merge.mjs` was executed on candidate
+`948bc5544dcf57a343733f589883973ec7db6cd7` from 15:32:43 to 15:33:12 UTC.
+It checked all loaded source JS/CSS bytes against Git before and after the run:
+103 modules/assets for v1 and 89 for each current-format source. The retained
+source resolves the candidate repository relative to its own location and uses
+the existing baseline archives; `EDITOR_V1_ROOT`, `EDITOR_SPEC_BASELINE_ROOT`,
+`EDITOR_PLAYWRIGHT_PATH` and `EDITOR_CHROME_PATH` can supply the recorded paths.
+
+Trusted browser Copy from a controlled external producer and Paste into the
+editor exercise real system clipboard transfer. Backspace/Delete merges cover
+both, target-only and source-only captions; negative boundaries retain separate
+fields and incompatible neighboring blocks. Public export and both conversion
+directions preserve rich author content. Candidate assertions include one-step
+Undo/Redo, directed selection, block IDs and unrelated DOM identity.
+
+The baseline oracles explicitly retain observed v1 caption loss on merge and
+Quote-to-Paragraph conversion as repaired defects, not functionality to restore.
+They also classify the older nested-attribution and caret/history defects.
+A baseline PASS means that its observed behavior matches that version's stated
+oracle; it does not mean the baseline satisfies the candidate contract.
+
+The matching 16 candidate cases are registered by
+`tests/browser/native-plugin-parity.js`. The unfiltered page passed 217 cases on
+clean `22ef58405326be1e4e61aff334f4f4538cdab3c0` (published identical tree at
+`1acc8ec9dedd3348f0ba0783930e9a7369cafe22`) from 15:37:15 to 15:38:11 UTC.
+This accepts the bounded `BLOCK_QUOTE_PASTE_MERGE` row, with its documented
+repaired-defect differences. `BLOCK_QUOTE_FIELDS`, `BLOCK_QUOTE_ROUNDTRIP` and
+the other clipboard rows remain independent obligations.
