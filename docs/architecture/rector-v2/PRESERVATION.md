@@ -230,7 +230,7 @@ Source owners are the existing block `plugins/<path>/` and `renderer/renderers/<
 | CONTRACT_PROJECTION_REGISTERED_DECODE_FAILURE | Known decoder succeeds input then fails projection during public update. | Prior accepted model/DOM/history recovered; failure not hidden as accepted literal output. |
 | CONTRACT_PROJECTION_UNKNOWN_INLINE_CONTROL | Unregistered type with opaque payload, update and output. | Inert marker/data preserved, unavailable runtime not invoked. |
 | CONTRACT_PRESENTATION_BATCH_INDEPENDENCE | Two standalone field changes in one observer batch; bounded A create failure. | Independent B delivery preserved, canonical/history unchanged, A reaches settled diagnostic/recovery owner. |
-| CONTRACT_PRESENTATION_LOCAL_RECOVERY_PRESERVATION | Fail/retry presentation while unrelated native input/tasks/selection are pending. | No global rollback, lost input, revived rights or unbounded observer loop; close B-PRESENTATION before dependent production. |
+| CONTRACT_PRESENTATION_LOCAL_RECOVERY_PRESERVATION | Fail/retry presentation while unrelated native input/tasks/selection are pending. | No global rollback, lost input, revived rights or unbounded observer loop. The standalone contract is settled in specification §16.5 and implemented in the combined core continuation; this differential row retains its own complete proof obligation. |
 
 ## Closure rules
 

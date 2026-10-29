@@ -1,5 +1,7 @@
 # Publication review — 2026-10-21
 
+This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
+
 ## Scope and source identity
 
 This publication follows the explicit request to recheck, push the specification to `refactor/rector-v2-architecture`, and clean repository junk. It publishes a consolidated implementation specification and open preservation register, adds an architecture entry, removes bounded generated output and prevents old results from masquerading as a new CI run. It does **not** implement the documented library repairs.
@@ -303,3 +305,32 @@ Spoiler used frozen `b3a2f16b` plus patch SHA-256 `58134f5a9f6d84d4ed4f8e1057e06
 Columns used frozen `a03dfd87` plus patch SHA-256 `902be70897c89def9398fff12ceb73bc3a5c5e7227208650ed48f3e4778d5f88`. Differential: 18:43:47–18:44:52 UTC (65.238 seconds); native: 18:45:39–18:46:07 (28.417 seconds). Runner SHA-256: `4f8b4104c329d4d086d2f2d021bfc430239e06d56ecf5e45d20987d9be122a5d`; fixture: `7c7c064a8a1e1ea6dc5ef3ec769ff028da1ba48524e29c3be6b03fddbb87b342`. Loaded Git source/style files: 200/221/221, plus 64 dependency files.
 
 All four commands exited 0 with unchanged source/patch and recorded dependency symlink, verified loaded bytes before/after, and no unexpected page/server error. Environment: Linux x64, Node `v24.22.1`, Chromium `142.0.7444.175`, shared installed contemporary dependencies. The register now has **25 accepted / 184 open** obligations. The Image literal-caption result remains partial and does not gain acceptance from these additions.
+
+## Combined core continuation 2026-10-29
+
+The published continuation ends at `0fecf490fe8a57188ac9edb502d2803743c29883`, with the exact tested merged tree `820823b30699871a132d4dab207cd9c871af079e`. The original merged source is `1b1db09196fd96b4377b167346385762a3972838`. All 17 individual publication trees and parents were verified after fetch. The clean earlier integration is `0cf0cc72a12a2995e22e73cf75c2e29ef91bd476`, tree `ad395ef5ca1b812033e129baf7fef5149ca47661`. Only ten parity fixture/documentation files differ; production, core tests, package and lockfile are identical.
+
+**B-PRESENTATION is settled in specification §16.5 and implemented.** A failed standalone projection is contained at its affected field; unrelated author DOM, backward ranges, widgets, tasks and trusted pending input remain usable. Unchanged failed descriptors do not trigger automatic retries. Explicit changed descriptors may attempt recovery; callbacks cannot reclaim foreign fields or shells. Observer delivery continues for independent fields. Canonical, initial and mode failures retain their existing rollback/terminal owners. Mode callbacks, task cancellation and inverse failures are validated before accepting the mode. No public retry manager or second canonical store was introduced.
+
+C09 removes an additional public-adapter copy only after the runtime has transferred owned detached data. Nested snapshots remain caller-mutable and isolated, public envelopes remain frozen, and external input still crosses strict JSON capture. Its 12 focused tests first produced five real failures, then passed. C07 names the eleven actual engine phases and five runtime invocation contexts through exact JSDoc unions; emitted executable JavaScript is unchanged. Inline-only payload projection preserves unrelated Text nodes and backward selection with linear ownership checks. Two range regressions and three callback regressions preceded the repair. C10 adds test-only actual heap evidence that evicted payloads disappear while the editor still supports its newest full Undo/Redo action.
+
+The following are actual completed commands on the clean frozen integration, with unchanged source before and after each command:
+
+| Gate | Observed result | Duration |
+| --- | --- | ---: |
+| `npm test` | 1962 passed, zero failed/skipped | 27.964 s |
+| `npm run typecheck` | Both checkJs projects passed | 14.675 s |
+| `node tests/browser/run.mjs` | All 35 registered pages passed | 38.446 s |
+| `node tests/browser/physical-history.mjs` | 2128 passed across 41 arrays; base Enter/toolbox/history scenarios also completed | 968.422 s |
+| `node tests/browser/heap-gate.mjs` | Live eviction/control proof passed; zero of 23 disposed sentinels retained | 12.193 s |
+| `npm run test:package` | 285 declarations without diagnostics, strict Bundler/NodeNext, Vite, ESM, external browser and 22 CSS assets passed | 44.685 s |
+| `npm run test:docs` | Source/localization/README/documentation contracts passed | 5.038 s |
+| Three-source roundtrip runner | 28 cases, 4632 candidate observations, zero candidate failures | 55.436 s |
+
+The ordinary suite includes 63 presentation, 60 projection and nine optional-inline contracts; the native total includes the 14 genuine-input presentation cases. Focused and cumulative totals overlap and are not added together. After the merge, the clean original main source separately passed the expanded **34-case / 5706-observation** differential (65.182 s) and **34/34** native roundtrips (29.070 s). Exact v1 differences remain classified, and the ten specification-baseline cases that stop after load remain incomplete.
+
+The [core checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-29/core-continuation/README.md) retains the ten original command manifests, source identities, timestamps, environment, log hashes and earlier TDD failures. It also preserves the rejected whole-block recovery comparison, heap sensitivity RED, snapshot samples, inline linear/quadratic samples and an audit of the remaining structural performance evidence. A source map reconstructs 25 original integration commits from 88 published blobs without changing the working tree or real index. The benchmark's separate prepare-only replay verified 258 module hashes and three lockfiles; no additional timing run is claimed.
+
+The measurements have bounded meaning. Snapshot reads improve on the measured headless path, while complete small edits are essentially unchanged. The inline repair removes the quadratic candidate's overhead; its 800-widget median is 52.5 ms versus 47.4 ms for the older behaviorally defective baseline, with overlapping sample ranges. No general editor speedup or latency guarantee follows. The actual heap snapshots retain the deliberate public control until release and the current/latest history objects; they do not turn serialized history limits into a heap-size guarantee. Populated Table/Gallery/Columns native authoring, scheduled `onChange`, UI/paint and allocation comparisons remain C09/T15 work.
+
+Environment is Linux x64, Node `v24.22.1`, Chromium `142.0.7444.175` and the recorded lockfile. Other engines and manual OS IME are not established. The earlier Image backward-range defect is repaired, but derived image `alt` after caption widget hydration/update remains open; full Image acceptance is still withheld. These core gates do not automatically accept additional differential register rows. The current total remains **25 accepted / 184 open**, with B-HTML, B-STYLE and the remaining library capabilities requiring their own evidence.

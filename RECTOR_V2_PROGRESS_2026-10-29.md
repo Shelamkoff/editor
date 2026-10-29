@@ -4,6 +4,8 @@
 
 This is a scoped implementation and verification checkpoint, not whole-library release acceptance. The current target is [Contract and Boundary Refactor](RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md), with unaffected [Architecture Refinement](RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md) requirements retained. The historical acceptance notes in [Implementation Progress](RECTOR_V2_IMPLEMENTATION_PROGRESS.md) retain their original source and environment scope.
 
+Latest completed core publication: `0fecf490fe8a57188ac9edb502d2803743c29883`. The [combined core continuation below](#combined-core-continuation-2026-10-29) records fresh verification of C12 recovery, C09 snapshots, C07 phase types, inline range preservation and C10 live retention. The earlier source identities and results below retain their original scope. B-PRESENTATION is now settled in specification §16.5; B-HTML, B-STYLE and full differential acceptance remain open. The preservation register remains at **25 accepted / 184 open** obligations.
+
 - Repository/branch: `Shelamkoff/editor`, `refactor/rector-v2-architecture`.
 - Starting remote/source commit: `e6d14c9b7912408230f53d1ff9aa754f6dd69dbe`.
 - Pinned v1: `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` (package 1.0.5).
@@ -36,7 +38,7 @@ History can reveal a recorded hidden Person or Carousel field through the existi
 
 Projection checks actual DOM HTML before replacing an unchanged rich-text field. Layout or sibling updates retain text-node identity, native caret and backward selection while changed DOM still goes through normalization/hydration.
 
-Owned inline widgets survive legitimate field or wrapper replacement by their own block. A captured ancestry check distinguishes such replacement from adoption into another owner. Ownership is checked again after extension callbacks and before DOM publication; rejected foreign fields do not receive the live widget even briefly. This does not define the still-open standalone presentation-failure recovery policy.
+Owned inline widgets survive legitimate field or wrapper replacement by their own block. A captured ancestry check distinguishes such replacement from adoption into another owner. Ownership is checked again after extension callbacks and before DOM publication; rejected foreign fields do not receive the live widget even briefly. This early slice did not define standalone presentation-failure recovery; the later combined continuation implements the settled §16.5 contract.
 
 Adjacent equivalent authored tags can merge across zero-length Text nodes left by native range operations. Whitespace, different attributes, native controls and protected boundaries remain barriers; owning tools restore logical selection.
 
@@ -81,7 +83,7 @@ The Quote oracle executed three baseline DOM variants without source modificatio
 | `BLOCK_QUOTE_PASTE_MERGE`, part of `CLIPBOARD_HTML_ROOTS` | Nested attribution import preserves marks, caption and caller DOM, with candidate atomic history | Complete merge/export/conversion and system-clipboard proof remain outside this comparison |
 | `RENDERER_OUTPUTS` | Fourteen bounded v1/candidate checks cover output, reuse and disposal | Producer-revision shortcuts and foreign-output ownership still need differential proof |
 | `BLOCK_PERSON_HIDDEN_FOCUS` / `HISTORY_GESTURE` | Same-block/same-field recorded history target, with superseding/foreign focus negatives | Missing endpoints across different fields or blocks are not established by this slice |
-| C01/C02/C03/C07/C12 extension/projection contracts | Current positive and negative browser checks, including 57 projection cases and 12 installed external browser contracts | Full v1 capability coverage and the B-PRESENTATION decision remain open |
+| C01/C02/C03/C07/C12 extension/projection contracts | Early positive and negative browser checks, including 57 projection cases and 12 installed external browser contracts | Full v1 capability coverage remains open; the later continuation settles and tests B-PRESENTATION |
 
 Probe-script SHA-256 values at successful execution:
 
@@ -207,7 +209,7 @@ The [preservation register](docs/architecture/rector-v2/PRESERVATION.md) retains
 
 - **B-HTML:** choose and verify Raw/Carousel editor/renderer confinement while preserving permitted navigation, download, responsive layout, media, theme and accessibility.
 - **B-STYLE:** settle and verify presentation preservation and destructive trust-policy boundaries before changing supported author formatting.
-- **B-PRESENTATION:** settle standalone projection-failure reporting, local recovery, independent observer delivery, persistent/recovery failure and explicit retry without losing unrelated pending input, tasks or selection. The bounded ownership repairs above do not close this decision.
+- **B-PRESENTATION, subsequently settled:** specification §16.5 and the combined continuation below now define and test field-local containment, independent delivery and explicit changed-descriptor retry while preserving unrelated input, tasks and selection. The earlier bounded ownership repairs alone did not close this decision. Full differential rows retain their separate proof requirements.
 - Complete the v1/current/candidate behavior matrix for all 21 block types, 12 default tools, two inline plugins, renderer/presets and extension capabilities. The Quote and class/construction oracles are limited subsets. Open rows are verification obligations, not a count of established regressions.
 - Finish architecture-to-target convergence, including C09 comparative end-to-end performance evidence and C11 workflow/dependency/provenance work where still required. Existing history-byte support was not newly implemented by this checkpoint.
 - Firefox/WebKit, manual OS IME and system clipboard behavior, cross-platform acceptance and comparative performance were not established by this Linux Chromium run. A zero-retained-sentinel heap gate is not a general memory or performance proof.
@@ -350,3 +352,17 @@ Published `3f2c9acf` adds only scoped literal-caption Image proof: cumulative 24
 `BLOCK_SPOILER_ROUNDTRIP` and `BLOCK_COLUMNS_ROUNDTRIP` are accepted on published `a03dfd87` and `43254ba6`, whose trees match original `7af7f627` and `567e99de`. The added fixed cases preserve independent fields, sidecars, DOM ownership, transient disclosure or fractional grid, renderer output and one real native first-field edit with Undo/Redo. The cumulative candidate passes **34 cases / 5706 observations**, and the native page passes **34/34**. v1 retains 346 precisely classified remount/caret observations; ten formatted specification-baseline cases remain incomplete after load. Every run has unchanged pinned sources and verified loaded dependencies.
 
 The register reaches **25 accepted / 184 open** obligations. [The detailed acceptance record](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#spoiler-and-columns-roundtrip-parity-2026-10-29) records each frozen patch, command interval, exact source hash and scope. These templates do not accept separate disclosure/layout actions or second-field native authoring. Image's widget/alt boundary remains separate.
+
+## Combined core continuation 2026-10-29
+
+Published `0fecf490fe8a57188ac9edb502d2803743c29883` has exactly the tested merged tree `820823b30699871a132d4dab207cd9c871af079e` from local `1b1db09196fd96b4377b167346385762a3972838`. The preceding clean integration `0cf0cc72a12a2995e22e73cf75c2e29ef91bd476` contains the same production code, core tests, package and lockfile. The merge adds only ten listed parity fixture/documentation files for Spoiler and Columns.
+
+C12 contains failed standalone presentation at the affected field. Healthy fields keep their DOM, backward selection, widgets, tasks and trusted pending input. Unchanged failed descriptors do not retry automatically; an explicit changed descriptor permits a new attempt. Ownership is validated again after callbacks, including mode cancellation and inverse failures. This uses the existing owners without adding a public recovery surface or a second model.
+
+C09 removes redundant copying at the already-owned public snapshot boundary while preserving detached nested data, frozen envelopes and strict external JSON checks. C07 gives the existing phase getters/callbacks exact unions without changing executable behavior. Inline payload projection preserves unrelated Text nodes and ranges with linear slot validation; the rejected quadratic variant and measured comparison remain archived. C10 adds an actual live-editor heap proof of history eviction, including retained/released controls and real Undo/Redo, without changing production history behavior.
+
+The clean unchanged integration passed **1962/1962 unit tests**, both checkJs projects, all **35 ordinary browser pages**, the complete unfiltered native gate (**2128 cases across 41 arrays**, plus base Enter/toolbox/history scenarios), installed-package checks and documentation contracts. The fresh heap gate retained zero of 23 disposed sentinels; evicted authored payloads disappeared while the editor and newest history action remained alive. The integration's 28-case differential passed 4632 candidate observations. After merge, the expanded three-source run passed **34 cases / 5706 candidate observations**, and the native roundtrip page passed **34/34**. Counts overlap earlier focused runs and must not be summed.
+
+[The retained core evidence](scripts/parity/checkpoints/2026-10-29/core-continuation/README.md) supplies all ten completed command records, exact source identities, environment and log hashes, as well as the original failing TDD stages. A compact source map reconstructs all 25 original integration commits from 88 blobs reachable in the published branch. The separate benchmark reconstruction verified 258 module hashes and three locks; it was a prepare-only check, not a new timing run.
+
+These results are from Linux, Node `v24.22.1` and Chromium `142.0.7444.175`. Image's unrelated-text/backward-range defect is repaired; its derived `alt` after caption widget hydration or update remains open. C09/T15 still requires populated structural authoring, native input, scheduled publication/UI and allocation comparisons. No general speed or heap guarantee, other-browser acceptance, complete Image acceptance or additional preservation row is inferred from the core gates.
