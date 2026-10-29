@@ -414,11 +414,23 @@ async function verifyBlockOperations(client, language) {
   assert(JSON.stringify(crossAfter[paragraphIndex + 2]) === JSON.stringify({ ...crossBefore[listIndex], fields: crossBefore[listIndex].fields.slice(2) }), 'Demo Image conversion changed unselected List item')
   assert(JSON.stringify(crossAfter.slice(paragraphIndex + 3)) === JSON.stringify(crossBefore.slice(listIndex + 1)), 'Demo Image conversion changed other blocks')
   if (qaRoot) await captureScreenshot(client, join(qaRoot, 'cross-image-' + language + '.png'))
+  // The empty Image's source button owns its native keys. Document history
+  // starts only after the author explicitly focuses an editor-owned surface.
+  assert(await evaluate(client, "document.activeElement?.matches('.live-demo .oe-block[data-block-type=image] button')"), 'Demo empty Image did not focus its source button')
+  await undo()
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(crossAfter), 'Demo Image source button intercepted document Undo')
+  assert(await evaluate(client, `(() => {
+    const root = document.querySelector('.live-demo .oe-editor')
+    root.focus({ preventScroll: true })
+    return document.activeElement === root
+  })()`), 'Demo editor did not receive history focus')
   await undo()
   assert(JSON.stringify(await snapshot()) === JSON.stringify(crossBefore), 'Demo cross Image did not undo exactly')
   await undo(true)
   assert(JSON.stringify(await snapshot()) === JSON.stringify(crossAfter), 'Demo cross Image redo changed data or identity')
+  await evaluate(client, "document.querySelector('.live-demo .oe-editor').focus({ preventScroll: true })")
   await undo()
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(crossBefore), 'Demo cross Image cleanup did not undo exactly')
 
   const shortPoints=await evaluate(client,`(() => {
     const heading=document.querySelector('.live-demo .oe-block[data-block-type="heading"] [contenteditable="true"]')
