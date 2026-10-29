@@ -1,0 +1,57 @@
+{
+  "classifierSha256": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+  "inputs": [
+    {
+      "file": "poll-roundtrip-green-before-core.json.gz",
+      "storedSha256": "e41e73fac6fc104f059ec99a473293aa6c625d54fefaf7d31513f001abeb37ef",
+      "rawSha256": "6513b569e7ccb1b06449ac54248ae9a2c0508541aa816abd756ca4338509a38a",
+      "head": "5a48a1b6414388ece478f967e67f59ebbbdf3d9c"
+    },
+    {
+      "file": "link-preview-roundtrip-green-before-final.json.gz",
+      "storedSha256": "2854e249d88a204732e6487d2b416726426a7e5f6bfc61f5c4d64fd978acd480",
+      "rawSha256": "5e75798e689d0e4b3cae45459c9dd29905a137100bf2c82e33a11d5699be5a00",
+      "head": "23f52ed6940111adab9394bfbc0adb5402b82129"
+    }
+  ],
+  "classified": 141,
+  "categories": {
+    "repaired-v1-poll-mode-remount": 8,
+    "repaired-v1-poll-history-remount": 8,
+    "repaired-v1-empty-poll-caret": 1,
+    "unsupported-v1-poll-persistent-widgets": 84,
+    "unsupported-v1-poll-persistent-widget-caret": 6,
+    "repaired-v1-poll-first-undo-focus": 3,
+    "repaired-baseline-poll-derived-label": 4,
+    "repaired-baseline-poll-widget-mode-failure": 2,
+    "repaired-v1-link-preview-mode-remount": 8,
+    "repaired-v1-empty-link-preview-focus-theft": 1,
+    "repaired-v1-link-preview-history-remount": 8,
+    "repaired-v1-link-preview-history-caret": 3,
+    "repaired-baseline-link-preview-native-card": 2,
+    "repaired-baseline-link-preview-native-undo": 2,
+    "repaired-baseline-link-preview-native-undo-caret": 1
+  },
+  "negativeControls": {
+    "candidate-source": 141,
+    "unknown-source": 141,
+    "opposite-historical-source": 141,
+    "changed-actual": 141,
+    "changed-expected": 141,
+    "changed-property": 141,
+    "changed-phase": 141,
+    "changed-status": 141,
+    "unknown-case": 141,
+    "completed-phase-mismatch": 141,
+    "incomplete-phase-mismatch": 141,
+    "missing-phase-observation": 141,
+    "extra-phase-observation": 141,
+    "changed-independent-author-record": 141,
+    "changed-block-identity": 141,
+    "unpaired-execution-error": 141,
+    "changed-native-owner": 15
+  },
+  "rejected": 2271,
+  "passingObservationsRejected": 3044,
+  "boundary": "Offline recognizer sensitivity only. It does not execute browser/editor behavior or grant candidate exceptions."
+}

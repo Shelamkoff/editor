@@ -468,9 +468,6 @@ export function createPersonPlugin(config={}){
             name.contentEditable=readOnly?'false':'true'
             name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
             if(person.name)setSanitizedHtml(name,person.name)
-            name.addEventListener('input',()=>{
-              if(activeNameView?.name===name)updateActiveLabel()
-            },{signal:bodyController.signal})
 
             const role=document.createElement('div')
             role.className='oe-person__role'

@@ -1,0 +1,27 @@
+{
+  "source": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "files": [
+    {
+      "path": "plugins/poll/index.js",
+      "sha256": "a70defb0a03a488aae1bc283321c9bcbb59ee0a888784ecdb49d000819611ec9",
+      "containsMapTextFields": false
+    },
+    {
+      "path": "plugins/BlockPluginAbstract.js",
+      "sha256": "85815ce99132ae5103925f841a3d2a5af95949d9f02fbcf237a2ee4920f0549b",
+      "containsMapTextFields": false
+    },
+    {
+      "path": "core/EditorFacade.js",
+      "sha256": "c73946f10188d60dac37d483e5236280dff2a310ff07c07e83095ddc58ae4167",
+      "containsMapTextFields": true
+    },
+    {
+      "path": "core/types.d.ts",
+      "sha256": "2a090eb2558f02f023542aba7f90f60a4a3464e2fc2e0c40334527ea4813259c",
+      "containsMapTextFields": true
+    }
+  ],
+  "publicGate": "core/EditorFacade.js:312\u2013325 refuses insertInlinePlugin when the owning block plugin lacks mapTextFields; core/types.d.ts:137 declares that optional capability. Poll and its actual abstract base contain no such method.",
+  "boundary": "This establishes unsupported v1 persistent Poll widget capability; it does not waive the literal/default Poll data or renderer comparison."
+}

@@ -235,9 +235,33 @@ export function createGalleryPlugin(config={}){
           let dead=false
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url'])}
           const tasks=new Set()
+          /** @type {Map<string,{id:string,caption:HTMLDivElement,image:HTMLImageElement,slot:HTMLDivElement,parent:HTMLElement,signal:AbortSignal}>} */
           const captionFields=new Map()
           let viewController=null
           let dragId=null
+
+          const ownsCaptionImage=view=>{
+            if(!view||captionFields.get(view.id)!==view||dead||context.signal.aborted||view.signal.aborted
+              ||view.caption.parentNode!==view.slot||view.image.parentNode!==view.slot
+              ||view.parent.parentNode!==wrapper)return false
+            // Masonry may add ordinary layout wrappers. Keep the original
+            // caption/image/slot/grid identities; neither a CSS class nor a
+            // newly observed parent grants ownership. Core separately proves
+            // the completed field's exact block and authoring-owner lease.
+            for(let parent=view.slot.parentElement;parent!==view.parent;parent=parent.parentElement){
+              if(!parent||parent.hasAttribute('contenteditable')||parent.hasAttribute('data-inline-plugin')
+                ||parent.hasAttribute('data-block-id')||parent.matches(
+                  'button,input,textarea,select,option,[role="button"],[role="menuitem"],[role="option"],'
+                    +'[role="textbox"],[role="combobox"],[role="listbox"]',
+                ))return false
+            }
+            return true
+          }
+          const updateAlternativeText=view=>{
+            if(!ownsCaptionImage(view))return
+            const alt=view.caption.textContent?.trim()??''
+            if(ownsCaptionImage(view))view.image.alt=alt
+          }
 
           const updateData=producer=>retainControlFocus(wrapper,()=>context.updateData(producer))
           const syncLoading=()=>wrapper.classList.toggle(CSS.loading,tasks.size>0)
@@ -357,7 +381,7 @@ export function createGalleryPlugin(config={}){
 
           // DOM controls are recreated by project(); bind their listeners to
           // the per-view controller, not to the whole block's lifetime.
-          const renderImage=(image,index)=>{
+          const renderImage=(image,index,parent)=>{
             const slot=document.createElement('div')
             slot.className=CSS.slot+' '+CSS.slotFilled
             slot.dataset.imageId=image.id
@@ -366,7 +390,6 @@ export function createGalleryPlugin(config={}){
             const img=document.createElement('img')
             img.className=CSS.slotImg
             setSafeUrlAttribute(img,'src',image.url,'media')
-            img.alt=image.caption?stripText(image.caption):''
             img.draggable=false
 
             const caption=document.createElement('div')
@@ -387,7 +410,8 @@ export function createGalleryPlugin(config={}){
                 event.stopPropagation()
               }
             },{signal:viewController.signal})
-            captionFields.set(image.id,caption)
+            const view={id:image.id,caption,image:img,slot,parent,signal:viewController.signal}
+            captionFields.set(image.id,view)
             slot.append(img,caption)
 
             slot.addEventListener('dragstart',event=>{
@@ -500,7 +524,7 @@ export function createGalleryPlugin(config={}){
             const layout=data.layout==='auto'?autoGalleryLayout(Math.min(data.images.length,6)):data.layout
             grid.className=CSS.grid+' eg--'+layout
             const visible=data.images.slice(0,count)
-            const slots=visible.map((image,index)=>renderImage(image,index))
+            const slots=visible.map((image,index)=>renderImage(image,index,grid))
             slots.forEach(slot=>grid.appendChild(slot))
             if(Number.isFinite(count)&&data.layout!=='auto'){
               for(let index=visible.length;index<count;index++){
@@ -540,7 +564,7 @@ export function createGalleryPlugin(config={}){
               const overflow=document.createElement('div')
               overflow.className=CSS.overflow
               data.images.slice(visible.length).forEach((image,index)=>{
-                const item=renderImage(image,visible.length+index)
+                const item=renderImage(image,visible.length+index,overflow)
                 item.classList.add(CSS.overflowItem)
                 overflow.appendChild(item)
               })
@@ -659,7 +683,7 @@ export function createGalleryPlugin(config={}){
               ...cloneData(data),
               images:data.images.map(image=>({
                 ...image,
-                caption:captionFields.get(image.id)?.innerHTML.trim()??image.caption,
+                caption:captionFields.get(image.id)?.caption.innerHTML.trim()??image.caption,
               })),
             }),
             update(next, previousCanonical){
@@ -677,7 +701,7 @@ export function createGalleryPlugin(config={}){
                     ?canonical.caption:projected.caption
                   return image.id===projected.id&&image.url===projected.url
                     &&(image.caption===priorCaption
-                      ||image.caption===captionFields.get(image.id)?.innerHTML.trim())
+                      ||image.caption===captionFields.get(image.id)?.caption.innerHTML.trim())
                 })
               const sameOptions=JSON.stringify(next.options)===JSON.stringify(data.options)
               const sameLayout=next.layout===data.layout
@@ -705,13 +729,19 @@ export function createGalleryPlugin(config={}){
               project(next)
             },
             editableFields:()=>Object.freeze(data.images.flatMap(image=>{
-              const element=captionFields.get(image.id)
+              const element=captionFields.get(image.id)?.caption
               return element?[Object.freeze({
                 key:'image:'+image.id+':caption',
                 element,
                 mode:/** @type {'rich-text'} */('rich-text'),
               })]:[]
             })),
+            afterProjection(field){
+              const id=field.key.slice('image:'.length,-':caption'.length)
+              const view=captionFields.get(id)
+              if(!view||field.key!=='image:'+view.id+':caption'||field.element!==view.caption||field.mode!=='rich-text')return
+              updateAlternativeText(view)
+            },
             setReadOnly(value){
               readOnly=value
               // A native source edit may have advanced canonical data without
@@ -721,7 +751,7 @@ export function createGalleryPlugin(config={}){
             focus(target){
               if(dead||readOnly)return
               const id=target?.fieldKey?.match(/^image:(.+):caption$/)?.[1]??data.images[0]?.id
-              ;(captionFields.get(id)??wrapper)?.focus()
+              ;(captionFields.get(id)?.caption??wrapper)?.focus()
             },
             destroy(){dead=true;viewController?.abort();abortTasks();captionFields.clear()},
           }
@@ -739,8 +769,4 @@ function cloneData(data){
     styles:{...data.styles},
     options:{...data.options},
   }
-}
-
-function stripText(html){
-  return String(html||'').replace(/<[^>]*>/g,'').trim()
 }

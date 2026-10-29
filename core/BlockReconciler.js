@@ -261,8 +261,9 @@ export class BlockReconciler {
    */
   completeFieldProjection(id,field) {
     const entry=this.#entries.get(id)
-    if(!entry?.instance.afterProjection)return
+    if(!entry?.instance.afterProjection)return false
     this.#completeFields(entry,[field])
+    return true
   }
 
   get ids() {
@@ -390,7 +391,7 @@ export class BlockReconciler {
   }
 
 
-  prepare({ store, draft, changes, sourceBlockId, generation, origin }) {
+  prepare({ store, draft, changes, sourceBlockId, completedSourceFieldKey, generation, origin }) {
     this.#assertLive()
     this.#store = store
     const structuralChange = hasStructuralChange(changes)
@@ -518,6 +519,8 @@ export class BlockReconciler {
 
         for (const item of updates) {
           const failedPresentation=item.entry.presentationFailure
+          const completedSourceField=item.id===sourceBlockId&&completedSourceFieldKey!==undefined
+            ?item.entry.fields.find(field=>field.key===completedSourceFieldKey):null
           const captured=item.dataChanged&&item.id!==sourceBlockId&&item.entry.instance.afterProjection
             ?this.#captureFieldContent(item.entry):null
           item.entry.lifetime.candidate = item.after
@@ -526,8 +529,43 @@ export class BlockReconciler {
           }
           item.entry.record = item.after
           this.#refreshFields(item.id, item.entry)
-          const rewrittenFields=captured?new Set(item.entry.fields.filter(field=>field.mode==='rich-text'
+          let rewrittenFields=captured?new Set(item.entry.fields.filter(field=>field.mode==='rich-text'
             &&(!captured.has(field.element)||!sameFieldContent(field.element,captured.get(field.element)))).map(field=>field.element)):null
+          if(item.dataChanged&&item.id===sourceBlockId&&item.entry.instance.afterProjection){
+            // Native authoring already changed its retained DOM before this
+            // projection began. Complete only its changed declared fields,
+            // after the same ordinary hydration pass as other projections.
+            const {fields,assertOwned}=this.#captureFieldOwners(item.entry)
+            assertOwned()
+            const contents=new Map(fields.map(field=>[field.element,fieldContent(field.element)]))
+            const assertUnchanged=()=>{
+              assertOwned()
+              for(const [element,content] of contents){
+                if(!sameFieldContent(element,content))throw new Error('Rich-text mapping changed author content')
+              }
+              assertOwned()
+            }
+            const readFields=data=>{
+              assertOwned()
+              let result,failed=false,error
+              try{result=richTextFieldMap(item.entry.definition,data)}
+              catch(failure){failed=true;error=failure}
+              try{assertUnchanged()}
+              catch(failure){
+                if(failed)throw new AggregateError([error,failure],'Rich-text mapping and ownership validation failed',{cause:error})
+                throw failure
+              }
+              if(failed)throw error
+              return result
+            }
+            const before=readFields(item.before.data)
+            const after=readFields(item.after.data)
+            rewrittenFields=new Set(fields.filter(field=>{
+              const alreadyCompleted=completedSourceField?.key===field.key
+                &&completedSourceField.element===field.element&&completedSourceField.mode===field.mode
+              return !alreadyCompleted&&before.get(field.key)!==after.get(field.key)
+            }).map(field=>field.element))
+          }
           if (this.#inlineProjection && !item.entry.unregistered) {
             this.#inlineProjection.reconcileBlock(
               item.id,
@@ -975,15 +1013,23 @@ export class BlockReconciler {
     entry?.scope?.activate?.()
   }
 
-  #captureFieldContent(entry) {
+  #captureFieldOwners(entry) {
     const id=entry.record.id,fields=entry.fields.filter(field=>field.mode==='rich-text')
     const owners=new Map(fields.map(field=>[field.element,this.#fieldOwners.get(field.element)]))
     const assertOwned=()=>{
       if(!this.#isCurrentMountedEntry(id,entry)||fields.some(field=>{
         const owner=owners.get(field.element)
         return !owner||this.#fieldOwners.get(field.element)!==owner||!this.#hasFieldAncestry(owner,entry)
-      }))throw new Error('Field rewrite observation lost its accepted owner')
+      })){
+        this.#revalidateSettledFields(id,entry,null,false)
+        throw new Error('Field rewrite observation lost its accepted owner')
+      }
     }
+    return {fields,assertOwned}
+  }
+
+  #captureFieldContent(entry) {
+    const {fields,assertOwned}=this.#captureFieldOwners(entry)
     assertOwned()
     const captured=new Map(fields.map(field=>[field.element,fieldContent(field.element)]))
     assertOwned()
@@ -1479,7 +1525,11 @@ export class BlockReconciler {
   }
 
   #destroyEntry(entry,onlyOwnedRoot=false) {
-    if (!entry) return
+    if (!entry || entry.destroyed) return
+    // Recovery can retain this retired entry in its predecessor snapshot.
+    // Its first teardown owns removal; later cleanup cannot reclaim a shell
+    // that was already left with a foreign owner by shrinking retirement.
+    entry.destroyed = true
     try { this.#discardPreparedInline(entry) } catch {}
     try { entry.scope?.revoke?.() } catch {}
     try { entry.controller?.abort() } catch {}

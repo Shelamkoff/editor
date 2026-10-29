@@ -79,6 +79,13 @@ function normalizeMetadata(metadata) {
     }
     result.sourceBlockId = sourceBlockId
   }
+  const completedSourceFieldKey = metadata.completedSourceFieldKey
+  if (completedSourceFieldKey !== undefined) {
+    if (typeof completedSourceFieldKey !== 'string' || !completedSourceFieldKey || sourceBlockId === undefined) {
+      throw new TypeError('completedSourceFieldKey requires a non-empty field key and sourceBlockId')
+    }
+    result.completedSourceFieldKey = completedSourceFieldKey
+  }
   const continuation = metadata.continuation
   if (continuation !== undefined) {
     if (!continuation || typeof continuation !== 'object' || Array.isArray(continuation)) {
@@ -215,6 +222,7 @@ export class TransactionEngine {
         origin: metadata.origin,
         name: metadata.name,
         sourceBlockId: metadata.sourceBlockId,
+        completedSourceFieldKey: metadata.completedSourceFieldKey,
         generation: storeCommit.generation,
         revision: storeCommit.revision,
       })

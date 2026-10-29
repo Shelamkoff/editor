@@ -1,0 +1,40 @@
+file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/run.mjs:132
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for projection-contracts.html
+{
+  "total": 120,
+  "failed": 5,
+  "failures": [
+    {
+      "name": "Poll derived results retain author marks through load and both modes without a document action",
+      "status": "FAIL",
+      "error": "Error: Result label must contain completed option text\nexpected \"Answer @Ada #123456 tail\", got \"Answer {{mention}} {{swatch}} tail\"\n    at equal (http://127.0.0.1:45043/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:45043/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:45043/tests/browser/regressions/poll-derived-presentation.js:10:7\n    at async run (http://127.0.0.1:45043/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:45043/tests/browser/projection-contracts.js:1762:1"
+    },
+    {
+      "name": "Poll derived results follow mention changes and one Undo/Redo without moving a backward range",
+      "status": "FAIL",
+      "error": "Error: Result label must contain completed option text\nexpected \"Answer @Grace #123456 tail\", got \"Answer {{mention}} {{swatch}} tail\"\n    at equal (http://127.0.0.1:45043/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:45043/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:45043/tests/browser/regressions/poll-derived-presentation.js:33:5\n    at async run (http://127.0.0.1:45043/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:45043/tests/browser/projection-contracts.js:1762:1"
+    },
+    {
+      "name": "Poll derived results follow swatch changes and one Undo/Redo without moving a backward range",
+      "status": "FAIL",
+      "error": "Error: Result label must contain completed option text\nexpected \"Answer @Ada #654321 tail\", got \"Answer {{mention}} {{swatch}} tail\"\n    at equal (http://127.0.0.1:45043/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:45043/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:45043/tests/browser/regressions/poll-derived-presentation.js:33:5\n    at async run (http://127.0.0.1:45043/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:45043/tests/browser/projection-contracts.js:1762:1"
+    },
+    {
+      "name": "Poll runtime-only result replacement reads retained completed option fields",
+      "status": "FAIL",
+      "error": "Error: Result label must contain completed option text\nexpected \"Answer @Ada #123456 tail\", got \"Answer {{mention}} {{swatch}} tail\"\n    at equal (http://127.0.0.1:45043/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:45043/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:45043/tests/browser/regressions/poll-derived-presentation.js:48:5\n    at async run (http://127.0.0.1:45043/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:45043/tests/browser/projection-contracts.js:1762:1"
+    },
+    {
+      "name": "Poll retired option input cannot replace the current result projection",
+      "status": "FAIL",
+      "error": "Error: Result label must contain completed option text\nexpected \"Answer @Ada #123456 tail\", got \"Answer {{mention}} {{swatch}} tail\"\n    at equal (http://127.0.0.1:45043/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:45043/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:45043/tests/browser/regressions/poll-derived-presentation.js:79:44\n    at async run (http://127.0.0.1:45043/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:45043/tests/browser/projection-contracts.js:1762:1"
+    }
+  ]
+}
+    at runPage (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/run.mjs:132:13)
+    at async file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/run.mjs:179:30
+
+Node.js v24.22.1

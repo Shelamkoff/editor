@@ -1,5 +1,8 @@
+import './regressions/gallery-derived-alt.js'
+import './regressions/carousel-caption-renderer.js'
 import './regressions/field-projection-completion.js'
 import './regressions/person-derived-presentation.js'
+import './regressions/poll-derived-presentation.js'
 import './regressions/image-derived-alt.js'
 import { assembleCanonicalRecord, filterCanonicalInline, remapCanonicalInline } from '../../core/CanonicalTransforms.js'
 import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'

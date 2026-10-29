@@ -159,19 +159,28 @@ test('Person replaces active author fields when the active person is removed', (
   instance.destroy()
 })
 
-test('Person current name input updates the tab created by a sibling change', () => {
-  const { instance } = mount()
-  const field = nameField(instance, 'a')
-  const next = input()
-  next.persons[1].role = 'New role'
-  instance.update(next, input())
-  assert.equal(nameField(instance, 'a'), field, 'the editing host must remain mounted')
-  field.textContent = 'Changed name'
-  field.dispatch('input')
+test('Person current name completion updates the tab created by a sibling change', () => {
+  const initial = input()
+  initial.persons[0].name = 'Original name'
+  const { instance } = mount(initial)
+  const descriptor = instance.editableFields().find(field => field.key === 'person:a:name')
+  const field = descriptor.element, complete = instance.afterProjection
   const tabs = instance.element.children[0]
+  const oldTab = tabs.children.find(item => item.dataset.personId === 'a')
+  const oldLabel = oldTab.querySelector('.oe-person__tab-label')
+  const next = structuredClone(initial)
+  next.persons[1].role = 'New role'
+  instance.update(next, initial)
+  assert.equal(nameField(instance, 'a'), field, 'the editing host must remain mounted')
   const current = tabs.children.find(item => item.dataset.personId === 'a')
   const label = current.querySelector('.oe-person__tab-label')
-  assert.equal(label.textContent, 'Changed name', 'typing updated a stale detached tab label')
+  assert.notEqual(current, oldTab, 'the sibling update must actually replace the tab projection')
+  assert.equal(oldTab.parentNode, null)
+  field.textContent = 'Changed name'
+  assert.equal(label.textContent, 'Original name', 'uncommitted author DOM cannot complete its label')
+  Reflect.apply(complete, instance, [descriptor])
+  assert.equal(label.textContent, 'Changed name', 'completion updated a stale detached tab label')
+  assert.equal(oldLabel.textContent, 'Original name', 'completion wrote into the retired tab projection')
   instance.destroy()
 })
 
@@ -231,20 +240,46 @@ test('retired Person tab cannot change active record after a sibling update', ()
 })
 
 test('Person retires body event listeners only when the active record actually changes', () => {
-  const { instance } = mount()
+  const initial = input()
+  for (const person of initial.persons) person.links.push({
+    id: 'site', type: 'website', url: 'https://example.com/' + person.id,
+  })
+  const { instance } = mount(initial)
   const name = nameField(instance, 'a')
-  assert.equal(name.listeners.get('input')?.length, 1)
-  const sibling = input()
+  const urlField = id => instance.editableFields().find(field => field.key === 'person:' + id + ':link:site:url')?.element
+  const url = urlField('a'), icon = url.parentNode.querySelector('.oe-person__link-icon')
+  const assertLiveControl = control => {
+    assert.equal(control.dispatch('keydown', { key: 'Enter' }).defaultPrevented, true,
+      'the current URL control lost its single-line keyboard behavior')
+    const currentIcon = control.parentNode.querySelector('.oe-person__link-icon')
+    currentIcon.innerHTML = 'pending icon'
+    control.dispatch('input')
+    assert.notEqual(currentIcon.innerHTML, 'pending icon', 'the current URL control no longer updates its social icon')
+  }
+  assertLiveControl(url)
+  const sibling = structuredClone(initial)
   sibling.persons[1].role = 'Writer'
-  instance.update(sibling, input())
+  instance.update(sibling, initial)
   assert.equal(nameField(instance, 'a'), name)
-  assert.equal(name.listeners.get('input')?.length, 1,
-    'tab-only update accidentally disabled active author input')
-  instance.update({ persons: [person('b')] }, sibling)
-  assert.equal(name.listeners.get('input')?.length ?? 0, 0,
-    'removed Person body retained a document-input listener')
+  assert.equal(urlField('a'), url, 'tab-only update replaced the current URL control')
+  assertLiveControl(url)
+  instance.update({ persons: [sibling.persons[1]] }, sibling)
+  for (const type of ['input', 'keydown']) assert.equal(url.listeners.get(type)?.length ?? 0, 0,
+    'removed Person body retained a ' + type + ' listener')
+  icon.innerHTML = 'retired icon'
+  url.dispatch('input')
+  assert.equal(icon.innerHTML, 'retired icon', 'a retired body control changed its detached auxiliary presentation')
+  assert.equal(url.dispatch('keydown', { key: 'Enter' }).defaultPrevented, false)
   assert.equal(instance.editableFields()[0]?.key, 'person:b:name')
+  const replacement = urlField('b'), replacementIcon = replacement.parentNode.querySelector('.oe-person__link-icon')
+  assertLiveControl(replacement)
   instance.destroy()
+  for (const type of ['input', 'keydown']) assert.equal(replacement.listeners.get(type)?.length ?? 0, 0,
+    'destroyed Person body retained a ' + type + ' listener')
+  replacementIcon.innerHTML = 'destroyed icon'
+  replacement.dispatch('input')
+  assert.equal(replacementIcon.innerHTML, 'destroyed icon')
+  assert.equal(replacement.dispatch('keydown', { key: 'Enter' }).defaultPrevented, false)
 })
 
 test('Person reflects committed native text after read-only transition', () => {

@@ -1259,6 +1259,7 @@ export class DocumentRuntime {
       })
 
       const updates = []
+      let completedSourceFieldKey
       for (const id of ordered) {
         const current = this.#store.get(id)
         const definition = this.#registry.getBlockDefinition(current.type)
@@ -1274,7 +1275,7 @@ export class DocumentRuntime {
         const next = this.#recordFromData(
           current.id, current.type, definition, readData, current.tunes, inlineSource,
         )
-        if (metadata.finalizeNativeInline) metadata.finalizeNativeInline(next)
+        if (metadata.finalizeNativeInline) completedSourceFieldKey=metadata.finalizeNativeInline(next)
         // Native projection reads may preserve meaning with a different
         // JSON key order. Only an actual semantic change creates history.
         if (!canonicalRecordsEqual(current, next)) updates.push([id, next])
@@ -1297,6 +1298,7 @@ export class DocumentRuntime {
           sourceBlockId: metadata.preserveSourceProjection === true && ordered.length === 1
             ? ordered[0]
             : undefined,
+          ...(completedSourceFieldKey===undefined?{}:{completedSourceFieldKey}),
         }, tx => {
           for (const [id, next] of updates) tx.update(id, next)
         })

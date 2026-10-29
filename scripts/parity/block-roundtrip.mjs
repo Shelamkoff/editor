@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { classifyLinkPollDifference, linkPollCaseIds } from './link-poll-roundtrip-classifiers.mjs'
 
 // These fixed values recognize only captured historical Embed failures. They
 // never adapt browser input, rewrite observations or grant candidate exceptions.
@@ -369,6 +370,8 @@ const playwright = process.env.EDITOR_PLAYWRIGHT_PATH
 const { chromium } = await import(playwright ? pathToFileURL(resolve(playwright)).href : 'playwright')
 const startedAt = new Date().toISOString()
 const sourceSha256 = digest(await readFile(fileURLToPath(import.meta.url)))
+const classifierPath = new URL('./link-poll-roundtrip-classifiers.mjs', import.meta.url)
+const classifierSha256 = digest(await readFile(classifierPath))
 const fixturePath = join(repo, 'tests/browser/block-roundtrip-fixture.js')
 const fixtureBytes = await readFile(fixturePath)
 const fixtureSha256 = digest(fixtureBytes)
@@ -502,6 +505,7 @@ try {
         'BLOCK_RAW_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/populated']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
+        if (linkPollCaseIds.includes(entry.id)) return classifyLinkPollDifference(source.label, entry, failure)
         if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
         if (tableCaseIds.includes(entry.id)) return classifyTableDifference(source.label, entry, failure)
         if (imageRichCaseIds.includes(entry.id)) return classifyImageRichDifference(source.label, entry, failure)
@@ -684,6 +688,10 @@ try {
         entry.referenceCapability = { supported: false, feature: 'Persistent Image caption widgets',
           reason: 'Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity.' }
       }
+      if (source.label === 'v1' && ['BLOCK_POLL_ROUNDTRIP/populated', 'BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)) {
+        entry.referenceCapability = { supported: false, feature: 'Persistent Poll question and option widgets',
+          reason: 'Pinned v1 Poll declares no mapTextFields hook required by the public persistent inline insertion gate. Its literal question/option data remains compared; the two sidecar cases prove current capability, not v1 widget parity.' }
+      }
     }
     results.push({ source: source.label, cases, errors, pageErrors })
     await page.close()
@@ -691,6 +699,7 @@ try {
   for (const { bytes, path } of loaded.values()) assert.deepEqual(await readFile(path), bytes, 'Source changed during probe: ' + path)
   assert.deepEqual(await readFile(fixturePath), fixtureBytes, 'The browser fixture changed during its probe')
   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
+  assert.equal(digest(await readFile(classifierPath)), classifierSha256, 'The LinkPreview/Poll classifier changed during its probe')
   // All source pages are closed before pairing the two independent raw error
   // channels, so a later Playwright report cannot bypass this decision.
   for (const result of results) Object.assign(result, classifyEmbedPageErrors(result.source, result.cases, result.errors, result.pageErrors, origin))
@@ -705,7 +714,7 @@ try {
     unsupportedReferenceCases: results.flatMap(source => source.cases.filter(entry => entry.referenceCapability?.supported === false)
       .map(entry => ({ source: source.source, id: entry.id, ...entry.referenceCapability }))),
     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
-    sourceSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
+    sourceSha256, classifierSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,
     sources, dependencyVersions, dependencyFiles, serverErrors, results,
   }, null, 2))

@@ -185,7 +185,7 @@ export class InlineWidgetInputController {
       applyChanges:changes=>this.#projection.applyNativeInlineChanges(owner.blockId,owner.fieldKey,changes),
       finalizeChanges:(changes,canonicalInline)=>{
         this.#projection.finalizeNativeInlineUpdates(owner.blockId,owner.fieldKey,changes,canonicalInline)
-        if(changes.length)this.#reconciler.completeFieldProjection?.(owner.blockId,field)
+        if(changes.length&&this.#reconciler.completeFieldProjection?.(owner.blockId,field))return field.key
       },
     })
   }

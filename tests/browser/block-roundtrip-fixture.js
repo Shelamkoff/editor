@@ -138,12 +138,36 @@ const embed = {
     cover: pixel, title: 'Local preview', duration: '1:23' },
 }
 
+const linkPreview = {
+  type: 'linkPreview', moduleDirectory: 'link-preview', scenarioName: 'LINK_PREVIEW', version: 1, className: 'LinkPreview',
+  textKey: 'url', fieldMode: 'plain-text', fieldTag: 'INPUT', fieldSelector: '.oe-lp__url-input',
+  defaultData: { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' },
+  populatedData: { url: 'https://example.test/story', title: 'Literal <b>headline</b> & {{literal}}',
+    description: 'Description & <script>literal</script>', image: pixel, favicon: pixel, domain: 'display.example', template: 'horizontal' },
+}
+
+const poll = {
+  type: 'poll', version: 1, className: 'Poll', textKey: 'question',
+  fieldSelector: '.oe-poll__question', fieldTag: 'DIV',
+  defaultData: { question: '', type: 'single', options: [{ id: 'option-0', text: '' }, { id: 'option-1', text: '' }], resultsMode: 'always' },
+  populatedData: { question: '<b>Alpha</b> <i>{{mention}}</i> tail', type: 'multiple',
+    options: [{ id: 'first', text: '<mark>First answer</mark> <s>{{swatch}}</s>' }, { id: 'second', text: '<i>Second &amp; answer</i>' }],
+    resultsMode: 'always', pollId: 'roundtrip-poll',
+    initialResults: { total: 3, options: [{ id: 'first', votes: 2 }, { id: 'second', votes: 1 }], currentUserVote: ['second'] },
+  },
+  unwrappedData: { question: '<b>Alpha</b> {{mention}} tail', type: 'multiple',
+    options: [{ id: 'first', text: '<mark>First answer</mark> {{swatch}}' }, { id: 'second', text: '<i>Second &amp; answer</i>' }],
+    resultsMode: 'always', pollId: 'roundtrip-poll',
+    initialResults: { total: 3, options: [{ id: 'first', votes: 2 }, { id: 'second', votes: 1 }], currentUserVote: ['second'] },
+  },
+}
+
 const delimiter = {
   type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
   defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
 }
 
-const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
+const withEditedText = (block, data, text) => block.type === 'linkPreview' ? text === data.url ? { ...data } : { ...linkPreview.defaultData, template: data.template, url: text, domain: text ? 'example.test' : '' } : block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : block.type === 'columns' ? { ...data, columns: data.columns.map((column, index) => index ? { ...column } : { ...column, content: text }) }
   : block.type === 'table' ? { ...data, rows: data.rows.map((row, rowIndex) => ({ ...row,
@@ -153,8 +177,8 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table].flatMap(block => {
-  const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, poll, linkPreview].flatMap(block => {
+  const prefix = 'BLOCK_' + (block.scenarioName ?? block.type.toUpperCase()) + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
     { ...block, populated: true, id: prefix + 'populated-neighbor-edit' },
@@ -168,6 +192,9 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
     populatedData: { ...block.populatedData, open: false },
   }] : []).concat(block.type === 'embed' ? [{ ...block, populated: true, literalCaption: true, id: prefix + 'populated-literal',
     populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>caption</i> tail' },
+  }] : []).concat(block.type === 'poll' ? [{ ...block, populated: true, withoutSidecars: true, id: prefix + 'populated-literal',
+    populatedData: { ...block.populatedData, question: '<b>Alpha</b> <i>question</i> tail',
+      options: [{ id: 'first', text: '<mark>First answer</mark> <s>choice</s>' }, ...block.populatedData.options.slice(1)] },
   }] : []).concat(block.type === 'image' ? [
     { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets',
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' } },
@@ -211,7 +238,7 @@ function logicalLength(html) {
 }
 
 function caretIn(field) {
-  if (field.tagName === 'TEXTAREA') return {
+  if (['TEXTAREA', 'INPUT'].includes(field.tagName)) return {
     focused: document.activeElement === field,
     anchor: field.selectionDirection === 'backward' ? field.selectionEnd : field.selectionStart,
     focus: field.selectionDirection === 'backward' ? field.selectionStart : field.selectionEnd,
@@ -266,7 +293,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
   const emptyAttaches = specification.type === 'attaches' && !specification.populated
   const emptyEmbed = specification.type === 'embed' && !specification.populated
   const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
-  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption
+  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption && !specification.withoutSidecars
   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
     authoringTarget: specification.populated ? { blockId: 'prefix', type: 'paragraph', relation: 'neighbor' } : null,
@@ -282,7 +309,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
     import(new URL('core/index.js', base).href),
-    import(new URL(`plugins/${specification.type}/index.js`, base).href),
+    import(new URL(`plugins/${specification.moduleDirectory ?? specification.type}/index.js`, base).href),
     import(new URL('plugins/paragraph/index.js', base).href),
     import(new URL('renderer/index.js', base).href),
     import(new URL('inline-plugins/mention/index.js', base).href),
@@ -393,6 +420,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
     const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
+    if (specification.type === 'poll' && !specification.populated && legacy) {
+      const ids = first[0]?.data.options?.map(option => option.id)
+      check('create', 'pollDefaultOptionIds', { count: ids?.length, unique: new Set(ids).size,
+        valid: ids?.every(id => typeof id === 'string' && id.length > 0) }, { count: 2, unique: 2, valid: true })
+      baseData.options = baseData.options.map((option, index) => ({ ...option, id: ids[index] }))
+    }
+    const pollFields = () => [shell(id).querySelector('.oe-poll__question'), ...shell(id).querySelectorAll('.oe-poll__option-text')]
+    let previousPollFields = specification.type === 'poll' ? pollFields() : []
     const baseText = noEditableField ? specification.neighborText : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
@@ -403,9 +438,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => ['spoiler', 'columns', 'attaches', 'table'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'linkPreview' ? 'A' : ['spoiler', 'columns', 'attaches', 'table', 'poll'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'poll' ? { ...block.data, question: markupMeaning(block.data.question), options: block.data.options.map(option => ({ ...option, text: markupMeaning(option.text) })) } : ['code', 'raw', 'delimiter', 'attaches', 'linkPreview'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : ['image', 'embed'].includes(block.type) ? { ...block.data, caption: markupMeaning(block.data.caption) }
@@ -489,7 +524,47 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }
       }),
     })
-    const rendererMarkup = element => element.dataset.blockType === 'table' ? {
+    const pollRendered = root => ({
+      question: root.querySelector('.editor-poll__question') ? authoredMarkup(root.querySelector('.editor-poll__question')) : null,
+      options: [...root.querySelectorAll('.editor-poll__option')].map(row => ({
+        text: authoredMarkup(row.querySelector('.editor-poll__option-text')),
+        markerType: row.querySelector('.editor-poll__marker').classList.contains('editor-poll__marker--multiple') ? 'multiple' : 'single',
+        selected: row.querySelector('.editor-poll__marker').getAttribute('aria-pressed'),
+        percent: row.querySelector('.editor-poll__pct')?.textContent ?? null,
+      })),
+      submitDisabled: root.querySelector('.editor-poll__submit').disabled,
+    })
+    const expectedPollRendered = block => ({
+      question: block.data.question ? markupMeaning(block.data.question) : null,
+      options: block.data.options.map((option, index) => ({ text: markupMeaning(option.text), markerType: block.data.type,
+        selected: String(Boolean(block.data.initialResults?.currentUserVote?.includes(option.id))),
+        percent: block.data.initialResults ? ['67%', '33%'][index] : '0%',
+      })),
+      submitDisabled: !block.data.initialResults?.currentUserVote?.length,
+    })
+    const linkPreviewMeaning = (card, prefix) => {
+      if (!card || card.hidden) return null
+      const title = card.querySelector('.' + prefix + '__title')
+      const description = card.querySelector('.' + prefix + '__desc')
+      const imageWrapper = card.querySelector('.' + prefix + '__image')
+      const image = imageWrapper && !imageWrapper.hidden ? imageWrapper.querySelector('img') : null
+      const favicon = [...card.querySelectorAll('.' + prefix + '__favicon,.' + prefix + '__favicon-large')].find(element => !element.hidden)
+      return { href: card.getAttribute('href'), target: card.target, rel: card.rel,
+        title: title.textContent, titleElements: title.childElementCount,
+        description: description?.textContent ?? '', descriptionElements: description?.childElementCount ?? 0,
+        domain: card.querySelector('.' + prefix + '__domain span').textContent,
+        image: image?.getAttribute('src') ?? null, favicon: favicon?.getAttribute('src') ?? null,
+      }
+    }
+    const expectedLinkPreviewMeaning = (block, editor = false) => editor && !block.data.url ? null : {
+      href: block.data.url || null, target: '_blank', rel: 'noopener noreferrer',
+      title: block.data.title || block.data.url, titleElements: 0,
+      description: block.data.description, descriptionElements: 0,
+      domain: block.data.domain || block.data.url,
+      image: ['minimal', 'notion'].includes(block.data.template) ? null : block.data.image || null,
+      favicon: block.data.favicon || null,
+    }
+    const rendererMarkup = element => element.dataset.blockType === 'linkPreview' ? linkPreviewMeaning(element, 'editor-link-preview') : element.dataset.blockType === 'poll' ? pollRendered(element) : element.dataset.blockType === 'table' ? {
       children: [...element.children].map(child => child.tagName),
       sections: [...element.querySelector('table').children].map(section => ({ tag: section.tagName,
         rows: [...section.children].map(row => ({ tag: row.tagName, cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell) })) })),
@@ -529,7 +604,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
       ] }
     }
-    const expectedRendererMarkup = block => block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
+    const expectedRendererMarkup = block => block.type === 'linkPreview' ? expectedLinkPreviewMeaning(block) : block.type === 'poll' ? expectedPollRendered(block) : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
@@ -712,6 +787,40 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check(phase, 'editorEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
         } else check(phase, 'emptyEmbedHasNoRichAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
       }
+      if (specification.type === 'linkPreview') {
+        const wrapper = shell(id).querySelector('.oe-lp')
+        check(phase, 'linkPreviewCard', linkPreviewMeaning(wrapper.querySelector('.oe-lp__card'), 'oe-lp'), expectedLinkPreviewMeaning(target, true))
+        check(phase, 'linkPreviewTemplate', wrapper.querySelector('.oe-lp__card')?.classList.contains('oe-lp__card--' + target.data.template) ?? !target.data.url, true)
+        check(phase, 'linkPreviewInputType', field().type, 'text')
+        check(phase, 'linkPreviewFieldOnly', wrapper.querySelectorAll('[contenteditable="true"],input,textarea').length, 1)
+      }
+      if (specification.type === 'poll') {
+        const fields = pollFields()
+        const options = target.data.options
+        check(phase, 'pollAuthorFields', fields.map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })),
+          [text, ...options.map(option => option.text)].map(html => ({ tag: 'DIV', markup: markupMeaning(html), editable: !readOnly })))
+        const replaced = fields.some((element, index) => element !== previousPollFields[index])
+        check(phase, 'pollFieldLifetime', previousPollFields.map((element, index) =>
+          fields[index].isConnected && (element === fields[index] || !element.isConnected)), [true, true, true])
+        if (replaced) {
+          const priorHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
+          for (const old of previousPollFields) if (!fields.includes(old)) {
+            old.textContent = 'retired poll text'
+            old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+            old.dispatchEvent(new FocusEvent('blur'))
+          }
+          await settled()
+          check(phase, 'pollRetiredFieldsLeaveCanonical', editor.save().blocks, saved.blocks)
+          check(phase, 'pollRetiredFieldsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, priorHistory)
+        }
+        if (!legacy) check(phase, 'pollOptionDomIds', fields.slice(1).map(element => element.dataset.optionId), options.map(option => option.id))
+        check(phase, 'pollResultsText', [...shell(id).querySelectorAll('.oe-poll__result-label')].map(element => element.textContent),
+          options.map(option => option.text ? imageCaptionText(option.text) : '—'))
+        check(phase, 'pollResultsMarkup', [...shell(id).querySelectorAll('.oe-poll__result-label')].map(element => markupMeaning(element.innerHTML)),
+          options.map(option => markupMeaning(option.text ? option.text.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : '—')))
+        check(phase, 'pollResultPercentages', [...shell(id).querySelectorAll('.oe-poll__result-pct')].map(element => element.textContent), specification.populated ? ['67%', '33%'] : ['0%', '0%'])
+        previousPollFields = fields
+      }
       if (specification.type === 'list') {
         const items = [...shell(id).querySelectorAll('.oe-list__item')]
         check(phase, 'editorListTag', shell(id).querySelector('.oe-list').tagName, expectedTag(target))
@@ -849,7 +958,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
       check(phase, 'blockDomIdentity', previousShells.map(([blockId, element]) => shell(blockId) === element), previousShells.map(() => true))
-      check(phase, 'widgetDomIdentity', previousWidgets.map(([widgetId, element]) => shell(id).querySelector(`[data-id="${widgetId}"]`) === element), previousWidgets.map(() => true))
+      if (specification.type === 'poll') check(phase, 'pollWidgetLifetime', previousWidgets.map(([widgetId, element]) => {
+        const current = shell(id).querySelector(`[data-id="${widgetId}"]`)
+        return Boolean(current?.isConnected) && (element === current || !element.isConnected)
+      }), previousWidgets.map(() => true))
+      else check(phase, 'widgetDomIdentity', previousWidgets.map(([widgetId, element]) => shell(id).querySelector(`[data-id="${widgetId}"]`) === element), previousWidgets.map(() => true))
       if (selectionOffset !== undefined) check(phase, 'nativeSelection', caretIn(field()), {
         focused: true, anchor: selectionOffset, focus: selectionOffset, collapsed: true,
       })
@@ -953,9 +1066,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       }
       check('edit', 'fixtureCaret', caretIn(author), { focused: true, anchor: offset, focus: offset, collapsed: true })
       check('edit', 'trustedFieldFocus', trusted.some(event => event.type === 'mousedown' && event.trusted), true)
-      await typeText('X')
+      const appended = specification.type === 'linkPreview' && !specification.populated ? 'https://example.test/roundtrip' : 'X'
+      await typeText(appended)
+      if (specification.type === 'linkPreview') await pause(650)
       await settled()
-      await inspect('edit', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+      await inspect('edit', baseText + appended, false, { canUndo: true, canRedo: false }, offset + appended.length)
       check('edit', 'trustedInput', trusted.some(event => event.type === 'input' && event.inputType === 'insertText' && event.trusted), true)
       setPhase('undo')
       await shortcut('undo')
@@ -965,7 +1080,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       setPhase('redo')
       await shortcut('redo')
       await settled()
-      await inspect('redo', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+      await inspect('redo', baseText + appended, false, { canUndo: true, canRedo: false }, offset + appended.length)
       check('redo', 'exactEditedRecords', snapshots.redo, snapshots.edit)
       check('redo', 'trustedHistory', trusted.filter(event => event.type === 'keydown' && event.key.toLowerCase() === 'z').map(event => event.trusted), [true, true])
       check('redo', 'providerNotInvokedByRoundtrip', providerCalls, 0)

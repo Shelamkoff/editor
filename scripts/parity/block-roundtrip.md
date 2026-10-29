@@ -255,6 +255,42 @@ retained as invalid fixture expectations, not production RED evidence.
 The corrected fixed fixture uses `i`; neither sanitizer policy nor the
 shared markup oracle is changed to admit those earlier failures.
 
+Poll adds four cases: the actual two-option empty default, a populated rich
+question and two options with fixed local results, wrapped and unwrapped
+persistent-widget controls, and an explicit populated literal control. The
+literal/default cases execute meaningful v1 comparisons. v1 Poll and its
+abstract base do not implement `mapTextFields`, so its public inline insertion
+gate cannot support the two widget cases; those remain labeled current
+capability evidence with every raw historical difference preserved.
+
+The populated Poll uses stable option IDs, multiple choice, a fixed ballot
+count and a selected second answer. Editor fields, readable result labels,
+author formatting and 67%/33% result percentages are independent expectations.
+All three renderer contexts preserve the question, option marks, marker type,
+selection and submit state. Native input and one-step Undo/Redo edit only the
+question; independent native regressions also exercise an option with actual
+widgets. Mode/history may rebuild Poll author hosts, so each predecessor must
+be either the same live field or fully detached, and retired input/blur must
+leave canonical data and history unchanged. Runtime-only result replacement
+keeps completed fields; no extra persistent widget is invented in a label.
+The v1 empty default generates option IDs: only those two nonempty unique
+identities are captured, while their count, content, order and all later
+records remain fixed. Voting, live sources, revision ordering and detailed
+option controls remain separate rows.
+
+LinkPreview adds its real empty `notion` default and a populated `horizontal`
+card with fixed URL, image/favicon and literal metadata containing HTML-like
+and token-looking text. Metadata stays plain text with zero child elements;
+no sidecars are invented. The declared URL INPUT remains readonly or editable
+with its mode, while editor and detached/attached/mounted cards retain their
+URLs, metadata and media. Real native input changes the URL and clears the old
+metadata; the existing 500ms submission is allowed to settle before observing
+the card. One native Undo/Redo restores exact canonical records, input value,
+card and caret. No metadata provider is configured for this basic roundtrip.
+Separate native controls verify read-only input, retired timers, and external
+metadata abort callbacks that author a successor URL. Templates, provider
+history continuation and arbitrary URL-policy inputs retain separate rows.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -316,11 +352,11 @@ author data from an initial `save()` result.
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
 | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
 | Attaches / 2 | No files, variant `f` | Two controlled file URLs, literal names, size/extension; edit first filename | Implemented: v1 file IDs absent; plain text, current keyed focus, retired mode controls, native history and renderer anchors are checked. |
-| LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated metadata; edit declared URL | URL field disclosure and metadata replacement need the documented provider contract. |
+| LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated literal metadata; edit declared URL | Implemented: real native input, metadata clearing, visible card, plain metadata, URL caret and exact Undo/Redo; no provider request. |
 | Toggle / 1 | Empty title/content, closed | Rich title/Mention and content/Color, explicit open/closed state; edit title | Implemented: both fields, hidden populated content, open state, accessibility relationship and renderer structure survive mode/history. |
 | Columns / 2 | Two empty columns, `1-1` layout | Fixed `1-2` rich columns with independent widgets; edit first column | Implemented: v1 column IDs absent; current IDs, both fields/order, grid/layout controls and renderer columns are checked. |
 | Spoiler / 1 | Empty label/content | Rich label/Mention and content/Color; edit label | Implemented: both fields and transient open/hidden presentation survive mode/history; renderer keeps an empty label and omits an empty body. |
-| Poll / 1 | Single choice, two empty options, always-visible results | Identified choices/question and fixed result data | Canonical results/provider effects must be distinguished; no external voting provider. |
+| Poll / 1 | Single choice, two empty options, always-visible results | Identified rich choices/question, literal and widget controls, fixed local results; edit question | Implemented: fixed results/IDs/marks, readable derived labels, native history and retired-host controls; v1 persistent widgets are explicitly unsupported. |
 | Person / 2 | One empty profile and no links | Rich profile fields, local avatar and identified link | v1 profile/link IDs absent; hidden fields and empty draft filtering need explicit controls. |
 
 The existing `tests/browser/roundtrip.js` is a useful current-format smoke
@@ -388,9 +424,14 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed and Table oracle
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed, Table, Poll and LinkPreview oracle
 classifies only observed historical differences or unsupported reference
-capability, bounded to the forty-seven exact scenario IDs in the runner:
+capability, bounded to the fifty-three exact scenario IDs in the runner. The
+separate LinkPreview/Poll classifier is hashed before/after each execution,
+binds all phase records to fixed author data and accepts no candidate
+exceptions. Its offline sensitivity checkpoint rejects changed sources,
+values, phases, identities, owners and unrelated errors. Existing historical
+observations include:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption

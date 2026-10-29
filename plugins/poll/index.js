@@ -151,6 +151,41 @@ export function createPollPlugin(config={}){
           const ViewAbortController=document.defaultView?.AbortController??AbortController
           let authorViewController=null
           let runtimeViewController=null
+          /** @type {Map<string,{field:HTMLElement,row:HTMLElement,list:HTMLElement,completed:boolean}>} */
+          const optionViews=new Map()
+          /** @type {Map<string,{label:HTMLElement,row:HTMLElement,results:HTMLElement}>} */
+          const resultViews=new Map()
+          const ownsOption=view=>view&&!dead&&!context.signal.aborted
+            &&view.field.parentNode===view.row&&view.row.parentNode===view.list&&view.list.parentNode===wrapper
+          const ownsResult=view=>view&&!dead&&!context.signal.aborted
+            &&view.label.parentNode===view.row&&view.row.parentNode===view.results&&view.results.parentNode===wrapper
+          const completeResult=id=>{
+            const source=optionViews.get(id),target=resultViews.get(id)
+            if(!source?.completed||!ownsOption(source)||!ownsResult(target))return
+            const container=document.createElement('div')
+            const append=(parent,destination)=>{
+              for(const node of parent.childNodes){
+                if(node.nodeType===3){destination.appendChild(document.createTextNode(node.textContent??''));continue}
+                if(node.nodeType!==1)continue
+                const element=/** @type {Element} */(node)
+                // Auxiliary labels retain author marks, but never acquire a
+                // second widget occurrence or interpret its private payload.
+                if(element.hasAttribute('data-inline-plugin')){
+                  destination.appendChild(document.createTextNode(element.textContent??''))
+                  continue
+                }
+                if(element.matches('button,input,textarea,select,[contenteditable],[data-oe-caret-padding]'))continue
+                const copy=element.cloneNode(false)
+                append(element,copy)
+                destination.appendChild(copy)
+              }
+            }
+            append(source.field,container)
+            const html=container.innerHTML||'—'
+            if(optionViews.get(id)===source&&resultViews.get(id)===target&&ownsOption(source)&&ownsResult(target)){
+              setSanitizedHtml(target.label,html)
+            }
+          }
           context.signal.addEventListener('abort',()=>{
             authorViewController?.abort()
             runtimeViewController?.abort()
@@ -189,6 +224,7 @@ export function createPollPlugin(config={}){
             runtimeViewController?.abort()
             runtimeViewController=new ViewAbortController()
             const runtimeSignal=runtimeViewController.signal
+            resultViews.clear()
             if(keepFields){
               for(const child of [...wrapper.children])if(child!==question&&child!==list)child.remove()
               for(const row of rows){
@@ -200,6 +236,7 @@ export function createPollPlugin(config={}){
                 choice.disabled=readOnly||loading||submitting
               }
             }else{
+              optionViews.clear()
               authorViewController?.abort()
               authorViewController=new ViewAbortController()
               const authorSignal=authorViewController.signal
@@ -254,6 +291,7 @@ export function createPollPlugin(config={}){
 
 
                 list.appendChild(row)
+                optionViews.set(option.id,{field:text,row,list,completed:false})
               })
               wrapper.appendChild(list)
 
@@ -282,8 +320,12 @@ export function createPollPlugin(config={}){
                 pct.textContent=percent+'%'
                 row.append(label,bar,pct)
                 results.appendChild(row)
+                resultViews.set(option.id,{label,row,results})
               }
               wrapper.appendChild(results)
+              // Runtime-only result updates preserve already-completed author
+              // fields and therefore do not request another core projection.
+              if(keepFields)for(const option of data.options)completeResult(option.id)
 
               if(runtime.voters?.length){
                 const section=document.createElement('div')
@@ -571,6 +613,13 @@ export function createPollPlugin(config={}){
                 return element?[Object.freeze({key:'option:'+option.id,element:/** @type {HTMLElement} */(element),mode:/** @type {'rich-text'} */('rich-text')})]:[]
               }),
             ]),
+            afterProjection(field){
+              if(field.mode!=='rich-text'||!field.key.startsWith('option:'))return
+              const id=field.key.slice('option:'.length),view=optionViews.get(id)
+              if(!view||view.field!==field.element||!ownsOption(view))return
+              view.completed=true
+              completeResult(id)
+            },
             setReadOnly(value){
               readOnly=value
               data=cloneData(context.getData())
@@ -580,6 +629,8 @@ export function createPollPlugin(config={}){
             destroy(){
               if(dead)return
               dead=true
+              optionViews.clear()
+              resultViews.clear()
               authorViewController?.abort()
               runtimeViewController?.abort()
               connectionVersion++

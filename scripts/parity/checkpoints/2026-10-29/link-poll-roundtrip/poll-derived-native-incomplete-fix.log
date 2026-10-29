@@ -1,0 +1,616 @@
+file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll derived result completes after trusted native option input and exact one Undo/Redo",
+    "status": "FAIL",
+    "error": "Error: Result label must contain completed option text\nexpected \"Answer @Ada #123456 tailX\", got \"Answer @Ada #123456 tail\"\n    at equal (http://127.0.0.1:35287/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:35287/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:35287/tests/browser/native-poll-derived.js:14:5\n    at async run (http://127.0.0.1:35287/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:35287/tests/browser/native-plugin-controls.js:718:1"
+  },
+  {
+    "name": "Person derived native preedit survives sibling edit with its current rich field and backward range",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived native preedit survives reorder with its current rich field and backward range",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template horizontal changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template compact changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template large-top changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template minimal changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template twitter changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template notion changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template split changes its actual styled card",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview filled Delete clears the card while keeping the block and one history action",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches variant a projects its v1 presentation",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches variant b projects its v1 presentation",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches variant f projects its v1 presentation",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches variant g projects its v1 presentation",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches multi-file Card group expands without creating a document action",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery native drag swaps image identities and captions as one action",
+    "status": "PASS"
+  },
+  {
+    "name": "Person tab switch registers its new editing hosts for real clicks and input",
+    "status": "PASS"
+  },
+  {
+    "name": "Person tabs show the active card, rich-text names and avatars and remove an inactive person",
+    "status": "PASS"
+  },
+  {
+    "name": "Person nested IDs containing separators restore the correct link field through history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person keyboard tab removal is visible and preserves one Undo/Redo action",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel navigation registers the next caption for real input and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery external file drop reaches its upload service in empty and filled states",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches external file drop reaches its upload service in empty and filled states",
+    "status": "PASS"
+  },
+  {
+    "name": "Image external file drop reaches its upload service in empty and filled states",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Toggle header preserves unaffected cell IDs and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Add row preserves unaffected cell IDs and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Delete row preserves unaffected cell IDs and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Add column preserves unaffected cell IDs and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Delete column preserves unaffected cell IDs and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns 3 to 2 via settings keeps excess content and retained column IDs",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns inline layout selector changes the grid, retains text and supports native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns keyboard layout choice has visible focus and one Undo/Redo action",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist checkbox is one document action and preserves item identity",
+    "status": "PASS"
+  },
+  {
+    "name": "Person public field focus and history reveal the requested hidden item",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel public field focus and history reveal the requested hidden item",
+    "status": "PASS"
+  },
+  {
+    "name": "native history disclosure respects a newer foreign button focus",
+    "status": "PASS"
+  },
+  {
+    "name": "native history disclosure respects a newer sibling author field focus",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview changing its URL clears metadata belonging to the previous page",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview template menu retains its compact visual selectors and localized names",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches inline template menu switches to a and retains native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches inline template menu switches to b and retains native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches inline template menu switches to f and retains native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches inline template menu switches to g and retains native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person add-person through its button preserves IDs and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person remove-person through its button preserves IDs and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person remove-link through its button preserves IDs and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel remove button keeps slide identities and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel forward button keeps slide identities and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel backward button keeps slide identities and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll add option button keeps a valid minimum and native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll remove option button keeps a valid minimum and native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery remove button keeps image identities and native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery forward button keeps image identities and native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Image Delete keeps the block and provides one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll local vote changes results once and supports native history after choosing an option",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery filled Settings exposes visual layout selectors and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll inline type action matches v1 and retains one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll inline results action matches v1 and retains one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll inline sort action matches v1 and retains one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll inline reset action matches v1 and retains one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll runtime reset aborts a pending remote vote and rejects its late results",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll runtime changing multiple choice to single corrects the previous local ballot",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel navigation and thumbnails use styled controls and preserve author data",
+    "status": "PASS"
+  },
+  {
+    "name": "Person native tab drag reorders cards with all fields and one keyboard Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "List block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "List block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "List block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "List block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Code block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Code block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Code block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Code block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Image block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Image block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Image block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Image block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person block menu Move up keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person block menu Move down keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person block menu Duplicate keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person block menu Delete keeps data, order and one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person avatar crop Cancel through real dialog controls preserves author data and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person avatar crop Apply through real dialog controls preserves author data and history",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

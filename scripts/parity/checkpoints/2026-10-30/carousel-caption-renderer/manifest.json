@@ -1,0 +1,97 @@
+{
+  "baseCommit": "1547de28ee66498d649555d69e212b58be7fcf31",
+  "prerequisiteImplementationSha256": "ec5240c307753163c6c43c68431e77ff6e3d133626710a06b4a5297f7dea96f1",
+  "scopedImplementationSha256": "7fc19c017287e16b2b04e4d83e89096fb6d817ff13c99458b3d633f4f616eda9",
+  "sourceFiles": {
+    "renderer/renderers/carousel/index.js": "727cec13eb64454df56e1e0bbed1fb9eadae34564519a9fdfd6b9af0da7e18da",
+    "tests/browser/regressions/carousel-caption-fixture.js": "720650aa6ca61fafa9e6086fc37357974ba3cf12438fda56834100d062c6132c",
+    "tests/browser/regressions/carousel-caption-renderer.js": "21a2df285a7bf1940c2e38784653a9dde45dee4aae2ba56db4a283c88907ec5c",
+    "tests/browser/regressions/carousel-caption-native.js": "6c2dcee3cbc3d61d47e9e3b3b61045f45a79eb2c2558ff6b4907faa953f4c880"
+  },
+  "reproductionFiles": {
+    "scripts/parity/media-roundtrip-review.mjs": "4bebbf4ab7c78be1f4c8b12faa78e7dd5f2315f030810df06a388dc2a7070222",
+    "tests/browser/media-roundtrip-review-fixture.js": "88fc64e5e77e50d5b6d086db62db44c8d906f5b05103f2548c391778d01c3b89",
+    "tests/browser/native-media-roundtrip-review.html": "839fab93286bf2b4002914703ae797ba344bf6c8c46ed93bfecdf2b5b912d72b",
+    "tests/browser/native-media-roundtrip-review.js": "4ba3dc8270726a491a0adb45345b9632b0bed0fb52775289a69652ea57c481b7"
+  },
+  "evidence": {
+    "native-probe-initial-unbounded.log.gz": {
+      "sha256": "9eb65591a683c4638985b69f83ca87e626294c953a6c55c6e9f601ec30292425",
+      "rawSha256": "eed7674637d01cac9abdc49e0bd03b5986be9ba4138f6aa8165ceb4fa7437fef"
+    },
+    "native-probe-bounded-red.log.gz": {
+      "sha256": "3dc6039cb63c9e0771d7c1b223ea819e4e38c3d072b1fdfc4594a1c7f31cb47a",
+      "rawSha256": "3699c6b0b6049fe9db69da87c4eba112bd2b7890b99e62ab913c1b1212d18675"
+    },
+    "differential-bounded-red.json.gz": {
+      "sha256": "8c735849713e7f7135becfeff0716806ef36423689406054c4720f9e6aa4d2c3",
+      "rawSha256": "16ef72c45ed5d35dc5b9e14e6d85f2cecadc97503b01919c83690d6012359a45"
+    },
+    "differential-bounded-final.json.gz": {
+      "sha256": "3129c4b6ba47b0448276ddfb06116c58dc2d0b3dcadd0597cd83571c4f460141",
+      "rawSha256": "199d10355def02e2a1615fb592761a9264dbf4605d9dfc517ba8e337bcee54fe"
+    },
+    "renderer-red.log.gz": {
+      "sha256": "4b71524e1b02c82319fdca112e6a0830d700c16e8691d4f9cfcf26c8a71dc2df",
+      "rawSha256": "7a77ef576182be91d903390977d755807eb32ca9ac4c859ff6e865b5271ddd9e"
+    },
+    "native-red.log.gz": {
+      "sha256": "139ab2accb0eb4de84735b69e4ba39e087cae2becdee856d3b38a6427b6c7759",
+      "rawSha256": "d4fa9b23291e3a71d38c04101c966f1d6c51fa61bc682347e7086ae407fb7a15"
+    },
+    "renderer-style-loading-diagnostic.log.gz": {
+      "sha256": "cfa7a85ff1781992452b0b9d0d1bbe621d254aaa7388ab47f374e3fa4ca16d8f",
+      "rawSha256": "d88436ff46fac4a91abb49c5343ca15150c7ad66e9bb862fc2b1e01f713a7d23"
+    },
+    "renderer-final-green.log.gz": {
+      "sha256": "9b7b188adc605d541b7cd9715f6487c8a2da3638f525dda03f7ebaa1462a506a",
+      "rawSha256": "09d4196ace5054c85e44f5b517aa1947965c01e2c9b6a417a25b078e279934c3"
+    },
+    "native-final-green.log.gz": {
+      "sha256": "ef2bc438c9053b4b49dcda310333b8e748d0875a1cb0092fed09a5d225b0a41d",
+      "rawSha256": "27c0711342bf81b677d971d22213c99c166b25a3fa18aeed5a748c0b3eb606ad"
+    },
+    "unit-green.log.gz": {
+      "sha256": "5d9094105cb45eeffee1ac5f509081e15479f51be43a5e04acba407cca4484cf",
+      "rawSha256": "ce1960dd4e4320b83b8ecfbdb5e626c00587f620044a8115e05b815065ded673"
+    },
+    "typecheck-green.log.gz": {
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "implementation.patch.gz": {
+      "sha256": "cfdc1bc05910b5efd80f50a7e2af4178a123b8f0a21cd00898d4ce03034a8f9f",
+      "rawSha256": "7fc19c017287e16b2b04e4d83e89096fb6d817ff13c99458b3d633f4f616eda9"
+    }
+  },
+  "threeSourceSummary": [
+    {
+      "source": "v1",
+      "observations": 178,
+      "failures": 0,
+      "windowErrors": [],
+      "pageErrors": []
+    },
+    {
+      "source": "spec-baseline",
+      "observations": 178,
+      "failures": 12,
+      "windowErrors": [],
+      "pageErrors": []
+    },
+    {
+      "source": "candidate",
+      "observations": 178,
+      "failures": 0,
+      "windowErrors": [],
+      "pageErrors": []
+    }
+  ],
+  "focusedResults": {
+    "projectionContracts": 139,
+    "rendererUnit": 122,
+    "nativeCaption": 1,
+    "typecheck": "PASS"
+  },
+  "scope": "Fixed-geometry plain native caption semantics and current renderer rich-field capability; shared53 ROUNDTRIP and auto-height ResizeObserver acceptance remain open."
+}

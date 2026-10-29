@@ -1,0 +1,20 @@
+file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/run.mjs:132
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for projection-contracts.html
+{
+  "total": 121,
+  "failed": 1,
+  "failures": [
+    {
+      "name": "Poll detached author boundary cannot refresh derived results after the whole wrapper is adopted elsewhere",
+      "status": "FAIL",
+      "error": "Error: An adopted author boundary must not publish a new derived label\nexpected \"Answer @Ada #123456 tail\", got \"Answer @Ada #123456 tail foreign input\"\n    at equal (http://127.0.0.1:43041/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:43041/tests/browser/regressions/poll-derived-presentation.js:77:5\n    at async run (http://127.0.0.1:43041/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:43041/tests/browser/projection-contracts.js:1762:1"
+    }
+  ]
+}
+    at runPage (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/run.mjs:132:13)
+    at async file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/run.mjs:179:30
+
+Node.js v24.22.1

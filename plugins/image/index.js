@@ -466,7 +466,6 @@ export function createImagePlugin(config={}){
           for(const {action,filledButton} of customActionButtons){
             filledButton.addEventListener('click',()=>{void runCustomAction(action);restoreSource()},{signal:context.signal})
           }
-          caption.addEventListener('input',updateAlternativeText,{signal:context.signal})
           wrapper.addEventListener('dragover',event=>{
             if(readOnly||!event.dataTransfer?.types.includes('Files'))return
             event.preventDefault()
