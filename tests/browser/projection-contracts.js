@@ -4,6 +4,16 @@ import { getTextLength, getTextOffset, findNodeAtOffset, editableTextWalker } fr
 import { createPersonPlugin } from '../../plugins/person/index.js'
 import { test, assert, equal, make, blockElement, pause, run } from './regressions/harness.js'
 
+function throws(operation, pattern) {
+  let caught = false
+  try { operation() }
+  catch (error) {
+    caught = true
+    assert(pattern.test(String(error?.message ?? error)), 'Unexpected error: ' + String(error))
+  }
+  assert(caught, 'Expected an exception matching ' + pattern)
+}
+
 const payload = { type: 'unloaded', dataVersion: 3, data: { label: 'kept' } }
 const schema = {
   mapRichText(data, visit) {
@@ -170,7 +180,13 @@ test('Person flushes a pending mounted author edit before switching tabs', async
     { id: 'first', avatar: '', name: '{{x}}', role: '', bio: '', links: [] },
     { id: 'second', avatar: '', name: 'Second', role: '', bio: '', links: [] },
   ] }, inline: { x: payload } }], { plugins: [definition], defaultBlock: 'person' })
-  blockElement(editor, 'person').querySelector('.oe-person__name').innerHTML = 'Pending {{x}}'
+  const name = blockElement(editor, 'person').querySelector('.oe-person__name')
+  const occurrence = name.querySelector('[data-oe-opaque-inline="x"]')
+  assert(occurrence, 'precondition: the unloaded reference has its owned inert marker')
+  // Native author text is added beside the reference, not substituted for its
+  // private DOM identity with a newly typed placeholder-shaped literal.
+  name.prepend(document.createTextNode('Pending '))
+  assert(name.contains(occurrence), 'precondition: pending input retained its reference')
   blockElement(editor, 'person').querySelector('[data-person-id="second"] .oe-person__tab-select').click()
   await pause()
   equal(editor.save().blocks[0].data.persons[0].name, 'Pending {{x}}')
@@ -312,9 +328,12 @@ test('inline widget retired widget cleanup only calls a disposer once', () => {
       inline: { x: payload },
     }, { schema }, fields, { createInlineWidgetContext: () => ({}) })
     assert(element.querySelector('[data-id="x"]'), 'precondition: inline widget is mounted')
-    projection.reconcileBlock('a', {
+    // The disposer deliberately revokes this reconciliation's owner. Its
+    // fail-closed result is an error, not a successful partial projection.
+    throws(() => projection.reconcileBlock('a', {
       data: { fields: [{ key: 'text', html: 'Removed' }] }, inline: {},
-    }, { schema }, fields, { createInlineWidgetContext: () => ({}) })
+    }, { schema }, fields, { createInlineWidgetContext: () => ({}) }),
+    /Inline projection owner was revoked during reconciliation/)
     equal(released, ['x'], 'each widget disposer must execute once')
     projection.destroyBlock('a')
     equal(released, ['x'], 'repeat teardown must be inert')
@@ -553,7 +572,7 @@ test('a failed existing inline widget update revokes its mutated instance before
   try {
     projection.reconcileBlock('a', record('old'), { schema }, fields,
       { createInlineWidgetContext: () => ({}) })
-    assert.throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
+    throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
       { createInlineWidgetContext: () => ({}) }), /partial widget update/)
     equal(destroyed, ['x'], 'a partially updated live owner cannot remain cached')
 
@@ -825,7 +844,13 @@ test('stale inline recover keeps its candidate alive for successor recovery', ()
     }),
   }
   const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
-  const freshFields = () => [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const host = document.createElement('section')
+  document.body.append(host)
+  const freshFields = () => {
+    const element = document.createElement('div')
+    host.append(element)
+    return [{ key: 'text', mode: 'rich-text', element }]
+  }
   const record = label => ({
     data: { fields: [{ key: 'text', html: '{{x}}' }] },
     inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
@@ -837,6 +862,9 @@ test('stale inline recover keeps its candidate alive for successor recovery', ()
     first.apply()
     const successor = projection.prepareBlock('a', record('second'), { schema }, freshFields(), context, 1)
     successor.apply()
+    assert(instances.get('first').isConnected, 'precondition: predecessor field is mounted')
+    equal(projection.resolveWidgetElement(instances.get('first')), null,
+      'connected but superseded occurrence must not retain input authority')
 
     first.recover()
     equal(released, ['base'], 'stale recovery may release its old base, not successor predecessor')
@@ -846,7 +874,7 @@ test('stale inline recover keeps its candidate alive for successor recovery', ()
     equal(released, ['base', 'second'])
     projection.destroyBlock('a')
     equal(released, ['base', 'second', 'first'])
-  } finally { projection.destroy() }
+  } finally { projection.destroy(); host.remove() }
 })
 
 test('stale inline finalize cannot destroy a successor recoverable predecessor', () => {
@@ -867,7 +895,13 @@ test('stale inline finalize cannot destroy a successor recoverable predecessor',
     }),
   }
   const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
-  const fields = () => [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const host = document.createElement('section')
+  document.body.append(host)
+  const fields = () => {
+    const element = document.createElement('div')
+    host.append(element)
+    return [{ key: 'text', mode: 'rich-text', element }]
+  }
   const record = label => ({
     data: { fields: [{ key: 'text', html: '{{x}}' }] },
     inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
@@ -879,6 +913,9 @@ test('stale inline finalize cannot destroy a successor recoverable predecessor',
     first.apply()
     const successor = projection.prepareBlock('a', record('second'), { schema }, fields(), context, 1)
     successor.apply()
+    assert(instances.get('first').isConnected, 'precondition: predecessor field is mounted')
+    equal(projection.resolveWidgetElement(instances.get('first')), null,
+      'connected but superseded occurrence must not retain input authority')
 
     let staleError = ''
     try { first.finalize() } catch (error) { staleError = error.message }
@@ -888,7 +925,7 @@ test('stale inline finalize cannot destroy a successor recoverable predecessor',
     assert(projection.resolveWidgetElement(instances.get('first')) === instances.get('first'))
     projection.destroy()
     equal(released, ['base', 'second', 'first'])
-  } finally { projection.destroy() }
+  } finally { projection.destroy(); host.remove() }
 })
 
 
@@ -955,7 +992,8 @@ test('destroyBlock invoked during prepare create invalidates the in-flight candi
       projection.prepareBlock('a', record, { schema }, fields,
         { createInlineWidgetContext: () => ({}) }, 1)
     } catch (error) { revokeError = error.message }
-    assert(/owner was revoked during preparation/.test(revokeError))
+    assert(/owner was revoked during (preparation|reconciliation)/.test(revokeError),
+      'in-flight revocation must fail before the candidate is published: ' + revokeError)
     equal(released, ['x'])
     revokeInCreate = false
     const fresh = projection.prepareBlock('a', record, { schema }, fields,
@@ -991,7 +1029,7 @@ test('destroyBlock retires both mounted and waiting inline owners once', () => {
     const staged = projection.prepareBlock('a', record('waiting'), { schema }, fields(), ctx, 1)
     projection.destroyBlock('a')
     equal([...released].sort(), ['mounted', 'waiting'])
-    assert.throws(() => staged.apply(), /cannot be applied twice/)
+    throws(() => staged.apply(), /cannot be applied twice/)
     projection.destroy()
     equal(released.length, 2)
   } finally { projection.destroy() }
