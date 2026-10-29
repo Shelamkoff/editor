@@ -4,7 +4,7 @@
 
 This is a scoped implementation and verification checkpoint, not whole-library release acceptance. The current target is [Contract and Boundary Refactor](RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md), with unaffected [Architecture Refinement](RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md) requirements retained. The historical acceptance notes in [Implementation Progress](RECTOR_V2_IMPLEMENTATION_PROGRESS.md) retain their original source and environment scope.
 
-Latest completed core publication: `0fecf490fe8a57188ac9edb502d2803743c29883`. The [combined core continuation below](#combined-core-continuation-2026-10-29) records fresh verification of C12 recovery, C09 snapshots, C07 phase types, inline range preservation and C10 live retention. The earlier source identities and results below retain their original scope. B-PRESENTATION is now settled in specification §16.5; B-HTML, B-STYLE and full differential acceptance remain open. The preservation register now has **26 accepted / 183 open** obligations after the Attaches proof below.
+Latest completed core publication: `0fecf490fe8a57188ac9edb502d2803743c29883`. The [combined core continuation below](#combined-core-continuation-2026-10-29) records fresh verification of C12 recovery, C09 snapshots, C07 phase types, inline range preservation and C10 live retention. The earlier source identities and results below retain their original scope. B-PRESENTATION is now settled in specification §16.5; B-HTML, B-STYLE and full differential acceptance remain open. The preservation register now has **27 accepted / 182 open** obligations after the Attaches and Raw proofs below.
 
 - Repository/branch: `Shelamkoff/editor`, `refactor/rector-v2-architecture`.
 - Starting remote/source commit: `e6d14c9b7912408230f53d1ff9aa754f6dd69dbe`.
@@ -384,3 +384,9 @@ Corrected focused RED was 76/78 unit and 2/3 native; GREEN is 78/78 and 3/3. The
 Clean unchanged `c557efd8` passed both `npm run test:docs` and the complete `npm run docs:check`. The built site has **127 HTML pages**, zero broken links, 47 localized README pairs and no missing assets. Actual RU/EN, light/dark browser examples passed search, Mention, heading and conversion menus, selection, alignment, moved block controls and atomic history/conversion checks. Source and test expectations were not weakened.
 
 The first attempt correctly rejected a stale generated Table README; rebuilding the package updated it. The next site smoke identified unformatted API terms in the new Russian review; that prose was corrected before the accepted run. Both failed attempts keep their original outcomes in [the command records](scripts/parity/checkpoints/2026-10-29/core-attaches-table-docs-verification.json). This subsequent outcome-only note and JSON archive do not alter runtime code or claim another test execution.
+
+## Raw roundtrip continuation 2026-10-29
+
+`BLOCK_RAW_ROUNDTRIP` is accepted on original `069ae946`: actual empty/default and populated multiline source, benign renderer markup, existing preview disclosure, visible textarea, trusted input and exact native history. The new cases preserve literal entities and token-looking author text without treating source as a rich field.
+
+The frozen three-source run passes **38 cases / 6325 candidate observations**; the standard native page passes **38/38**, with unchanged exact sources and dependencies. [The detailed record](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#raw-roundtrip-parity-2026-10-29) and retained JSON identify all raw historical differences and full command intervals. No new baseline/candidate exception or HTML-policy acceptance is introduced. The register reaches **27 accepted / 182 open**.
