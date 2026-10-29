@@ -1,0 +1,16 @@
+file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "LinkPreview native URL submission yields to a successor authored by old metadata cancellation",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"url\":\"https://successor.example/final\",\"href\":\"https://successor.example/final\",\"title\":\"Successor\",\"description\":\"Owned by successor\"}, got {\"url\":\"https://successor.example/final\",\"href\":\"https://old.example/startX\",\"title\":\"https://old.example/startX\",\"description\":\"\"}\n    at equal (http://127.0.0.1:43383/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:43383/tests/browser/native-link-preview-derived.js:31:5\n    at async run (http://127.0.0.1:43383/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:43383/tests/browser/native-plugin-controls.js:719:1"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

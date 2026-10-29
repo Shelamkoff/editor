@@ -195,15 +195,17 @@ export function createLinkPreviewPlugin(config={}){
             inputTimer=null
           }
 
-          const project=next=>{
+          const project=(next,previous=data)=>{
             // A metadata request only owns the URL for which it started. When
             // the host replaces that URL or enters read-only mode, revoke the
             // request before any further callbacks can observe the projection.
             if(readOnly||next.url!==data.url){
               const retiredTask=currentTask
+              const predecessor=data
               currentTask=null
-              ++generation
+              const current=++generation
               retiredTask?.cancel()
+              if(dead||context.signal.aborted||data!==predecessor||generation!==current)return
             }
             // Native URL input can commit without reprojecting the source DOM.
             // Host edits of metadata or template must retain its live draft
@@ -211,7 +213,7 @@ export function createLinkPreviewPlugin(config={}){
             // URL replacement or read-only transition invalidates both.
             const authoredUrl=sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:''})
             const retainDraft=!readOnly&&document.activeElement===input&&(
-              next.url===data.url||(!!authoredUrl&&next.url===authoredUrl)
+              next.url===previous.url||(!!authoredUrl&&next.url===authoredUrl)
             )
             if(!retainDraft)clearInputTimer()
             for(const key of META_FIELDS){
@@ -264,6 +266,7 @@ export function createLinkPreviewPlugin(config={}){
               // providers belong to the same finally/cancellation boundary.
               // Preserve newer host edits when the URL stays unchanged.
               const atRequest=context.getData()
+              if(atRequest.url!==url)return
               const requestRevisions={...metaRevisions}
               const result=await snapshot.fetchMeta(url,{signal:task.signal})
               if(dead||task.signal.aborted||current!==generation)return
@@ -291,7 +294,14 @@ export function createLinkPreviewPlugin(config={}){
             if(readOnly||dead)return
             const url=sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:''})
             context.updateData(current=>url?{...(url===current.url?current:{...linkPreviewDataSchema.createDefault(),template:current.template}),url,domain:host(url)}:{...linkPreviewDataSchema.createDefault(),template:current.template})
-            if(url)void resolveMeta(url,{authorSubmission:true})
+            if(dead||readOnly||context.signal.aborted)return
+            // Native input can already own the canonical URL. Its deferred
+            // submission is then a no-op and has no update() projection.
+            if(data.url!==url){
+              const accepted=context.getData()
+              if(data.url!==accepted.url)project(accepted,accepted)
+            }
+            if(url&&!dead&&!readOnly&&!context.signal.aborted&&data.url===url)void resolveMeta(url,{authorSubmission:true})
           }
 
           const setOpen=open=>{
@@ -363,7 +373,7 @@ export function createLinkPreviewPlugin(config={}){
               const url=input.value.trim()?sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:data.url}):''
               return url===data.url?{...data}:{...linkPreviewDataSchema.createDefault(),template:data.template,url,domain:host(url)}
             },
-            update(next){if(!dead)project(next)},
+            update(next,previous){if(!dead)project(next,previous)},
             editableFields:()=>Object.freeze([Object.freeze({key:'url',element:input,mode:/** @type {'plain-text'} */('plain-text')})]),
             setReadOnly(value){
               if(value)composing=false

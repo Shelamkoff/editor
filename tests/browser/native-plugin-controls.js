@@ -1,3 +1,4 @@
+import './native-link-preview-derived.js'
 import { test, make, para, editorRoot, blockElement, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 import { pluginParityFixtures, pixel } from './plugin-parity-fixtures.js'

@@ -1,0 +1,63 @@
+{
+  "baseHead": "1547de28ee66498d649555d69e212b58be7fcf31",
+  "sourceIdentity": "070068ba0ee6986feacbfd28f8a5cfde4f4669e71c269faaeb4ef6ae2bcb995f",
+  "patchSha256": "47ffa70adb29d8bef51e5fb0be09b073ec50f623f955d659f7f061a4d634c5e5",
+  "sourceUnchanged": true,
+  "baselineRuntimeSha256": "c6038c1865d961ec5f04197e57506de183abb85987852bc79db1fe8ccd3f422c",
+  "testedFiles": {
+    "plugins/link-preview/index.js": "cdb22ef19d1edcf689460440cb8ba1f8fc329634ce9da83abc535a23060b191f",
+    "plugins/link-preview/README.md": "aa9dcc70090fa9fdf676872e39deb71ce6605171a0d1d765f52f8dcb1e2f3e6a",
+    "plugins/link-preview/input-lifetime.test.js": "49191cda7bd2a2d3aee2cffe674802392b3c7fd3e26f0efe8ebf7a5922d24094",
+    "tests/browser/native-link-preview-derived.js": "3a3d4737393366cfc07c73bd620ef0f507fba07fb86bb0c6533635a06f0cd0d7",
+    "tests/browser/native-plugin-controls.js": "9fb083ae8503e86e7e5ee00a6e537b82251f7d11840a4ca5ddc8454acfca2c4a"
+  },
+  "results": {
+    "native": 19,
+    "unit": 18
+  },
+  "artifacts": [
+    {
+      "path": "native-basic-red.log",
+      "originalPath": "/tmp/rector-link-preview-native-basic-red2.log",
+      "sha256": "a1427f2f22f6fef0b4df4cb36b7d6cc34044c5e94b424f50c6e80e8d1758fb25",
+      "bytes": 2276
+    },
+    {
+      "path": "native-basic-invalid-driver-attempt.log",
+      "originalPath": "/tmp/rector-link-preview-native-basic-red.log",
+      "sha256": "22c1552606e39c4cf7d5e1ff37a976c25fd851aff231516a01ea1597b6baac1a",
+      "bytes": 1798
+    },
+    {
+      "path": "native-reentry-red.log",
+      "originalPath": "/tmp/rector-link-preview-reentry-red.log",
+      "sha256": "dd7f1644a90212b8d101d20f6d356af39ab66e59f22dc237e3a7121d2138ad34",
+      "bytes": 1413
+    },
+    {
+      "path": "native-resubmit-red.log",
+      "originalPath": "/tmp/rector-link-preview-resubmit-red2.log",
+      "sha256": "7f9bcda9856b620d06e85f4cda6f910166f6ae501b6a47739affdf637edde9c9",
+      "bytes": 1260
+    },
+    {
+      "path": "native-green.log",
+      "originalPath": "/tmp/rector-link-preview-red-baseline-1547/test-results/run-pmbTSK/link-preview-native.log",
+      "sha256": "3964a6ffe819f118fd43919790fd89f42915b4f1e858c497f0b9cd6151a70ec7",
+      "bytes": 2024
+    },
+    {
+      "path": "unit-green.log",
+      "originalPath": "/tmp/rector-link-preview-red-baseline-1547/test-results/run-pmbTSK/link-preview-unit.log",
+      "sha256": "9b7cd26da13174ecd9685bb456a27ff39f335176dc1557b399b2d218120641ac",
+      "bytes": 2878
+    },
+    {
+      "path": "manifest.json",
+      "originalPath": "/tmp/rector-link-preview-red-baseline-1547/test-results/run-pmbTSK/manifest.json",
+      "sha256": "65fe70fe5e5ff36405c35cb8eb95e9332038ef623054b9bb9c8f09b8413fff52",
+      "bytes": 7595
+    }
+  ],
+  "boundary": "LinkPreview-only patch tested on original 1547 core. No provisional core, Poll or shared ROUNDTRIP changes are present in this verification checkout. The main integration source must receive its own gates."
+}

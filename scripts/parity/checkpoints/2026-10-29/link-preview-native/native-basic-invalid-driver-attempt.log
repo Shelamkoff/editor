@@ -1,0 +1,21 @@
+file:///tmp/rector-link-preview-red-baseline-1547/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "LinkPreview native URL typing preserves visible card and exact Undo/Redo from the actual default",
+    "status": "FAIL",
+    "error": "Error: Error: Invalid 'text' parameter\n    at window.__resolveTestInput (http://127.0.0.1:34695/tests/browser/native-input-driver.js:9:23)\n    at <anonymous>:1:8"
+  },
+  {
+    "name": "LinkPreview native URL typing preserves visible card and exact Undo/Redo from populated data",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"hidden\":false,\"href\":\"https://example.test/storyX\",\"title\":\"https://example.test/storyX\",\"description\":\"\"}, got {\"hidden\":false,\"href\":\"https://example.test/story\",\"title\":\"Original title\",\"description\":\"Original description\"}\n    at equal (http://127.0.0.1:34695/tests/browser/regressions/harness.js:22:43)\n    at check (http://127.0.0.1:34695/tests/browser/native-link-preview-derived.js:20:7)\n    at http://127.0.0.1:34695/tests/browser/native-link-preview-derived.js:31:41\n    at async run (http://127.0.0.1:34695/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34695/tests/browser/native-plugin-controls.js:718:1"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-link-preview-red-baseline-1547/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-link-preview-red-baseline-1547/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-link-preview-red-baseline-1547/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

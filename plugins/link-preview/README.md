@@ -53,6 +53,8 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 When `fetchMeta` is configured, the submitted URL is committed immediately and one cancellable metadata request begins. Late results enrich only fields that have not been changed by the host since the request started. If the authored URL edit is still the latest history operation and its exact revision remains current, the metadata completion extends that edit, producing **one Undo/Redo step**. If another operation intervenes, the metadata update remains a **separate** history step; unrelated actions are never merged. A failed request leaves the submitted URL intact, while a replaced URL or disposed block cancels the obsolete request.
 
+Native URL input clears metadata belonging to the previous address. Its deferred submission refreshes the visible card even when `fetchMeta` is absent, and Undo restores both the saved URL and the input value. If a metadata cancellation callback authors a newer URL, the retired submission yields to that URL and does not start another request for the superseded address.
+
 ## Capabilities
 
 URL paste; async metadata; template selector; safe URL assignment and cleanup. Clicking the card never navigates away while the block is editable. The card becomes a normal external link in read-only editor mode and in rendered output.

@@ -1,0 +1,37 @@
+[LinkPreview] Metadata resolution failed Error: revoked during task acquisition
+    at Object.getData (file:///tmp/rector-link-preview-red-baseline-1547/plugins/link-preview/input-lifetime.test.js:145:15)
+    at resolveMeta (file:///tmp/rector-link-preview-red-baseline-1547/plugins/link-preview/index.js:268:39)
+    at commitUrl (file:///tmp/rector-link-preview-red-baseline-1547/plugins/link-preview/index.js:304:84)
+    at input.addEventListener.signal (file:///tmp/rector-link-preview-red-baseline-1547/plugins/link-preview/index.js:345:15)
+    at FakeElement.dispatch (file:///tmp/rector-link-preview-red-baseline-1547/plugins/link-preview/input-lifetime.test.js:89:67)
+    at TestContext.<anonymous> (file:///tmp/rector-link-preview-red-baseline-1547/plugins/link-preview/input-lifetime.test.js:324:13)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1402:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    at Test.postRun (node:internal/test_runner/test:1542:19)
+✔ LinkPreview preserves an unfinished URL and its original debounce across template updates (6.727093ms)
+✔ LinkPreview preserves a native-committed URL when later metadata is updated (1.398818ms)
+✔ LinkPreview rejects stale URL drafts when host replaces the canonical source (0.750731ms)
+✔ LinkPreview read-only transition revokes a pending URL draft (0.520431ms)
+✔ LinkPreview late metadata cannot overwrite a newer host title for the same URL (1.430877ms)
+✔ LinkPreview cancels an obsolete metadata request after host replaces its URL (1.15812ms)
+✔ LinkPreview retires a task if authority is revoked during metadata snapshot (1.827206ms)
+✔ LinkPreview initial metadata microtask does not restart an already-submitted new URL (0.929313ms)
+✔ LinkPreview initial metadata loads once when the original URL is unchanged (0.848723ms)
+✔ LinkPreview initial enrichment is skipped after the host supplies metadata (0.64377ms)
+✔ LinkPreview restored history projection never restarts initial metadata enrichment (0.853651ms)
+✔ LinkPreview does not submit transient IME text on Enter, change, or the debounce timer (1.35666ms)
+✔ LinkPreview cancels an old URL timer when IME composition begins (0.420685ms)
+✔ LinkPreview ignores composing input even when compositionstart was not observed (0.504951ms)
+✔ LinkPreview late metadata cannot overwrite a host field after an ABA host edit (0.900099ms)
+✔ LinkPreview late metadata cannot overwrite a title restored to its request baseline (0.714222ms)
+✔ LinkPreview explicit URL submission requests one guarded history continuation (0.907212ms)
+✔ LinkPreview automatic initial metadata is not attached to unrelated history (0.601952ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.766279
