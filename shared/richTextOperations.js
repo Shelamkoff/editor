@@ -113,7 +113,26 @@ function finalizeEditedReferences(root,inline,ownerDocument) {
   collapseReferences(root,ownerDocument)
 }
 
+/** @typedef {{kind:'text',text:string}|{kind:'inline-reference',id:string}} RichTextSegment */
+/** @typedef {RichTextSegment|{kind:'html',html:string}|{kind:'segments',segments:RichTextSegment[]}} RichTextReplacement */
+
 function replacementNode(replacement,inline,ownerDocument){
+  if(replacement.kind==='segments'){
+    // Prepared inline references remain distinct from authored text until
+    // the existing canonical finalizer collapses their private DOM markers.
+    // Never concatenate both kinds into placeholder-shaped ordinary text.
+    if(!Array.isArray(replacement.segments))throw new TypeError('Rich-text segments must be an array')
+    const fragment=ownerDocument.createDocumentFragment()
+    for(let index=0;index<replacement.segments.length;index++){
+      if(!Object.hasOwn(replacement.segments,index))throw new TypeError('Rich-text segments must be dense')
+      const segment=replacement.segments[index]
+      if(!segment||(segment.kind!=='text'&&segment.kind!=='inline-reference')){
+        throw new TypeError('Rich-text segment must be text or inline-reference')
+      }
+      fragment.appendChild(replacementNode(segment,inline,ownerDocument))
+    }
+    return fragment
+  }
   if(replacement.kind==='text'){
     const fragment=ownerDocument.createDocumentFragment()
     fragment.appendChild(ownerDocument.createTextNode(replacement.text))
@@ -185,7 +204,7 @@ export function ensureRichTextReferenceSuffix(html,inline,id,suffix,ownerDocumen
  * @param {string} html
  * @param {Record<string, unknown> | undefined} inline
  * @param {{start:number,end:number}} range
- * @param {{kind:'text',text:string}|{kind:'html',html:string}|{kind:'inline-reference',id:string}} replacement
+ * @param {RichTextReplacement} replacement
  * @param {Document} ownerDocument
  */
 export function replaceRichTextRange(html,inline,range,replacement,ownerDocument){
@@ -249,8 +268,8 @@ export function sliceRichTextRange(html, inline, range, ownerDocument) {
 }
 
 export function splitRichTextRange(html, inline, range, ownerDocument) {
-  const start = Math.max(0, Math.trunc(range?.start) || 0)
-  const end = Math.max(start, Math.trunc(range?.end ?? start) || 0)
+  const start = Math.max(0, Math.trunc(range?.start)||0)
+  const end = Math.max(start, Math.trunc(range?.end ?? start)||0)
   const collapsed = replaceRichTextRange(
     html,
     inline,

@@ -811,23 +811,15 @@ export function prepareInlineSegments(s,view,blockId,fieldKey,range,segments) {
       dataVersion: encoded.dataVersion,
       data: encoded.data,
     }, enumerable: true, configurable: true, writable: true })
-    lines.at(-1).push({ kind: 'reference', id })
+    lines.at(-1).push({ kind: 'inline-reference', id })
   }
 
-  const serialized = lines.map(line => {
-    let text = ''
-    let logicalLength = 0
-    for (const segment of line) {
-      if (segment.kind === 'text') {
-        text += segment.text
-        logicalLength += segment.text.length
-      } else {
-        text += `{{${segment.id}}}`
-        logicalLength++
-      }
-    }
-    return { text, logicalLength }
-  })
+  const serialized = lines.map(segments => ({
+    segments,
+    logicalLength: segments.reduce((length, segment) => (
+      length + (segment.kind === 'text' ? segment.text.length : 1)
+    ), 0),
+  }))
 
   const startOffset = Math.max(0, Math.trunc(range?.start) || 0)
   const endOffset = Math.max(startOffset, Math.trunc(range?.end ?? startOffset) || 0)
@@ -843,7 +835,9 @@ export function prepareInlineSegments(s,view,blockId,fieldKey,range,segments) {
           html,
           inline,
           { start: startOffset, end: endOffset },
-          { kind: 'text', text: serialized.map(line => line.text).join('\n') },
+          { kind: 'segments', segments: serialized.flatMap((line, index) => (
+            index ? [{ kind: 'text', text: '\n' }, ...line.segments] : line.segments
+          )) },
           s.ownerDocument,
         )
       },
@@ -872,7 +866,7 @@ export function prepareInlineSegments(s,view,blockId,fieldKey,range,segments) {
         html,
         inline,
         { start: startOffset, end: Number.MAX_SAFE_INTEGER },
-        { kind: 'text', text: serialized[0].text },
+        { kind: 'segments', segments: serialized[0].segments },
         s.ownerDocument,
       )
     },
@@ -902,7 +896,7 @@ export function prepareInlineSegments(s,view,blockId,fieldKey,range,segments) {
           base,
           inline,
           { start: 0, end: 0 },
-          { kind: 'text', text: line.text },
+          { kind: 'segments', segments: line.segments },
           s.ownerDocument,
         )
       },
