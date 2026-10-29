@@ -25,11 +25,13 @@ function fixture({ readOnly = false } = {}) {
         element.type = 'button'
         element.textContent = data.label
         const widget = { id, context, element, destroyed: 0 }
+        let attempted = false
         widgets.push(widget)
         return { element,
           update(next) { element.textContent = next.label },
           setReadOnly(value) {
-            if (flags.armed && original) {
+            if (flags.armed && original && value !== readOnly) attempted = true
+            if (flags.armed && original && attempted) {
               calls.push([id, value])
               if (value === readOnly && flags.rollbacks.has(id)) throw flags.rollbacks.get(id)
             }
