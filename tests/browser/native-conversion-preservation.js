@@ -50,7 +50,13 @@ for(const factory of [createListPlugin,createChecklistPlugin])for(const menuKind
   const data={items,...(checklist?{}:{style:'ordered'})}
   const editor=make([para('a','Alpha'),{id:'b',type:plugin.type,dataVersion:plugin.schema.currentVersion,data}],{injectStyles:true,locale:ru,plugins:[createParagraphPlugin(),plugin]})
   const before=editor.save().blocks
-  await dragAcross(editor,editableField(editor,'a'),2,editableField(editor,'b','[data-item-id="second"]'),7,backwards)
+  // Checklist item rows also contain a native checkbox. Logical offsets
+  // belong to the registered text host, which is a child of that row.
+  const endpoint=editableField(editor,'b',checklist
+   ? '[data-item-id="second"] [contenteditable="true"]'
+   : '[data-item-id="second"][contenteditable="true"]')
+  equal(endpoint.textContent,'Charlie','The endpoint must own the second item author text')
+  await dragAcross(editor,editableField(editor,'a'),2,endpoint,7,backwards)
   await convert(editor,plugin.type,menuKind)
   const after=editor.save().blocks,selected=after.filter(block=>block.type===plugin.type).at(-2)
   equal(selected.data,{items:items.slice(0,2),...(checklist?{}:{style:'ordered'})},'Same-type endpoint was flattened, reset or lost item identities')
