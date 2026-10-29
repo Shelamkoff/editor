@@ -64,3 +64,46 @@ test('structured defaults are editor-valid and carry stable subfield ids', () =>
     assert.deepEqual(schema.encode(value).data, value)
   }
 })
+
+test('a new Table defaults to the documented v1 three-by-three grid with independent identified cells', () => {
+  const first = tableDataSchema.createDefault()
+  const second = tableDataSchema.createDefault()
+  const emptyGrid = [['', '', ''], ['', '', ''], ['', '', '']]
+  assert.equal(first.withHeadings, false)
+  assert.deepEqual(first.rows.map(row => row.cells.map(cell => cell.text)), emptyGrid)
+  assert.equal(new Set(first.rows.map(row => row.id)).size, 3)
+  for (const row of first.rows) {
+    assert.equal(typeof row.id, 'string')
+    assert.ok(row.id.length > 0)
+    assert.equal(new Set(row.cells.map(cell => cell.id)).size, 3)
+    assert.ok(row.cells.every(cell => typeof cell.id === 'string' && cell.id.length > 0))
+  }
+  assert.equal(new Set(first.rows.map(row => row.cells)).size, 3)
+  assert.equal(new Set(first.rows.flatMap(row => row.cells)).size, 9)
+  assert.deepEqual(tableDataSchema.decode(tableDataSchema.encode(first)).data, first)
+
+  first.rows[0].cells[0].text = 'Caller mutation'
+  first.rows[1].cells.pop()
+  assert.deepEqual(second.rows.map(row => row.cells.map(cell => cell.text)), emptyGrid)
+  assert.deepEqual(tableDataSchema.createDefault(), second)
+})
+
+for (const [name, data] of [
+  ['one-by-one', { withHeadings: true, rows: [{ id: 'single-row', cells: [{ id: 'single-cell', text: 'Only cell' }] }] }],
+  ['three-by-three', { withHeadings: false, rows: [
+    { id: 'first', cells: [{ id: 'a', text: 'A' }, { id: 'b', text: 'B' }, { id: 'c', text: 'C' }] },
+    { id: 'middle', cells: [{ id: 'a', text: 'D' }, { id: 'b', text: 'E' }, { id: 'c', text: 'F' }] },
+    { id: 'last', cells: [{ id: 'a', text: 'G' }, { id: 'b', text: 'H' }, { id: 'c', text: 'I' }] },
+  ] }],
+]) {
+  test(`explicit ${name} Table data keeps its dimensions, identities and values`, () => {
+    const input = structuredClone(data)
+    const encoded = tableDataSchema.encode(input)
+    assert.equal(encoded.dataVersion, 2)
+    assert.deepEqual(encoded.data, data)
+    assert.deepEqual(tableDataSchema.decode(encoded).data, data)
+    assert.deepEqual(input, data)
+    encoded.data.rows[0].cells[0].text = 'Returned value mutation'
+    assert.deepEqual(input, data)
+  })
+}

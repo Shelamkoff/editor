@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import { DocumentRuntime } from './DocumentRuntime.js'
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { InstanceScope } from './InstanceScope.js'
+import { createTablePlugin } from '../plugins/table/index.js'
 
 function schema(options = {}) {
   return {
@@ -53,6 +54,47 @@ function paragraphDefinition(options = {}) {
 function block(id, data = { text: id }, extra = {}) {
   return { id, type: 'paragraph', dataVersion: 1, data, ...extra }
 }
+
+test('new and omitted-data inserted Tables use the three-by-three default and one whole insertion history action', () => {
+  const table = createTablePlugin({ injectStyles: false })
+  const runtime = new DocumentRuntime({ registry: registry([table]) })
+  try {
+    const initial = runtime.save().blocks
+    assert.equal(initial.length, 1)
+    assert.equal(initial[0].type, 'table')
+    assert.equal(initial[0].dataVersion, 2)
+    assert.deepEqual(initial[0].data.rows.map(row => row.cells.map(cell => cell.text)),
+      [['', '', ''], ['', '', ''], ['', '', '']])
+    assert.equal(runtime.canUndo, false)
+    const insertedId = runtime.insert('table')
+    const inserted = runtime.save().blocks
+    assert.notEqual(insertedId, initial[0].id)
+    assert.deepEqual(inserted.map(record => record.data), [initial[0].data, initial[0].data])
+    assert.equal(runtime.undo(), true)
+    assert.deepEqual(runtime.save().blocks, initial)
+    assert.equal(runtime.canUndo, false)
+    assert.equal(runtime.redo(), true)
+    assert.deepEqual(runtime.save().blocks, inserted)
+    assert.equal(runtime.canRedo, false)
+  } finally { runtime.destroy() }
+})
+
+test('Table text conversion remains an explicit one-cell payload independent of its new-document default', () => {
+  const definition = createTablePlugin({ injectStyles: false })
+  const converted = definition.capabilities.conversion.import({ kind: 'rich-text', data: { text: '<b>Only cell</b>' } })
+  assert.deepEqual(converted, {
+    withHeadings: false,
+    rows: [{ id: 'row-0', cells: [{ id: 'cell-0-0', text: '<b>Only cell</b>' }] }],
+  })
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    data: { version: '2.0.0', blocks: [{ id: 'explicit-single', type: 'table', dataVersion: 2, data: converted }] },
+  })
+  try {
+    assert.deepEqual(runtime.get('explicit-single').data, converted)
+    assert.equal(runtime.canUndo, false)
+  } finally { runtime.destroy() }
+})
 
 test('clipboard handles expose only detached deeply frozen transfer data and reject foreign/forged handles', () => {
   const options={registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}}
