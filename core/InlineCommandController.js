@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { equalJsonValue } from '../shared/jsonData.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
 export class InlineCommandController {
@@ -126,14 +127,12 @@ export class InlineCommandController {
       { kind: 'widget', type: prepared.type, data: prepared.data },
       ...(delimiter === ' ' ? [{ kind: 'text', text: ' ' }] : []),
     ]
-    const result = this.#runtime.interact('inline.typed-pattern', () => (
+    const result = this.#interactWithCaret(caretLease, 'inline.typed-pattern', () => (
       this.#runtime.replaceRichTextWithInlineSegments(
         target.blockId, target.fieldKey, target.range, segments,
       )
-    ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
-    if (!result) return false
-    this.#restoreCaretIfOwned(caretLease, result.blockId, result.fieldKey, result.offset)
-    return true
+    ), caret => caret)
+    return Boolean(result)
   }
 
   pasteText(text, target = this.#currentRange()) {
@@ -215,15 +214,13 @@ export class InlineCommandController {
     if (!segments || !this.#canRestoreCaret(caretLease)
       || !this.#stillSelected(target)) return false
 
-    const result = this.#runtime.interact('inline.paste', () => this.#runtime.replaceRichTextWithInlineSegments(
+    const result = this.#interactWithCaret(caretLease, 'inline.paste', () => this.#runtime.replaceRichTextWithInlineSegments(
       target.blockId,
       target.fieldKey,
       target.range,
       segments,
-    ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
-    if (!result) return false
-    this.#restoreCaretIfOwned(caretLease, result.blockId, result.fieldKey, result.offset)
-    return true
+    ), caret => caret)
+    return Boolean(result)
   }
 
   commitTrigger(type, session, data, options = {}) {
@@ -250,15 +247,31 @@ export class InlineCommandController {
     const caretLease = this.#caretLease()
     if (!this.#canRestoreCaret(caretLease)) return false
     const point = { blockId: target.blockId, fieldKey: target.fieldKey, offset }
-    const result = this.#runtime.interact('inline.insert', operation, () => ({ anchor: point, focus: { ...point } }))
-    if (!result) return false
-    this.#restoreCaretIfOwned(caretLease, target.blockId, target.fieldKey, offset)
-    return true
+    return Boolean(this.#interactWithCaret(caretLease, 'inline.insert', operation, () => point))
   }
 
-  #restoreCaretIfOwned(lease, blockId, fieldKey, offset) {
-    if (!this.#canRestoreCaretTo(lease, blockId, fieldKey)) return
-    this.#selection.setCaret(blockId, { fieldKey, offset })
+  #interactWithCaret(lease, name, operation, resultPoint) {
+    // The post-projection/pre-publication snapshot distinguishes this command's
+    // DOM movement from a newer observer decision. In particular a multiline
+    // Paste may target a newly created field while native selection is still
+    // in the source. A different field alone cannot classify that as reentry.
+    const capture = () => cloneEditorData(this.#selection.capture() ?? null)
+    let expected = capture()
+    if (!this.#canRestoreCaret(lease)) return false
+    const result = this.#runtime.interact(name, operation, value => {
+      expected = capture()
+      const point = resultPoint(value)
+      return point ? { anchor: point, focus: { ...point } } : null
+    })
+    if (!result || !this.#canRestoreCaret(lease)) return result
+    const revision = this.#runtime.revision
+    let current
+    try { current = capture() } catch { return result }
+    if (!this.#canRestoreCaret(lease) || revision !== this.#runtime.revision
+      || !equalJsonValue(current, expected)) return result
+    const point = resultPoint(result)
+    if (point) this.#selection.setCaret(point.blockId, { fieldKey: point.fieldKey, offset: point.offset })
+    return result
   }
 
   #canRestoreCaretTo(lease, blockId, fieldKey) {
