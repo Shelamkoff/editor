@@ -148,6 +148,7 @@ const labels = ['harness-contract.html', 'mode-recovery.html', 'scoped-authority
 labels.push('projection-contracts.html')
 labels.push('optional-inline-update.html')
 labels.push('inline-pattern-transfer.html')
+labels.push('toolbar-keyboard.html')
 labels.push('public-extension-contracts.html')
 labels.push('poll-state-contracts.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels

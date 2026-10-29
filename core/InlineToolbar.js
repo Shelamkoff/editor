@@ -67,6 +67,7 @@ export class InlineToolbar {
   #onMouseUp
   #pendingDragSelection = false
   #documentClick
+  #documentFocus
   #selectionVersion = 0
 
   #typeSelect
@@ -80,7 +81,8 @@ export class InlineToolbar {
   #controlLabel
   #controlDropdown
   #controlVersion = 0
-  #controlBookmark = null
+  #controlsSelection = null
+  #controlsToken = null
   #controlBlockId = null
 
   constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [], translate = (_key, fallback = '') => fallback, reportError = (_code, _error) => {} }) {
@@ -106,6 +108,21 @@ export class InlineToolbar {
     this.#buttonsPanel.className = 'oe-inline-toolbar__panel'
     this.#element.append(this.#buttonsPanel)
     root.append(this.#element)
+    // Keyboard focus continues an already authorized author interval; it
+    // cannot mint a new bookmark from a button's retained native Selection.
+    this.#controlsSelection = new InlineSelectionAuthority({
+      root, runtime, reconciler,
+      lease: () => this.#selectionVersion,
+      readSelection: () => {
+        const native = document.defaultView?.getSelection?.()
+        const range = this.#selectionPort?.range ?? (native?.rangeCount && !native.isCollapsed
+          ? native.getRangeAt(0) : null)
+        return range && this.#bookmark ? { range, bookmark: this.#bookmark } : null
+      },
+      restoreSelection: bookmark => this.#restoreSelection(bookmark),
+      canAccess: () => !this.#destroyed && !this.#readOnly
+        && this.#runtime.canAccessFormattingSelection?.() === true,
+    })
 
     this.#typeSelect = document.createElement('button')
     this.#typeSelect.type = 'button'
@@ -182,7 +199,6 @@ export class InlineToolbar {
     this.#controlSelect.addEventListener('mousedown', event => {
       if (this.#destroyed) return
       event.preventDefault()
-      if (this.#controlDropdown.style.display === 'none') this.#controlBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
     })
     this.#controlSelect.addEventListener('click', event => {
       if (this.#destroyed) return
@@ -190,7 +206,7 @@ export class InlineToolbar {
       event.stopPropagation()
       if (this.#controlDropdown.style.display === 'none') this.#openControlDropdown()
       else {
-        const bookmark = this.#controlBookmark
+        const bookmark = this.#controlSelectionBookmark()
         this.#closeControlDropdown()
         this.#restoreSelection(bookmark)
       }
@@ -209,7 +225,7 @@ export class InlineToolbar {
       if (this.#destroyed) return
       handleMenuKeydown(event, this.#controlDropdown, {
         onEscape: () => {
-          const bookmark = this.#controlBookmark
+          const bookmark = this.#controlSelectionBookmark()
           this.#closeControlDropdown()
           this.#restoreSelection(bookmark)
           this.#controlSelect.focus()
@@ -327,6 +343,11 @@ export class InlineToolbar {
       this.#closeControlDropdown()
     }
     document.addEventListener('mousedown', this.#documentClick, true)
+    this.#documentFocus = event => {
+      if (!this.#destroyed && !this.#root.contains(event.target)) this.#controlsToken = null
+    }
+    document.addEventListener('focusin', this.#documentFocus)
+    this.#controlsSelection.activate()
     for (const mount of this.#mountStates) {
       mount.active = true
       mount.port?.activate()
@@ -528,6 +549,7 @@ export class InlineToolbar {
     this.#expectedOwnSelection = null
     this.#range = null
     this.#bookmark = null
+    this.#controlsToken = null
     this.#blockId = null
     this.#fieldKey = null
     this.#element.style.display = 'none'
@@ -547,6 +569,8 @@ export class InlineToolbar {
     this.#typeVersion++
     this.#controlVersion++
     this.#selectionVersion++
+    this.#controlsSelection?.revoke()
+    this.#controlsToken = null
     for (const mount of this.#mountStates) {
       mount.active = false
       mount.revoked = true
@@ -560,6 +584,7 @@ export class InlineToolbar {
     const document = this.#root.ownerDocument
     if (this.#onSelectionChange) release(() => document.removeEventListener('selectionchange', this.#onSelectionChange))
     if (this.#onMouseUp) release(() => document.removeEventListener('mouseup', this.#onMouseUp))
+    if (this.#documentFocus) release(() => document.removeEventListener('focusin', this.#documentFocus))
     if (this.#documentClick) release(() => document.removeEventListener('mousedown', this.#documentClick, true))
 
     // All started tool claims and callbacks are retired before cleanup hooks.
@@ -761,6 +786,7 @@ export class InlineToolbar {
     }
     if (formatting) this.#updateActiveStates(formatting)
     this.#updateBlockControls(selection)
+    this.#controlsToken = this.#controlsSelection.capture(selection.range)
     this.#element.style.display = 'flex'
     this.#position(selection.range)
   }
@@ -850,6 +876,11 @@ export class InlineToolbar {
         try { this.#reportError('command.failed', error) } catch {}
       }
     }
+  }
+
+  #controlSelectionBookmark() {
+    return this.#controlsToken && this.#controlsSelection?.isValid(this.#controlsToken)
+      ? cloneBookmark(this.#bookmark) : null
   }
 
   #openTypeDropdown() {
@@ -1006,7 +1037,7 @@ export class InlineToolbar {
       this.#disableBlockControls()
       return
     }
-    const bookmark = cloneBookmark(this.#controlBookmark ?? this.#selectionPort?.bookmark ?? this.#selection.capture())
+    const bookmark = this.#controlSelectionBookmark()
     if (!bookmark) return
     const prepared = this.#prepareControlActions(record, definition, capability)
     if (!prepared) return
@@ -1015,7 +1046,6 @@ export class InlineToolbar {
       return
     }
     this.#closeControlDropdown()
-    this.#controlBookmark = bookmark
     this.#closeTypeDropdown()
     const version = this.#controlVersion
     const generation = this.#runtime.generation
@@ -1058,6 +1088,7 @@ export class InlineToolbar {
           || this.#readOnly
           || this.#destroyed
           || this.#runtime.get(blockId)?.type !== record.type
+          || !this.#controlSelectionBookmark()
         ) return
         if (bookmark.anchor.blockId !== bookmark.focus.blockId || bookmark.anchor.fieldKey !== bookmark.focus.fieldKey) this.#restoreSelection(bookmark)
         this.#runtime.interact('block.inline-control', () => this.#runtime.update(blockId, current => ({
@@ -1091,7 +1122,6 @@ export class InlineToolbar {
     this.#controlDropdown.style.display = 'none'
     this.#controlSelect.setAttribute('aria-expanded', 'false')
     this.#controlDropdown.replaceChildren()
-    this.#controlBookmark = null
   }
 
   #mutate(range, operation, type, lease = this.#selectionVersion) {
