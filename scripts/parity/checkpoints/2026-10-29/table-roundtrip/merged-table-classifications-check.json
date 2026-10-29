@@ -1,0 +1,39 @@
+{
+  "runnerSha256": "f518ff5e9b848482e5621fff9e0b5301310e472c5f3a8ccb7f9fc89487f5ee3d",
+  "rawPath": "/tmp/rector-table-roundtrip-raw.json",
+  "sources": [
+    {
+      "source": "v1",
+      "failures": 35,
+      "counts": {
+        "repaired-v1-table-mode-remount": 16,
+        "repaired-v1-table-history-remount": 16,
+        "repaired-v1-empty-table-caret": 1,
+        "repaired-v1-table-history-focus": 2
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "failures": 37,
+      "counts": {
+        "repaired-baseline-table-default-grid": 36,
+        "repaired-baseline-table-formatted-widget-mode": 1
+      }
+    },
+    {
+      "source": "candidate",
+      "failures": 0,
+      "counts": {}
+    }
+  ],
+  "rejects": {
+    "candidate": 72,
+    "source": 72,
+    "caseId": 72,
+    "phase": 72,
+    "property": 72,
+    "prototypeProperty": 72,
+    "actual": 72,
+    "expected": 72
+  }
+}

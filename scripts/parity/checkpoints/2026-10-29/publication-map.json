@@ -3,8 +3,8 @@
   "repository": "Shelamkoff/editor",
   "branch": "refactor/rector-v2-architecture",
   "base": "e6d14c9b7912408230f53d1ff9aa754f6dd69dbe",
-  "verifiedThrough": "9ad09132584a2cedc26b6a3630a5b829d9b5ea49",
-  "verifiedAt": "2026-10-29T19:31:17.775433+00:00",
+  "verifiedThrough": "c2b084bd49b1d5a40528c114eaade15a839d7427",
+  "verifiedAt": "2026-10-29T21:06:23.786142+00:00",
   "reason": "CLI Git credentials were unavailable after explicit publication authorization; GitHub Git Data API preserved every tree and commit order but assigned its own commit metadata.",
   "commits": [
     {
@@ -1002,6 +1002,78 @@
         "7afe493635ce4ffcbbaa76bb155f9583fd80f354"
       ],
       "originalCommitBase64": "dHJlZSBkNzdiMjNkNzBhZDNhZGVmZmZkN2JkZWRiYmZlNDNmYmEyODM0NWMyCnBhcmVudCAwNzc3YzQ5Y2VkZTExNzIwMjZiNGUyMjgzNTdmNjA4MGQ2Yjc2YmYxCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMjI1MCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDIyNTAgKzAwMDAKCmRvY3MocGFyaXR5KTogcmV0YWluIFJhdyBkb2N1bWVudGF0aW9uIHZlcmlmaWNhdGlvbiByZXN1bHRzCg=="
+    },
+    {
+      "original": "3c6c3f855f7d17eeae48c0c3713b5f6852960670",
+      "published": "ebf1dbf45fad936c7ac076864a992fe250cf3821",
+      "tree": "dd21911cd8f6d5b33bd59c8881ceb894a369a714",
+      "originalParents": [
+        "9ad09132584a2cedc26b6a3630a5b829d9b5ea49"
+      ],
+      "publishedParents": [
+        "9ad09132584a2cedc26b6a3630a5b829d9b5ea49"
+      ],
+      "originalCommitBase64": "dHJlZSBkZDIxOTExY2Q4ZjZkNWIzM2JkNTljODg4MWNlYjg5NGEzNjlhNzE0CnBhcmVudCA5YWQwOTEzMjU4NGEyY2VkYzI2YjZhMzYzMGE1YjgyOWQ5YjVlYTQ5CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMzI0NCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDMyNDQgKzAwMDAKCnRlc3QocmVuZGVyZXIpOiByZXByb2R1Y2UgR2FsbGVyeSBjYXB0aW9uIGFjY2Vzc2liaWxpdHkgbG9zcwo="
+    },
+    {
+      "original": "46c136b4a5148cd7590794440db3b5109e1cb41c",
+      "published": "2e403cef2a261defa270fa947265e59004c6ce34",
+      "tree": "e929e1aaba43a56fd3e8f1dc6b0129b492222e69",
+      "originalParents": [
+        "3c6c3f855f7d17eeae48c0c3713b5f6852960670"
+      ],
+      "publishedParents": [
+        "ebf1dbf45fad936c7ac076864a992fe250cf3821"
+      ],
+      "originalCommitBase64": "dHJlZSBlOTI5ZTFhYWJhNDNhNTZmZDNlOGYxZGM2YjAxMjliNDkyMjIyZTY5CnBhcmVudCAzYzZjM2Y4NTVmN2QxN2VlYWU0OGMwYzM3MTNiNWY2ODUyOTYwNjcwCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMzI1MCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDMyNTAgKzAwMDAKCmZpeChyZW5kZXJlcik6IGRlcml2ZSBHYWxsZXJ5IGFjY2Vzc2libGUgbmFtZXMgZnJvbSBpbmxpbmUgY2FwdGlvbnMK"
+    },
+    {
+      "original": "d551cf97779a8f2c3f99fffccc02e89c21f8d4ec",
+      "published": "22e5f372e232f193f109a42c7d1fdff7ee529cd9",
+      "tree": "bd3c90a8d01980878ccd58274c5413fbc935f179",
+      "originalParents": [
+        "46c136b4a5148cd7590794440db3b5109e1cb41c"
+      ],
+      "publishedParents": [
+        "2e403cef2a261defa270fa947265e59004c6ce34"
+      ],
+      "originalCommitBase64": "dHJlZSBiZDNjOTBhOGQwMTk4MDg3OGNjZDU4Mjc0YzU0MTNmYmM5MzVmMTc5CnBhcmVudCA0NmMxMzZiNGE1MTQ4Y2Q3NTkwNzk0NDQwZGIzYjUxMDllMWNiNDFjCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMzI5MSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDMzMDcgKzAwMDAKCmRvY3MocGFyaXR5KTogcmVjb3JkIEdhbGxlcnkgY2FwdGlvbiByZW5kZXJlciBSRUQgYW5kIEdSRUVOCg=="
+    },
+    {
+      "original": "818e8e36080471365f607983e13fa289435c73d4",
+      "published": "a0fabcaa0bd7a430a9e69f4240ad0ca763b80217",
+      "tree": "a7a3146f8000444570c4d2d19ca20547437403ae",
+      "originalParents": [
+        "d551cf97779a8f2c3f99fffccc02e89c21f8d4ec"
+      ],
+      "publishedParents": [
+        "22e5f372e232f193f109a42c7d1fdff7ee529cd9"
+      ],
+      "originalCommitBase64": "dHJlZSBhN2EzMTQ2ZjgwMDA0NDQ1NzBjNGQyZDE5Y2EyMDU0NzQzNzQwM2FlCnBhcmVudCBkNTUxY2Y5Nzc3OWE4ZjJjM2Y5OWZmZmNjYzAyZTg5YzIxZjhkNGVjCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMzM4OCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDMzODggKzAwMDAKCmRvY3MocGFyaXR5KTogcmVjb3JkIEdhbGxlcnkgY2FwdGlvbiByZXBhaXIgYW5kIENocm9tZSAxNTYgZ2F0ZSBmYWlsdXJlCg=="
+    },
+    {
+      "original": "3778e4a892ef9df477c71a5ef708051f296608d6",
+      "published": "15028b3b6e9384ff2356e956244d963fc4beb44a",
+      "tree": "04b37c5f39e7f98fc7d7232ce00566c5710f45ab",
+      "originalParents": [
+        "a0fabcaa0bd7a430a9e69f4240ad0ca763b80217"
+      ],
+      "publishedParents": [
+        "a0fabcaa0bd7a430a9e69f4240ad0ca763b80217"
+      ],
+      "originalCommitBase64": "dHJlZSAwNGIzN2M1ZjM5ZTdmOThmYzdkNzIzMmNlMDA1NjZjNTcxMGY0NWFiCnBhcmVudCBhMGZhYmNhYTBiZDdhNDMwYTllNjlmNDI0MGFkMGNhNzYzYjgwMjE3CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwNDcyMSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDQ3MjEgKzAwMDAKCnRlc3QoYnJvd3Nlcik6IGNhcHR1cmUgZ2VvbWV0cnkgd2hlbiBhIG5hdGl2ZSBkcmFnIGZhaWxzCg=="
+    },
+    {
+      "original": "6b983fe197d2e9d989fcf1fec662f2b1a8c6352c",
+      "published": "c2b084bd49b1d5a40528c114eaade15a839d7427",
+      "tree": "0ab943c841b3f4cadbbf52be64c8a3326926d45d",
+      "originalParents": [
+        "3778e4a892ef9df477c71a5ef708051f296608d6"
+      ],
+      "publishedParents": [
+        "15028b3b6e9384ff2356e956244d963fc4beb44a"
+      ],
+      "originalCommitBase64": "dHJlZSAwYWI5NDNjODQxYjNmNGNhZGJiZjUyYmU2NGM4YTMzMjY5MjZkNDVkCnBhcmVudCAzNzc4ZTRhODkyZWY5ZGY0NzdjNzFhNWVmNzA4MDUxZjI5NjYwOGQ2CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwNDc0OSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDQ3NDkgKzAwMDAKCmRvY3MocGFyaXR5KTogcmV0YWluIHJlcGVhdGVkIENJIGRyYWcgZmFpbHVyZXMgYW5kIGxvY2FsIGNvbnRyb2xzCg=="
     }
   ]
 }

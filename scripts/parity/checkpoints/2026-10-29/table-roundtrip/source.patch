@@ -1,0 +1,1091 @@
+diff --git a/scripts/parity/block-roundtrip.md b/scripts/parity/block-roundtrip.md
+index fe981265..f14daa11 100644
+--- a/scripts/parity/block-roundtrip.md
++++ b/scripts/parity/block-roundtrip.md
+@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
+ accept any detailed block-action row. An inventory entry is not evidence
+ that its browser scenario has run.
+ 
+-The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning, Checklist, Spoiler and Columns, each with
++The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning, Checklist, Spoiler, Columns and Table, each with
+ separate actual default construction and populated-document cases. Each
+ populated case contains both real Mention and Color sidecars inside
+ authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
+@@ -173,6 +173,78 @@ unchanged; it is not required across those intentional mode rebuilds.
+ Actual downloads, upload/ZIP actions, variant activation, providers and
+ native editing of the second filename remain separate detailed rows.
+ 
++Embed adds four cases: its actual empty default, a configured literal rich
++caption, a configured caption containing Mention and Color inside formatting,
++and an unwrapped-widget control. All populated cases use Vimeo with the
++existing `resolvePreview: false` configuration, a local one-pixel PNG cover,
++and fixed title/duration metadata. The empty default has a URL input but no
++declared rich caption; only that case records caption authoring, Undo and
++Redo as not applicable. URL configuration, playback and provider actions
++remain separate behavior rows.
++
++Populated Embed cases perform trusted native caption insertion and exact
++one-step Undo/Redo. Canonical marks, actual sidecars, neighboring Paragraphs,
++block IDs and order remain independent fixed expectations. Both the editor
++and all three renderer contexts check caption markup and actual widgets;
++preview URL, alternative text, title, duration, decoded local cover and the
++absence of an activated iframe are also checked. The wrapper stays stable;
++caption identity is required during load, mode changes and native input.
++For a genuinely changed caption during Undo/Redo, the existing update
++contract permits either the same connected host or a fully detached old
++host. In the latter case stale input/blur on that predecessor must preserve
++exact canonical records, history, the current field and active/native
++selection nodes and offsets. Current caption text, actual widgets and
++expected native caret/history remain strict. Player controls intentionally
++rebuild, so the fixture does not invent a player-subtree identity requirement.
++The first diagnostic oracle incorrectly required caption identity even for
++changed Redo content; its three candidate failures are recorded as an
++invalid oracle attempt, not as a production regression or an accepted
++candidate exception. `plugins/embed/reconciliation.test.js` already
++requires a fresh authoring host for externally changed caption content.
++
++The v1 Embed class does not declare `mapTextFields`. Its `core/types.d.ts`
++and extension guide require that hook for persistent inline widgets, and
++`EditorFacade.insertInlinePlugin()` rejects a block without it. The v1
++README does not advertise caption widgets. Therefore the default/literal
++cases establish meaningful v1 parity, while the two widget-caption cases
++preserve a current capability and explicitly report unsupported v1 reference
++coverage. Their inputs keep the real sidecars and all raw failures; no
++adapter removes them. The renderer checks consume saved records, so missing
++v1 output widgets here are downstream of the saved sidecar omission and do
++not constitute an independent intact-input renderer test.
++
++The shared settlement helper waits for finite animations and transitions.
++It excludes only animations whose computed end time is `Infinity`; it does
++not cancel animations, disable CSS, or accept a timeout as success. An actual
++three-source diagnostic observed `oe-embed-pulse` still running after three
++seconds with infinite iterations/end time while the adjacent finite
++transition had finished. That was a harness wait failure, separate from
++production parity. The local-cover readiness bound also rejects on timeout;
++cover dimensions and all authoring/history assertions remain required.
++
++Table uses its actual empty 3-by-3 default and a fixed 2-by-2 document
++with a heading row. Mention lives in the first header cell and Color in the
++last body cell; the other header and body retain independent `mark` and
++canonical `i` formatting plus a literal ampersand. The unwrapped control
++keeps both real widgets outside formatting. Native input edits only the
++first declared TD/TH, while every other cell, row order, headings flag,
++sidecar and neighboring Paragraph must remain unchanged through mode and
++one-step Undo/Redo. Current row/cell IDs are checked in data and actual DOM,
++including the same cell IDs in distinct row namespaces. Wrapper, table,
++rows and cell identities are independent observations. All three renderer
++contexts require TABLE/THEAD/TBODY/TR/TH/TD structure and authored cell
++contents. Row/column actions, heading toggles, Table paste, multi-cell
++selection, Tab/Enter behavior and separately typing into sibling cells
++remain separate behavior rows.
++
++The initial exploratory Table fixture incorrectly expected unsupported `u`
++to survive; both historical/current sanitizers omit that tag. A second
++probe used the allowed `em` alias but compared its spelling literally,
++where the current rich-text codec canonicalizes it to `i`. Both traces are
++retained as invalid fixture expectations, not production RED evidence.
++The corrected fixed fixture uses `i`; neither sanitizer policy nor the
++shared markup oracle is changed to admit those earlier failures.
++
+ Other inventory entries below are planned coverage, not completed tests.
+ 
+ ## Source identities and test-only adapters
+@@ -203,6 +275,9 @@ v1 Columns receives ordered `{ content }` records; the current form adds
+ fixed column IDs without changing layout or authored contents. v1 Attaches
+ receives the same file names, URLs, sizes, extensions and order without
+ current file IDs; filename text is never parsed as rich markup.
++v1 Table receives the identical rectangular text matrix as `content: string[][]`
++with the same `withHeadings`; the current form adds fixed row/cell IDs. The
++adapter does not invent v1 identities or infer expected cells from a save.
+ These are fixture adapters, not production compatibility or a legacy
+ decoder.
+ 
+@@ -223,10 +298,10 @@ author data from an initial `save()` result.
+ | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
+ | Image / 1 | Empty file URL/caption, false flags, empty styles | Local decoded PNG, literal rich caption, fixed appearance; edit `caption` | Implemented: empty source has authoring N/A; populated native caption history and renderer preserved. Widget-caption defect remains separate. |
+ | Delimiter / 1 | Empty object | The same data-free separator between Paragraphs | Implemented: actual default has authoring phases N/A; a separately named real neighbor edit proves history preservation. |
+-| Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. The separate no-data default repair preserves explicit 1-by-1 data; the full template remains unexecuted here. |
++| Table / 2 | Empty 3-by-3 grid with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | Implemented: v1 `content: string[][]`; fixed current rows/cells, headings, all field/renderer slots, native first-cell history and independent identities. The separate default repair preserves explicit 1-by-1 data. |
+ | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
+ | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
+-| Embed / 1 | Empty service/video/caption/metadata | Controlled service/video with local cover, rich caption | Disable or inject documented metadata provider; caption exists only for a valid embed. |
++| Embed / 1 | Empty service/video/caption/metadata | Fixed Vimeo/local cover; literal and current widget captions | Implemented: actual empty default, native caption history, actual widgets and retired-host controls. v1 persistent caption widgets are unsupported reference evidence. |
+ | Raw / 1 | Empty HTML source | Literal multiline authored HTML/entities; edit `html` source | Implemented: exact textarea source, benign rendered markup, existing preview disclosure and native history. HTML confinement/navigation remain separate rows. |
+ | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
+ | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
+@@ -252,8 +327,9 @@ empty grid. `git blame` attributes that earlier schema default to
+ schema`). This was a behavioral difference rather than an ID-only change.
+ The separate default repair in `e1790dce` restores no-data 3-by-3
+ construction, retaining explicit 1-by-1 and 3-by-3 data and the existing
+-one-cell text conversion. Its targeted tests do not execute or accept the
+-full Table ROUNDTRIP template listed in this inventory.
++one-cell text conversion. Its targeted tests alone do not accept the
++full Table ROUNDTRIP template. The later Table slice above executes that
++template separately; detailed structural actions retain their own rows.
+ 
+ ## Running the vertical slice
+ 
+@@ -290,7 +366,7 @@ Every completed case creates the default or populated document, checks
+ fixed canonical data, renders both detached and mounted output, switches
+ read-only and back while retaining independent host focus, performs real
+ pointer focus and native field input where a field exists, then exact
+-one-step Undo/Redo. Delimiter, empty-source Image and no-file Attaches cases
++one-step Undo/Redo. Delimiter, empty-source Image, no-file Attaches and unconfigured Embed cases
+ expose their explicit non-editable or neighboring-field phase scope as described above. The fixture
+ checks marks, sidecars, IDs/order, logical caret, DOM reuse, renderer input
+ immutability, disposal and release of newly acquired owned styles. No
+@@ -302,9 +378,9 @@ history or disposal assertions. Known historical defects, if classified,
+ remain visible as raw failures with exact source/scenario/property checks;
+ unrelated candidate or baseline failures must remain fatal.
+ 
+-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches and Raw oracle
+-classifies only these observed historical differences, bounded to the thirty-eight exact scenario IDs in the
+-runner:
++The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed and Table oracle
++classifies only observed historical differences or unsupported reference
++capability, bounded to the forty-five exact scenario IDs in the runner:
+ 
+ - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
+   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
+@@ -388,15 +464,78 @@ runner:
+   hydration` while entering read-only mode in each formatted-widget case,
+   including both the open and closed populated Toggle cases.
+   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
+-  disposal assertions remain explicitly unexecuted. The unwrapped positive
+-  controls exercise the complete template on that baseline.
++  disposal assertions remain explicitly unexecuted. The unwrapped controls
++  execute the complete template on that baseline; the separate Embed Redo
++  failure is recorded below.
++
++- Embed has a separate classifier limited to its four exact IDs. v1 block
++  and wrapper remounts are recorded at the two mode transitions and, where
++  applicable, Undo/Redo. Caption identity is required at unchanged mode
++  transitions; changed history fields instead execute the retirement
++  controls described above. The empty v1 Embed also moves independent host
++  focus to its URL input when editing resumes; classification binds the
++  INPUT and both empty DIV selection points at offset 1 to the generated
++  default block ID.
++- The two v1 Embed widget-caption cases are **unsupported reference
++  capability**, not repaired widget defects or successful v1 widget parity.
++  In all six content phases, the saved record omits the exact Mention/Color
++  sidecars and both editor and the three saved-record renderer contexts
++  contain no actual widgets. The complete expected/actual records and exact
++  widget arrays are matched without changing the browser input or results.
++  Literal tokens give caret offsets 33/34 instead of logical widget offsets
++  14/15. The classifier requires these exact offsets, caption owners and
++  actual wrapped/unwrapped text-node endpoints. First Undo in the populated
++  widget and literal controls has the same independently observed prefix
++  focus defect, with required caption offsets 14 and 18 respectively.
++- The specification baseline's wrapped Embed case fails at the same exact
++  formatted-widget read-only boundary; only `load` completes. Its unwrapped
++  control completes all seven phases but Redo retains the Undo document and
++  history state. This is bounded to that one ID and phase, the exact original
++  and edited complete records (including media metadata and sidecars), the
++  captured active caption and text ` tail` at offset 5, and eleven exact
++  canonical/renderer/history/identity/selection failure pairs. It is not a
++  generic allowance for content loss or failed Undo/Redo. Literal caption
++  and default cases pass that baseline without exceptions.
++
++- Table has a separate classifier limited to its three exact IDs. v1
++  remounts exactly one/three block shells and fourteen/eight Table nodes for
++  default/populated cases, plus exactly two populated widget roots, at the
++  two mode and two history transitions. Its default first Undo focuses the
++  actual generated block's first TD while both selection points remain on
++  that same empty DIV wrapper at child offset 1. Populated first Undo has
++  the exact prefix Paragraph focus defect, with required first-cell offset
++  12. All seven phases must have completed for these classifications.
++- The specification baseline retains its pre-repair 1-by-1 Table default.
++  Its six content phases must have the exact corresponding complete
++  canonical records, with only the first cell changing to `X` at edit/redo.
++  The six admitted property pairs compare that exact 1-by-1 data, fields,
++  DOM IDs and three renderer structures with the fixed 3-by-3 expectation;
++  arbitrary missing rows/content are not allowed. Its formatted populated
++  case stops after load at the exact known inline mode hydration failure.
++  The unwrapped populated control receives no exception and completes the
++  full template.
++
++The runner also records uncaught browser errors in two independent raw
++channels: Playwright's page-error stack and a synchronous `window.error`
++observation carrying source, case ID, phase, name, message and stack. Neither
++channel suppresses the browser event. The only classified page error is the
++observed specification-baseline unwrapped Embed Redo: exactly one matching
++pair, its fixed complete ten-frame stack (only the local server origin
++varies), and all eleven unique exact Redo failure signatures with completed
++phases and canonical/history/selection records. The pairing occurs after
++all source pages close. Current errors, duplicates, unpaired reports and
++any other source, case, phase, message, stack or failure signature remain
++fatal. The raw error arrays stay present alongside classified and unexpected
++error records.
+ 
+ The candidate receives none of these exceptions. Raw failures remain in
+-the JSON alongside classifications. `incompleteCases` lists every partial
++the JSON alongside classifications. `unsupportedReferenceCases` explicitly
++lists the two v1 Embed widget controls and does not grant v1 capability
++coverage. `incompleteCases` lists every partial
+ scenario even when its precise historical cause is known. Exit zero means
+ there is no unexpected failure; it does not relabel incomplete baseline
+ phases as passes.
+ 
+-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches or Raw behavior,
+-the other 7 built-ins, hostile HTML/class confinement, all renderers,
++This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed or Table behavior,
++the other 5 built-ins, hostile HTML/class confinement, all renderers,
+ platform breadth or full editor parity.
+diff --git a/scripts/parity/block-roundtrip.mjs b/scripts/parity/block-roundtrip.mjs
+index 5a7cf3ba..6839a174 100644
+--- a/scripts/parity/block-roundtrip.mjs
++++ b/scripts/parity/block-roundtrip.mjs
+@@ -9,6 +9,250 @@ import { createServer } from 'node:http'
+ import { extname, join, resolve } from 'node:path'
+ import { fileURLToPath, pathToFileURL } from 'node:url'
+ 
++// These fixed values recognize only captured historical Embed failures. They
++// never adapt browser input, rewrite observations or grant candidate exceptions.
++const embedCaseIds = ['BLOCK_EMBED_ROUNDTRIP/default', 'BLOCK_EMBED_ROUNDTRIP/populated',
++  'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_EMBED_ROUNDTRIP/populated-literal']
++const embedPhases = ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo']
++const embedCover = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
++const embedMark = (tag, text) => ({ tag, attributes: {}, children: [text] })
++const embedCaption = (wrapped, edited, canonical = true) => canonical
++  ? [embedMark('b', 'Alpha'), ...(wrapped
++    ? [' ', embedMark('i', '{{mention}}'), ' ', embedMark('s', '{{swatch}}'), ' tail' + (edited ? 'X' : '')]
++    : [' {{mention}} {{swatch}} tail' + (edited ? 'X' : '')])]
++  : '<b>Alpha</b> ' + (wrapped ? '<i>{{mention}}</i> <s>{{swatch}}</s>' : '{{mention}} {{swatch}}') + ' tail' + (edited ? 'X' : '')
++function embedRecords({ legacy = false, wrapped = false, edited = false, sidecars = true, canonical = true }) {
++  const record = (id, type, version, data, inline) => ({ id, type, ...(!legacy ? { dataVersion: version } : {}), data,
++    ...(inline ? { inline } : {}) })
++  const widget = (type, data) => ({ type, ...(!legacy ? { dataVersion: 1 } : {}), data })
++  const inline = { mention: widget('mention', { id: 'ada', name: 'Ada' }), swatch: widget('color', { value: '#123456' }) }
++  return [
++    record('prefix', 'paragraph', 2, { text: canonical ? [embedMark('b', 'Before')] : '<b>Before</b>' }),
++    record('probe', 'embed', 1, { service: 'vimeo', videoId: '12345678', caption: embedCaption(wrapped, edited, canonical),
++      cover: embedCover, title: 'Local preview', duration: '1:23' }, sidecars ? inline : undefined),
++    record('suffix', 'paragraph', 2, { text: canonical ? [embedMark('i', 'After')] : '<i>After</i>' }),
++  ]
++}
++const embedRendered = edited => [[embedMark('b', 'Before')], {
++  children: ['DIV', 'FIGCAPTION'], caption: embedCaption(false, edited),
++  preview: embedCover, previewAlt: 'Local preview', title: 'Local preview', duration: '1:23', frames: 0,
++}, [embedMark('i', 'After')]]
++const embedWidgets = [{ id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
++  { id: 'swatch', type: 'color', text: '#123456', value: '#123456' }]
++const embedCaret = offset => ({ focused: true, anchor: offset, focus: offset, collapsed: true })
++const embedSelectionOwner = (text, offset) => ({
++  active: { block: 'probe', node: 'DIV', className: 'oe-embed__caption' },
++  anchor: { block: 'probe', node: '#text', text, offset },
++  focus: { block: 'probe', node: '#text', text, offset },
++})
++function classifyEmbedDifference(source, entry, failure) {
++  if (!embedCaseIds.includes(entry.id) || !['v1', 'spec-baseline'].includes(source)) return null
++  if (failure.status !== (failure.property === 'execution' ? 'ERROR' : 'FAIL')) return null
++  const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
++  const matches = (actual, expected) => same(failure.actual, actual) && same(failure.expected, expected)
++  const phase = name => entry.phases?.find(item => item.phase === name)
++  const empty = entry.id === 'BLOCK_EMBED_ROUNDTRIP/default'
++  const wrapped = entry.id === 'BLOCK_EMBED_ROUNDTRIP/populated'
++  const widgetCase = wrapped || entry.id === 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'
++  const completed = same(entry.completedPhases, empty ? ['load', 'read-only', 'editable-again', 'dispose'] : [...embedPhases, 'dispose'])
++  if (source === 'v1' && completed) {
++    const mode = ['read-only', 'editable-again'].includes(failure.phase)
++    const remountPhase = mode || !empty && ['undo', 'redo'].includes(failure.phase)
++    const size = failure.property === 'blockDomIdentity' ? empty ? 1 : 3
++      : failure.property === 'embedWrapperIdentity' || failure.property === 'embedCaptionIdentity' && !empty && mode ? 1 : 0
++    if (remountPhase && size && matches(Array(size).fill(false), Array(size).fill(true))) {
++      return mode ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
++    }
++    const id = phase('load')?.blocks?.[0]?.id
++    if (empty && failure.phase === 'editable-again' && failure.property === 'foreignFocusPreserved'
++      && typeof id === 'string' && id.length > 0 && matches(false, true)
++      && same(phase('editable-again')?.selectionOwner, {
++        active: { block: id, node: 'INPUT', className: 'oe-embed__url-input' },
++        anchor: { block: id, node: 'DIV', text: '', offset: 1 },
++        focus: { block: id, node: 'DIV', text: '', offset: 1 },
++      })) return 'repaired-v1-empty-embed-mode-focus'
++    if (widgetCase && embedPhases.includes(failure.phase)) {
++      const edited = ['edit', 'redo'].includes(failure.phase)
++      if (failure.property === 'canonicalRecords'
++        && matches(embedRecords({ legacy: true, wrapped, edited, sidecars: false }), embedRecords({ legacy: true, wrapped, edited }))) {
++        return 'unsupported-v1-embed-caption-sidecars'
++      }
++      if (['editorWidgets', 'detachedWidgets', 'attachedDetachedWidgets', 'mountedWidgets'].includes(failure.property)
++        && matches([], embedWidgets)) return 'unsupported-v1-embed-caption-widgets'
++      const owner = embedSelectionOwner(wrapped ? ' tailX' : ' {{mention}} {{swatch}} tailX', wrapped ? 6 : 29)
++      if (failure.phase === 'edit' && failure.property === 'fixtureCaret' && matches(embedCaret(33), embedCaret(14))
++        && same(phase('edit')?.selectionOwner, owner)) return 'unsupported-v1-embed-widget-caret'
++      if (['edit', 'redo'].includes(failure.phase) && failure.property === 'nativeSelection'
++        && matches(embedCaret(34), embedCaret(15)) && same(phase(failure.phase)?.selectionOwner, owner)) {
++        return 'unsupported-v1-embed-widget-caret'
++      }
++    }
++    if (!empty && failure.phase === 'undo' && failure.property === 'nativeSelection'
++      && matches({ focused: false, anchor: null, focus: null, collapsed: true }, embedCaret(widgetCase ? 14 : 18))
++      && same(phase('undo')?.selectionOwner, {
++        active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
++        anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
++        focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
++      })) return 'repaired-v1-first-undo-caret'
++  }
++  if (source === 'spec-baseline' && wrapped && failure.phase === 'read-only-transition' && failure.property === 'execution'
++    && failure.actual === 'Inline widget root left its projection boundary before hydration'
++    && !Object.hasOwn(failure, 'expected')
++    && same(entry.completedPhases, ['load'])
++    && same(entry.incompletePhases, ['read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])) {
++    return 'repaired-baseline-formatted-widget-mode-failure'
++  }
++  if (source === 'spec-baseline' && entry.id === 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'
++    && completed && failure.phase === 'redo'
++    && same(phase('edit')?.blocks, embedRecords({ edited: true, canonical: false }))
++    && same(phase('undo')?.blocks, embedRecords({ canonical: false }))
++    && same(phase('redo')?.blocks, embedRecords({ canonical: false }))
++    && same(phase('redo')?.selectionOwner, embedSelectionOwner(' tail', 5))) {
++    const values = {
++      canonicalRecords: [embedRecords({}), embedRecords({ edited: true })],
++      editorAuthoredMarkup: [embedCaption(false, false), embedCaption(false, true)],
++      embedWrapperIdentity: [[false], [true]],
++      historyState: [{ canUndo: false, canRedo: true }, { canUndo: true, canRedo: false }],
++      blockDomIdentity: [[true, false, true], [true, true, true]],
++      widgetDomIdentity: [[false, false], [true, true]],
++      nativeSelection: [embedCaret(14), embedCaret(15)],
++      detachedAuthoredMarkup: [embedRendered(false), embedRendered(true)],
++      attachedDetachedAuthoredMarkup: [embedRendered(false), embedRendered(true)],
++      mountedAuthoredMarkup: [embedRendered(false), embedRendered(true)],
++      exactEditedRecords: [embedRecords({ canonical: false }), embedRecords({ edited: true, canonical: false })],
++    }
++    const value = Object.hasOwn(values, failure.property) ? values[failure.property] : null
++    if (value && matches(value[0], value[1])) return 'repaired-baseline-embed-redo'
++  }
++  return null
++}
++
++function classifyEmbedPageErrors(source, cases, errors, pageErrors, origin) {
++  const unmatched = { classifiedPageErrors: [], unexpectedErrors: errors, unexpectedPageErrors: pageErrors }
++  // Preserve both raw channels. Only the observed one-to-one error pair can
++  // be attributed; duplicates, orphan reports and every other source fail.
++  if (source !== 'spec-baseline' || errors.length !== 1 || pageErrors.length !== 1) return unmatched
++  const error = pageErrors[0]
++  const stack = `Error: Inline widget root left its projection boundary before hydration
++    at #hydrateField (${origin}/spec-baseline/core/InlineProjectionRuntime.js:788:17)
++    at #projectState (${origin}/spec-baseline/core/InlineProjectionRuntime.js:603:25)
++    at InlineProjectionRuntime.reconcileBlock (${origin}/spec-baseline/core/InlineProjectionRuntime.js:99:27)
++    at Object.apply (${origin}/spec-baseline/core/BlockReconciler.js:466:36)
++    at #replayObserved (${origin}/spec-baseline/core/TransactionEngine.js:331:34)
++    at ${origin}/spec-baseline/core/TransactionEngine.js:298:80
++    at #observeCommand (${origin}/spec-baseline/core/TransactionEngine.js:500:14)
++    at #replay (${origin}/spec-baseline/core/TransactionEngine.js:298:32)
++    at TransactionEngine.redo (${origin}/spec-baseline/core/TransactionEngine.js:273:31)
++    at DocumentRuntime.redo (${origin}/spec-baseline/core/DocumentRuntime.js:768:25)`
++  if (error.source !== source || error.caseId !== 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'
++    || error.phase !== 'redo' || error.name !== 'Error'
++    || error.message !== 'Inline widget root left its projection boundary before hydration'
++    || error.stack !== stack || errors[0] !== stack) return unmatched
++  const entry = cases.find(item => item.id === error.caseId)
++  const properties = ['canonicalRecords', 'editorAuthoredMarkup', 'embedWrapperIdentity', 'historyState',
++    'blockDomIdentity', 'widgetDomIdentity', 'nativeSelection', 'detachedAuthoredMarkup',
++    'attachedDetachedAuthoredMarkup', 'mountedAuthoredMarkup', 'exactEditedRecords']
++  if (!entry || entry.failures.length !== properties.length
++    || JSON.stringify(entry.failures.map(failure => failure.property).sort()) !== JSON.stringify(properties.sort())
++    || !entry.failures.every(failure => classifyEmbedDifference(source, entry, failure) === 'repaired-baseline-embed-redo')) return unmatched
++  for (const [phase, actual, expected] of [
++    ['edit', { canUndo: true, canRedo: false }, { canUndo: true, canRedo: false }],
++    ['undo', { canUndo: false, canRedo: true }, { canUndo: false, canRedo: true }],
++    ['redo', { canUndo: false, canRedo: true }, { canUndo: true, canRedo: false }],
++  ]) {
++    const history = entry.observations?.find(item => item.phase === phase && item.property === 'historyState')
++    if (JSON.stringify(history?.actual) !== JSON.stringify(actual) || JSON.stringify(history?.expected) !== JSON.stringify(expected)) return unmatched
++  }
++  return { classifiedPageErrors: [{ ...error, classification: 'repaired-baseline-embed-redo-pageerror' }],
++    unexpectedErrors: [], unexpectedPageErrors: [] }
++}
++
++// Table has its own exact three-case boundary. Default-grid differences are
++// recognized only for the pinned pre-repair schema, never for the candidate.
++const tableCaseIds = ['BLOCK_TABLE_ROUNDTRIP/default', 'BLOCK_TABLE_ROUNDTRIP/populated',
++  'BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control']
++const tablePhases = ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo']
++function tableDefaultRecord(id, size, edited, canonical = false) {
++  return [{ id, type: 'table', dataVersion: 2, data: { withHeadings: false,
++    rows: Array.from({ length: size }, (_, rowIndex) => ({ id: 'row-' + rowIndex,
++      cells: Array.from({ length: size }, (_, columnIndex) => {
++        const text = edited && rowIndex === 0 && columnIndex === 0 ? 'X' : ''
++        return { id: `cell-${rowIndex}-${columnIndex}`, text: canonical ? text ? [text] : [] : text }
++      }),
++    })),
++  } }]
++}
++function tableDefaultFields(size, edited, readOnly, renderer = false) {
++  return Array.from({ length: size }, (_, rowIndex) => ({ tag: 'TR',
++    cells: Array.from({ length: size }, (_, columnIndex) => ({ tag: 'TD',
++      markup: edited && rowIndex === 0 && columnIndex === 0 ? ['X'] : [],
++      ...(!renderer ? { editable: !readOnly } : {}),
++    })),
++  }))
++}
++function classifyTableDifference(source, entry, failure) {
++  if (!tableCaseIds.includes(entry.id) || !['v1', 'spec-baseline'].includes(source)) return null
++  const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
++  const matches = (actual, expected) => same(failure.actual, actual) && same(failure.expected, expected)
++  const populated = entry.id !== tableCaseIds[0]
++  const phase = name => entry.phases.find(item => item.phase === name)
++  const completed = same(entry.completedPhases, [...tablePhases, 'dispose']) && !entry.incompletePhases?.length
++  if (source === 'v1' && failure.status === 'FAIL' && completed) {
++    const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
++      : failure.property === 'tableDomIdentity' ? populated ? 8 : 14
++        : failure.property === 'widgetDomIdentity' && populated ? 2 : 0
++    if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
++      && matches(Array(size).fill(false), Array(size).fill(true))) {
++      return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-table-mode-remount' : 'repaired-v1-table-history-remount'
++    }
++    if (failure.phase === 'undo' && failure.property === 'nativeSelection') {
++      const id = phase('load')?.blocks[0]?.id
++      if (!populated && typeof id === 'string' && id.length > 0
++        && matches({ focused: true, anchor: null, focus: null, collapsed: true }, { focused: true, anchor: 0, focus: 0, collapsed: true })
++        && same(phase('undo')?.selectionOwner, {
++          active: { block: id, node: 'TD', className: 'oe-table__cell' },
++          anchor: { block: id, node: 'DIV', text: '', offset: 1 },
++          focus: { block: id, node: 'DIV', text: '', offset: 1 },
++        })) return 'repaired-v1-empty-table-caret'
++      if (populated
++        && matches({ focused: false, anchor: null, focus: null, collapsed: true }, { focused: true, anchor: 12, focus: 12, collapsed: true })
++        && same(phase('undo')?.selectionOwner, {
++          active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
++          anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
++          focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
++        })) return 'repaired-v1-table-history-focus'
++    }
++  }
++  if (source !== 'spec-baseline') return null
++  if (entry.id === tableCaseIds[1] && failure.phase === 'read-only-transition'
++    && failure.property === 'execution' && failure.status === 'ERROR'
++    && matches('Inline widget root left its projection boundary before hydration', undefined)
++    && same(entry.completedPhases, ['load'])
++    && same(entry.incompletePhases, ['read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])) {
++    return 'repaired-baseline-table-formatted-widget-mode'
++  }
++  if (populated || !completed || failure.status !== 'FAIL' || !tablePhases.includes(failure.phase)) return null
++  const id = phase('load')?.blocks[0]?.id
++  if (typeof id !== 'string' || !id.length || !tablePhases.every(name =>
++    same(phase(name)?.blocks, tableDefaultRecord(id, 1, ['edit', 'redo'].includes(name))))) return null
++  const edited = ['edit', 'redo'].includes(failure.phase)
++  const readOnly = failure.phase === 'read-only'
++  const ids = size => Array.from({ length: size }, (_, rowIndex) => ({ id: 'row-' + rowIndex,
++    cells: Array.from({ length: size }, (_, columnIndex) => ({ rowId: 'row-' + rowIndex, id: `cell-${rowIndex}-${columnIndex}` })),
++  }))
++  const rendered = size => [{ children: ['TABLE'], sections: [{ tag: 'TBODY', rows: tableDefaultFields(size, edited, readOnly, true) }] }]
++  const pairs = {
++    canonicalRecords: [tableDefaultRecord(id, 1, edited, true), tableDefaultRecord(id, 3, edited, true)],
++    tableFields: [tableDefaultFields(1, edited, readOnly), tableDefaultFields(3, edited, readOnly)],
++    tableDomIds: [ids(1), ids(3)],
++    detachedAuthoredMarkup: [rendered(1), rendered(3)],
++    attachedDetachedAuthoredMarkup: [rendered(1), rendered(3)],
++    mountedAuthoredMarkup: [rendered(1), rendered(3)],
++  }
++  if (Object.hasOwn(pairs, failure.property) && matches(...pairs[failure.property])) return 'repaired-baseline-table-default-grid'
++  return null
++}
++
+ const repo = fileURLToPath(new URL('../../', import.meta.url))
+ const digest = bytes => createHash('sha256').update(bytes).digest('hex')
+ const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
+@@ -105,13 +349,21 @@ try {
+       else throw new Error('Unknown native input action: ' + action)
+     })
+     await page.goto(origin + '/')
+-    const cases = await page.evaluate(async ({ source, filter }) => {
++    const { cases, pageErrors } = await page.evaluate(async ({ source, filter }) => {
+       const { blockRoundtripCases, runBlockRoundtripCase } = await import('/fixture.js')
+-      const results = []
++      const results = [], pageErrors = []
++      let activeCase = null, activePhase = null
++      const onError = event => pageErrors.push({ source: source.label, caseId: activeCase, phase: activePhase,
++        name: event.error?.name ?? null, message: event.error?.message ?? event.message,
++        stack: event.error?.stack ?? null })
++      window.addEventListener('error', onError)
+       for (const specification of blockRoundtripCases.filter(entry => !filter || entry.id.includes(filter))) {
++        activeCase = specification.id
++        activePhase = 'import'
+         try {
+           results.push(await runBlockRoundtripCase(specification, {
+             sourceBase: '/' + source.label + '/', legacy: source.legacy,
++            onPhase: phase => { activePhase = phase },
+             focusField: field => {
+               const rect = field.getBoundingClientRect()
+               return window.__roundtripInput('click', { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+@@ -123,7 +375,8 @@ try {
+           results.push({ id: specification.id, error: error.stack ?? String(error), failures: [{ property: 'execution', status: 'ERROR', actual: String(error) }] })
+         }
+       }
+-      return results
++      window.removeEventListener('error', onError)
++      return { cases: results, pageErrors }
+     }, { source, filter: requestedFilter })
+     assert(cases.length > 0, 'The roundtrip filter selected no cases')
+     for (const entry of cases) {
+@@ -144,6 +397,8 @@ try {
+         'BLOCK_RAW_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/populated']
+       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
+       const classify = failure => {
++        if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
++        if (tableCaseIds.includes(entry.id)) return classifyTableDifference(source.label, entry, failure)
+         if (!observedIds.includes(entry.id)) return null
+         if (source.label === 'v1') {
+           const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/default'].includes(entry.id)
+@@ -315,21 +570,30 @@ try {
+         return classification ? [{ ...failure, classification }] : []
+       })
+       entry.unexpectedFailures = entry.failures.filter(failure => !classify(failure))
++      if (source.label === 'v1' && ['BLOCK_EMBED_ROUNDTRIP/populated', 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)) {
++        entry.referenceCapability = { supported: false, feature: 'Persistent Embed caption widgets',
++          reason: 'Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity.' }
++      }
+     }
+-    results.push({ source: source.label, cases, errors })
++    results.push({ source: source.label, cases, errors, pageErrors })
+     await page.close()
+   }
+   for (const { bytes, path } of loaded.values()) assert.deepEqual(await readFile(path), bytes, 'Source changed during probe: ' + path)
+   assert.deepEqual(await readFile(fixturePath), fixtureBytes, 'The browser fixture changed during its probe')
+   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
+-  const failed = results.some(result => result.errors.length || result.cases.some(entry => entry.unexpectedFailures.length))
++  // All source pages are closed before pairing the two independent raw error
++  // channels, so a later Playwright report cannot bypass this decision.
++  for (const result of results) Object.assign(result, classifyEmbedPageErrors(result.source, result.cases, result.errors, result.pageErrors, origin))
++  const failed = results.some(result => result.unexpectedErrors.length || result.unexpectedPageErrors.length || result.cases.some(entry => entry.unexpectedFailures.length))
+   console.log(JSON.stringify({
+-    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
++    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
+     requestedFilter, selectedCaseIds: results[0]?.cases.map(entry => entry.id) ?? [],
+     incompleteCases: results.flatMap(source => source.cases.filter(entry => entry.incompletePhases?.length)
+       .map(entry => ({ source: source.source, id: entry.id, completed: entry.completedPhases, incomplete: entry.incompletePhases }))),
+     notApplicableCases: results.flatMap(source => source.cases.filter(entry => entry.notApplicablePhases?.length)
+       .map(entry => ({ source: source.source, id: entry.id, phases: entry.notApplicablePhases, reason: entry.reason }))),
++    unsupportedReferenceCases: results.flatMap(source => source.cases.filter(entry => entry.referenceCapability?.supported === false)
++      .map(entry => ({ source: source.source, id: entry.id, ...entry.referenceCapability }))),
+     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
+     sourceSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
+     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,
+diff --git a/tests/browser/block-roundtrip-fixture.js b/tests/browser/block-roundtrip-fixture.js
+index 16d5a60c..ef703784 100644
+--- a/tests/browser/block-roundtrip-fixture.js
++++ b/tests/browser/block-roundtrip-fixture.js
+@@ -75,6 +75,23 @@ const columns = {
+   ] },
+ }
+ 
++const table = {
++  type: 'table', version: 2, className: 'Table', fieldSelector: '.oe-table__cell',
++  defaultData: { withHeadings: false, rows: [
++    { id: 'row-0', cells: [{ id: 'cell-0-0', text: '' }, { id: 'cell-0-1', text: '' }, { id: 'cell-0-2', text: '' }] },
++    { id: 'row-1', cells: [{ id: 'cell-1-0', text: '' }, { id: 'cell-1-1', text: '' }, { id: 'cell-1-2', text: '' }] },
++    { id: 'row-2', cells: [{ id: 'cell-2-0', text: '' }, { id: 'cell-2-1', text: '' }, { id: 'cell-2-2', text: '' }] },
++  ] },
++  populatedData: { withHeadings: true, rows: [
++    { id: 'first', cells: [{ id: 'name', text: '<b>Alpha</b> <i>{{mention}}</i> tail' }, { id: 'value', text: '<mark>Second header</mark>' }] },
++    { id: 'second', cells: [{ id: 'name', text: '<i>Body &amp; more</i>' }, { id: 'value', text: '<mark>Value</mark> <s>{{swatch}}</s>' }] },
++  ] },
++  unwrappedData: { withHeadings: true, rows: [
++    { id: 'first', cells: [{ id: 'name', text: '<b>Alpha</b> {{mention}} tail' }, { id: 'value', text: '<mark>Second header</mark>' }] },
++    { id: 'second', cells: [{ id: 'name', text: '<i>Body &amp; more</i>' }, { id: 'value', text: '<mark>Value</mark> {{swatch}}' }] },
++  ] },
++}
++
+ const attaches = {
+   type: 'attaches', version: 2, className: 'Attaches', fieldMode: 'plain-text', plainContenteditable: true,
+   fieldSelector: '.oe-attaches__name', fieldTag: 'DIV',
+@@ -112,6 +129,15 @@ const image = {
+   },
+ }
+ 
++const embed = {
++  type: 'embed', version: 1, className: 'Embed', textKey: 'caption',
++  fieldSelector: '.oe-embed__caption', fieldTag: 'DIV',
++  defaultData: { service: '', videoId: '', caption: '', cover: '', title: '', duration: '' },
++  populatedData: { service: 'vimeo', videoId: '12345678',
++    caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail',
++    cover: pixel, title: 'Local preview', duration: '1:23' },
++}
++
+ const delimiter = {
+   type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
+   defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
+@@ -120,11 +146,14 @@ const delimiter = {
+ const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
+   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
+   : block.type === 'columns' ? { ...data, columns: data.columns.map((column, index) => index ? { ...column } : { ...column, content: text }) }
++  : block.type === 'table' ? { ...data, rows: data.rows.map((row, rowIndex) => ({ ...row,
++    cells: row.cells.map((cell, columnIndex) => rowIndex || columnIndex ? { ...cell } : { ...cell, text }),
++  })) }
+   : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
+   : { ...data, [block.textKey ?? 'text']: text }
+ const listItemText = item => typeof item === 'string' ? item : item.text
+ 
+-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw].flatMap(block => {
++export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table].flatMap(block => {
+   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
+   if (block.noEditableField) return [
+     { ...block, populated: false, id: prefix + 'default' },
+@@ -137,6 +166,8 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
+     populatedData: block.unwrappedData ?? withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
+   }]).concat(block.type === 'toggle' ? [{ ...block, populated: true, id: prefix + 'populated-closed',
+     populatedData: { ...block.populatedData, open: false },
++  }] : []).concat(block.type === 'embed' ? [{ ...block, populated: true, literalCaption: true, id: prefix + 'populated-literal',
++    populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>caption</i> tail' },
+   }] : [])
+ })
+ 
+@@ -217,15 +248,19 @@ async function settled() {
+     await pause(20)
+   }
+   await document.fonts?.ready
+-  await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})))
++  // Perpetual decorative animations have no finished state. Preserve waiting
++  // for finite transitions and animations before observing the settled DOM.
++  const animations = document.getAnimations().filter(animation => animation.effect?.getComputedTiming().endTime !== Infinity)
++  await Promise.all(animations.map(animation => animation.finished.catch(() => {})))
+   await pause(20)
+ }
+ 
+-export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut }) {
++export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut, onPhase }) {
+   const noEditableField = specification.noEditableField === true
+   const emptyImage = specification.type === 'image' && !specification.populated
+   const emptyAttaches = specification.type === 'attaches' && !specification.populated
+-  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches
++  const emptyEmbed = specification.type === 'embed' && !specification.populated
++  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
+   const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption
+   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
+   const phaseScope = noEditableField ? {
+@@ -236,6 +271,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     reason: 'Image without a source has no declared editable caption; authoring/history are covered by the populated image case.',
+   } : emptyAttaches ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+     reason: 'Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case.',
++  } : emptyEmbed ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
++    reason: 'Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history.',
+   } : {}
+   const base = new URL(sourceBase, import.meta.url)
+   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
+@@ -255,6 +292,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) }
+       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
+         : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
++          : legacy && block.type === 'table' ? { withHeadings: data.withHeadings, content: data.rows.map(row => row.cells.map(cell => cell.text)) }
+           : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
+     ...(sidecars ? { inline: sidecars } : {}) })
+   const input = specification.populated ? {
+@@ -275,8 +313,22 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+   const check = (phase, property, actual, expected) => observations.push({ phase, property,
+     status: JSON.stringify(stable(actual)) === JSON.stringify(stable(expected)) ? 'PASS' : 'FAIL', actual, expected })
+   let editor, renderer, destroyed = false, providerCalls = 0, currentPhase = 'create'
++  const setPhase = phase => { currentPhase = phase; onPhase?.(phase) }
++  const decodeEmbedCover = async cover => {
++    let timer
++    try {
++      await Promise.race([cover.decode(), new Promise((_, reject) => {
++        timer = setTimeout(() => reject(new Error('Embed local cover did not decode: ' + JSON.stringify({
++          phase: currentPhase, complete: cover.complete, connected: cover.isConnected,
++          loading: cover.loading, top: Math.round(cover.getBoundingClientRect().top),
++        }))), 3000)
++      })])
++    } finally { clearTimeout(timer) }
++  }
+   try {
+-    const definition = legacy ? new module[specification.className]() : module[`create${specification.className}Plugin`]()
++    setPhase('create')
++    const pluginConfig = specification.type === 'embed' ? { resolvePreview: false } : undefined
++    const definition = legacy ? new module[specification.className](pluginConfig) : module[`create${specification.className}Plugin`](pluginConfig)
+     const definitions = specification.type === 'paragraph' ? [definition]
+       : [legacy ? new paragraphModule.Paragraph() : paragraphModule.createParagraphPlugin(), definition]
+     editor = createEditor({ holder, plugins: definitions, defaultBlock: specification.type,
+@@ -302,6 +354,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       return specification.populated ? [wrapper, wrapper.querySelector('.oe-image__image'), wrapper.querySelector('.oe-image__caption')] : [wrapper]
+     }
+     let previousImageParts = specification.type === 'image' ? imageParts() : []
++    const embedParts = () => {
++      const wrapper = shell(id).querySelector('.oe-embed')
++      return specification.populated ? [wrapper, wrapper.querySelector('.oe-embed__caption')] : [wrapper]
++    }
++    let previousEmbedParts = specification.type === 'embed' ? embedParts() : []
++    let previousEmbedText
+     const plainContenteditable = specification.plainContenteditable === true
+     const plainField = specification.fieldMode === 'plain-text' && !plainContenteditable
+     let previousPlainFields = plainField ? [field()] : []
+@@ -321,12 +379,16 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     let previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
+     const columnFields = () => [...shell(id).querySelector('.oe-columns__grid').children]
+     let previousColumnFields = specification.type === 'columns' ? columnFields() : []
++    const tableRows = () => [...shell(id).querySelector('.oe-table').rows]
++    const tableParts = () => [shell(id).querySelector('.oe-table-wrapper'), shell(id).querySelector('.oe-table'),
++      ...tableRows(), ...tableRows().flatMap(row => [...row.cells])]
++    let previousTableParts = specification.type === 'table' ? tableParts() : []
+     const attachmentFields = () => [...shell(id).querySelectorAll('.oe-attaches__name')]
+     let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
+     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
+     const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
+     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
+-    const baseText = noEditableField ? specification.neighborText : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
++    const baseText = noEditableField ? specification.neighborText : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+     const expectedBlocks = text => {
+       if (noEditableField) return specification.populated
+         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
+@@ -336,17 +398,20 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
+         : [record(id, data, undefined, specification)]
+     }
+-    const expectedTag = block => ['spoiler', 'columns', 'attaches'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
++    const expectedTag = block => ['spoiler', 'columns', 'attaches', 'table'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
+     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
+         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
+-      : block.type === 'image' ? { ...block.data, caption: markupMeaning(block.data.caption) }
++      : ['image', 'embed'].includes(block.type) ? { ...block.data, caption: markupMeaning(block.data.caption) }
+       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
+       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
+       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
+       : block.type === 'spoiler' ? { ...block.data, label: markupMeaning(block.data.label), content: markupMeaning(block.data.content) }
+       : block.type === 'columns' ? { ...block.data, columns: block.data.columns.map(column => ({ ...column, content: markupMeaning(column.content) })) }
++      : block.type === 'table' ? legacy
++        ? { ...block.data, content: block.data.content.map(row => row.map(markupMeaning)) }
++        : { ...block.data, rows: block.data.rows.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell, text: markupMeaning(cell.text) })) })) }
+       : { ...block.data, text: markupMeaning(block.data.text) } }))
+     const imageStyles = picture => Object.fromEntries(['width', 'height', 'objectFit', 'objectPosition', 'borderStyle', 'borderWidth', 'borderColor', 'borderRadius'].map(key => [key, picture.style[key]]))
+     const expectedImageStyles = populated => populated
+@@ -374,6 +439,25 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       styles: expectedImageStyles(Boolean(block.data.file.url)), background: block.data.withBackground ? 'rgb(255, 238, 204)' : '',
+       flags: [block.data.withBorder, block.data.expanded, block.data.withBackground],
+     })
++    const embedPreviewMeaning = (root, prefix) => ({
++      preview: root.querySelector('.' + prefix + '-embed__preview')?.getAttribute('src') ?? null,
++      previewAlt: root.querySelector('.' + prefix + '-embed__preview')?.getAttribute('alt') ?? null,
++      title: root.querySelector('.' + prefix + '-embed__title')?.textContent ?? null,
++      duration: root.querySelector('.' + prefix + '-embed__duration')?.textContent ?? null,
++      frames: root.querySelectorAll('iframe').length,
++    })
++    const expectedEmbedPreview = data => ({ preview: data.cover || null, previewAlt: data.cover ? data.title : null,
++      title: data.title || null, duration: data.duration || null, frames: 0 })
++    const embedRendererMarkup = figure => ({
++      children: [...figure.children].map(child => child.tagName),
++      caption: figure.querySelector('.editor-embed__caption') ? authoredMarkup(figure.querySelector('.editor-embed__caption')) : null,
++      ...embedPreviewMeaning(figure, 'editor'),
++    })
++    const expectedEmbedRendererMarkup = block => ({
++      children: block.data.videoId ? ['DIV', ...(block.data.caption ? ['FIGCAPTION'] : [])] : [],
++      caption: block.data.videoId && block.data.caption ? markupMeaning(block.data.caption) : null,
++      ...expectedEmbedPreview(block.data),
++    })
+     const spoilerRendererMarkup = element => {
+       const header = element.querySelector('.editor-spoiler__header')
+       const control = element.querySelector('.editor-spoiler__toggle')
+@@ -398,14 +482,20 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+         }
+       }),
+     })
+-    const rendererMarkup = element => element.dataset.blockType === 'attaches' ? attachmentRendererMarkup(element) : element.dataset.blockType === 'columns'
++    const rendererMarkup = element => element.dataset.blockType === 'table' ? {
++      children: [...element.children].map(child => child.tagName),
++      sections: [...element.querySelector('table').children].map(section => ({ tag: section.tagName,
++        rows: [...section.children].map(row => ({ tag: row.tagName, cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell) })) })),
++      })),
++    } : element.dataset.blockType === 'attaches' ? attachmentRendererMarkup(element) : element.dataset.blockType === 'columns'
+       ? { display: element.style.display, grid: element.style.gridTemplateColumns, gap: element.style.gap,
+         columns: [...element.children].map(column => ({ tag: column.tagName, markup: authoredMarkup(column) })),
+       } : element.dataset.blockType === 'spoiler' ? spoilerRendererMarkup(element) : element.dataset.blockType === 'toggle'
+       ? { open: element.open, summaryTag: element.querySelector('.editor-toggle__summary').tagName,
+         titleTag: element.querySelector('.editor-toggle__title').tagName, title: authoredMarkup(element.querySelector('.editor-toggle__title')),
+         body: element.querySelector('.editor-toggle__body') ? { tag: element.querySelector('.editor-toggle__body').tagName, markup: authoredMarkup(element.querySelector('.editor-toggle__body')) } : null,
+-      } : element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
++      } : element.dataset.blockType === 'embed' ? embedRendererMarkup(element)
++      : element.dataset.blockType === 'image' ? imageRendererMarkup(element) : element.dataset.blockType === 'delimiter'
+       ? { childCount: element.childNodes.length, text: element.textContent }
+       : element.dataset.blockType === 'code'
+       ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
+@@ -424,7 +514,15 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       : element.dataset.blockType === 'warning'
+         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
+       : authoredMarkup(element)
+-    const expectedRendererMarkup = block => block.type === 'attaches'
++    const expectedTableRendererMarkup = block => {
++      const rows = legacy ? block.data.content : block.data.rows.map(row => row.cells.map(cell => cell.text))
++      const renderedRows = (sourceRows, tag) => sourceRows.map(cells => ({ tag: 'TR', cells: cells.map(text => ({ tag, markup: markupMeaning(text) })) }))
++      return { children: ['TABLE'], sections: [
++        ...(block.data.withHeadings ? [{ tag: 'THEAD', rows: renderedRows(rows.slice(0, 1), 'TH') }] : []),
++        ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
++      ] }
++    }
++    const expectedRendererMarkup = block => block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
+       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
+         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
+         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
+@@ -439,7 +537,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       } : block.type === 'toggle'
+       ? { open: block.data.open, summaryTag: 'SUMMARY', titleTag: 'SPAN', title: markupMeaning(block.data.title),
+         body: block.data.content ? { tag: 'DIV', markup: markupMeaning(block.data.content) } : null,
+-      } : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
++      } : block.type === 'embed' ? expectedEmbedRendererMarkup(block)
++      : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
+       ? { childCount: 0, text: '' }
+       : block.type === 'raw' ? markupMeaning(block.data.html)
+       : block.type === 'code'
+@@ -493,6 +592,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+         const computed = getComputedStyle(picture)
+         check(phase, 'mountedImageComputedPosition', { fit: computed.objectFit, position: computed.objectPosition }, { fit: 'contain', position: '50% 50%' })
+       }
++      if (specification.type === 'embed' && specification.populated) {
++        const cover = mounted.querySelector('.editor-embed__preview')
++        cover.scrollIntoView({ block: 'nearest' })
++        await decodeEmbedCover(cover)
++        check(phase, 'mountedEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
++      }
+       check(phase, 'rendererInputUnchanged', JSON.stringify(saved), sourceBefore)
+       renderer.destroy(detached)
+       check(phase, 'detachedDisposal', detached.childNodes.length, 0)
+@@ -501,14 +606,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+ 
+     const snapshots = {}
+     async function inspect(phase, text, readOnly, history, selectionOffset) {
+-      currentPhase = phase
++      setPhase(phase)
+       const saved = editor.save()
+       snapshots[phase] = saved.blocks
+       const expected = expectedBlocks(text)
+       const target = expected.find(block => block.id === id)
+       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
+       if (hasAuthoring) {
+-        check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
++        check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.type === 'table' ? baseData.withHeadings ? 'TH' : 'TD' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
+         if (plainField) {
+           check(phase, 'editorAuthoredSource', field().value, text)
+           check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
+@@ -557,6 +662,49 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+           check(phase, 'emptyImageHasNoVisibleMedia', [...wrapper.querySelectorAll('img')].filter(picture => picture.getClientRects().length).length, 0)
+         }
+       }
++      if (specification.type === 'embed') {
++        const parts = embedParts(), wrapper = parts[0]
++        check(phase, 'embedWrapperIdentity', [wrapper === previousEmbedParts[0]], [true])
++        if (specification.populated) {
++          const previousCaption = previousEmbedParts[1], currentCaption = parts[1]
++          if (['undo', 'redo'].includes(phase) && text !== previousEmbedText) {
++            // Existing Embed update semantics may replace a genuinely changed
++            // caption host. The replacement must retire the old field without
++            // changing current content, history, widgets or native selection.
++            check(phase, 'embedCaptionLifetime', {
++              currentConnected: currentCaption.isConnected,
++              predecessorCurrentOrDetached: previousCaption === currentCaption || !previousCaption.isConnected,
++            }, { currentConnected: true, predecessorCurrentOrDetached: true })
++            if (previousCaption !== currentCaption) {
++              const beforeHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
++              const selection = getSelection()
++              const beforeSelection = { active: document.activeElement,
++                anchor: selection.anchorNode, anchorOffset: selection.anchorOffset,
++                focus: selection.focusNode, focusOffset: selection.focusOffset }
++              previousCaption.textContent = 'stale retired caption'
++              previousCaption.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
++              previousCaption.dispatchEvent(new FocusEvent('blur'))
++              await settled()
++              check(phase, 'embedRetiredCaptionLeavesCanonical', editor.save().blocks, saved.blocks)
++              check(phase, 'embedRetiredCaptionLeavesHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, beforeHistory)
++              check(phase, 'embedRetiredCaptionLeavesField', field() === currentCaption, true)
++              check(phase, 'embedRetiredCaptionLeavesSelection', {
++                active: document.activeElement === beforeSelection.active,
++                anchor: selection.anchorNode === beforeSelection.anchor, anchorOffset: selection.anchorOffset,
++                focus: selection.focusNode === beforeSelection.focus, focusOffset: selection.focusOffset,
++              }, { active: true, anchor: true, anchorOffset: beforeSelection.anchorOffset,
++                focus: true, focusOffset: beforeSelection.focusOffset })
++            }
++          } else check(phase, 'embedCaptionIdentity', [currentCaption === previousCaption], [true])
++        }
++        check(phase, 'editorEmbedPreview', embedPreviewMeaning(wrapper, 'oe'), expectedEmbedPreview(baseData))
++        check(phase, 'editorEmbedCaptionCount', wrapper.querySelectorAll('.oe-embed__caption').length, specification.populated ? 1 : 0)
++        if (specification.populated) {
++          const cover = wrapper.querySelector('.oe-embed__preview')
++          await decodeEmbedCover(cover)
++          check(phase, 'editorEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
++        } else check(phase, 'emptyEmbedHasNoRichAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
++      }
+       if (specification.type === 'list') {
+         const items = [...shell(id).querySelectorAll('.oe-list__item')]
+         check(phase, 'editorListTag', shell(id).querySelector('.oe-list').tagName, expectedTag(target))
+@@ -643,6 +791,21 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+             .map(([layout, label]) => ({ label: 'Layout ' + label, pressed: String(baseData.layout === layout) })),
+         })
+       }
++      if (specification.type === 'table') {
++        const expectedRows = withEditedText(specification, baseData, text).rows
++        const rows = tableRows()
++        const parts = tableParts()
++        check(phase, 'tableFields', rows.map(row => ({ tag: row.tagName,
++          cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell), editable: cell.isContentEditable })),
++        })), expectedRows.map((row, rowIndex) => ({ tag: 'TR', cells: row.cells.map(cell => ({
++          tag: baseData.withHeadings && rowIndex === 0 ? 'TH' : 'TD', markup: markupMeaning(cell.text), editable: !readOnly,
++        })) })))
++        check(phase, 'tableDomIdentity', previousTableParts.map((element, index) => element === parts[index]), previousTableParts.map(() => true))
++        check(phase, 'tableHeadings', shell(id).querySelector('.oe-table-wrapper').dataset.headings, String(baseData.withHeadings))
++        if (!legacy) check(phase, 'tableDomIds', rows.map(row => ({ id: row.dataset.rowId,
++          cells: [...row.cells].map(cell => ({ rowId: cell.dataset.rowId, id: cell.dataset.cellId })),
++        })), expectedRows.map(row => ({ id: row.id, cells: row.cells.map(cell => ({ rowId: row.id, id: cell.id })) })))
++      }
+       if (specification.type === 'attaches') {
+         const wrapper = shell(id).querySelector('.oe-attaches')
+         const fields = attachmentFields()
+@@ -697,16 +860,19 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
+       previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
+       previousColumnFields = specification.type === 'columns' ? columnFields() : []
++      previousTableParts = specification.type === 'table' ? tableParts() : []
+       previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
+       previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
+       previousPlainFields = plainField ? [field()] : []
+       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
+       previousImageParts = specification.type === 'image' ? imageParts() : []
++      previousEmbedParts = specification.type === 'embed' ? embedParts() : []
++      previousEmbedText = specification.type === 'embed' ? text : undefined
+     }
+ 
+     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
+     outside.focus()
+-    currentPhase = 'read-only-transition'
++    setPhase('read-only-transition')
+     editor.setReadOnly(true)
+     await settled()
+     check('read-only', 'foreignFocusPreserved', document.activeElement === outside, true)
+@@ -715,13 +881,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       check('read-only', 'attachmentReadonlyFocusOwner', document.activeElement === outside, true)
+     }
+     await inspect('read-only', baseText, true, { canUndo: false, canRedo: false })
+-    currentPhase = 'editable-transition'
++    setPhase('editable-transition')
+     editor.setReadOnly(false)
+     await settled()
+     check('editable-again', 'foreignFocusPreserved', document.activeElement === outside, true)
+     await inspect('editable-again', baseText, false, { canUndo: false, canRedo: false })
+     if (hasAuthoring) {
+-      currentPhase = 'edit'
++      setPhase('edit')
+       if (specification.type === 'attaches' && !legacy) {
+         for (const [index, file] of baseData.files.entries()) {
+           check('edit', 'attachmentAddress:' + file.id, {
+@@ -784,12 +950,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       await settled()
+       await inspect('edit', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+       check('edit', 'trustedInput', trusted.some(event => event.type === 'input' && event.inputType === 'insertText' && event.trusted), true)
+-      currentPhase = 'undo'
++      setPhase('undo')
+       await shortcut('undo')
+       await settled()
+       await inspect('undo', baseText, false, { canUndo: false, canRedo: true }, offset)
+       check('undo', 'exactOriginalRecords', snapshots.undo, snapshots.load)
+-      currentPhase = 'redo'
++      setPhase('redo')
+       await shortcut('redo')
+       await settled()
+       await inspect('redo', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+@@ -797,7 +963,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       check('redo', 'trustedHistory', trusted.filter(event => event.type === 'keydown' && event.key.toLowerCase() === 'z').map(event => event.trusted), [true, true])
+       check('redo', 'providerNotInvokedByRoundtrip', providerCalls, 0)
+     } else check('editable-again', 'providerNotInvokedByRoundtrip', providerCalls, 0)
+-    currentPhase = 'dispose'
++    setPhase('dispose')
+     renderer.destroy(mounted)
+     check('dispose', 'mountedOutputRemoved', mounted.childNodes.length, 0)
+     renderer.destroy()
+diff --git a/tests/browser/native-input-helpers.js b/tests/browser/native-input-helpers.js
+index 6f280cda..2448a462 100644
+--- a/tests/browser/native-input-helpers.js
++++ b/tests/browser/native-input-helpers.js
+@@ -102,6 +102,63 @@ export async function selectAcross(editor, start, startOffset, end, endOffset, b
+   return anchor
+ }
+ 
++function nativeDragDiagnostics(editor, start, startOffset, end, endOffset, backwards, from, to) {
++  const ownerDocument = start.ownerDocument, view = ownerDocument.defaultView
++  const read = callback => { try { return callback() } catch (error) { return { error: String(error) } } }
++  const node = value => value ? {
++    name: value.nodeName, type: value.nodeType, text: value.textContent?.slice(0, 240),
++    className: value.nodeType === 1 ? value.className : value.parentElement?.className,
++    blockId: (value.nodeType === 1 ? value : value.parentElement)?.closest?.('[data-block-id]')?.dataset.blockId,
++    editable: value.nodeType === 1 ? value.getAttribute('contenteditable') : null,
++    widget: value.nodeType === 1 ? value.getAttribute('data-inline-plugin') : null,
++  } : null
++  const endpoint = (value, offset) => ({ node: node(value), offset,
++    startLogicalOffset: value && start.contains(value) ? getTextOffset(start, value, offset) : null,
++    endLogicalOffset: value && end.contains(value) ? getTextOffset(end, value, offset) : null,
++  })
++  const field = (element, offset) => {
++    const caret = findNodeAtOffset(element, offset, 'start'), range = ownerDocument.createRange()
++    range.setStart(caret.node, caret.offset); range.collapse(true)
++    const style = view.getComputedStyle(element)
++    return { node: node(element), html: element.innerHTML.slice(0, 1800), connected: element.isConnected,
++      rect: element.getBoundingClientRect().toJSON(), rects: [...element.getClientRects()].map(rect => rect.toJSON()),
++      expectedBoundary: endpoint(caret.node, caret.offset), collapsedRect: range.getBoundingClientRect().toJSON(),
++      collapsedRects: [...range.getClientRects()].map(rect => rect.toJSON()),
++      widgets: [...element.querySelectorAll('[data-inline-plugin]')].map(widget => ({ node: node(widget), rect: widget.getBoundingClientRect().toJSON() })),
++      font: { font: style.font, family: style.fontFamily, size: style.fontSize, lineHeight: style.lineHeight,
++        letterSpacing: style.letterSpacing, direction: style.direction, whiteSpace: style.whiteSpace,
++        transform: style.transform, zoom: style.zoom },
++    }
++  }
++  const hit = point => ({
++    element: read(() => node(ownerDocument.elementFromPoint(point.clientX, point.clientY))),
++    elements: read(() => ownerDocument.elementsFromPoint(point.clientX, point.clientY).slice(0, 8).map(node)),
++    caretPosition: read(() => {
++      const caret = ownerDocument.caretPositionFromPoint?.(point.clientX, point.clientY)
++      return caret ? endpoint(caret.offsetNode, caret.offset) : null
++    }),
++    caretRange: read(() => {
++      const range = ownerDocument.caretRangeFromPoint?.(point.clientX, point.clientY)
++      return range ? endpoint(range.startContainer, range.startOffset) : null
++    }),
++  })
++  const selection = view.getSelection()
++  return {
++    phase: 'after-original-drag-assertion-failure', backwards, fixedGesturePoints: { from, to },
++    expected: { startOffset, endOffset },
++    selection: { anchor: endpoint(selection.anchorNode, selection.anchorOffset), focus: endpoint(selection.focusNode, selection.focusOffset),
++      collapsed: selection.isCollapsed, ranges: selection.rangeCount, text: selection.toString(), active: node(ownerDocument.activeElement) },
++    start: read(() => field(start, startOffset)), end: read(() => field(end, endOffset)),
++    hitFrom: hit(from), hitTo: hit(to), selectedIds: read(() => editor.blocks.selectedIds()),
++    editorRoot: read(() => node(editorRoot(editor))),
++    viewport: { width: view.innerWidth, height: view.innerHeight, devicePixelRatio: view.devicePixelRatio,
++      scrollX: view.scrollX, scrollY: view.scrollY, visual: view.visualViewport ? {
++        width: view.visualViewport.width, height: view.visualViewport.height, scale: view.visualViewport.scale,
++        offsetLeft: view.visualViewport.offsetLeft, offsetTop: view.visualViewport.offsetTop,
++      } : null, fonts: ownerDocument.fonts?.status, userAgent: view.navigator.userAgent },
++  }
++}
++
+ export async function dragAcross(editor, start, startOffset, end, endOffset, backwards = false) {
+   await waitForStyles(start.ownerDocument)
+   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+@@ -112,15 +169,22 @@ export async function dragAcross(editor, start, startOffset, end, endOffset, bac
+     to: { x: to.clientX, y: to.clientY },
+   })
+   await pause(30)
+-  const ids = editor.save().blocks.map(block => block.id)
+-  const startIndex = ids.indexOf(start.closest('[data-block-id]').dataset.blockId)
+-  const endIndex = ids.indexOf(end.closest('[data-block-id]').dataset.blockId)
+-  equal(editor.blocks.selectedIds().length, Math.abs(endIndex - startIndex) + 1,
+-    `native mouse drag lost selected block ids: ${JSON.stringify({ ids, selected: editor.blocks.selectedIds(), from, to })}`)
+-  assert(editorRoot(editor).classList.contains('oe-editor--cross-selecting'), 'native drag did not retain its cross-field range')
+-  const native = window.getSelection()
+-  equal(getTextOffset(backwards ? end : start, native.anchorNode, native.anchorOffset), backwards ? endOffset : startOffset, 'native drag changed the anchor')
+-  equal(getTextOffset(backwards ? start : end, native.focusNode, native.focusOffset), backwards ? startOffset : endOffset, 'native drag changed the focus')
++  try {
++    const ids = editor.save().blocks.map(block => block.id)
++    const startIndex = ids.indexOf(start.closest('[data-block-id]').dataset.blockId)
++    const endIndex = ids.indexOf(end.closest('[data-block-id]').dataset.blockId)
++    equal(editor.blocks.selectedIds().length, Math.abs(endIndex - startIndex) + 1,
++      `native mouse drag lost selected block ids: ${JSON.stringify({ ids, selected: editor.blocks.selectedIds(), from, to })}`)
++    assert(editorRoot(editor).classList.contains('oe-editor--cross-selecting'), 'native drag did not retain its cross-field range')
++    const native = window.getSelection()
++    equal(getTextOffset(backwards ? end : start, native.anchorNode, native.anchorOffset), backwards ? endOffset : startOffset, 'native drag changed the anchor')
++    equal(getTextOffset(backwards ? start : end, native.focusNode, native.focusOffset), backwards ? startOffset : endOffset, 'native drag changed the focus')
++  } catch (error) {
++    let diagnostics
++    try { diagnostics = nativeDragDiagnostics(editor, start, startOffset, end, endOffset, backwards, from, to) }
++    catch (diagnosticError) { diagnostics = { fixedGesturePoints: { from, to }, error: String(diagnosticError) } }
++    throw new Error(`${error?.stack ?? String(error)}\nNative drag diagnostics: ${JSON.stringify(diagnostics)}`, { cause: error })
++  }
+ }
+ 
+ export async function waitForStyles(ownerDocument) {

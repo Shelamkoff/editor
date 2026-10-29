@@ -1,0 +1,488 @@
+{
+  "schemaVersion": 1,
+  "scope": "BLOCK_TABLE_ROUNDTRIP: actual default 3x3, fixed populated rich 2x2 with headings, unwrapped control; all seven phases, native first-cell edit and one Undo/Redo. Other Table behavior obligations remain open.",
+  "frozenSource": {
+    "head": "45de0c4da813b5ddf044b4c0f130265ba49a446e",
+    "tree": "e090d20a7d2eabee62716d26db6865ee0101701b",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "4b9a2b44afabc0e8cb25e11e2061df1d48df521aaa1bc9e4a2bd481910a8cb3b"
+  },
+  "integratedTestCommit": "65b4ee9d3c979794eda5e2da2eb95de28998c5bc",
+  "fileSha256": {
+    "scripts/parity/block-roundtrip.mjs": "f518ff5e9b848482e5621fff9e0b5301310e472c5f3a8ccb7f9fc89487f5ee3d",
+    "scripts/parity/block-roundtrip.md": "a6b657f6ed52120cb262448c5be71c3158d57f76dc7c91215ec6f436eabca3e0",
+    "tests/browser/block-roundtrip-fixture.js": "436248453dc42c5a637389af2c03f143ea94b1b7c76729bc0087cca42168fb63",
+    "tests/browser/native-input-helpers.js": "ff41ac0bc22320f0f3a4c194d3066ecfb83b52f4470c9b8e819be0f8fb736d5a"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+    }
+  },
+  "startedAt": "2026-10-29T20:12:30.346Z",
+  "finishedAt": "2026-10-29T20:14:18.002Z",
+  "sourceUnchanged": true,
+  "sourceIdentityVerified": true,
+  "results": [
+    {
+      "source": "v1",
+      "cases": 45,
+      "observations": 7487,
+      "rawFailures": 519,
+      "unexpectedFailures": 0,
+      "rawErrors": 0,
+      "rawPageErrors": 0,
+      "classifiedPageErrors": 0,
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": []
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 45,
+      "observations": 5759,
+      "rawFailures": 61,
+      "unexpectedFailures": 0,
+      "rawErrors": 1,
+      "rawPageErrors": 1,
+      "classifiedPageErrors": 1,
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": []
+    },
+    {
+      "source": "candidate",
+      "cases": 45,
+      "observations": 7553,
+      "rawFailures": 0,
+      "unexpectedFailures": 0,
+      "rawErrors": 0,
+      "rawPageErrors": 0,
+      "classifiedPageErrors": 0,
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": []
+    }
+  ],
+  "native": {
+    "caseCount": 45,
+    "allPassed": true,
+    "gate": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T20:14:18.549Z",
+      "finishedAt": "2026-10-29T20:14:54.680Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-table-final-roundtrip-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "45de0c4da813b5ddf044b4c0f130265ba49a446e",
+        "tree": "e090d20a7d2eabee62716d26db6865ee0101701b",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "4b9a2b44afabc0e8cb25e11e2061df1d48df521aaa1bc9e4a2bd481910a8cb3b"
+      },
+      "elapsedMs": 36127.970051,
+      "sourceAfter": {
+        "head": "45de0c4da813b5ddf044b4c0f130265ba49a446e",
+        "tree": "e090d20a7d2eabee62716d26db6865ee0101701b",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "4b9a2b44afabc0e8cb25e11e2061df1d48df521aaa1bc9e4a2bd481910a8cb3b"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "differentialGate": {
+    "outcome": "passed",
+    "startedAt": "2026-10-29T20:12:29.898Z",
+    "finishedAt": "2026-10-29T20:14:18.343Z",
+    "exitCode": 0,
+    "signal": null,
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "cwd": "/tmp/rector-table-final-roundtrip-20261029",
+    "environment": {
+      "node": "v24.22.1",
+      "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "npm": "11.9.0",
+      "platform": "linux",
+      "architecture": "x64",
+      "release": "6.18.55",
+      "runner": {},
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+      }
+    },
+    "sourceBefore": {
+      "head": "45de0c4da813b5ddf044b4c0f130265ba49a446e",
+      "tree": "e090d20a7d2eabee62716d26db6865ee0101701b",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": false,
+      "identity": "4b9a2b44afabc0e8cb25e11e2061df1d48df521aaa1bc9e4a2bd481910a8cb3b"
+    },
+    "elapsedMs": 108440.07457000001,
+    "sourceAfter": {
+      "head": "45de0c4da813b5ddf044b4c0f130265ba49a446e",
+      "tree": "e090d20a7d2eabee62716d26db6865ee0101701b",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": false,
+      "identity": "4b9a2b44afabc0e8cb25e11e2061df1d48df521aaa1bc9e4a2bd481910a8cb3b"
+    },
+    "sourceUnchanged": true
+  },
+  "sourceCounts": {
+    "v1": 212,
+    "spec-baseline": 234,
+    "candidate": 234
+  },
+  "dependencies": 64,
+  "incompleteReferenceCases": [
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_LIST_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    }
+  ],
+  "unsupportedReferenceCases": [
+    {
+      "source": "v1",
+      "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+      "supported": false,
+      "feature": "Persistent Embed caption widgets",
+      "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Embed caption widgets",
+      "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+    }
+  ],
+  "retainedInvalidAttempts": [
+    {
+      "artifact": "invalid-underline-oracle.json.gz",
+      "reason": "Unsupported u markup was an invalid oracle in both sanitizers, not a product regression."
+    },
+    {
+      "artifact": "invalid-emphasis-spelling-oracle.json.gz",
+      "reason": "Canonical sanitizer maps em to i; demanding original em spelling was an invalid oracle, not data loss. Final uses canonical i and retains strict equality."
+    }
+  ],
+  "classifierScope": "Only exact reference/case/phase/property vectors and complete phase requirements; candidate and baseline unwrapped control have no exception. Offline 72 known differences accepted and each of 8 negative families rejected. Merged Embed page-error classifier 1 positive/21 negative retained.",
+  "artifacts": [
+    {
+      "file": "full45-final.json.gz",
+      "originalPath": "/tmp/rector-table-final-roundtrip-20261029/test-results/run-iubzh9/table-roundtrip-three-source-final.log",
+      "sha256": "cb637a8e7d8ad6fe3227ef68d15fbfa55d4088a8712157bac1b4a05038339bbf",
+      "bytes": 597081,
+      "uncompressedSha256": "9b07335ce1adfd483e2d92dbe0e5ddee541ec4dc983b8cd94b3d9a406ecb6bf9",
+      "uncompressedBytes": 20951348
+    },
+    {
+      "file": "native45-final.log",
+      "originalPath": "/tmp/rector-table-final-roundtrip-20261029/test-results/run-iubzh9/table-roundtrip-native-final.log",
+      "sha256": "4571959e3a9f29b1d25594bbaa26eba440c653bb64dc6ad62329afd0d41fc918",
+      "bytes": 4351,
+      "uncompressedSha256": "4571959e3a9f29b1d25594bbaa26eba440c653bb64dc6ad62329afd0d41fc918",
+      "uncompressedBytes": 4351
+    },
+    {
+      "file": "final-gates.json",
+      "originalPath": "/tmp/rector-table-final-roundtrip-20261029/test-results/run-iubzh9/manifest.json",
+      "sha256": "c53418345477d761cffd31acaf94d7d4d760235e0e64e5fa1d34fd7e6282cfc1",
+      "bytes": 5217,
+      "uncompressedSha256": "c53418345477d761cffd31acaf94d7d4d760235e0e64e5fa1d34fd7e6282cfc1",
+      "uncompressedBytes": 5217
+    },
+    {
+      "file": "invalid-underline-oracle.json.gz",
+      "originalPath": "/tmp/rector-table-roundtrip-initial.json",
+      "sha256": "cf0664b9cb8de2b6fe285036fead8ea55fa8982e4a425c6a78706bf4e036f7df",
+      "bytes": 118947,
+      "uncompressedSha256": "15a8469c262df56482085c5d86af5a20f34769c3fdcd0f3e1b37dba2faf06f41",
+      "uncompressedBytes": 4611080
+    },
+    {
+      "file": "invalid-emphasis-spelling-oracle.json.gz",
+      "originalPath": "/tmp/rector-table-roundtrip-corrected-raw.json",
+      "sha256": "3240eb5302be78b0eaa59eba70dffd0c9e2798b64b6c0b126e1ea3d81645107d",
+      "bytes": 107403,
+      "uncompressedSha256": "4c68f9a46b165506e334f5a6aa81390bf05fa1e725b99be8ff8fb355a79e7693",
+      "uncompressedBytes": 3921891
+    },
+    {
+      "file": "table-three-source-raw.json.gz",
+      "originalPath": "/tmp/rector-table-roundtrip-raw.json",
+      "sha256": "660812f475c7150524dcd5e0e4d632ec00d17067ec1bcb42aeeaf8cd49a8e835",
+      "bytes": 86369,
+      "uncompressedSha256": "9f488cb456a06b7ff3606a83bfb4eebbad8056d9364dc2f0c9370800fde5320d",
+      "uncompressedBytes": 2604254
+    },
+    {
+      "file": "table-classifications-check.mjs",
+      "originalPath": "/tmp/rector-table-classification-check.mjs",
+      "sha256": "c5b169b334c546d5e1eef5ade5b32ab3843435161977edaba549fd944fe94380",
+      "bytes": 3038,
+      "uncompressedSha256": "c5b169b334c546d5e1eef5ade5b32ab3843435161977edaba549fd944fe94380",
+      "uncompressedBytes": 3038
+    },
+    {
+      "file": "table-classifications-check.json",
+      "originalPath": "/tmp/rector-table-classification-check.json",
+      "sha256": "58724bf1128b6fadaf86367e4cbaccaa14bc2019b5e0637be2724092be85a555",
+      "bytes": 895,
+      "uncompressedSha256": "58724bf1128b6fadaf86367e4cbaccaa14bc2019b5e0637be2724092be85a555",
+      "uncompressedBytes": 895
+    },
+    {
+      "file": "merged-table-classifications-check.json",
+      "originalPath": "/tmp/rector-combined-table-classification-check.json",
+      "sha256": "5ae025fbcd2e598b801601a8e0034d3433873a7748a1a88a69d025145cd2eba5",
+      "bytes": 895,
+      "uncompressedSha256": "5ae025fbcd2e598b801601a8e0034d3433873a7748a1a88a69d025145cd2eba5",
+      "uncompressedBytes": 895
+    },
+    {
+      "file": "merged-table-classifications-check.mjs",
+      "originalPath": "/tmp/rector-combined-table-classification-check.mjs",
+      "sha256": "eec3c254d21599474cfa0b9a4edf7523ec1404e11d144a97b195ac61208d301c",
+      "bytes": 3053,
+      "uncompressedSha256": "eec3c254d21599474cfa0b9a4edf7523ec1404e11d144a97b195ac61208d301c",
+      "uncompressedBytes": 3053
+    },
+    {
+      "file": "merged-embed-pageerror-check.json",
+      "originalPath": "/tmp/rector-combined-embed-pageerror-classification-check.json",
+      "sha256": "014222553412d18acbae72294d340717c0e4348010a01ef1c212d8f10f09b433",
+      "bytes": 782,
+      "uncompressedSha256": "014222553412d18acbae72294d340717c0e4348010a01ef1c212d8f10f09b433",
+      "uncompressedBytes": 782
+    },
+    {
+      "file": "merged-embed-pageerror-check.mjs",
+      "originalPath": "/tmp/rector-combined-embed-pageerror-classification-check.mjs",
+      "sha256": "575553252499e6f7a349dc7fe5c0eba59d7e9702640b2292797491feaf4cd79c",
+      "bytes": 3744,
+      "uncompressedSha256": "575553252499e6f7a349dc7fe5c0eba59d7e9702640b2292797491feaf4cd79c",
+      "uncompressedBytes": 3744
+    },
+    {
+      "file": "source.patch",
+      "sha256": "5eb447da4af42b376f878cd056a26664d47b79ed1961a4a341e6532ea6d2b785",
+      "base": "a0fabcaa0bd7a430a9e69f4240ad0ca763b80217",
+      "target": "45de0c4da813b5ddf044b4c0f130265ba49a446e"
+    }
+  ]
+}
