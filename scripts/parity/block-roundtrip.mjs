@@ -127,13 +127,14 @@ try {
     }, { source, filter: requestedFilter })
     assert(cases.length > 0, 'The roundtrip filter selected no cases')
     for (const entry of cases) {
-      const paragraphIds = ['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_PARAGRAPH_ROUNDTRIP/populated',
-        'BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control']
+      const observedIds = ['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_PARAGRAPH_ROUNDTRIP/populated',
+        'BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_HEADING_ROUNDTRIP/default',
+        'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
-        if (!paragraphIds.includes(entry.id)) return null
+        if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = entry.id !== paragraphIds[0]
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default'].includes(entry.id)
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
             : failure.property === 'widgetDomIdentity' && populated ? 2 : 0
           if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
@@ -150,7 +151,8 @@ try {
               focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
             })) return 'repaired-v1-first-undo-caret'
         }
-        if (source.label === 'spec-baseline' && entry.id === 'BLOCK_PARAGRAPH_ROUNDTRIP/populated'
+        if (source.label === 'spec-baseline'
+          && ['BLOCK_PARAGRAPH_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated'].includes(entry.id)
           && failure.phase === 'read-only-transition' && failure.property === 'execution'
           && failure.actual === 'Inline widget root left its projection boundary before hydration'
           && same(entry.completedPhases, ['load'])

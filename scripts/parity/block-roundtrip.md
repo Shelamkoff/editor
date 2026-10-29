@@ -5,12 +5,19 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The first vertical slice is Paragraph, with separate actual default
-construction and populated-document cases. The populated case contains
-both real Mention and Color sidecars inside authored formatting, fixed
-neighbor blocks, and stable IDs. A third populated positive control keeps
-the same widgets outside formatting wrappers, distinguishing the known
-baseline mode-transition failure from ordinary widget support.
+The implemented vertical slices are Paragraph and Heading, each with
+separate actual default construction and populated-document cases. Each
+populated case contains both real Mention and Color sidecars inside
+authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
+populated positive control for each block keeps the same widgets outside
+formatting wrappers, distinguishing the known baseline mode-transition
+failure from ordinary widget support.
+
+Heading uses its actual empty level-2 default and a fixed populated level-3
+document. Editor fields and all three renderer contexts assert the exact
+H2/H3 tags; output block IDs, types and order are also checked independently
+of canonical saved data. This does not cover controls for every heading
+level, heading-root paste or splitting/conversion.
 Other inventory entries below are planned
 coverage, not completed tests.
 
@@ -47,7 +54,7 @@ author data from an initial `save()` result.
 | Block / current version | Current default | Planned populated fixture and declared edit | v1 adapter / principal risk |
 | --- | --- | --- | --- |
 | Paragraph / 2 | Empty text | Rich text, both inline sidecars; edit `text` | Alignment was plugin data; now tunes. First implemented vertical slice. |
-| Heading / 2 | Empty level-2 heading | Level 3, rich text/sidecars; edit `text` | Alignment relocation; preserve level/tag. |
+| Heading / 2 | Empty level-2 heading | Level 3, rich text/sidecars; edit `text` | Alignment relocation remains a separate behavior; level/tag is implemented in this slice. |
 | List / 2 | One empty unordered item | Ordered pair with marks/sidecars; edit `item:first` | v1 string array; compare content/order and separately preserve current item IDs. |
 | Quote / 1 | Empty quotation and caption | Rich quotation and independent rich caption; edit `text` | Fields share the wire shape; caption must survive. |
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Plain source has no fabricated rich-text sidecar. |
@@ -129,19 +136,20 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph oracle classifies only these observed historical differences:
+The Paragraph and Heading oracle classifies only these observed historical
+differences, bounded to the six exact scenario IDs in the runner:
 
 - v1 remounts the exact block/widget arrays during read-only/editable mode
   changes and Undo/Redo. Its author data and sidecars must still be exact.
-- The first v1 Undo in the two populated cases focuses the preceding
+- The first v1 Undo in each block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - e981 throws `Inline widget root left its projection boundary before
-  hydration` while entering read-only mode in the formatted-widget case.
+  hydration` while entering read-only mode in each formatted-widget case.
   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
   disposal assertions remain explicitly unexecuted. The unwrapped positive
-  control exercises the complete template on that baseline.
+  controls exercise the complete template on that baseline.
 
 The candidate receives none of these exceptions. Raw failures remain in
 the JSON alongside classifications. `incompleteCases` lists every partial
@@ -149,6 +157,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph behavior, any other
-block, hostile HTML/class confinement, all renderers, platform breadth or
-full editor parity.
+This page does not by itself accept full Paragraph or Heading behavior,
+the other 19 built-ins, hostile HTML/class confinement, all renderers,
+platform breadth or full editor parity.

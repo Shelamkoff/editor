@@ -2,19 +2,26 @@
 // of the editor's initial save and translated only for the historical wire API.
 const paragraph = {
   type: 'paragraph', version: 2, className: 'Paragraph',
-  fieldSelector: '.oe-paragraph', rendererSelector: '.editor-paragraph',
+  fieldSelector: '.oe-paragraph',
   defaultData: { text: '' },
   populatedData: { text: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' },
 }
+const heading = {
+  type: 'heading', version: 2, className: 'Heading',
+  fieldSelector: '.oe-heading',
+  defaultData: { text: '', level: 2 },
+  populatedData: { text: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail', level: 3 },
+}
 
-export const blockRoundtripCases = [false, true].map(populated => ({
-  ...paragraph, populated,
-  id: 'BLOCK_PARAGRAPH_ROUNDTRIP/' + (populated ? 'populated' : 'default'),
-})).concat([{
-  ...paragraph, populated: true,
-  id: 'BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control',
-  populatedData: { text: '<b>Alpha</b> {{mention}} {{swatch}} tail' },
-}])
+export const blockRoundtripCases = [paragraph, heading].flatMap(block => {
+  const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
+  return [false, true].map(populated => ({
+    ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
+  })).concat([{
+    ...block, populated: true, id: prefix + 'populated-unwrapped-control',
+    populatedData: { ...block.populatedData, text: '<b>Alpha</b> {{mention}} {{swatch}} tail' },
+  }])
+})
 
 const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
 const clone = value => JSON.parse(JSON.stringify(value))
@@ -93,8 +100,9 @@ async function settled() {
 
 export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut }) {
   const base = new URL(sourceBase, import.meta.url)
-  const [{ createEditor }, module, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
+  const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
     import(new URL('core/index.js', base).href),
+    import(new URL(`plugins/${specification.type}/index.js`, base).href),
     import(new URL('plugins/paragraph/index.js', base).href),
     import(new URL('renderer/index.js', base).href),
     import(new URL('inline-plugins/mention/index.js', base).href),
@@ -105,11 +113,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     mention: widget('mention', { id: 'ada', name: 'Ada' }),
     swatch: widget('color', { value: '#123456' }),
   }
-  const record = (id, data, sidecars) => ({ id, type: 'paragraph', ...(!legacy ? { dataVersion: 2 } : {}), data,
+  const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}), data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
-    blocks: [record('prefix', { text: '<b>Before</b>' }), record('probe', clone(specification.populatedData), clone(inline)),
+    blocks: [record('prefix', { text: '<b>Before</b>' }), record('probe', clone(specification.populatedData), clone(inline), specification),
       record('suffix', { text: '<i>After</i>' })],
   } : undefined
   const originalInput = input ? JSON.stringify(input) : null
@@ -126,12 +134,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     status: JSON.stringify(stable(actual)) === JSON.stringify(stable(expected)) ? 'PASS' : 'FAIL', actual, expected })
   let editor, renderer, destroyed = false, providerCalls = 0, currentPhase = 'create'
   try {
-    const definition = legacy ? new module.Paragraph() : module.createParagraphPlugin()
-    editor = createEditor({ holder, plugins: [definition], defaultBlock: specification.type,
+    const definition = legacy ? new module[specification.className]() : module[`create${specification.className}Plugin`]()
+    const definitions = specification.type === 'paragraph' ? [definition]
+      : [legacy ? new paragraphModule.Paragraph() : paragraphModule.createParagraphPlugin(), definition]
+    editor = createEditor({ holder, plugins: definitions, defaultBlock: specification.type,
       inlineTools: [], inlinePlugins: [mentionModule.createMentionPlugin({ searchFunction: async () => { providerCalls++; return [] } }), colorModule.createColorSwatchPlugin()],
       injectStyles: true, ...(input ? { data: input } : {}),
     })
-    renderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: true,
+    renderer = new EditorRenderer({ blockTypes: [...new Set(['paragraph', specification.type])], injectStyles: true,
       ...(legacy
         ? { inlinePlugins: [mentionModule.createMentionWidget(), colorModule.createColorSwatchPlugin()] }
         : { inlineRenderers: [mentionModule.createMentionRenderer(), colorModule.createColorSwatchRenderer()] }),
@@ -144,10 +154,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const field = () => shell(id).querySelector(specification.fieldSelector)
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
     let previousWidgets = [...field().querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
-    const baseText = (specification.populated ? specification.populatedData : specification.defaultData).text
+    const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
+    const baseText = baseData.text
     const expectedBlocks = text => specification.populated
-      ? [record('prefix', { text: '<b>Before</b>' }), record('probe', { text }, clone(inline)), record('suffix', { text: '<i>After</i>' })]
-      : [record(id, { text })]
+      ? [record('prefix', { text: '<b>Before</b>' }), record('probe', { ...baseData, text }, clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
+      : [record(id, { ...baseData, text }, undefined, specification)]
+    const expectedTag = block => block.type === 'heading' ? 'H' + block.data.level : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: { ...block.data, text: markupMeaning(block.data.text) } }))
     const expectedWidgets = specification.populated ? [
       { id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
@@ -165,9 +177,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const detached = renderer.render(saved)
       check(phase, 'detachedOutputOwnership', { connected: detached.isConnected, parent: detached.parentNode === null }, { connected: false, parent: true })
       const inspectOutput = (root, name) => {
-        const paragraphs = [...root.querySelectorAll(specification.rendererSelector)]
-        check(phase, name + 'BlockCount', paragraphs.length, expected.length)
-        check(phase, name + 'AuthoredMarkup', paragraphs.map(authoredMarkup), expected.map(block => markupMeaning(block.data.text)))
+        const blocks = [...root.querySelectorAll('[data-block-id][data-block-type]')]
+        check(phase, name + 'BlockCount', blocks.length, expected.length)
+        check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
+          type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
+        check(phase, name + 'AuthoredMarkup', blocks.map(authoredMarkup), expected.map(block => markupMeaning(block.data.text)))
         check(phase, name + 'Widgets', widgets(root), expectedWidgets)
       }
       inspectOutput(detached, 'detached')
@@ -189,6 +203,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       snapshots[phase] = saved.blocks
       const expected = expectedBlocks(text)
       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
+      check(phase, 'editorFieldTag', field().tagName, expectedTag(expected.find(block => block.id === id)))
       check(phase, 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
       check(phase, 'editorWidgets', widgets(field()), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: field().isContentEditable }, { readOnly, editable: !readOnly })
