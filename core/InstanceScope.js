@@ -29,6 +29,7 @@ export class InstanceScope{
   #children=new Set()
   #parent=null
   #health=()=> 'ready'
+  /** @type {() => import('./types.js').RuntimeMutationContext} */
   #phase=()=> 'idle'
   #currentGeneration
   #currentRevision=()=>0
@@ -52,7 +53,7 @@ export class InstanceScope{
   get interactionEpoch(){return this.#interactionEpoch}
   get readOnly(){return this.#state==='revoked'||this.#readOnly||this.#inheritedReadOnly}
 
-  /** @param {{generation?:number,readOnly?:boolean,health?:()=>string,phase?:()=>string,currentGeneration?:()=>number,currentRevision?:()=>number,signal?:AbortSignal,parent?:InstanceScope}} [options] */
+  /** @param {{generation?:number,readOnly?:boolean,health?:()=>string,phase?:()=>import('./types.js').RuntimeMutationContext,currentGeneration?:()=>number,currentRevision?:()=>number,signal?:AbortSignal,parent?:InstanceScope}} [options] */
   configure({generation,readOnly,health,phase,currentGeneration,currentRevision,signal,parent}={}){
     if(this.#state==='revoked')throw createAbortError()
     if(Number.isSafeInteger(generation)&&generation>0)this.#generation=generation

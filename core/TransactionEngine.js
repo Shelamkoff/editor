@@ -104,6 +104,7 @@ export class TransactionEngine {
   #selection
   #onCommit
   #diagnostics
+  /** @type {import('./types.js').TransactionPhase} */
   #phase = 'idle'
   #health = 'ready'
   #destroyed = false

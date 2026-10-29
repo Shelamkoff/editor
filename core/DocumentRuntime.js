@@ -1570,6 +1570,7 @@ export class DocumentRuntime {
     })
   }
 
+  /** @returns {import('./types.js').RuntimeMutationContext} */
   #mutationPhase() {
     if (this.#diagnosticObservationDepth) return 'diagnostic-observation'
     if (this.#observationDepth) return 'validation-observation'

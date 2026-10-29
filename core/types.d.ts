@@ -5,6 +5,28 @@ import type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 export type { LocaleValue, PluralForms }
 export type { InlineTool, InlineMutationContext, InlineToolActionContext, InlineSelection } from '../inline-tools/types.js'
 
+/** Existing serialized engine lifecycle, independent of health and scope state. */
+export type TransactionPhase =
+  | 'idle'
+  | 'preparing-metadata'
+  | 'capturing-selection'
+  | 'building'
+  | 'preparing-projection'
+  | 'applying-projection'
+  | 'committing'
+  | 'finalizing'
+  | 'publishing'
+  | 'diagnostic-observation'
+  | 'failed'
+
+/** Effective admission context; runtime callbacks do not add engine states. */
+export type RuntimeMutationContext = TransactionPhase
+  | 'validation-observation'
+  | 'presentation-projection'
+  | 'extension-preparation'
+  | 'protected-projection-edit'
+  | 'read-only-transition'
+
 /** Explicit DOM alias used by JavaScript JSDoc without colliding with Node.js types. */
 export type DOMNode = Node
 
