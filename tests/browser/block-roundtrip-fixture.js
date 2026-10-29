@@ -61,6 +61,20 @@ const spoiler = {
   unwrappedData: { label: '<b>Alpha</b> {{mention}} tail', content: '<mark>Secret</mark> {{swatch}}' },
 }
 
+const columns = {
+  type: 'columns', version: 2, className: 'Columns',
+  fieldSelector: '.oe-columns__col', fieldTag: 'DIV',
+  defaultData: { layout: '1-1', columns: [{ id: 'column-0', content: '' }, { id: 'column-1', content: '' }] },
+  populatedData: { layout: '1-2', columns: [
+    { id: 'first', content: '<b>Alpha</b> <i>{{mention}}</i> tail' },
+    { id: 'second', content: '<mark>Second column</mark> <s>{{swatch}}</s>' },
+  ] },
+  unwrappedData: { layout: '1-2', columns: [
+    { id: 'first', content: '<b>Alpha</b> {{mention}} tail' },
+    { id: 'second', content: '<mark>Second column</mark> {{swatch}}' },
+  ] },
+}
+
 const code = {
   type: 'code', version: 1, className: 'Code', textKey: 'code', fieldMode: 'plain-text',
   fieldSelector: '.oe-code-textarea',
@@ -88,10 +102,11 @@ const delimiter = {
 
 const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
+  : block.type === 'columns' ? { ...data, columns: data.columns.map((column, index) => index ? { ...column } : { ...column, content: text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -217,7 +232,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
   }
   const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}),
     data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) }
-      : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) } : data,
+      : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
+        : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
@@ -280,8 +296,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
     const spoilerFields = () => ['.oe-spoiler__label', '.oe-spoiler__content'].map(selector => shell(id).querySelector(selector))
     let previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
+    const columnFields = () => [...shell(id).querySelector('.oe-columns__grid').children]
+    let previousColumnFields = specification.type === 'columns' ? columnFields() : []
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = noEditableField ? specification.neighborText : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = noEditableField ? specification.neighborText : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
@@ -291,7 +309,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'spoiler' ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => ['spoiler', 'columns'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
@@ -301,6 +319,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
       : block.type === 'spoiler' ? { ...block.data, label: markupMeaning(block.data.label), content: markupMeaning(block.data.content) }
+      : block.type === 'columns' ? { ...block.data, columns: block.data.columns.map(column => ({ ...column, content: markupMeaning(column.content) })) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
     const imageStyles = picture => Object.fromEntries(['width', 'height', 'objectFit', 'objectPosition', 'borderStyle', 'borderWidth', 'borderColor', 'borderRadius'].map(key => [key, picture.style[key]]))
     const expectedImageStyles = populated => populated
@@ -341,7 +360,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         expanded: element.classList.contains('editor-spoiler--open'),
       }
     }
-    const rendererMarkup = element => element.dataset.blockType === 'spoiler' ? spoilerRendererMarkup(element) : element.dataset.blockType === 'toggle'
+    const rendererMarkup = element => element.dataset.blockType === 'columns'
+      ? { display: element.style.display, grid: element.style.gridTemplateColumns, gap: element.style.gap,
+        columns: [...element.children].map(column => ({ tag: column.tagName, markup: authoredMarkup(column) })),
+      } : element.dataset.blockType === 'spoiler' ? spoilerRendererMarkup(element) : element.dataset.blockType === 'toggle'
       ? { open: element.open, summaryTag: element.querySelector('.editor-toggle__summary').tagName,
         titleTag: element.querySelector('.editor-toggle__title').tagName, title: authoredMarkup(element.querySelector('.editor-toggle__title')),
         body: element.querySelector('.editor-toggle__body') ? { tag: element.querySelector('.editor-toggle__body').tagName, markup: authoredMarkup(element.querySelector('.editor-toggle__body')) } : null,
@@ -364,7 +386,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'spoiler'
+    const expectedRendererMarkup = block => block.type === 'columns'
+      ? { display: 'grid', grid: block.data.layout === '1-2' ? '1fr 2fr' : '1fr 1fr', gap: '1rem',
+        columns: block.data.columns.map(column => ({ tag: 'DIV', markup: markupMeaning(column.content) })),
+      } : block.type === 'spoiler'
       ? { headerTag: 'DIV', controlTag: 'BUTTON', ariaLabel: 'Toggle spoiler', ariaExpanded: 'false',
         controlsBody: block.data.content ? true : null, labelTag: 'DIV', label: markupMeaning(block.data.label),
         body: block.data.content ? { tag: 'DIV', hidden: true, markup: markupMeaning(block.data.content) } : null,
@@ -540,6 +565,23 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }, { expanded: !readOnly, ariaLabel: 'Toggle spoiler', ariaExpanded: String(!readOnly),
           controlsBody: true, bodyHidden: readOnly, bodyDisplayed: !readOnly })
       }
+      if (specification.type === 'columns') {
+        const fields = columnFields()
+        const expectedColumns = baseData.columns.map((column, index) => ({ ...column, content: index ? column.content : text }))
+        check(phase, 'columnFields', fields.map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })),
+          expectedColumns.map(column => ({ tag: 'DIV', markup: markupMeaning(column.content), editable: !readOnly })))
+        check(phase, 'columnDomIdentity', previousColumnFields.map((element, index) => element === fields[index]), [true, true])
+        if (!legacy) check(phase, 'columnDomIds', fields.map(element => element.dataset.columnId), expectedColumns.map(column => column.id))
+        const grid = shell(id).querySelector('.oe-columns__grid')
+        const buttons = [...shell(id).querySelectorAll('.oe-columns__layout-btn')]
+        check(phase, 'columnsPresentation', {
+          grid: grid.style.gridTemplateColumns, display: getComputedStyle(grid).display,
+          buttons: buttons.map(button => ({ label: button.getAttribute('aria-label'), pressed: button.getAttribute('aria-pressed') })),
+        }, { grid: baseData.layout === '1-2' ? '1fr 2fr' : '1fr 1fr', display: 'grid',
+          buttons: [ ['1-1', '50 / 50'], ['1-2', '33 / 67'], ['2-1', '67 / 33'], ['1-1-1', '33 / 33 / 33'] ]
+            .map(([layout, label]) => ({ label: 'Layout ' + label, pressed: String(baseData.layout === layout) })),
+        })
+      }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
@@ -561,6 +603,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
       previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
       previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
+      previousColumnFields = specification.type === 'columns' ? columnFields() : []
       previousPlainFields = plainField ? [field()] : []
       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
       previousImageParts = specification.type === 'image' ? imageParts() : []
