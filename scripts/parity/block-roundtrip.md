@@ -68,6 +68,19 @@ bare optional highlighter import cannot resolve. The standard Vite native
 page supplies the installed highlighting dependency. Token colors and
 highlighter injection are not accepted by this roundtrip template.
 
+Delimiter adds two explicit non-editable scenarios. Its actual default
+has payload `{}`, an editor HR and renderer HR, no text or source control,
+and no invented sidecar. It executes load/render, read-only and return,
+then cleanup. Native edit/Undo/Redo are explicitly not applicable in that
+case; the trace retains `notApplicablePhases` and the top-level
+`notApplicableCases` summary instead of crediting unexecuted authoring.
+The `populated-neighbor-edit` case keeps the same empty Delimiter between
+Paragraphs and performs trusted native editing plus one Undo/Redo in the
+real prefix Paragraph. That separate adjacent-history control checks
+Delimiter payload, ID/order, HR DOM identity and renderer output without
+pretending to edit the separator. Delimiter insertion, selection, move
+and deletion remain a separate structural row.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -113,7 +126,7 @@ author data from an initial `save()` result.
 | Quote / 1 | Empty quotation and caption | Rich quotation/Mention and independent rich caption/Color; edit `text` | Implemented: fields share the wire shape; caption data, DOM and output survive the sibling edit. |
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
 | Image / 1 | Empty file URL/caption, false flags, empty styles | Controlled local image, rich caption, appearance; edit `caption` | Caption is declared only with an image source. |
-| Delimiter / 1 | Empty object | The same data-free separator | No editable field or fabricated authoring step. |
+| Delimiter / 1 | Empty object | The same data-free separator between Paragraphs | Implemented: actual default has authoring phases N/A; a separately named real neighbor edit proves history preservation. |
 | Table / 2 | One empty cell with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. Default size difference remains unresolved. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | Implemented: v1 item IDs absent; label, checkbox state and independent row/control identities are checked. |
 | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
@@ -179,7 +192,9 @@ node tests/browser/physical-history.mjs
 Every completed case creates the default or populated document, checks
 fixed canonical data, renders both detached and mounted output, switches
 read-only and back while retaining independent host focus, performs real
-pointer focus and native field input, then exact one-step Undo/Redo. It
+pointer focus and native field input where a field exists, then exact
+one-step Undo/Redo. The Delimiter cases expose their explicit non-editable
+or neighboring-field phase scope as described above. The fixture
 checks marks, sidecars, IDs/order, logical caret, DOM reuse, renderer input
 immutability, disposal and release of newly acquired owned styles. No
 private editor transaction or compatibility implementation is invoked.
@@ -190,13 +205,16 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code and Checklist oracle classifies
-only these observed historical differences, bounded to the twenty exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist and Delimiter oracle
+classifies only these observed historical differences, bounded to the twenty-two exact scenario IDs in the
 runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning fields, Code textarea and
-  Checklist rows/buttons/labels during read-only/editable mode
-  changes and Undo/Redo. Its author data and sidecars must still be exact.
+  Checklist rows/buttons/labels and Delimiter HR during read-only/editable mode
+  changes and Undo/Redo. Default Delimiter admits only its two executed mode
+  phases; its neighbor-edit case admits the two mode and two history phases.
+  No caret or widget exception applies to Delimiter. Author data and sidecars
+  must still be exact.
 - The first v1 Undo in each rich-field block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
@@ -244,6 +262,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code or Checklist behavior,
-the other 14 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist or Delimiter behavior,
+the other 13 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

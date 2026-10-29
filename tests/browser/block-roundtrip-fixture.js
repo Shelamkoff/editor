@@ -52,13 +52,22 @@ const code = {
   populatedData: { code: 'const tag = "<b>&copy;</b>";\nconsole.log(tag); // {{literal}}', language: 'javascript' },
 }
 
-const withEditedText = (block, data, text) => ['list', 'checklist'].includes(block.type)
+const delimiter = {
+  type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
+  defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
+}
+
+const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
+  if (block.noEditableField) return [
+    { ...block, populated: false, id: prefix + 'default' },
+    { ...block, populated: true, id: prefix + 'populated-neighbor-edit' },
+  ]
   return [false, true].map(populated => ({
     ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
   })).concat(block.fieldMode === 'plain-text' ? [] : [{
@@ -149,6 +158,15 @@ async function settled() {
 }
 
 export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut }) {
+  const noEditableField = specification.noEditableField === true
+  const hasAuthoring = !noEditableField || specification.populated
+  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text'
+  const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
+  const phaseScope = noEditableField ? {
+    authoringTarget: specification.populated ? { blockId: 'prefix', type: 'paragraph', relation: 'neighbor' } : null,
+    notApplicablePhases: hasAuthoring ? [] : ['edit', 'undo', 'redo'],
+    reason: 'Delimiter has no editable field; only the populated case edits a real neighboring Paragraph.',
+  } : {}
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
     import(new URL('core/index.js', base).href),
@@ -169,7 +187,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
-    blocks: [record('prefix', { text: '<b>Before</b>' }), record('probe', clone(specification.populatedData), specification.fieldMode === 'plain-text' ? undefined : clone(inline), specification),
+    blocks: [record('prefix', { text: specification.neighborText ?? '<b>Before</b>' }), record('probe', clone(specification.populatedData), hasSidecars ? clone(inline) : undefined, specification),
       record('suffix', { text: '<i>After</i>' })],
   } : undefined
   const originalInput = input ? JSON.stringify(input) : null
@@ -203,7 +221,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const id = specification.populated ? 'probe' : first[0]?.id
     check('create', 'generatedDefaultIdentity', typeof id === 'string' && id.length > 0, true)
     const shell = blockId => holder.querySelector(`[data-block-id="${blockId}"]`)
-    const field = () => shell(id).querySelector(specification.fieldSelector)
+    const field = () => noEditableField
+      ? specification.populated ? shell('prefix').querySelector('.oe-paragraph') : null
+      : shell(id).querySelector(specification.fieldSelector)
+    let previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
     const plainField = specification.fieldMode === 'plain-text'
     let previousPlainFields = plainField ? [field()] : []
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
@@ -217,22 +238,27 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const warningFields = () => ['.oe-warning__title', '.oe-warning__message'].map(selector => shell(id).querySelector(selector))
     let previousWarningFields = specification.type === 'warning' ? warningFields() : []
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = noEditableField ? specification.neighborText : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
+      if (noEditableField) return specification.populated
+        ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
+        : [record(id, {}, undefined, specification)]
       const data = withEditedText(specification, baseData, text)
       return specification.populated
-        ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, plainField ? undefined : clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
+        ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'code' ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
-    const rendererMarkup = element => element.dataset.blockType === 'code'
+    const rendererMarkup = element => element.dataset.blockType === 'delimiter'
+      ? { childCount: element.childNodes.length, text: element.textContent }
+      : element.dataset.blockType === 'code'
       ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
       : element.dataset.blockType === 'checklist'
         ? [...element.children].map(child => ({ tag: child.tagName,
@@ -249,7 +275,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'code'
+    const expectedRendererMarkup = block => block.type === 'delimiter'
+      ? { childCount: 0, text: '' }
+      : block.type === 'code'
       ? { tag: 'CODE', source: block.data.code }
       : block.type === 'checklist'
         ? block.data.items.map(item => ({ tag: 'LI', fieldTag: 'SPAN', markup: markupMeaning(item.text),
@@ -261,7 +289,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : block.type === 'warning'
         ? [...(block.data.title ? [{ tag: 'STRONG', markup: markupMeaning(block.data.title) }] : []), ...(block.data.message ? [{ tag: 'P', markup: markupMeaning(block.data.message) }] : [])]
       : markupMeaning(block.data.text)
-    const expectedWidgets = specification.populated && !plainField ? [
+    const expectedWidgets = specification.populated && hasSidecars ? [
       { id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
       { id: 'swatch', type: 'color', text: '#123456', value: '#123456' },
     ] : []
@@ -306,12 +334,21 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const expected = expectedBlocks(text)
       const target = expected.find(block => block.id === id)
       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
-      check(phase, 'editorFieldTag', field().tagName, specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
-      if (plainField) {
-        check(phase, 'editorAuthoredSource', field().value, text)
-        check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
-        check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
-      } else check(phase, 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+      if (hasAuthoring) {
+        check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
+        if (plainField) {
+          check(phase, 'editorAuthoredSource', field().value, text)
+          check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
+          check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
+        } else check(phase, noEditableField ? 'neighborAuthoredMarkup' : 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+      }
+      if (noEditableField) {
+        const rule = shell(id).querySelector('.oe-delimiter')
+        check(phase, 'delimiterView', { tag: rule.tagName, editable: rule.isContentEditable,
+          childCount: rule.childNodes.length, authorControls: rule.querySelectorAll('[contenteditable="true"],input,textarea').length,
+        }, { tag: 'HR', editable: false, childCount: 0, authorControls: 0 })
+        check(phase, 'delimiterDomIdentity', [rule === previousDelimiter], [true])
+      }
       if (specification.type === 'list') {
         const items = [...shell(id).querySelectorAll('.oe-list__item')]
         check(phase, 'editorListTag', shell(id).querySelector('.oe-list').tagName, expectedTag(target))
@@ -351,7 +388,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, 'warningFieldDomIdentity', previousWarningFields.map((element, index) => fields[index] === element), [true, true])
       }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
-      check(phase, 'modeState', { readOnly: editor.readOnly, editable: plainField ? !field().readOnly : field().isContentEditable }, { readOnly, editable: !readOnly })
+      check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
       check(phase, 'blockDomIdentity', previousShells.map(([blockId, element]) => shell(blockId) === element), previousShells.map(() => true))
       check(phase, 'widgetDomIdentity', previousWidgets.map(([widgetId, element]) => shell(id).querySelector(`[data-id="${widgetId}"]`) === element), previousWidgets.map(() => true))
@@ -360,8 +397,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       })
       if (input) check(phase, 'callerInputUnchanged', JSON.stringify(input), originalInput)
       await rendered(phase, saved, expected)
-      phases.push({ phase, blocks: saved.blocks, ...(plainField ? { editorSource: field().value } : { editorHtml: field().innerHTML }),
-        mountedHtml: mounted.innerHTML, selection: caretIn(field()),
+      phases.push({ phase, blocks: saved.blocks, ...(plainField ? { editorSource: field().value } : { editorHtml: hasAuthoring ? field().innerHTML : null }),
+        mountedHtml: mounted.innerHTML, selection: hasAuthoring ? caretIn(field()) : null,
         selectionOwner: nativeSelectionOwner(), readOnly: editor.readOnly })
       previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
       previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
@@ -370,6 +407,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
       previousPlainFields = plainField ? [field()] : []
+      previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
@@ -384,55 +422,57 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     await settled()
     check('editable-again', 'foreignFocusPreserved', document.activeElement === outside, true)
     await inspect('editable-again', baseText, false, { canUndo: false, canRedo: false })
-    currentPhase = 'edit'
-    if (plainField && !shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
-      const editControl = shell(id).querySelector('.oe-code-btn--edit')
-      editControl.scrollIntoView({ block: 'nearest' })
+    if (hasAuthoring) {
+      currentPhase = 'edit'
+      if (plainField && !shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
+        const editControl = shell(id).querySelector('.oe-code-btn--edit')
+        editControl.scrollIntoView({ block: 'nearest' })
+        await settled()
+        await focusField(editControl)
+        await settled()
+      }
+      const author = field()
+      author.scrollIntoView({ block: 'nearest' })
       await settled()
-      await focusField(editControl)
+      if (plainField) {
+        const rect = author.getBoundingClientRect()
+        const style = getComputedStyle(author)
+        check('edit', 'plainFieldDisclosure', {
+          editing: shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing'),
+          hidden: author.hidden,
+          visible: rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility === 'visible',
+          receivesPointer: document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === author,
+        }, { editing: true, hidden: false, visible: true, receivesPointer: true })
+      }
+      await focusField(author)
+      const offset = plainField ? baseText.length : logicalLength(baseText)
+      if (plainField) author.setSelectionRange(offset, offset)
+      else {
+        const range = document.createRange()
+        range.selectNodeContents(author)
+        range.collapse(false)
+        getSelection().removeAllRanges()
+        getSelection().addRange(range)
+      }
+      check('edit', 'fixtureCaret', caretIn(author), { focused: true, anchor: offset, focus: offset, collapsed: true })
+      check('edit', 'trustedFieldFocus', trusted.some(event => event.type === 'mousedown' && event.trusted), true)
+      await typeText('X')
       await settled()
-    }
-    const author = field()
-    author.scrollIntoView({ block: 'nearest' })
-    await settled()
-    if (plainField) {
-      const rect = author.getBoundingClientRect()
-      const style = getComputedStyle(author)
-      check('edit', 'plainFieldDisclosure', {
-        editing: shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing'),
-        hidden: author.hidden,
-        visible: rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility === 'visible',
-        receivesPointer: document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === author,
-      }, { editing: true, hidden: false, visible: true, receivesPointer: true })
-    }
-    await focusField(author)
-    const offset = plainField ? baseText.length : logicalLength(baseText)
-    if (plainField) author.setSelectionRange(offset, offset)
-    else {
-      const range = document.createRange()
-      range.selectNodeContents(author)
-      range.collapse(false)
-      getSelection().removeAllRanges()
-      getSelection().addRange(range)
-    }
-    check('edit', 'fixtureCaret', caretIn(author), { focused: true, anchor: offset, focus: offset, collapsed: true })
-    check('edit', 'trustedFieldFocus', trusted.some(event => event.type === 'mousedown' && event.trusted), true)
-    await typeText('X')
-    await settled()
-    await inspect('edit', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
-    check('edit', 'trustedInput', trusted.some(event => event.type === 'input' && event.inputType === 'insertText' && event.trusted), true)
-    currentPhase = 'undo'
-    await shortcut('undo')
-    await settled()
-    await inspect('undo', baseText, false, { canUndo: false, canRedo: true }, offset)
-    check('undo', 'exactOriginalRecords', snapshots.undo, snapshots.load)
-    currentPhase = 'redo'
-    await shortcut('redo')
-    await settled()
-    await inspect('redo', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
-    check('redo', 'exactEditedRecords', snapshots.redo, snapshots.edit)
-    check('redo', 'trustedHistory', trusted.filter(event => event.type === 'keydown' && event.key.toLowerCase() === 'z').map(event => event.trusted), [true, true])
-    check('redo', 'providerNotInvokedByRoundtrip', providerCalls, 0)
+      await inspect('edit', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+      check('edit', 'trustedInput', trusted.some(event => event.type === 'input' && event.inputType === 'insertText' && event.trusted), true)
+      currentPhase = 'undo'
+      await shortcut('undo')
+      await settled()
+      await inspect('undo', baseText, false, { canUndo: false, canRedo: true }, offset)
+      check('undo', 'exactOriginalRecords', snapshots.undo, snapshots.load)
+      currentPhase = 'redo'
+      await shortcut('redo')
+      await settled()
+      await inspect('redo', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+      check('redo', 'exactEditedRecords', snapshots.redo, snapshots.edit)
+      check('redo', 'trustedHistory', trusted.filter(event => event.type === 'keydown' && event.key.toLowerCase() === 'z').map(event => event.trusted), [true, true])
+      check('redo', 'providerNotInvokedByRoundtrip', providerCalls, 0)
+    } else check('editable-again', 'providerNotInvokedByRoundtrip', providerCalls, 0)
     currentPhase = 'dispose'
     renderer.destroy(mounted)
     check('dispose', 'mountedOutputRemoved', mounted.childNodes.length, 0)
@@ -443,13 +483,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     await settled()
     check('dispose', 'editorRootRemoved', holder.querySelector('.oe-editor'), null)
     check('dispose', 'ownedStylesReleased', [...document.querySelectorAll('link[data-oe-style]')].filter(link => !beforeStyles.has(link)).map(link => link.href), [])
-    return { id: specification.id, phases, completedPhases: [...phases.map(phase => phase.phase), 'dispose'], trusted, observations,
+    return { id: specification.id, ...phaseScope, phases, completedPhases: [...phases.map(phase => phase.phase), 'dispose'], trusted, observations,
       failures: observations.filter(observation => observation.status !== 'PASS') }
   } catch (error) {
     const failure = { phase: currentPhase, property: 'execution', status: 'ERROR', actual: error.message ?? String(error) }
-    return { id: specification.id, phases, completedPhases: phases.map(phase => phase.phase), trusted, observations, error: error.stack ?? String(error),
+    return { id: specification.id, ...phaseScope, phases, completedPhases: phases.map(phase => phase.phase), trusted, observations, error: error.stack ?? String(error),
       failures: [...observations.filter(observation => observation.status !== 'PASS'), failure],
-      incompletePhases: ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'].filter(phase => !phases.some(entry => entry.phase === phase)),
+      incompletePhases: plannedPhases.filter(phase => !phases.some(entry => entry.phase === phase)),
     }
   } finally {
     try { renderer?.destroy() } finally {

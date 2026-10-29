@@ -134,25 +134,29 @@ try {
         'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated',
-        'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control']
+        'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control',
+        'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default'].includes(entry.id)
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default'].includes(entry.id)
           const listCase = ['BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const quoteCase = ['BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const warningCase = ['BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const codeCase = ['BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated'].includes(entry.id)
           const checklistCase = ['BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/populated', 'BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
+          const delimiterCase = ['BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit'].includes(entry.id)
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
-            : failure.property === 'widgetDomIdentity' && populated && !codeCase ? 2
+            : failure.property === 'widgetDomIdentity' && populated && !codeCase && !delimiterCase ? 2
               : failure.property === 'itemDomIdentity' && listCase ? populated ? 2 : 1
                 : failure.property === 'quoteFieldDomIdentity' && quoteCase ? 2
                   : failure.property === 'warningFieldDomIdentity' && warningCase ? 2
                     : failure.property === 'plainFieldDomIdentity' && codeCase ? 1
-                      : failure.property === 'checklistDomIdentity' && checklistCase ? populated ? 6 : 3 : 0
-          if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
+                      : failure.property === 'checklistDomIdentity' && checklistCase ? populated ? 6 : 3
+                        : failure.property === 'delimiterDomIdentity' && delimiterCase ? 1 : 0
+          const remountPhases = entry.id === 'BLOCK_DELIMITER_ROUNDTRIP/default' ? ['read-only', 'editable-again'] : ['read-only', 'editable-again', 'undo', 'redo']
+          if (size && remountPhases.includes(failure.phase)
             && same(failure.actual, Array(size).fill(false)) && same(failure.expected, Array(size).fill(true))) {
             return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
           }
@@ -215,7 +219,7 @@ try {
               focus: { block: codeId, node: '#text', text: '\n', offset: 1 },
             })) return 'repaired-v1-code-redo-caret'
           const offset = quoteCase || warningCase ? 12 : 14
-          if (populated && !codeCase && failure.phase === 'undo' && failure.property === 'nativeSelection'
+          if (populated && !codeCase && !delimiterCase && failure.phase === 'undo' && failure.property === 'nativeSelection'
             && same(failure.actual, { focused: false, anchor: null, focus: null, collapsed: true })
             && same(failure.expected, { focused: true, anchor: offset, focus: offset, collapsed: true })
             && same(undo?.selectionOwner, {
@@ -248,10 +252,12 @@ try {
   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
   const failed = results.some(result => result.errors.length || result.cases.some(entry => entry.unexpectedFailures.length))
   console.log(JSON.stringify({
-    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, declared-field native edit, one Undo/Redo, fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
+    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit or explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
     requestedFilter, selectedCaseIds: results[0]?.cases.map(entry => entry.id) ?? [],
     incompleteCases: results.flatMap(source => source.cases.filter(entry => entry.incompletePhases?.length)
       .map(entry => ({ source: source.source, id: entry.id, completed: entry.completedPhases, incomplete: entry.incompletePhases }))),
+    notApplicableCases: results.flatMap(source => source.cases.filter(entry => entry.notApplicablePhases?.length)
+      .map(entry => ({ source: source.source, id: entry.id, phases: entry.notApplicablePhases, reason: entry.reason }))),
     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
     sourceSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,
