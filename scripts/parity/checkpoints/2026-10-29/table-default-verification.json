@@ -1,0 +1,761 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-29T19:11:54.510429+00:00",
+  "scope": "Restore only the no-data Table default from 1x1 to the v1 3x3 shape; preserve explicit grids, current version-2 schema and the explicit one-cell conversion importer. No full Table or library parity claim.",
+  "worktree": "/tmp/rector-table-default-20261029",
+  "base": {
+    "commit": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+    "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661"
+  },
+  "commits": {
+    "testFirst": "0b49265c9aa5be639763ce7672b1d508f17587e5",
+    "productionAndReadmes": "2a3dd16215bffeebe6207d7d333f0f4d111e448e",
+    "tree": "4fd0c3f0f97bacee73a007e620fdeaa0ae85a5c3"
+  },
+  "patches": {
+    "combined": {
+      "path": "/tmp/rector-table-default-review.patch",
+      "sha256": "626cbb1cd327b07e13a478a950ddb952faac653f353eac847bf4f2a187f2ffc2"
+    },
+    "productionAndReadmes": {
+      "path": "/tmp/rector-table-default-production.patch",
+      "sha256": "52da9c73a09cca7c5a8f27147fd8163e5d9463cf34b2822a09729f5d7e6a3f8b"
+    }
+  },
+  "files": [
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "sha256": "64d03eb10ecf60669deeb9540824ead056cda28931e4302011c58e4b9683bed8"
+    },
+    {
+      "path": "shared/blockSchemas/structured.test.js",
+      "sha256": "ee708cdaa552fa0ec233b37f132d7d3b0ef2c02937938fe7338742a8c7651c1b"
+    },
+    {
+      "path": "tests/browser/native-plugin-parity.js",
+      "sha256": "d97e4e001ad63587a81c64f61995b980f30a33de903d9d81d19837a49dce86c2"
+    },
+    {
+      "path": "tests/browser/regressions/table-default.js",
+      "sha256": "f9597c1826230e9b3b29a0398f5bb92f684d55abb66c8a7346ba8eeb19be5664"
+    },
+    {
+      "path": "shared/blockSchemas/table.js",
+      "sha256": "7041ddf16e903454beb514d62b61363422182f78fa651b293e1af91fc91ea706"
+    },
+    {
+      "path": "plugins/table/README.md",
+      "sha256": "9e4c5a7fa24533bb3b08b77b6559a4c7ed8ba84ff7f0276b7d58dd0455e72f8c"
+    },
+    {
+      "path": "plugins/table/README.ru.md",
+      "sha256": "a4f78694cad3c5fd3ec6e2d58c293b7b0747fbe27ae3ef77cba85dc6458bf282"
+    }
+  ],
+  "unchangedControls": {
+    "testBytesSinceTestFirstCommit": true,
+    "tablePluginIncludingConversionImporterSinceBase": true,
+    "publicSchemaVersion": 2,
+    "explicitDimensions": [
+      [
+        1,
+        1
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "conversionImportDimensions": [
+      1,
+      1
+    ],
+    "mainOrIntegrationEdited": false
+  },
+  "runs": [
+    {
+      "directory": "/tmp/rector-table-default-20261029/test-results/run-tv0wMU",
+      "manifestSha256": "d9ea4cf48a361da3b3f41015ddcd9e91e907ea3ba248609be5c1e80e1fd089f8",
+      "classification": "Initial actual schema/runtime RED; planned native gate was not run",
+      "outcome": "failed",
+      "startedAt": "2026-10-29T18:53:32.602Z",
+      "finishedAt": "2026-10-29T18:54:04.450Z",
+      "source": {
+        "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+        "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+        "patchSha256": "2b7107f1075c15f92748d02ec91750ec7a364c5f7a06206e490121236c8db0cd",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          }
+        ],
+        "dirty": true,
+        "identity": "b4af4a3c22fd968c0b0f7e15aff827c5d88ec0ce0b06dfe82fcca6a5f42acff6"
+      },
+      "sourceUnchanged": true,
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "counts": {
+        "unit": {
+          "total": 78,
+          "passed": 76,
+          "failed": 2
+        }
+      },
+      "gates": {
+        "table-unit-red": {
+          "outcome": "failed",
+          "command": [
+            "node",
+            "--test",
+            "shared/blockSchemas/structured.test.js",
+            "core/DocumentRuntime.test.js"
+          ],
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "elapsedMs": 343.507659,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {}
+          },
+          "logSha256": "8a4731b7720982364ea4582e7394b6629fe215804743b842bd67779fc29a78c4"
+        },
+        "table-native-red": {
+          "outcome": "not-run",
+          "command": null,
+          "exitCode": null,
+          "sourceUnchanged": null,
+          "elapsedMs": null,
+          "environment": null,
+          "logSha256": null
+        }
+      }
+    },
+    {
+      "directory": "/tmp/rector-table-default-20261029/test-results/run-vd2aEY",
+      "manifestSha256": "a72edd4725ba1c20d248841ef09b84031e1f67e6b17631577dd7037c9b0ec279",
+      "classification": "Invalid mixed browser fixture attempt, excluded from product RED counts: the no-data dimension failure was real, but two explicit-grid failures compared save().time observation timestamps. Corrected before accepted RED.",
+      "outcome": "failed",
+      "startedAt": "2026-10-29T18:56:04.020Z",
+      "finishedAt": "2026-10-29T18:56:30.182Z",
+      "source": {
+        "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+        "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+        "patchSha256": "7c260ab4491d37622b6872b32542bfa25f7fd0633ef448069b4f6c177960725f",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          },
+          {
+            "path": "tests/browser/regressions/table-default.js",
+            "mode": 33188,
+            "sha256": "f9ad74eec3edd66622dfc05a946c44ce3c607cb21dd872f2f479bd3e6d33c064"
+          }
+        ],
+        "dirty": true,
+        "identity": "96cb73b9197ccc46c5604737476557d21deeafec4a1bea888bd5994224e5d652"
+      },
+      "sourceUnchanged": true,
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+          "EDITOR_NATIVE_FILTER": "Table default parity:",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "counts": {
+        "browser": {
+          "total": 3,
+          "passed": 0,
+          "failed": 3,
+          "productDimensionFailures": 1,
+          "fixtureTimestampFailures": 2
+        }
+      },
+      "gates": {
+        "table-unit-red": {
+          "outcome": "not-run",
+          "command": null,
+          "exitCode": null,
+          "sourceUnchanged": null,
+          "elapsedMs": null,
+          "environment": null,
+          "logSha256": null
+        },
+        "table-native-red": {
+          "outcome": "failed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "elapsedMs": 2103.946536,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table default parity:",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "da2db4edbd66384e5e91f1a3741db57eebde850550ecd9c48c2d3ebb19ebad7f"
+        },
+        "browser-version": {
+          "outcome": "not-run",
+          "command": null,
+          "exitCode": null,
+          "sourceUnchanged": null,
+          "elapsedMs": null,
+          "environment": null,
+          "logSha256": null
+        }
+      }
+    },
+    {
+      "directory": "/tmp/rector-table-default-20261029/test-results/run-TEHlRC",
+      "manifestSha256": "926c9eeac17143a71e03572b328638c232133bf07cad2f3d1e7db81249572ad7",
+      "classification": "Accepted corrected RED before production change; explicit-grid and one-cell importer controls passed",
+      "outcome": "failed",
+      "startedAt": "2026-10-29T18:57:20.908Z",
+      "finishedAt": "2026-10-29T18:57:47.345Z",
+      "source": {
+        "head": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+        "tree": "ad395ef5ca1b812033e129baf7fef5149ca47661",
+        "patchSha256": "06fb51493ba6aff123fb944f617c9e8fd62cabeb00c0c20dad49042f3f346667",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "6b73865cdef19e489a96e8de167f62decfee9a95069a3ccefc6b96aee6d32ae4"
+          },
+          {
+            "path": "tests/browser/regressions/table-default.js",
+            "mode": 33188,
+            "sha256": "f9597c1826230e9b3b29a0398f5bb92f684d55abb66c8a7346ba8eeb19be5664"
+          }
+        ],
+        "dirty": true,
+        "identity": "8734ade23565f00a63f926a4f66e6e6c2edf86995129305038d0bd88a3a54aa1"
+      },
+      "sourceUnchanged": true,
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+          "EDITOR_NATIVE_FILTER": "Table default parity:",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "counts": {
+        "unit": {
+          "total": 78,
+          "passed": 76,
+          "failed": 2
+        },
+        "browser": {
+          "total": 3,
+          "passed": 2,
+          "failed": 1
+        }
+      },
+      "gates": {
+        "table-unit-red": {
+          "outcome": "failed",
+          "command": [
+            "node",
+            "--test",
+            "shared/blockSchemas/structured.test.js",
+            "core/DocumentRuntime.test.js"
+          ],
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "elapsedMs": 303.626953,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table default parity:",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "f541246d4bb3ff7f6524d556b29a40aa37c77d05e9faefdab91163942f24a14f"
+        },
+        "table-native-red": {
+          "outcome": "failed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "elapsedMs": 2195.015996,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table default parity:",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "b82457f307226ad4ee57ba8bcfacd49255d3f03c6513cff804b5b6956ff576d7"
+        },
+        "browser-version": {
+          "outcome": "passed",
+          "command": [
+            "/tmp/rector-browsers/chrome-linux64/chrome",
+            "--version"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 28.931707999999958,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table default parity:",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "ce5be70c9f3bfc242ce4503fd879a9f69598329d0e7b54f638f0a70ef2f46076"
+        }
+      }
+    },
+    {
+      "directory": "/tmp/rector-table-default-20261029/test-results/run-d7ECdv",
+      "manifestSha256": "29399957b6365134347c47edab487b9eb0633bc3b5b81e3a5c92e1628e0da1c0",
+      "classification": "Focused GREEN with unchanged test-first test bytes and only the default/README production patch",
+      "outcome": "passed",
+      "startedAt": "2026-10-29T18:59:08.271Z",
+      "finishedAt": "2026-10-29T18:59:39.412Z",
+      "source": {
+        "head": "0b49265c9aa5be639763ce7672b1d508f17587e5",
+        "tree": "94fc7198a1ff55ba642e529738587fb378bcae0b",
+        "patchSha256": "bcfe87c1ea4dbc57f752b32f45143cab0e58734acfd98e46e1687ba523392032",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": true,
+        "identity": "1a46b7943630e1c1a3c684ff6de183289c767bc88cedc19023b961b81b4d2ecd"
+      },
+      "sourceUnchanged": true,
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+          "EDITOR_NATIVE_FILTER": "Table default parity:",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "counts": {
+        "unit": {
+          "total": 78,
+          "passed": 78,
+          "failed": 0
+        },
+        "browser": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0
+        }
+      },
+      "gates": {
+        "table-unit-green": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "--test",
+            "shared/blockSchemas/structured.test.js",
+            "core/DocumentRuntime.test.js"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 304.571859,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table default parity:",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "17c7bf679a13e9c1fc7053dd7eb7e9a99a28900a6804bd34b8dbccfd1711a273"
+        },
+        "table-native-green": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 7713.159463999999,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table default parity:",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "ea900f8c6d181b1ecd1296e1d7d6b022f5a50f1bc4eb22f0ad27afb35ee4b2f8"
+        }
+      }
+    },
+    {
+      "directory": "/tmp/rector-table-default-20261029/test-results/run-mmW3Fm",
+      "manifestSha256": "8771ccff4e5c03cb44cbd38bcd8416d973473c4d8c49a0398e3938de6f6418d1",
+      "classification": "Final clean-commit acceptance for this bounded default restoration",
+      "outcome": "passed",
+      "startedAt": "2026-10-29T19:08:45.057Z",
+      "finishedAt": "2026-10-29T19:11:14.650Z",
+      "source": {
+        "head": "2a3dd16215bffeebe6207d7d333f0f4d111e448e",
+        "tree": "4fd0c3f0f97bacee73a007e620fdeaa0ae85a5c3",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "52612f526959b37bc8e3bb1605770bdc7133b94c2b24480e347b04c4f4a3e8dd"
+      },
+      "sourceUnchanged": true,
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "counts": {
+        "unit": {
+          "total": 1967,
+          "passed": 1967,
+          "failed": 0,
+          "skipped": 0
+        },
+        "typecheck": {
+          "configurations": [
+            "jsconfig.json",
+            "jsconfig.runtime.json"
+          ],
+          "passed": 2
+        },
+        "declaration-consumers": {
+          "total": 7,
+          "passed": 7,
+          "failed": 0
+        },
+        "docs": {
+          "localizedReadmePairs": 47,
+          "readmes": 94,
+          "examples": 53,
+          "json": 44,
+          "links": 62,
+          "packageReadmeCopiesChecked": 92
+        },
+        "table-native": {
+          "page": "native-plugin-parity.html",
+          "filter": "Table",
+          "total": 15,
+          "passed": 15,
+          "failed": 0
+        }
+      },
+      "gates": {
+        "unit": {
+          "outcome": "passed",
+          "command": [
+            "npm",
+            "test"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 23674.117119,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {}
+          },
+          "logSha256": "6a645de13395c88e0a72cc5b28b767afd45f18a49b2ec9523029038238ad5ca8"
+        },
+        "typecheck": {
+          "outcome": "passed",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 10204.466115,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {}
+          },
+          "logSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+        },
+        "declaration-consumers": {
+          "outcome": "passed",
+          "command": [
+            "npm",
+            "run",
+            "test:types"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 10545.737538000001,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {}
+          },
+          "logSha256": "8b17f756a73de3ba24591cde5f69404a876a83e5867b5a60575af2e21749896d"
+        },
+        "docs": {
+          "outcome": "passed",
+          "command": [
+            "npm",
+            "run",
+            "test:docs"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 4495.338345,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {}
+          },
+          "logSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7"
+        },
+        "browser-version": {
+          "outcome": "passed",
+          "command": [
+            "/tmp/rector-browsers/chrome-linux64/chrome",
+            "--version"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 40.755438999999996,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "ce5be70c9f3bfc242ce4503fd879a9f69598329d0e7b54f638f0a70ef2f46076"
+        },
+        "table-native": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "elapsedMs": 11012.367483,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+              "EDITOR_NATIVE_FILTER": "Table",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          },
+          "logSha256": "fd2dee936b6f28a5e5c31b87e31ce65060d352da491a2173d550f72cc804537d"
+        }
+      }
+    }
+  ],
+  "nativeFinalCases": [
+    {
+      "name": "Table default parity: no-data construction restores the v1 three-by-three default, renderers, modes and one native Undo/Redo",
+      "status": "PASS"
+    },
+    {
+      "name": "Table default parity: explicit one-by-one construction remains one-by-one, renderers, modes and one native Undo/Redo",
+      "status": "PASS"
+    },
+    {
+      "name": "Table default parity: explicit three-by-three construction preserves caller cells, renderers, modes and one native Undo/Redo",
+      "status": "PASS"
+    },
+    {
+      "name": "Table keeps cells with delimiter-containing row and cell identities independent through native editing and history",
+      "status": "PASS"
+    },
+    {
+      "name": "Table Shift+Tab focuses the previous cell at its end as in v1",
+      "status": "PASS"
+    },
+    {
+      "name": "Table Enter inserts a line break in the cell and keeps typing at that boundary",
+      "status": "PASS"
+    },
+    {
+      "name": "Table cell:row:first: native input, local selection, caret and history",
+      "status": "PASS"
+    },
+    {
+      "name": "Table cell:row:second: native input, local selection, caret and history",
+      "status": "PASS"
+    },
+    {
+      "name": "Table: read-only authoring preserves canonical data",
+      "status": "PASS"
+    },
+    {
+      "name": "Table cell:row:first: native Shift+Enter keeps a line break and caret",
+      "status": "PASS"
+    },
+    {
+      "name": "Table cell:row:second: native Shift+Enter keeps a line break and caret",
+      "status": "PASS"
+    },
+    {
+      "name": "Table: whole conversion to Paragraph transfers text and one Undo/Redo",
+      "status": "PASS"
+    },
+    {
+      "name": "Literal source conversion to Table keeps markup as text and newlines",
+      "status": "PASS"
+    },
+    {
+      "name": "Table heading cells follow row reordering through public update and history",
+      "status": "PASS"
+    },
+    {
+      "name": "Table: sibling cell update retains native editing focus and caret",
+      "status": "PASS"
+    }
+  ],
+  "browser": "Google Chrome for Testing 142.0.7444.175",
+  "peerReview": {
+    "agent": "/root/v1_parity_audit",
+    "artifactSha256": "626cbb1cd327b07e13a478a950ddb952faac653f353eac847bf4f2a187f2ffc2",
+    "outcome": "No substantial blockers in read-only review",
+    "browserRerunByReviewer": false
+  },
+  "limits": [
+    "This restores the default shape; it does not claim full BLOCK_TABLE_ROUNDTRIP or all detailed Table behavior.",
+    "Native proof is Chromium 142 on Linux, with page native-plugin-parity.html filtered to Table (15 selected cases); it is not a full library browser gate.",
+    "Documentation verification ran test:docs (READMEs/source/locales/contracts/examples); the VitePress visual docs:check gate was not rerun for these two text edits.",
+    "Historical v1/e981/old candidate checkpoint observations remain unchanged; they are separate intent evidence.",
+    "The initial save().time oracle attempt remains preserved as invalid fixture evidence, not a product regression."
+  ]
+}

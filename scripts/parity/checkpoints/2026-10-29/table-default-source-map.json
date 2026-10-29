@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "classification": "Exact original Table TDD sources. First restore the adjacent core integration map to make the base available. Referenced source blobs are retained in the published continuation; this records source identity, not another executed test run.",
+  "base": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+  "frozenHead": "2a3dd16215bffeebe6207d7d333f0f4d111e448e",
+  "frozenTree": "4fd0c3f0f97bacee73a007e620fdeaa0ae85a5c3",
+  "records": [
+    {
+      "source": "0b49265c9aa5be639763ce7672b1d508f17587e5",
+      "parent": "0cf0cc72a12a2995e22e73cf75c2e29ef91bd476",
+      "tree": "94fc7198a1ff55ba642e529738587fb378bcae0b",
+      "originalCommitBase64": "dHJlZSA5NGZjNzE5OGExZmY1NWJhNjQyZTUyOTczODU4N2ZiMzc4YmNhZTBiCnBhcmVudCAwY2YwY2M3MmExMmEyOTk1ZTIyZTczY2Y3NWMyZTI5ZWY5MWJkNDc2CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMDI4MyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDAyODMgKzAwMDAKCnRlc3QodGFibGUpOiByZXF1aXJlIHRocmVlLWJ5LXRocmVlIGRlZmF1bHRzIGFuZCBwcmVzZXJ2ZSBleHBsaWNpdCBncmlkcwo=",
+      "changes": [
+        {
+          "path": "core/DocumentRuntime.test.js",
+          "mode": "100644",
+          "blob": "0370dac1755728b9785aba0c5280dbed3b11071f"
+        },
+        {
+          "path": "shared/blockSchemas/structured.test.js",
+          "mode": "100644",
+          "blob": "1b66b076bb18ca051de9ee88e693b762275462db"
+        },
+        {
+          "path": "tests/browser/native-plugin-parity.js",
+          "mode": "100644",
+          "blob": "b55bc73fab0bf745f08b9014d71b4583415c64dd"
+        },
+        {
+          "path": "tests/browser/regressions/table-default.js",
+          "mode": "100644",
+          "blob": "a5f3630e229d91add6a9f81a43edcdbe2f2bcdd0"
+        }
+      ]
+    },
+    {
+      "source": "2a3dd16215bffeebe6207d7d333f0f4d111e448e",
+      "parent": "0b49265c9aa5be639763ce7672b1d508f17587e5",
+      "tree": "4fd0c3f0f97bacee73a007e620fdeaa0ae85a5c3",
+      "originalCommitBase64": "dHJlZSA0ZmQwYzNmMGY5N2JhY2VlNzNhMDA3ZTYyMGZkZWFhMGFlODVhNWMzCnBhcmVudCAwYjQ5MjY1YzlhYTViZTYzOTc2M2NlNzY3MmIxZDUwOGYxNzU4N2U1CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzMwMDQzMyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzMDA0MzMgKzAwMDAKCmZpeCh0YWJsZSk6IHJlc3RvcmUgdGhlIHRocmVlLWJ5LXRocmVlIG5vLWRhdGEgZGVmYXVsdAo=",
+      "changes": [
+        {
+          "path": "plugins/table/README.md",
+          "mode": "100644",
+          "blob": "fa4c1592068dec48ff572463565679fcc9a26c41"
+        },
+        {
+          "path": "plugins/table/README.ru.md",
+          "mode": "100644",
+          "blob": "4b6cfe3c7a1b022837a60d12ad63ae68de58cdab"
+        },
+        {
+          "path": "shared/blockSchemas/table.js",
+          "mode": "100644",
+          "blob": "4b01e6514a09f4340e84a227b9c98f7a2c6fdba0"
+        }
+      ]
+    }
+  ]
+}
