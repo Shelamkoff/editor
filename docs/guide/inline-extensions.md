@@ -11,7 +11,7 @@ interface InlineTool {
   readonly icon: string
   readonly shortcut?: string
   readonly tag?: string
-  bindSelectionPort?(port: CrossEditableSelectionPort | null): void
+  bindSelectionPort?(port: InlineSelectionPort | null): void
   isActive(selection: InlineSelection): boolean
   toggle(selection: InlineSelection): void
   renderActions?(context: InlineToolActionContext): HTMLElement | null
@@ -29,9 +29,9 @@ interface InlineTool {
 
 When an action panel opens, the toolbar focuses its first enabled input or button unless the panel already owns focus. `Escape` from any panel control closes it and returns the saved document selection; a control can claim `Escape` with `preventDefault()` or `stopPropagation()`. Revoked panels cannot restore focus or close a later panel.
 
-Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. The port supplies the live cross-field range; each editor needs its own mutable tool instances.
+Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. `InlineSelectionPort.range` is a fresh view of the current author range, not a durable mutation right. `capture(range?)` issues an opaque `InlineSelectionBookmark` only when the supplied endpoints match the current registered field occurrences and logical positions. Equivalent text and parent boundaries are accepted; matching text in another interval or another field is not. Each editor needs its own mutable tool instances.
 
-`InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls. Its optional `restoreSelection()` returns focus and the current editor-owned range after canceling an auxiliary panel, without writing data or history; it returns `false` when editing or a valid selection is unavailable.
+`InlineMutationContext` exposes `mutate(bookmark, operation)` for mounted tool controls. Capture the opaque bookmark through that mounted tool's selection port; a raw `Range` does not authorize mutation. Its optional `restoreSelection(bookmark)` restores that same current right without writing data or history and returns `false` for foreign, replaced or retired owners. `port.restore(bookmark, { endOffsetDelta })` adjusts the original DOM-order end in UTF-16 units only inside the owning formatting mutation; the adjustment is non-cumulative and preserves the original direction. An action panel instead uses its own `InlineToolActionContext.range`, `mutate(operation)` and `restoreSelection()` throughout the action, never a bookmark borrowed from the mounted button.
 
 Formatting tools do not own separate persisted payloads. One selection may span multiple registered rich-text fields in one or more blocks; a tool is eligible only when every touched block allows it. The DOM edit crosses one protected transaction boundary and is normalized back into every affected block. Registered `plain-text` fields and auxiliary native controls are never partially formatted. Alignment is model-first: `setTextAlign()` changes only block `tunes.textAlign`, never wrapper CSS or plugin `data.align`.
 
