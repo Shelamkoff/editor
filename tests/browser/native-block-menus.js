@@ -26,7 +26,18 @@ function item(menu, label) {
   assert(found, `Missing menu item: ${label}`)
   return found
 }
-async function history(editor, before, after) {
+async function history(editor, before, after, nativeButton = null) {
+  if (nativeButton) {
+    const root = editorRoot(editor), control = root.querySelector(nativeButton)
+    assert(control instanceof HTMLButtonElement && document.activeElement === control,
+      'Conversion must focus its native upload control before the history ownership check')
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, after, 'Native upload control replayed document history')
+    assert(editor.canUndo && !editor.canRedo, 'Ignored native control shortcut changed the history position')
+    assert(document.activeElement === control, 'Ignored native control shortcut changed focus')
+    root.focus({ preventScroll: true })
+    assert(document.activeElement === root, 'The document history gesture did not acquire editor focus')
+  }
   await dispatchKey('z', 'KeyZ', 90, 2)
   equal(editor.save().blocks, before)
   equal(editor.canUndo, false, 'menu action created more than one Undo entry')
@@ -132,7 +143,7 @@ test('native paragraph and part of a List convert to one Image block', async () 
   assert(!root.classList.contains('oe-editor--cross-selecting'), 'Converted Image retained the previous cross-block highlight')
   assert(!window.getSelection().rangeCount || window.getSelection().isCollapsed, 'Converted Image retained a native text range')
   equal(root.querySelector('.oe-inline-toolbar').style.display, 'none', 'Converted Image retained a text toolbar')
-  await history(editor, before, after)
+  await history(editor, before, after, '.oe-image__select-link')
 })
 
 for (const [name, factory] of [['Gallery', blockPlugins.createGalleryPlugin], ['Carousel', blockPlugins.createCarouselPlugin]]) {
@@ -191,7 +202,10 @@ for (const fixture of pluginParityFixtures) {
         if (target.type === 'paragraph' || target.type === 'heading') equal(after[1].data.text, 'pha')
       }
       assert(root.contains(document.activeElement), 'Conversion lost editor focus')
-      await history(editor, before, after)
+      const nativeButton = mode !== 'whole' ? null : {
+        image: '.oe-image__select-link', carousel: '.oe-carousel-block__select-link',
+      }[target.type]
+      await history(editor, before, after, nativeButton)
     })
   }
 }
