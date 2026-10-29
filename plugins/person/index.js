@@ -137,8 +137,25 @@ export function createPersonPlugin(config={}){
           const AbortControllerCtor=document.defaultView?.AbortController??AbortController
           let tabsController=null
           let bodyController=null
+          /** @type {{personId:string,name:HTMLElement,info:HTMLElement,card:HTMLElement}|null} */
+          let activeNameView=null
+          /** @type {{personId:string,label:HTMLElement,select:HTMLElement,tab:HTMLElement}|null} */
+          let activeTabView=null
 
           const activePerson=()=>data.persons.find(person=>person.id===activeId)??data.persons[0]
+          const fallbackName=index=>runtimeContext.t('fallbackName','Person '+(index+1),{number:index+1})
+          const ownsNameView=view=>view&&view===activeNameView&&!dead&&!context.signal.aborted
+            &&view.personId===activeId&&view.name.parentNode===view.info
+            &&view.info.parentNode===view.card&&view.card.parentNode===body&&body.parentNode===wrapper
+          const ownsTabView=view=>view&&view===activeTabView&&!dead&&!context.signal.aborted
+            &&view.personId===activeId&&view.label.parentNode===view.select
+            &&view.select.parentNode===view.tab&&view.tab.parentNode===tabs&&tabs.parentNode===wrapper
+          const updateActiveLabel=()=>{
+            const source=activeNameView,target=activeTabView
+            if(!ownsNameView(source)||!ownsTabView(target))return
+            const text=source.name.textContent?.trim()||fallbackName(data.persons.findIndex(person=>person.id===source.personId))
+            if(ownsNameView(source)&&ownsTabView(target))target.label.textContent=text
+          }
 
           const syncControls=()=>{
             const person=activePerson()
@@ -150,22 +167,6 @@ export function createPersonPlugin(config={}){
               link.url=safe
               link.type=resolveSocialIcon(safe,snapshot.socialResolvers).type
             }
-          }
-
-          // Native input may have advanced canonical rich-text without
-          // reprojecting this source body, specifically to preserve its caret.
-          // Compare the next active person with what the user still sees.
-          const projectedActive=()=>{
-            syncControls()
-            const current=activePerson()
-            if(!current)return null
-            if(readOnly)return current
-            const visible={...current}
-            for(const key of ['name','role','bio']){
-              const field=body.querySelector('.oe-person__'+key)
-              if(field)visible[key]=field.innerHTML.trim()
-            }
-            return visible
           }
 
           const flushVisible=()=>{
@@ -273,6 +274,7 @@ export function createPersonPlugin(config={}){
           const renderTabs=()=>{
             // A detached source tab cannot complete its old native drag.
             dragId=null
+            activeTabView=null
             tabsController?.abort()
             tabsController=new AbortControllerCtor()
             tabs.replaceChildren()
@@ -300,8 +302,9 @@ export function createPersonPlugin(config={}){
               const label=document.createElement('span')
               label.className='oe-person__tab-label'
               setSanitizedHtml(label,person.name)
-              label.textContent=label.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:index+1})
+              label.textContent=label.textContent.trim()||fallbackName(index)
               select.appendChild(label)
+              if(person.id===activeId)activeTabView={personId:person.id,label,select,tab}
               select.addEventListener('click',()=>{
                 if(activeId===person.id)return
                 flushVisible()
@@ -376,6 +379,9 @@ export function createPersonPlugin(config={}){
               },{signal:tabsController.signal})
               tabs.appendChild(add)
             }
+            // A sibling update may rebuild tabs while the current healthy
+            // author field and its inline instances correctly receive no hook.
+            updateActiveLabel()
           }
 
           const createLinkRow=(person,link)=>{
@@ -422,6 +428,7 @@ export function createPersonPlugin(config={}){
           }
 
           const renderBody=()=>{
+            activeNameView=null
             bodyController?.abort()
             bodyController=new AbortControllerCtor()
             body.replaceChildren()
@@ -462,10 +469,7 @@ export function createPersonPlugin(config={}){
             name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
             if(person.name)setSanitizedHtml(name,person.name)
             name.addEventListener('input',()=>{
-              // The tabs may be replaced while an unchanged author field stays.
-              // Resolve the live label, never a detached earlier tab node.
-              const tabLabel=[...tabs.children].find(tab=>tab.getAttribute('data-person-id')===person.id)?.querySelector('.oe-person__tab-label')
-              if(tabLabel)tabLabel.textContent=name.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:data.persons.findIndex(item=>item.id===person.id)+1})
+              if(activeNameView?.name===name)updateActiveLabel()
             },{signal:bodyController.signal})
 
             const role=document.createElement('div')
@@ -503,6 +507,7 @@ export function createPersonPlugin(config={}){
 
             card.append(avatarWrap,info)
             body.appendChild(card)
+            activeNameView={personId:person.id,name,info,card}
           }
 
           const render=()=>{
@@ -519,10 +524,13 @@ export function createPersonPlugin(config={}){
               syncControls()
               return cloneData(data)
             },
-            update(next){
+            update(next,previous){
               if(dead)return
-              const previousActive=projectedActive()
               const previousId=activeId
+              // The accepted predecessor includes native source commits that
+              // intentionally did not call this instance's update(). Decorated
+              // inline DOM is not the canonical rich-text value to compare.
+              const previousActive=previous.persons.find(person=>person.id===previousId)
               data=cloneData(next)
               const nextActive=data.persons.find(person=>person.id===previousId)
               // Reordering tabs or changing another person must not detach
@@ -549,6 +557,11 @@ export function createPersonPlugin(config={}){
                 }))
               }
               return Object.freeze(result)
+            },
+            afterProjection(field){
+              const view=activeNameView
+              if(!view||field.key!=='person:'+view.personId+':name'||field.element!==view.name||field.mode!=='rich-text')return
+              updateActiveLabel()
             },
             setReadOnly(value){
               syncControls()
@@ -580,6 +593,8 @@ export function createPersonPlugin(config={}){
               dead=true
               tabsController?.abort()
               bodyController?.abort()
+              activeNameView=null
+              activeTabView=null
               cropperDialog?.destroy()
               for(const task of avatarTasks.values())task.cancel()
               avatarTasks.clear()

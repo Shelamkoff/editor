@@ -156,6 +156,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
  */
 function renderCard(person, parseInline, p, t, ownerDocument) {
     const { avatar, name, role, bio, links } = person
+    const parsedName = name ? parseInline(name) : null
 
     const card = ownerDocument.createElement('div')
     card.className = `${p}__card`
@@ -166,7 +167,7 @@ function renderCard(person, parseInline, p, t, ownerDocument) {
         const img = ownerDocument.createElement('img')
         img.className = `${p}__avatar-img`
         setSafeUrlAttribute(img, 'src', avatar, 'media')
-        img.alt = name || ''
+        img.alt = parsedName?.textContent ?? ''
         img.loading = 'lazy'
         avatarWrap.appendChild(img)
         card.appendChild(avatarWrap)
@@ -178,7 +179,7 @@ function renderCard(person, parseInline, p, t, ownerDocument) {
     if (name) {
         const nameEl = ownerDocument.createElement('div')
         nameEl.className = `${p}__name`
-        nameEl.appendChild(parseInline(name))
+        nameEl.appendChild(parsedName)
         info.appendChild(nameEl)
     }
 
