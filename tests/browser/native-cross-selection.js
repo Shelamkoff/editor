@@ -345,4 +345,61 @@ for(const [key,code,keyCode,modifiers,anchorId,anchorOffset,focusId,focusOffset]
     equal(editor.canUndo,false)
   })
 }
+for (const { shift, backwards, widgetFirst } of [
+  { shift: 0.25, backwards: false, widgetFirst: false },
+  { shift: 0, backwards: true, widgetFirst: false },
+  { shift: 0.25, backwards: true, widgetFirst: false },
+  { shift: 0.25, backwards: true, widgetFirst: true },
+]) {
+  test(`native atomic-boundary drag at ${shift}px keeps a ${backwards ? 'backward' : 'forward'} range with the widget in its ${widgetFirst ? 'first' : 'last'} field`, async () => {
+    const inline = { swatch: { type: 'color', dataVersion: 1, data: { value: '#ff0000' } } }
+    const editor = mount(widgetFirst
+      ? [para('a', 'A{{swatch}}B', { inline }), para('b', 'Bravo')]
+      : [para('a', 'Alpha'), para('b', 'A{{swatch}}B', { inline })])
+    editorRoot(editor).style.transform = `translateX(${shift}px)`
+    const before = editor.save().blocks
+    const a = editableField(editor, 'a'), b = editableField(editor, 'b')
+    const delivered = []
+    const capture = event => delivered.push({ type: event.type, trusted: event.isTrusted,
+      x: event.clientX, y: event.clientY })
+    for (const type of ['mousedown', 'mousemove', 'mouseup']) document.addEventListener(type, capture, true)
+    try { await dragAcross(editor, a, 2, b, 2, backwards) }
+    finally { for (const type of ['mousedown', 'mousemove', 'mouseup']) document.removeEventListener(type, capture, true) }
+    equal(delivered.filter(event => event.type === 'mousedown').length, 1, 'The fixture retried the native gesture')
+    equal(delivered.filter(event => event.type === 'mouseup').length, 1, 'The fixture retried the native release')
+    assert(delivered.every(event => event.trusted), 'The drag used a synthetic input event')
+    const nativePoint = widgetFirst || !backwards ? delivered.at(-1) : delivered[0]
+    const host = widgetFirst ? a : b
+    const position = document.caretPositionFromPoint(nativePoint.x, nativePoint.y)
+    assert(position, 'The actual mouse point has no native caret position')
+    assert(host.contains(position.offsetNode), 'The actual mouse point missed its authoring field')
+    const hitElement = position.offsetNode.nodeType === Node.ELEMENT_NODE ? position.offsetNode : position.offsetNode.parentElement
+    assert(!hitElement.closest('[data-inline-plugin],[contenteditable="false"]'),
+      'The actual mouse point landed inside a private inline widget')
+    equal(getTextOffset(host, position.offsetNode, position.offset), 2, 'The actual mouse point hit a different logical offset')
+    equal(editor.save().blocks, before, 'The drag changed canonical data')
+    equal(editor.canUndo, false, 'The drag entered history')
+
+    const arrow = backwards && !widgetFirst ? 'ArrowRight' : 'ArrowLeft'
+    await dispatchKey(arrow, arrow, arrow === 'ArrowRight' ? 39 : 37, 8)
+    const focus = backwards ? a : b
+    const focusOffset = backwards && !widgetFirst ? 3 : 1
+    const selection = window.getSelection()
+    equal(getTextOffset(focus, selection.focusNode, selection.focusOffset), focusOffset,
+      'Shift navigation stopped inside widget-owned markup')
+    await printable('X')
+    const after = editor.save().blocks
+    equal(after.map(block => block.data.text), [widgetFirst ? 'AXavo' : backwards ? 'AlpXB' : 'AlX{{swatch}}B'])
+    if (!backwards) equal(after[0].inline.swatch, inline.swatch, 'Typing changed the unselected widget payload')
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, before, 'One Undo did not restore the exact widget payload and block order')
+    equal(editor.canUndo, false, 'The gesture or one input created an extra history operation')
+    const restored = window.getSelection()
+    equal(getTextOffset(backwards ? b : a, restored.anchorNode, restored.anchorOffset), 2)
+    equal(getTextOffset(focus, restored.focusNode, restored.focusOffset), focusOffset)
+    await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+    equal(editor.save().blocks, after, 'One Redo did not restore the exact native edit')
+    equal(editor.canRedo, false)
+  })
+}
 await run()
