@@ -2,7 +2,7 @@
 
 This is the 209-scenario publication register derived from the recovery/read-boundary review. It is verification guidance; [the repository specification](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md) owns semantics. All 199 preceding scenario IDs and the ten recovery/read-boundary IDs are retained. Repeated boilerplate has been factored into the rules below; this is not a new runtime or compatibility format.
 
-**Candidate status, 2026-10-29: `RENDERER_CONSTRUCTION`, `BLOCK_QUOTE_PASTE_MERGE` and `RENDERER_OUTPUTS` accepted within their recorded scopes; 206 other scenarios remain open.** The [construction review](/architecture/rector-v2/PUBLICATION_REVIEW#construction-parity-2026-10-29), [expanded Quote review](/architecture/rector-v2/PUBLICATION_REVIEW#quote-paste-merge-parity-2026-10-29) and [renderer-output review](/architecture/rector-v2/PUBLICATION_REVIEW#renderer-output-parity-2026-10-29) identify the candidates, executed v1/baseline controls, environments and limitations. The original publication marked every candidate scenario not-implemented/not-run; that is the historical starting status, not a claim that every currently open scenario is a known defect. Baseline `e981ff308000c1d92d7e820df95113c1e19bcee8`; v1 reference `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` (1.0.5). Full fresh v1 execution is still pending. Existing evidence accepts only the explicitly recorded properties; a completed smoke does not accept the detailed behavior of another row.
+**Candidate status, 2026-10-29: 14 scenarios accepted within their recorded scopes; 195 remain open.** These comprise `RENDERER_CONSTRUCTION`, `BLOCK_QUOTE_PASTE_MERGE`, `RENDERER_OUTPUTS`, all nine `PRESENTATION_VALUES_FONT` rows and the two benign `PRESENTATION_VALUES_CLASS` rows. The [presentation-values review](/architecture/rector-v2/PUBLICATION_REVIEW#presentation-values-parity-2026-10-29) proves the complete FONT templates and scoped class behavior. The [construction review](/architecture/rector-v2/PUBLICATION_REVIEW#construction-parity-2026-10-29), [expanded Quote review](/architecture/rector-v2/PUBLICATION_REVIEW#quote-paste-merge-parity-2026-10-29) and [renderer-output review](/architecture/rector-v2/PUBLICATION_REVIEW#renderer-output-parity-2026-10-29) identify the candidates, executed v1/baseline controls, environments and limitations. The original publication marked every candidate scenario not-implemented/not-run; that is the historical starting status, not a claim that every currently open scenario is a known defect. Baseline `e981ff308000c1d92d7e820df95113c1e19bcee8`; v1 reference `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` (1.0.5). Full fresh v1 execution is still pending. Existing evidence accepts only the explicitly recorded properties; a completed smoke does not accept the detailed behavior of another row.
 
 ## Common procedure and oracle
 
@@ -178,17 +178,17 @@ Source owners are the existing block `plugins/<path>/` and `renderer/renderers/<
 | RESOURCES_REALM | Foreign document, compatible enforcing CSP/Trusted Types, shared definition. | No ambient DOM borrowing/global permissive policy; supported realm fallbacks remain. |
 | RESOURCES_FAILURE | Failure at acquisition/cleanup, then remount holder. | Failed construction restores original holder; independent resources released; no automatic composition rewrite. |
 | RESOURCES_STEADY | Bounded edit/mount/history stress. | No monotonic unintended retention; compare measurements, not arbitrary heap claims. |
-| PRESENTATION_VALUES_FONT_1 | FONT: 16px. | CSS meaning survives, not merely sanitized spelling. |
-| PRESENTATION_VALUES_FONT_2 | FONT: 16.5px. | Fractional size preserved. |
-| PRESENTATION_VALUES_FONT_3 | FONT: 1.5em. | Relative meaning preserved. |
-| PRESENTATION_VALUES_FONT_4 | FONT: 150%. | Percentage meaning preserved. |
-| PRESENTATION_VALUES_FONT_5 | FONT: 1.5rem. | Root-relative meaning preserved. |
-| PRESENTATION_VALUES_FONT_6 | FONT: calc(10px + 1em). | Computed meaning preserved. |
-| PRESENTATION_VALUES_FONT_7 | FONT: 201px. | No imported-document cap at UI maximum. |
-| PRESENTATION_VALUES_FONT_8 | FONT: 250px. | No imported-document cap at UI maximum. |
-| PRESENTATION_VALUES_FONT_9 | FONT: inherit. | Host inheritance preserved. |
-| PRESENTATION_VALUES_CLASS_SPAN | Benign article-accent span host rule and neighboring edit. | Class meaning/style retained; hostile collision is a separate negative. |
-| PRESENTATION_VALUES_CLASS_CODE | Benign code class/lang and neighboring edit. | Host/code presentation retained; hostile collision separately tested. |
+| PRESENTATION_VALUES_FONT_1 | FONT: 16px. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** CSS meaning survives, not merely sanitized spelling. |
+| PRESENTATION_VALUES_FONT_2 | FONT: 16.5px. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Fractional size preserved. |
+| PRESENTATION_VALUES_FONT_3 | FONT: 1.5em. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Relative meaning preserved. |
+| PRESENTATION_VALUES_FONT_4 | FONT: 150%. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Percentage meaning preserved. |
+| PRESENTATION_VALUES_FONT_5 | FONT: 1.5rem. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Root-relative meaning preserved. |
+| PRESENTATION_VALUES_FONT_6 | FONT: calc(10px + 1em). | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Computed meaning preserved. |
+| PRESENTATION_VALUES_FONT_7 | FONT: 201px. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** No imported-document cap at UI maximum. |
+| PRESENTATION_VALUES_FONT_8 | FONT: 250px. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** No imported-document cap at UI maximum. |
+| PRESENTATION_VALUES_FONT_9 | FONT: inherit. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Host inheritance preserved. |
+| PRESENTATION_VALUES_CLASS_SPAN | Benign article-accent span host rule and neighboring edit. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Class meaning/style retained; hostile collision is a separate negative. |
+| PRESENTATION_VALUES_CLASS_CODE | Benign code class/lang and neighboring edit. | **Accepted on `1a2477fa` (published `4f1ccfd3`), Chromium 142:** Host/code presentation retained; hostile collision separately tested. |
 | PRESENTATION_VALUES_TARGET_SELF | TARGET: _self. | Actual permitted requested destination. |
 | PRESENTATION_VALUES_TARGET_BLANK | TARGET: _blank. | Actual permitted requested destination with rel/platform semantics. |
 | PRESENTATION_VALUES_TARGET_PARENT | TARGET: _parent. | Actual permitted requested destination under controlled parent context. |

@@ -125,3 +125,23 @@ The real browser served 54 v1 and 88 files for each current-format source direct
 | `npm run test:package` | 285 generated runtime declarations, zero source diagnostics; strict Bundler/NodeNext, Vite/runtime imports, installed browser 39/39, 22 CSS assets; exit 0 | 15:56:18–15:56:59 |
 
 All four wrappers recorded a clean identical source before/after. Package verification also exercises the C08 canonical type migration and negative removed imports. The row does not accept every built-in renderer, cross-realm/CSP/style behavior or the entire library. Three bounded rows are accepted in the preservation register; 206 remain subject to their own evidence and decision gates.
+
+## Presentation values parity 2026-10-29
+
+**Accepted scenarios: `PRESENTATION_VALUES_FONT_1` through `PRESENTATION_VALUES_FONT_9`, plus the benign `PRESENTATION_VALUES_CLASS_SPAN` and `PRESENTATION_VALUES_CLASS_CODE` behaviors.** Candidate `1a2477fa460daff462ddf843a5af162cd8aaa803`, published with the identical tree as `4f1ccfd3c2364dbc2f1e3e982302c24b5ac5d0b6`. The same fixed browser fixture executes all 11 cases against real v1 `5e5c7f8`, specification baseline `e981ff3` and candidate modules: 528 assertions per source, 33 complete cases, no unexpected failures or page/server errors.
+
+Every case loads authored content, saves it, renders it, types into neighboring plain text with trusted input, then performs exactly one native Undo and Redo. Assertions cover all block metadata, text/marks/classes/language, immutable caller input, exact saved-record replay, history availability, native caret/focus, neighboring DOM identity and actual computed CSS in both editor and renderer. The input records and fixed CSS expectations are independent of observed product output. A test-owned parser normalizes only harmless browser attribute/style serialization; it does not call Rector sanitizers.
+
+Ordinary built-in styles are loaded. Explicit host rules establish an actual 20px Paragraph base and 16px document root, both asserted in every phase. The nine authored sizes `16px`, `16.5px`, `1.5em`, `150%`, `1.5rem`, `calc(10px + 1em)`, `201px`, `250px` and `inherit` produce respectively 16, 16.5, 30, 30, 24, 30, 201, 250 and 20px. The benign span/code class retains the explicit host's 30px size and `rgb(12, 84, 156)` color. Inline code also retains `language-javascript` and `lang="javascript"`.
+
+v1 has exactly 22 raw failed identity assertions: its Undo/Redo reconstructs the untouched neighbor in each case. They remain visible and are classified only for exact source/phase/property/actual/expected matches as `repaired-v1-history-remount`. All typography, canonical content, caret and history assertions pass in v1; baseline and candidate pass every assertion without that exception. Losing neighbor identity is a repaired baseline defect, not required typography behavior.
+
+All served production sources/styles matched their pinned Git objects before/after: 145 v1 files and 160 files for each v2 source. The portable runner is `scripts/parity/presentation-values.mjs`, SHA-256 `dc22da9837ac8375a851a3513420a9398fc5a452c901bd88fa03b3dc362aa9a9`; shared browser fixture `tests/browser/presentation-values-fixture.js`, SHA-256 `f8187d00dc602118f998227e828722913cdacf52f07bcc0dda800e87a013453f`. Its adjacent README specifies immutable baseline archives, dependency/browser paths and all reproduction inputs. Environment: Linux, Node `24.22.1`, Chromium `142.0.7444.175`, recorded shared installed dependencies. Test-only adapters translate public API/envelope spelling; production modules are not transformed.
+
+| Command on clean `1a2477fa` | Actual result | UTC interval |
+| --- | --- | --- |
+| `node scripts/parity/presentation-values.mjs` with the documented archive/browser variables | 11 cases × 3 sources; zero unexpected failures, exit 0 | 16:13:41–16:13:51 |
+| `EDITOR_NATIVE_PAGE=native-plugin-parity.html node tests/browser/physical-history.mjs` | Unfiltered page, 228/228 PASS, exit 0 | 16:14:00–16:15:06 |
+| `npm test` | 1940/1940, zero failures/skips, exit 0 | 16:14:06–16:14:31 |
+
+All three wrappers recorded clean identical source before/after. These 11 rows plus the preceding three accepted rows give 14 accepted and 195 open obligations. Hostile-class confinement remains a separately demonstrated failure in the HTML/style checkpoint; this positive corpus does not settle `B-STYLE`, choose an HTML topology, accept target navigation, other renderer payloads or whole-library parity.

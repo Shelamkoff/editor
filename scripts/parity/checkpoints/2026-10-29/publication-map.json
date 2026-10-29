@@ -3,8 +3,8 @@
   "repository": "Shelamkoff/editor",
   "branch": "refactor/rector-v2-architecture",
   "base": "e6d14c9b7912408230f53d1ff9aa754f6dd69dbe",
-  "verifiedThrough": "a39aaf3264aae1578aa03ffac1646fa2c07ea0f1",
-  "verifiedAt": "2026-10-29T15:58:08.795037+00:00",
+  "verifiedThrough": "4f1ccfd3c2364dbc2f1e3e982302c24b5ac5d0b6",
+  "verifiedAt": "2026-10-29T16:15:50.776098+00:00",
   "reason": "CLI Git credentials were unavailable after explicit publication authorization; GitHub Git Data API preserved every tree and commit order but assigned its own commit metadata.",
   "commits": [
     {
@@ -354,6 +354,54 @@
         "bb41530282441de65a561c49ff824e23c5ac07c0"
       ],
       "originalCommitBase64": "dHJlZSA3MjQ5M2YxOGRhNzE3MjgyYjg2NTAxZTkwYzgxM2ZjM2YxZjI4YjAzCnBhcmVudCA1NTI0MzNiNjYzY2NmZGVjYmQ0NGU3M2I2MDNlOWU4MWJiOGFkMjZmCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI4OTM0NyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyODkzNDcgKzAwMDAKCmZpeChyZW5kZXJlcik6IHByZXNlcnZlIGV4Y2x1c2l2ZSBvd25lcnNoaXAgb2YgZG9jdW1lbnQgb3V0cHV0cwo="
+    },
+    {
+      "original": "ac253b6bbae718bd7d1c87f19721698ece172cb2",
+      "published": "d34deb0690534100bddabce7ef946110fe7978d8",
+      "tree": "3c65efbc0e3e1d6797fa0b9502e1fd23e7133707",
+      "originalParents": [
+        "a39aaf3264aae1578aa03ffac1646fa2c07ea0f1"
+      ],
+      "publishedParents": [
+        "a39aaf3264aae1578aa03ffac1646fa2c07ea0f1"
+      ],
+      "originalCommitBase64": "dHJlZSAzYzY1ZWZiYzBlM2UxZDY3OTdmYTBiOTUwMmUxZmQyM2U3MTMzNzA3CnBhcmVudCBhMzlhYWYzMjY0YWFlMTU3OGFhMDNmZmFjMTY0NmZhMmMwN2VhMGYxCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI4OTg0OCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyODk4NDggKzAwMDAKCmRvY3MocGFyaXR5KTogcmV0YWluIEhUTUwgYW5kIHN0eWxlIGRlY2lzaW9uIHByb2Jlcwo="
+    },
+    {
+      "original": "c6419c6544ab3fad4b3e26af4e5468227e788296",
+      "published": "d1a38d9949d4f234edaa9159c32a97a382ff40de",
+      "tree": "58321ec7957916a61188a5f62fd29ae323a77279",
+      "originalParents": [
+        "ac253b6bbae718bd7d1c87f19721698ece172cb2"
+      ],
+      "publishedParents": [
+        "d34deb0690534100bddabce7ef946110fe7978d8"
+      ],
+      "originalCommitBase64": "dHJlZSA1ODMyMWVjNzk1NzkxNmE2MTE4OGE1ZjYyZmQyOWFlMzIzYTc3Mjc5CnBhcmVudCBhYzI1M2I2YmJhZTcxOGJkN2QxYzg3ZjE5NzIxNjk4ZWNlMTcyY2IyCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5MDI0MCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTAyNDAgKzAwMDAKCmRvY3MocGFyaXR5KTogYWNjZXB0IHJlbmRlcmVyIG91dHB1dCBwcm9vZiBhbmQgcmVwYWlyIFJ1c3NpYW4gbG9jYWxpemF0aW9uCg=="
+    },
+    {
+      "original": "64fef41194bb3d141ba46c03ddfc1b682ca1594a",
+      "published": "544fa1b179e8acdcdf1fcbb854243ec0e77f4a55",
+      "tree": "19874cccd0d1d23af55723c8d00570b7c9360d09",
+      "originalParents": [
+        "d1a38d9949d4f234edaa9159c32a97a382ff40de"
+      ],
+      "publishedParents": [
+        "d1a38d9949d4f234edaa9159c32a97a382ff40de"
+      ],
+      "originalCommitBase64": "dHJlZSAxOTg3NGNjY2QwZDFkMjNhZjU1NzIzYzhkMDA1NzBiN2M5MzYwZDA5CnBhcmVudCBkMWEzOGQ5OTQ5ZDRmMjM0ZWRhYTkxNTljMzJhOTdhMzgyZmY0MGRlCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5MDM1MSArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTAzNTEgKzAwMDAKCnJlZmFjdG9yKHR5cGVzKTogZW5mb3JjZSBzb3VyY2UgYW5kIGRlY2xhcmF0aW9uIGRlcGVuZGVuY3kgYm91bmRhcmllcwo="
+    },
+    {
+      "original": "1a2477fa460daff462ddf843a5af162cd8aaa803",
+      "published": "4f1ccfd3c2364dbc2f1e3e982302c24b5ac5d0b6",
+      "tree": "067dc84bd5e01adcd5e8ed2dee609466f1997b96",
+      "originalParents": [
+        "544fa1b179e8acdcdf1fcbb854243ec0e77f4a55"
+      ],
+      "publishedParents": [
+        "544fa1b179e8acdcdf1fcbb854243ec0e77f4a55"
+      ],
+      "originalCommitBase64": "dHJlZSAwNjdkYzg0YmQ1ZTAxYWRjZDVlOGVkMmRlZTYwOTQ2NmYxOTk3Yjk2CnBhcmVudCA1NDRmYTFiMTc5ZThhY2RjZGYxZmNiYjg1NDI0M2VjMGU3N2Y0YTU1CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5MDQxMyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTA0MTMgKzAwMDAKCnRlc3QocGFyaXR5KTogcHJvdmUgZm9udCBhbmQgYmVuaWduIGNsYXNzIHByZXNlcnZhdGlvbiBhY3Jvc3MgdmVyc2lvbnMK"
     }
   ]
 }
