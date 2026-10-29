@@ -29,6 +29,7 @@ function fixture({ onReadSelection = null } = {}) {
   }
   const text = {
     nodeType: 3,
+    ownerDocument,
     textContent: 'Alpha',
     parentElement: field,
     parentNode: field,
@@ -48,7 +49,9 @@ function fixture({ onReadSelection = null } = {}) {
     indexOf: id => id === 'block' ? 0 : -1,
     prepareExtensionValue: run => run(),
   }
+  const shell = { ownerDocument, contains: node => field.contains(node) }
   const reconciler = {
+    getElement: id => id === 'block' ? shell : null,
     getEditableField: (id, key) => id === 'block' && key === 'text'
       ? { key: 'text', mode: 'rich-text', element: field } : null,
     getEditableFields: id => id === 'block'
@@ -82,7 +85,7 @@ function fixture({ onReadSelection = null } = {}) {
     isMutating: () => mutating,
   })
   return {
-    port, root, runtime, field, text,
+    port, root, runtime, reconciler, field, text, ownerDocument,
     setLease(value) { lease = value },
     setAccess(value) { access = value },
     setMutation(value) { mutating = value },
@@ -236,6 +239,7 @@ test('split surrogate pair across authored text nodes is not an admissible logic
   const state = fixture()
   const low = {
     nodeType: 3,
+    ownerDocument: state.ownerDocument,
     textContent: '\uDE00B',
     parentElement: state.field,
     parentNode: state.field,
@@ -478,4 +482,144 @@ test('inline selection capture refuses a token invalidated during revision obser
       retirement + ' changed while capture built its token; stale rights escaped')
     assert.equal(observed > 0, true)
   }
+})
+
+test('unproven native offsets reject even when a Range adapter has no comparator', () => {
+  const state = fixture()
+  state.port.activate()
+  state.setRange({
+    startContainer: state.text, startOffset: 0,
+    endContainer: state.text, endOffset: 3,
+    collapsed: false,
+    cloneRange() { return { ...this } },
+  })
+  assert.equal(state.port.capture(), null)
+  assert.equal(state.port.range, null)
+  assert.deepEqual(state.applied, [])
+})
+
+test('capture accepts equivalent parent boundaries and retains authoritative backward direction', () => {
+  const state = fixture()
+  state.setBookmark({
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 5 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 0 },
+  })
+  state.setRange({
+    startContainer: state.text, startOffset: 0,
+    endContainer: state.text, endOffset: 5,
+    collapsed: false, cloneRange() { return { ...this } },
+  })
+  state.port.activate()
+  const equivalent = {
+    startContainer: state.field, startOffset: 0,
+    endContainer: state.field, endOffset: 1,
+    collapsed: false,
+    // Distinct structural DOM points can still denote the same author offsets.
+    compareBoundaryPoints() { return 1 },
+  }
+  const token = state.port.capture(equivalent)
+  assert.ok(token, 'equivalent parent boundaries were rejected')
+  assert.equal(state.port.restore(token), true)
+  assert.deepEqual(state.applied, [{
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 5 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 0 },
+  }])
+})
+
+test('a field adopted into another document cannot supply a formatting range', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  state.field.ownerDocument = {}
+  assert.equal(state.port.range, null)
+  assert.equal(state.port.capture(), null)
+  assert.equal(state.port.restore(token), false)
+  assert.deepEqual(state.applied, [])
+})
+
+test('a replaced same-key field cannot inherit a retained formatting token', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  const replacement = { ...state.field, childNodes: [] }
+  const text = { ...state.text, parentNode: replacement, parentElement: replacement }
+  replacement.childNodes.push(text)
+  state.reconciler.getElement('block').contains = node => node === replacement || node === text
+  state.reconciler.getEditableField = () => ({ key: 'text', mode: 'rich-text', element: replacement })
+  state.reconciler.getEditableFields = () => [{ key: 'text', mode: 'rich-text', element: replacement }]
+  state.root.contains = node => node === replacement || node === text
+  state.setRange({ startContainer: text, startOffset: 1, endContainer: text, endOffset: 4,
+    collapsed: false, cloneRange() { return { ...this } } })
+  let reads = 0
+  assert.equal(state.port.restore(token, { get endOffsetDelta() { reads++; return 0 } }), false)
+  assert.equal(reads, 0)
+  assert.equal(state.port.isValid(token), false)
+  assert.deepEqual(state.applied, [])
+  assert.ok(state.port.capture(), 'a fresh token should address the current occurrence')
+})
+
+for (const offset of [-1, 0.5, Infinity, NaN, 6]) {
+  test(`out-of-bounds native boundary ${offset} cannot be clamped into formatting authority`, () => {
+    const state = fixture()
+    state.port.activate()
+    state.setRange({
+      startContainer: state.text, startOffset: offset,
+      endContainer: state.text, endOffset: 4,
+      collapsed: false, cloneRange() { return { ...this } },
+    })
+    assert.equal(state.port.capture(), null)
+    assert.equal(state.port.range, null)
+  })
+}
+
+test('same-position DOM normalization preserves an existing token inside the same field', () => {
+  const state = fixture()
+  state.setRange({ startContainer: state.text, startOffset: 0,
+    endContainer: state.text, endOffset: 5,
+    collapsed: false, cloneRange() { return { ...this } } })
+  state.setBookmark({ anchor: { blockId: 'block', fieldKey: 'text', offset: 0 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 5 } })
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  state.setRange({ startContainer: state.field, startOffset: 0,
+    endContainer: state.field, endOffset: 1,
+    collapsed: false, cloneRange() { return { ...this } } })
+  assert.equal(state.port.isValid(token), true)
+  assert.equal(state.port.restore(token), true)
+  assert.equal(state.applied.length, 1)
+})
+
+test('same-ID block replacement cannot adopt an existing field token', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  const replacement = { ownerDocument: state.ownerDocument,
+    contains: node => state.field.contains(node) }
+  state.reconciler.getElement = () => replacement
+  assert.equal(state.port.isValid(token), false)
+  assert.equal(state.port.restore(token), false)
+  assert.deepEqual(state.applied, [])
+})
+
+test('a hidden descendant cannot receive a retained token during its owning mutation', () => {
+  const state = fixture()
+  const span = { nodeType: 1, tagName: 'SPAN', ownerDocument: state.ownerDocument,
+    childNodes: [state.text], parentNode: state.field, parentElement: state.field,
+    closest: () => null, hasAttribute: () => false, getAttribute: () => null }
+  state.field.childNodes = [span]
+  state.text.parentNode = state.text.parentElement = span
+  state.field.contains = node => node === state.field || node === span || node === state.text
+  state.root.contains = state.field.contains
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  state.setMutation(true)
+  state.ownerDocument.defaultView = {
+    getComputedStyle: element => ({ display: element === span ? 'none' : 'block', visibility: 'visible' }),
+  }
+  assert.equal(state.port.restore(token), false)
+  assert.deepEqual(state.applied, [])
 })

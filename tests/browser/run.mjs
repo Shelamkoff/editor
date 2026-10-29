@@ -144,7 +144,7 @@ async function stop(process) {
   try { await closed } finally { clearTimeout(timer) }
 }
 
-const labels = ['harness-contract.html', 'mode-recovery.html', 'scoped-authority.html', 'script-panel.html', 'runtime-contracts.html', 'roundtrip.html', 'roundtrip-trusted-types.html', 'person-avatar-csp.html', 'history.html', 'selection.html', 'lifecycle.html', 'plugin-style-ownership.html', 'security.html', 'trusted-types.htm', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'person-social-registry.html', 'gallery-layout-registry.html', 'mention.html', 'mention-session-race.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'slash.html', 'selection-convert.html']
+const labels = ['harness-contract.html', 'mode-recovery.html', 'scoped-authority.html', 'formatting-correspondence.html', 'script-panel.html', 'runtime-contracts.html', 'roundtrip.html', 'roundtrip-trusted-types.html', 'person-avatar-csp.html', 'history.html', 'selection.html', 'lifecycle.html', 'plugin-style-ownership.html', 'security.html', 'trusted-types.htm', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'person-social-registry.html', 'gallery-layout-registry.html', 'mention.html', 'mention-session-race.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'slash.html', 'selection-convert.html']
 labels.push('projection-contracts.html')
 labels.push('public-extension-contracts.html')
 labels.push('poll-state-contracts.html')

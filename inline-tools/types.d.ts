@@ -15,13 +15,17 @@ export interface InlineSelectionBookmark {
 }
 
 export interface InlineSelectionRestoreOptions {
+  /** Non-cumulative UTF-16 adjustment of the original ordered end, only inside the owning mutation. */
   readonly endOffsetDelta?: number
 }
 
 /** Scoped formatting selection. No DOM field index or transferable range authority. */
 export interface InlineSelectionPort {
+  /** Fresh DOM view of the current logical selection, not a durable mutation address. */
   readonly range: Range | null
+  /** Accepts equivalent logical endpoints only within the same current editor/field occurrences. */
   capture(range?: Range): InlineSelectionBookmark | null
+  /** Rejects retired or foreign rights without moving focus or restoring another occurrence. */
   restore(bookmark: InlineSelectionBookmark, options?: InlineSelectionRestoreOptions): boolean
 }
 

@@ -1,5 +1,6 @@
 // @ts-check
-import { findNodeAtOffset, getTextLength, splitsSurrogateAtOffset } from '../shared/textOffset.js'
+import { findNodeAtOffset, getTextLength, getTextOffset, splitsSurrogateAtOffset } from '../shared/textOffset.js'
+import { isRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 
 /** True only for an endpoint inside a host-owned inline widget presentation.
  * The parent boundary on either side of the widget remains ordinary text selection.
@@ -8,14 +9,6 @@ import { findNodeAtOffset, getTextLength, splitsSurrogateAtOffset } from '../sha
 function isWidgetEndpoint(node) {
   const element = node.nodeType === 1 ? /** @type {Element} */ (node) : node.parentElement
   return Boolean(element?.closest?.('[data-inline-plugin]'))
-}
-
-/** @param {Range} left @param {Range} right */
-function sameRange(left, right) {
-  return left.startContainer === right.startContainer
-    && left.startOffset === right.startOffset
-    && left.endContainer === right.endContainer
-    && left.endOffset === right.endOffset
 }
 
 /** A per-mount, private-token view over the editor's existing selection owners.
@@ -91,14 +84,16 @@ export class InlineSelectionAuthority {
     if (!this.#available()) return null
     const token = this.#runtime.prepareExtensionValue(() => {
       const current = this.#read()
-      if (!this.#validCurrent(current) || (range !== undefined && !sameRange(range, current.range))) return null
-      const bookmark = current.bookmark
-      const anchor = this.#copyPoint(bookmark.anchor)
-      const focus = this.#copyPoint(bookmark.focus)
-      if (!anchor || !focus || !this.#resolve(anchor) || !this.#resolve(focus)) return null
+      const bookmark = current?.bookmark
+      const anchor = this.#copyPoint(bookmark?.anchor)
+      const focus = this.#copyPoint(bookmark?.focus)
+      if (!anchor || !focus) return null
+      const owners = [this.#owner(anchor), this.#owner(focus)]
+      if (owners.some(owner => !owner) || !this.#validCurrent(current)
+        || (range !== undefined && !this.#validCurrent({ range, bookmark }))) return null
       const token = Object.freeze({})
       this.#tokens.set(token, {
-        anchor, focus,
+        anchor, focus, owners,
         conversionCaret: bookmark.conversionCaret === true,
         lease: this.#lease(),
         generation: this.#runtime.generation,
@@ -201,6 +196,7 @@ export class InlineSelectionAuthority {
   #resolve(point) {
     const field = this.#reconciler.getEditableField(point.blockId, point.fieldKey)
     if (!field || field.mode !== 'rich-text' || !field.element
+      || field.element.ownerDocument !== this.#root.ownerDocument
       || !this.#root.contains(field.element) || !field.element.isConnected) return null
     const element = field.element
     if (element.contentEditable !== 'true' && element.getAttribute?.('contenteditable') !== 'true') return null
@@ -210,9 +206,10 @@ export class InlineSelectionAuthority {
     const length = getTextLength(element)
     if (point.offset < 0 || point.offset > length) return null
     const resolved = findNodeAtOffset(field.element, point.offset, 'end')
-    if (!resolved || isWidgetEndpoint(resolved.node)) return null
     if (splitsSurrogateAtOffset(element, point.offset)) return null
-    return resolved
+    if (resolved && this.#eligibleEndpoint(resolved.node, resolved.offset, element)) return resolved
+    const alternative = findNodeAtOffset(element, point.offset, 'start')
+    return alternative && this.#eligibleEndpoint(alternative.node, alternative.offset, element) ? alternative : null
   }
 
   /** Resolve authored logical endpoints in their current keyed fields.
@@ -249,24 +246,87 @@ export class InlineSelectionAuthority {
   /** @param {{range:Range|null,bookmark:any}|null} current */
   #validCurrent(current) {
     if (!current?.range || current.range.collapsed || !current.bookmark?.anchor || !current.bookmark?.focus) return false
-    const range = current.range
-    if (isWidgetEndpoint(range.startContainer) || isWidgetEndpoint(range.endContainer)) return false
-    if (!this.#root.contains(range.startContainer) || !this.#root.contains(range.endContainer)) return false
     const anchor = this.#copyPoint(current.bookmark.anchor)
     const focus = this.#copyPoint(current.bookmark.focus)
     if (!anchor || !focus) return false
-    const expected = this.#resolvedRange(anchor, focus)
-    if (!expected) return false
-    // Equivalent DOM boundaries may be represented by a parent element offset
-    // or a descendant text node. Compare actual positions, not node identity.
-    // Native Range exposes this method; restricted test adapters may omit it.
-    if (typeof range.compareBoundaryPoints === 'function') {
-      try {
-        return range.compareBoundaryPoints(0, expected) === 0
-          && range.compareBoundaryPoints(2, expected) === 0
-      } catch { return false }
+    const order = this.#compare(anchor, focus)
+    if (order === 0) return false
+    const start = order < 0 ? anchor : focus
+    const end = order < 0 ? focus : anchor
+    return this.#corresponds(current.range.startContainer, current.range.startOffset, start)
+      && this.#corresponds(current.range.endContainer, current.range.endOffset, end)
+  }
+
+  /** Prove an endpoint's current field and logical position before mapping it.
+   * getTextOffset deliberately clamps generic control/out-of-range inputs;
+   * those conveniences cannot grant a formatting capability.
+   * @param {Node} node
+   * @param {number} offset
+   * @param {{blockId:string,fieldKey:string,offset:number}} point
+   */
+  #corresponds(node, offset, point) {
+    const field = this.#reconciler.getEditableField(point.blockId, point.fieldKey)
+    if (!field || field.mode !== 'rich-text' || !this.#resolve(point)
+      || !this.#eligibleEndpoint(node, offset, field.element)) return false
+    const position = getTextOffset(field.element, node, offset)
+    // Resolving registered fields can invoke a plugin's synchronous projection
+    // hooks. A replacement cannot inherit the predecessor's observed position.
+    return position === point.offset && this.#sameOwner({
+      blockId: point.blockId, fieldKey: point.fieldKey,
+      element: field.element, block: this.#reconciler.getElement(point.blockId),
+    })
+  }
+
+  /** A matching numeric offset never legitimizes a control/widget/foreign
+   * endpoint. Parent boundaries outside these subtrees remain ordinary author
+   * positions. Ancestor visibility applies even above the editing host.
+   * @param {Node} node
+   * @param {number} offset
+   * @param {HTMLElement} field
+   */
+  #eligibleEndpoint(node, offset, field) {
+    const document = this.#root.ownerDocument
+    if (!node || (node.nodeType !== 1 && node.nodeType !== 3)
+      || node.ownerDocument !== document || !Number.isSafeInteger(offset) || offset < 0
+      || !field.contains(node)) return false
+    const length = node.nodeType === 3 ? node.textContent?.length ?? 0 : node.childNodes.length
+    if (offset > length || isWidgetEndpoint(node)) return false
+    const HTMLElementCtor = document.defaultView?.HTMLElement
+    const TextCtor = document.defaultView?.Text
+    if (node.nodeType === 3 && TextCtor && !(node instanceof TextCtor)) return false
+    let reachedField = false
+    for (let ancestor = node; ancestor; ancestor = ancestor.parentNode) {
+      if (isRichTextCaretPadding(ancestor)) return false
+      if (ancestor.nodeType !== 1) continue
+      const element = /** @type {HTMLElement} */ (ancestor)
+      if (HTMLElementCtor && !(element instanceof HTMLElementCtor)) return false
+      const style = document.defaultView?.getComputedStyle?.(element)
+      if (element.hidden || element.hasAttribute('inert') || style?.display === 'none'
+        || style?.visibility === 'hidden' || style?.visibility === 'collapse') return false
+      if (!reachedField && (['BR', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(element.tagName)
+        || element.getAttribute?.('role') === 'button')) return false
+      if (ancestor === field) reachedField = true
+      else if (!reachedField && element.hasAttribute('contenteditable')) return false
     }
-    return true
+    return reachedField
+  }
+
+  /** Capture only existing occurrence ownership, not another selection store.
+   * @param {{blockId:string,fieldKey:string,offset:number}} point
+   */
+  #owner(point) {
+    const field = this.#reconciler.getEditableField(point.blockId, point.fieldKey)
+    const block = this.#reconciler.getElement(point.blockId)
+    if (!block || !field || field.mode !== 'rich-text' || !block.contains(field.element)) return null
+    return { blockId: point.blockId, fieldKey: point.fieldKey, block, element: field.element }
+  }
+
+  /** @param {any} owner */
+  #sameOwner(owner) {
+    const field = this.#reconciler.getEditableField(owner.blockId, owner.fieldKey)
+    return field?.mode === 'rich-text' && field.element === owner.element
+      && this.#reconciler.getElement(owner.blockId) === owner.block
+      && owner.block?.contains(owner.element)
   }
 
   /** A genuine changed native selection must expire the token immediately,
@@ -289,6 +349,7 @@ export class InlineSelectionAuthority {
   /** @param {any} metadata */
   #matches(metadata) {
     return Boolean(metadata && this.#available()
+      && metadata.owners.every(owner => this.#sameOwner(owner))
       && metadata.lease === this.#lease()
       && metadata.generation === this.#runtime.generation
       && metadata.revision === this.#runtime.revision
