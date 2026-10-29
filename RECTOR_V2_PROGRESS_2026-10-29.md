@@ -10,6 +10,7 @@ This is a scoped implementation and verification checkpoint, not whole-library r
 - Production-code freeze: `fa13888a66e660e2893e5fc493bd600588f13b10`.
 - Native fixture correction: `4b87dad094367eea16b768ca4e3ac0808b1dec1f`; between the production freeze and this native-acceptance commit, the only change is `tests/browser/native-conversion-grouping.js`.
 - Byte-for-byte reproduction probes are retained in evidence commit `7db0361e5019dc4323514292cd03aa1a5e4c73e2`. They and this report/registry/index update are evidence and documentation changes after runtime verification.
+- Final documentation gates: clean `15040347b20d2f12487626976c9b92d3b3ae677c`. The subsequent update only records these outcomes in this root report.
 
 The work used three parallel agents, the modern JavaScript and JavaScript testing skills, and the repository's TDD workflow. Runtime changes remain in the existing transaction, projection, focus, and selection owners. No additional transaction engine, selection authority, compatibility runtime, or remount manager was added.
 
@@ -96,7 +97,7 @@ Linux managed environment; Node `v24.22.1`, npm `11.9.0`, Chromium `142.0.7444.1
 
 Each acceptance wrapper captured UTC start/end, exact command, exit code, HEAD, tracked binary-diff SHA-256 and Git status before/after. Listed completed runs have `sourceUnchanged: true` and clean source snapshots. Logs/manifests are session evidence under `/tmp/rector-final-gates`; no generated log or screenshot was added to Git.
 
-The broad gates ran on production freeze `fa13888a`. The later test-only commit does not change the runtime, package, docs site, ordinary browser fixtures, type fixtures or heap gate. Final native acceptance uses `4b87dad0`. The commands below were executed individually; the aggregate `npm run test:browser` command is not being claimed as an additional run.
+The broad gates ran on production freeze `fa13888a`. The later test-only commit does not change the runtime, package, docs site, ordinary browser fixtures, type fixtures or heap gate. Final native acceptance uses `4b87dad0`. After the reproduction sources and publication/registry notes were committed, both documentation gates were rerun successfully on clean `15040347`; the runtime remained identical to the production freeze. The commands below were executed individually; the aggregate `npm run test:browser` command is not being claimed as an additional run.
 
 | Gate | Actual command | Result |
 |---|---|---|
@@ -143,6 +144,16 @@ The first complete native attempt on clean `fa13888a` exited 1 after 225.525 sec
 | preflight-mention-popup | 14:52:34 | 24.05 | 0 | `4b87dad0` | true |
 | preflight-plugin-controls | 14:53:06 | 40.227 | 0 | `4b87dad0` | true |
 | physical-final | 14:44:26 | 958.858 | 0 | `4b87dad0` | true |
+| docs-contract-checkpoint | 15:04:38 | 5.152 | 0 | `a29cd086` | true |
+| docs-check-checkpoint | 15:04:36 | 26.054 | 1 | `a29cd086` | true |
+| docs-contract-final | 15:08:20 | 4.701 | 0 | `15040347` | true |
+| docs-check-final | 15:08:18 | 57.85 | 0 | `15040347` | true |
+
+### Final documentation validation
+
+After the acceptance notes were added, `docs-contract-checkpoint` passed but `docs-check-checkpoint` failed the Russian-prose policy on two new terms. A focused diagnostic after the Russian correction also reported the new relative-link spellings under the site's existing route checker; it used the existing built site and a working RU patch, so it is not a new full-build acceptance run. The wording was localized and the links adopted the existing canonical site routes. The validators and their allowlists were not weakened.
+
+The subsequent clean-source `docs-contract-final` passed in 4.701 seconds, and the complete `docs-check-final` passed in 57.850 seconds on `15040347`. Final results remain 47 localized README pairs, 94 README/53 example contract checks, 127 built HTML pages, zero broken links, zero missing browser assets, no documentation site in the npm package allowlist, and successful RU/EN light/dark browser scenarios. The earlier failed traces are retained under their original names.
 
 ### Complete native matrix
 
@@ -231,6 +242,16 @@ These are the local implementation/test commits after `e6d14c9b`; evidence and d
 | `4b87dad0` | test: preserve native control ownership in conversion grouping history |
 
 Evidence commit after the implementation ledger: `7db0361e` — `test(parity): retain exact checkpoint probe sources`. It preserves three successful probes, the explicitly failed initial construction-control probe, and their reproduction README without changing the executed bytes or adding generated output.
+
+Documentation follow-up commits:
+
+| Commit | Change |
+|---|---|
+| `a29cd086` | Record the checkpoint and accept the single verified construction scenario |
+| `a6f3b12a` | Localize the new Russian construction terminology |
+| `15040347` | Use canonical site routes for the construction-review links |
+
+The final root-report-only commit records the successful documentation rerun above. It does not alter the runtime, tests or published site content.
 
 ## Publication state at this checkpoint
 
