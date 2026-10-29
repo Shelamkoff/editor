@@ -162,6 +162,37 @@ test('Person derived tab settles a previously hidden widget name when its actual
   } finally { h.dispose() }
 })
 
+test('Person derived view retires the old body when removing the active profile selects its existing sibling', async () => {
+  const profiles = [
+    { ...person('active', 'Alpha'), avatar: pixel, role: 'Author', bio: 'First biography',
+      links: [{ id: 'first-link', type: 'website', url: 'https://example.test/alpha' }] },
+    { ...person('other', 'Grace'), role: 'Reviewer', bio: 'Second biography',
+      links: [{ id: 'second-link', type: 'github', url: 'https://example.test/grace' }] },
+  ]
+  const h = await fixture({ widgets: false, profiles })
+  try {
+    const before = h.editor.save().blocks, old = h.name(), after = structuredClone(before)
+    after[0].data.persons = after[0].data.persons.slice(1)
+    blockElement(h.editor, 'person').querySelector('[data-person-id="active"] .oe-person__tab-remove').click()
+    await pause(20)
+    equal(h.editor.save().blocks, after)
+    const wrapper = h.current().element
+    equal({ oldRetired: !old.isConnected && h.name() !== old,
+      name: h.name().textContent, role: wrapper.querySelector('.oe-person__role').textContent,
+      bio: wrapper.querySelector('.oe-person__bio').textContent,
+      avatarCount: wrapper.querySelectorAll('.oe-person__card .oe-person__avatar-img').length,
+      links: [...wrapper.querySelectorAll('.oe-person__link-url')].map(input => ({ id: input.dataset.linkId, value: input.value })),
+      fields: h.current().instance.editableFields().map(field => field.key),
+      activeTab: wrapper.querySelector('.oe-person__tab--active').dataset.personId,
+    }, { oldRetired: true, name: 'Grace', role: 'Reviewer', bio: 'Second biography', avatarCount: 0,
+      links: [{ id: 'second-link', value: 'https://example.test/grace' }],
+      fields: ['person:other:name', 'person:other:role', 'person:other:bio', 'person:other:link:second-link:url'], activeTab: 'other' })
+    equal(h.transactions.length, 1)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before); assert(!h.editor.canUndo)
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after); assert(!h.editor.canRedo)
+  } finally { h.dispose() }
+})
+
 test('Person derived input from a retired body leaves the current tab and author fields unchanged', async () => {
   const h = await fixture()
   try {
