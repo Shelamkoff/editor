@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-person-repair-20261029",
+  "startedAt": "2026-10-29T21:41:54.204Z",
+  "finishedAt": "2026-10-29T21:42:53.794Z",
+  "outcome": "failed",
+  "source": {
+    "head": "35f3da5c20f1b334e8befe5b6413d36d18c0fc69",
+    "tree": "665050708ac5bc1194b439d3341dfab3148cc064",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+      }
+    ],
+    "dirty": true,
+    "identity": "5ff3295eab23933753874d26a665bebc86a33c48585092568489f6dd90a266aa"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "person-active-removal": {
+      "outcome": "failed",
+      "startedAt": "2026-10-29T21:42:04.527Z",
+      "finishedAt": "2026-10-29T21:42:09.308Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-person-repair-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "35f3da5c20f1b334e8befe5b6413d36d18c0fc69",
+        "tree": "665050708ac5bc1194b439d3341dfab3148cc064",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "5ff3295eab23933753874d26a665bebc86a33c48585092568489f6dd90a266aa"
+      },
+      "elapsedMs": 4773.656578,
+      "sourceAfter": {
+        "head": "35f3da5c20f1b334e8befe5b6413d36d18c0fc69",
+        "tree": "665050708ac5bc1194b439d3341dfab3148cc064",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "5ff3295eab23933753874d26a665bebc86a33c48585092568489f6dd90a266aa"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "35f3da5c20f1b334e8befe5b6413d36d18c0fc69",
+    "tree": "665050708ac5bc1194b439d3341dfab3148cc064",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+      }
+    ],
+    "dirty": true,
+    "identity": "5ff3295eab23933753874d26a665bebc86a33c48585092568489f6dd90a266aa"
+  },
+  "sourceUnchanged": true
+}

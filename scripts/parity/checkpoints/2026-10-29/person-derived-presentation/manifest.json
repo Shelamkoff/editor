@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "scope": "Person active-field derived tab labels, renderer avatar alternative text, canonical update predecessor comparison and current active-body retention. Inactive rich-name tabs remain OPEN.",
+  "productionBase": "fe44cc57f5cbac1daffd031f5c8e791d707fb828",
+  "finalRuntimeCommit": "3eeaedb878ea02111910a6f8d8889e9edc66169f",
+  "finalTypecheckHead": "14546d61c89785a6164ca230e553b8dd58215bea",
+  "runtimeAndTestFiles": {
+    "plugins/person/index.js": "cc9e97768ad60bcf3baf155a48cdcee3ecfd029e6841a10eda948255236ecc87",
+    "renderer/renderers/person/index.js": "b8b0aa407e1809c36c75ccd4839557e16614a22d672abbe19b74c3517ae7f8c9",
+    "plugins/person/reconciliation.test.js": "4dbaaeab234dd3f79effcc81fc93f925b42ec6168474566bedd8224bd2a92309",
+    "tests/browser/projection-contracts.js": "d1227d780b49ad8cb1b1c01de8c366e73f68d8819cfac0902629b4fc2260767d",
+    "tests/browser/regressions/person-derived-presentation.js": "618d82e0efc874d437b689b421488a7a6693b275788de748f01a6b3aafed4c01",
+    "tests/browser/native-plugin-controls.js": "99673d307ca3ccb6fa413d98743053cc582c3f42b4b902f47c7a3afd22b844fa"
+  },
+  "tddStages": [
+    {
+      "commit": "8b0bf9fc106303b442362752e35804724694189f",
+      "kind": "test-only",
+      "result": "ordinary113:103PASS10FAIL; actual Person fallback, completed labels, field/range retention, hidden-field activation, foreign-name input, renderer alt failures"
+    },
+    {
+      "commit": "2af64ae1d06bc774a96b6209966477664414b6ac",
+      "kind": "test-only",
+      "result": "native2:0PASS2FAIL; trusted source edits and exact canonical predecessor controls pass before field/range failures"
+    },
+    {
+      "commit": "72a7c40462b55eb0b94d99f80795ed2317a7e3ab",
+      "kind": "production",
+      "result": "ordinary113PASS/native2PASS; intermediate aggregate remainsFAILED because raw reference differences were deliberately unclassified"
+    },
+    {
+      "commit": "35f3da5c20f1b334e8befe5b6413d36d18c0fc69",
+      "kind": "test-only",
+      "result": "peer active-removal regression: ordinary114:113PASS1FAIL"
+    },
+    {
+      "commit": "3eeaedb878ea02111910a6f8d8889e9edc66169f",
+      "kind": "production",
+      "result": "ordinary114PASS/nativePerson17PASS/Node14PASS, all source unchanged"
+    }
+  ],
+  "finalCounts": {
+    "ordinary": 114,
+    "nativePersonControls": 17,
+    "nodeTests": 14,
+    "checkJsConfigs": 2
+  },
+  "delivery": {
+    "mbox": "/tmp/rector-person-repair-tdd.mbox",
+    "sha256": "da9512ca4374f0b58d581e686b0834623b7f94ab1845c6f32fb41d456d21bec8",
+    "command": "git am /tmp/rector-person-repair-tdd.mbox",
+    "baseVerified": "fdd136f0967178f38e8dbf7f52a11c749e99502f",
+    "resultVerified": "ad92105490a92aaa34a82c5d9a10b5a91284928e",
+    "checkout": "/tmp/rector-person-delivery-verify-20261029",
+    "commits": [
+      "ad92105490a92aaa34a82c5d9a10b5a91284928e fix(person): retain a body only for its captured active profile",
+      "48fddb4113c45b8ff728abe22b1dff932789961b test(person): reject retaining a removed active profile body",
+      "5b69415963f0ce9e60e4d889aabe61d630a1fb97 fix(person): preserve active rich fields and complete derived labels",
+      "c466af202293cb9e01636ec194e06f64c43c34b4 test(person): retain rich source fields after trusted native preedit",
+      "e50e4c465bec02273a3ed05e30dc40da1366d8ec test(person): reproduce derived labels and avatar alternatives"
+    ],
+    "exactSixFilesMatch": true,
+    "note": "Path-filtered format-patch retains five test-first/fix stages. The first stage excludes only the two shared ROUNDTRIP auxiliary-label assertions; all executed Person test files are exact. No shared ROUNDTRIP file is delivered."
+  },
+  "evidence": {
+    "source.patch": {
+      "source": "/tmp/rector-person-fix-review.patch",
+      "sha256": "19430fc2e4c7038c77c9c283d23e8bdbf87c4f664c2d3f46d94a2f92d49b6301",
+      "bytes": 37937,
+      "originalSha256": "19430fc2e4c7038c77c9c283d23e8bdbf87c4f664c2d3f46d94a2f92d49b6301",
+      "originalBytes": 37937,
+      "encoding": "identity"
+    },
+    "tdd.mbox": {
+      "source": "/tmp/rector-person-repair-tdd.mbox",
+      "sha256": "da9512ca4374f0b58d581e686b0834623b7f94ab1845c6f32fb41d456d21bec8",
+      "bytes": 40901,
+      "originalSha256": "da9512ca4374f0b58d581e686b0834623b7f94ab1845c6f32fb41d456d21bec8",
+      "originalBytes": 40901,
+      "encoding": "identity"
+    },
+    "initial-ordinary-red-manifest.json": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-5w200t/manifest.json",
+      "sha256": "c7fcf8c06f59b110c893bb03dfca34cb195e7dd8e5aa1478f33214c97bc0f9e2",
+      "bytes": 3861,
+      "originalSha256": "c7fcf8c06f59b110c893bb03dfca34cb195e7dd8e5aa1478f33214c97bc0f9e2",
+      "originalBytes": 3861,
+      "encoding": "identity"
+    },
+    "initial-ordinary-red.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-5w200t/person-focused.log",
+      "sha256": "51cf103227e0db345354796afc48ebc3bdaead8b398848387c7e31f03b98de9a",
+      "bytes": 1523,
+      "originalSha256": "71501e4e21eb0d18fdb6ccf7e065eaa51f25afa14b2ffedccdadb664778c1d74",
+      "originalBytes": 8344,
+      "encoding": "gzip"
+    },
+    "initial-native-red-manifest.json": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-lzhTrn/manifest.json",
+      "sha256": "6ab8dd54dccb51a558807623a385ff0da70e64906b4a33f1f9894584a9327129",
+      "bytes": 3942,
+      "originalSha256": "6ab8dd54dccb51a558807623a385ff0da70e64906b4a33f1f9894584a9327129",
+      "originalBytes": 3942,
+      "encoding": "identity"
+    },
+    "initial-native-red.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-lzhTrn/person-native.log",
+      "sha256": "9952ea359c8fd839a6c47c65a2e9e761876dea0f50b019463a188ed673ed0868",
+      "bytes": 660,
+      "originalSha256": "c6075d96547b4296f9f374efdec08848ca9e584489bdf0b8a3db6c682f86736f",
+      "originalBytes": 2588,
+      "encoding": "gzip"
+    },
+    "initial-repair-manifest.json": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-Qg31Fw/manifest.json",
+      "sha256": "5328e67e4645fbe29c2e861fb00d218d5b23ae9e956d990db6fef51e92ae3412",
+      "bytes": 14475,
+      "originalSha256": "5328e67e4645fbe29c2e861fb00d218d5b23ae9e956d990db6fef51e92ae3412",
+      "originalBytes": 14475,
+      "encoding": "identity"
+    },
+    "initial-repair-ordinary-green.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-Qg31Fw/person-focused.log",
+      "sha256": "20bb8db36c37b42c4360527f51cd708ab488073fc536de528e1b1c2843c5937e",
+      "bytes": 3028,
+      "originalSha256": "481a577cf052d2f63783120b01f819aa2da9280a25f7dc8eeddcbe7088065937",
+      "originalBytes": 14982,
+      "encoding": "gzip"
+    },
+    "peer-active-removal-red-manifest.json": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-PuEdCd/manifest.json",
+      "sha256": "4682d73d0828e0fbeac7d552f309dc31b7ec131b2719a050fa6f91258a6a921c",
+      "bytes": 3869,
+      "originalSha256": "4682d73d0828e0fbeac7d552f309dc31b7ec131b2719a050fa6f91258a6a921c",
+      "originalBytes": 3869,
+      "encoding": "identity"
+    },
+    "peer-active-removal-red.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-PuEdCd/person-active-removal.log",
+      "sha256": "7262613ffc07a07d85663589e541a747c1c3022ffd4807c05b6f40219be57051",
+      "bytes": 876,
+      "originalSha256": "a8585de19fcb1e8dc733a178b88c786fc1461f599b377354797a08a351280584",
+      "originalBytes": 2021,
+      "encoding": "gzip"
+    },
+    "final-repair-manifest.json": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-UGwtcs/manifest.json",
+      "sha256": "872e826200bef069bac0aca96eaf7852849147b19e72f6dbce2431dea481247e",
+      "bytes": 8191,
+      "originalSha256": "872e826200bef069bac0aca96eaf7852849147b19e72f6dbce2431dea481247e",
+      "originalBytes": 8191,
+      "encoding": "identity"
+    },
+    "final-ordinary-green.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-UGwtcs/person-focused.log",
+      "sha256": "9882b5eb7e4e985803f17766b8aae4a4328528ab5915f08089393e18a70b5e98",
+      "bytes": 3063,
+      "originalSha256": "03cd93592b2dd91de7ac9bb5592139d98eced607c58d8da12e04b3c6bebece8c",
+      "originalBytes": 15130,
+      "encoding": "gzip"
+    },
+    "final-types-manifest.json": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-yZCUHw/manifest.json",
+      "sha256": "331a548756af35541d913dc699518c7d94bb834a0c37cc86bc392372a09b95ca",
+      "bytes": 5829,
+      "originalSha256": "331a548756af35541d913dc699518c7d94bb834a0c37cc86bc392372a09b95ca",
+      "originalBytes": 5829,
+      "encoding": "identity"
+    },
+    "final-native-green.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-UGwtcs/person-native-controls.log",
+      "sha256": "ef747b378eafee4d0553182e6631d697c3b0b91e1dec10fc6e14a7a61cd8d36d",
+      "bytes": 536,
+      "originalSha256": "c3d671e0d335e8ba0104a123b0f7b20aaea5404fda0644fd9b9517a06820ea33",
+      "originalBytes": 1901,
+      "encoding": "gzip"
+    },
+    "final-node-green.log.gz": {
+      "source": "/tmp/rector-person-repair-20261029/test-results/run-UGwtcs/node-person.log",
+      "sha256": "3eec90c88504a7fe76860449af987aaf9e94b062eee6d24c7811bd4a385d6b02",
+      "bytes": 608,
+      "originalSha256": "0e4eaa70b49399e6eb9a1adaa8cb85065f69ac9a82f4f35ed61fb09f2e7e13cf",
+      "originalBytes": 1295,
+      "encoding": "gzip"
+    },
+    "initial-launch-invalid.log": {
+      "source": "/tmp/rector-person-focused-launch-invalid.log",
+      "sha256": "57891fb626b9669a085212501e083519f46485c0205b5c313910db95e1b8baf7",
+      "bytes": 78,
+      "originalSha256": "57891fb626b9669a085212501e083519f46485c0205b5c313910db95e1b8baf7",
+      "originalBytes": 78,
+      "encoding": "identity"
+    },
+    "final-types-library.log": {
+      "source": "/tmp/rector-person-final-types-library.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "encoding": "identity"
+    },
+    "final-types-runtime.log": {
+      "source": "/tmp/rector-person-final-types-runtime.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalBytes": 0,
+      "encoding": "identity"
+    }
+  },
+  "limitations": [
+    "No completion callback exists for an unprojected inactive name; its persistent-widget tab label is not claimed fixed. Focusing its actual rich field is a proved positive control.",
+    "Local exact node paths prove the captured Person view, not an editor boundary. Whole-block/field admission remains in BlockReconciler.",
+    "No public API, new registry, observer, timer, widget cloning, manual payload decoder or canonical no-op write was added.",
+    "This checkpoint does not accept a complete Person ROUNDTRIP or whole-library parity. Shared fixture/classifiers/empty-placeholder adaptation are a separate slice.",
+    "All Chromium evidence here uses the recorded Chrome142 executable. Broader core acceptance on Chrome156 is a separate owner/run.",
+    "C11 explicitly records an unchanged untracked node_modules symlink; tracked source and its exact identity did not change during any recorded command.",
+    "The first C11 launcher invocation used the wrong CLI argument form and started no browser/gate. It is retained as invalid, not counted RED/PASS."
+  ]
+}

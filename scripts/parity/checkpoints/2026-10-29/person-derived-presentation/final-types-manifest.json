@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-person-repair-20261029",
+  "startedAt": "2026-10-29T21:52:57.862Z",
+  "finishedAt": "2026-10-29T21:54:20.929Z",
+  "outcome": "passed",
+  "source": {
+    "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+    "tree": "d7074feb75e514a1ce4ab484a23a5d6853715f3e",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+      }
+    ],
+    "dirty": true,
+    "identity": "c21e5e1c2be4aa208e2acd3c8ad4371507f0f1a23e394b1375bb609e9e90c006"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "types-library": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T21:53:09.456Z",
+      "finishedAt": "2026-10-29T21:53:14.019Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "jsconfig.json"
+      ],
+      "cwd": "/tmp/rector-person-repair-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+        "tree": "d7074feb75e514a1ce4ab484a23a5d6853715f3e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "c21e5e1c2be4aa208e2acd3c8ad4371507f0f1a23e394b1375bb609e9e90c006"
+      },
+      "elapsedMs": 4560.349879,
+      "sourceAfter": {
+        "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+        "tree": "d7074feb75e514a1ce4ab484a23a5d6853715f3e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "c21e5e1c2be4aa208e2acd3c8ad4371507f0f1a23e394b1375bb609e9e90c006"
+      },
+      "sourceUnchanged": true
+    },
+    "types-runtime": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T21:53:35.457Z",
+      "finishedAt": "2026-10-29T21:53:40.104Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "jsconfig.runtime.json"
+      ],
+      "cwd": "/tmp/rector-person-repair-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+        "tree": "d7074feb75e514a1ce4ab484a23a5d6853715f3e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "c21e5e1c2be4aa208e2acd3c8ad4371507f0f1a23e394b1375bb609e9e90c006"
+      },
+      "elapsedMs": 4644.347058,
+      "sourceAfter": {
+        "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+        "tree": "d7074feb75e514a1ce4ab484a23a5d6853715f3e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "c21e5e1c2be4aa208e2acd3c8ad4371507f0f1a23e394b1375bb609e9e90c006"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+    "tree": "d7074feb75e514a1ce4ab484a23a5d6853715f3e",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+      }
+    ],
+    "dirty": true,
+    "identity": "c21e5e1c2be4aa208e2acd3c8ad4371507f0f1a23e394b1375bb609e9e90c006"
+  },
+  "sourceUnchanged": true
+}

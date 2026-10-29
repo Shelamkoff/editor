@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-person-repair-20261029",
+  "startedAt": "2026-10-29T21:34:34.643Z",
+  "finishedAt": "2026-10-29T21:35:18.427Z",
+  "outcome": "failed",
+  "source": {
+    "head": "2af64ae1d06bc774a96b6209966477664414b6ac",
+    "tree": "15b78959265b6b574c5b584ba60ec2d6c5bb5e0e",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+      }
+    ],
+    "dirty": true,
+    "identity": "57c32e220579e33f029625bd448b7a253e161554dfb55167767307fe2dc5a40c"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "person-native": {
+      "outcome": "failed",
+      "startedAt": "2026-10-29T21:34:48.629Z",
+      "finishedAt": "2026-10-29T21:34:50.147Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-person-repair-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-plugin-controls.html",
+          "EDITOR_NATIVE_FILTER": "Person derived native preedit",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "2af64ae1d06bc774a96b6209966477664414b6ac",
+        "tree": "15b78959265b6b574c5b584ba60ec2d6c5bb5e0e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "57c32e220579e33f029625bd448b7a253e161554dfb55167767307fe2dc5a40c"
+      },
+      "elapsedMs": 1513.806343,
+      "sourceAfter": {
+        "head": "2af64ae1d06bc774a96b6209966477664414b6ac",
+        "tree": "15b78959265b6b574c5b584ba60ec2d6c5bb5e0e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+          }
+        ],
+        "dirty": true,
+        "identity": "57c32e220579e33f029625bd448b7a253e161554dfb55167767307fe2dc5a40c"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "2af64ae1d06bc774a96b6209966477664414b6ac",
+    "tree": "15b78959265b6b574c5b584ba60ec2d6c5bb5e0e",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "060236d8c42b2e1c46cee15fc2554547ba0e27d7cac064a6b236e4e44f3ed1bb"
+      }
+    ],
+    "dirty": true,
+    "identity": "57c32e220579e33f029625bd448b7a253e161554dfb55167767307fe2dc5a40c"
+  },
+  "sourceUnchanged": true
+}

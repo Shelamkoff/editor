@@ -1,0 +1,768 @@
+From 8b0bf9fc106303b442362752e35804724694189f Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 29 Oct 2026 21:30:38 +0000
+Subject: [PATCH 1/5] test(person): reproduce derived labels and avatar
+ alternatives
+
+---
+ tests/browser/projection-contracts.js         |   1 +
+ .../person-derived-presentation.js            | 251 ++++++++++++++++++
+ 2 files changed, 252 insertions(+)
+ create mode 100644 tests/browser/regressions/person-derived-presentation.js
+
+diff --git a/tests/browser/projection-contracts.js b/tests/browser/projection-contracts.js
+index d6b19031..d89f2800 100644
+--- a/tests/browser/projection-contracts.js
++++ b/tests/browser/projection-contracts.js
+@@ -1,4 +1,5 @@
+ import './regressions/field-projection-completion.js'
++import './regressions/person-derived-presentation.js'
+ import './regressions/image-derived-alt.js'
+ import { assembleCanonicalRecord, filterCanonicalInline, remapCanonicalInline } from '../../core/CanonicalTransforms.js'
+ import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
+diff --git a/tests/browser/regressions/person-derived-presentation.js b/tests/browser/regressions/person-derived-presentation.js
+new file mode 100644
+index 00000000..1d034c3c
+--- /dev/null
++++ b/tests/browser/regressions/person-derived-presentation.js
+@@ -0,0 +1,251 @@
++import { createPersonPlugin } from '../../../plugins/person/index.js'
++import { createMentionPlugin, createMentionRenderer } from '../../../inline-plugins/mention/index.js'
++import { createColorSwatchPlugin, createColorSwatchRenderer } from '../../../inline-plugins/color.js'
++import { EditorRenderer } from '../../../renderer/index.js'
++import { test, assert, equal, pause, make, blockElement } from './harness.js'
++
++const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
++const richName = '<b>Alpha</b> <i>{{mention}}</i> <mark>{{swatch}}</mark> tail'
++const visibleName = 'Alpha @Ada #123456 tail'
++const person = (id, name = '') => ({ id, avatar: '', name, role: '', bio: '', links: [] })
++const sidecars = () => ({
++  mention: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada' } },
++  swatch: { type: 'color', dataVersion: 1, data: { value: '#123456' } },
++})
++
++function capture(definition, occurrences, completions) {
++  return { ...definition, setup(runtimeContext) {
++    const runtime = definition.setup(runtimeContext)
++    return { ...runtime, create(...args) {
++      const instance = Reflect.apply(runtime.create, runtime, args)
++      occurrences.push({ instance, context: args.at(-1), element: instance.element,
++        id: typeof args[0] === 'string' ? args[0] : null })
++      if (completions) {
++        const afterProjection = instance.afterProjection
++        instance.afterProjection = function (field) {
++          completions.push(field)
++          return afterProjection?.call(this, field)
++        }
++      }
++      return instance
++    } }
++  } }
++}
++
++async function fixture({ profiles = [person('active', richName), person('other', 'Grace')], widgets = true, locale } = {}) {
++  const instances = [], inline = [], completions = [], transactions = []
++  const input = { id: 'person', type: 'person', dataVersion: 2, data: { persons: profiles },
++    ...(widgets ? { inline: sidecars() } : {}) }
++  const beforeInput = structuredClone(input)
++  const editor = make([input], { defaultBlock: 'person', inlineTools: [], ...(locale ? { locale } : {}),
++    plugins: [capture(createPersonPlugin({ injectStyles: false }), instances, completions)],
++    inlinePlugins: [capture(createMentionPlugin({ searchFunction: async () => [] }), inline), capture(createColorSwatchPlugin(), inline)],
++  })
++  editor.on('transaction:committed', event => transactions.push(event))
++  await pause(20)
++  equal(input, beforeInput, 'Construction mutated the supplied profile or sidecar input')
++  const current = () => {
++    const occurrence = instances.findLast(item => item.element.isConnected && !item.context.signal.aborted)
++    assert(occurrence, 'The real Person occurrence must remain mounted')
++    return occurrence
++  }
++  return { editor, current, completions, transactions,
++    name: () => blockElement(editor, 'person').querySelector('.oe-person__name'),
++    label: id => blockElement(editor, 'person').querySelector(`[data-person-id="${id}"] .oe-person__tab-label`),
++    widget: id => inline.findLast(item => item.id === id && item.element.isConnected && !item.context.signal.aborted),
++    dispose: () => editor.destroy(),
++  }
++}
++
++function backwardTail(h) {
++  const field = h.name(), tail = field.lastChild, selection = getSelection()
++  assert(tail?.nodeType === Node.TEXT_NODE && tail.data === ' tail', 'Actual trailing author text is required')
++  field.focus(); selection.setBaseAndExtent(tail, 4, tail, 1)
++  return { field, tail, selection, text: selection.toString() }
++}
++function retainedRange(h, before) {
++  return { field: h.name() === before.field, tail: h.name().lastChild === before.tail,
++    active: document.activeElement === before.field, text: before.selection.toString(),
++    anchor: before.selection.anchorNode === before.tail, anchorOffset: before.selection.anchorOffset,
++    focus: before.selection.focusNode === before.tail, focusOffset: before.selection.focusOffset }
++}
++const expectedRange = text => ({ field: true, tail: true, active: true, text,
++  anchor: true, anchorOffset: 4, focus: true, focusOffset: 1 })
++
++for (const localized of [false, true]) test(`Person derived fallback labels interpolate ordinal with ${localized ? 'a locale' : 'no plugin locale'}`, async () => {
++  const h = await fixture({ widgets: false, profiles: [person('active'), person('other')],
++    ...(localized ? { locale: { 'plugin.person.fallbackName': 'Profile {number}' } } : {}) })
++  try {
++    const before = h.editor.save().blocks
++    equal(['active', 'other'].map(id => h.label(id).textContent), localized ? ['Profile 1', 'Profile 2'] : ['Person 1', 'Person 2'])
++    h.editor.setReadOnly(true)
++    equal(['active', 'other'].map(id => h.label(id).textContent), localized ? ['Profile 1', 'Profile 2'] : ['Person 1', 'Person 2'])
++    equal(h.editor.save().blocks, before)
++    assert(!h.editor.canUndo && h.transactions.length === 0)
++  } finally { h.dispose() }
++})
++
++test('Person derived active tab follows actual widgets through initial projection and both modes', async () => {
++  const h = await fixture(), observed = []
++  try {
++    const before = h.editor.save().blocks
++    for (const mode of [false, true, false]) {
++      if (h.editor.readOnly !== mode) h.editor.setReadOnly(mode)
++      await pause(20)
++      equal(h.name().textContent, visibleName, 'The real name field must be fully hydrated')
++      observed.push(h.label('active').textContent)
++      equal(h.editor.save().blocks, before)
++    }
++    assert(!h.editor.canUndo && h.transactions.length === 0)
++    equal(observed, [visibleName, visibleName, visibleName], 'The completed name was not reflected in its active tab')
++  } finally { h.dispose() }
++})
++
++for (const id of ['mention', 'swatch']) test(`Person derived active tab follows actual ${id} payload update and one Undo/Redo`, async () => {
++  const h = await fixture(), observed = []
++  try {
++    const before = h.editor.save().blocks, after = structuredClone(before), range = backwardTail(h)
++    if (id === 'mention') after[0].inline.mention.data.name = 'Grace'
++    else after[0].inline.swatch.data.value = '#654321'
++    const changedName = id === 'mention' ? 'Alpha @Grace #123456 tail' : 'Alpha @Ada #654321 tail'
++    h.widget(id).context.updateData(data => id === 'mention' ? { ...data, name: 'Grace' } : { ...data, value: '#654321' })
++    equal(h.editor.save().blocks, after)
++    equal(retainedRange(h, range), expectedRange(range.text), 'The payload edit moved the native backward selection')
++    observed.push(h.label('active').textContent)
++    assert(h.editor.canUndo && !h.editor.canRedo)
++    assert(h.editor.undo())
++    equal(h.editor.save().blocks, before)
++    assert(!h.editor.canUndo && h.editor.canRedo)
++    observed.push(h.label('active').textContent)
++    assert(h.editor.redo())
++    equal(h.editor.save().blocks, after)
++    assert(h.editor.canUndo && !h.editor.canRedo)
++    observed.push(h.label('active').textContent)
++    equal(h.transactions.length, 3, 'Derived presentation created an extra document/history action')
++    equal(observed, [changedName, visibleName, changedName])
++  } finally { h.dispose() }
++})
++
++for (const action of ['sibling edit', 'reorder']) test(`Person derived active tab and backward range survive unrelated ${action} without new field completion`, async () => {
++  const h = await fixture()
++  try {
++    const before = h.editor.save().blocks, after = structuredClone(before), range = backwardTail(h)
++    const oldWidgets = [h.widget('mention'), h.widget('swatch')]
++    if (action === 'sibling edit') after[0].data.persons[1].role = 'Reviewer'
++    else after[0].data.persons.reverse()
++    h.completions.length = 0
++    h.editor.blocks.update('person', current => ({ data: { ...current.data, persons: after[0].data.persons } }))
++    equal(h.editor.save().blocks, after, 'Only the requested sibling/order data may change')
++    equal({ range: retainedRange(h, range), label: h.label('active').textContent,
++      completions: h.completions.map(field => field.key),
++      widgets: oldWidgets.map(widget => h.widget(widget.id) === widget),
++    }, { range: expectedRange(range.text), label: visibleName, completions: [], widgets: [true, true] },
++    'Unchanged active author presentation must remain live without a new completion callback')
++    equal(h.transactions.length, 1)
++    assert(h.editor.undo())
++    equal(h.editor.save().blocks, before)
++    assert(!h.editor.canUndo && h.editor.canRedo)
++  } finally { h.dispose() }
++})
++
++test('Person derived tab settles a previously hidden widget name when its actual field is focused', async () => {
++  const h = await fixture({ profiles: [person('active', 'Grace'), person('other', richName)] })
++  try {
++    const before = h.editor.save().blocks, previous = h.name()
++    assert(h.editor.blocks.focus('person', { fieldKey: 'person:other:name', offset: 'end' }))
++    await pause(20)
++    assert(h.name() !== previous && !previous.isConnected)
++    equal(h.name().textContent, visibleName)
++    equal(h.label('other').textContent, visibleName, 'Mounted hidden profile did not receive its completed derived name')
++    equal(h.editor.save().blocks, before)
++    assert(h.transactions.length === 0 && !h.editor.canUndo)
++  } finally { h.dispose() }
++})
++
++test('Person derived input from a retired body leaves the current tab and author fields unchanged', async () => {
++  const h = await fixture()
++  try {
++    const old = h.name()
++    h.editor.setReadOnly(true)
++    const before = h.editor.save().blocks, label = h.label('active').textContent, current = h.name()
++    assert(!old.isConnected && old !== current)
++    old.textContent = 'retired name'
++    old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
++    old.dispatchEvent(new FocusEvent('blur'))
++    await pause(20)
++    equal(h.editor.save().blocks, before)
++    equal(h.label('active').textContent, label)
++    assert(h.name() === current && !h.editor.canUndo && h.transactions.length === 0)
++  } finally { h.dispose() }
++})
++
++test('Person derived completion cannot write a tab label adopted by another container', async () => {
++  const h = await fixture(), foreign = document.createElement('aside')
++  document.body.append(foreign)
++  try {
++    const label = h.label('active')
++    foreign.append(label); label.textContent = 'foreign label sentinel'
++    h.widget('mention').context.updateData(data => ({ ...data, name: 'Grace' }))
++    equal(h.name().textContent, 'Alpha @Grace #123456 tail')
++    assert(label.parentNode === foreign)
++    equal(label.textContent, 'foreign label sentinel')
++  } finally { h.dispose(); foreign.remove() }
++})
++
++test('Person derived input cannot write from a name adopted by another container', async () => {
++  const h = await fixture(), foreign = document.createElement('aside')
++  document.body.append(foreign)
++  try {
++    const name = h.name(), label = h.label('active')
++    foreign.append(name); label.textContent = 'owned label sentinel'
++    name.textContent = 'foreign name'
++    name.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'foreign' }))
++    await pause(20)
++    equal(label.textContent, 'owned label sentinel')
++    assert(name.parentNode === foreign)
++    assert(h.transactions.length === 0)
++  } finally { h.dispose(); foreign.remove() }
++})
++
++for (const widgets of [false, true]) test(`Person renderer derives ${widgets ? 'real widget' : 'literal entity'} avatar alternatives from one parsed name per owning document`, async () => {
++  const name = widgets ? richName : '<b>Alpha &lt;b&gt;literal&lt;/b&gt;</b> &amp; {{literal}} &amp;lt;twice&amp;gt;'
++  const expected = widgets ? visibleName : 'Alpha <b>literal</b> & {{literal}} &lt;twice&gt;'
++  const data = { version: '2.0.0', blocks: [{ id: 'person', type: 'person', dataVersion: 2,
++    data: { persons: [{ ...person('active', name), avatar: pixel }] }, ...(widgets ? { inline: sidecars() } : {}) }] }
++  const before = structuredClone(data), calls = []
++  const inlineRenderers = [createMentionRenderer(), createColorSwatchRenderer()].map(definition => ({ ...definition,
++    render(id, payload, context) {
++      calls.push({ id, ownerDocument: context.ownerDocument })
++      return definition.render(id, payload, context)
++    },
++  }))
++  const renderer = new EditorRenderer({ blockTypes: ['person'], injectStyles: false, inlineRenderers })
++  const frame = document.createElement('iframe'), target = document.createElement('section')
++  frame.src = 'about:blank'
++  const ready = new Promise(resolve => frame.addEventListener('load', resolve, { once: true }))
++  document.body.append(frame, target)
++  let detached, foreign
++  const inspect = (root, ownerDocument) => {
++    const card = root.querySelector('.editor-person__card')
++    assert(card && card.ownerDocument === ownerDocument)
++    equal(card.querySelector('.editor-person__name').textContent, expected)
++    equal(card.querySelector('.editor-person__avatar-img').alt, expected)
++    equal(calls.map(call => ({ id: call.id, document: call.ownerDocument === ownerDocument })),
++      widgets ? [{ id: 'mention', document: true }, { id: 'swatch', document: true }] : [], 'The alternative text must reuse the same parsed name')
++  }
++  try {
++    await ready
++    detached = renderer.render(data); inspect(detached, document)
++    assert(!detached.isConnected)
++    target.append(detached); inspect(detached, document)
++    renderer.destroy(detached); detached.remove()
++    calls.length = 0; renderer.renderTo(data, target); inspect(target, document)
++    foreign = frame.contentDocument.createElement('section'); frame.contentDocument.body.append(foreign)
++    calls.length = 0; renderer.renderTo(data, foreign); inspect(foreign, frame.contentDocument)
++    equal(data, before, 'Rendering must not modify author data or sidecars')
++  } finally {
++    renderer.destroy()
++    equal([detached?.childNodes.length ?? 0, target.childNodes.length, foreign?.childNodes.length ?? 0], [0, 0, 0])
++    detached?.remove(); target.remove(); frame.remove()
++  }
++})
+-- 
+2.51.1
+
+
+From 2af64ae1d06bc774a96b6209966477664414b6ac Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 29 Oct 2026 21:34:31 +0000
+Subject: [PATCH 2/5] test(person): retain rich source fields after trusted
+ native preedit
+
+---
+ plugins/person/reconciliation.test.js   | 26 +++++------
+ tests/browser/native-plugin-controls.js | 61 +++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+), 13 deletions(-)
+
+diff --git a/plugins/person/reconciliation.test.js b/plugins/person/reconciliation.test.js
+index 8b2ec133..a4e513a0 100644
+--- a/plugins/person/reconciliation.test.js
++++ b/plugins/person/reconciliation.test.js
+@@ -128,7 +128,7 @@ test('Person retains active editing host when another person changes', () => {
+   field.focus()
+   const next = input()
+   next.persons[1].role = 'Editor'
+-  instance.update(next)
++  instance.update(next, input())
+   assert.equal(nameField(instance, 'a'), field, 'unrelated update replaced the active author field')
+   assert.equal(ownerDocument.activeElement, field, 'unrelated update blurred the author field')
+   assert.equal(instance.read().persons[1].role, 'Editor')
+@@ -140,7 +140,7 @@ test('Person retains active editing host after tabs are reordered', () => {
+   field.focus()
+   const next = input()
+   next.persons.reverse()
+-  instance.update(next)
++  instance.update(next, input())
+   assert.equal(nameField(instance, 'a'), field)
+   assert.equal(ownerDocument.activeElement, field)
+   assert.deepEqual(instance.read().persons.map(item => item.id), ['b', 'a'])
+@@ -149,7 +149,7 @@ test('Person retains active editing host after tabs are reordered', () => {
+ test('Person replaces active author fields when the active person is removed', () => {
+   const { instance } = mount()
+   const before = nameField(instance, 'a')
+-  instance.update({ persons: [person('b')] })
++  instance.update({ persons: [person('b')] }, input())
+   const next = nameField(instance, 'b')
+   assert.ok(next && next !== before)
+   assert.deepEqual(instance.editableFields().map(field => field.key), [
+@@ -164,7 +164,7 @@ test('Person current name input updates the tab created by a sibling change', ()
+   const field = nameField(instance, 'a')
+   const next = input()
+   next.persons[1].role = 'New role'
+-  instance.update(next)
++  instance.update(next, input())
+   assert.equal(nameField(instance, 'a'), field, 'the editing host must remain mounted')
+   field.textContent = 'Changed name'
+   field.dispatch('input')
+@@ -202,7 +202,7 @@ test('Person preserves its active editor through 400 deterministic unrelated cha
+     } else if (action === 3 && next.persons.some(person => person.id === 'c')) {
+       next.persons = next.persons.filter(person => person.id !== 'c')
+     }
+-    instance.update(next)
++    instance.update(next, current)
+     assert.equal(nameField(instance, 'a'), field, 'active field replaced at step ' + step)
+     assert.equal(ownerDocument.activeElement, field, 'active field blurred at step ' + step)
+     assert.deepEqual(instance.read().persons.map(person => person.id),
+@@ -219,7 +219,7 @@ test('retired Person tab cannot change active record after a sibling update', ()
+   const retiredButton = retiredTab.children[0]
+   const next = input()
+   next.persons[1].role = 'Writer'
+-  instance.update(next)
++  instance.update(next, input())
+   assert.notEqual(tabs.children.find(item => item.dataset.personId === 'b'), retiredTab)
+   assert.equal(retiredButton.listeners.get('click')?.length ?? 0, 0,
+     'retired tab still owns a live click listener')
+@@ -236,11 +236,11 @@ test('Person retires body event listeners only when the active record actually c
+   assert.equal(name.listeners.get('input')?.length, 1)
+   const sibling = input()
+   sibling.persons[1].role = 'Writer'
+-  instance.update(sibling)
++  instance.update(sibling, input())
+   assert.equal(nameField(instance, 'a'), name)
+   assert.equal(name.listeners.get('input')?.length, 1,
+     'tab-only update accidentally disabled active author input')
+-  instance.update({ persons: [person('b')] })
++  instance.update({ persons: [person('b')] }, sibling)
+   assert.equal(name.listeners.get('input')?.length ?? 0, 0,
+     'removed Person body retained a document-input listener')
+   assert.equal(instance.editableFields()[0]?.key, 'person:b:name')
+@@ -281,7 +281,7 @@ test('Person cancels a drag when its tab projection is replaced', () => {
+ 
+   const next = input()
+   next.persons[1].role = 'Writer'
+-  instance.update(next)
++  instance.update(next, input())
+   const replacement = tabs.children.find(tab => tab.dataset.personId === 'b')
+   assert.notEqual(replacement, original)
+   const hovered = replacement.dispatch('dragover')
+@@ -299,7 +299,7 @@ test('Person accepts a fresh drag in the current tab projection', () => {
+   const tabs = instance.element.children[0]
+   const next = input()
+   next.persons[1].role = 'Writer'
+-  instance.update(next)
++  instance.update(next, input())
+   const tabA = tabs.children.find(tab => tab.dataset.personId === 'a')
+   const tabB = tabs.children.find(tab => tab.dataset.personId === 'b')
+   tabA.dispatch('dragstart', { dataTransfer: { setData() {}, effectAllowed: '' } })
+@@ -331,7 +331,7 @@ test('Person keeps natively edited active fields when another record changes', (
+         ? { ...person, role: 'Updated sibling role' } : person),
+     }
+     setCanonicalData(sibling)
+-    instance.update(sibling)
++    instance.update(sibling, canonical)
+ 
+     assert.equal(instance.editableFields().find(entry => entry.key === fieldName).element, field,
+       'sibling update detached a natively edited ' + key + ' field')
+@@ -350,7 +350,7 @@ test('Person still reprojects an externally changed active field', () => {
+   const next = input()
+   next.persons[0].name = 'Remote author name'
+   setCanonicalData(next)
+-  instance.update(next)
++  instance.update(next, input())
+   assert.notEqual(nameField(instance, 'a'), original,
+     'remote active-person data change did not update its editing field')
+   assert.equal(nameField(instance, 'a').textContent, 'Remote author name')
+@@ -377,7 +377,7 @@ test('Person keeps a natively edited link URL when a different person changes',
+   const next = structuredClone(canonical)
+   next.persons[1].role = 'Writer'
+   setCanonicalData(next)
+-  instance.update(next)
++  instance.update(next, canonical)
+ 
+   assert.equal(instance.editableFields().find(field => field.key === key)?.element, original,
+     'Person sibling update detached a natively edited link input')
+diff --git a/tests/browser/native-plugin-controls.js b/tests/browser/native-plugin-controls.js
+index cb6beb35..f018e554 100644
+--- a/tests/browser/native-plugin-controls.js
++++ b/tests/browser/native-plugin-controls.js
+@@ -2,6 +2,8 @@ import { test, make, para, editorRoot, blockElement, pause, assert, equal, run }
+ import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+ import { pluginParityFixtures, pixel } from './plugin-parity-fixtures.js'
+ import { createParagraphPlugin, createGalleryPlugin, createAttachesPlugin, createImagePlugin, createLinkPreviewPlugin, createPollPlugin, createPersonPlugin } from '../../plugins/index.js'
++import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
++import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
+ 
+ function pluginEditor(name, data) {
+   const fixture = pluginParityFixtures.find(entry => entry.name === name)
+@@ -28,6 +30,65 @@ async function historyFromButton(editor, before, after) {
+   await history(editor, before, after)
+ }
+ 
++for (const operation of ['sibling edit', 'reorder']) test(`Person derived native preedit survives ${operation} with its current rich field and backward range`, async () => {
++  const definition = createPersonPlugin(), updates = [], completions = []
++  const observed = { ...definition, setup(runtimeContext) {
++    const runtime = definition.setup(runtimeContext)
++    return { ...runtime, create(...args) {
++      const instance = runtime.create(...args), update = instance.update, afterProjection = instance.afterProjection
++      instance.update = function (next, previous) {
++        updates.push({ next, previous })
++        return update.call(this, next, previous)
++      }
++      instance.afterProjection = function (field) {
++        completions.push(field.key)
++        return afterProjection?.call(this, field)
++      }
++      return instance
++    } }
++  } }
++  const name = '<b>Alpha</b> {{mention}} {{swatch}} tail'
++  const editor = make([{ id: 'a', type: 'person', dataVersion: 2, data: { persons: [
++    { id: 'first', avatar: '', name, role: '', bio: '', links: [] },
++    { id: 'second', avatar: '', name: 'Grace', role: '', bio: '', links: [] },
++  ] }, inline: {
++    mention: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada' } },
++    swatch: { type: 'color', dataVersion: 1, data: { value: '#123456' } },
++  } }], { plugins: [observed], defaultBlock: 'person', inlineTools: [],
++    inlinePlugins: [createMentionPlugin({ searchFunction: async () => [] }), createColorSwatchPlugin()] })
++  const first = editor.save().blocks
++  assert(editor.blocks.focus('a', { fieldKey: 'person:first:name', offset: 'end' }))
++  const field = document.activeElement, selection = getSelection(), inputEvents = []
++  field.addEventListener('input', event => inputEvents.push({ trusted: event.isTrusted, type: event.inputType }))
++  await printable('X')
++  const native = structuredClone(first); native[0].data.persons[0].name += 'X'
++  equal(editor.save().blocks, native, 'Real native preedit was not committed before the public sibling action')
++  equal(updates.length, 0, 'The native preedit must preserve source projection instead of updating the plugin data snapshot')
++  assert(inputEvents.length > 0 && inputEvents.every(event => event.trusted && event.type === 'insertText'))
++  const tail = field.lastChild, widgets = [...field.querySelectorAll('[data-inline-plugin]')]
++  assert(tail?.nodeType === Node.TEXT_NODE && tail.data === ' tailX')
++  selection.setBaseAndExtent(tail, 4, tail, 1)
++  completions.length = 0
++  const after = structuredClone(native)
++  if (operation === 'sibling edit') after[0].data.persons[1].role = 'Reviewer'
++  else after[0].data.persons.reverse()
++  editor.blocks.update('a', () => ({ data: after[0].data }))
++  equal(editor.save().blocks, after)
++  equal(updates.map(update => update.previous), [native[0].data], 'The update contract must supply the accepted native predecessor')
++  equal({ sameField: blockElement(editor, 'a').querySelector('.oe-person__name') === field,
++    sameTail: field.lastChild === tail, active: document.activeElement === field,
++    anchor: selection.anchorNode === tail, anchorOffset: selection.anchorOffset,
++    focus: selection.focusNode === tail, focusOffset: selection.focusOffset,
++    label: blockElement(editor, 'a').querySelector('[data-person-id="first"] .oe-person__tab-label').textContent,
++    widgets: widgets.map(widget => widget.parentNode && field.contains(widget)), completions,
++  }, { sameField: true, sameTail: true, active: true, anchor: true, anchorOffset: 4, focus: true, focusOffset: 1,
++    label: 'Alpha @Ada #123456 tailX', widgets: [true, true], completions: [] })
++  assert(editor.undo()); equal(editor.save().blocks, native); assert(editor.canUndo)
++  assert(editor.undo()); equal(editor.save().blocks, first); assert(!editor.canUndo)
++  assert(editor.redo()); equal(editor.save().blocks, native)
++  assert(editor.redo()); equal(editor.save().blocks, after); assert(!editor.canRedo)
++})
++
+ for (const template of ['horizontal','compact','large-top','minimal','twitter','notion','split']) {
+   test(`LinkPreview template ${template} changes its actual styled card`, async () => {
+     const editor = pluginEditor('LinkPreview', { url: 'https://example.com', title: 'Alpha', description: 'Bravo', image: pixel, favicon: pixel, template })
+-- 
+2.51.1
+
+
+From 72a7c40462b55eb0b94d99f80795ed2317a7e3ab Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 29 Oct 2026 21:38:17 +0000
+Subject: [PATCH 3/5] fix(person): preserve active rich fields and complete
+ derived labels
+
+---
+ plugins/person/index.js            | 61 +++++++++++++++++++-----------
+ renderer/renderers/person/index.js |  5 ++-
+ 2 files changed, 41 insertions(+), 25 deletions(-)
+
+diff --git a/plugins/person/index.js b/plugins/person/index.js
+index 9381d8c5..6431c3a9 100644
+--- a/plugins/person/index.js
++++ b/plugins/person/index.js
+@@ -137,8 +137,25 @@ export function createPersonPlugin(config={}){
+           const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+           let tabsController=null
+           let bodyController=null
++          /** @type {{personId:string,name:HTMLElement,info:HTMLElement,card:HTMLElement}|null} */
++          let activeNameView=null
++          /** @type {{personId:string,label:HTMLElement,select:HTMLElement,tab:HTMLElement}|null} */
++          let activeTabView=null
+ 
+           const activePerson=()=>data.persons.find(person=>person.id===activeId)??data.persons[0]
++          const fallbackName=index=>runtimeContext.t('fallbackName','Person '+(index+1),{number:index+1})
++          const ownsNameView=view=>view&&view===activeNameView&&!dead&&!context.signal.aborted
++            &&view.personId===activeId&&view.name.parentNode===view.info
++            &&view.info.parentNode===view.card&&view.card.parentNode===body&&body.parentNode===wrapper
++          const ownsTabView=view=>view&&view===activeTabView&&!dead&&!context.signal.aborted
++            &&view.personId===activeId&&view.label.parentNode===view.select
++            &&view.select.parentNode===view.tab&&view.tab.parentNode===tabs&&tabs.parentNode===wrapper
++          const updateActiveLabel=()=>{
++            const source=activeNameView,target=activeTabView
++            if(!ownsNameView(source)||!ownsTabView(target))return
++            const text=source.name.textContent?.trim()||fallbackName(data.persons.findIndex(person=>person.id===source.personId))
++            if(ownsNameView(source)&&ownsTabView(target))target.label.textContent=text
++          }
+ 
+           const syncControls=()=>{
+             const person=activePerson()
+@@ -152,22 +169,6 @@ export function createPersonPlugin(config={}){
+             }
+           }
+ 
+-          // Native input may have advanced canonical rich-text without
+-          // reprojecting this source body, specifically to preserve its caret.
+-          // Compare the next active person with what the user still sees.
+-          const projectedActive=()=>{
+-            syncControls()
+-            const current=activePerson()
+-            if(!current)return null
+-            if(readOnly)return current
+-            const visible={...current}
+-            for(const key of ['name','role','bio']){
+-              const field=body.querySelector('.oe-person__'+key)
+-              if(field)visible[key]=field.innerHTML.trim()
+-            }
+-            return visible
+-          }
+-
+           const flushVisible=()=>{
+             if(!readOnly)context.commitDomMutation(()=>{})
+             data=cloneData(context.getData())
+@@ -273,6 +274,7 @@ export function createPersonPlugin(config={}){
+           const renderTabs=()=>{
+             // A detached source tab cannot complete its old native drag.
+             dragId=null
++            activeTabView=null
+             tabsController?.abort()
+             tabsController=new AbortControllerCtor()
+             tabs.replaceChildren()
+@@ -300,8 +302,9 @@ export function createPersonPlugin(config={}){
+               const label=document.createElement('span')
+               label.className='oe-person__tab-label'
+               setSanitizedHtml(label,person.name)
+-              label.textContent=label.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:index+1})
++              label.textContent=label.textContent.trim()||fallbackName(index)
+               select.appendChild(label)
++              if(person.id===activeId)activeTabView={personId:person.id,label,select,tab}
+               select.addEventListener('click',()=>{
+                 if(activeId===person.id)return
+                 flushVisible()
+@@ -376,6 +379,9 @@ export function createPersonPlugin(config={}){
+               },{signal:tabsController.signal})
+               tabs.appendChild(add)
+             }
++            // A sibling update may rebuild tabs while the current healthy
++            // author field and its inline instances correctly receive no hook.
++            updateActiveLabel()
+           }
+ 
+           const createLinkRow=(person,link)=>{
+@@ -422,6 +428,7 @@ export function createPersonPlugin(config={}){
+           }
+ 
+           const renderBody=()=>{
++            activeNameView=null
+             bodyController?.abort()
+             bodyController=new AbortControllerCtor()
+             body.replaceChildren()
+@@ -462,10 +469,7 @@ export function createPersonPlugin(config={}){
+             name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
+             if(person.name)setSanitizedHtml(name,person.name)
+             name.addEventListener('input',()=>{
+-              // The tabs may be replaced while an unchanged author field stays.
+-              // Resolve the live label, never a detached earlier tab node.
+-              const tabLabel=[...tabs.children].find(tab=>tab.getAttribute('data-person-id')===person.id)?.querySelector('.oe-person__tab-label')
+-              if(tabLabel)tabLabel.textContent=name.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:data.persons.findIndex(item=>item.id===person.id)+1})
++              if(activeNameView?.name===name)updateActiveLabel()
+             },{signal:bodyController.signal})
+ 
+             const role=document.createElement('div')
+@@ -503,6 +507,7 @@ export function createPersonPlugin(config={}){
+ 
+             card.append(avatarWrap,info)
+             body.appendChild(card)
++            activeNameView={personId:person.id,name,info,card}
+           }
+ 
+           const render=()=>{
+@@ -519,10 +524,13 @@ export function createPersonPlugin(config={}){
+               syncControls()
+               return cloneData(data)
+             },
+-            update(next){
++            update(next,previous){
+               if(dead)return
+-              const previousActive=projectedActive()
+               const previousId=activeId
++              // The accepted predecessor includes native source commits that
++              // intentionally did not call this instance's update(). Decorated
++              // inline DOM is not the canonical rich-text value to compare.
++              const previousActive=previous.persons.find(person=>person.id===previousId)
+               data=cloneData(next)
+               const nextActive=data.persons.find(person=>person.id===previousId)
+               // Reordering tabs or changing another person must not detach
+@@ -550,6 +558,11 @@ export function createPersonPlugin(config={}){
+               }
+               return Object.freeze(result)
+             },
++            afterProjection(field){
++              const view=activeNameView
++              if(!view||field.key!=='person:'+view.personId+':name'||field.element!==view.name||field.mode!=='rich-text')return
++              updateActiveLabel()
++            },
+             setReadOnly(value){
+               syncControls()
+               // Native input may have committed newer canonical data without
+@@ -580,6 +593,8 @@ export function createPersonPlugin(config={}){
+               dead=true
+               tabsController?.abort()
+               bodyController?.abort()
++              activeNameView=null
++              activeTabView=null
+               cropperDialog?.destroy()
+               for(const task of avatarTasks.values())task.cancel()
+               avatarTasks.clear()
+diff --git a/renderer/renderers/person/index.js b/renderer/renderers/person/index.js
+index 8d3078e6..4d073bc2 100644
+--- a/renderer/renderers/person/index.js
++++ b/renderer/renderers/person/index.js
+@@ -156,6 +156,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
+  */
+ function renderCard(person, parseInline, p, t, ownerDocument) {
+     const { avatar, name, role, bio, links } = person
++    const parsedName = name ? parseInline(name) : null
+ 
+     const card = ownerDocument.createElement('div')
+     card.className = `${p}__card`
+@@ -166,7 +167,7 @@ function renderCard(person, parseInline, p, t, ownerDocument) {
+         const img = ownerDocument.createElement('img')
+         img.className = `${p}__avatar-img`
+         setSafeUrlAttribute(img, 'src', avatar, 'media')
+-        img.alt = name || ''
++        img.alt = parsedName?.textContent ?? ''
+         img.loading = 'lazy'
+         avatarWrap.appendChild(img)
+         card.appendChild(avatarWrap)
+@@ -178,7 +179,7 @@ function renderCard(person, parseInline, p, t, ownerDocument) {
+     if (name) {
+         const nameEl = ownerDocument.createElement('div')
+         nameEl.className = `${p}__name`
+-        nameEl.appendChild(parseInline(name))
++        nameEl.appendChild(parsedName)
+         info.appendChild(nameEl)
+     }
+ 
+-- 
+2.51.1
+
+
+From 35f3da5c20f1b334e8befe5b6413d36d18c0fc69 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 29 Oct 2026 21:41:50 +0000
+Subject: [PATCH 4/5] test(person): reject retaining a removed active profile
+ body
+
+---
+ .../person-derived-presentation.js            | 31 +++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/tests/browser/regressions/person-derived-presentation.js b/tests/browser/regressions/person-derived-presentation.js
+index 1d034c3c..35e28264 100644
+--- a/tests/browser/regressions/person-derived-presentation.js
++++ b/tests/browser/regressions/person-derived-presentation.js
+@@ -162,6 +162,37 @@ test('Person derived tab settles a previously hidden widget name when its actual
+   } finally { h.dispose() }
+ })
+ 
++test('Person derived view retires the old body when removing the active profile selects its existing sibling', async () => {
++  const profiles = [
++    { ...person('active', 'Alpha'), avatar: pixel, role: 'Author', bio: 'First biography',
++      links: [{ id: 'first-link', type: 'website', url: 'https://example.test/alpha' }] },
++    { ...person('other', 'Grace'), role: 'Reviewer', bio: 'Second biography',
++      links: [{ id: 'second-link', type: 'github', url: 'https://example.test/grace' }] },
++  ]
++  const h = await fixture({ widgets: false, profiles })
++  try {
++    const before = h.editor.save().blocks, old = h.name(), after = structuredClone(before)
++    after[0].data.persons = after[0].data.persons.slice(1)
++    blockElement(h.editor, 'person').querySelector('[data-person-id="active"] .oe-person__tab-remove').click()
++    await pause(20)
++    equal(h.editor.save().blocks, after)
++    const wrapper = h.current().element
++    equal({ oldRetired: !old.isConnected && h.name() !== old,
++      name: h.name().textContent, role: wrapper.querySelector('.oe-person__role').textContent,
++      bio: wrapper.querySelector('.oe-person__bio').textContent,
++      avatarCount: wrapper.querySelectorAll('.oe-person__card .oe-person__avatar-img').length,
++      links: [...wrapper.querySelectorAll('.oe-person__link-url')].map(input => ({ id: input.dataset.linkId, value: input.value })),
++      fields: h.current().instance.editableFields().map(field => field.key),
++      activeTab: wrapper.querySelector('.oe-person__tab--active').dataset.personId,
++    }, { oldRetired: true, name: 'Grace', role: 'Reviewer', bio: 'Second biography', avatarCount: 0,
++      links: [{ id: 'second-link', value: 'https://example.test/grace' }],
++      fields: ['person:other:name', 'person:other:role', 'person:other:bio', 'person:other:link:second-link:url'], activeTab: 'other' })
++    equal(h.transactions.length, 1)
++    assert(h.editor.undo()); equal(h.editor.save().blocks, before); assert(!h.editor.canUndo)
++    assert(h.editor.redo()); equal(h.editor.save().blocks, after); assert(!h.editor.canRedo)
++  } finally { h.dispose() }
++})
++
+ test('Person derived input from a retired body leaves the current tab and author fields unchanged', async () => {
+   const h = await fixture()
+   try {
+-- 
+2.51.1
+
+
+From 3eeaedb878ea02111910a6f8d8889e9edc66169f Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 29 Oct 2026 21:43:27 +0000
+Subject: [PATCH 5/5] fix(person): retain a body only for its captured active
+ profile
+
+---
+ plugins/person/index.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plugins/person/index.js b/plugins/person/index.js
+index 6431c3a9..59489311 100644
+--- a/plugins/person/index.js
++++ b/plugins/person/index.js
+@@ -535,7 +535,7 @@ export function createPersonPlugin(config={}){
+               const nextActive=data.persons.find(person=>person.id===previousId)
+               // Reordering tabs or changing another person must not detach
+               // the current editing host and collapse its native caret.
+-              if(nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
++              if(activeNameView?.personId===previousId&&nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
+                 renderTabs()
+               }else render()
+             },
+-- 
+2.51.1
+
