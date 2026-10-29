@@ -3,8 +3,8 @@
   "repository": "Shelamkoff/editor",
   "branch": "refactor/rector-v2-architecture",
   "base": "e6d14c9b7912408230f53d1ff9aa754f6dd69dbe",
-  "verifiedThrough": "5d1a39b4b8d8d95ab6360b224ea6531292723ca7",
-  "verifiedAt": "2026-10-29T18:26:16.872929+00:00",
+  "verifiedThrough": "43254ba6f54fd146846c051f668d906570442918",
+  "verifiedAt": "2026-10-29T18:49:32.601314+00:00",
   "reason": "CLI Git credentials were unavailable after explicit publication authorization; GitHub Git Data API preserved every tree and commit order but assigned its own commit metadata.",
   "commits": [
     {
@@ -606,6 +606,42 @@
         "97fad198b493624ccd26fc7c61b435b1a14e4ae2"
       ],
       "originalCommitBase64": "dHJlZSA4YWU3ZTFiZDZjYzc1OGFmZTgwMTQ5NmNlMWU2YjRkNGIyMmMxNDYzCnBhcmVudCA5N2ZhZDE5OGI0OTM2MjRjY2QyNmZjN2M2MWI0MzViMWExNGU0YWUyCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5ODMxNyArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTgzMTcgKzAwMDAKCnRlc3QocGFyaXR5KTogcHJlc2VydmUgVG9nZ2xlIHRpdGxlIGJvZHkgYW5kIGRpc2Nsb3N1cmUgc3RhdGUK"
+    },
+    {
+      "original": "2b939ed1f2610a3ebb2592e00aa91442a92d31c3",
+      "published": "fcd7fbc4e14372147ecf1f08f75c7016b8c4c3b1",
+      "tree": "21e37d9173e3b309f263632f07785d13e7a50009",
+      "originalParents": [
+        "5d1a39b4b8d8d95ab6360b224ea6531292723ca7"
+      ],
+      "publishedParents": [
+        "5d1a39b4b8d8d95ab6360b224ea6531292723ca7"
+      ],
+      "originalCommitBase64": "dHJlZSAyMWUzN2Q5MTczZTNiMzA5ZjI2MzYzMmYwNzc4NWQxM2U3YTUwMDA5CnBhcmVudCA1ZDFhMzliNGI4ZDhkOTVhYjYzNjBiMjI0ZWE2NTMxMjkyNzIzY2E3CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5ODY0OCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTg2NDggKzAwMDAKCmRvY3MocGFyaXR5KTogcmVjb3JkIG9wZW4gYW5kIGNsb3NlZCBUb2dnbGUgcHJlc2VydmF0aW9uCg=="
+    },
+    {
+      "original": "7af7f6273d919204d37bd8b4a6575c4e6b2aeaad",
+      "published": "a03dfd87d6f06ff7bff2c05b7625ca77c91cfc83",
+      "tree": "c412780e2d9efba35218233a35b1d09ba0aae64c",
+      "originalParents": [
+        "fcd7fbc4e14372147ecf1f08f75c7016b8c4c3b1"
+      ],
+      "publishedParents": [
+        "fcd7fbc4e14372147ecf1f08f75c7016b8c4c3b1"
+      ],
+      "originalCommitBase64": "dHJlZSBjNDEyNzgwZTJkOWVmYmEzNTIxODIzM2EzNWIxZDA5YmEwYWFlNjRjCnBhcmVudCBmY2Q3ZmJjNGUxNDM3MjE0N2VjZjFmMDhmNzVjNzAxNmI4YzRjM2IxCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5OTI3MCArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTkyNzAgKzAwMDAKCnRlc3QocGFyaXR5KTogcHJlc2VydmUgU3BvaWxlciBsYWJlbCBjb250ZW50IGFuZCBkaXNjbG9zdXJlCg=="
+    },
+    {
+      "original": "567e99de52c2b128ccb7f4d53b15612092b2f0b4",
+      "published": "43254ba6f54fd146846c051f668d906570442918",
+      "tree": "b7032525c0b90e94ec76dc45616e7c20809688c3",
+      "originalParents": [
+        "a03dfd87d6f06ff7bff2c05b7625ca77c91cfc83"
+      ],
+      "publishedParents": [
+        "a03dfd87d6f06ff7bff2c05b7625ca77c91cfc83"
+      ],
+      "originalCommitBase64": "dHJlZSBiNzAzMjUyNWMwYjkwZTk0ZWM3NmRjNDU2MTZlN2MyMDgwOTY4OGMzCnBhcmVudCBhMDNkZmQ4N2Q2ZjA2ZmY3YmZmMmMwNWI3NjI1Y2E3N2M5MWNmYzgzCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzI5OTczNiArMDAwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMyOTk3MzYgKzAwMDAKCnRlc3QocGFyaXR5KTogcHJlc2VydmUgQ29sdW1ucyBmaWVsZHMgaWRlbnRpdGllcyBhbmQgbGF5b3V0Cg=="
     }
   ]
 }
