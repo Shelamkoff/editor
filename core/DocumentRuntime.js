@@ -20,7 +20,7 @@ import {
   canonicalRecordsEqual,
 } from './CanonicalTransforms.js'
 import { prepareRemoveBlocks, prepareReplaceWholeDocument, prepareReplaceLogicalRange } from './LogicalRangePlans.js'
-import { prepareClipboardSlice, prepareClipboardCut, prepareReplaceClipboardSlice, prepareInsertClipboardParts, prepareReplaceClipboardRange, prepareInsertLocalBlocks, preparePasteResults, prepareInlineSegments } from './ClipboardPlans.js'
+import { prepareClipboardSlice, prepareClipboardCut, prepareReplaceClipboardSlice, prepareInsertClipboardParts, preparePasteResults, prepareReplaceClipboardRange, prepareInsertLocalBlocks, prepareInlineSegments } from './ClipboardPlans.js'
 import { conversionTargetData, convertedCanonicalRecord, prepareSelectionConversion } from './SelectionConversionPlans.js'
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
@@ -336,6 +336,9 @@ export class DocumentRuntime {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (!allowFailed && this.health === 'failed') throw new Error('DocumentRuntime is failed')
     const phase = this.#mutationPhase()
+    // Effective protected contexts still outrank a failed engine. Only its
+    // settled terminal phase admits disposal, never ordinary control work.
+    if (allowFailed && phase === 'failed') return
     if (phase !== 'idle' && phase !== 'building') throw new Error(`Cannot mutate document during ${phase} phase`)
   }
 
@@ -1656,6 +1659,7 @@ export class DocumentRuntime {
     }
 
     const authority = scope.createAuthority({
+      prepareValue: operation => this.prepareExtensionValue(operation),
       readData: () => currentRecord().data,
       updateData: (producer, options) => {
         this.update(id, current => ({
@@ -1690,6 +1694,14 @@ export class DocumentRuntime {
           parent: scope,
         })
         const inlineAuthority = inlineScope.createAuthority({
+          prepareValue: operation => this.prepareExtensionValue(operation),
+          captureUpdateOptions: options => {
+            const trailingText = options?.trailingText ?? ''
+            if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) {
+              throw new TypeError('Inline trailing text must be a single-line string')
+            }
+            return { trailingText }
+          },
           readData: () => {
             const record = currentRecord()
             const ref = Object.hasOwn(record.inline??{},inlineId)?record.inline[inlineId]:undefined
@@ -1698,6 +1710,8 @@ export class DocumentRuntime {
             }
             const definition = this.#registry.getInlineDefinition(inlineType)
             if (!definition) throw new Error(`Unknown inline widget type: ${inlineType}`)
+            // InstanceScope captures the complete decoded result through the
+            // runtime preparation port, before its final readability check.
             return definition.schema.decode({
               dataVersion: ref.dataVersion,
               data: ref.data,

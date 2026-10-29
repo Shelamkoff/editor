@@ -2,6 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { InstanceScope } from './InstanceScope.js'
 
+// Scope-only fixtures supply preparation explicitly; runtime tests verify its guard.
+const prepareValue = operation => operation()
+
 test('DataTask captures the revision at acquisition and forwards a one-shot field continuation', () => {
   let revision = 7
   let data = { url: 'https://example.test/new', title: '' }
@@ -14,6 +17,7 @@ test('DataTask captures the revision at acquisition and forwards a one-shot fiel
     phase: () => 'idle',
   })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => data,
     updateData(producer, options) {
       operations.push(options)
@@ -38,6 +42,7 @@ test('DataTask without an explicit history continuation preserves ordinary updat
   const updates = []
   scope.configure({ currentGeneration: () => 1, currentRevision: () => 3 })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(producer, options) {
       updates.push(options)
@@ -54,6 +59,7 @@ test('revoked or invalid DataTask continuation cannot authorize a mutation', () 
   scope.configure({ currentGeneration: () => 1, currentRevision: () => 3 })
   let writes = 0
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ url: 'https://example.test/new' }),
     updateData() { writes++ },
   })

@@ -182,15 +182,16 @@ export class InstanceScope{
     return true
   }
 
-  createAuthority({readData,updateData,commitDomMutation,createId}){
+  createAuthority({readData,updateData,commitDomMutation,createId,prepareValue,captureUpdateOptions=null}){
     if(typeof readData!=='function')throw new TypeError('Instance authority requires readData()')
     if(typeof updateData!=='function')throw new TypeError('Instance authority requires updateData()')
+    if(typeof prepareValue!=='function')throw new TypeError('Instance authority requires prepareValue()')
 
     const getData=()=>{
       const epoch=this.#interactionEpoch
       const generation=this.#generation
       this.assertReadable()
-      const owned=snapshot(readData())
+      const owned=prepareValue(()=>snapshot(readData()))
       // The read callback and its JSON snapshot are synchronous external
       // boundaries. A retired occurrence must not return its author data.
       if(epoch!==this.#interactionEpoch||generation!==this.#generation)throw createAbortError()
@@ -202,6 +203,9 @@ export class InstanceScope{
       const epoch=this.#interactionEpoch
       const generation=this.#generation
       if(!this.#canMutate()||!this.#stillOwnInteraction(epoch,generation))return
+      const captured=captureUpdateOptions===null?options:prepareValue(()=>captureUpdateOptions(options))
+      if(!this.#stillOwnGeneration(epoch,generation)||!this.#canMutate()
+        ||!this.#stillOwnGeneration(epoch,generation))return
       updateData(current=>{
         const owned=snapshot(current)
         // The canonical input can include getter-backed values, and both
@@ -214,7 +218,7 @@ export class InstanceScope{
         // that obsolete candidate into a successor generation.
         if(!this.#stillOwnGeneration(epoch,generation))throw createAbortError()
         return next
-      },options)
+      },captured)
     }
     const commitDom=operation=>{
       if(typeof operation!=='function')throw new TypeError('commitDomMutation() requires an operation')
@@ -252,7 +256,7 @@ export class InstanceScope{
       commitDomMutation:commitDom,
       createId:allocate,
       isReadOnly:()=>this.readOnly,
-      beginTask:()=>this.#beginTask(updateData),
+      beginTask:()=>this.#beginTask(updateData,prepareValue),
     })
   }
 
@@ -293,7 +297,7 @@ export class InstanceScope{
       &&this.#stillOwnInteraction(epoch,generation)
   }
 
-  #beginTask(updateData){
+  #beginTask(updateData,prepareValue){
     const epoch=this.#interactionEpoch
     const generation=this.#generation
     if(this.#state!=='active'||this.readOnly||this.#health()!=='ready'
@@ -351,43 +355,56 @@ export class InstanceScope{
       }
     }
 
+    const admit=()=>{
+      if(
+        task.closed||controller.signal.aborted
+        ||this.#state!=='active'
+        ||this.readOnly
+        ||this.#health()!=='ready'
+        ||this.#interactionEpoch!==task.epoch
+        ||this.#generation!==task.generation
+        ||this.#currentGeneration()!==task.generation
+        ||(this.#parent&&!this.#parent.#canMutate())
+        ||!this.#stillOwnGeneration(task.epoch,task.generation)
+        ||task.closed||controller.signal.aborted
+      ){
+        close(true)
+        return false
+      }
+      const currentPhase=this.#phase()
+      // Admission callbacks can retire the task without changing their result.
+      if(!this.#stillOwnGeneration(task.epoch,task.generation)
+        ||task.closed||controller.signal.aborted){
+        close(true)
+        return false
+      }
+      if(currentPhase!=='idle')throw new Error(`Cannot commit a data task during ${currentPhase} phase`)
+      return true
+    }
+
     return Object.freeze({
       signal:controller.signal,
       commit:(producer,options)=>{
         if(typeof producer!=='function')throw new TypeError('DataTask.commit() requires a producer')
-        const field=options?.mergeWithPreviousField
-        if(field!==undefined&&(typeof field!=='string'||!field||field.length>128)){
-          throw new TypeError('History continuation field must be a non-empty string')
-        }
         if(task.closed||task.committing||controller.signal.aborted)return false
-        if(
-          this.#state!=='active'
-          ||this.readOnly
-          ||this.#health()!=='ready'
-          ||this.#interactionEpoch!==task.epoch
-          ||this.#generation!==task.generation
-          ||this.#currentGeneration()!==task.generation
-          ||(this.#parent&&!this.#parent.#canMutate())
-          ||!this.#stillOwnGeneration(task.epoch,task.generation)
-          ||task.closed||controller.signal.aborted
-        ){
-          close(true)
-          return false
-        }
-        const currentPhase=this.#phase()
-        // The phase check is itself a callback. A plugin can synchronously
-        // revoke this task while claiming that the old phase was still idle.
-        if(!this.#stillOwnGeneration(task.epoch,task.generation)
-          ||task.closed||controller.signal.aborted){
-          close(true)
-          return false
-        }
-        if(currentPhase!=='idle')throw new Error(`Cannot commit a data task during ${currentPhase} phase`)
+        // Reserve before callback-capable admission or options capture. A
+        // recursive invocation cannot steal this task from its original call.
         task.committing=true
+        let dispatched=false
         try{
+          if(!admit())return false
+          const field=prepareValue(()=>{
+            const value=options?.mergeWithPreviousField
+            if(value!==undefined&&(typeof value!=='string'||!value||value.length>128)){
+              throw new TypeError('History continuation field must be a non-empty string')
+            }
+            return value
+          })
+          if(!admit())return false
           const continuation=field!==undefined&&Number.isSafeInteger(task.baseRevision)&&task.baseRevision>0
             ?{historyContinuation:{baseRevision:task.baseRevision,fieldKey:field}}
             :undefined
+          dispatched=true
           updateData(current=>{
             const owned=snapshot(current)
             if(task.closed||controller.signal.aborted
@@ -402,7 +419,9 @@ export class InstanceScope{
           close(false)
           return true
         }catch(error){
-          close(true)
+          // Rejected admission/input is retryable while the owner is live.
+          // Entered transaction/producer failure consumes this one-shot task.
+          if(dispatched)close(true)
           throw error
         }finally{
           task.committing=false

@@ -3,6 +3,9 @@ import assert from 'node:assert/strict'
 
 import { InstanceScope } from './InstanceScope.js'
 
+// Scope-only fixtures supply preparation explicitly; runtime tests verify its guard.
+const prepareValue = operation => operation()
+
 function harness({ staged = true, generation = 1 } = {}) {
   let data = { value: 1, nested: { stable: true } }
   let phase = 'idle'
@@ -20,6 +23,7 @@ function harness({ staged = true, generation = 1 } = {}) {
     currentGeneration: () => currentGeneration,
   })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => data,
     updateData(producer) {
       const next = producer(data)
@@ -168,6 +172,7 @@ test('parent revoke and read-only propagate to child scopes and tasks', () => {
     currentGeneration: () => 3,
   })
   const childContext = child.createAuthority({
+    prepareValue,
     readData: () => childData,
     updateData(producer) { childData = producer(childData) },
     createId: prefix => prefix + '-id',
@@ -192,6 +197,7 @@ test('validation or producer failure closes the task without retry', () => {
     currentGeneration: () => 1,
   })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(producer) {
       producer({ value: 1 })
@@ -274,6 +280,7 @@ test('active child cannot mutate or begin tasks while parent scope is staged', (
   const child = new InstanceScope({ staged: false, parent: root })
   let data = { value: 1 }
   const context = child.createAuthority({
+    prepareValue,
     readData: () => data,
     updateData(producer) { data = producer(data) },
     createId: prefix => prefix + '-id',
@@ -295,6 +302,7 @@ test('already issued child task cannot commit after parent health is revoked', (
   const child = new InstanceScope({ staged: false, parent: root })
   let writes = 0
   const context = child.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(producer) { writes++; producer({ value: 1 }) },
     createId: prefix => prefix,
@@ -350,6 +358,7 @@ test('configure(readOnly) immediately aborts active descendant tasks and cannot 
   let data = { value: 1 }
   let producerCalls = 0
   const context = child.createAuthority({
+    prepareValue,
     readData: () => data,
     updateData(producer) { producerCalls++; data = producer(data) },
   })
@@ -426,6 +435,7 @@ test('beginTask cannot issue a live task after its admission callbacks revoke th
     })
     let writes = 0
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ text: 'Original' }),
       updateData() { writes++ },
     })
@@ -462,6 +472,7 @@ test('callbacks that revoke a scope during a health or phase check cannot run pr
     })
     let producers = 0
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData(producer) { producers++; producer({ value: 1 }) },
     })
@@ -478,6 +489,7 @@ test('getData refuses a scope revoked by its health callback before reading auth
   let reads = 0
   scope.configure({ health() { scope.revoke(); return 'ready' } })
   const context = scope.createAuthority({
+    prepareValue,
     readData() { reads++; return { text: 'private author data' } },
     updateData() {},
   })
@@ -495,6 +507,7 @@ test('a data task cannot commit after generation or phase callbacks revoke its o
     })
     let writes = 0
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData(producer) { writes++; producer({ value: 1 }) },
     })
@@ -519,6 +532,7 @@ test('retired instance callbacks cannot return data or identifiers after revocat
     const scope = new InstanceScope({ staged: false })
     let callbackCalls = 0
     const context = scope.createAuthority({
+      prepareValue,
       readData() {
         callbackCalls++
         scope.revoke()
@@ -548,6 +562,7 @@ test('revoked instance cannot run a producer after canonical input snapshot call
     get() { scope.revoke(); return 1 },
   })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(produce) {
       produce(input)
@@ -570,6 +585,7 @@ test('instance cannot persist a producer result after the producer retires its o
   const scope = new InstanceScope({ staged: false, generation: 2 })
   let persisted = 0, producers = 0
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(produce) {
       produce({ value: 1 })
@@ -603,6 +619,7 @@ test('data task rejects revocation during its input snapshot or producer callbac
       },
     })
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData(operation) {
         operation(source)
@@ -631,6 +648,7 @@ test('deferred DOM mutation loses authoring authority when its instance was revo
   let deferred
   let executions = 0
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ text: 'Before' }),
     updateData() {},
     commitDomMutation(operation) { deferred = operation },
@@ -647,6 +665,7 @@ test('queued DOM mutation cannot reactivate after a read-only round trip', () =>
   const scope = new InstanceScope({ staged: false, generation: 3 })
   let deferred, executions = 0
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ text: 'Before' }),
     updateData() {},
     commitDomMutation(operation) { deferred = operation },
@@ -670,6 +689,7 @@ test('DOM mutation host callback must not invoke a producer after synchronous ow
     const scope = new InstanceScope({ staged: false, generation: 4, parent })
     let executions = 0
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData() {},
       commitDomMutation(operation) {
@@ -689,6 +709,7 @@ test('ordinary synchronous DOM mutation still invokes its producer once', () => 
   const scope = new InstanceScope({ staged: false, generation: 1 })
   let executions = 0
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ text: 'Original' }),
     updateData() {},
     commitDomMutation(operation) { operation(); return 'host result' },
@@ -703,6 +724,7 @@ test('active instance cannot write after document generation advances before lif
   let hostGeneration = 4, writes = 0, producers = 0, domOperations = 0
   scope.configure({ currentGeneration: () => hostGeneration })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(producer) {
       writes++
@@ -725,6 +747,7 @@ test('active instance refuses stale reads and ID allocations while staged snapsh
   let hostGeneration = 6, reads = 0, allocations = 0
   scope.configure({ currentGeneration: () => hostGeneration })
   const context = scope.createAuthority({
+    prepareValue,
     readData() { reads++; return { secret: 'candidate value' } },
     updateData() {},
     createId() { allocations++; return 'stale-id' },
@@ -772,6 +795,7 @@ test('data task admission refuses a revision callback that changes document gene
     },
   })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData() { writers++ },
   })
@@ -786,6 +810,7 @@ test('an active instance does not expose a snapshot after its own read callback 
   let actualGeneration = 1, reads = 0
   scope.configure({ currentGeneration: () => actualGeneration })
   const context = scope.createAuthority({
+    prepareValue,
     readData() {
       reads++
       actualGeneration = 2
@@ -806,6 +831,7 @@ test('a valid host projection edit may invoke its DOM producer after entering th
     phase: () => phase,
   })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ text: 'Original' }),
     updateData() {},
     commitDomMutation(operation) {
@@ -849,6 +875,7 @@ test('data task commit rejects a generation replaced during local or parent admi
       },
     })
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData(callback) { writes++; callback({ value: 1 }) },
     })
@@ -869,6 +896,7 @@ test('queued instance update cannot invoke producer after host advances committe
   let committedGeneration = 9, producers = 0, persisted = 0
   scope.configure({ currentGeneration: () => committedGeneration })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(callback) {
       committedGeneration = 10
@@ -893,6 +921,7 @@ test('instance and data-task producers cannot commit after a reentrant generatio
       currentRevision: () => 2,
     })
     const context = scope.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData(callback) {
         callback({ value: 1 })
@@ -921,10 +950,12 @@ test('a failing task AbortController cannot interrupt parent revocation or leave
   const child = new InstanceScope({ staged: false, generation: 1, parent })
   const grandchild = new InstanceScope({ staged: false, generation: 1, parent: child })
   const childContext = child.createAuthority({
+    prepareValue,
     readData: () => ({ secret: 'child data' }),
     updateData() {},
   })
   const parentContext = parent.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData() {},
   })
@@ -965,6 +996,7 @@ test('a failing task AbortController does not prevent read-only propagation to d
   const parent = new InstanceScope({ staged: false, generation: 2 })
   const child = new InstanceScope({ staged: false, generation: 2, parent })
   const context = parent.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData() {},
   })
@@ -991,6 +1023,7 @@ test('a failing task AbortController does not prevent read-only propagation to d
 test('a failing task cancellation cannot mask the original producer exception', () => {
   const scope = new InstanceScope({ staged: false, generation: 1 })
   const context = scope.createAuthority({
+    prepareValue,
     readData: () => ({ value: 1 }),
     updateData(produce) { produce({ value: 1 }) },
   })
@@ -1022,6 +1055,7 @@ test('InstanceScope cannot miss abort when a host signal retires during listener
   const child = new InstanceScope({ staged: false, generation: 2, parent })
   let reads = 0, listenerCalls = 0
   const childContext = child.createAuthority({
+    prepareValue,
     readData() { reads++; return { text: 'private child data' } },
     updateData() {},
   })
@@ -1050,6 +1084,7 @@ test('failed host abort-listener installation revokes scope before exposing new 
     const child = new InstanceScope({ staged: false, generation: 1, parent: scope })
     let writes = 0
     const context = child.createAuthority({
+      prepareValue,
       readData: () => ({ value: 1 }),
       updateData() { writes++ },
     })
