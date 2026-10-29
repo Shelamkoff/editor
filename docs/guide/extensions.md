@@ -44,6 +44,7 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | --- | --- |
 | `ownerDocument` | Create DOM and browser objects in the editor's realm. |
 | `signal` | Abort signal for this block occurrence. |
+| `restoring` | Captured at creation: `true` when reconstructing history or recovering failed projection. Do not repeat automatic metadata requests for restored snapshots; explicit user actions retain their current scoped authority. |
 | `getData()` | Read current canonical block data. |
 | `updateData(producer)` | Commit a synchronous model-first block-data transaction. |
 | `beginTask()` | Create revocable authority for one asynchronous persisted result. |
