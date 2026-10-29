@@ -63,14 +63,25 @@ function textNode(element) {
 }
 
 function setCaret(element, offset) {
-  const node = textNode(element)
   element.focus()
   const range = document.createRange()
-  range.setStart(node, Math.max(0, Math.min(offset, node.data.length)))
-  range.collapse(true)
+  if (offset === 'end') {
+    // A field may end in an atomic widget or a later Text node. Clamping to
+    // the first Text leaf does not set up a block-boundary keyboard action.
+    range.selectNodeContents(element)
+    range.collapse(false)
+  } else {
+    const node = textNode(element)
+    range.setStart(node, Math.max(0, Math.min(offset, node.data.length)))
+    range.collapse(true)
+  }
   const selection = window.getSelection()
   selection.removeAllRanges()
   selection.addRange(range)
+  if (offset === 'end') {
+    assert(selection.isCollapsed && selection.anchorNode === element
+      && selection.anchorOffset === element.childNodes.length, 'fixture did not place the native caret at the field end')
+  }
 }
 
 function selectAllText(element) {
@@ -298,7 +309,7 @@ async function run() {
   const focus = createHarness(sandbox)
   const first = editable(focus, 0)
   const second = editable(focus, 1)
-  setCaret(first, first.textContent.length)
+  setCaret(first, 'end')
   assert(key(first, 'ArrowDown').defaultPrevented, 'ArrowDown did not navigate from block end')
   assert(document.activeElement === second, 'ArrowDown focused the wrong block')
   setCaret(second, 0)
@@ -323,7 +334,7 @@ async function run() {
   for (const [mergeKey, index, offset] of [['Backspace', 1, 0], ['Delete', 0, 'end']]) {
     const harness = createHarness(sandbox)
     const field = editable(harness, index)
-    setCaret(field, offset === 'end' ? field.textContent.length : offset)
+    setCaret(field, offset)
     assert(key(field, mergeKey).defaultPrevented, `${mergeKey} did not merge adjacent paragraphs`)
     await delay()
     assert(harness.editor.blocks.count === 2, `${mergeKey} removed the wrong number of blocks`)
@@ -354,7 +365,7 @@ async function run() {
     ],
   })
   const literalTarget = editable(literalCollision, 0)
-  setCaret(literalTarget, literalTarget.textContent.length)
+  setCaret(literalTarget, 'end')
   assert(key(literalTarget, 'Delete').defaultPrevented, 'literal collision merge was not handled')
   await delay()
   let collisionSaved = literalCollision.editor.save()
@@ -401,7 +412,7 @@ async function run() {
     ],
   })
   const duplicateTarget = editable(duplicateReference, 0)
-  setCaret(duplicateTarget, duplicateTarget.textContent.length)
+  setCaret(duplicateTarget, 'end')
   assert(key(duplicateTarget, 'Delete').defaultPrevented, 'duplicate reference merge was not handled')
   await delay()
   const duplicateSaved = duplicateReference.editor.save().blocks[0]
@@ -458,7 +469,7 @@ async function run() {
     }],
   })
   const targetField = editable(targetClipboard, 0)
-  setCaret(targetField, targetField.textContent.length)
+  setCaret(targetField, 'end')
   const targetBefore = snapshot(targetClipboard.editor)
   const privatePaste = paste(targetField, {
     'application/x-rector-fragment': privateText,
@@ -479,7 +490,7 @@ async function run() {
   await delay()
   assert(snapshot(targetClipboard.editor) === targetBefore, 'private rich-text paste undo did not restore target')
 
-  setCaret(targetField, targetField.textContent.length)
+  setCaret(targetField, 'end')
   const invalidBefore = snapshot(targetClipboard.editor)
   const invalidPrivate = paste(targetField, {
     'application/x-rector-fragment': JSON.stringify({
