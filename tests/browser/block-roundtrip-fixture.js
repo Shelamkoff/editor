@@ -28,13 +28,20 @@ const quote = {
   populatedData: { text: '<b>Alpha</b> <i>{{mention}}</i> tail', caption: '<mark>Attribution</mark> <s>{{swatch}}</s>' },
   unwrappedData: { text: '<b>Alpha</b> {{mention}} tail', caption: '<mark>Attribution</mark> {{swatch}}' },
 }
+const warning = {
+  type: 'warning', version: 1, className: 'Warning', textKey: 'title',
+  fieldSelector: '.oe-warning__title',
+  defaultData: { title: '', message: '' },
+  populatedData: { title: '<b>Alpha</b> <i>{{mention}}</i> tail', message: '<mark>Message</mark> <s>{{swatch}}</s>' },
+  unwrappedData: { title: '<b>Alpha</b> {{mention}} tail', message: '<mark>Message</mark> {{swatch}}' },
+}
 
 const withEditedText = (block, data, text) => block.type === 'list'
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
-  : { ...data, text }
+  : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   return [false, true].map(populated => ({
     ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
@@ -179,8 +186,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
     const quoteFields = () => ['.oe-quote__text', '.oe-quote__caption'].map(selector => shell(id).querySelector(selector))
     let previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
+    const warningFields = () => ['.oe-warning__title', '.oe-warning__message'].map(selector => shell(id).querySelector(selector))
+    let previousWarningFields = specification.type === 'warning' ? warningFields() : []
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = specification.type === 'list' ? baseData.items[0].text : baseData.text
+    const baseText = specification.type === 'list' ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       const data = withEditedText(specification, baseData, text)
       return specification.populated
@@ -188,21 +197,26 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         : [record(id, data, undefined, specification)]
     }
     const expectedTag = block => block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
-      : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : 'P'
+      : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : block.type === 'warning' ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'list'
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
+      : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
     const rendererMarkup = element => element.dataset.blockType === 'list'
       ? [...element.children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : element.dataset.blockType === 'quote'
         ? [...element.querySelector('.editor-quote__body').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
+      : element.dataset.blockType === 'warning'
+        ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
     const expectedRendererMarkup = block => block.type === 'list'
       ? block.data.items.map(item => ({ tag: 'LI', markup: markupMeaning(listItemText(item)) }))
       : block.type === 'quote'
         ? [{ tag: 'P', markup: markupMeaning(block.data.text) }, ...(block.data.caption ? [{ tag: 'CITE', markup: markupMeaning(block.data.caption) }] : [])]
+      : block.type === 'warning'
+        ? [...(block.data.title ? [{ tag: 'STRONG', markup: markupMeaning(block.data.title) }] : []), ...(block.data.message ? [{ tag: 'P', markup: markupMeaning(block.data.message) }] : [])]
       : markupMeaning(block.data.text)
     const expectedWidgets = specification.populated ? [
       { id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
@@ -264,6 +278,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ])
         check(phase, 'quoteFieldDomIdentity', previousQuoteFields.map((element, index) => fields[index] === element), [true, true])
       }
+      if (specification.type === 'warning') {
+        const fields = warningFields()
+        check(phase, 'editorWarningFields', fields.map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })), [
+          { tag: 'DIV', markup: markupMeaning(text), editable: !readOnly },
+          { tag: 'DIV', markup: markupMeaning(baseData.message), editable: !readOnly },
+        ])
+        check(phase, 'warningFieldDomIdentity', previousWarningFields.map((element, index) => fields[index] === element), [true, true])
+      }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: field().isContentEditable }, { readOnly, editable: !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
@@ -281,6 +303,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
       previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
       previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
+      previousWarningFields = specification.type === 'warning' ? warningFields() : []
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })

@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The implemented vertical slices are Paragraph, Heading, List and Quote, each with
+The implemented vertical slices are Paragraph, Heading, List, Quote and Warning, each with
 separate actual default construction and populated-document cases. Each
 populated case contains both real Mention and Color sidecars inside
 authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
@@ -34,8 +34,16 @@ the renderer checks its separate P/CITE author slots and omits an empty
 caption slot. The native edit and one-step Undo/Redo are initiated in the
 primary text. Caption is proved as preserved sibling data, live DOM and
 renderer output; this is not a separate native caption-authoring cycle.
-Other inventory entries below are planned
-coverage, not completed tests.
+
+Warning keeps Mention in its title and Color in its independent message.
+Both editor DIV fields are checked for authored contents, editability and
+DOM identity. The renderer checks separate STRONG/P author slots, omitting
+only the slot whose saved value is empty. Native input and one-step
+Undo/Redo operate on the declared title field; message data and live DOM
+must survive that sibling edit. A separate native message-authoring cycle
+is outside this template.
+
+Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
 
@@ -81,7 +89,7 @@ author data from an initial `save()` result.
 | Delimiter / 1 | Empty object | The same data-free separator | No editable field or fabricated authoring step. |
 | Table / 2 | One empty cell with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. Default size difference remains unresolved. |
 | Checklist / 2 | One empty unchecked item | Checked/unchecked pair, marks/sidecars; edit first label | v1 item IDs absent; checkbox is not the editable label. |
-| Warning / 1 | Empty title and message | Independent rich fields; edit `title` | Empty renderer slots may be omitted without losing data. |
+| Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
 | Embed / 1 | Empty service/video/caption/metadata | Controlled service/video with local cover, rich caption | Disable or inject documented metadata provider; caption exists only for a valid embed. |
 | Raw / 1 | Empty HTML source | Safe multiline authored HTML; edit `html` source | Source field is plain text; preview confinement/navigation remain separate rows. |
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
@@ -155,16 +163,16 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List and Quote oracle classifies only these observed
-historical differences, bounded to the twelve exact scenario IDs in the
+The Paragraph, Heading, List, Quote and Warning oracle classifies only these observed
+historical differences, bounded to the fifteen exact scenario IDs in the
 runner:
 
-- v1 remounts the exact block/widget arrays, List items and Quote fields during read-only/editable mode
+- v1 remounts the exact block/widget arrays, List items and Quote/Warning fields during read-only/editable mode
   changes and Undo/Redo. Its author data and sidecars must still be exact.
 - The first v1 Undo in each block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List and
-  offset 12 for Quote. The full active/anchor/focus
+  offset 12 for Quote/Warning. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
   native selection points are on that same block's UL at child offset 1.
@@ -177,6 +185,11 @@ runner:
   wrapper at child offset 2. This classification also binds all owners to
   the actual generated block ID. Current selection must be inside the
   declared text field at offset 0.
+- The first v1 Undo in the default Warning focuses its empty title DIV,
+  while both native points are on the same block's outer DIV at child
+  offset 2. The exact title class and actual generated block ID are required
+  for this classification; current selection must be inside the declared
+  title field at offset 0.
 - e981 throws `Inline widget root left its projection boundary before
   hydration` while entering read-only mode in each formatted-widget case.
   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
@@ -189,6 +202,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List or Quote behavior,
-the other 17 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote or Warning behavior,
+the other 16 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.
