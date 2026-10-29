@@ -1,6 +1,6 @@
 Ophire Editor includes the following third-party runtime components:
 
-- DOMPurify 3.4.15, Copyright Cure53 and other contributors.
+- DOMPurify 3.4.17, Copyright Cure53 and other contributors.
   Distributed under Apache-2.0 OR MPL-2.0.
   https://github.com/cure53/DOMPurify
 

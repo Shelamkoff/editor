@@ -1,5 +1,5 @@
-DOMPurify 3.4.12 (Apache-2.0 option selected)
-Source: https://github.com/cure53/DOMPurify/tree/3.4.12
+DOMPurify 3.4.17 (Apache-2.0 option selected)
+Source: https://github.com/cure53/DOMPurify/tree/3.4.17
 
 
                                  Apache License

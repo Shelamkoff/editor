@@ -2,6 +2,7 @@ import { createEditor } from '../../core/index.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { createHeadingPlugin, createListPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
+import { sanitizeRawHtml, sanitizeRawHtmlForSink, setSanitizedRawHtml } from '../../shared/sanitize/sanitizeRawHtml.js'
 
 const results = []
 function assert(value, message) { if (!value) throw new Error(message) }
@@ -172,6 +173,77 @@ await test('multiple Rector module instances share one Trusted Types policy per 
   const secondValue = second.toTrustedHtml('<strong>two</strong>', document)
   assert(String(firstValue) === '<strong>one</strong>', 'first duplicated module could not use the Rector policy')
   assert(String(secondValue) === '<strong>two</strong>', 'second duplicated module could not reuse the Rector policy')
+})
+
+await test('Raw HTML preserves its benign corpus and rejects active markup in the owning Trusted Types realm', () => {
+  const frame = document.createElement('iframe')
+  document.querySelector('#sandbox').appendChild(frame)
+  const childDocument = frame.contentDocument
+  assert(childDocument?.defaultView && childDocument.defaultView !== window, 'a real second Window is required')
+  const childTypes = childDocument.defaultView.trustedTypes
+  const originalPolicyDescriptor = Object.getOwnPropertyDescriptor(childTypes, 'createPolicy')
+  const createPolicy = childTypes.createPolicy
+  const childPolicies = []
+  Object.defineProperty(childTypes, 'createPolicy', { configurable: true, value(name, rules) {
+    childPolicies.push(name)
+    return Reflect.apply(createPolicy, childTypes, [name, rules])
+  } })
+  const html = '<p id="raw-text" class="article-accent" lang="ru" style="font-size:201px;color:rgb(1,2,3)">Safe <strong>bold</strong> <em>italic</em></p>'
+    + '<a href="#raw-text" download="article.txt">local</a><video controls preload="none"></video>'
+    + '<script>bad()</script><img src="javascript:bad()" onerror="bad()"><iframe srcdoc="bad()"></iframe>'
+    + '<a id="raw-unsafe" href="javascript:bad()" onclick="bad()">unsafe</a>'
+  const verify = (host, ownerDocument) => {
+    assert(host.ownerDocument === ownerDocument, 'output belongs to a different document')
+    assert([...host.querySelectorAll('*')].every(node => node.ownerDocument === ownerDocument), 'a descendant escaped its owning document')
+    assert(!host.querySelector('script,iframe,object,embed,form,meta,link,base'), 'active element survived')
+    assert([...host.querySelectorAll('*')].every(node => [...node.attributes].every(attribute => !attribute.name.startsWith('on'))), 'event handler survived')
+    const text = host.querySelector('#raw-text')
+    assert(text?.textContent === 'Safe bold italic' && text.querySelector('strong')?.textContent === 'bold'
+      && text.querySelector('em')?.textContent === 'italic', 'benign text or marks changed')
+    assert(text.className === 'article-accent' && text.lang === 'ru', 'benign class or language changed')
+    assert(text.style.fontSize === '201px' && text.style.color === 'rgb(1, 2, 3)', 'benign typography changed')
+    const local = host.querySelector('a[download]')
+    assert(local?.getAttribute('href') === '#raw-text' && local.download === 'article.txt', 'fragment or download metadata changed')
+    assert(host.querySelector('video')?.controls === true, 'native video controls were removed')
+    assert(!host.querySelector('img')?.hasAttribute('src') && !host.querySelector('#raw-unsafe')?.hasAttribute('href'), 'active URL survived')
+  }
+  try {
+    for (const ownerDocument of [document, childDocument]) {
+      const host = ownerDocument.createElement('section')
+      ownerDocument.body.appendChild(host)
+      let renderer
+      try {
+        let rejectedString = false
+        try { host.innerHTML = '<b>untrusted</b>' } catch (error) { rejectedString = error.name === 'TypeError' }
+        assert(rejectedString, 'the owning realm must actually enforce Trusted Types')
+        setSanitizedRawHtml(host, html)
+        verify(host, ownerDocument)
+        const string = sanitizeRawHtml(html, ownerDocument)
+        assert(typeof string === 'string', 'the public string API changed')
+        const trusted = sanitizeRawHtmlForSink(html, ownerDocument)
+        assert(ownerDocument.defaultView.trustedTypes.isHTML(trusted), 'the sink value is not TrustedHTML')
+        assert(String(trusted) === string, 'signing changed the sanitized serialization')
+        host.innerHTML = trusted
+        verify(host, ownerDocument)
+        renderer = new EditorRenderer({ ownerDocument, injectStyles: false, blockTypes: ['raw'] })
+        const input = { version: '2.0.0', blocks: [{ id: 'realm-raw', type: 'raw', dataVersion: 1, data: { html } }] }
+        const before = JSON.stringify(input)
+        const output = renderer.render(input)
+        host.replaceChildren(output)
+        verify(output, ownerDocument)
+        assert(JSON.stringify(input) === before, 'rendering rewrote caller data')
+      } finally {
+        renderer?.destroy()
+        host.remove()
+      }
+    }
+    assert(childPolicies.filter(name => name === 'dompurify').length === 1,
+      'the sanitizer must acquire and reuse the real owning Window policy')
+  } finally {
+    if (originalPolicyDescriptor) Object.defineProperty(childTypes, 'createPolicy', originalPolicyDescriptor)
+    else delete childTypes.createPolicy
+    frame.remove()
+  }
 })
 
 const failed = results.filter(result => result.status !== 'PASS')
