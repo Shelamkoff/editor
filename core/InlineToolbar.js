@@ -115,8 +115,13 @@ export class InlineToolbar {
       lease: () => this.#selectionVersion,
       readSelection: () => {
         const native = document.defaultView?.getSelection?.()
-        const range = this.#selectionPort?.range ?? (native?.rangeCount && !native.isCollapsed
-          ? native.getRangeAt(0) : null)
+        const nativeRange = native?.rangeCount && !native.isCollapsed ? native.getRangeAt(0) : null
+        // Restoring a local range may leave a logical projection behind.
+        // A newer native selection must still revoke that exact interval.
+        const local = this.#bookmark?.anchor.blockId === this.#bookmark?.focus.blockId
+          && this.#bookmark?.anchor.fieldKey === this.#bookmark?.focus.fieldKey
+          && !this.#bookmark?.conversionCaret
+        const range = local ? nativeRange : this.#selectionPort?.range ?? nativeRange
         return range && this.#bookmark ? { range, bookmark: this.#bookmark } : null
       },
       restoreSelection: bookmark => this.#restoreSelection(bookmark),
@@ -387,6 +392,11 @@ export class InlineToolbar {
     this.#tooltip.hide()
     const tool = this.#tools.find(candidate => candidate.type === type)
     if (!tool || this.#buttons.get(type)?.disabled) return false
+    // A toolbar button may retain the author's native Range, but cannot
+    // capture a fresh logical selection. Resume only its already validated
+    // interval, restoring author focus before the tool captures its own token.
+    if (this.#element.contains(this.#root.ownerDocument.activeElement)
+      && (!this.#controlsToken || !this.#controlsSelection.restore(this.#controlsToken))) return false
     const selection = this.#resolveFormattingSelection()
     if (!selection) return false
     const allowed = this.#allowedTools(selection.blockIds)

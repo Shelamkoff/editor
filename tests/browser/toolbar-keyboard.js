@@ -1,6 +1,7 @@
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { createHeadingPlugin } from '../../plugins/heading/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
+import { getTextOffset } from '../../shared/textOffset.js'
 import { test, assert, equal, make, para, editableField, editorHolder, select, key, pause, run } from './regressions/harness.js'
 
 async function setup(backward = false, dynamic = false) {
@@ -62,13 +63,15 @@ for (const [arrow, expected] of [['ArrowDown', 'h2'], ['ArrowUp', 'h6']]) {
   })
 }
 
-test('keyboard Heading choice commits one action and preserves the directed author range', async () => {
+test('a keyboard-opened Heading choice commits one action and preserves the directed author range', async () => {
   const h = await setup(true), before = h.editor.save().blocks
   h.button.focus()
   key(h.button, 'ArrowUp')
   const last = document.activeElement
   equal(last.dataset.actionId, 'h6')
-  key(last, 'Enter')
+  // Synthetic keydown does not run a button's native Enter activation. The
+  // physical keyboard path is covered by native-block-menus.js.
+  last.click()
   await pause()
   equal(h.editor.save().blocks[0].data.level, 6)
   const field = editableField(h.editor, 'a'), native = window.getSelection()
@@ -160,10 +163,62 @@ for (const type of ['align', 'bold']) {
     } else {
       equal(h.editor.save().blocks[0].data.text, 'H<b>eading</b> text')
     }
+    const after = h.editor.save().blocks
+    const field = editableField(h.editor, 'a'), native = window.getSelection()
+    equal([
+      getTextOffset(field, native.anchorNode, native.anchorOffset),
+      getTextOffset(field, native.focusNode, native.focusOffset),
+    ], [7, 1], 'formatting changed the author range direction')
     assert(h.editor.undo())
     equal(h.editor.save().blocks, before)
     equal(h.editor.canUndo, false)
+    assert(h.editor.redo())
+    equal(h.editor.save().blocks, after)
   })
+}
+
+for (const type of ['align', 'bold']) {
+  for (const retirement of ['document revision', 'same-key field replacement', 'native selection', 'foreign focus']) {
+    test(`${type} rejects the keyboard Heading continuation after ${retirement}`, async () => {
+      const h = await setup(true, retirement === 'same-key field replacement')
+      h.button.focus()
+      key(h.button, 'ArrowUp')
+      key(document.activeElement, 'Escape')
+      if (retirement === 'document revision') {
+        h.editor.blocks.update('b', () => ({ data: { text: 'Changed elsewhere' } }))
+      } else if (retirement === 'same-key field replacement') {
+        const field = h.replaceField()
+        window.getSelection().setBaseAndExtent(field.firstChild, 7, field.firstChild, 1)
+        h.button.focus()
+        // Discover the newly registered field before observing native effects;
+        // its first projection hydration may replace its text node.
+        key(h.button, 'ArrowDown')
+        equal(h.button.getAttribute('aria-expanded'), 'false')
+        window.getSelection().setBaseAndExtent(field.firstChild, 7, field.firstChild, 1)
+        h.button.focus()
+      } else if (retirement === 'native selection') {
+        window.getSelection().setBaseAndExtent(h.field.firstChild, 5, h.field.firstChild, 2)
+        h.button.focus()
+      } else {
+        const outside = document.createElement('button')
+        document.body.append(outside)
+        outside.focus()
+        h.button.focus()
+        outside.remove()
+      }
+      const before = h.editor.save().blocks, undoBefore = h.editor.canUndo
+      const native = window.getSelection()
+      const endpoints = [native.anchorNode, native.anchorOffset, native.focusNode, native.focusOffset]
+      h.toolbar.querySelector(`[data-tool="${type}"]`).click()
+      equal(h.editor.save().blocks, before)
+      equal(h.editor.canUndo, undoBefore)
+      assert(!h.toolbar.querySelector('.oe-inline-toolbar__align-panel'), 'retired interval opened an action panel')
+      assert(document.activeElement === h.button, 'retired interval restored author focus')
+      assert(native.anchorNode === endpoints[0] && native.anchorOffset === endpoints[1]
+        && native.focusNode === endpoints[2] && native.focusOffset === endpoints[3],
+        'retired interval changed the native selection')
+    })
+  }
 }
 
 await run()

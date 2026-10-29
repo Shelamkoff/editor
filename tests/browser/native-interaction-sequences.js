@@ -214,4 +214,50 @@ for(const backwards of [false,true]){
  })
 }
 
+for (const type of ['align', 'bold']) for (const backwards of [false, true]) {
+  test(`native ${type} activation retains the local Heading range after keyboard Escape / ${backwards ? 'backward' : 'forward'}`, async () => {
+    const plugin = createHeadingPlugin()
+    const editor = make([
+      { id: 'a', type: 'heading', dataVersion: plugin.schema.currentVersion, data: { text: 'Heading text', level: 2 } },
+    ], { injectStyles: true, plugins: [createParagraphPlugin(), plugin], inlineTools: createDefaultInlineTools() })
+    const root = editorRoot(editor), field = editableField(editor, 'a'), before = editor.save().blocks
+    await clickNative(field)
+    const from = pointAt(field, backwards ? 7 : 1), to = pointAt(field, backwards ? 1 : 7)
+    await window.__testInput('Input.drag', {
+      from: { x: from.clientX, y: from.clientY },
+      to: { x: to.clientX, y: to.clientY },
+    })
+    await pause(30)
+    equal(window.getSelection().toString(), 'eading', 'physical drag did not select the intended local text')
+    const trigger = root.querySelector('.oe-inline-toolbar__level-select')
+    trigger.focus()
+    await dispatchKey('ArrowUp', 'ArrowUp', 38)
+    equal(document.activeElement.dataset.actionId, 'h6')
+    await dispatchKey('Escape', 'Escape', 27)
+    assert(document.activeElement === trigger, 'Escape did not return focus to Heading levels')
+    const button = root.querySelector(`[data-tool="${type}"]`)
+    let trusted = false
+    button.addEventListener('click', event => { trusted = event.isTrusted }, { once: true })
+    button.focus()
+    await dispatchKey('Enter', 'Enter', 13)
+    assert(trusted, 'formatting activation did not come from the physical keyboard')
+    if (type === 'align') {
+      await clickNative(root.querySelector('.oe-inline-toolbar__align-panel [aria-label="Align center"]'))
+      equal(editor.save().blocks[0].tunes, { textAlign: 'center' })
+    } else {
+      equal(editor.save().blocks[0].data.text, 'H<b>eading</b> text')
+    }
+    const after = editor.save().blocks, currentField = editableField(editor, 'a'), native = window.getSelection()
+    equal([
+      getTextOffset(currentField, native.anchorNode, native.anchorOffset),
+      getTextOffset(currentField, native.focusNode, native.focusOffset),
+    ], backwards ? [7, 1] : [1, 7], 'formatting lost the directed author range')
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false, 'one keyboard activation created multiple actions')
+    await dispatchKey('z', 'KeyZ', 90, 10)
+    equal(editor.save().blocks, after)
+  })
+}
+
 await run()
