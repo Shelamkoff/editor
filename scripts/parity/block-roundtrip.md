@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning and Checklist, each with
+The implemented rich-field slices are Paragraph, Heading, List, Quote, Warning, Checklist and Spoiler, each with
 separate actual default construction and populated-document cases. Each
 populated case contains both real Mention and Color sidecars inside
 authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
@@ -113,6 +113,18 @@ including closed hidden content and its widget, must survive that sibling
 edit. This does not accept toggle-button activation, Enter behavior or a
 separate native content-field authoring cycle.
 
+Spoiler keeps Mention in its label and Color in the independent content
+field. Its empty default has both editable DIV fields; populated cases
+retain both authored values, widgets and field identities. Disclosure is
+transient: editing is expanded, read-only is collapsed, and returning to
+editing expands the same fields. The fixture checks the actual content
+`hidden`/display state, open class, accessible control label and exact
+`aria-controls` relationship. Renderer output always starts collapsed,
+keeps the separate label DIV, and omits the body only when content is
+empty. Native label input and exact Undo/Redo preserve the independent
+body. This does not accept disclosure-button activation, Enter behavior,
+a separate content-field authoring cycle or other locale labels.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -170,7 +182,7 @@ author data from an initial `save()` result.
 | LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated metadata; edit declared URL | URL field disclosure and metadata replacement need the documented provider contract. |
 | Toggle / 1 | Empty title/content, closed | Rich title/Mention and content/Color, explicit open/closed state; edit title | Implemented: both fields, hidden populated content, open state, accessibility relationship and renderer structure survive mode/history. |
 | Columns / 2 | Two empty columns, `1-1` layout | Two rich columns; edit first declared column | v1 column IDs absent; retain content/order/layout. |
-| Spoiler / 1 | Empty label/content | Rich label and content | Hidden content and rendered placeholder labels need separate assertions. |
+| Spoiler / 1 | Empty label/content | Rich label/Mention and content/Color; edit label | Implemented: both fields and transient open/hidden presentation survive mode/history; renderer keeps an empty label and omits an empty body. |
 | Poll / 1 | Single choice, two empty options, always-visible results | Identified choices/question and fixed result data | Canonical results/provider effects must be distinguished; no external voting provider. |
 | Person / 2 | One empty profile and no links | Rich profile fields, local avatar and identified link | v1 profile/link IDs absent; hidden fields and empty draft filtering need explicit controls. |
 
@@ -237,11 +249,11 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image and Toggle oracle
-classifies only these observed historical differences, bounded to the twenty-eight exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle and Spoiler oracle
+classifies only these observed historical differences, bounded to the thirty-one exact scenario IDs in the
 runner:
 
-- v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle fields, Code textarea and
+- v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Code textarea and
   Checklist rows/buttons/labels, Delimiter HR and Image wrapper/picture/caption
   during read-only/editable mode
   changes and Undo/Redo. Default Delimiter and empty-source Image admit only
@@ -253,7 +265,7 @@ runner:
 - The first v1 Undo in each rich-field block's populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List/Checklist and
-  offset 12 for Quote/Warning/Toggle. Populated literal-caption Image has the same
+  offset 12 for Quote/Warning/Toggle/Spoiler. Populated literal-caption Image has the same
   exact prefix-owner defect, with required probe offset 18. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
 - The first v1 Undo in the default List focuses its empty LI, while both
@@ -276,6 +288,10 @@ runner:
   while both native points are on that block's outer DIV at child offset 2.
   Classification requires the exact title class and actual generated block
   ID. Current selection must be inside the declared title at offset 0.
+- The first v1 Undo in the default Spoiler focuses its empty label DIV,
+  while both native points are on that block's outer DIV at child offset 2.
+  Classification requires the exact label class and actual generated block
+  ID. Current selection must be inside the declared label at offset 0.
 - The first v1 Undo in the default Checklist focuses its empty label DIV,
   while both native points are on the same block's outer DIV at child
   offset 1. Classification requires the exact label class and actual
@@ -303,6 +319,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image or Toggle behavior,
-the other 11 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle or Spoiler behavior,
+the other 10 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

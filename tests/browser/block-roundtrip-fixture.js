@@ -53,6 +53,14 @@ const toggle = {
   unwrappedData: { title: '<b>Alpha</b> {{mention}} tail', content: '<mark>Body</mark> {{swatch}}', open: true },
 }
 
+const spoiler = {
+  type: 'spoiler', version: 1, className: 'Spoiler', textKey: 'label',
+  fieldSelector: '.oe-spoiler__label', fieldTag: 'DIV',
+  defaultData: { label: '', content: '' },
+  populatedData: { label: '<b>Alpha</b> <i>{{mention}}</i> tail', content: '<mark>Secret</mark> <s>{{swatch}}</s>' },
+  unwrappedData: { label: '<b>Alpha</b> {{mention}} tail', content: '<mark>Secret</mark> {{swatch}}' },
+}
+
 const code = {
   type: 'code', version: 1, className: 'Code', textKey: 'code', fieldMode: 'plain-text',
   fieldSelector: '.oe-code-textarea',
@@ -83,7 +91,7 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -270,6 +278,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousWarningFields = specification.type === 'warning' ? warningFields() : []
     const toggleFields = () => ['.oe-toggle__title', '.oe-toggle__body'].map(selector => shell(id).querySelector(selector))
     let previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
+    const spoilerFields = () => ['.oe-spoiler__label', '.oe-spoiler__content'].map(selector => shell(id).querySelector(selector))
+    let previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
     const baseText = noEditableField ? specification.neighborText : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
@@ -281,7 +291,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'spoiler' ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : block.type === 'image' ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'delimiter'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
@@ -290,6 +300,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
+      : block.type === 'spoiler' ? { ...block.data, label: markupMeaning(block.data.label), content: markupMeaning(block.data.content) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
     const imageStyles = picture => Object.fromEntries(['width', 'height', 'objectFit', 'objectPosition', 'borderStyle', 'borderWidth', 'borderColor', 'borderRadius'].map(key => [key, picture.style[key]]))
     const expectedImageStyles = populated => populated
@@ -317,7 +328,20 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       styles: expectedImageStyles(Boolean(block.data.file.url)), background: block.data.withBackground ? 'rgb(255, 238, 204)' : '',
       flags: [block.data.withBorder, block.data.expanded, block.data.withBackground],
     })
-    const rendererMarkup = element => element.dataset.blockType === 'toggle'
+    const spoilerRendererMarkup = element => {
+      const header = element.querySelector('.editor-spoiler__header')
+      const control = element.querySelector('.editor-spoiler__toggle')
+      const label = element.querySelector('.editor-spoiler__label')
+      const body = element.querySelector('.editor-spoiler__content')
+      return { headerTag: header.tagName, controlTag: control.tagName,
+        ariaLabel: control.getAttribute('aria-label'), ariaExpanded: control.getAttribute('aria-expanded'),
+        controlsBody: body ? body.id.length > 0 && control.getAttribute('aria-controls') === body.id : control.getAttribute('aria-controls'),
+        labelTag: label.tagName, label: authoredMarkup(label),
+        body: body ? { tag: body.tagName, hidden: body.hidden, markup: authoredMarkup(body) } : null,
+        expanded: element.classList.contains('editor-spoiler--open'),
+      }
+    }
+    const rendererMarkup = element => element.dataset.blockType === 'spoiler' ? spoilerRendererMarkup(element) : element.dataset.blockType === 'toggle'
       ? { open: element.open, summaryTag: element.querySelector('.editor-toggle__summary').tagName,
         titleTag: element.querySelector('.editor-toggle__title').tagName, title: authoredMarkup(element.querySelector('.editor-toggle__title')),
         body: element.querySelector('.editor-toggle__body') ? { tag: element.querySelector('.editor-toggle__body').tagName, markup: authoredMarkup(element.querySelector('.editor-toggle__body')) } : null,
@@ -340,7 +364,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'toggle'
+    const expectedRendererMarkup = block => block.type === 'spoiler'
+      ? { headerTag: 'DIV', controlTag: 'BUTTON', ariaLabel: 'Toggle spoiler', ariaExpanded: 'false',
+        controlsBody: block.data.content ? true : null, labelTag: 'DIV', label: markupMeaning(block.data.label),
+        body: block.data.content ? { tag: 'DIV', hidden: true, markup: markupMeaning(block.data.content) } : null,
+        expanded: false,
+      } : block.type === 'toggle'
       ? { open: block.data.open, summaryTag: 'SUMMARY', titleTag: 'SPAN', title: markupMeaning(block.data.title),
         body: block.data.content ? { tag: 'DIV', markup: markupMeaning(block.data.content) } : null,
       } : block.type === 'image' ? expectedImageRendererMarkup(block) : block.type === 'delimiter'
@@ -495,6 +524,22 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           bodyDisplayed: getComputedStyle(fields[1]).display !== 'none',
         }, { expanded: baseData.open, ariaExpanded: String(baseData.open), controlsBody: true, bodyDisplayed: baseData.open })
       }
+      if (specification.type === 'spoiler') {
+        const fields = spoilerFields()
+        check(phase, 'spoilerFields', fields.map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })), [
+          { tag: 'DIV', markup: markupMeaning(text), editable: !readOnly },
+          { tag: 'DIV', markup: markupMeaning(baseData.content), editable: !readOnly },
+        ])
+        check(phase, 'spoilerFieldDomIdentity', previousSpoilerFields.map((element, index) => element === fields[index]), [true, true])
+        const control = shell(id).querySelector('.oe-spoiler__toggle')
+        check(phase, 'spoilerPresentation', {
+          expanded: shell(id).querySelector('.oe-spoiler').classList.contains('oe-spoiler--open'),
+          ariaLabel: control.getAttribute('aria-label'), ariaExpanded: control.getAttribute('aria-expanded'),
+          controlsBody: fields[1].id.length > 0 && control.getAttribute('aria-controls') === fields[1].id,
+          bodyHidden: fields[1].hidden, bodyDisplayed: getComputedStyle(fields[1]).display !== 'none',
+        }, { expanded: !readOnly, ariaLabel: 'Toggle spoiler', ariaExpanded: String(!readOnly),
+          controlsBody: true, bodyHidden: readOnly, bodyDisplayed: !readOnly })
+      }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
@@ -515,6 +560,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
       previousToggleFields = specification.type === 'toggle' ? toggleFields() : []
+      previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
       previousPlainFields = plainField ? [field()] : []
       previousDelimiter = noEditableField ? shell(id).querySelector('.oe-delimiter') : null
       previousImageParts = specification.type === 'image' ? imageParts() : []
