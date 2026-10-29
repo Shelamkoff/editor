@@ -129,19 +129,32 @@ try {
     for (const entry of cases) {
       const observedIds = ['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_PARAGRAPH_ROUNDTRIP/populated',
         'BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_HEADING_ROUNDTRIP/default',
-        'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control']
+        'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control',
+        'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default'].includes(entry.id)
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default'].includes(entry.id)
+          const listCase = ['BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
-            : failure.property === 'widgetDomIdentity' && populated ? 2 : 0
+            : failure.property === 'widgetDomIdentity' && populated ? 2
+              : failure.property === 'itemDomIdentity' && listCase ? populated ? 2 : 1 : 0
           if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
             && same(failure.actual, Array(size).fill(false)) && same(failure.expected, Array(size).fill(true))) {
             return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
           }
           const undo = entry.phases?.find(phase => phase.phase === 'undo')
+          const generatedId = entry.phases?.find(phase => phase.phase === 'load')?.blocks?.[0]?.id
+          if (entry.id === 'BLOCK_LIST_ROUNDTRIP/default' && failure.phase === 'undo' && failure.property === 'nativeSelection'
+            && typeof generatedId === 'string' && generatedId.length > 0
+            && same(failure.actual, { focused: true, anchor: null, focus: null, collapsed: true })
+            && same(failure.expected, { focused: true, anchor: 0, focus: 0, collapsed: true })
+            && same(undo?.selectionOwner, {
+              active: { block: generatedId, node: 'LI', className: 'oe-list__item' },
+              anchor: { block: generatedId, node: 'UL', text: '', offset: 1 },
+              focus: { block: generatedId, node: 'UL', text: '', offset: 1 },
+            })) return 'repaired-v1-empty-list-caret'
           if (populated && failure.phase === 'undo' && failure.property === 'nativeSelection'
             && same(failure.actual, { focused: false, anchor: null, focus: null, collapsed: true })
             && same(failure.expected, { focused: true, anchor: 14, focus: 14, collapsed: true })
@@ -152,7 +165,7 @@ try {
             })) return 'repaired-v1-first-undo-caret'
         }
         if (source.label === 'spec-baseline'
-          && ['BLOCK_PARAGRAPH_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated'].includes(entry.id)
+          && ['BLOCK_PARAGRAPH_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated'].includes(entry.id)
           && failure.phase === 'read-only-transition' && failure.property === 'execution'
           && failure.actual === 'Inline widget root left its projection boundary before hydration'
           && same(entry.completedPhases, ['load'])

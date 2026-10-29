@@ -12,14 +12,28 @@ const heading = {
   defaultData: { text: '', level: 2 },
   populatedData: { text: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail', level: 3 },
 }
+const list = {
+  type: 'list', version: 2, className: 'List',
+  fieldSelector: '.oe-list__item',
+  defaultData: { style: 'unordered', items: [{ id: 'item-0', text: '' }] },
+  populatedData: { style: 'ordered', items: [
+    { id: 'first', text: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' },
+    { id: 'second', text: '<mark>Second item</mark>' },
+  ] },
+}
 
-export const blockRoundtripCases = [paragraph, heading].flatMap(block => {
+const withEditedText = (block, data, text) => block.type === 'list'
+  ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
+  : { ...data, text }
+const listItemText = item => typeof item === 'string' ? item : item.text
+
+export const blockRoundtripCases = [paragraph, heading, list].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   return [false, true].map(populated => ({
     ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
   })).concat([{
     ...block, populated: true, id: prefix + 'populated-unwrapped-control',
-    populatedData: { ...block.populatedData, text: '<b>Alpha</b> {{mention}} {{swatch}} tail' },
+    populatedData: withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
   }])
 })
 
@@ -113,7 +127,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     mention: widget('mention', { id: 'ada', name: 'Ada' }),
     swatch: widget('color', { value: '#123456' }),
   }
-  const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}), data,
+  const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}),
+    data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
@@ -154,13 +169,27 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const field = () => shell(id).querySelector(specification.fieldSelector)
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
     let previousWidgets = [...field().querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
+    let previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = baseData.text
-    const expectedBlocks = text => specification.populated
-      ? [record('prefix', { text: '<b>Before</b>' }), record('probe', { ...baseData, text }, clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
-      : [record(id, { ...baseData, text }, undefined, specification)]
-    const expectedTag = block => block.type === 'heading' ? 'H' + block.data.level : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: { ...block.data, text: markupMeaning(block.data.text) } }))
+    const baseText = specification.type === 'list' ? baseData.items[0].text : baseData.text
+    const expectedBlocks = text => {
+      const data = withEditedText(specification, baseData, text)
+      return specification.populated
+        ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
+        : [record(id, data, undefined, specification)]
+    }
+    const expectedTag = block => block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+      : block.type === 'heading' ? 'H' + block.data.level : 'P'
+    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'list'
+      ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
+        ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
+      : { ...block.data, text: markupMeaning(block.data.text) } }))
+    const rendererMarkup = element => element.dataset.blockType === 'list'
+      ? [...element.children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
+      : authoredMarkup(element)
+    const expectedRendererMarkup = block => block.type === 'list'
+      ? block.data.items.map(item => ({ tag: 'LI', markup: markupMeaning(listItemText(item)) }))
+      : markupMeaning(block.data.text)
     const expectedWidgets = specification.populated ? [
       { id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
       { id: 'swatch', type: 'color', text: '#123456', value: '#123456' },
@@ -181,7 +210,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, name + 'BlockCount', blocks.length, expected.length)
         check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
-        check(phase, name + 'AuthoredMarkup', blocks.map(authoredMarkup), expected.map(block => markupMeaning(block.data.text)))
+        check(phase, name + 'AuthoredMarkup', blocks.map(rendererMarkup), expected.map(expectedRendererMarkup))
         check(phase, name + 'Widgets', widgets(root), expectedWidgets)
       }
       inspectOutput(detached, 'detached')
@@ -202,9 +231,17 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const saved = editor.save()
       snapshots[phase] = saved.blocks
       const expected = expectedBlocks(text)
+      const target = expected.find(block => block.id === id)
       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
-      check(phase, 'editorFieldTag', field().tagName, expectedTag(expected.find(block => block.id === id)))
+      check(phase, 'editorFieldTag', field().tagName, specification.type === 'list' ? 'LI' : expectedTag(target))
       check(phase, 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+      if (specification.type === 'list') {
+        const items = [...shell(id).querySelectorAll('.oe-list__item')]
+        check(phase, 'editorListTag', shell(id).querySelector('.oe-list').tagName, expectedTag(target))
+        check(phase, 'editorItemMarkup', items.map(authoredMarkup), target.data.items.map(item => markupMeaning(listItemText(item))))
+        check(phase, 'itemDomIdentity', previousItems.map((element, index) => items[index] === element), previousItems.map(() => true))
+        if (!legacy) check(phase, 'editorItemIds', items.map(element => element.dataset.itemId), baseData.items.map(item => item.id))
+      }
       check(phase, 'editorWidgets', widgets(field()), expectedWidgets)
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: field().isContentEditable }, { readOnly, editable: !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
@@ -220,6 +257,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         selectionOwner: nativeSelectionOwner(), readOnly: editor.readOnly })
       previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
       previousWidgets = [...field().querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
+      previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })

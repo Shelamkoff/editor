@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The implemented vertical slices are Paragraph and Heading, each with
+The implemented vertical slices are Paragraph, Heading and List, each with
 separate actual default construction and populated-document cases. Each
 populated case contains both real Mention and Color sidecars inside
 authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
@@ -18,6 +18,14 @@ document. Editor fields and all three renderer contexts assert the exact
 H2/H3 tags; output block IDs, types and order are also checked independently
 of canonical saved data. This does not cover controls for every heading
 level, heading-root paste or splitting/conversion.
+
+List uses its actual one-item unordered default and a fixed two-item
+ordered document. The first item contains the inline widgets; the second
+retains independent `mark` formatting. The fixture checks UL/OL roots,
+LI order and authored content, stable item DOM, and the exact current item
+IDs in both saved data and editor DOM. It edits only the first declared LI;
+the second item and neighboring Paragraphs must remain unchanged. List
+Enter/Backspace, partial selection and style controls remain separate rows.
 Other inventory entries below are planned
 coverage, not completed tests.
 
@@ -40,8 +48,11 @@ functions. v1 inline renderer configuration is `inlinePlugins` with
 `createMentionWidget()` / `createColorSwatchPlugin()`; v2 uses
 `inlineRenderers` with the dedicated Mention/Color renderer factories.
 Current block and inline `dataVersion` fields are supplied only to the
-versions that define them. These are fixture adapters, not production
-compatibility or a legacy decoder.
+versions that define them. The v1 List fixture uses `items: string[]`;
+current List uses explicit identified item records. Expected contents and
+order are fixed in both forms, without inventing historical item IDs.
+These are fixture adapters, not production compatibility or a legacy
+decoder.
 
 ## Inventory of 21 built-ins
 
@@ -55,7 +66,7 @@ author data from an initial `save()` result.
 | --- | --- | --- | --- |
 | Paragraph / 2 | Empty text | Rich text, both inline sidecars; edit `text` | Alignment was plugin data; now tunes. First implemented vertical slice. |
 | Heading / 2 | Empty level-2 heading | Level 3, rich text/sidecars; edit `text` | Alignment relocation remains a separate behavior; level/tag is implemented in this slice. |
-| List / 2 | One empty unordered item | Ordered pair with marks/sidecars; edit `item:first` | v1 string array; compare content/order and separately preserve current item IDs. |
+| List / 2 | One empty unordered item | Ordered pair with marks/sidecars; edit `item:first` | Implemented: v1 string array; fixed content/order plus current item IDs and item DOM. |
 | Quote / 1 | Empty quotation and caption | Rich quotation and independent rich caption; edit `text` | Fields share the wire shape; caption must survive. |
 | Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Plain source has no fabricated rich-text sidecar. |
 | Image / 1 | Empty file URL/caption, false flags, empty styles | Controlled local image, rich caption, appearance; edit `caption` | Caption is declared only with an image source. |
@@ -136,15 +147,22 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph and Heading oracle classifies only these observed historical
-differences, bounded to the six exact scenario IDs in the runner:
+The Paragraph, Heading and List oracle classifies only these observed
+historical differences, bounded to the nine exact scenario IDs in the
+runner:
 
-- v1 remounts the exact block/widget arrays during read-only/editable mode
+- v1 remounts the exact block/widget arrays and List items during read-only/editable mode
   changes and Undo/Redo. Its author data and sidecars must still be exact.
 - The first v1 Undo in each block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14. The full active/anchor/focus
   ownership snapshot must match before this difference can be classified.
+- The first v1 Undo in the default List focuses its empty LI, while both
+  native selection points are on that same block's UL at child offset 1.
+  The classification binds all three owners to the actual generated default
+  block ID and requires this exact LI/UL shape. Current selection must be
+  inside the declared LI at offset 0. The v1 source chooses the block's UL
+  when its block-level caret fallback cannot find a text node.
 - e981 throws `Inline widget root left its projection boundary before
   hydration` while entering read-only mode in each formatted-widget case.
   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
@@ -157,6 +175,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph or Heading behavior,
-the other 19 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading or List behavior,
+the other 18 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.
