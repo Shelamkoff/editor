@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const repo = fileURLToPath(new URL('../../', import.meta.url))
 const digest = bytes => createHash('sha256').update(bytes).digest('hex')
-const git = (...args) => execFileSync('git', args, { cwd: repo })
+const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
 const baselineRoot = name => {
   assert(process.env[name], `${name} must name an immutable Git archive directory`)
   return resolve(process.env[name])
@@ -132,20 +132,23 @@ try {
         'BLOCK_HEADING_ROUNDTRIP/populated', 'BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control',
         'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control',
-        'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control']
+        'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control',
+        'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated']
       const same = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected)
       const classify = failure => {
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
-          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default'].includes(entry.id)
+          const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default'].includes(entry.id)
           const listCase = ['BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/populated', 'BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const quoteCase = ['BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/populated', 'BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
           const warningCase = ['BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/populated', 'BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)
+          const codeCase = ['BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/populated'].includes(entry.id)
           const size = failure.property === 'blockDomIdentity' ? populated ? 3 : 1
-            : failure.property === 'widgetDomIdentity' && populated ? 2
+            : failure.property === 'widgetDomIdentity' && populated && !codeCase ? 2
               : failure.property === 'itemDomIdentity' && listCase ? populated ? 2 : 1
                 : failure.property === 'quoteFieldDomIdentity' && quoteCase ? 2
-                  : failure.property === 'warningFieldDomIdentity' && warningCase ? 2 : 0
+                  : failure.property === 'warningFieldDomIdentity' && warningCase ? 2
+                    : failure.property === 'plainFieldDomIdentity' && codeCase ? 1 : 0
           if (size && ['read-only', 'editable-again', 'undo', 'redo'].includes(failure.phase)
             && same(failure.actual, Array(size).fill(false)) && same(failure.expected, Array(size).fill(true))) {
             return ['read-only', 'editable-again'].includes(failure.phase) ? 'repaired-v1-mode-remount' : 'repaired-v1-history-remount'
@@ -179,8 +182,28 @@ try {
               anchor: { block: generatedId, node: 'DIV', text: '', offset: 2 },
               focus: { block: generatedId, node: 'DIV', text: '', offset: 2 },
             })) return 'repaired-v1-empty-warning-caret'
+          if (entry.id === 'BLOCK_CODE_ROUNDTRIP/populated' && failure.phase === 'undo' && failure.property === 'nativeSelection'
+            && same(failure.actual, { focused: false, anchor: 61, focus: 61, collapsed: true })
+            && same(failure.expected, { focused: true, anchor: 61, focus: 61, collapsed: true })
+            && same(undo?.selectionOwner, {
+              active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
+              anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+              focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 },
+            })) return 'repaired-v1-first-undo-caret'
+          const codeId = populated ? 'probe' : generatedId
+          const redo = entry.phases?.find(phase => phase.phase === 'redo')
+          const codeEnd = populated ? 62 : 1
+          if (codeCase && failure.phase === 'redo' && failure.property === 'nativeSelection'
+            && typeof codeId === 'string' && codeId.length > 0
+            && same(failure.actual, { focused: true, anchor: 0, focus: 0, collapsed: true })
+            && same(failure.expected, { focused: true, anchor: codeEnd, focus: codeEnd, collapsed: true })
+            && same(redo?.selectionOwner, {
+              active: { block: codeId, node: 'TEXTAREA', className: 'oe-code-textarea' },
+              anchor: { block: codeId, node: '#text', text: '\n', offset: 1 },
+              focus: { block: codeId, node: '#text', text: '\n', offset: 1 },
+            })) return 'repaired-v1-code-redo-caret'
           const offset = quoteCase || warningCase ? 12 : 14
-          if (populated && failure.phase === 'undo' && failure.property === 'nativeSelection'
+          if (populated && !codeCase && failure.phase === 'undo' && failure.property === 'nativeSelection'
             && same(failure.actual, { focused: false, anchor: null, focus: null, collapsed: true })
             && same(failure.expected, { focused: true, anchor: offset, focus: offset, collapsed: true })
             && same(undo?.selectionOwner, {

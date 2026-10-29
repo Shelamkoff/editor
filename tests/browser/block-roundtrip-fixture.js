@@ -36,16 +36,23 @@ const warning = {
   unwrappedData: { title: '<b>Alpha</b> {{mention}} tail', message: '<mark>Message</mark> {{swatch}}' },
 }
 
+const code = {
+  type: 'code', version: 1, className: 'Code', textKey: 'code', fieldMode: 'plain-text',
+  fieldSelector: '.oe-code-textarea',
+  defaultData: { code: '', language: 'auto' },
+  populatedData: { code: 'const tag = "<b>&copy;</b>";\nconsole.log(tag); // {{literal}}', language: 'javascript' },
+}
+
 const withEditedText = (block, data, text) => block.type === 'list'
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   return [false, true].map(populated => ({
     ...block, populated, id: prefix + (populated ? 'populated' : 'default'),
-  })).concat([{
+  })).concat(block.fieldMode === 'plain-text' ? [] : [{
     ...block, populated: true, id: prefix + 'populated-unwrapped-control',
     populatedData: block.unwrappedData ?? withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
   }])
@@ -86,6 +93,12 @@ function logicalLength(html) {
 }
 
 function caretIn(field) {
+  if (field.tagName === 'TEXTAREA') return {
+    focused: document.activeElement === field,
+    anchor: field.selectionDirection === 'backward' ? field.selectionEnd : field.selectionStart,
+    focus: field.selectionDirection === 'backward' ? field.selectionStart : field.selectionEnd,
+    collapsed: field.selectionStart === field.selectionEnd,
+  }
   const selection = getSelection()
   const point = (node, offset) => {
     if (!node || !field.contains(node)) return null
@@ -146,7 +159,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
-    blocks: [record('prefix', { text: '<b>Before</b>' }), record('probe', clone(specification.populatedData), clone(inline), specification),
+    blocks: [record('prefix', { text: '<b>Before</b>' }), record('probe', clone(specification.populatedData), specification.fieldMode === 'plain-text' ? undefined : clone(inline), specification),
       record('suffix', { text: '<i>After</i>' })],
   } : undefined
   const originalInput = input ? JSON.stringify(input) : null
@@ -181,6 +194,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     check('create', 'generatedDefaultIdentity', typeof id === 'string' && id.length > 0, true)
     const shell = blockId => holder.querySelector(`[data-block-id="${blockId}"]`)
     const field = () => shell(id).querySelector(specification.fieldSelector)
+    const plainField = specification.fieldMode === 'plain-text'
+    let previousPlainFields = plainField ? [field()] : []
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
     let previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
     let previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
@@ -193,32 +208,36 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const expectedBlocks = text => {
       const data = withEditedText(specification, baseData, text)
       return specification.populated
-        ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
+        ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, plainField ? undefined : clone(inline), specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
     const expectedTag = block => block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
-      : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : block.type === 'warning' ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'list'
+      : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code'].includes(block.type) ? 'DIV' : 'P'
+    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'code' ? { ...block.data } : block.type === 'list'
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : { ...block.data, text: markupMeaning(block.data.text) } }))
-    const rendererMarkup = element => element.dataset.blockType === 'list'
+    const rendererMarkup = element => element.dataset.blockType === 'code'
+      ? { tag: element.querySelector('.editor-code__content').tagName, source: element.querySelector('.editor-code__content').textContent }
+      : element.dataset.blockType === 'list'
       ? [...element.children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : element.dataset.blockType === 'quote'
         ? [...element.querySelector('.editor-quote__body').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : authoredMarkup(element)
-    const expectedRendererMarkup = block => block.type === 'list'
+    const expectedRendererMarkup = block => block.type === 'code'
+      ? { tag: 'CODE', source: block.data.code }
+      : block.type === 'list'
       ? block.data.items.map(item => ({ tag: 'LI', markup: markupMeaning(listItemText(item)) }))
       : block.type === 'quote'
         ? [{ tag: 'P', markup: markupMeaning(block.data.text) }, ...(block.data.caption ? [{ tag: 'CITE', markup: markupMeaning(block.data.caption) }] : [])]
       : block.type === 'warning'
         ? [...(block.data.title ? [{ tag: 'STRONG', markup: markupMeaning(block.data.title) }] : []), ...(block.data.message ? [{ tag: 'P', markup: markupMeaning(block.data.message) }] : [])]
       : markupMeaning(block.data.text)
-    const expectedWidgets = specification.populated ? [
+    const expectedWidgets = specification.populated && !plainField ? [
       { id: 'mention', type: 'mention', text: '@Ada', value: 'ada' },
       { id: 'swatch', type: 'color', text: '#123456', value: '#123456' },
     ] : []
@@ -240,6 +259,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
         check(phase, name + 'AuthoredMarkup', blocks.map(rendererMarkup), expected.map(expectedRendererMarkup))
         check(phase, name + 'Widgets', widgets(root), expectedWidgets)
+        if (specification.type === 'code' && specification.populated) check(phase, name + 'CodeLanguage',
+          blocks.find(element => element.dataset.blockId === id).querySelector('.editor-code__content').classList.contains('language-javascript'), true)
       }
       inspectOutput(detached, 'detached')
       detachedMount.append(detached)
@@ -261,8 +282,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const expected = expectedBlocks(text)
       const target = expected.find(block => block.id === id)
       check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
-      check(phase, 'editorFieldTag', field().tagName, specification.type === 'list' ? 'LI' : expectedTag(target))
-      check(phase, 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+      check(phase, 'editorFieldTag', field().tagName, plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target))
+      if (plainField) {
+        check(phase, 'editorAuthoredSource', field().value, text)
+        check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
+        check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
+      } else check(phase, 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
       if (specification.type === 'list') {
         const items = [...shell(id).querySelectorAll('.oe-list__item')]
         check(phase, 'editorListTag', shell(id).querySelector('.oe-list').tagName, expectedTag(target))
@@ -287,7 +312,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, 'warningFieldDomIdentity', previousWarningFields.map((element, index) => fields[index] === element), [true, true])
       }
       check(phase, 'editorWidgets', widgets(shell(id)), expectedWidgets)
-      check(phase, 'modeState', { readOnly: editor.readOnly, editable: field().isContentEditable }, { readOnly, editable: !readOnly })
+      check(phase, 'modeState', { readOnly: editor.readOnly, editable: plainField ? !field().readOnly : field().isContentEditable }, { readOnly, editable: !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
       check(phase, 'blockDomIdentity', previousShells.map(([blockId, element]) => shell(blockId) === element), previousShells.map(() => true))
       check(phase, 'widgetDomIdentity', previousWidgets.map(([widgetId, element]) => shell(id).querySelector(`[data-id="${widgetId}"]`) === element), previousWidgets.map(() => true))
@@ -296,7 +321,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       })
       if (input) check(phase, 'callerInputUnchanged', JSON.stringify(input), originalInput)
       await rendered(phase, saved, expected)
-      phases.push({ phase, blocks: saved.blocks, editorHtml: field().innerHTML,
+      phases.push({ phase, blocks: saved.blocks, ...(plainField ? { editorSource: field().value } : { editorHtml: field().innerHTML }),
         mountedHtml: mounted.innerHTML, selection: caretIn(field()),
         selectionOwner: nativeSelectionOwner(), readOnly: editor.readOnly })
       previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
@@ -304,6 +329,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousItems = [...shell(id).querySelectorAll('.oe-list__item')]
       previousQuoteFields = specification.type === 'quote' ? quoteFields() : []
       previousWarningFields = specification.type === 'warning' ? warningFields() : []
+      previousPlainFields = plainField ? [field()] : []
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
@@ -319,16 +345,36 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     check('editable-again', 'foreignFocusPreserved', document.activeElement === outside, true)
     await inspect('editable-again', baseText, false, { canUndo: false, canRedo: false })
     currentPhase = 'edit'
+    if (plainField && !shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
+      const editControl = shell(id).querySelector('.oe-code-btn--edit')
+      editControl.scrollIntoView({ block: 'nearest' })
+      await settled()
+      await focusField(editControl)
+      await settled()
+    }
     const author = field()
     author.scrollIntoView({ block: 'nearest' })
     await settled()
+    if (plainField) {
+      const rect = author.getBoundingClientRect()
+      const style = getComputedStyle(author)
+      check('edit', 'plainFieldDisclosure', {
+        editing: shell(id).querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing'),
+        hidden: author.hidden,
+        visible: rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility === 'visible',
+        receivesPointer: document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === author,
+      }, { editing: true, hidden: false, visible: true, receivesPointer: true })
+    }
     await focusField(author)
-    const range = document.createRange()
-    range.selectNodeContents(author)
-    range.collapse(false)
-    getSelection().removeAllRanges()
-    getSelection().addRange(range)
-    const offset = logicalLength(baseText)
+    const offset = plainField ? baseText.length : logicalLength(baseText)
+    if (plainField) author.setSelectionRange(offset, offset)
+    else {
+      const range = document.createRange()
+      range.selectNodeContents(author)
+      range.collapse(false)
+      getSelection().removeAllRanges()
+      getSelection().addRange(range)
+    }
     check('edit', 'fixtureCaret', caretIn(author), { focused: true, anchor: offset, focus: offset, collapsed: true })
     check('edit', 'trustedFieldFocus', trusted.some(event => event.type === 'mousedown' && event.trusted), true)
     await typeText('X')

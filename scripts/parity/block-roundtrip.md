@@ -5,7 +5,7 @@ This is the implementation inventory and reproduction guide for the
 accept any detailed block-action row. An inventory entry is not evidence
 that its browser scenario has run.
 
-The implemented vertical slices are Paragraph, Heading, List, Quote and Warning, each with
+The implemented rich-field slices are Paragraph, Heading, List, Quote and Warning, each with
 separate actual default construction and populated-document cases. Each
 populated case contains both real Mention and Color sidecars inside
 authored formatting, fixed neighbor Paragraphs, and stable IDs. A third
@@ -42,6 +42,21 @@ only the slot whose saved value is empty. Native input and one-step
 Undo/Redo operate on the declared title field; message data and live DOM
 must survive that sibling edit. A separate native message-authoring cycle
 is outside this template.
+
+Code adds two plain-text cases: its real empty/`auto` default and literal
+multiline source with a fixed `javascript` language. Source containing HTML
+syntax, an entity and a token-looking string remains literal in canonical
+data, the textarea and all renderer outputs; no rich-text sidecars are
+invented. The native Edit control reveals the source field when needed.
+The fixture then checks textarea value, read-only state, native selection
+endpoints and field identity through native input and one Undo/Redo. The
+preview's presentation-only final newline is checked separately from the
+saved source. Language is preserved in data and in populated renderer
+output. The differential serves the v1 bundled highlighter unchanged;
+its unbundled v2 sources use their documented plain-text fallback when the
+bare optional highlighter import cannot resolve. The standard Vite native
+page supplies the installed highlighting dependency. Token colors and
+highlighter injection are not accepted by this roundtrip template.
 
 Other inventory entries below are planned coverage, not completed tests.
 
@@ -84,7 +99,7 @@ author data from an initial `save()` result.
 | Heading / 2 | Empty level-2 heading | Level 3, rich text/sidecars; edit `text` | Alignment relocation remains a separate behavior; level/tag is implemented in this slice. |
 | List / 2 | One empty unordered item | Ordered pair with marks/sidecars; edit `item:first` | Implemented: v1 string array; fixed content/order plus current item IDs and item DOM. |
 | Quote / 1 | Empty quotation and caption | Rich quotation/Mention and independent rich caption/Color; edit `text` | Implemented: fields share the wire shape; caption data, DOM and output survive the sibling edit. |
-| Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Plain source has no fabricated rich-text sidecar. |
+| Code / 1 | Empty source, `auto` language | Literal multiline HTML-like source, explicit language; edit `code` | Implemented: textarea, literal renderer output, language and native history; no fabricated rich-text sidecars. |
 | Image / 1 | Empty file URL/caption, false flags, empty styles | Controlled local image, rich caption, appearance; edit `caption` | Caption is declared only with an image source. |
 | Delimiter / 1 | Empty object | The same data-free separator | No editable field or fabricated authoring step. |
 | Table / 2 | One empty cell with row/cell IDs | Rectangular rich cell matrix, headings; edit a declared cell | v1 `content: string[][]`; current identified rows/cells. Default size difference remains unresolved. |
@@ -163,13 +178,13 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote and Warning oracle classifies only these observed
-historical differences, bounded to the fifteen exact scenario IDs in the
+The Paragraph, Heading, List, Quote, Warning and Code oracle classifies only these
+observed historical differences, bounded to the seventeen exact scenario IDs in the
 runner:
 
-- v1 remounts the exact block/widget arrays, List items and Quote/Warning fields during read-only/editable mode
+- v1 remounts the exact block/widget arrays, List items, Quote/Warning fields and Code textarea during read-only/editable mode
   changes and Undo/Redo. Its author data and sidecars must still be exact.
-- The first v1 Undo in each block's two populated cases focuses the preceding
+- The first v1 Undo in each rich-field block's two populated cases focuses the preceding
   `prefix` Paragraph, with both native points in text `Before` at offset 6.
   The required `probe` caret is offset 14 for Paragraph/Heading/List and
   offset 12 for Quote/Warning. The full active/anchor/focus
@@ -190,6 +205,15 @@ runner:
   offset 2. The exact title class and actual generated block ID are required
   for this classification; current selection must be inside the declared
   title field at offset 0.
+- The first v1 Undo in populated Code focuses that same exact prefix
+  Paragraph, while the recreated textarea retains its selection at offset
+  61 without focus. After Redo, both Code cases focus their textarea but
+  reset its selection to offset 0 instead of 1 (default) or 62 (populated).
+  The document selection remains on the same Code block's trailing preview
+  newline at offset 1. Classifications require these exact values, textarea
+  class and owners, binding the default owner to its generated ID. v1's
+  `SelectionManager` restores a DOM Range in block contents rather than a
+  textarea selection. Both later sources must restore the textarea caret.
 - e981 throws `Inline widget root left its projection boundary before
   hydration` while entering read-only mode in each formatted-widget case.
   Only `load` completed; read-only, return to editing, edit, Undo, Redo and
@@ -202,6 +226,6 @@ scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote or Warning behavior,
-the other 16 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning or Code behavior,
+the other 15 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.
