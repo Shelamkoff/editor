@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "scope": "Optional captured field projection completion via existing BlockReconciler + Image derived alternative text",
+  "worktree": "/tmp/rector-image-completion-20261029",
+  "mainModified": false,
+  "base": "7f31c65017fd2c868cb17badf297c155c3a11eb6",
+  "testFirstCommits": [
+    "fd49e0c67f9987a332a8389fec9e82425c39a437",
+    "e042c53c5f1ba656f021ecb419a2b65269660889",
+    "7da7ecbf7070d2eacdf00076046952887b97f2d0"
+  ],
+  "currentSource": {
+    "head": "7da7ecbf7070d2eacdf00076046952887b97f2d0",
+    "tree": "f8c9936ab6227a772898eb13decd2d82bc196b2f",
+    "patchSha256": "af08227d1c8c722c83f463a3e70ba3ca11029ad24f527d13487df00d21e93ed8",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": true,
+    "identity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+  },
+  "sourceFiles": [
+    {
+      "path": "/tmp/rector-image-completion-20261029/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md",
+      "sha256": "7f5aeff44dea4c3eabdd3333e0539d411037a6a215d79b4a4a0749beb3439c0d",
+      "bytes": 93468,
+      "relativePath": "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/core/BlockReconciler.js",
+      "sha256": "6fb118d2249c4ce8757a3e1576bb4dff9ca3e0618b979906cd821a495da68903",
+      "bytes": 63699,
+      "relativePath": "core/BlockReconciler.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/core/InlineProjectionRuntime.js",
+      "sha256": "f701071da117a783cb3e1a8cf649d37ba8e875c9d3704dfe25401ce949b8ab05",
+      "bytes": 57003,
+      "relativePath": "core/InlineProjectionRuntime.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/core/InlineWidgetInputController.js",
+      "sha256": "e05ea575decadaa2bf256a1c9c58d2eae1384dc379d3d2bc801beca4fcaa50a6",
+      "bytes": 26718,
+      "relativePath": "core/InlineWidgetInputController.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/docs/guide/extensions.md",
+      "sha256": "097fe6a5b1410cd7945c9a820a2dfabb30ab9fcdd627afad379e684cf0dd5bfe",
+      "bytes": 18266,
+      "relativePath": "docs/guide/extensions.md"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/docs/ru/guide/extensions.md",
+      "sha256": "b39713f37dcd3948c45c61ba920f2c3a1bbd64c32f251d9ccdbca9e351aaf826",
+      "bytes": 29839,
+      "relativePath": "docs/ru/guide/extensions.md"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/plugin-kit/types.d.ts",
+      "sha256": "de1c7501b1d0f49fbb0e6cd46365b402a61a3a09652b7ca2e3c07bfec3c87b6f",
+      "bytes": 17038,
+      "relativePath": "plugin-kit/types.d.ts"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/plugins/image/README.md",
+      "sha256": "b08f269ae09556d2432c6f0cdd4ea35c9cd0ff6513ab1ae0f6b2a55d0b2a1419",
+      "bytes": 5405,
+      "relativePath": "plugins/image/README.md"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/plugins/image/README.ru.md",
+      "sha256": "6d928ab9ff4f51d70d00486f88c189a2cbcbd599c94bbc6b5102ba2849d3c856",
+      "bytes": 8277,
+      "relativePath": "plugins/image/README.ru.md"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/plugins/image/index.js",
+      "sha256": "2fda9e8c8a048add4ceccac9b4b1e58e2ac009f062fc0d8ee831a758924c9409",
+      "bytes": 25448,
+      "relativePath": "plugins/image/index.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/browser/native-library-boundaries.js",
+      "sha256": "6f221425ec040819e8eafbae3b4fa1327ac8ab5bb1181e03be774d9d97239f9b",
+      "bytes": 22717,
+      "relativePath": "tests/browser/native-library-boundaries.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/browser/projection-contracts.js",
+      "sha256": "8cc610762f584db75812aff591cf69c451a1a9231d2c6386f6270badf0929f35",
+      "bytes": 75021,
+      "relativePath": "tests/browser/projection-contracts.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/browser/regressions/field-projection-completion-fixture.js",
+      "sha256": "23e856972ce26fc075052409a4df59b895087f1e816ac9af79ea674ea944c276",
+      "bytes": 6698,
+      "relativePath": "tests/browser/regressions/field-projection-completion-fixture.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/browser/regressions/field-projection-completion-native.js",
+      "sha256": "6171551d7d71688231cbd1ef5c2d36b3003afcb25ab0719982239022c2a6bb0e",
+      "bytes": 9865,
+      "relativePath": "tests/browser/regressions/field-projection-completion-native.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/browser/regressions/field-projection-completion.js",
+      "sha256": "0dbaa55f4ad91b2b5c63e44b7cd961276fbc3bf77d5bee295fb5bea183dbabea",
+      "bytes": 29455,
+      "relativePath": "tests/browser/regressions/field-projection-completion.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/browser/regressions/image-derived-alt.js",
+      "sha256": "b73a0b9924144225fcdbc8d0e12389edc79c66da06aa14bee6eecae0d48a784a",
+      "bytes": 11064,
+      "relativePath": "tests/browser/regressions/image-derived-alt.js"
+    },
+    {
+      "path": "/tmp/rector-image-completion-20261029/tests/types/extensibility-consumer.ts",
+      "sha256": "1d551e8578e2d3ac0ddb30cf4141ef9e3d2a79533e9ca06acf97f23f08928a12",
+      "bytes": 10451,
+      "relativePath": "tests/types/extensibility-consumer.ts"
+    }
+  ],
+  "runtimePatch": {
+    "path": "/tmp/rector-image-completion-runtime-v3.patch",
+    "sha256": "37e777d71db6547092f4270cd1c38c4b66672f462678ebe0cd201d87f4330ce1",
+    "bytes": 21379
+  },
+  "fullPatch": {
+    "path": "/tmp/rector-image-completion-full-review.patch",
+    "sha256": "4afcb46d000985342f071607f82534ea458986c3eecf9b437ba32a7e9e8796dd",
+    "bytes": 109557
+  },
+  "frozenImage10": {
+    "path": "/tmp/rector-image-completion-20261029/tests/browser/regressions/image-derived-alt.js",
+    "sha256": "b73a0b9924144225fcdbc8d0e12389edc79c66da06aa14bee6eecae0d48a784a",
+    "bytes": 11064
+  },
+  "redEvidence": [
+    {
+      "label": "Frozen Image10 against unimplemented completion boundary",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-40ISj0/manifest.json",
+        "sha256": "099cf09d29713905e025da7a8662c1bbb6aac4e39aa1256520eb1ce4f494b69c",
+        "bytes": 4137
+      },
+      "source": {
+        "head": "7f31c65017fd2c868cb17badf297c155c3a11eb6",
+        "tree": "002d6f580c5b72d94e1627de38cba64e6cf585c0",
+        "patchSha256": "b5e4a62365ac6d23c983360d84c9e400aaf0088146fc23f045c62eee3dc4c9cd",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/image-derived-alt.js",
+            "mode": 33188,
+            "sha256": "b73a0b9924144225fcdbc8d0e12389edc79c66da06aa14bee6eecae0d48a784a"
+          }
+        ],
+        "dirty": true,
+        "identity": "cd5c1ffedabef99431e3525c40761bc439f2056ebd5032628141f939053ba71b"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "image10-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T19:34:09.861Z",
+          "finishedAt": "2026-10-29T19:34:13.445Z",
+          "elapsedMs": 3577.393626,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "cd5c1ffedabef99431e3525c40761bc439f2056ebd5032628141f939053ba71b",
+          "sourceAfterIdentity": "cd5c1ffedabef99431e3525c40761bc439f2056ebd5032628141f939053ba71b"
+        }
+      },
+      "ordinary": {
+        "total": 70,
+        "passed": 65,
+        "failed": 5,
+        "failures": [
+          {
+            "name": "Image derived alt after actual Mention and Color load",
+            "firstError": "Error: Image alt must follow the hydrated visible caption"
+          },
+          {
+            "name": "Image derived alt after mode false to true",
+            "firstError": "Error: Mode rehydration must settle the derived alternative text"
+          },
+          {
+            "name": "Image derived alt after mode true to false",
+            "firstError": "Error: Mode rehydration must settle the derived alternative text"
+          },
+          {
+            "name": "Image derived alt follows mention data update and exactly one Undo/Redo with selection preserved",
+            "firstError": "Error: Update: alt differs from actual caption"
+          },
+          {
+            "name": "Image derived alt follows swatch data update and exactly one Undo/Redo with selection preserved",
+            "firstError": "Error: Update: alt differs from actual caption"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Root-approved clean specification/test-first commit",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-R7mokA/manifest.json",
+        "sha256": "3dba2489086abdc99359caa8c4025b32baeaeec7e3a24f734082f25716957df7",
+        "bytes": 6743
+      },
+      "source": {
+        "head": "fd49e0c67f9987a332a8389fec9e82425c39a437",
+        "tree": "5f14ab64eabd87c8993133e14c2a14ac8165292b",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "completion-public-types-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T19:52:10.694Z",
+          "finishedAt": "2026-10-29T19:52:19.869Z",
+          "elapsedMs": 9172.033220000001,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "test:types"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d",
+          "sourceAfterIdentity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d"
+        },
+        "completion-ordinary-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:08:03.467Z",
+          "finishedAt": "2026-10-29T20:08:06.939Z",
+          "elapsedMs": 3465.6081950000003,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d",
+          "sourceAfterIdentity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d"
+        },
+        "completion-native-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:08:12.686Z",
+          "finishedAt": "2026-10-29T20:08:14.507Z",
+          "elapsedMs": 1816.855356,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d",
+          "sourceAfterIdentity": "7f663316bac88dae3330ecfe6e1066b36cd764d0efeebbddfc6096a18f0a212d"
+        }
+      },
+      "ordinary": {
+        "total": 93,
+        "passed": 68,
+        "failed": 25,
+        "failures": [
+          {
+            "name": "field completion observes mounted connected-widget labels with an exact frozen descriptor",
+            "firstError": "Error: Completion must follow attachment and complete inline projection"
+          },
+          {
+            "name": "field completion captures its method getter once and keeps the original receiver",
+            "firstError": "Error: The optional method was not captured exactly once"
+          },
+          {
+            "name": "field completion settles a sidecar-only edit and each exact history replay before acceptance",
+            "firstError": "Error: "
+          },
+          {
+            "name": "field completion observes final inline mode and cancellation effects before mode acceptance",
+            "firstError": "Error: "
+          },
+          {
+            "name": "field completion query failure is field-local and retries only a new explicit descriptor",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion observer failure is field-local and retries only a new explicit descriptor",
+            "firstError": "Error: The attempted callback did not run"
+          },
+          {
+            "name": "field completion follows an unchanged-canonical field rewritten by block update without replaying its untouched sibling",
+            "firstError": "Error: Rewritten DOM needs completion; untouched note does not"
+          },
+          {
+            "name": "field completion getter failure cleans up the captured instance before publication",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion initial Error failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion initial undefined failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion initial thenable failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion canonical Error failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion canonical undefined failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion canonical thenable failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion mode failure restores coherent fields and accepted mode without restoring cancelled tasks",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion observer preserves an undefined body failure without retrying its settled field",
+            "firstError": "Error: The observer must deliver the actual callback failure"
+          },
+          {
+            "name": "field completion cannot acquire scoped writes, tasks or public mutation and control authority",
+            "firstError": "Error: The completion boundary was never entered"
+          },
+          {
+            "name": "field completion does not revive a removed instance when history recreates its serialized id",
+            "firstError": "Error: "
+          },
+          {
+            "name": "field completion rejects current field adoption through its callback without reclaiming the foreign host",
+            "firstError": "Error: The callback must run and its ownership loss must reject the attempted projection"
+          },
+          {
+            "name": "field completion rejects sibling field adoption through its callback without reclaiming the foreign host",
+            "firstError": "Error: The callback must run and its ownership loss must reject the attempted projection"
+          },
+          {
+            "name": "Image derived alt after actual Mention and Color load",
+            "firstError": "Error: Image alt must follow the hydrated visible caption"
+          },
+          {
+            "name": "Image derived alt after mode false to true",
+            "firstError": "Error: Mode rehydration must settle the derived alternative text"
+          },
+          {
+            "name": "Image derived alt after mode true to false",
+            "firstError": "Error: Mode rehydration must settle the derived alternative text"
+          },
+          {
+            "name": "Image derived alt follows mention data update and exactly one Undo/Redo with selection preserved",
+            "firstError": "Error: Update: alt differs from actual caption"
+          },
+          {
+            "name": "Image derived alt follows swatch data update and exactly one Undo/Redo with selection preserved",
+            "firstError": "Error: Update: alt differs from actual caption"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Changed and canonical-no-op native callback failure controls",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-otT2qh/manifest.json",
+        "sha256": "02197c76f250f10ad9d60e1752f14f3eb0740a0362b0f03cb41bd21207b7b214",
+        "bytes": 3277
+      },
+      "source": {
+        "head": "fd49e0c67f9987a332a8389fec9e82425c39a437",
+        "tree": "5f14ab64eabd87c8993133e14c2a14ac8165292b",
+        "patchSha256": "8e2715d6c6af040d96a390afa8cbb78b90845696b32c1d2ea2bb136085db5167",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": true,
+        "identity": "124e6a155873ec7c3443667af63d526966f58c39ebc2f47a21e79ff2ac44b97e"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "completion-native-failures-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:09:09.963Z",
+          "finishedAt": "2026-10-29T20:09:11.980Z",
+          "elapsedMs": 2013.3655390000001,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "124e6a155873ec7c3443667af63d526966f58c39ebc2f47a21e79ff2ac44b97e",
+          "sourceAfterIdentity": "124e6a155873ec7c3443667af63d526966f58c39ebc2f47a21e79ff2ac44b97e"
+        }
+      }
+    },
+    {
+      "label": "Identical HTML but replaced descendant identity",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-2FR9wr/manifest.json",
+        "sha256": "04ba6bcf0fec50a47475e60c87a3aca0af70fda5503f7541b6602e67a3767666",
+        "bytes": 3187
+      },
+      "source": {
+        "head": "e042c53c5f1ba656f021ecb419a2b65269660889",
+        "tree": "336cf7e80e4baf2af726e738e1c36aa42cb5fa86",
+        "patchSha256": "8881ac9e56f8c9bb472b5251f4dde1cb9c347b071e0f03a5f0eb1ef442fda55c",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": true,
+        "identity": "c62fd796ff4ab756748d061b64cf7e681ae70ed54b4e115c8b18918e7aaaff61"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "completion-descendant-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:13:09.216Z",
+          "finishedAt": "2026-10-29T20:13:12.604Z",
+          "elapsedMs": 3381.150569,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "c62fd796ff4ab756748d061b64cf7e681ae70ed54b4e115c8b18918e7aaaff61",
+          "sourceAfterIdentity": "c62fd796ff4ab756748d061b64cf7e681ae70ed54b4e115c8b18918e7aaaff61"
+        }
+      },
+      "ordinary": {
+        "total": 94,
+        "passed": 68,
+        "failed": 26,
+        "failures": [
+          {
+            "name": "field completion observes mounted connected-widget labels with an exact frozen descriptor",
+            "firstError": "Error: Completion must follow attachment and complete inline projection"
+          },
+          {
+            "name": "field completion captures its method getter once and keeps the original receiver",
+            "firstError": "Error: The optional method was not captured exactly once"
+          },
+          {
+            "name": "field completion settles a sidecar-only edit and each exact history replay before acceptance",
+            "firstError": "Error: "
+          },
+          {
+            "name": "field completion observes final inline mode and cancellation effects before mode acceptance",
+            "firstError": "Error: "
+          },
+          {
+            "name": "field completion query failure is field-local and retries only a new explicit descriptor",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion observer failure is field-local and retries only a new explicit descriptor",
+            "firstError": "Error: The attempted callback did not run"
+          },
+          {
+            "name": "field completion follows an unchanged-canonical field rewritten by block update without replaying its untouched sibling",
+            "firstError": "Error: Rewritten DOM needs completion; untouched note does not"
+          },
+          {
+            "name": "field completion getter failure cleans up the captured instance before publication",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion recognizes an identical-HTML nested Text replacement by block update",
+            "firstError": "Error: Actual descendant replacement was missed or the untouched sibling was replayed"
+          },
+          {
+            "name": "field completion initial Error failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion initial undefined failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion initial thenable failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion canonical Error failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion canonical undefined failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion canonical thenable failure preserves its original failure and accepted boundary",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion mode failure restores coherent fields and accepted mode without restoring cancelled tasks",
+            "firstError": "Error: The operation must actually fail"
+          },
+          {
+            "name": "field completion observer preserves an undefined body failure without retrying its settled field",
+            "firstError": "Error: The observer must deliver the actual callback failure"
+          },
+          {
+            "name": "field completion cannot acquire scoped writes, tasks or public mutation and control authority",
+            "firstError": "Error: The completion boundary was never entered"
+          },
+          {
+            "name": "field completion does not revive a removed instance when history recreates its serialized id",
+            "firstError": "Error: "
+          },
+          {
+            "name": "field completion rejects current field adoption through its callback without reclaiming the foreign host",
+            "firstError": "Error: The callback must run and its ownership loss must reject the attempted projection"
+          },
+          {
+            "name": "field completion rejects sibling field adoption through its callback without reclaiming the foreign host",
+            "firstError": "Error: The callback must run and its ownership loss must reject the attempted projection"
+          },
+          {
+            "name": "Image derived alt after actual Mention and Color load",
+            "firstError": "Error: Image alt must follow the hydrated visible caption"
+          },
+          {
+            "name": "Image derived alt after mode false to true",
+            "firstError": "Error: Mode rehydration must settle the derived alternative text"
+          },
+          {
+            "name": "Image derived alt after mode true to false",
+            "firstError": "Error: Mode rehydration must settle the derived alternative text"
+          },
+          {
+            "name": "Image derived alt follows mention data update and exactly one Undo/Redo with selection preserved",
+            "firstError": "Error: Update: alt differs from actual caption"
+          },
+          {
+            "name": "Image derived alt follows swatch data update and exactly one Undo/Redo with selection preserved",
+            "firstError": "Error: Update: alt differs from actual caption"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Callback direct author Text mutation",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-30989K/manifest.json",
+        "sha256": "12f4d13c77255165084474f133d6f2fefb3cd69b57777aa822b87ad15d734801",
+        "bytes": 3189
+      },
+      "source": {
+        "head": "7da7ecbf7070d2eacdf00076046952887b97f2d0",
+        "tree": "f8c9936ab6227a772898eb13decd2d82bc196b2f",
+        "patchSha256": "46b1f067fae884c146c0eee786974741c8d705ebd0f71736596b4c9290c5a3a9",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": true,
+        "identity": "173024bde8f7ca8a9c85c4cf839397661c0291bf03262c32515e2d385994b213"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "completion-author-write-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:19:21.479Z",
+          "finishedAt": "2026-10-29T20:19:25.398Z",
+          "elapsedMs": 3916.050248,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "173024bde8f7ca8a9c85c4cf839397661c0291bf03262c32515e2d385994b213",
+          "sourceAfterIdentity": "173024bde8f7ca8a9c85c4cf839397661c0291bf03262c32515e2d385994b213"
+        }
+      },
+      "ordinary": {
+        "total": 95,
+        "passed": 94,
+        "failed": 1,
+        "failures": [
+          {
+            "name": "field completion cannot rewrite its passed author Text through a direct DOM write",
+            "firstError": "Error: Completion silently accepted author DOM changed by its callback"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Four same-block sibling private-widget/Text mutation seams",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-EL0GUg/manifest.json",
+        "sha256": "c3d1c474d13ad9e2674c40c49cc04b7541acabbddff2bfd148ea2505bd353e93",
+        "bytes": 3184
+      },
+      "source": {
+        "head": "7da7ecbf7070d2eacdf00076046952887b97f2d0",
+        "tree": "f8c9936ab6227a772898eb13decd2d82bc196b2f",
+        "patchSha256": "1890d0b8eb2a6057303e267c46154fa337f946127c19cefed60339d3bb1462b4",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": true,
+        "identity": "4588ff2c75263d03ae784f2f6364a6840217995412d9d4d46c5cf8f25a7810f5"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "completion-sibling-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:28:10.407Z",
+          "finishedAt": "2026-10-29T20:28:14.288Z",
+          "elapsedMs": 3876.088373,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "4588ff2c75263d03ae784f2f6364a6840217995412d9d4d46c5cf8f25a7810f5",
+          "sourceAfterIdentity": "4588ff2c75263d03ae784f2f6364a6840217995412d9d4d46c5cf8f25a7810f5"
+        }
+      },
+      "ordinary": {
+        "total": 99,
+        "passed": 95,
+        "failed": 4,
+        "failures": [
+          {
+            "name": "field completion rejects a canonical callback that changes its sibling widget without moving the field host",
+            "firstError": "Error: Completion accepted a stale sibling projection"
+          },
+          {
+            "name": "field completion rejects a canonical callback that changes its sibling text without moving the field host",
+            "firstError": "Error: Completion accepted a stale sibling projection"
+          },
+          {
+            "name": "field completion rejects a standalone callback that changes its sibling widget without moving the field host",
+            "firstError": "Error: Completion accepted a stale sibling projection"
+          },
+          {
+            "name": "field completion rejects a standalone callback that changes its sibling text without moving the field host",
+            "firstError": "Error: Completion accepted a stale sibling projection"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Image legacy mode path writes foreign auxiliary alt",
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-M47ZpM/manifest.json",
+        "sha256": "4da8ac5a1c1e947c688a9a8b63ecd5f1ca64e0f85a8f29a0a6b20e6a2c2ad8f2",
+        "bytes": 3190
+      },
+      "source": {
+        "head": "7da7ecbf7070d2eacdf00076046952887b97f2d0",
+        "tree": "f8c9936ab6227a772898eb13decd2d82bc196b2f",
+        "patchSha256": "04a908be15f6d1949ccf760bdfe3a5653c1f80243206a1f580b74eead9a0518c",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": true,
+        "identity": "9993524ed32a225e598ec6d42cc00c03dbd42efdf5b3f166096d7445f924c5e9"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "completion-image-foreign-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-29T20:35:41.136Z",
+          "finishedAt": "2026-10-29T20:35:44.996Z",
+          "elapsedMs": 3857.505085,
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/tmp/rector-image-completion-20261029",
+          "sourceUnchanged": true,
+          "sourceBeforeIdentity": "9993524ed32a225e598ec6d42cc00c03dbd42efdf5b3f166096d7445f924c5e9",
+          "sourceAfterIdentity": "9993524ed32a225e598ec6d42cc00c03dbd42efdf5b3f166096d7445f924c5e9"
+        }
+      },
+      "ordinary": {
+        "total": 100,
+        "passed": 99,
+        "failed": 1,
+        "failures": [
+          {
+            "name": "Image completion does not update a foreign auxiliary image during a mode transition",
+            "firstError": "Error: A legacy mode projection wrote the foreign image before completion"
+          }
+        ]
+      }
+    }
+  ],
+  "finalVerification": {
+    "broadManifest": {
+      "path": "/tmp/rector-image-completion-20261029/test-results/run-fIlUUK/manifest.json",
+      "sha256": "0ea5359217c7518571536d64c7f6dd36970bad3346a0b51923c3d5543f44ab1a",
+      "bytes": 20322
+    },
+    "gates": {
+      "completion-build": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:37:30.113Z",
+        "finishedAt": "2026-10-29T20:37:37.689Z",
+        "elapsedMs": 7572.842016,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-unit": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:37:48.578Z",
+        "finishedAt": "2026-10-29T20:38:10.612Z",
+        "elapsedMs": 22031.683977999997,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "test"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-types": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:38:24.715Z",
+        "finishedAt": "2026-10-29T20:38:34.729Z",
+        "elapsedMs": 10009.990592999999,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "test:types"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-checkjs": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:38:39.524Z",
+        "finishedAt": "2026-10-29T20:38:49.228Z",
+        "elapsedMs": 9701.439418999998,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-docs": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:38:53.915Z",
+        "finishedAt": "2026-10-29T20:38:58.462Z",
+        "elapsedMs": 4544.232593000001,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "test:docs"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-package": {
+        "outcome": "failed",
+        "startedAt": "2026-10-29T20:39:15.929Z",
+        "finishedAt": "2026-10-29T20:39:27.626Z",
+        "elapsedMs": 11693.566588,
+        "exitCode": 1,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "test:package"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-projection": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:42:40.827Z",
+        "finishedAt": "2026-10-29T20:42:44.616Z",
+        "elapsedMs": 3785.80555,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "tests/browser/run.mjs"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-recovery": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:42:49.137Z",
+        "finishedAt": "2026-10-29T20:42:56.275Z",
+        "elapsedMs": 7134.9474310000005,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "tests/browser/run.mjs"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-mode": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:43:10.801Z",
+        "finishedAt": "2026-10-29T20:43:12.284Z",
+        "elapsedMs": 1480.493691,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "tests/browser/run.mjs"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-native-library": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:43:17.679Z",
+        "finishedAt": "2026-10-29T20:43:30.291Z",
+        "elapsedMs": 12609.336723,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "tests/browser/physical-history.mjs"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      },
+      "completion-native-recovery": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:43:43.411Z",
+        "finishedAt": "2026-10-29T20:43:50.805Z",
+        "elapsedMs": 7390.7823849999995,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "tests/browser/physical-history.mjs"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      }
+    },
+    "packageReadyManifest": {
+      "path": "/tmp/rector-image-completion-20261029/test-results/run-k1dcc8/manifest.json",
+      "sha256": "d4eab78bf74fbd2b7ecff7d0586f8d17b2b1a95126236bde85cb896ac35ceca9",
+      "bytes": 3208
+    },
+    "packageReadyGates": {
+      "completion-package-ready": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T20:42:00.656Z",
+        "finishedAt": "2026-10-29T20:42:25.710Z",
+        "elapsedMs": 25050.760438,
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "test:package"
+        ],
+        "cwd": "/tmp/rector-image-completion-20261029",
+        "sourceUnchanged": true,
+        "sourceBeforeIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141",
+        "sourceAfterIdentity": "fb482a4d6f76dfd947212a0f005d3c245f60970f78005ef3537da60e22738141"
+      }
+    },
+    "unit": {
+      "total": 1967,
+      "passed": 1967,
+      "failed": 0,
+      "log": {
+        "path": "/tmp/rector-image-completion-final-unit.log",
+        "sha256": "935dd23bea663679513ffcace34e9c6846a35faa890e225f6633f4e4bafddb11",
+        "bytes": 191059
+      }
+    },
+    "generatedConsumers": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "log": {
+        "path": "/tmp/rector-image-completion-final-types.log",
+        "sha256": "1eddb219b55c41b6aec9af8d6b18dbf976723fdaa164bf8280e3b0185efc3e8f",
+        "bytes": 915
+      }
+    },
+    "browsers": [
+      {
+        "page": "projection-contracts.html",
+        "total": 100,
+        "passed": 100,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/rector-image-completion-final-projection.log",
+          "sha256": "d4a995b792f6e2754d143d7a68299313a508c9e3b9d39a6708e862f2b2406ae3",
+          "bytes": 13264
+        }
+      },
+      {
+        "page": "presentation-recovery.html",
+        "total": 63,
+        "passed": 63,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/rector-image-completion-final-recovery.log",
+          "sha256": "51532d63de656ee5897ea8f72a61125eac8a2f6d3a9dbade3600a105b002454d",
+          "bytes": 8703
+        }
+      },
+      {
+        "page": "mode-recovery.html",
+        "total": 28,
+        "passed": 28,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/rector-image-completion-final-mode.log",
+          "sha256": "59b4cc9aa02f2bfb7daf12fcb589738e5ede38e5eec57f30b0d97f0318032616",
+          "bytes": 3815
+        }
+      },
+      {
+        "page": "native-library-boundaries.html",
+        "total": 36,
+        "passed": 36,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/rector-image-completion-final-native-library.log",
+          "sha256": "16c76dbc901c9cab4c57ea214fa4f5e36a18a02e3d748651691c17fea74966e9",
+          "bytes": 4064
+        }
+      },
+      {
+        "page": "native-presentation-recovery.html",
+        "total": 14,
+        "passed": 14,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/rector-image-completion-final-native-recovery.log",
+          "sha256": "8f5a11eb4dd77a23a555ab60062623e4a2446c3d5a3ebcab6b8b669edcc6bf88",
+          "bytes": 1442
+        }
+      }
+    ]
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {},
+    "browser": {
+      "executable": "/tmp/rector-browsers/chrome-linux64/chrome",
+      "protocolVersion": "1.3",
+      "product": "Chrome/142.0.7444.175",
+      "revision": "@302067f14a4ea3f42001580e6101fa25ed343445",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36",
+      "jsVersion": "14.2.231.21"
+    }
+  },
+  "excludedSetupOrOracleAttempts": [
+    {
+      "classification": "Invalid initial consumer import oracle",
+      "details": "BlockInstance was initially imported from plugin-kit/index instead of the supported public types route; excluded from product RED. Corrected public route is in the clean test-first RED."
+    },
+    {
+      "classification": "Invalid whitespace oracle after the native-removal owner fix",
+      "log": {
+        "path": "/tmp/rector-image-completion-native-removal-green.log",
+        "sha256": "0c40d8177578df60940a8a1431e500a31f3e497c09e353fe7bab5e16010dbbdd",
+        "bytes": 4261
+      },
+      "details": "Trailing plain space legitimately normalized to NBSP by the browser. Test now uses independent literal L{{id}}R with label X and requires exact LR/Undo/Redo; assertions are not copied from runtime output."
+    },
+    {
+      "classification": "Isolated dependency-layout failure",
+      "log": {
+        "path": "/tmp/rector-image-completion-final-package.log",
+        "sha256": "7a2aa615c7df76a5d434b8d4d2bf57211d2fae8294d48b1f079422d0c08cc6cc",
+        "bytes": 3936
+      },
+      "details": "Existing repacker preserved direct package symlinks as a tar symlink. Only five ignored isolated dependency links were replaced by byte-identical physical copies. No source, version or gate change.",
+      "proof": {
+        "path": "/tmp/rector-image-completion-package-layout-proof/core-util-is-1.0.3.tgz",
+        "sha256": "fe0fc2f4a9a1839776aee6fc102b2af59af718f1c48e125d2f86327981eccddb",
+        "bytes": 161
+      },
+      "remediation": {
+        "path": "/tmp/rector-image-completion-package-layout-proof/layout-remediation.json",
+        "sha256": "d41c3bb6b660b972431af8e3afe06978c25db957264743a37d26a62ac78e036d",
+        "bytes": 1605
+      }
+    },
+    {
+      "classification": "Missing required browser executable in package command environment",
+      "log": {
+        "path": "/tmp/rector-image-completion-final-package-layout-replay.log",
+        "sha256": "dccb7120ed0c832b4099023c4244b5b20be2b6d1add520d8fc09239f78c3ef4f",
+        "bytes": 6166
+      },
+      "manifest": {
+        "path": "/tmp/rector-image-completion-20261029/test-results/run-wnoBSV/manifest.json",
+        "sha256": "a973d453c3f08b54e553ea363153395ba8bc6c62787cdc9d2866bb9b69fa73c3",
+        "bytes": 3052
+      },
+      "details": "Install, consumers, Vite and imports passed; final browser could not find Chrome. Fresh run-k1dcc8 supplies EDITOR_CHROME_PATH and passes."
+    }
+  ],
+  "independentReview": {
+    "reviewer": "/root/image_parity_recovery",
+    "reviewedRuntimeV2Sha256": "a30743b79e8ce5e5c3e40acd70bbc129f3e8b7b0168d66a2db9704008d345fe8",
+    "verdict": "No blockers in the bounded four sibling corruption seams; no independent test rerun. Final v3 differs only in Image alt assignment guard; review requested."
+  },
+  "limitations": [
+    "No whole-library or full Image/Gallery parity claim",
+    "No generic rollback of arbitrary opaque auxiliary DOM",
+    "No general sandbox for mutations outside current captured fields",
+    "No layout/paint or asynchronous completion promise",
+    "No universal performance claim; no-hook path performs no completion-specific field observation",
+    "Final broad source is a fixed dirty patch atop test-first commit; exact patch/source identities are recorded and unchanged"
+  ]
+}

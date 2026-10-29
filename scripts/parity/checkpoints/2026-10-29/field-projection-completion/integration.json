@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "archive": {
+    "file": "isolated-proof.tar.gz",
+    "sha256": "a5a0c2e3657a3b911bb28de0cfd7fdabf42b52d80b2402af474ce5e8607a868b",
+    "bytes": 149467,
+    "verifiedPayloadFiles": 58
+  },
+  "isolatedSource": "ae54524f7706559e3d3a3bf91c9830d9d2f89d97",
+  "integratedHookSource": "38df2ec35222f2582505b2983a4fe3b4619c80b3",
+  "integratedGeometrySource": "fe44cc57f5cbac1daffd031f5c8e791d707fb828",
+  "integratedGeometryTree": "e69c866e4e2b02bb70e42d51f0beba6048047581",
+  "exactHookSourceFiles": 17,
+  "documentationOnlyCorrection": "794c7ab780d18d445e60179fa0076267a9b7e10a",
+  "note": "The two Russian prose substitutions are recorded after the exact17-file integration. They address a real docs:check failure; they change no executable or type fixture. Original isolated proof is immutable and retains earlier setup/oracle failures. Complete integrated browser/heap acceptance is a separate result."
+}
