@@ -1,0 +1,681 @@
+{
+  "source": {
+    "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+    "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+  },
+  "sourceUnchanged": true,
+  "c11Outcome": "failed",
+  "gates": {
+    "docs-browser": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "startedAt": "2026-10-29T21:26:45.375Z",
+      "finishedAt": "2026-10-29T21:27:38.459Z",
+      "elapsedMs": 53081.396456,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "cc673a7c632d70b14ab8b4560ea5a4d346f403f8cbdf40ac37fdce56acd34ae5"
+    },
+    "ordinary": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "startedAt": "2026-10-29T21:27:38.702Z",
+      "finishedAt": "2026-10-29T21:28:13.286Z",
+      "elapsedMs": 34580.018245,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "c2d3ea8ec9f21a530b7d9f6eb924b464f4d1fc7f04ac5f3caf8cfae5168451d5"
+    },
+    "native": {
+      "outcome": "failed",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "startedAt": "2026-10-29T21:28:13.492Z",
+      "finishedAt": "2026-10-29T21:44:10.268Z",
+      "elapsedMs": 956772.453009,
+      "exitCode": 1,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "b7006ac94a6d2bdc50dc1032aafde57cebf48004e8d009155582e7cd5ca6353c"
+    },
+    "heap": {
+      "outcome": "not-run",
+      "command": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "elapsedMs": null,
+      "exitCode": null,
+      "signal": null,
+      "sourceUnchanged": null
+    }
+  },
+  "evidenceErrors": [],
+  "ordinary": {
+    "pageCount": 36,
+    "pages": {
+      "harness-contract.html": {
+        "summary": {
+          "correct": true,
+          "want": [
+            "FAIL",
+            "FAIL",
+            "FAIL",
+            "PASS",
+            "FAIL",
+            "FAIL",
+            "FAIL",
+            "PASS"
+          ],
+          "outcomes": [
+            {
+              "name": "unexpected DOM handler exception",
+              "status": "FAIL",
+              "error": "Error: unexpected event\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:33875/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:33875/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:33875/tests/browser/harness-contract.js:9:50\n    at async Module.run (http://127.0.0.1:33875/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33875/tests/browser/harness-contract.js:29:1"
+            },
+            {
+              "name": "unexpected rejected promise",
+              "status": "FAIL",
+              "error": "Error: unexpected rejection\n    at http://127.0.0.1:33875/tests/browser/harness-contract.js:11:23\n    at async Module.run (http://127.0.0.1:33875/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33875/tests/browser/harness-contract.js:29:1"
+            },
+            {
+              "name": "synchronous assertion failure",
+              "status": "FAIL",
+              "error": "Error: assertion witness\n    at http://127.0.0.1:33875/tests/browser/harness-contract.js:14:55\n    at async Module.run (http://127.0.0.1:33875/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33875/tests/browser/harness-contract.js:29:1"
+            },
+            {
+              "name": "expected event is observed",
+              "status": "PASS"
+            },
+            {
+              "name": "missing expected event is a failure",
+              "status": "FAIL",
+              "error": "Expected browser error was not raised: /never raised/"
+            },
+            {
+              "name": "wrong event cannot satisfy an expectation",
+              "status": "FAIL",
+              "error": "Error: wrong message\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:33875/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:33875/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:33875/tests/browser/harness-contract.js:22:3\n    at async Module.run (http://127.0.0.1:33875/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33875/tests/browser/harness-contract.js:29:1\nExpected browser error was not raised: /expected message/"
+            },
+            {
+              "name": "one expectation does not swallow two events",
+              "status": "FAIL",
+              "error": "Error: same message\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:33875/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:33875/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:33875/tests/browser/harness-contract.js:26:31\n    at async Module.run (http://127.0.0.1:33875/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33875/tests/browser/harness-contract.js:29:1"
+            },
+            {
+              "name": "later clean case is independent",
+              "status": "PASS"
+            }
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "mode-recovery.html": {
+        "cases": 28,
+        "passed": 28
+      },
+      "scoped-authority.html": {
+        "cases": 9,
+        "passed": 9
+      },
+      "formatting-correspondence.html": {
+        "cases": 21,
+        "passed": 21
+      },
+      "script-panel.html": {
+        "cases": 17,
+        "passed": 17
+      },
+      "runtime-contracts.html": {
+        "cases": 103,
+        "passed": 103
+      },
+      "roundtrip.html": {
+        "summary": {
+          "plugins": [
+            "paragraph",
+            "heading",
+            "list",
+            "quote",
+            "code",
+            "image",
+            "delimiter",
+            "table",
+            "checklist",
+            "warning",
+            "embed",
+            "raw",
+            "gallery",
+            "carousel",
+            "attaches",
+            "linkPreview",
+            "toggle",
+            "columns",
+            "spoiler",
+            "poll",
+            "person"
+          ],
+          "defaultRenders": 21,
+          "editableRoundTrips": 21,
+          "rendererBlocks": 21,
+          "lifecycleCycles": 10
+        },
+        "countedAsCaseArray": false
+      },
+      "roundtrip-trusted-types.html": {
+        "summary": {
+          "plugins": [
+            "paragraph",
+            "heading",
+            "list",
+            "quote",
+            "code",
+            "image",
+            "delimiter",
+            "table",
+            "checklist",
+            "warning",
+            "embed",
+            "raw",
+            "gallery",
+            "carousel",
+            "attaches",
+            "linkPreview",
+            "toggle",
+            "columns",
+            "spoiler",
+            "poll",
+            "person"
+          ],
+          "defaultRenders": 21,
+          "editableRoundTrips": 21,
+          "rendererBlocks": 21,
+          "lifecycleCycles": 10
+        },
+        "countedAsCaseArray": false
+      },
+      "person-avatar-csp.html": {
+        "cases": 4,
+        "passed": 4
+      },
+      "history.html": {
+        "summary": {
+          "historyCases": [
+            "native typing",
+            "structural Enter split",
+            "insert",
+            "move",
+            "convert",
+            "remove",
+            "clear",
+            "render",
+            "toolbar insert",
+            "keyboard undo/redo",
+            "read-only transition",
+            "pointer drag session",
+            "read-only host authority",
+            "direct/inverse transaction events"
+          ],
+          "publicEvents": [
+            "transaction:committed",
+            "document:changed",
+            "history:changed"
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "selection.html": {
+        "summary": {
+          "crossBlockOperations": [
+            "copy",
+            "cut",
+            "paste",
+            "private rich-text roundtrip",
+            "Backspace",
+            "Delete",
+            "outside clear"
+          ],
+          "structuralKeys": [
+            "Enter",
+            "Backspace merge",
+            "Delete merge",
+            "inline collision merge",
+            "Ctrl+A"
+          ],
+          "focusKeys": [
+            "ArrowUp",
+            "ArrowDown",
+            "Tab",
+            "Shift+Tab"
+          ],
+          "multiField": [
+            "selection",
+            "list clipboard slice",
+            "table clipboard slice"
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "lifecycle.html": {
+        "summary": {
+          "editorCycles": 5,
+          "factoryCount": 21,
+          "races": [
+            "image replacement",
+            "gallery additive",
+            "attaches additive"
+          ],
+          "asyncAbort": [
+            "embed preview",
+            "person cropper"
+          ],
+          "integrations": [
+            "inline tool ownership",
+            "ColorPicker",
+            "Cropper",
+            "Carousel",
+            "Masonry",
+            "Expose"
+          ],
+          "mediaSettingsLifecycle": [
+            "image",
+            "gallery",
+            "carousel",
+            "attaches",
+            "embed"
+          ],
+          "tracked": [
+            "global listeners",
+            "observers",
+            "object URLs",
+            "styles"
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "plugin-style-ownership.html": {
+        "cases": 63,
+        "passed": 63
+      },
+      "security.html": {
+        "summary": {
+          "sanitizers": [
+            "rich text",
+            "raw html",
+            "renderer"
+          ],
+          "editor": [
+            "canonical native input",
+            "no mutable Block DOM",
+            "forged widget rejection"
+          ],
+          "currentBoundary": [
+            "unregistered block",
+            "unknown inline",
+            "known version rejection",
+            "future document rejection"
+          ],
+          "validation": [
+            "known malformed",
+            "known future inline",
+            "non-JSON",
+            "duplicate ids",
+            "duplicate definitions"
+          ],
+          "lifecycle": [
+            "initial mount rollback/lease release",
+            "reusable immutable definitions",
+            "inline owner rollback",
+            "projection rollback"
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "trusted-types.htm": {
+        "cases": 7,
+        "passed": 7
+      },
+      "action-label-security.html": {
+        "summary": {
+          "plugins": [
+            "image",
+            "gallery",
+            "carousel",
+            "embed"
+          ],
+          "labelMode": "text",
+          "iconMode": "trusted markup",
+          "filledState": true,
+          "settingsActions": {
+            "passed": 7,
+            "contract": "declarative settings actions and inline controls"
+          }
+        },
+        "countedAsCaseArray": false
+      },
+      "audit-regressions.html": {
+        "summary": [
+          "structured-html-import",
+          "locale-markup-boundary",
+          "link-preview-request-ownership",
+          "embed-cover-ownership",
+          "carousel-aborted-batch-object-urls",
+          "person-avatar-ownership",
+          "task-lifetime-ownership",
+          "toolbar-ownership"
+        ],
+        "countedAsCaseArray": false
+      },
+      "attaches-abort-urls.html": {
+        "summary": {
+          "created": 1,
+          "revoked": 1
+        },
+        "countedAsCaseArray": false
+      },
+      "embed-service-registry.html": {
+        "summary": {
+          "prototypeServices": 3,
+          "currentOnly": true
+        },
+        "countedAsCaseArray": false
+      },
+      "person-social-registry.html": {
+        "summary": {
+          "prototypeTypes": 4
+        },
+        "countedAsCaseArray": false
+      },
+      "gallery-layout-registry.html": {
+        "cases": 150,
+        "passed": 150
+      },
+      "mention.html": {
+        "summary": {
+          "flows": [
+            "option validation",
+            "ru/en locale namespace",
+            "search",
+            "search cancellation",
+            "failed commit",
+            "keyboard commit",
+            "click semantics",
+            "pagination",
+            "custom rows",
+            "serialize",
+            "undo",
+            "redo",
+            "renderer",
+            "empty",
+            "query reset",
+            "last-trigger deletion",
+            "unicode trigger",
+            "aria",
+            "theme inheritance",
+            "multi-editor",
+            "destroy"
+          ],
+          "queries": [
+            "",
+            "a",
+            "ad",
+            "",
+            "n",
+            "no",
+            "non",
+            "none"
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "mention-session-race.html": {
+        "summary": "mention pagination and realm ownership remain isolated",
+        "countedAsCaseArray": false
+      },
+      "poll.html": {
+        "summary": {
+          "modes": [
+            "local",
+            "remote",
+            "read-only",
+            "renderer"
+          ],
+          "history": [
+            "single local transaction",
+            "undo",
+            "redo",
+            "remote runtime excluded"
+          ],
+          "guards": [
+            "afterVote confirmation",
+            "duplicate submit",
+            "revision ordering",
+            "abort",
+            "unsubscribe",
+            "safe voters",
+            "async observer containment"
+          ]
+        },
+        "countedAsCaseArray": false
+      },
+      "carousel.html": {
+        "summary": {
+          "operations": [
+            "custom source",
+            "filled URL/HTML source",
+            "model-first settings",
+            "source replacement",
+            "reorder",
+            "remove",
+            "read-only",
+            "upload abort",
+            "drop validation",
+            "extension fallback",
+            "renderer"
+          ],
+          "mutations": 9
+        },
+        "countedAsCaseArray": false
+      },
+      "plugin-surfaces.html": {
+        "summary": {
+          "sourceEditors": [
+            "image:url",
+            "gallery:url",
+            "carousel:url",
+            "carousel:html",
+            "attaches:url"
+          ],
+          "settingsPanels": [
+            "gallery",
+            "carousel"
+          ],
+          "inlineSettings": [
+            "image"
+          ],
+          "actionSettings": [
+            "attaches"
+          ],
+          "history": true,
+          "dualSettingsApi": false
+        },
+        "countedAsCaseArray": false
+      },
+      "imports.html": {
+        "summary": {
+          "runtimeImportPaths": 126,
+          "stylesheetPaths": 48,
+          "blockFactoryEntries": 21,
+          "removedClassApisChecked": 21,
+          "dualApi": false
+        },
+        "countedAsCaseArray": false
+      },
+      "slash.html": {
+        "summary": {
+          "flows": [
+            "convert",
+            "insert",
+            "inline",
+            "composite field",
+            "stale session",
+            "focus change",
+            "escape",
+            "read-only terminal dismissal"
+          ],
+          "atomicUndo": true,
+          "dualRegistry": false
+        },
+        "countedAsCaseArray": false
+      },
+      "selection-convert.html": {
+        "summary": {
+          "conversions": [
+            "whole inline roundtrip/renderer",
+            "lossy inline rejection",
+            "paragraph partial forward/backward",
+            "List data-aware",
+            "cross-block forward/backward"
+          ],
+          "controls": [
+            "type selector",
+            "Heading level"
+          ],
+          "history": "atomic undo/redo",
+          "staleCallbacks": "inert"
+        },
+        "countedAsCaseArray": false
+      },
+      "projection-contracts.html": {
+        "cases": 100,
+        "passed": 100
+      },
+      "optional-inline-update.html": {
+        "cases": 9,
+        "passed": 9
+      },
+      "inline-pattern-transfer.html": {
+        "cases": 6,
+        "passed": 6
+      },
+      "toolbar-keyboard.html": {
+        "cases": 20,
+        "passed": 20
+      },
+      "public-extension-contracts.html": {
+        "cases": 39,
+        "passed": 39
+      },
+      "poll-state-contracts.html": {
+        "summary": {
+          "total": 20,
+          "passed": 20,
+          "results": [
+            {
+              "name": "editing the question does not replace loaded results with an unchanged seed",
+              "pass": true
+            },
+            {
+              "name": "editing the option does not replace loaded results with an unchanged seed",
+              "pass": true
+            },
+            {
+              "name": "editing author data preserves the revision that rejects stale subscription results",
+              "pass": true
+            },
+            {
+              "name": "switching poll identity accepts the new poll revision independently of the previous poll",
+              "pass": true
+            },
+            {
+              "name": "afterVote visibility does not carry an old identity vote into a different poll",
+              "pass": true
+            },
+            {
+              "name": "distinct valid option id arrays cannot collide in the connection identity",
+              "pass": true
+            },
+            {
+              "name": "subscription results survive a settings change and its Undo/Redo",
+              "pass": true
+            },
+            {
+              "name": "explicitly replacing or removing initial results updates the author-owned snapshot",
+              "pass": true
+            },
+            {
+              "name": "local voting persists exactly one authored history step and remains undoable",
+              "pass": true
+            },
+            {
+              "name": "remote vote results stay live-only and survive subsequent author editing",
+              "pass": true
+            },
+            {
+              "name": "destroyed and superseded subscriptions cannot republish results",
+              "pass": true
+            },
+            {
+              "name": "a retained native question edit survives a read-only round trip",
+              "pass": true
+            },
+            {
+              "name": "a retained native option:a edit survives a read-only round trip",
+              "pass": true
+            },
+            {
+              "name": "a subscription uses the committed native option label without replacing its editing field",
+              "pass": true
+            },
+            {
+              "name": "unsubmitted Poll choice survives unrelated author edits",
+              "pass": true
+            },
+            {
+              "name": "unsubmitted multiple selection survives author editing then narrows to one on single choice",
+              "pass": true
+            },
+            {
+              "name": "removing a pending option or replacing the author seed invalidates the relevant selection",
+              "pass": true
+            },
+            {
+              "name": "a new remote Poll identity clears an unsubmitted choice",
+              "pass": true
+            },
+            {
+              "name": "retired Poll option marker cannot update pending selection after an author repaint",
+              "pass": true
+            },
+            {
+              "name": "retired Poll add-option action cannot write after a runtime-only refresh",
+              "pass": true
+            }
+          ],
+          "errors": []
+        },
+        "countedAsCaseArray": false
+      },
+      "presentation-recovery.html": {
+        "cases": 63,
+        "passed": 63
+      }
+    }
+  },
+  "accepted": false
+}

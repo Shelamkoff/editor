@@ -1,0 +1,72 @@
+{
+  "source": {
+    "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+    "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+  },
+  "sourceUnchanged": true,
+  "c11Outcome": "failed",
+  "gates": {
+    "docs-browser": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "startedAt": "2026-10-29T21:26:45.375Z",
+      "finishedAt": "2026-10-29T21:27:38.459Z",
+      "elapsedMs": 53081.396456,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "cc673a7c632d70b14ab8b4560ea5a4d346f403f8cbdf40ac37fdce56acd34ae5"
+    },
+    "ordinary": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "startedAt": "2026-10-29T21:27:38.702Z",
+      "finishedAt": "2026-10-29T21:28:13.286Z",
+      "elapsedMs": 34580.018245,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "c2d3ea8ec9f21a530b7d9f6eb924b464f4d1fc7f04ac5f3caf8cfae5168451d5"
+    },
+    "native": {
+      "outcome": "failed",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "startedAt": "2026-10-29T21:28:13.492Z",
+      "finishedAt": "2026-10-29T21:44:10.268Z",
+      "elapsedMs": 956772.453009,
+      "exitCode": 1,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "b7006ac94a6d2bdc50dc1032aafde57cebf48004e8d009155582e7cd5ca6353c"
+    },
+    "heap": {
+      "outcome": "not-run",
+      "command": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "elapsedMs": null,
+      "exitCode": null,
+      "signal": null,
+      "sourceUnchanged": null
+    }
+  },
+  "evidenceErrors": [
+    "'str' object has no attribute 'get'"
+  ],
+  "accepted": false
+}

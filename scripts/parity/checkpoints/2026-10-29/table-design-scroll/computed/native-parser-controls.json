@@ -1,0 +1,24 @@
+{
+  "classification": "Historical raw-output parsing control only; not a new integrated browser execution or acceptance result",
+  "historicalManifest": "/tmp/rector-presentation-integration-20261029/test-results/run-13Dhz6/manifest.json",
+  "historicalNativeLogSha256": "865a47492f14e7c8f9f106bddda8d0324be7d49800053dc5823d651a8963bcd9",
+  "runnerBytesIdentical": true,
+  "suiteCount": 41,
+  "arrayCases": 2128,
+  "physicalScenarioObjects": 2,
+  "historyMatrixScenarios": 1,
+  "historyOperationNames": 14,
+  "eventFamilies": 3,
+  "negativeControls": {
+    "missing-default-array": [
+      "Native final keys do not match this frozen runner"
+    ],
+    "case-failed": [
+      "Incomplete or failing native suite: nativeCrossSelection"
+    ],
+    "filtered-page-only": [
+      "Unfiltered native final object is absent or duplicated"
+    ]
+  },
+  "reporterSha256": "16bc7912709fc1e31ab146bda3c647a886a05e11a09f01b93409473f7a7b63be"
+}

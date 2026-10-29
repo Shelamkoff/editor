@@ -1,0 +1,136 @@
+{
+  "source": {
+    "head": "cb12753c7ccc6ab7eb8fff7735da14ae8d6230b2",
+    "tree": "e69c866e4e2b02bb70e42d51f0beba6048047581",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "b8bbdabd38b96d87dec90ae9bcaf79071873180e4647cea0702d87a340170ae9"
+  },
+  "sourceUnchanged": true,
+  "c11Outcome": "failed",
+  "gates": {
+    "typecheck": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-10-29T21:23:26.188Z",
+      "finishedAt": "2026-10-29T21:23:36.092Z",
+      "elapsedMs": 9900.502189,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "package": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "startedAt": "2026-10-29T21:23:36.293Z",
+      "finishedAt": "2026-10-29T21:24:00.641Z",
+      "elapsedMs": 24341.230952,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "3af378e4d2c50e6e074669b9842af9e2f7e3f16bf227e36d4a393d8d6e3ccb1f"
+    },
+    "unit": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "startedAt": "2026-10-29T21:24:00.834Z",
+      "finishedAt": "2026-10-29T21:24:23.335Z",
+      "elapsedMs": 22498.545237,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "45b02d6043be39a2a861f0d5d175a5c4de126445a0cb241b7c53e2ae4ca9a36a"
+    },
+    "docs-contract": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:docs"
+      ],
+      "startedAt": "2026-10-29T21:24:23.534Z",
+      "finishedAt": "2026-10-29T21:24:27.343Z",
+      "elapsedMs": 3806.738554,
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7"
+    },
+    "docs-browser": {
+      "outcome": "failed",
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "startedAt": "2026-10-29T21:24:27.546Z",
+      "finishedAt": "2026-10-29T21:24:49.313Z",
+      "elapsedMs": 21763.990467000003,
+      "exitCode": 1,
+      "signal": null,
+      "sourceUnchanged": true,
+      "logSha256": "ca376f559ffefb9c031011caa03a04a1b3d33760d011fef4a97145566614edb2"
+    },
+    "ordinary": {
+      "outcome": "not-run",
+      "command": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "elapsedMs": null,
+      "exitCode": null,
+      "signal": null,
+      "sourceUnchanged": null
+    },
+    "native": {
+      "outcome": "not-run",
+      "command": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "elapsedMs": null,
+      "exitCode": null,
+      "signal": null,
+      "sourceUnchanged": null
+    },
+    "heap": {
+      "outcome": "not-run",
+      "command": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "elapsedMs": null,
+      "exitCode": null,
+      "signal": null,
+      "sourceUnchanged": null
+    }
+  },
+  "evidenceErrors": [],
+  "unit": {
+    "tests": 1967,
+    "pass": 1967,
+    "fail": 0,
+    "skipped": 0
+  },
+  "generatedConsumerTestsIncludedInUnit": [
+    "public runtime and declaration exports are identical",
+    "declaration imports are valid native ESM specifiers",
+    "public declarations compile for NodeNext and Bundler consumers",
+    "public editor and renderer derive document shapes from the neutral shared contract",
+    "generated declarations preserve type ownership and reject canonical or loader back-edges",
+    "async preset declarations require the current document envelope",
+    "public editor declarations expose only the v2 model API"
+  ],
+  "accepted": false
+}

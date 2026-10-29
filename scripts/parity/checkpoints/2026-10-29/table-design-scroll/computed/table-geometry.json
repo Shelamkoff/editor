@@ -1,0 +1,803 @@
+{
+  "source": {
+    "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+    "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+  },
+  "sourceUnchanged": true,
+  "run": "/tmp/rector-completion-integration-20261029/test-results/run-wlLqUM",
+  "times": {
+    "startedAt": "2026-10-29T21:51:37.994Z",
+    "finishedAt": "2026-10-29T21:51:47.200Z",
+    "elapsedMs": 9201.022543000001
+  },
+  "chrome": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/156.0.8078.47",
+    "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "jsVersion": "15.6.75.19"
+  },
+  "caseCount": 16,
+  "nativeAuthoringCaseCount": 8,
+  "cases": [
+    {
+      "width": 640,
+      "theme": "light",
+      "state": "filled",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 340,
+        "right": 659.5,
+        "width": 319.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "light",
+      "state": "empty",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 148.5,
+        "height": 128.5
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 446.5,
+        "right": 659.5,
+        "width": 213,
+        "top": 105.5,
+        "bottom": 148,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "light",
+      "state": "readOnly",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 340,
+        "right": 659.5,
+        "width": 319.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "light",
+      "state": "emptyReadOnly",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 72,
+        "height": 52
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 446.5,
+        "right": 659.5,
+        "width": 213,
+        "top": 54.5,
+        "bottom": 71.5,
+        "height": 17
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "dark",
+      "state": "filled",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 340,
+        "right": 659.5,
+        "width": 319.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "dark",
+      "state": "empty",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 148.5,
+        "height": 128.5
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 446.5,
+        "right": 659.5,
+        "width": 213,
+        "top": 105.5,
+        "bottom": 148,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "dark",
+      "state": "readOnly",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 340,
+        "right": 659.5,
+        "width": 319.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 640,
+      "theme": "dark",
+      "state": "emptyReadOnly",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 660,
+        "width": 640,
+        "top": 20,
+        "bottom": 72,
+        "height": 52
+      },
+      "blockScrollWidth": 640,
+      "wrapperClientWidth": 640,
+      "wrapperScrollWidth": 640,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 446.5,
+        "right": 659.5,
+        "width": 213,
+        "top": 54.5,
+        "bottom": 71.5,
+        "height": 17
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 640,
+        "blockScrollWidth": 640
+      }
+    },
+    {
+      "width": 288,
+      "theme": "light",
+      "state": "filled",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 288,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 164,
+        "right": 307.5,
+        "width": 143.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 288
+      }
+    },
+    {
+      "width": 288,
+      "theme": "light",
+      "state": "empty",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 163.5,
+        "height": 143.5
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 316,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 230.5,
+        "right": 335.5,
+        "width": 105,
+        "top": 105.5,
+        "bottom": 148,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [
+        2,
+        5,
+        8
+      ],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 28,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 316
+      }
+    },
+    {
+      "width": 288,
+      "theme": "light",
+      "state": "readOnly",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 288,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 164,
+        "right": 307.5,
+        "width": 143.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 288
+      }
+    },
+    {
+      "width": 288,
+      "theme": "light",
+      "state": "emptyReadOnly",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 87,
+        "height": 67
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 316,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 230.5,
+        "right": 335.5,
+        "width": 105,
+        "top": 54.5,
+        "bottom": 71.5,
+        "height": 17
+      },
+      "originalAssertionRejects": [
+        2,
+        5,
+        8
+      ],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 28,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 316
+      }
+    },
+    {
+      "width": 288,
+      "theme": "dark",
+      "state": "filled",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 288,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 164,
+        "right": 307.5,
+        "width": 143.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 5
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 6
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 288
+      }
+    },
+    {
+      "width": 288,
+      "theme": "dark",
+      "state": "empty",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 163.5,
+        "height": 143.5
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 316,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 230.5,
+        "right": 335.5,
+        "width": 105,
+        "top": 105.5,
+        "bottom": 148,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [
+        2,
+        5,
+        8
+      ],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 28,
+      "authoring": {
+        "trustedClick": true,
+        "nativePrintable": "X",
+        "beforeCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "afterCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "undoCaret": {
+          "inside": true,
+          "offset": 0
+        },
+        "redoCaret": {
+          "inside": true,
+          "offset": 1
+        },
+        "exactCanonicalAndHistory": true,
+        "lastHostPreserved": true
+      },
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 316
+      }
+    },
+    {
+      "width": 288,
+      "theme": "dark",
+      "state": "readOnly",
+      "cellCount": 2,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 63.5,
+        "height": 43.5
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 288,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 164,
+        "right": 307.5,
+        "width": 143.5,
+        "top": 20.5,
+        "bottom": 63,
+        "height": 42.5
+      },
+      "originalAssertionRejects": [],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 0,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 288
+      }
+    },
+    {
+      "width": 288,
+      "theme": "dark",
+      "state": "emptyReadOnly",
+      "cellCount": 9,
+      "blockRect": {
+        "left": 20,
+        "right": 308,
+        "width": 288,
+        "top": 20,
+        "bottom": 87,
+        "height": 67
+      },
+      "blockScrollWidth": 288,
+      "wrapperClientWidth": 288,
+      "wrapperScrollWidth": 316,
+      "overflowX": "auto",
+      "lastCellRect": {
+        "left": 230.5,
+        "right": 335.5,
+        "width": 105,
+        "top": 54.5,
+        "bottom": 71.5,
+        "height": 17
+      },
+      "originalAssertionRejects": [
+        2,
+        5,
+        8
+      ],
+      "allCellsReachableInsideWrapper": true,
+      "maximumScrollLeft": 28,
+      "authoring": null,
+      "overflowVisibleControl": {
+        "wrapperOverflow": "visible",
+        "blockWidth": 288,
+        "blockScrollWidth": 316
+      }
+    }
+  ],
+  "cssVersions": [
+    {
+      "ref": "5e5c7f8",
+      "sha256": "34e74fe8dd910fb40a85c6b87140dc5affdcb3fda95dc7bd9b398ef41cac099c"
+    },
+    {
+      "ref": "e981ff3",
+      "sha256": "34e74fe8dd910fb40a85c6b87140dc5affdcb3fda95dc7bd9b398ef41cac099c"
+    },
+    {
+      "ref": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+      "sha256": "34e74fe8dd910fb40a85c6b87140dc5affdcb3fda95dc7bd9b398ef41cac099c"
+    }
+  ],
+  "probeSha256": "7706a2f49d1e19a0a2e0a6ff4c3b5b057dcafce9ff0a58747d53e178ea48b0b1",
+  "rawLogSha256": "aacd0b76044c18958095866cd1ab5891795b57e2664cbec2d811a501e1b24216",
+  "excludedSetupRun": {
+    "run": "run-zBCkKZ",
+    "reason": "Wrong scratch CDP Redo modifier3 corrected to10; not product RED"
+  },
+  "supplementalNarrowerControl": {
+    "run": "run-IoCKso",
+    "caseCount": 16,
+    "nativeAuthoringCaseCount": 8,
+    "actualWidths": [
+      625,
+      273
+    ],
+    "note": "Remaining original visual grid caused a vertical scrollbar; all reachability and native checks PASS; final run hides that unrelated grid to measure exact640/288."
+  }
+}

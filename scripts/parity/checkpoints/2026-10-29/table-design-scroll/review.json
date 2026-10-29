@@ -1,0 +1,73 @@
+{
+  "base": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+  "worktree": "/tmp/rector-table-design-oracle-20261029",
+  "patch": "/tmp/rector-table-design-oracle-review.patch",
+  "patchSha256": "d33708cadb1ff59bda119cdcaf2a3ce9ce877fadf7b35cc7c651849a8aa4b2a2",
+  "changedFiles": [
+    "tests/browser/native-plugin-design.js"
+  ],
+  "fixtureSha256": "33bfb93732f25344b2af5b5eca0956b9a906bf7ea7188a2ef5a6df7bb731e7fb",
+  "gate": {
+    "outcome": "passed",
+    "startedAt": "2026-10-29T21:55:37.308Z",
+    "finishedAt": "2026-10-29T21:55:58.192Z",
+    "exitCode": 0,
+    "signal": null,
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "cwd": "/tmp/rector-table-design-oracle-20261029",
+    "environment": {
+      "node": "v24.22.1",
+      "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "npm": "11.9.0",
+      "platform": "linux",
+      "architecture": "x64",
+      "release": "6.18.55",
+      "runner": {},
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-design.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+      }
+    },
+    "sourceBefore": {
+      "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+      "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+      "patchSha256": "d33708cadb1ff59bda119cdcaf2a3ce9ce877fadf7b35cc7c651849a8aa4b2a2",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": true,
+      "identity": "bbb033a0750289984843ae3c10ae35150c5ef67aa20869c6b749a78af48c1b17"
+    },
+    "elapsedMs": 20880.536690999998,
+    "sourceAfter": {
+      "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+      "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+      "patchSha256": "d33708cadb1ff59bda119cdcaf2a3ce9ce877fadf7b35cc7c651849a8aa4b2a2",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": true,
+      "identity": "bbb033a0750289984843ae3c10ae35150c5ef67aa20869c6b749a78af48c1b17"
+    },
+    "sourceUnchanged": true,
+    "manifest": "/tmp/rector-table-design-oracle-20261029/test-results/run-hUtuME/manifest.json",
+    "manifestSha256": "5b1f750abeb7bf84467a06cb026dc3befa1f16d1d0eed9b383ce69eb0d1a602b",
+    "logSha256": "0d83760c5e8464bbfc299669e70a3505c05a75f8634c2eed4999c125ad989d58",
+    "cases": 84,
+    "passed": 84,
+    "failed": 0
+  },
+  "productChanges": [],
+  "proofs": {
+    "fullUnfilteredRed": "/tmp/rector-completion-integration-20261029/test-results/run-a7le5n",
+    "geometry": "/tmp/rector-table-design-scroll-summary.json",
+    "geometryRaw": "/tmp/rector-table-design-scroll-results.json",
+    "outsideClip": "/tmp/rector-table-design-clipping-results.log"
+  },
+  "limits": [
+    "This repairs the Table scroll-container assertion only; it does not turn the failed full run into PASS.",
+    "Existing84 cases retained; Table288 empty states additionally exercise trusted click/native typing/exact oneUndoRedo/caret and cell node identity.",
+    "All non-Table generic geometry assertions and the global block overflow assertion remain unchanged."
+  ]
+}

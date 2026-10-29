@@ -1,0 +1,86 @@
+{
+  "root": "/tmp/rector-completion-integration-20261029",
+  "source": {
+    "head": "cb12753c7ccc6ab7eb8fff7735da14ae8d6230b2",
+    "tree": "e69c866e4e2b02bb70e42d51f0beba6048047581",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf"
+  },
+  "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+  "gates": [
+    [
+      "typecheck",
+      [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      null
+    ],
+    [
+      "package",
+      [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      null
+    ],
+    [
+      "unit",
+      [
+        "npm",
+        "test"
+      ],
+      "package"
+    ],
+    [
+      "docs-contract",
+      [
+        "npm",
+        "run",
+        "test:docs"
+      ],
+      "package"
+    ],
+    [
+      "docs-browser",
+      [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "package"
+    ],
+    [
+      "ordinary",
+      [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "package"
+    ],
+    [
+      "native",
+      [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "package"
+    ],
+    [
+      "heap",
+      [
+        "node",
+        "tests/browser/heap-gate.mjs"
+      ],
+      "package"
+    ]
+  ],
+  "duplicatesAvoided": [
+    "Package includes build",
+    "npm test includes generated declaration consumers",
+    "test:docs includes source/locales smoke"
+  ],
+  "selection": "No page/filter/root/Vite override; one unfiltered ordinary/native/heap execution",
+  "orchestratorSha256": "14bd33da8037147fe7c81daa9e305a6813d9cf339f6954878d3a7a084453bdae"
+}

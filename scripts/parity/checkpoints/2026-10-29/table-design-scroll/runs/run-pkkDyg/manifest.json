@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-completion-integration-20261029",
+  "startedAt": "2026-10-29T21:53:26.141Z",
+  "finishedAt": "2026-10-29T21:53:33.742Z",
+  "outcome": "passed",
+  "source": {
+    "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+    "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "table-clipping-diagnostic": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T21:53:26.566Z",
+      "finishedAt": "2026-10-29T21:53:33.633Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "/tmp/rector-table-design-clipping-probe.mjs"
+      ],
+      "cwd": "/tmp/rector-completion-integration-20261029",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+        "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+      },
+      "elapsedMs": 7065.269238,
+      "sourceAfter": {
+        "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+        "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "c653697659e58992bc016f8ee9e8f1100e94b8fe",
+    "tree": "09c15c8c4bee21391c541115a4d688bb04c5f166",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0b06913e0743a539a68100b8ba71dc2407ac8760d42cf162437327b00dbbe902"
+  },
+  "sourceUnchanged": true
+}

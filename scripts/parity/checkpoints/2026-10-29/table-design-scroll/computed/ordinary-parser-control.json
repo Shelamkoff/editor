@@ -1,0 +1,11 @@
+{
+  "classification": "Offline parser-only replay of the current completed ordinary log; no gates rerun and no frozen-tree writes",
+  "originalOrchestrator": "/tmp/rector-integrated-full-gate.py",
+  "originalSha256": "e3d18cde3cbff6ee62c5af2f6e9e1ee0b88206d827cde73539b1daa0154e50da",
+  "correctedReporter": "/tmp/rector-integrated-full-gate-v2.py",
+  "correctedSha256": "16bc7912709fc1e31ab146bda3c647a886a05e11a09f01b93409473f7a7b63be",
+  "ordinaryLogSha256": "c2d3ea8ec9f21a530b7d9f6eb924b464f4d1fc7f04ac5f3caf8cfae5168451d5",
+  "pageCount": 36,
+  "supportsCaseObjectsAndCoverageStringArraysAndPlainText": true,
+  "evidenceErrors": []
+}
