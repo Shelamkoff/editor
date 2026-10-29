@@ -72,3 +72,44 @@ test('field completion native cancelled beforeinput does not acquire a completio
     equal(field.textContent, 'Front a-front'); assert(!h.editor.canUndo)
   } finally { h.dispose() }
 })
+
+for (const normalize of [false, true]) test(`field completion native ${normalize ? 'canonical no-op with undefined' : 'changed commit with Error'} failure recovers its accepted projection once`, async () => {
+  const h = createCompletionFixture({ publicEditor: true, native: normalize ? 'normalize' : 'change' })
+  const fault = normalize ? undefined : new Error('controlled native completion failure')
+  try {
+    h.mount(); await pause(20)
+    const { field, widget } = placeCaret(h), before = h.editor.save().blocks, attempts = []
+    let armed = true, failures = 0, trusted = false
+    field.addEventListener('input', event => { trusted = event.isTrusted }, { once: true })
+    h.state.onCompletion = notice => {
+      if (notice.name !== 'a' || notice.key !== 'front') return
+      attempts.push(notice)
+      if (armed) { armed = false; failures++; throw fault }
+    }
+    await dispatchKey('Backspace', 'Backspace', 8)
+    assert(trusted && h.state.nativeEdits.length === 1 && h.state.nativeEdits[0].text === 'a-fron', 'The recovery control requires an actual opted-in browser deletion')
+    equal(failures, 1, 'The native finalization must deliver the controlled callback failure')
+    equal(h.editor.save().blocks, before, 'Failed native completion changed accepted canonical content')
+    equal(h.state.transactions, []); assert(!h.editor.canUndo && !h.editor.canRedo && !h.editor.readOnly && h.editor.isReady)
+    const recovered = h.latest('a-front'), panel = h.panels.get('a')
+    assert(recovered !== widget && widget.context.signal.aborted && !recovered.context.signal.aborted, 'Native recovery must retire the failed occurrence and acquire a coherent successor')
+    equal(panel.field().textContent, 'Front a-front'); equal(panel.derived.get('front').textContent, 'Front a-front')
+    equal(recovered.context.getData(), { label: 'a-front' }, 'The recovered context must remain readable under the runtime health guard')
+    const task = recovered.context.beginTask(); task.cancel()
+    equal(attempts.length, 2, 'Exactly one failed attempt and one coherent recovery must complete this field')
+    assert(attempts[0].occurrence !== attempts[1].occurrence && attempts[0].element === field && attempts[1].element === panel.field())
+    const native = window.getSelection()
+    assert(native.anchorNode === recovered.element.firstChild && native.focusNode === recovered.element.firstChild)
+    equal([native.anchorOffset, native.focusOffset], [7, 7])
+    equal(h.state.diagnostics.filter(item => item.operation === 'inline-widget.immediate').length, 1)
+    const count = h.state.completions.length
+    for (let index = 0; index < 3; index++) h.editor.blocks.focus('a', { fieldKey: 'front', offset: 'end' })
+    await pause(30)
+    equal(h.state.completions.length, count); equal(failures, 1); equal(h.state.transactions, [])
+    // A public mutation and exact one-step replay verify operational health;
+    // IEditor intentionally exposes no private runtime health property.
+    h.editor.blocks.update('b', current => ({ data: { ...current.data, front: 'Healthy {{b-front}}' } }))
+    equal(h.state.transactions.length, 1); assert(h.editor.canUndo)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before); assert(!h.editor.canUndo)
+  } finally { h.dispose() }
+})
