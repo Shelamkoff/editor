@@ -17,6 +17,16 @@ async function history(editor, before, after) {
   await dispatchKey('z', 'KeyZ', 90, 2 | 8)
   equal(editor.save().blocks, after)
 }
+async function historyFromButton(editor, before, after) {
+  assert(document.activeElement?.matches('button') && blockElement(editor, 'a').contains(document.activeElement),
+    'The auxiliary block button must retain focus')
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, after, 'An auxiliary block button intercepted document Undo')
+  const root = editorRoot(editor)
+  root.focus({ preventScroll: true })
+  assert(document.activeElement === root, 'Editor chrome did not receive history focus')
+  await history(editor, before, after)
+}
 
 for (const template of ['horizontal','compact','large-top','minimal','twitter','notion','split']) {
   test(`LinkPreview template ${template} changes its actual styled card`, async () => {
@@ -233,7 +243,7 @@ test('Columns inline layout selector changes the grid, retains text and supports
   const after=editor.save().blocks
   equal(after[0].data.columns,[{id:'left',content:'Alpha'},{id:'center',content:'Bravo<br>Charlie'}])
   equal(blockElement(editor,'a').querySelector('.oe-columns__layout-btn--active')?.dataset.layout,'1-1')
-  await history(editor,before,after)
+  await historyFromButton(editor,before,after)
   editor.setReadOnly(true)
   for(const button of buttons())assert(!button.checkVisibility(),'Read-only Columns show an authoring layout button')
 })
@@ -250,7 +260,7 @@ test('Columns keyboard layout choice has visible focus and one Undo/Redo action'
   await dispatchKey(' ','Space',32,0,' ')
   const after=editor.save().blocks
   equal(after[0].data,{...before[0].data,layout:'1-2'})
-  await history(editor,before,after)
+  await historyFromButton(editor,before,after)
 })
 test('Checklist checkbox is one document action and preserves item identity',async()=>{
   const editor=pluginEditor('Checklist')

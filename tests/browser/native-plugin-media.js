@@ -93,7 +93,20 @@ for (const [key, text, selector] of [['title', 'Changed title', '.oe-embed__titl
     const after = editor.save().blocks
     equal(after[0].data, { ...before[0].data, [key]: text })
     equal(blockElement(editor, 'a').querySelector(selector)?.textContent, text)
-    await dispatchKey('Escape', 'Escape', 27)
+    if (key === 'duration') {
+      // Tab leaves the last settings input for an auxiliary action button.
+      // Explicitly close the form before asking the editor to replay history.
+      const settings = button(editor, 'Settings')
+      await clickNative(settings)
+      equal(settings.getAttribute('aria-expanded'), 'false', 'Embed settings did not close')
+      assert(document.activeElement?.matches('button') && blockElement(editor, 'a').contains(document.activeElement),
+        'Leaving the last Embed setting did not focus an auxiliary button')
+      await dispatchKey('z', 'KeyZ', 90, 2)
+      equal(editor.save().blocks, after, 'An auxiliary Embed button intercepted document Undo')
+      const root = editorRoot(editor)
+      root.focus({ preventScroll: true })
+      assert(document.activeElement === root, 'Editor chrome did not receive history focus')
+    } else await dispatchKey('Escape', 'Escape', 27)
     await history(editor, before, after)
   })
 }
@@ -258,7 +271,7 @@ for (const layout of ['auto','1','2','3a','3b','3c','4a','4b','4c','5a','5b','5c
     const before = editor.save().blocks
     editor.blocks.focus('a', { fieldKey: 'image:first:caption', offset: 2 })
     await clickNative(blockElement(editor, 'a').querySelector('.oe-gallery__dropdown > button'))
-    await clickNative(blockElement(editor, 'a').querySelector(`[data-layout="${layout}"]`))
+    await clickNative(blockElement(editor, 'a').querySelector(`button[data-layout="${layout}"]`))
     const after = editor.save().blocks
     equal(after[0].data, { ...before[0].data, layout })
     const grid = blockElement(editor, 'a').querySelector('.oe-gallery__grid')
