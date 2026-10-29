@@ -1,0 +1,76 @@
+{
+  "scope": "Fresh typecheck, all unit tests including generated consumers, and installed-package integration after final Person repair plus Table test-only correction. Does not accept Person ROUNDTRIP or full native CI.",
+  "source": {
+    "head": "2eb61a0a2d0483fca08fefeca658c3ac6876a452",
+    "tree": "4cdb4c0f09445bc7e361e9c120d9217e961a2f53",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "a8765503b1551b06045f7fdf4a74bc8ffe04e68d07bf5b502ec6bf64ffe606c7"
+  },
+  "unit": {
+    "tests": 1967,
+    "pass": 1967,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "files": [
+    {
+      "file": "manifest.json",
+      "source": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-nVVOWE/manifest.json",
+      "sha256": "1e50a0e495d194d938cf7144fe8fc50115143c854410531f9cafd20721e9ea7e",
+      "rawSha256": "1e50a0e495d194d938cf7144fe8fc50115143c854410531f9cafd20721e9ea7e"
+    },
+    {
+      "file": "typecheck.log.gz",
+      "source": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-nVVOWE/typecheck.log",
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    {
+      "file": "unit.log.gz",
+      "source": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-nVVOWE/unit.log",
+      "sha256": "5e8f5136c0a37fee27c3595e440c13c610307c2a31dd6925432638c8b2cf4380",
+      "rawSha256": "11646aa24ef76d40b68fef82d1fba48d4a146793e0f7a01f9373e95bbe9c49ce"
+    },
+    {
+      "file": "package.log.gz",
+      "source": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-nVVOWE/package.log",
+      "sha256": "591cd79eaee5ec84bc1e1c496d34777034e7bfb3da14bae53c10551ed7b9aea1",
+      "rawSha256": "6fa809cfe808c06e1a56ac83cc4dc7fd6d0ed520e365a7b9fe71d0f438c710ab"
+    },
+    {
+      "file": "rector-person-main-gates.py",
+      "source": "/tmp/rector-person-main-gates.py",
+      "sha256": "e59c2b1871bd02bb3319d44cddfb090d275869a4f3919062faa097e34dd54fcc",
+      "rawSha256": "e59c2b1871bd02bb3319d44cddfb090d275869a4f3919062faa097e34dd54fcc"
+    }
+  ],
+  "gates": {
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T22:04:58.966Z",
+      "finishedAt": "2026-10-29T22:05:08.543Z",
+      "elapsedMs": 9574.607981000001,
+      "sourceUnchanged": true
+    },
+    "unit": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T22:05:08.764Z",
+      "finishedAt": "2026-10-29T22:05:32.633Z",
+      "elapsedMs": 23865.986575,
+      "sourceUnchanged": true
+    },
+    "package": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T22:05:32.857Z",
+      "finishedAt": "2026-10-29T22:05:57.466Z",
+      "elapsedMs": 24606.419441,
+      "sourceUnchanged": true
+    }
+  },
+  "reportingNote": "The first offline summary expected TAP # lines and stopped on the actual Node spec reporter. No tests were rerun: this summary reads the same immutable successful log and its actual \u2139 summary. The five original payloads were archived before this metadata was added."
+}
