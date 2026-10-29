@@ -535,7 +535,7 @@ export function createPersonPlugin(config={}){
               const nextActive=data.persons.find(person=>person.id===previousId)
               // Reordering tabs or changing another person must not detach
               // the current editing host and collapse its native caret.
-              if(nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
+              if(activeNameView?.personId===previousId&&nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
                 renderTabs()
               }else render()
             },
