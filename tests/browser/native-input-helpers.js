@@ -33,7 +33,9 @@ export function pointAt(element, offset) {
   collapsed.setStart(caret.node, caret.offset)
   collapsed.setEnd(caret.node, caret.offset)
   const caretRect = collapsed.getBoundingClientRect()
-  if (caretRect.height) return { clientX: caretRect.left + 0.1, clientY: caretRect.top + caretRect.height / 2 }
+  // Use integral pixels: native drag events can truncate a fractional
+  // boundary back into the preceding non-editable widget.
+  if (caretRect.height) return { clientX: Math.ceil(caretRect.left + 0.1), clientY: Math.floor(caretRect.top + caretRect.height / 2) }
   const start = findNodeAtOffset(element, clamped === 0 ? 0 : clamped - 1, 'start')
   const end = findNodeAtOffset(element, clamped === 0 ? 1 : clamped, 'end')
   const range = document.createRange()
