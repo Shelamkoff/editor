@@ -15,7 +15,7 @@ Rector разделяет хранимый документ, среду реда
   ├─ Блочные и внутристрочные расширения
   │      └─ scoped context / DataTask authority
   │
-  └─ createEditorRenderer(config) ──> DOM документа
+  └─ new EditorRenderer(config) ──> DOM документа
 
 Версионированный документ JSON — контракт между редактированием, хранением и отображением.
 ```

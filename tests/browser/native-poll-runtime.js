@@ -1,4 +1,4 @@
-import { createEditorRenderer } from '../../renderer/index.js'
+import { EditorRenderer } from '../../renderer/index.js'
 import { createPollRenderer, createRenderer, createDefaultRenderers } from '../../renderer/renderers/index.js'
 import { createRendererAsync } from '../../renderer/renderers/async.js'
 import { loadBlockPluginDefinition } from '../../plugins/async.js'
@@ -342,7 +342,7 @@ for(const mode of ['direct','registry','preset','async'])test('Poll renderer '+m
  source.ballots=2
  const definition=await pending
  const holder=document.createElement('section');document.body.appendChild(holder)
- const renderer=createEditorRenderer({blockTypes:[],injectStyles:false})
+ const renderer=new EditorRenderer({blockTypes:[],injectStyles:false})
  try{
   renderer.registerRenderer(definition)
   const doc={version:'2.0.0',blocks:[{id:'a',type:'poll',dataVersion:1,data:{question:'Choose one',pollId:'remote',type:'single',resultsMode:'always',options:[{id:'yes',text:'Yes'},{id:'no',text:'No'}]}}]}

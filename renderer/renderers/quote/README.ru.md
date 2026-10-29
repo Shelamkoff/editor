@@ -7,10 +7,10 @@
 ## Использование
 
 ```js
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import { createQuoteRenderer } from '@shelamkoff/rector/renderer/renderers/quote'
 
-const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+const renderer = new EditorRenderer({ classPrefix: 'article', blockTypes: [] })
 renderer.registerRenderer(createQuoteRenderer('article', {}))
 const rendererStyles = renderer.injectStyles()
 renderer.renderTo(documentData, document.querySelector('#article'))

@@ -57,7 +57,6 @@ const publicPairs = [
   ['inline-plugins/color.js', 'inline-plugins/color.d.ts'],
   ['inline-plugins/mention/index.js', 'inline-plugins/mention/index.d.ts'],
   ['renderer/index.js', 'renderer/index.d.ts'],
-  ['renderer/async.js', 'renderer/async.d.ts'],
   ['renderer/renderers/index.js', 'renderer/renderers/index.d.ts'],
   ['renderer/renderers/async.js', 'renderer/renderers/async.d.ts'],
   ['shared/blockTypes.js', 'shared/blockTypes.d.ts'],

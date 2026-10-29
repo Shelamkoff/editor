@@ -799,13 +799,4 @@ export class EditorRenderer {
   }
 }
 
-/**
- * Factory function for quick instance creation
- * @param {import('./types').RendererConfig} [config]
- * @returns {EditorRenderer}
- */
-export function createEditorRenderer(config) {
-  return new EditorRenderer(config)
-}
-
 export { getSupportedBlockTypes }

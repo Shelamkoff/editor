@@ -13,9 +13,9 @@ For a source checkout, run `npm ci` before starting the demo. `blockTypes` limit
 ## Basic usage
 
 ```js
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 
-const renderer = createEditorRenderer({ theme: 'dark' })
+const renderer = new EditorRenderer({ theme: 'dark' })
 renderer.renderTo(documentData, document.querySelector('#article'))
 
 // When the view is removed:
@@ -72,7 +72,7 @@ Before any registered renderer runs, Rector validates the current block envelope
 Import renderer values from `@shelamkoff/rector/renderer` and renderer-only declarations from the type-only entry:
 
 ```ts
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import type {
   BlockRenderer,
   BlockRendererDefinition,
@@ -156,7 +156,7 @@ For a smaller initial graph, create plugins and renderers from a document or exp
 
 ```js
 import { createBlockPluginsAsync } from '@shelamkoff/rector/plugins/async'
-import { createDefaultRenderersAsync } from '@shelamkoff/rector/renderer/async'
+import { createDefaultRenderersAsync } from '@shelamkoff/rector/renderer/renderers/async'
 
 const plugins = await createBlockPluginsAsync(documentData)
 const renderers = await createDefaultRenderersAsync('oe', {}, documentData)
@@ -180,7 +180,7 @@ With the default `injectStyles: true`, the first render automatically acquires t
 import '@shelamkoff/rector/styles/renderer.css'
 import '@shelamkoff/rector/renderer/renderers/gallery/styles.css'
 
-const renderer = createEditorRenderer({
+const renderer = new EditorRenderer({
   blockTypes: ['gallery'],
   injectStyles: false,
 })

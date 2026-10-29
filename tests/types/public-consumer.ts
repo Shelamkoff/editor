@@ -28,11 +28,10 @@ import {
   preloadBlockPluginDefinitions,
 } from '../../.package-tmp/declaration-tests/plugins/async.js'
 import {
-  createEditorRenderer,
   EditorRenderer,
   getSupportedBlockTypes,
 } from '../../.package-tmp/declaration-tests/renderer/index.js'
-import { createRendererAsync } from '../../.package-tmp/declaration-tests/renderer/async.js'
+import { createRendererAsync } from '../../.package-tmp/declaration-tests/renderer/renderers/async.js'
 import type { BlockPluginDefinition } from '../../.package-tmp/declaration-tests/core/index.js'
 import type { BlockRendererDefinition, OutputBlockData } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import { CropperDialog } from '@shelamkoff/cropper'
@@ -81,7 +80,7 @@ const configuredPlugins = [
   }),
 ] satisfies BlockPluginDefinition[]
 
-const renderer: EditorRenderer = createEditorRenderer()
+const renderer: EditorRenderer = new EditorRenderer()
 const customSchema = {
   currentVersion: 1,
   createDefault: () => ({ text: '' }),

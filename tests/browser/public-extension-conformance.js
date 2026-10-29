@@ -1,6 +1,6 @@
 // This suite accepts only the supported package entries. It is also copied into
 // an independent tarball consumer; no core, built-in plugin or test-harness import.
-export async function runPublicExtensionConformance({ createEditor, setSanitizedHtml, createEditorRenderer }) {
+export async function runPublicExtensionConformance({ createEditor, setSanitizedHtml, EditorRenderer }) {
   const results = []
   const pause = () => new Promise(resolve => setTimeout(resolve, 0))
   const check = (condition, message) => { if (!condition) throw new Error(message) }
@@ -325,7 +325,15 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
     }],
     ['external block and inline renderers consume the complete saved public document', () => {
       const fixture = extensions(), { editor } = create(fixture, [block()])
-      const renderer = createEditorRenderer({ blockTypes: [], injectStyles: false, ownerDocument: document,
+      class ArticleRenderer extends EditorRenderer {
+        renderCount = 0
+        renderTo(data, target) {
+          const output = super.renderTo(data, target)
+          this.renderCount++
+          return output
+        }
+      }
+      const renderer = new ArticleRenderer({ blockTypes: [], injectStyles: false, ownerDocument: document,
         inlineRenderers: [{ type: 'external-badge', schema: fixture.badgeSchema,
           render(_id, data, context) { const span = context.ownerDocument.createElement('span'); span.textContent = data.label; return span },
         }],
@@ -341,11 +349,19 @@ export async function runPublicExtensionConformance({ createEditor, setSanitized
       })
       const target = makeHolder()
       renderer.renderTo(editor.save(), target)
+      check(renderer instanceof EditorRenderer, 'public renderer subclass lost its base')
+      equal(renderer.renderCount, 1, 'public renderer override did not run')
       equal(target.textContent, 'AlphaBadgeBetaHidden badgeHidden', 'paired renderer content')
       const before = target.innerHTML
       const invalid = editor.save(); invalid.blocks[0].dataVersion = 99
       rejects(() => renderer.renderTo(invalid, target))
       equal(target.innerHTML, before, 'renderer replaced valid output after invalid input')
+      equal(renderer.renderCount, 1, 'failed super call was accepted by the override')
+      renderer.destroy(target)
+      equal(target.childNodes.length, 0, 'renderer disposal left its output mounted')
+      renderer.renderTo(editor.save(), target)
+      equal(renderer.renderCount, 2, 'renderer subclass could not be reused after disposal')
+      equal(target.textContent, 'AlphaBadgeBetaHidden badgeHidden', 'reused subclass output')
     }],
   ]
 

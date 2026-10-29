@@ -13,9 +13,9 @@ npm install @shelamkoff/rector
 ## Основное использование
 
 ```js
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 
-const renderer = createEditorRenderer({ theme: 'dark' })
+const renderer = new EditorRenderer({ theme: 'dark' })
 renderer.renderTo(documentData, document.querySelector('#article'))
 
 // При удалении представления:
@@ -72,7 +72,7 @@ interface RendererConfig {
 Исполняемые значения рендерера импортируются из `@shelamkoff/rector/renderer`, а его декларации — из отдельной точки входа только для типов:
 
 ```ts
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import type {
   BlockRenderer,
   BlockRendererDefinition,
@@ -155,7 +155,7 @@ renderer.unregisterRenderer('callout')
 
 ```js
 import { createBlockPluginsAsync } from '@shelamkoff/rector/plugins/async'
-import { createDefaultRenderersAsync } from '@shelamkoff/rector/renderer/async'
+import { createDefaultRenderersAsync } from '@shelamkoff/rector/renderer/renderers/async'
 
 const plugins = await createBlockPluginsAsync(documentData)
 const renderers = await createDefaultRenderersAsync('oe', {}, documentData)
@@ -179,7 +179,7 @@ HTML-поля блока обходятся через `BlockDataSchema.mapRichT
 import '@shelamkoff/rector/styles/renderer.css'
 import '@shelamkoff/rector/renderer/renderers/gallery/styles.css'
 
-const renderer = createEditorRenderer({
+const renderer = new EditorRenderer({
   blockTypes: ['gallery'],
   injectStyles: false,
 })

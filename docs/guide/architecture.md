@@ -15,7 +15,7 @@ Application
   ├─ Block and inline extensions
   │      └─ scoped context / DataTask authority
   │
-  └─ createEditorRenderer(config) ──> Document DOM
+  └─ new EditorRenderer(config) ──> Document DOM
 
 Versioned JSON document is the contract between editing, storage, and rendering.
 ```

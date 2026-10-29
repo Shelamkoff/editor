@@ -46,10 +46,6 @@
     "./renderer/types": {
       "types": "./dist/renderer/types.d.ts"
     },
-    "./renderer/async": {
-      "types": "./dist/renderer/async.d.ts",
-      "import": "./dist/renderer/async.js"
-    },
     "./renderer/renderers": {
       "types": "./dist/renderer/renderers/index.d.ts",
       "import": "./dist/renderer/renderers/index.js"

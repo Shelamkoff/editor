@@ -22,3 +22,11 @@ test('default inline tools are exposed only through preset', () => {
   assert.equal(manifest.exports['./inline-tools'], undefined)
   assert.ok(manifest.exports['./preset'])
 })
+
+test('async renderer factories have one canonical published entry', () => {
+  assert.equal(manifest.exports['./renderer/async'], undefined)
+  assert.deepEqual(manifest.exports['./renderer/renderers/async'], {
+    types: './dist/renderer/renderers/async.d.ts',
+    import: './dist/renderer/renderers/async.js',
+  })
+})

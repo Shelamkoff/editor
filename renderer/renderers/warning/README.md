@@ -7,10 +7,10 @@ The `@shelamkoff/rector/renderer` entry contains the synchronous built-in preset
 ## Usage
 
 ```js
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import { createWarningRenderer } from '@shelamkoff/rector/renderer/renderers/warning'
 
-const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+const renderer = new EditorRenderer({ classPrefix: 'article', blockTypes: [] })
 renderer.registerRenderer(createWarningRenderer('article', {}))
 const rendererStyles = renderer.injectStyles()
 renderer.renderTo(documentData, document.querySelector('#article'))

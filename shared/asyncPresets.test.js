@@ -10,7 +10,7 @@ import {
   createDefaultRenderersAsync,
   getAsyncRendererTypes,
   preloadRendererFactories,
-} from '../renderer/async.js'
+} from '../renderer/renderers/async.js'
 import { getSupportedBlockTypes } from '../renderer/renderers/index.js'
 import { BLOCK_TYPES } from './blockTypes.js'
 

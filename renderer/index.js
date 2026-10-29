@@ -260,9 +260,4 @@ export class EditorRenderer extends EditorRendererImpl {
   }
 }
 
-/** @param {import('./types').RendererConfig} [config] */
-export function createEditorRenderer(config) {
-  return new EditorRenderer(config)
-}
-
 export { getSupportedBlockTypes }

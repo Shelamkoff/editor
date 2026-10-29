@@ -98,6 +98,6 @@ Use `.oe-ip--mention` for saved pills and `.oe-mention-dropdown` plus its child 
 
 ## Document output
 
-Pass `createMentionRenderer()` in the `inlineRenderers` array passed to `createEditorRenderer()`. It is a read-only projection that validates saved mention payloads through the same schema as the editor and does not include search, popup code, or editor listeners. If the editor uses a non-default trigger, pass that same character to the renderer factory, for example `createMentionRenderer('#')`. The trigger is presentation configuration and is not repeated in every saved widget.
+Pass `createMentionRenderer()` in the `inlineRenderers` array passed to `new EditorRenderer()`. It is a read-only projection that validates saved mention payloads through the same schema as the editor and does not include search, popup code, or editor listeners. If the editor uses a non-default trigger, pass that same character to the renderer factory, for example `createMentionRenderer('#')`. The trigger is presentation configuration and is not repeated in every saved widget.
 
 The sequential VitePress guide documents the complete inline-widget contract, storage format, history boundaries, custom plugin creation, security, and cleanup.

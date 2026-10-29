@@ -1,6 +1,6 @@
 import { createEditor, type BlockPluginDefinition, type InlinePluginDefinition, type EditorConfig } from '../../.package-tmp/declaration-tests/core/index.js'
 import type { InlineTool } from '../../.package-tmp/declaration-tests/types.js'
-import { createEditorRenderer } from '../../.package-tmp/declaration-tests/renderer/index.js'
+import { EditorRenderer } from '../../.package-tmp/declaration-tests/renderer/index.js'
 import type { BlockRendererDefinition, OutputBlockData, InlineWidgetRenderer } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import { setSanitizedHtml } from '../../.package-tmp/declaration-tests/plugin-kit/index.js'
 
@@ -128,5 +128,10 @@ const badgeRenderer: InlineWidgetRenderer<BadgeData> = {
   type: 'external-badge', schema: badgeSchema,
   render(_id, data, { ownerDocument }) { const element = ownerDocument.createElement('span'); element.textContent = data.label; return element },
 }
-const renderer = createEditorRenderer({ blockTypes: [], inlineRenderers: [badgeRenderer] })
+class ArticleRenderer extends EditorRenderer {
+  override renderBlock(block: OutputBlockData) {
+    return super.renderBlock(block)
+  }
+}
+const renderer = new ArticleRenderer({ blockTypes: [], inlineRenderers: [badgeRenderer] })
 renderer.registerRenderer(noteRenderer)

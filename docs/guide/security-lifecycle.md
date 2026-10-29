@@ -104,7 +104,7 @@ Use `WeakMap` for per-element state because one plugin instance may render sever
 Pair every mount with cleanup and every style acquisition with release:
 
 ```js
-const renderer = createEditorRenderer()
+const renderer = new EditorRenderer()
 const styleOwner = renderer.injectStyles()
 
 renderer.renderTo(data, container)

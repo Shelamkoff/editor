@@ -58,7 +58,6 @@ function sourceModuleFor(specifier) {
   if (subpath === '/inline-tools') return join(root, 'inline-tools', 'defaults.js')
   if (subpath.startsWith('/inline-tools/')) return join(root, `${subpath}.js`)
   if (subpath === '/renderer') return join(root, 'renderer', 'index.js')
-  if (subpath === '/renderer/async') return join(root, 'renderer', 'async.js')
   if (subpath === '/renderer/renderers') return join(root, 'renderer', 'renderers', 'index.js')
   if (subpath === '/renderer/renderers/async') return join(root, 'renderer', 'renderers', 'async.js')
   if (subpath.startsWith('/renderer/renderers/')) return join(root, subpath, 'index.js')

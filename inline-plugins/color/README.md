@@ -57,6 +57,6 @@ The plugin declares the color-picker stylesheet to Rector's shared style registr
 
 ## Document output
 
-For document output, pass `createColorSwatchRenderer()` in the `inlineRenderers` array passed to `createEditorRenderer()`. The read-only renderer validates the saved payload through the same color widget schema and never mounts the picker.
+For document output, pass `createColorSwatchRenderer()` in the `inlineRenderers` array passed to `new EditorRenderer()`. The read-only renderer validates the saved payload through the same color widget schema and never mounts the picker.
 
 The sequential VitePress guide explains the complete inline-plugin contract, placeholder storage, security rules, command boundary, and cleanup requirements.

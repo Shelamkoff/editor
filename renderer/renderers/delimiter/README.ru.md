@@ -7,10 +7,10 @@
 ## Использование
 
 ```js
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import { createDelimiterRenderer } from '@shelamkoff/rector/renderer/renderers/delimiter'
 
-const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+const renderer = new EditorRenderer({ classPrefix: 'article', blockTypes: [] })
 renderer.registerRenderer(createDelimiterRenderer('article', {}))
 const rendererStyles = renderer.injectStyles()
 renderer.renderTo(documentData, document.querySelector('#article'))

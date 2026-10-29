@@ -53,7 +53,7 @@ const runtimePaths = [
   '../../plugins/index.js',
   '../../plugins/async.js',
   '../../renderer/index.js',
-  '../../renderer/async.js',
+  '../../renderer/renderers/async.js',
   '../../renderer/inline.js',
   '../../renderer/errors.js',
   '../../renderer/renderers/index.js',

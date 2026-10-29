@@ -47,6 +47,9 @@ try {
   await assertExportTargets(editorRoot)
 
   const packageFiles = await readdir(resolve(editorRoot, 'dist'), { recursive: true })
+  for (const removed of ['renderer/async.js', 'renderer/async.d.ts']) {
+    if (packageFiles.includes(removed)) throw new Error(`Removed renderer forwarder remains in dist/${removed}`)
+  }
   for (const relativePath of packageFiles.filter(path => /\.(?:js|d\.ts)$/.test(path))) {
     const content = await readFile(join(editorRoot, 'dist', relativePath), 'utf8')
     if (/\.\.\/\.\.\/(?:event-bus|infinite-scroll|masonry|color-picker|cropper|carousel|expose)\//.test(content)) {
@@ -200,7 +203,7 @@ import { createBlockPluginsAsync } from '@shelamkoff/rector/plugins/async'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
 import { createBoldTool } from '@shelamkoff/rector/inline-tools/bold'
 import { createDefaultInlineTools } from '@shelamkoff/rector/preset'
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import { createDefaultRenderersAsync } from '@shelamkoff/rector/renderer/renderers/async'
 import { EventBus } from '@shelamkoff/event-bus'
 import { ColorPicker, colorPickerStylesUrl, parseColorInput } from '@shelamkoff/color-picker'
@@ -264,7 +267,7 @@ if ('setTrustedHtml' in pluginKit || 'insertTrustedHtml' in pluginKit) {
   throw new Error('plugin-kit leaked an unsanitized trusted HTML sink')
 }
 
-void [createEditor, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createDefaultInlineTools, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
+void [createEditor, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createDefaultInlineTools, EditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
   const consumerTypeSource = `${consumerSource}
@@ -306,6 +309,17 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
 
   run(node, [viteCli, 'build'], consumerRoot)
   run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
+  run(node, ['--input-type=module', '-e', `
+    import assert from 'node:assert/strict'
+    const renderer = await import('@shelamkoff/rector/renderer')
+    assert.equal(typeof renderer.EditorRenderer, 'function')
+    assert.equal(Object.hasOwn(renderer, 'createEditorRenderer'), false)
+    await assert.rejects(import('@shelamkoff/rector/renderer/async'), {
+      code: 'ERR_PACKAGE_PATH_NOT_EXPORTED',
+    })
+    const factories = await import('@shelamkoff/rector/renderer/renderers/async')
+    assert.equal(typeof factories.createDefaultRenderersAsync, 'function')
+  `], consumerRoot)
   run(node, ['--input-type=module', '-e', "Promise.all([import('highlight.js'), import('jszip')]).then(([h,z]) => { if (!h.default || !z.default) process.exit(1) })"], consumerRoot)
   // Execute the same external definitions against the installed tarball. The
   // browser fixture has no private editor imports and no built-in plugin owner.

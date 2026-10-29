@@ -1,7 +1,7 @@
 import { createEditor } from '../../core/index.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { createHeadingPlugin, createListPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
-import { createEditorRenderer } from '../../renderer/index.js'
+import { EditorRenderer } from '../../renderer/index.js'
 
 const results = []
 function assert(value, message) { if (!value) throw new Error(message) }
@@ -48,7 +48,7 @@ await test('editor text blocks render under require-trusted-types-for', () => {
 })
 
 await test('document renderer handles inline HTML under Trusted Types enforcement', () => {
-  const renderer = createEditorRenderer({ injectStyles: false, blockTypes: ['paragraph', 'heading'] })
+  const renderer = new EditorRenderer({ injectStyles: false, blockTypes: ['paragraph', 'heading'] })
   let root
   try {
     root = renderer.render({

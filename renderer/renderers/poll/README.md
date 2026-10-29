@@ -7,10 +7,10 @@ The `@shelamkoff/rector/renderer` entry contains the synchronous built-in preset
 ## Usage
 
 ```js
-import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { EditorRenderer } from '@shelamkoff/rector/renderer'
 import { createPollRenderer } from '@shelamkoff/rector/renderer/renderers/poll'
 
-const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+const renderer = new EditorRenderer({ classPrefix: 'article', blockTypes: [] })
 renderer.registerRenderer(createPollRenderer('article', {}, {
   dataSource: {
     load: ({ pollId, signal }) => api.getPollResults(pollId, { signal }),

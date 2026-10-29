@@ -104,7 +104,7 @@ class LiveBlock {
 Каждой установке должна соответствовать очистка, а каждому подключению стилей — освобождение:
 
 ```js
-const renderer = createEditorRenderer()
+const renderer = new EditorRenderer()
 const styleOwner = renderer.injectStyles()
 
 renderer.renderTo(data, container)

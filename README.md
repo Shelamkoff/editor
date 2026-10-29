@@ -21,7 +21,7 @@ See the [getting started guide](https://shelamkoff.github.io/editor/guide/gettin
 
 ## Styles
 
-`createEditor()` and `createEditorRenderer()` use `injectStyles: true` by default. They load only the styles declared by the registered extensions and release their reference-counted `<link>` elements on full destruction.
+`createEditor()` and `new EditorRenderer()` use `injectStyles: true` by default. They load only the styles declared by the registered extensions and release their reference-counted `<link>` elements on full destruction.
 
 Bundler-based applications can instead set `injectStyles: false` and import CSS explicitly. Use `@shelamkoff/rector/styles.css` for every built-in style, or combine `styles/editor.css` / `styles/renderer.css` with selected subpaths such as `plugins/image/styles.css`, `inline-plugins/color/styles.css`, and `renderer/renderers/carousel/styles.css`.
 
