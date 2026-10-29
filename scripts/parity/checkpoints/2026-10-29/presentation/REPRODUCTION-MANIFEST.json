@@ -1,0 +1,71 @@
+{
+  "classification": "prototype-only decision reproduction; never apply to the working checkout",
+  "baseCommit": "948bc5544dcf57a343733f589883973ec7db6cd7",
+  "publishedEquivalentCommit": "3103eb5f3a605b22e6ebdabc7d276be4a5b58179",
+  "baseTree": "407f0edc50ddfd36352852982f874f4de53cdb40",
+  "originalArchive": {
+    "path": "/tmp/rector-presentation-v2/source-948bc554.tar",
+    "sha256": "e9c31e80399894fca6c49b2c41c59bccb98669b769c200800dc2b2934f997a34"
+  },
+  "originalTrace": {
+    "path": "/tmp/rector-presentation-v2/block-remount-comparison.trace.json",
+    "sha256": "664721e6b9b58395200c06f44c11b98bb5950283a77d16d2b08a84701ad78145"
+  },
+  "originalResults": {
+    "path": "/tmp/rector-presentation-v2/block-remount-comparison-results.json",
+    "sha256": "acadeb6d8bf40875ef03feb65102de12d1c9b7aee149d2b224e87cf3cf7c34cd"
+  },
+  "reconstructedSource": {
+    "core/BlockReconciler.js": "7fc610f3e026e8d56d67e39caa582e0b3afb2fa162296a8e33a044a8526a67c9",
+    "core/InlineProjectionRuntime.js": "7f7e0a828d7e26e86a6df1847798a7a73519fdde20716ad8fb33fa048d633264",
+    "core/NativeInputController.js": "0a08aeac7fae14e0f85ad1b896a3734b49b629f82e89e8ff368aa39feeb9a26d",
+    "core/DocumentRuntime.js": "1df3a449ca44442eff32c89ea101db230bedf903e7c50ef9230aa528d1451768",
+    "core/createEditorRuntime.js": "a359c9b4a54566bc4c33bfd243ea012cd53e9c94e36f8029e049240c6155a134",
+    "tests/browser/native-presentation-investigation.js": "f6b649a065cb60fd25c215a7ba3aa58db61cd8e59c1efa23756454771d947d23",
+    "tests/browser/native-presentation-investigation.html": "aa6141c7aba55d439b4f2ede253bf8c8cee9f3725f1b934d10ee347f2385d8df",
+    "tests/browser/native-presentation-remount-comparison.html": "6bea23850208304759b10c4631e379c7e75945ff8657f58de4286b7b3fb5a919",
+    "vite.config.mjs": "c56c5b237a308db61d7dc3302145cdaed6e3bab0b11112d2f4e671c1fdf22cc5"
+  },
+  "inputLocations": {
+    "core/BlockReconciler.js": "/tmp/rector-presentation-v2/variants/cleanup-layout-fixture-red/core/BlockReconciler.js",
+    "core/InlineProjectionRuntime.js": "/tmp/rector-presentation-v2/variants/cleanup-layout-fixture-red/core/InlineProjectionRuntime.js",
+    "core/NativeInputController.js": "/tmp/rector-presentation-v2/variants/cleanup-layout-fixture-red/core/NativeInputController.js",
+    "core/DocumentRuntime.js": "/tmp/rector-presentation-v2/variants/cleanup-layout-fixture-red/core/DocumentRuntime.js",
+    "core/createEditorRuntime.js": "/tmp/rector-presentation-v2/variants/cleanup-layout-fixture-red/core/createEditorRuntime.js",
+    "tests/browser/native-presentation-investigation.js": "/tmp/rector-presentation-v2/variants/candidate-34-reviewed/tests/browser/native-presentation-investigation.js",
+    "tests/browser/native-presentation-investigation.html": "/tmp/rector-presentation-v2/source/tests/browser/native-presentation-investigation.html",
+    "tests/browser/native-presentation-remount-comparison.html": "/tmp/rector-presentation-v2/source/tests/browser/native-presentation-remount-comparison.html",
+    "vite.config.mjs": "/tmp/rector-presentation-v2/source/vite.config.mjs"
+  },
+  "baseRunnerAndDependencyInputs": {
+    "tests/browser/physical-history.mjs": "ac1a591cecc903165151ba1474d22411f6dfef3e5ad7ee5d026b7426ec692108",
+    "tests/browser/native-input-driver.js": "8be2f4b6123667ddf212ecd6bc6348d1687003bcbd2d45e9d1bc5883f43ac4bc",
+    "tests/browser/environment.mjs": "536cdb9041fd70d7b9158a8d32bf7758262a4c04234e770c2bd375c3011fcd9e",
+    "package-lock.json": "dbec99aaba5987a360d5daa2792b5cab2521a890cae6ddde9acb21c78b4d117d"
+  },
+  "prototypeOnlyHooks": [
+    "globalThis.__capturePresentationProbe",
+    "BlockReconciler.probeRecoverBlock"
+  ],
+  "browser": "Chromium142.0.7444.175",
+  "node": "v24.22.1",
+  "recordedCommand": [
+    "node",
+    "tests/browser/physical-history.mjs"
+  ],
+  "recordedPage": "native-presentation-remount-comparison.html",
+  "recordedExitCode": 1,
+  "recordedSeconds": 1.807426929473877,
+  "recordedSourceUnchanged": true,
+  "reconstructionCheck": "git apply --check + git apply in isolated minimal tree; all9 source hashes exactly matched original trace; historical browser run was not repeated",
+  "artifactHashes": {
+    "historical-runtime-prototype.patch": "ef242b2a4d6b316b9eabcc8cebc8acc4c256949672e3803aa10077b5e5fbd544",
+    "observed-results.json": "0a4be424d0f412f8417ac08891797772710e1bcc01a373819c582ac1525da70a",
+    "fixture/tests/browser/native-presentation-investigation.html": "aa6141c7aba55d439b4f2ede253bf8c8cee9f3725f1b934d10ee347f2385d8df",
+    "fixture/tests/browser/native-presentation-investigation.js": "f6b649a065cb60fd25c215a7ba3aa58db61cd8e59c1efa23756454771d947d23",
+    "fixture/tests/browser/native-presentation-remount-comparison.html": "6bea23850208304759b10c4631e379c7e75945ff8657f58de4286b7b3fb5a919",
+    "fixture/vite.config.mjs": "c56c5b237a308db61d7dc3302145cdaed6e3bab0b11112d2f4e671c1fdf22cc5",
+    "README.md": "f56a1a53b1e4e3410bae052b8d3df3ec731e9b957d90e9614f72f00f91f706bc"
+  },
+  "publicationNote": "README clarifies that historical decision evidence does not accept later integration; source artifacts and observations remain byte-identical."
+}

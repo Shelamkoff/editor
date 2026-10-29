@@ -1,0 +1,629 @@
+--- a/core/BlockReconciler.js
++++ b/core/BlockReconciler.js
+@@ -4,7 +4,8 @@
+ import { InstanceScope } from './InstanceScope.js'
+ import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
+ import { ProjectionAnimator } from './ProjectionAnimator.js'
+-import { captureEditableFields } from './projectionFields.js'
++import { captureEditableFields, richTextFieldMap } from './projectionFields.js'
++import { scanRichTextPlaceholders } from '../shared/richTextOperations.js'
+ import { synchronousResult } from '../shared/synchronousResult.js'
+ 
+ const liveBlockRoots=new WeakMap()
+@@ -92,6 +93,7 @@
+   #registry
+   #contextFactory
+   #projectPresentation
++  #reportPresentationFailure
+   #activationResolver
+   #entries = new Map()
+   /** @type {Set<() => void>} */
+@@ -110,6 +112,7 @@
+     registry,
+     contextFactory,
+     projectPresentation = operation => operation(),
++    reportPresentationFailure = /** @type {(error:unknown,original?:unknown)=>void} */ (() => {}),
+     activationResolver,
+     inlineProjection = null,
+     readOnly = false,
+@@ -122,6 +125,7 @@
+     this.#registry = registry
+     this.#contextFactory = contextFactory
+     this.#projectPresentation = projectPresentation
++    this.#reportPresentationFailure = reportPresentationFailure
+     this.#activationResolver = typeof activationResolver === 'function'
+       ? activationResolver
+       : (_id, record) => registry.hasBlock(record.type)
+@@ -136,7 +140,13 @@
+         const ids = new Set(records.map(record => this.resolveBlockTarget(record.target)).filter(Boolean))
+         for (const id of ids) {
+           const entry = this.#entries.get(id)
+-          if (entry?.element.isConnected) this.#refreshFields(id, entry, true)
++          if (!entry?.element.isConnected)continue
++          try{this.#refreshFields(id,entry,true,false)}
++          catch(error){
++            // #registerFields has contained and reported the failed owner.
++            // Independent block deliveries are still owed by this observer.
++            if(entry.presentationFailure?.error!==error)this.#reportPresentationFailure(error)
++          }
+         }
+       })
+       this.#fieldObserver.observe(container, { childList: true, subtree: true })
+@@ -220,6 +230,22 @@
+     return this.#entries.get(id)?.element
+   }
+ 
++  // Read-only investigation hook: compare existing block acquisition without
++  // adopting it as the standalone presentation recovery policy.
++  probeRecoverBlock(id){
++    return this.#projectPresentation(()=>{
++      const previous=this.#entries.get(id)
++      const next=this.#createEntry(previous.record,{candidate:true,stageInline:true,restoring:true})
++      this.#applyPreparedInline(next)
++      this.#entries.set(id,next)
++      previous.element.replaceWith(next.element)
++      next.lifetime.candidate=null
++      this.#activateEntry(next)
++      this.#finalizePreparedInline(next)
++      this.#destroyEntry(previous)
++    })
++  }
++
+   get ids() {
+     return [...this.#entries.keys()]
+   }
+@@ -322,8 +348,10 @@
+     }
+     const data = cloneEditorData(entry.instance.read())
+     assertOwner()
+-    const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
++    const observedFields = captureEditableFields(entry.instance.editableFields?.() ?? [])
+     assertOwner()
++    const fields=entry.presentationFailure?observedFields.filter(field=>entry.fields.some(accepted=>
++      field.key===accepted.key&&field.element===accepted.element&&field.mode===accepted.mode)):observedFields
+     this.#validateFieldOwnership(entry,fields)
+     if (!this.#inlineProjection || entry.unregistered) {
+       return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
+@@ -381,7 +409,7 @@
+         }
+ 
+         if (!before || !current) {
+-          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
++          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring:restoring||Boolean(before&&!current) })
+           staged.set(id, entry)
+           insertions.push({ id, entry, after })
+           continue
+@@ -419,7 +447,7 @@
+     let finalOrder
+     let removalSnapshots
+     try {
+-      finalOrder = structuralChange ? draft.ids() : null
++      finalOrder = structuralChange||insertions.length>0 ? draft.ids() : null
+       removalSnapshots = removals.flatMap(item => {
+         const snapshot = this.#animator.captureRemoval(
+           item.entry.element,
+@@ -467,6 +495,7 @@
+         const nextEntries = new Map(previousEntries)
+ 
+         for (const item of updates) {
++          const failedPresentation=item.entry.presentationFailure
+           item.entry.lifetime.candidate = item.after
+           if (item.dataChanged && item.id !== sourceBlockId) {
+             item.entry.instance.update(item.after.data, item.before.data)
+@@ -483,6 +512,7 @@
+               { preserveSourceProjection: item.id === sourceBlockId, projectionRoot: item.entry.element },
+             )
+           }
++          if(failedPresentation&&!item.entry.presentationFailure)this.#restoreRecoveredFieldModes(item.entry,failedPresentation)
+           this.#applyTunes(item.entry, item.after)
+         }
+ 
+@@ -932,7 +962,7 @@
+       || !entry.element.contains(node)) return null
+     const current=entry.fields?.some(field=>field.element===node
+       && field.key===owner.fieldKey && field.mode===owner.mode)
+-    return current ? { ...owner } : null
++    return current&&this.#hasFieldAncestry(owner,entry)?{blockId:owner.blockId,fieldKey:owner.fieldKey,element:owner.element,mode:owner.mode}:null
+   }
+ 
+   #refreshFields(id, entry, projectPresentation = false, forceProjection = false) {
+@@ -940,44 +970,144 @@
+   }
+ 
+   #registerFields(id, entry, projectPresentation, forceProjection) {
+-    const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
++    const fields=captureEditableFields(entry.instance.editableFields?.()??[])
++    const sameFields=(left,right)=>left?.length===right?.length&&left.every((field,index)=>
++      field.key===right[index]?.key&&field.element===right[index]?.element&&field.mode===right[index]?.mode)
++    const previousFields=entry.fields??[]
++    const failed=entry.presentationFailure
++    if(failed&&sameFields(fields,failed.fields)&&this.#sameFailedContent(entry,failed)){
++      this.#revalidateSettledFields(id,entry,failed)
++      failed.record=entry.record
++      for(const disabled of failed.disabled??[]){
++        if(entry.element.contains(disabled.element))disabled.element.contentEditable='false'
++      }
++      if(forceProjection&&this.#inlineProjection){
++        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,entry.fields,entry.baseContext,{projectionRoot:entry.element})
++      }
++      // A legitimate edit of a healthy sibling must not publish the failed
++      // descriptor or silently retry unchanged failed canonical content.
++      return
++    }
+     this.#validateFieldOwnership(entry,fields)
+-    const changed = entry.fields && (fields.length !== entry.fields.length
+-      || fields.some((field, index) => field.key !== entry.fields[index]?.key
+-        || field.element !== entry.fields[index]?.element
+-        || field.mode !== entry.fields[index]?.mode))
+-    const previousFields=entry.fields
+-    if(changed)for(const field of previousFields)this.#fieldOwners.delete(field.element)
+-    entry.fields=fields
+-    const publishedOwners=[]
+-    for(const field of fields){
+-      const owner={blockId:id,fieldKey:field.key,element:field.element,mode:field.mode}
+-      this.#fieldOwners.set(field.element,owner)
+-      publishedOwners.push(owner)
+-    }
+-    try{
+-      if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
+-        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext,
+-          {projectionRoot:entry.element})
+-      }
+-    }catch(error){
+-      // A child projection may have failed after partial DOM mutation. Do
+-      // not mark the changed field set as successfully projected: a later
+-      // refresh must reattempt it or let owner recovery restore the block.
+-      // Reentrant callbacks can install a newer owner; never revoke it.
+-      if(entry.fields===fields){
+-        for(const owner of publishedOwners){
+-          if(this.#fieldOwners.get(owner.element)===owner)this.#fieldOwners.delete(owner.element)
+-        }
+-        entry.fields=previousFields
+-        for(const field of previousFields??[]){
+-          this.#fieldOwners.set(field.element,{
+-            blockId:id,fieldKey:field.key,element:field.element,mode:field.mode,
+-          })
+-        }
+-      }
+-      throw error
+-    }
++    const changed=!sameFields(fields,previousFields)
++    const publish=next=>{
++      for(const field of entry.fields??[])this.#fieldOwners.delete(field.element)
++      entry.fields=next
++      for(const field of next)this.#publishFieldOwner(id,entry,field)
++    }
++    if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
++      let retained=[]
++      try{
++        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext,{
++          projectionRoot:entry.element,
++          presentationFields:forceProjection?null:previousFields,
++          onFailedFields:healthy=>{retained=healthy;publish(healthy)},
++          canRetainField:field=>{
++            const owner=this.#currentFieldOwner(field.element)
++            return owner?.blockId===id&&owner.fieldKey===field.key&&owner.mode===field.mode
++          },
++        })
++      }catch(error){
++        if(forceProjection)throw error
++        let reported=error
++        const disabled=[]
++        try{
++          for(const field of fields){
++            if(retained.some(item=>item.element===field.element))continue
++            if(!this.#isCurrentMountedEntry(id,entry)||!entry.element.contains(field.element)){
++              throw new Error('Failed presentation field left its recovery boundary')
++            }
++            disabled.push({...field,value:field.element.getAttribute('contenteditable')})
++            field.element.contentEditable='false'
++            field.element.replaceChildren()
++          }
++        }catch(recoveryError){
++          reported=new AggregateError([error,recoveryError],'Presentation field recovery failed',{cause:error})
++        }
++        entry.presentationFailure={fields,error:reported,record:entry.record,disabled}
++        publish(retained)
++        if(!this.#isCurrentMountedEntry(id,entry))this.#retirePresentationEntry(id,entry)
++        this.#reportPresentationFailure(reported,error)
++        throw reported
++      }
++    }
++    publish(fields)
++    entry.presentationFailure=null
++    if(projectPresentation&&failed)this.#restoreRecoveredFieldModes(entry,failed)
++  }
++
++  #fieldBoundary(node){
++    return node.nodeType===1?[node.getAttribute('contenteditable'),node.getAttribute('data-inline-plugin'),node.getAttribute('role')].join('\u0000'):''
++  }
++
++  #publishFieldOwner(id,entry,field){
++    const ancestors=[]
++    for(let node=field.element.parentNode;node;node=node.parentNode){
++      ancestors.push({node,boundary:this.#fieldBoundary(node)})
++      if(node===entry.element)break
++    }
++    this.#fieldOwners.set(field.element,{blockId:id,fieldKey:field.key,element:field.element,mode:field.mode,ancestors})
++  }
++
++  #hasFieldAncestry(owner,entry){
++    let node=owner.element
++    for(const ancestor of owner.ancestors??[]){
++      if(node.parentNode!==ancestor.node||this.#fieldBoundary(ancestor.node)!==ancestor.boundary)return false
++      node=ancestor.node
++    }
++    return node===entry.element
++  }
++
++  #retirePresentationEntry(id,entry){
++    for(const field of entry.fields??[])this.#fieldOwners.delete(field.element)
++    entry.fields=[]
++    if(this.#entries.get(id)===entry)this.#entries.delete(id)
++    this.#inlineProjection?.destroyBlock(id)
++    this.#destroyEntry(entry)
++  }
++
++  #revalidateSettledFields(id,entry,failed){
++    const invalid=entry.fields.filter(field=>{
++      const owner=this.#currentFieldOwner(field.element)
++      return owner?.blockId!==id||owner.fieldKey!==field.key||owner.mode!==field.mode
++    })
++    if(!invalid.length)return
++    for(const field of invalid)this.#fieldOwners.delete(field.element)
++    entry.fields=entry.fields.filter(field=>!invalid.includes(field))
++    this.#inlineProjection?.retirePresentationFields(id,invalid)
++    const boundaryError=new Error('Settled presentation field left its accepted ownership boundary')
++    const error=new AggregateError([failed.error,boundaryError],'Presentation field ownership recovery failed',{cause:failed.error})
++    failed.error=error
++    if(!this.#isCurrentMountedEntry(id,entry))this.#retirePresentationEntry(id,entry)
++    this.#reportPresentationFailure(error)
++    throw error
++  }
++
++  #restoreRecoveredFieldModes(entry,failed){
++    if(this.#readOnly||!this.#isCurrentMountedEntry(entry.record.id,entry))return
++    for(const field of failed.disabled??[]){
++      if(!entry.fields.some(current=>current.key===field.key&&current.mode===field.mode&&current.element===field.element)
++        ||!entry.element.contains(field.element)||field.element.getAttribute('contenteditable')!=='false')continue
++      if(field.value===null)field.element.removeAttribute('contenteditable')
++      else field.element.setAttribute('contenteditable',field.value)
++    }
++  }
++
++  #sameFailedContent(entry,failed){
++    if(failed.record===entry.record)return true
++    if(failed.record.type!==entry.record.type||failed.record.dataVersion!==entry.record.dataVersion)return false
++    const before=richTextFieldMap(entry.definition,failed.record.data)
++    const after=richTextFieldMap(entry.definition,entry.record.data)
++    for(const field of failed.fields){
++      if(entry.fields.some(healthy=>healthy.key===field.key&&healthy.element===field.element))continue
++      if(field.mode!=='rich-text')return sameJson(failed.record,entry.record)
++      const html=before.get(field.key)
++      if(html!==after.get(field.key))return false
++      for(const [id] of scanRichTextPlaceholders(html??'',failed.record.inline??{},this.#container.ownerDocument).occurrences){
++        if(!sameJson(failed.record.inline?.[id],entry.record.inline?.[id]))return false
++      }
++    }
++    return true
+   }
+ 
+   #applyTunes(entry, record) {
+--- a/core/InlineProjectionRuntime.js
++++ b/core/InlineProjectionRuntime.js
+@@ -7,6 +7,7 @@
+ import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
+ import { normalizeRichText, canonicalizeRichTextSubtree } from '../shared/richTextCodec.js'
+ import { sanitizeSubtree } from '../shared/sanitize/walker.js'
++import { ALLOWED_TAGS, ALLOWED_ATTRS } from '../shared/sanitize/allowlist.js'
+ import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
+ import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
+ import { scanRichTextPlaceholders, richTextPlaceholderMatches, protectInlineLiteralTokens } from '../shared/richTextOperations.js'
+@@ -97,17 +98,20 @@
+   // Never authorize these through extension runtime or attribute matching.
+   #opaqueOwned=new WeakMap()
+   #readOnly
++  /** @type {(blockId:string,fieldKey:string,element:HTMLElement)=>boolean} */
++  #preservePendingField
+   #destroyed=false
+ 
+-  constructor({registry,ownerDocument,readOnly=false}){
++  constructor({registry,ownerDocument,readOnly=false,preservePendingField=()=>false}){
+     if(!registry)throw new TypeError('InlineProjectionRuntime requires an ExtensionRegistry')
+     if(!ownerDocument?.createElement)throw new TypeError('InlineProjectionRuntime requires an ownerDocument')
+     this.#registry=registry
+     this.#ownerDocument=ownerDocument
+     this.#readOnly=readOnly===true
+-  }
+-
+-  reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
++    this.#preservePendingField=preservePendingField
++  }
++
++  reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,presentationFields=null,onFailedFields=null,canRetainField=/** @type {(field:import('../plugin-kit/types').EditableField)=>boolean} */ (()=>true)}={}){
+     this.#assertLive()
+     if(this.#projectingBlocks.has(blockId)){
+       throw new Error('Cannot reenter inline projection for the same block')
+@@ -119,18 +123,47 @@
+         state={widgets:new Map(),opaque:new Map(),staged:false}
+         this.#blocks.set(blockId,state)
+       }
++      const retained=new Map()
++      if(presentationFields){
++        const canonical=richTextFieldMap(definition,record.data)
++        for(const field of fields){
++          if(!canRetainField(field)||!presentationFields.some(previous=>previous.key===field.key&&previous.element===field.element&&previous.mode===field.mode))continue
++          if(field.mode!=='rich-text'){retained.set(field.key,field);continue}
++          const authored=this.#readSafeAuthoredField(blockId,field.key,field.element,state)
++          if(authored!==null&&(authored===normalizeRichText(canonical.get(field.key)??'',this.#ownerDocument)
++            ||this.#preservePendingField(blockId,field.key,field.element)))retained.set(field.key,field)
++        }
++      }
+       try{
+         this.#projectState(
+-          blockId,state,record,definition,fields,baseContext,{preserveSourceProjection,projectionRoot},
++          blockId,state,record,definition,fields,baseContext,{preserveSourceProjection,projectionRoot,presentationFields,retained},
+         )
+         if(this.#destroyed||this.#blocks.get(blockId)!==state){
+           throw new Error('Inline projection owner was revoked during reconciliation')
+         }
++        if([...retained.values()].some(field=>!canRetainField(field))){
++          throw new Error('Retained presentation field left its accepted ownership boundary')
++        }
+       }catch(error){
+         // A callback may mutate an instance or retire this block. Never keep
+         // partly written widget DOM/cache as authoritative canonical state.
+-        if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
+-        this.#destroyState(state)
++        if(presentationFields&&this.#blocks.get(blockId)===state&&!this.#destroyed){
++          const valid=new Map([...retained].filter(([,field])=>
++            field.element.isConnected&&projectionRoot?.contains(field.element)&&canRetainField(field)))
++          onFailedFields?.([...valid.values()])
++          for(const [id,entry] of state.widgets){
++            if(valid.get(entry.fieldKey)?.element===entry.fieldElement)continue
++            state.widgets.delete(id);this.#destroyWidget(entry)
++          }
++          for(const [id,entry] of state.opaque){
++            if(valid.get(entry.fieldKey)?.element===entry.fieldElement)continue
++            state.opaque.delete(id)
++            if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
++          }
++        }else{
++          if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
++          this.#destroyState(state)
++        }
+         throw error
+       }
+     }finally{
+@@ -576,6 +609,23 @@
+     }
+   }
+ 
++  retirePresentationFields(blockId,fields){
++    const state=this.#blocks.get(blockId)
++    if(!state)return
++    const affected=entry=>fields.some(field=>field.key===entry.fieldKey&&field.element===entry.fieldElement)
++    const retired=[]
++    for(const [id,entry] of state.widgets){
++      if(!affected(entry))continue
++      state.widgets.delete(id);retired.push(entry)
++    }
++    for(const [id,entry] of state.opaque){
++      if(!affected(entry))continue
++      state.opaque.delete(id)
++      if(belongsToAuthorField(entry.fieldElement,entry.element))entry.element.remove()
++    }
++    for(const entry of retired)this.#destroyWidget(entry)
++  }
++
+   destroyBlock(blockId){
+     // Block removal revokes detached prepared candidates as well as a
+     // mounted state. A candidate must not republish this ID afterward.
+@@ -599,7 +649,7 @@
+     this.#pendingPreparations.clear()
+   }
+ 
+-  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null}={}){
++  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,presentationFields=null,retained=new Map()}={}){
+     const projectionParent=projectionRoot?.parentNode
+     const assertFieldBoundary=field=>{
+       if(projectionRoot&&(projectionRoot.parentNode!==projectionParent||!projectionRoot.contains(field))){
+@@ -623,6 +673,16 @@
+     for(const [fieldKey,element] of richFields){
+       const html=canonical.get(fieldKey)
+       if(html===undefined)continue
++
++      const previous=presentationFields?.find(field=>field.key===fieldKey&&field.element===element&&field.mode==='rich-text')
++      if(retained.get(fieldKey)?.element===element||(previous&&this.#preservePendingField(blockId,fieldKey,element)
++        &&this.#readSafeAuthoredField(blockId,fieldKey,element,state)!==null)){
++        // The native owner will settle these occurrences. A sibling tab does
++        // not hydrate or retire an in-progress native field.
++        for(const [id,entry] of state.widgets)if(entry.fieldKey===fieldKey&&entry.fieldElement===element)live.add(id)
++        for(const [id,entry] of state.opaque)if(entry.fieldKey===fieldKey&&entry.fieldElement===element)liveOpaque.add(id)
++        continue
++      }
+ 
+       if(!preserveSourceProjection){
+         const normalized=normalizeRichText(html,this.#ownerDocument)
+@@ -683,6 +743,35 @@
+         if(parent===boundary)break
+       }
+     }
++  }
++
++  #readSafeAuthoredField(blockId,fieldKey,field,state){
++    const authored=this.#ownerDocument.createElement('div')
++    const append=(source,target)=>{
++      for(const node of source.childNodes){
++        if(isRichTextCaretPadding(node))continue
++        const lease=this.#owned.get(node)
++        const widget=lease?.blockId===blockId?state.widgets.get(lease.id):null
++        const opaque=this.#opaqueOwned.get(node)
++        const entry=widget?.element===node?widget:
++          opaque?.blockId===blockId&&state.opaque.get(opaque.id)===opaque?opaque:null
++        if(entry){
++          if(entry.fieldKey!==fieldKey||entry.fieldElement!==field||!belongsToAuthorField(field,node))return false
++          target.append(this.#ownerDocument.createTextNode('{{'+entry.id+'}}'))
++          continue
++        }
++        if(node.nodeType===3){target.append(this.#ownerDocument.createTextNode(node.textContent??''));continue}
++        if(node.nodeType!==1)return false
++        const tag=node.tagName.toLowerCase(),allowed=ALLOWED_ATTRS[tag]
++        if(!ALLOWED_TAGS.has(tag)||[...node.attributes].some(attr=>!allowed?.has(attr.name)))return false
++        const clone=node.cloneNode(false)
++        if(!append(node,clone))return false
++        target.append(clone)
++      }
++      return true
++    }
++    if(!append(field,authored))return null
++    return authored.innerHTML===normalizeRichText(authored.innerHTML,this.#ownerDocument)?authored.innerHTML:null
+   }
+ 
+   #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{}){
+@@ -762,12 +851,7 @@
+           continue
+         }
+ 
+-        let decoded
+-        try{
+-          decoded=definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data})
+-        }catch{
+-          continue
+-        }
++        const decoded=definition.schema.decode({dataVersion:ref.dataVersion,data:ref.data})
+ 
+         if(match.index>cursor)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
+ 
+--- a/core/NativeInputController.js
++++ b/core/NativeInputController.js
+@@ -64,6 +64,37 @@
+   }
+ 
+   get isComposing() { return this.#composition !== null }
++
++  /** Observe an existing native envelope without granting mutation rights.
++   * @param {string} blockId
++   * @param {string} fieldKey
++   * @param {HTMLElement} element
++   * @returns {boolean}
++   */
++  canPreservePresentationField(blockId,fieldKey,element) {
++    if(this.#controller.signal.aborted||this.#runtime.readOnly
++      ||this.#runtime.health!=='ready'||!element?.isConnected
++      ||!this.#root.contains(element))return false
++    const current=envelope=>envelope?.trusted===true
++      &&envelope.generation===this.#runtime.generation
++      &&envelope.revision===this.#runtime.revision
++      &&envelope.modeEpoch===this.#runtime.modeEpoch
++    for(const session of [this.#composition,this.#endingComposition]){
++      if(current(session)&&session.owner.blockId===blockId
++        &&session.owner.fieldKey===fieldKey&&session.owner.element===element)return true
++    }
++    const pending=this.#pendingInput
++    if(pending?.kind==='field')return current(pending)
++      &&pending.blockId===blockId&&pending.fieldKey===fieldKey
++      &&pending.element===element&&!pending.originalEvent.defaultPrevented
++    if(pending?.kind==='inline'){
++      const snapshot=pending.snapshot
++      return pending.valid&&current({...snapshot,modeEpoch:pending.modeEpoch})
++        &&snapshot.blockId===blockId&&snapshot.fieldKey===fieldKey
++        &&snapshot.fieldElement===element&&!snapshot.originalEvent.defaultPrevented
++    }
++    return false
++  }
+ 
+   /** Called when the earlier root-capture inline owner consumes beforeinput
+    * and stops propagation before this controller's bubble listener can retire
+@@ -158,14 +189,15 @@
+     const native = this.#root.ownerDocument.defaultView?.getSelection?.()
+     const inline = this.#inlineWidgetInput?.captureNativeDeletion(owner,event,native)
+     if (inline) {
+-      this.#pendingInput = {kind:'inline',snapshot:inline,valid:true}
++      this.#pendingInput = {kind:'inline',snapshot:inline,valid:true,modeEpoch:this.#runtime.modeEpoch}
+       this.#lastGroup = null
+       this.#endingComposition = null
+       return
+     }
+     this.#pendingInput = this.#selection ? {
+       kind:'field',
+-      blockId: owner.blockId, fieldKey: owner.fieldKey,
++      blockId: owner.blockId, fieldKey: owner.fieldKey, element:owner.element,
++      trusted:event?.isTrusted===true,originalEvent:event,modeEpoch:this.#runtime.modeEpoch,
+       generation: this.#runtime.generation, revision: this.#runtime.revision,
+       bookmark: this.#selection.capture(),
+     } : null
+@@ -286,6 +318,7 @@
+     this.#composition = {
+       owner: replacement ? this.#resolve(this.#root.ownerDocument.activeElement) ?? owner : owner,
+       replacement,
++      trusted:event?.isTrusted===true,modeEpoch:this.#runtime.modeEpoch,
+       generation: this.#runtime.generation,
+       revision: this.#runtime.revision,
+       selectionBefore: this.#selection?.capture(),
+--- a/core/DocumentRuntime.js
++++ b/core/DocumentRuntime.js
+@@ -118,6 +118,7 @@
+    *     activationResolver: (id: string, record: any) => boolean,
+    *     contextFactory: (id: string, type: string, signal: AbortSignal, readRecord: () => any) => any,
+    *     projectPresentation: (operation: () => any) => any,
++   *     reportPresentationFailure: (error: unknown, original?: unknown) => void,
+    *   }) => any,
+    *   selection?: any,
+    *   onCommit?: (event: any) => void,
+@@ -166,6 +167,10 @@
+           store: this.#store,
+           activationResolver,
+           contextFactory,
++          reportPresentationFailure:(error,original=error)=>{
++            this.#reportValidation(original)
++            this.#reportDiagnosticError('projection.presentation',error)
++          },
+           projectPresentation: operation => {
+             const previous = this.#projectingPresentation
+             this.#projectingPresentation = true
+--- a/core/createEditorRuntime.js
++++ b/core/createEditorRuntime.js
+@@ -263,7 +263,9 @@
+   }))
+ 
+   const styles=config.injectStyles===false?null:lifecycle.register(acquireStyleUrls(CORE_STYLE_URLS,document))
++  let nativeInput=null
+   const inlineProjection=new InlineProjectionRuntime({
++    preservePendingField:(blockId,key,element)=>nativeInput?.canPreservePresentationField(blockId,key,element)??false,
+     registry,
+     ownerDocument:document,
+     readOnly:config.readOnly===true,
+@@ -316,12 +318,13 @@
+       }),'document-event')
+       complete(()=>emit('history:changed',event.history),'history-event')
+     },
+-    projectorFactory:({activationResolver,contextFactory,projectPresentation})=>{
++    projectorFactory:({activationResolver,contextFactory,projectPresentation,reportPresentationFailure})=>{
+       reconciler=new BlockReconciler({
+         container:blocksElement,
+         registry,
+         contextFactory,
+         projectPresentation,
++        reportPresentationFailure,
+         activationResolver,
+         inlineProjection,
+         readOnly:config.readOnly===true,
+@@ -334,6 +337,8 @@
+       return reconciler
+     },
+   }))
++
++  globalThis.__capturePresentationProbe?.({runtime,reconciler,inlineProjection,root})
+ 
+   logicalSelection=new LogicalSelection({root,reconciler})
+   interaction=new InteractionState({
+@@ -363,8 +368,6 @@
+       if(!destroyed&&runtime.modeEpoch===modeEpoch)triggerController?.refresh()
+     })
+   }
+-  /** @type {NativeInputController} */
+-  let nativeInput
+   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
+     root,
+     runtime,

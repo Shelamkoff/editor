@@ -1,0 +1,91 @@
+{
+  "classification": "historical architectural comparison, not a release gate",
+  "sourceTraceSha256": "664721e6b9b58395200c06f44c11b98bb5950283a77d16d2b08a84701ad78145",
+  "sourceResultSha256": "acadeb6d8bf40875ef03feb65102de12d1c9b7aee149d2b224e87cf3cf7c34cd",
+  "exitCode": 1,
+  "sourceUnchanged": true,
+  "observations": [
+    {
+      "name": "comparison: existing affected-block acquisition loses unrelated same-block native state",
+      "status": "FAIL",
+      "blockAcquisition": {
+        "returned": true
+      },
+      "canonicalUnchanged": true,
+      "generationRevisionUnchanged": true,
+      "runtimeHealth": "ready",
+      "canUndo": false,
+      "authorTransactions": 0,
+      "sameBlockNote": {
+        "elementPreserved": false,
+        "widgetPreserved": false,
+        "taskAborted": true,
+        "trustedPreedit": true,
+        "trustedEvents": [
+          {
+            "type": "compositionstart",
+            "trusted": true,
+            "data": ""
+          },
+          {
+            "type": "compositionupdate",
+            "trusted": true,
+            "data": "に"
+          }
+        ],
+        "preeditSurvives": false,
+        "rangePreserved": false
+      },
+      "independentBlockNote": {
+        "elementPreserved": true,
+        "widgetPreserved": true,
+        "taskAborted": false
+      },
+      "harnessStoppedRetries": false
+    },
+    {
+      "name": "comparison: affected-block acquisition failure preserves contained predecessor",
+      "status": "PASS",
+      "blockAcquisition": {
+        "returned": false,
+        "error": {
+          "name": "ProbeBlockCreateError",
+          "message": "probe block failure a",
+          "original": true,
+          "issue": null
+        }
+      },
+      "canonicalUnchanged": true,
+      "generationRevisionUnchanged": true,
+      "runtimeHealth": "ready",
+      "canUndo": false,
+      "authorTransactions": 0,
+      "sameBlockNote": {
+        "elementPreserved": true,
+        "widgetPreserved": true,
+        "taskAborted": false,
+        "trustedPreedit": true,
+        "trustedEvents": [
+          {
+            "type": "compositionstart",
+            "trusted": true,
+            "data": ""
+          },
+          {
+            "type": "compositionupdate",
+            "trusted": true,
+            "data": "に"
+          }
+        ],
+        "preeditSurvives": true,
+        "rangePreserved": true
+      },
+      "independentBlockNote": {
+        "elementPreserved": true,
+        "widgetPreserved": true,
+        "taskAborted": false
+      },
+      "harnessStoppedRetries": false
+    }
+  ]
+}
