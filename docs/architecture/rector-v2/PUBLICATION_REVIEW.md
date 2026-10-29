@@ -145,3 +145,43 @@ All served production sources/styles matched their pinned Git objects before/aft
 | `npm test` | 1940/1940, zero failures/skips, exit 0 | 16:14:06–16:14:31 |
 
 All three wrappers recorded clean identical source before/after. These 11 rows plus the preceding three accepted rows give 14 accepted and 195 open obligations. Hostile-class confinement remains a separately demonstrated failure in the HTML/style checkpoint; this positive corpus does not settle `B-STYLE`, choose an HTML topology, accept target navigation, other renderer payloads or whole-library parity.
+
+## Paragraph and Heading roundtrip parity 2026-10-29
+
+**Accepted scenarios: `BLOCK_PARAGRAPH_ROUNDTRIP` and `BLOCK_HEADING_ROUNDTRIP`.** Paragraph was first verified on `f534d9b89b2c41c015d6f2ec1568de72cd516096`, published with the identical tree as `eca19cabf1fc97ef1825f93445dc47695d5bcaa9`. The combined, strengthened oracle was verified on `ec5104bf8cabceff4faa29eb2653fd9cea3aadbc`, published as `384fd985a2b71d198bedf9356bd0533e9d62e610`. These are test/evidence changes; neither slice changes production behavior.
+
+Each block has an actual default-construction case, a populated case with Mention and Color inside authored marks, and a positive control with the same widgets outside those marks. Fixed literal records supply expected text, metadata, sidecars, neighboring Paragraphs and meaningful IDs. Heading independently checks level 2/3 and actual H2/H3 nodes. Every completed case covers load/save, detached rendering, attachment, `renderTo`, read-only mode and return with foreign focus preserved, trusted native text input, exactly one Undo/Redo and disposal. Renderer ID/type/order and tags, widget text, caller-data immutability, native selection, neighboring identity, provider inactivity and DOM/style cleanup are asserted.
+
+The combined candidate completed **6/6 cases, 948 assertions, zero failures**. v1 completed all six with exactly 44 visible, narrowly classified historical differences: mode/history remounts and the first populated Undo focusing the preceding Paragraph at offset 6 rather than the edited block at offset 14. Canonical content and sidecars remain exact. The specification baseline completed the default and unwrapped controls but aborted each formatted case during its first read-only transition with the exact projection-boundary error. Its 678 observations include two classified failures; the later phases of those two cases remain explicitly **incomplete**, not passed. Candidate exceptions are never admitted. All three executions had zero unexpected page/server errors.
+
+The runner is `scripts/parity/block-roundtrip.mjs`, SHA-256 `8f7b11de6372c089e1f6d4ba61621cfaaa53cd3074f1c774ee52faf0cdf36d45`; shared fixture `tests/browser/block-roundtrip-fixture.js`, SHA-256 `29d09ba7bad94beb4d8bbfb3ae8ccbbce0f5ac3541a8f41c68a87950c596cafc`. The adjacent README supplies archive variables, browser/dependency inputs, wire adapters and exact historical classifications. The combined run verified 151/173/173 loaded Git source/style files for v1/baseline/candidate and 64 loaded dependency files before and after execution.
+
+| Frozen-source command | Actual result | UTC interval |
+| --- | --- | --- |
+| Paragraph: `node scripts/parity/block-roundtrip.mjs` with documented archive/browser variables | Three cases per source; candidate 402 assertions, zero failures; exit 0 | 16:31:57–16:32:06 |
+| Paragraph: `EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html node tests/browser/physical-history.mjs` | 3/3 PASS; exit 0 | 16:35:06–16:35:15 |
+| Combined Paragraph/Heading: same differential command | Six cases per source, classified observations above; exit 0 | 16:42:10–16:42:25 |
+| Combined Paragraph/Heading: same native command | 6/6 PASS; exit 0 | 16:42:24–16:42:34 |
+
+Environment: Linux, Node `24.22.1`, Chromium `142.0.7444.175`. Each isolated checkout had an empty tracked diff before/after and one explicitly recorded untracked `node_modules` link to the shared installed dependencies. The wrapper roots were the corresponding frozen worktrees; the complete checkout was not described as clean. Paragraph source/dependency identity checks covered 146/168/168 loaded Git files and the same 64 dependency files.
+
+These two accepted templates give **16 accepted / 193 open** obligations. Other Paragraph/Heading actions, the remaining built-ins, platform breadth and full editor parity remain separate. The retained [Table default probe](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-29/table-default) records an unresolved default of 3×3 in v1 versus 1×1 currently; explicit 3×3 documents work in all three sources. It does not accept Table roundtrip.
+
+## Current verification result ownership 2026-10-29
+
+C11's existing workflows now use the small `scripts/verification-results.mjs` recorder, published as `8b09ec2c4385ceddcae60db2f4d374e6f877adc0` (original `703285384e83ca47e5e47e730f155b1739091926`). Each invocation creates a fresh output directory, initializes every planned command as `not-run`, and records checked-out HEAD/tree, tracked-patch and nonignored untracked-source hashes, lock hash, actual argv, environment, timestamps and process outcome. A zero exit with changed source is a failure. Interrupted descendants receive the owned process-group signal; a started command without completion remains interrupted. A rejected attempt cannot be rewritten as success after restoring source.
+
+Eight real process/Git controls passed, including stale PASS, failed prerequisite, dirty-source changes, signal delivery, handled-zero interruption, lost helper, descendant cleanup and attempted-result preservation. A deliberate real Chromium page failure and subsequent successful fresh run proved that failure JSON and browser/runtime version output belong to the current directory and cannot inherit historical results. They are harness controls, not new editor-functionality acceptance.
+
+Official Action refs, commit objects and commit-addressed action definitions were independently checked on 2026-10-29 before pinning the existing versions:
+
+| Action / retained version | Reviewed commit |
+| --- | --- |
+| `actions/checkout` v7 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| `actions/setup-node` v7 | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
+| `actions/upload-artifact` v7 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
+| `actions/configure-pages` v6 | `45bfe0192ca1faeb007ade9deae92b16b8254a0d` |
+| `actions/upload-pages-artifact` v5 | `fc324d3547104276b827a68afc52ff2a11cc49c9` |
+| `actions/deploy-pages` v5 | `368f82528645a54fb793d4d04e342629a3f51346` |
+
+Permissions, events, concurrency, timeouts, Node versions, archive cadence and existing `!cancelled()` upload conditions were preserved. The Pages result describes only installation and documentation build; native deployment Action status stays with GitHub. On [run 40914021899](https://github.com/Shelamkoff/editor/actions/runs/40914021899), all three Node jobs, package, docs and size jobs completed successfully. The long browser job was still in progress when this evidence was recorded; subsequent concurrency cancellation is not a successful completion. Full current-source acceptance still requires its own complete gates.
