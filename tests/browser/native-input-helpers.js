@@ -102,6 +102,63 @@ export async function selectAcross(editor, start, startOffset, end, endOffset, b
   return anchor
 }
 
+function nativeDragDiagnostics(editor, start, startOffset, end, endOffset, backwards, from, to) {
+  const ownerDocument = start.ownerDocument, view = ownerDocument.defaultView
+  const read = callback => { try { return callback() } catch (error) { return { error: String(error) } } }
+  const node = value => value ? {
+    name: value.nodeName, type: value.nodeType, text: value.textContent?.slice(0, 240),
+    className: value.nodeType === 1 ? value.className : value.parentElement?.className,
+    blockId: (value.nodeType === 1 ? value : value.parentElement)?.closest?.('[data-block-id]')?.dataset.blockId,
+    editable: value.nodeType === 1 ? value.getAttribute('contenteditable') : null,
+    widget: value.nodeType === 1 ? value.getAttribute('data-inline-plugin') : null,
+  } : null
+  const endpoint = (value, offset) => ({ node: node(value), offset,
+    startLogicalOffset: value && start.contains(value) ? getTextOffset(start, value, offset) : null,
+    endLogicalOffset: value && end.contains(value) ? getTextOffset(end, value, offset) : null,
+  })
+  const field = (element, offset) => {
+    const caret = findNodeAtOffset(element, offset, 'start'), range = ownerDocument.createRange()
+    range.setStart(caret.node, caret.offset); range.collapse(true)
+    const style = view.getComputedStyle(element)
+    return { node: node(element), html: element.innerHTML.slice(0, 1800), connected: element.isConnected,
+      rect: element.getBoundingClientRect().toJSON(), rects: [...element.getClientRects()].map(rect => rect.toJSON()),
+      expectedBoundary: endpoint(caret.node, caret.offset), collapsedRect: range.getBoundingClientRect().toJSON(),
+      collapsedRects: [...range.getClientRects()].map(rect => rect.toJSON()),
+      widgets: [...element.querySelectorAll('[data-inline-plugin]')].map(widget => ({ node: node(widget), rect: widget.getBoundingClientRect().toJSON() })),
+      font: { font: style.font, family: style.fontFamily, size: style.fontSize, lineHeight: style.lineHeight,
+        letterSpacing: style.letterSpacing, direction: style.direction, whiteSpace: style.whiteSpace,
+        transform: style.transform, zoom: style.zoom },
+    }
+  }
+  const hit = point => ({
+    element: read(() => node(ownerDocument.elementFromPoint(point.clientX, point.clientY))),
+    elements: read(() => ownerDocument.elementsFromPoint(point.clientX, point.clientY).slice(0, 8).map(node)),
+    caretPosition: read(() => {
+      const caret = ownerDocument.caretPositionFromPoint?.(point.clientX, point.clientY)
+      return caret ? endpoint(caret.offsetNode, caret.offset) : null
+    }),
+    caretRange: read(() => {
+      const range = ownerDocument.caretRangeFromPoint?.(point.clientX, point.clientY)
+      return range ? endpoint(range.startContainer, range.startOffset) : null
+    }),
+  })
+  const selection = view.getSelection()
+  return {
+    phase: 'after-original-drag-assertion-failure', backwards, fixedGesturePoints: { from, to },
+    expected: { startOffset, endOffset },
+    selection: { anchor: endpoint(selection.anchorNode, selection.anchorOffset), focus: endpoint(selection.focusNode, selection.focusOffset),
+      collapsed: selection.isCollapsed, ranges: selection.rangeCount, text: selection.toString(), active: node(ownerDocument.activeElement) },
+    start: read(() => field(start, startOffset)), end: read(() => field(end, endOffset)),
+    hitFrom: hit(from), hitTo: hit(to), selectedIds: read(() => editor.blocks.selectedIds()),
+    editorRoot: read(() => node(editorRoot(editor))),
+    viewport: { width: view.innerWidth, height: view.innerHeight, devicePixelRatio: view.devicePixelRatio,
+      scrollX: view.scrollX, scrollY: view.scrollY, visual: view.visualViewport ? {
+        width: view.visualViewport.width, height: view.visualViewport.height, scale: view.visualViewport.scale,
+        offsetLeft: view.visualViewport.offsetLeft, offsetTop: view.visualViewport.offsetTop,
+      } : null, fonts: ownerDocument.fonts?.status, userAgent: view.navigator.userAgent },
+  }
+}
+
 export async function dragAcross(editor, start, startOffset, end, endOffset, backwards = false) {
   await waitForStyles(start.ownerDocument)
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
@@ -112,15 +169,22 @@ export async function dragAcross(editor, start, startOffset, end, endOffset, bac
     to: { x: to.clientX, y: to.clientY },
   })
   await pause(30)
-  const ids = editor.save().blocks.map(block => block.id)
-  const startIndex = ids.indexOf(start.closest('[data-block-id]').dataset.blockId)
-  const endIndex = ids.indexOf(end.closest('[data-block-id]').dataset.blockId)
-  equal(editor.blocks.selectedIds().length, Math.abs(endIndex - startIndex) + 1,
-    `native mouse drag lost selected block ids: ${JSON.stringify({ ids, selected: editor.blocks.selectedIds(), from, to })}`)
-  assert(editorRoot(editor).classList.contains('oe-editor--cross-selecting'), 'native drag did not retain its cross-field range')
-  const native = window.getSelection()
-  equal(getTextOffset(backwards ? end : start, native.anchorNode, native.anchorOffset), backwards ? endOffset : startOffset, 'native drag changed the anchor')
-  equal(getTextOffset(backwards ? start : end, native.focusNode, native.focusOffset), backwards ? startOffset : endOffset, 'native drag changed the focus')
+  try {
+    const ids = editor.save().blocks.map(block => block.id)
+    const startIndex = ids.indexOf(start.closest('[data-block-id]').dataset.blockId)
+    const endIndex = ids.indexOf(end.closest('[data-block-id]').dataset.blockId)
+    equal(editor.blocks.selectedIds().length, Math.abs(endIndex - startIndex) + 1,
+      `native mouse drag lost selected block ids: ${JSON.stringify({ ids, selected: editor.blocks.selectedIds(), from, to })}`)
+    assert(editorRoot(editor).classList.contains('oe-editor--cross-selecting'), 'native drag did not retain its cross-field range')
+    const native = window.getSelection()
+    equal(getTextOffset(backwards ? end : start, native.anchorNode, native.anchorOffset), backwards ? endOffset : startOffset, 'native drag changed the anchor')
+    equal(getTextOffset(backwards ? start : end, native.focusNode, native.focusOffset), backwards ? startOffset : endOffset, 'native drag changed the focus')
+  } catch (error) {
+    let diagnostics
+    try { diagnostics = nativeDragDiagnostics(editor, start, startOffset, end, endOffset, backwards, from, to) }
+    catch (diagnosticError) { diagnostics = { fixedGesturePoints: { from, to }, error: String(diagnosticError) } }
+    throw new Error(`${error?.stack ?? String(error)}\nNative drag diagnostics: ${JSON.stringify(diagnostics)}`, { cause: error })
+  }
 }
 
 export async function waitForStyles(ownerDocument) {
