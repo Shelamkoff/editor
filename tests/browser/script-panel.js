@@ -3,7 +3,20 @@ import { test, assert, equal, run, make, para, editorHolder } from './regression
 
 const labels = { sup: 'Superscript', sub: 'Subscript', none: 'Normal' }
 const modeButton = (panel, mode) => panel.querySelector(`button[aria-label="${labels[mode]}"]`)
-const script = () => createScriptTool({ sup: 'Superscript', sub: 'Subscript', none: 'Normal' })
+const selectionPorts = new WeakMap()
+function makeScriptEditor(blocks) {
+  const tool = createScriptTool(labels)
+  let selectionPort = null
+  const editor = make(blocks, { inlineTools: [{
+    ...tool,
+    bindSelectionPort(port) {
+      selectionPort = port
+      tool.bindSelectionPort(port)
+    },
+  }] })
+  selectionPorts.set(editor, () => selectionPort?.range)
+  return editor
+}
 const fields = editor => [...editorHolder(editor).querySelectorAll('.oe-paragraph')]
 const textLeaf = element => document.createTreeWalker(element, NodeFilter.SHOW_TEXT).nextNode()
 
@@ -26,9 +39,11 @@ async function open(editor, backward = false) {
 
 function checkDirection(editor, backward) {
   const hosts = fields(editor), native = window.getSelection()
-  // Paragraph separators are browser-generated; author text and order are
-  // asserted independently from the unchanged canonical block structure.
-  equal(native.toString().replace(/\r?\n/g, ''), hosts.map(host => host.textContent).join(''), 'selected text changed')
+  // Native Selection text can be clipped to its focused editing host. The
+  // supported formatting port must still expose the complete author range.
+  const range = selectionPorts.get(editor)()
+  assert(range && !range.collapsed, 'formatting range was lost')
+  equal(range.toString().replace(/\r?\n/g, ''), hosts.map(host => host.textContent).join(''), 'selected text changed')
   const anchorHost = backward ? hosts.at(-1) : hosts[0]
   const focusHost = backward ? hosts[0] : hosts.at(-1)
   assert(anchorHost.contains(native.anchorNode), 'selection anchor changed owner')
@@ -51,7 +66,7 @@ for (const backward of [false, true]) {
     ['<sub>Alpha</sub>', 'none', 'Alpha'],
   ]) {
     test(`Script ${backward ? 'backward' : 'forward'} ${initial} -> ${mode} is one reversible action`, async () => {
-      const editor = make([para('a', initial)], { inlineTools: [script()] })
+      const editor = makeScriptEditor([para('a', initial)])
       const before = editor.save().blocks, events = []
       editor.on('transaction:committed', event => events.push(event))
       const panel = await open(editor, backward)
@@ -73,7 +88,7 @@ for (const backward of [false, true]) {
 
 for (const backward of [false, true]) {
   test(`cross-block Script ${backward ? 'backward' : 'forward'} preserves both blocks and one history step`, async () => {
-    const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], { inlineTools: [script()] })
+    const editor = makeScriptEditor([para('a', 'Alpha'), para('b', 'Bravo')])
     const before = editor.save().blocks
     const panel = await open(editor, backward)
     modeButton(panel, 'sup').click()
@@ -88,7 +103,7 @@ for (const backward of [false, true]) {
 }
 
 test('a retired Script panel cannot change data or close its replacement panel', async () => {
-  const editor = make([para('a', 'Alpha')], { inlineTools: [script()] })
+  const editor = makeScriptEditor([para('a', 'Alpha')])
   const previous = await open(editor)
   const stale = modeButton(previous, 'sup')
   editor.blocks.update('a', () => ({ data: { text: 'Changed' } }))
@@ -103,7 +118,7 @@ test('a retired Script panel cannot change data or close its replacement panel',
 })
 
 test('a read-only round trip cannot revive retained Script panel buttons', async () => {
-  const editor = make([para('a', 'Alpha')], { inlineTools: [script()] })
+  const editor = makeScriptEditor([para('a', 'Alpha')])
   const panel = await open(editor)
   const before = editor.save().blocks
   editor.setReadOnly(true)
@@ -117,7 +132,7 @@ test('a read-only round trip cannot revive retained Script panel buttons', async
 })
 
 test('Normal on unformatted text closes its accepted panel without manufacturing history', async () => {
-  const editor = make([para('a', 'Alpha')], { inlineTools: [script()] })
+  const editor = makeScriptEditor([para('a', 'Alpha')])
   const before = editor.save().blocks
   const panel = await open(editor)
   modeButton(panel, 'none').click()

@@ -391,7 +391,16 @@ export class InlineToolbar {
         runtime: this.#runtime,
         reconciler: this.#reconciler,
         readSelection: () => ({ range: panelRange, bookmark: panelBookmark }),
-        restoreSelection: bookmark => this.#restoreSelection(bookmark),
+        restoreSelection: bookmark => {
+          if (!this.#restoreSelection(bookmark) || !isCurrent()) return false
+          // Native Range boundaries move when wrappers are removed. Once this
+          // same panel restores its logical selection, replace that obsolete
+          // DOM view without issuing a new token or changing its provenance.
+          const restoredRange = panelPort.resolveOwnResult(bookmark)
+          if (!restoredRange || !isCurrent()) return false
+          panelRange = restoredRange
+          return true
+        },
         lease: () => this.#selectionVersion,
         canAccess: () => isCurrent() && this.#runtime.canAccessFormattingSelection(this.#inFormattingMutation),
         isMutating: () => this.#inFormattingMutation,
