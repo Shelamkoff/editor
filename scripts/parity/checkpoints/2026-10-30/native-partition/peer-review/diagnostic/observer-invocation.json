@@ -1,0 +1,17 @@
+{
+  "command": [
+    "node",
+    "test-results/native-partition-peer/navigation-clock.mjs",
+    "42999",
+    "test-results/native-partition-peer/navigation-clock.json"
+  ],
+  "cwd": "/workspace/scratch/2231de9d6b0d/work-native-partition-peer-seventh",
+  "actualExitCode": 0,
+  "reportedBy": "exec_command completed output, captured by independent peer",
+  "attachment": "Separate read-only CDP connection to direct Chrome child301461 of diagnostic runner301428; observed --remote-debugging-port=42999 in ps",
+  "capturedAt": "2026-10-30T20:09:04.516Z",
+  "note": "The recorder could not discover the Chrome child through /proc, so observerExitCode is null there. The same observer was invoked externally once and produced this clock; no diagnostic test was repeated.",
+  "observerSha256": "b66364909c740c53adae5c8f7ecbae75d9691c6d4678559ff5753630e4b072f2",
+  "restoredOriginalRunnerSha256": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab",
+  "trackedSourceRestored": true
+}

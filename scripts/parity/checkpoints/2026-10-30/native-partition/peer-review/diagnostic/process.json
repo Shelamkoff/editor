@@ -1,0 +1,78 @@
+{
+  "purpose": "One-off monolithic capacity diagnosis; does not replace original run-ph5JBn 120-second FAILED gate",
+  "sourceBefore": {
+    "head": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+    "tree": "cbec281d0b485f8fa8cf08412bd412ee94bbb839",
+    "trackedChanges": [
+      "tests/browser/physical-history.mjs"
+    ],
+    "overlaySha256": "2ac6a2714a5a7d58506a9fa90db6b90b4b59dd33183d14429b1a43cda2dbff12"
+  },
+  "command": [
+    "node",
+    "tests/browser/physical-history.mjs"
+  ],
+  "cwd": "/workspace/scratch/2231de9d6b0d/work-native-partition-peer-seventh",
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome",
+    "EDITOR_NATIVE_PAGE": "native-plugin-parity.html"
+  },
+  "filter": null,
+  "node": "v24.22.1",
+  "chrome": "Google Chrome 156.0.8078.79",
+  "startedAt": "2026-10-30T20:07:50.088821+00:00",
+  "outcome": "PASS",
+  "diagnosticOnlyPageDeadlineMs": 360000,
+  "shippingPageDeadlineMs": 120000,
+  "pid": 301428,
+  "finishedAt": "2026-10-30T20:11:14.493412+00:00",
+  "actualExitCode": 0,
+  "signal": null,
+  "elapsedMs": 204404.23203400132,
+  "sourceAfter": {
+    "head": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+    "tree": "cbec281d0b485f8fa8cf08412bd412ee94bbb839",
+    "trackedChanges": [
+      "tests/browser/physical-history.mjs"
+    ],
+    "overlaySha256": "2ac6a2714a5a7d58506a9fa90db6b90b4b59dd33183d14429b1a43cda2dbff12"
+  },
+  "observerExitCode": null,
+  "stdoutEvents": [
+    {
+      "receivedAt": "2026-10-30T20:11:09.480650+00:00",
+      "receivedEpochMs": 1793391069480.6858,
+      "processElapsedMs": 199391.85053500114,
+      "bytes": 45,
+      "sha256": "282b140794dee5039a9ecd34df9cb6900e82e905d6a4d9ca28afe28860b4d246",
+      "text": "Native native-plugin-parity.html: 444 passed"
+    },
+    {
+      "receivedAt": "2026-10-30T20:11:09.481050+00:00",
+      "receivedEpochMs": 1793391069481.0574,
+      "processElapsedMs": 199392.2129320017,
+      "bytes": 44164,
+      "sha256": "099a0cc7fbbc1ac42e24899a11b928aefd59ec1eced6a012097e3e6aefe1275d"
+    }
+  ],
+  "sourceAndDiagnosticOverlayUnchanged": true,
+  "pageNavigationToCompletionMs": 198717.8857421875,
+  "pageTimingDefinition": "Browser performance.timeOrigin at navigation to supervisor receipt of Native completion line; includes load and terminal poll/CDP/stdout latency, excludes Vite/Chrome startup",
+  "files": {
+    "monolithic.stdout.log": {
+      "bytes": 44209,
+      "sha256": "000d337271412e7e9ec325530468a6a88d942d22b448a4a162a44bc9372b8ae2"
+    },
+    "monolithic.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "navigation-clock.json": {
+      "bytes": 523,
+      "sha256": "7152b2db177f0373476e8991a6f02e4ae69bf4d1fe395bb209c7a6879f51b8a0"
+    }
+  },
+  "cases": 444,
+  "passed": 444,
+  "failed": []
+}

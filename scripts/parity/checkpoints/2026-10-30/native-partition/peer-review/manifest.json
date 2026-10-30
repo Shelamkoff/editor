@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "scope": "Independent native partition peer evidence; original failed run preserved; one-off monolithic diagnostic only",
+  "files": {
+    "README.md": {
+      "bytes": 8870,
+      "sha256": "6d741146aecfa53e454fdeb5ede00e9438306a11592fa33076e39ee2e2555814"
+    },
+    "audit.py": {
+      "bytes": 14336,
+      "sha256": "c8b0d756c3a32319fea27599a6d0e841e352645dc815aa1d3f153889ccb24e92"
+    },
+    "diagnostic/deadline-overlay.patch.gz": {
+      "bytes": 338,
+      "sha256": "239a0da25f471a63a2c4dac08d885e95a6a22d6bc7cd60385b265ce03c457753"
+    },
+    "diagnostic/input.json": {
+      "bytes": 555,
+      "sha256": "f426846d4de5cf65eeab7f17424aea165114a6618cefa76e37f8b3f79564d720"
+    },
+    "diagnostic/navigation-clock.json": {
+      "bytes": 523,
+      "sha256": "7152b2db177f0373476e8991a6f02e4ae69bf4d1fe395bb209c7a6879f51b8a0"
+    },
+    "diagnostic/navigation-clock.mjs": {
+      "bytes": 2441,
+      "sha256": "b66364909c740c53adae5c8f7ecbae75d9691c6d4678559ff5753630e4b072f2"
+    },
+    "diagnostic/observer-invocation.json": {
+      "bytes": 993,
+      "sha256": "69886300281e75905f52653a703eb11b451965f9cf0dfe078218b3c61a52656c"
+    },
+    "diagnostic/process.json": {
+      "bytes": 2829,
+      "sha256": "4438d6259e9ef4e1f67c08e89ed62081580fd2e8ee6d04894d5950fd47e9dca5"
+    },
+    "diagnostic/record-diagnostic.py": {
+      "bytes": 6558,
+      "sha256": "9d17d1d726ce560a7707d86d64ae4c218644269c09a6efdab6e3b84fc3dee055"
+    },
+    "diagnostic/stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diagnostic/stdout.log.gz": {
+      "bytes": 6035,
+      "sha256": "28d04f413e718fdf4e4b47835d9c5522c0e4a98f28e10dc0325a8872fc85e06d"
+    },
+    "final-evidence.json.gz": {
+      "bytes": 22146,
+      "sha256": "55ab1920cb89068b8dfea92740de7828c2ae9ece540d495b222e27cbaa5eda86"
+    },
+    "intermediate-evidence.json.gz": {
+      "bytes": 24823,
+      "sha256": "92626ba5c961bebcee7c7c4055d935aac226fc3e6e4ebfd4724c1eab93fdd334"
+    },
+    "original/manifest.json.gz": {
+      "bytes": 1449,
+      "sha256": "858f77b6085b16fc3bc021054e2e2fa36dfb586d43cfc4ff56933e39a0b40eba"
+    },
+    "original/native-browser.log": {
+      "bytes": 1700,
+      "sha256": "aff456ce26de78b7f7a345c77b8afcef6e8a20372169010e3efe6c9052c18c52"
+    },
+    "shipping-partition.patch.gz": {
+      "bytes": 3652,
+      "sha256": "2e692fceed4f660a54c892c3d883a5f097e4e0bc6e32838374c47a08571b704b"
+    },
+    "sources.json.gz": {
+      "bytes": 104936,
+      "sha256": "c4c90e5226e9e7a58aacf9a9f39e707483777ef3a1ec481d30e29501622c872f"
+    }
+  }
+}

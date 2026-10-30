@@ -1,0 +1,16 @@
+{
+  "observer": "read-only Runtime.evaluate; detached after first matching page clock",
+  "capturedAt": "2026-10-30T20:09:04.516Z",
+  "url": "http://127.0.0.1:46533/tests/browser/native-plugin-parity.html",
+  "timeOrigin": 1793390870762.8,
+  "pageElapsedMs": 73750.89999999851,
+  "status": "running",
+  "navigation": [
+    {
+      "name": "http://127.0.0.1:46533/tests/browser/native-plugin-parity.html",
+      "startTime": 0,
+      "domInteractive": 38.099999997764826,
+      "loadEventEnd": 324.5999999977648
+    }
+  ]
+}

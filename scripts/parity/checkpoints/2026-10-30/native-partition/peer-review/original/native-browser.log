@@ -1,0 +1,35 @@
+Native native-conversion-grouping.html: 88 passed
+Native native-conversion-preservation.html: 53 passed
+Native native-interaction-sequences.html: 39 passed
+Native native-retained-tools.html: 64 passed
+Native native-conversion-continuations.html: 65 passed
+Native native-font-cancel.html: 58 passed
+Native native-background-cancel.html: 36 passed
+Native native-link-cancel.html: 36 passed
+Native native-panel-keyboard.html: 36 passed
+Native native-source-indentation.html: 54 passed
+Native native-source-modes.html: 62 passed
+Native native-config-snapshot.html: 30 passed
+Native native-poll-runtime.html: 26 passed
+Native native-library-boundaries.html: 42 passed
+Native native-instance-methods.html: 8 passed
+Native native-color-popup.html: 8 passed
+Native native-color-popup-trusted.html: 8 passed
+Native native-mention-popup.html: 64 passed
+Native native-audit-edges.html: 21 passed
+Native native-audit-poll.html: 4 passed
+Native native-audit-hidden-fields.html: 4 passed
+Native native-audit-recheck.html: 49 passed
+Native native-structural.html: 21 passed
+Native native-cross-selection.html: 42 passed
+Native native-core-behavior.html: 67 passed
+file:///workspace/scratch/2231de9d6b0d/editor/tests/browser/physical-history.mjs:152
+  throw new Error('Timed out waiting for history matrix')
+        ^
+
+Error: Timed out waiting for history matrix
+    at waitForHistoryMatrix (file:///workspace/scratch/2231de9d6b0d/editor/tests/browser/physical-history.mjs:152:9)
+    at async runNativePage (file:///workspace/scratch/2231de9d6b0d/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///workspace/scratch/2231de9d6b0d/editor/tests/browser/physical-history.mjs:510:30
+
+Node.js v24.22.1
