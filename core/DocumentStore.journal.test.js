@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { DocumentStore } from './DocumentStore.js'
+import { DocumentStore, DocumentDraft } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
 import { TransactionEngine } from './TransactionEngine.js'
 
@@ -98,6 +98,26 @@ test('frozen external input is still captured once and never gains canonical pro
   assert.throws(() => draft.insert(1, Object.freeze({ id: 'x', type: 'paragraph', data: { number: Infinity } })), /finite/i)
   assert.deepEqual(draft.ids(), ['a'])
   assert.equal(draft.changes.length, 1)
+})
+
+test('a state-shaped draft without the private borrow token isolates its journal from caller records', () => {
+  const sourceA = Object.freeze(block('a', 'Alpha'))
+  const sourceB = Object.freeze(block('b', 'Beta'))
+  const store = new DocumentStore(document([]))
+  // DocumentDraft is internal, but its older state-shaped construction path
+  // must not treat a shallow-frozen caller record as private canonical data.
+  const draft = new DocumentDraft(store, {
+    version: '2.0.0', order: ['a', 'b'], blocks: new Map([['a', sourceA], ['b', sourceB]]),
+  }, { state: true })
+  draft.update('a', block('a', 'Edited'))
+  draft.remove('b')
+  sourceA.data.text = 'late caller update'
+  sourceB.inline.opaque.data.label.push('late caller removal')
+  const changes = draft.changes
+  assert.equal(changes[0].before.data.text, 'Alpha')
+  assert.deepEqual(changes[1].block.inline.opaque.data.label, ['kept'])
+  draft.applyChanges(changes, 'backward')
+  assert.deepEqual(draft.export(), document([block('a', 'Alpha'), block('b', 'Beta')]))
 })
 
 test('journal sharing preserves immutable events, isolated history queries and exact replay', () => {

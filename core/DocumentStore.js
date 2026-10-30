@@ -62,11 +62,13 @@ function stateFromDocument(document) {
   }
 }
 
-function cloneState(state) {
+function cloneState(state, { ownRecords = false } = {}) {
+  const order = [...state.order]
+  const blocks = state.blocks
   return {
     version: state.version,
-    order: [...state.order],
-    blocks: new Map(state.order.map(id => [id, state.blocks.get(id)])),
+    order,
+    blocks: new Map(order.map(id => [id, ownRecords ? ownBlock(blocks.get(id)) : blocks.get(id)])),
   }
 }
 
@@ -107,7 +109,9 @@ export class DocumentDraft {
     // input. A draft cannot be applied after another commit supersedes its base.
     this.#baseRevision = owner.revision
     const borrowing = state && borrow === privateCommitToken
-    const next = state ? (borrowing ? source : cloneState(source)) : stateFromDocument(source)
+    // Only the private store transfer can borrow canonical records. The
+    // state-shaped construction path must own even shallow-frozen inputs.
+    const next = state ? (borrowing ? source : cloneState(source, { ownRecords: true })) : stateFromDocument(source)
     this.#version = next.version
     this.#order = next.order
     this.#orderShared = borrowing
