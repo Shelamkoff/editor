@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current",
+  "startedAt": "2026-10-30T18:17:10.378Z",
+  "finishedAt": "2026-10-30T18:17:40.106Z",
+  "outcome": "failed",
+  "source": {
+    "head": "8796dfe22250fec7149b0c2fc5a88bb9ccd9ab53",
+    "tree": "536d1faa73eb39743dde8e97462d3474e1a7b43d",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "ea31f0c4497275c883a223fc2d6a97d650a7525504f9a38dde13071d0de3ce06"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-poll-provider-ownership.html",
+      "EDITOR_NATIVE_FILTER": "Poll native ownership:",
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "native-owner-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:17:23.125Z",
+      "finishedAt": "2026-10-30T18:17:24.987Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-poll-provider-ownership.html",
+          "EDITOR_NATIVE_FILTER": "Poll native ownership:",
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "8796dfe22250fec7149b0c2fc5a88bb9ccd9ab53",
+        "tree": "536d1faa73eb39743dde8e97462d3474e1a7b43d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "ea31f0c4497275c883a223fc2d6a97d650a7525504f9a38dde13071d0de3ce06"
+      },
+      "elapsedMs": 1858.829662,
+      "sourceAfter": {
+        "head": "8796dfe22250fec7149b0c2fc5a88bb9ccd9ab53",
+        "tree": "536d1faa73eb39743dde8e97462d3474e1a7b43d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "ea31f0c4497275c883a223fc2d6a97d650a7525504f9a38dde13071d0de3ce06"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "8796dfe22250fec7149b0c2fc5a88bb9ccd9ab53",
+    "tree": "536d1faa73eb39743dde8e97462d3474e1a7b43d",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "ea31f0c4497275c883a223fc2d6a97d650a7525504f9a38dde13071d0de3ce06"
+  },
+  "sourceUnchanged": true
+}
