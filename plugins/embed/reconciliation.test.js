@@ -261,6 +261,24 @@ test('Embed custom preview completes before its deadline without authoring or re
   } finally { h.destroy() }
 })
 
+test('Embed cancels the default preview deadline even when fetch ignores abort', async () => {
+  const pending = deferred()
+  let signal
+  const h = mount({
+    config: { resolvePreview: undefined, previewTimeoutMs: 25 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    fetch(_url, options) { signal = options.signal; return pending.promise },
+  })
+  try {
+    assert.equal(signal.aborted, false)
+    assert.equal(h.pendingTimers(), 1)
+    h.destroy()
+    assert.equal(signal.aborted, true)
+    assert.equal(h.pendingTimers(), 0, 'Cancellation retained a preview timer until its ignored request settles')
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy(); pending.resolve({ ok: false }); await pending.promise }
+})
+
 function caption(instance) {
   return instance.editableFields().find(field => field.key === 'caption')?.element
 }
