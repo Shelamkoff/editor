@@ -40,19 +40,22 @@ function contentFor(spec) {
   const first = lower ? 'MIXED' : 'MiXeD', last = lower ? 'BRAVO' : 'BrAvO'
   const middle = richMiddle(lower ? 'STRASSE' : 'straße', lower ? 'İΟ<b>Σ</b>' : 'Ο<b>Σ</b>')
   const tail = lower ? 'TAIL' : 'Tail'
+  // There is a visible separator only within a field. A field boundary is
+  // already a separator; avoid conflating v1 save-time trim with tool actions.
+  const separator = spec.shape === 'single' ? ' ' : ''
   const lead = 'un<b>' + first + '</b> ' + middle + '<br><a href="/kept" rel="noopener noreferrer"><i>'
-    + tail + '</i></a> {{swatch}} '
+    + tail + '</i></a> {{swatch}}' + separator
   const end = '<b>' + last + '</b> rest'
   const full = spec.boundary === 'Element'
   let transformedLead, transformedEnd
   if (spec.tool === 'clearFormatting') {
     transformedLead = 'un' + (full ? first : '<b>Mi</b>XeD') + ' straße ΟΣ<br>'
-      + '<a href="/kept" rel="noopener noreferrer">Tail</a> {{swatch}} '
+      + '<a href="/kept" rel="noopener noreferrer">Tail</a> {{swatch}}' + separator
     transformedEnd = full ? 'BrAvO rest' : 'BrA<b>vO</b> rest'
   } else {
     transformedLead = 'un<b>' + (lower ? (full ? 'mixed' : 'MIxed') : (full ? 'MIXED' : 'MiXED')) + '</b> '
       + richMiddle(lower ? 'strasse' : 'STRASSE', lower ? 'i\u0307ο<b>ς</b>' : 'Ο<b>Σ</b>')
-      + '<br><a href="/kept" rel="noopener noreferrer"><i>' + (lower ? 'tail' : 'TAIL') + '</i></a> {{swatch}} '
+      + '<br><a href="/kept" rel="noopener noreferrer"><i>' + (lower ? 'tail' : 'TAIL') + '</i></a> {{swatch}}' + separator
     transformedEnd = '<b>' + (lower ? (full ? 'bravo' : 'braVO') : (full ? 'BRAVO' : 'BRAvO')) + '</b> rest'
   }
   return spec.shape !== 'single'
@@ -317,6 +320,11 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     completedPhases.push(phase)
     return { id: spec.id, spec, observations, completedPhases, planned, trusted, unsupported, diagnostics, transactions, error: null }
   } catch (error) {
+    if (legacy && spec.noop === 'atomic' && phase === 'apply'
+      && error.message === 'Named public toolbar action is not visible') unsupported.push({
+      property: 'atomicOnlyToolbarActivation',
+      reason: 'The valid atomic-only range is recorded above, but v1 does not expose the named toolbar action for it. No operation or history equivalence is inferred.',
+    })
     return { id: spec.id, spec, observations, completedPhases, planned, trusted, unsupported, diagnostics, transactions, phase, error: error.stack ?? String(error) }
   } finally { editor?.destroy(); holder.remove() }
 }
