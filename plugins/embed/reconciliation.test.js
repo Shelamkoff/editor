@@ -393,6 +393,30 @@ test('Embed default preview completes before its deadline without retaining a ti
   } finally { h.destroy() }
 })
 
+test('Embed preview settlement preserves an adopted placeholder', async () => {
+  const pending = deferred()
+  const h = mount({
+    config: { resolvePreview: () => pending.promise },
+    initial: { service: 'vimeo', videoId: '12345' },
+  })
+  try {
+    const before = structuredClone(h.model())
+    const placeholder = h.instance.element.querySelector('.oe-embed__placeholder')
+    const foreign = h.ownerDocument.createElement('aside')
+    foreign.append(placeholder)
+    placeholder.textContent = 'Foreign preview sentinel'
+    const html = foreign.innerHTML
+    pending.resolve({ thumbnailUrl: 'https://example.test/current.jpg', title: 'Current preview' })
+    await pending.promise
+    await Promise.resolve()
+    assert.equal(placeholder.parentNode, foreign, 'A captured preview was removed after another owner adopted it')
+    assert.equal(foreign.innerHTML, html)
+    assert.deepEqual(foreign.children, [placeholder])
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
+
 function caption(instance) {
   return instance.editableFields().find(field => field.key === 'caption')?.element
 }
