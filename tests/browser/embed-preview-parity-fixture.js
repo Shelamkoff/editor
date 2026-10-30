@@ -28,9 +28,12 @@ export async function runEmbedPreviewCase({ base = '', legacy = false, kind = 't
     const before = editor.save().blocks
     check('load.authorData', before[0].data, data)
     check('load.history', [editor.canUndo, editor.canRedo], [false, false])
-    check('resolver.calls', requests.length, 1)
-    if (requests.length !== 1) throw new Error('The expected preview request was not acquired exactly once')
-    const request = requests[0]
+    // Initial host mode projection can replace a staged player. Observe the
+    // single live request; superseded requests must already be cancelled.
+    const liveRequests = requests.filter(request => !request.signal.aborted)
+    check('resolver.liveRequests', liveRequests.length, 1)
+    if (liveRequests.length !== 1) throw new Error(`Expected one live preview request, got ${liveRequests.length} of ${requests.length}`)
+    const request = liveRequests[0]
     check('resolver.arguments', [request.service, request.videoId, request.url], ['vimeo', '12345', 'https://vimeo.com/12345'])
     check('load.signal', request.signal.aborted, false)
     if (kind === 'timely') {
@@ -52,7 +55,7 @@ export async function runEmbedPreviewCase({ base = '', legacy = false, kind = 't
     check('settled.history', [editor.canUndo, editor.canRedo], [false, false])
     check('caller.unchanged', supplied, caller)
     editor.destroy()
-    check('destroy.signal', request.signal.aborted, true)
+    check('destroy.signals', requests.every(request => request.signal.aborted), true)
     check('destroy.editorRemoved', !!holder.querySelector('.oe-editor'), false)
   } finally {
     editor?.destroy()
