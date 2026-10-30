@@ -669,3 +669,120 @@ test('block renderer rejects an element adopted by a foreign document during dec
   }
   assert.equal(releases, 1)
 })
+
+for (const failure of [new Error('disposer failed'), undefined, null, false, 0, '']) {
+  test(`renderer releases independent outputs when disposal and diagnostics both fail (${String(failure)})`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+    const released = []
+    renderer.registerRenderer({
+      type: 'cleanup-failure', schema: passthroughSchema,
+      render(block) {
+        const element = document.createElement('article')
+        element.textContent = block.id
+        return element
+      },
+      destroy(element) { released.push(element.textContent); throw failure },
+    })
+    const block = id => ({ id, type: 'cleanup-failure', dataVersion: 1, data: {} })
+    const container = document.createElement('main')
+    renderer.renderTo({ version: '2.0.0', blocks: [block('mounted-a'), block('mounted-b')] }, container)
+    const detached = renderer.render({ version: '2.0.0', blocks: [block('detached-a'), block('detached-b')] })
+    const single = renderer.renderBlock(block('single'))
+    const oldWarn = console.warn
+    try {
+      console.warn = () => { throw new Error('logging unavailable') }
+      assert.doesNotThrow(() => renderer.destroy(), 'diagnostic failure interrupted reusable output disposal')
+      assert.deepEqual(released, ['mounted-a', 'mounted-b', 'detached-a', 'detached-b', 'single'])
+      assert.equal(container.children.length, 0)
+      assert.equal(detached.children.length, 0)
+      assert.equal(single.children.length, 0)
+      renderer.destroy()
+      assert.equal(released.length, 5, 'repeated cleanup released an output twice')
+      const reused = renderer.renderBlock(block('reused'))
+      renderer.destroy(reused)
+      assert.deepEqual(released, ['mounted-a', 'mounted-b', 'detached-a', 'detached-b', 'single', 'reused'])
+    } finally {
+      console.warn = oldWarn
+      renderer.destroy()
+    }
+  })
+}
+
+for (const method of ['render', 'renderTo']) {
+  test(`${method} preserves the staging error when cleanup and its warning sink fail`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+    const stagingFailure = new Error('authoritative render failure')
+    const released = []
+    renderer.registerRenderer({
+      type: 'staging-failure', schema: passthroughSchema,
+      render(block) {
+        if (block.data.fail) throw stagingFailure
+        const element = document.createElement('article')
+        element.textContent = block.id
+        return element
+      },
+      destroy(element) { released.push(element.textContent); throw new Error('cleanup failed') },
+    })
+    const block = (id, fail = false) => ({ id, type: 'staging-failure', dataVersion: 1, data: { fail } })
+    const container = document.createElement('main')
+    const previous = { version: '2.0.0', blocks: [block('previous')] }
+    renderer.renderTo(previous, container)
+    const previousWrapper = container.firstChild
+    const previousElement = previousWrapper.firstChild
+    const oldWarn = console.warn
+    try {
+      console.warn = () => { throw new Error('logging unavailable') }
+      const next = { version: '2.0.0', blocks: [block('staged'), block('broken', true)] }
+      assert.throws(() => method === 'render' ? renderer.render(next) : renderer.renderTo(next, container),
+        error => error === stagingFailure)
+      assert.deepEqual(released, ['staged'])
+      assert.equal(container.firstChild, previousWrapper)
+      assert.equal(previousWrapper.firstChild, previousElement)
+      renderer.renderTo(previous, container)
+      assert.equal(previousWrapper.firstChild, previousElement)
+      renderer.destroy()
+      assert.deepEqual(released, ['staged', 'previous'])
+    } finally {
+      console.warn = oldWarn
+      renderer.destroy()
+    }
+  })
+}
+
+test('renderTo keeps a completed replacement successful when retired output and diagnostics fail', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const released = []
+  let rendered = 0
+  renderer.registerRenderer({
+    type: 'replacement-failure', schema: passthroughSchema,
+    render(block) {
+      rendered++
+      const element = document.createElement('article')
+      element.textContent = block.data.text
+      return element
+    },
+    destroy(element) { released.push(element.textContent); throw new Error('cleanup failed') },
+  })
+  const data = text => ({ version: '2.0.0', blocks: [{ id: 'stable', type: 'replacement-failure', dataVersion: 1, data: { text } }] })
+  const container = document.createElement('main')
+  renderer.renderTo(data('old'), container)
+  const oldWarn = console.warn
+  try {
+    console.warn = () => { throw new Error('logging unavailable') }
+    assert.doesNotThrow(() => renderer.renderTo(data('new'), container))
+    const replacement = container.firstChild.firstChild
+    assert.equal(replacement.textContent, 'new')
+    assert.deepEqual(released, ['old'])
+    renderer.renderTo(data('new'), container)
+    assert.equal(container.firstChild.firstChild, replacement)
+    assert.equal(rendered, 2, 'a completed replacement lost incremental reuse')
+    renderer.destroy()
+    assert.deepEqual(released, ['old', 'new'])
+  } finally {
+    console.warn = oldWarn
+    renderer.destroy()
+  }
+})

@@ -15,12 +15,13 @@ const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 const liveRenderedElements = new WeakMap()
 
-/** Error reporting is a best-effort side effect, never a replacement for the
- * rejected renderer data or an unhandled async validation-observer failure.
+/** Error reporting is a best-effort side effect, never a replacement for
+ * validation, output ownership or the remaining independent cleanup steps.
+ * @param {string} message
  * @param {unknown} error
  */
-function warnValidationObserverFailure(error) {
-  try { console.warn('[EditorRenderer] Validation observer failed:', error) }
+function warnRendererFailure(message, error) {
+  try { console.warn('[EditorRenderer] ' + message, error) }
   catch {}
 }
 
@@ -233,19 +234,19 @@ export class EditorRenderer {
         result = observer(issue)
       } catch (failure) {
         this.#reportingValidation.delete(validationSource)
-        warnValidationObserverFailure(failure)
+        warnRendererFailure('Validation observer failed:', failure)
       }
       let then
       try {
         then = result && /** @type {any} */ (result).then
       } catch (failure) {
         this.#reportingValidation.delete(validationSource)
-        warnValidationObserverFailure(failure)
+        warnRendererFailure('Validation observer failed:', failure)
         then = null
       }
       if (typeof then === 'function') {
         new Promise((resolve, reject) => Reflect.apply(then, result, [resolve, reject]))
-          .catch(failure => warnValidationObserverFailure(failure))
+          .catch(failure => warnRendererFailure('Validation observer failed:', failure))
           .finally(() => this.#reportingValidation.delete(validationSource))
       } else {
         this.#reportingValidation.delete(validationSource)
@@ -426,7 +427,7 @@ export class EditorRenderer {
       // Observe returned thenables so a late rejection never escapes ownership.
       synchronousResult(entry.renderer?.destroy?.(entry.element))
     } catch (err) {
-      console.warn('[EditorRenderer] Failed to destroy renderer "' + entry.type + '":', err)
+      warnRendererFailure('Failed to destroy renderer "' + entry.type + '":', err)
     } finally {
       if (liveRenderedElements.get(entry.element) === this) liveRenderedElements.delete(entry.element)
       if (entry.renderer) {
@@ -591,7 +592,7 @@ export class EditorRenderer {
       // Removing retired styles is post-commit maintenance. A stylesheet host
       // failure cannot roll back an otherwise successful DOM transaction.
       try { this.#ensureStyles(ownerDocument) }
-      catch (error) { console.warn('[EditorRenderer] Failed to refresh styles after render:', error) }
+      catch (error) { warnRendererFailure('Failed to refresh styles after render:', error) }
     } catch (error) {
       if (provisionalWrapper && liveRenderedElements.get(provisionalWrapper) === this) {
         liveRenderedElements.delete(provisionalWrapper)
