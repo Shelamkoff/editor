@@ -156,6 +156,8 @@ labels.push('inline-style-grammar.html')
 labels.push('inline-style-grammar-trusted-types.html')
 labels.push('renderer-lifetimes.html')
 labels.push('code-lazy-contracts.html')
+labels.push('raw-srcset.html')
+labels.push('raw-srcset-trusted-types.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()

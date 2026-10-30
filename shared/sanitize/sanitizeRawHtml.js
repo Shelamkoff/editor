@@ -16,6 +16,9 @@ const RAW_HTML_CONFIG = {
   ],
   FORBID_ATTR: ['srcdoc'],
   ALLOW_DATA_ATTR: true,
+  // srcset contains several URLs, not one URI. Keep it only inside the inert
+  // fragment until hardenRawFragment validates each candidate with media policy.
+  ADD_URI_SAFE_ATTR: ['srcset'],
 }
 
 const CSS_URL_RE = /url\(\s*(?:(["'])(.*?)\1|([^\s)"']+))\s*\)/gi
@@ -37,28 +40,41 @@ function purifierFor(ownerDocument) {
 /** @param {string} value */
 function sanitizeSrcset(value) {
   const candidates = []
-  let start = 0
-  let skippedDataComma = false
+  let position = 0
 
-  for (let index = 0; index < value.length; index++) {
-    if (value[index] !== ',') continue
-    const current = value.slice(start, index).trimStart()
-    if (/^data:/i.test(current) && !skippedDataComma) {
-      skippedDataComma = true
-      continue
+  // Follow HTML's srcset candidate boundaries. A URL ends at ASCII
+  // whitespace, not at each comma: commas also belong to ordinary URLs and
+  // data URLs. Leave descriptor grammar/selection to the browser so valid
+  // exponent densities and future descriptors are not narrowed here.
+  while (position < value.length) {
+    while (position < value.length && /[\t\n\f\r ,]/.test(value[position])) position++
+    if (position === value.length) break
+    const urlStart = position
+    while (position < value.length && !/[\t\n\f\r ]/.test(value[position])) position++
+    let url = value.slice(urlStart, position)
+    let descriptors = ''
+
+    if (url.endsWith(',')) {
+      url = url.replace(/,+$/, '')
+    } else {
+      const descriptorStart = position
+      let inParens = false
+      while (position < value.length) {
+        const character = value[position]
+        if (character === ',' && !inParens) break
+        if (character === '(') inParens = true
+        else if (character === ')') inParens = false
+        position++
+      }
+      descriptors = value.slice(descriptorStart, position)
+        .replace(/^[\t\n\f\r ]+|[\t\n\f\r ]+$/g, '')
+      if (value[position] === ',') position++
     }
-    candidates.push(value.slice(start, index))
-    start = index + 1
-    skippedDataComma = false
-  }
-  candidates.push(value.slice(start))
 
-  return candidates.flatMap((candidate) => {
-    const match = candidate.trim().match(/^(\S+)(?:\s+(\d+(?:\.\d+)?[wx]))?$/i)
-    if (!match) return []
-    const safe = sanitizeUrl(match[1], { policy: 'media', fallback: '' })
-    return safe ? [safe + (match[2] ? ` ${match[2]}` : '')] : []
-  }).join(', ')
+    const safe = sanitizeUrl(url, { policy: 'media', fallback: '' })
+    if (safe) candidates.push(safe + (descriptors ? ` ${descriptors}` : ''))
+  }
+  return candidates.join(', ')
 }
 
 /** @param {string} value */
