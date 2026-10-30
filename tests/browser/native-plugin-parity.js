@@ -1,4 +1,5 @@
 import './regressions/code-source-language-native.js'
+import './regressions/person-modes-native.js'
 import './regressions/carousel-structure-native.js'
 import './regressions/compound-rich-siblings-native.js'
 import './regressions/compound-rich-field-native.js'
