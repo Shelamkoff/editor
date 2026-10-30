@@ -1,0 +1,605 @@
+{
+  "schemaVersion": 1,
+  "scope": "Common Carousel ROUNDTRIP: actual empty default, literal mixed media, wrapped and unwrapped persistent caption widgets. Detailed action rows and whole-library parity remain outside this checkpoint.",
+  "productionBaseline": "4bfb39426744bc0a96725258c06dc9192b58098b",
+  "codeCommit": "14cccfa0b6fe34ccab06a69d43b4fba24bfc333f",
+  "verificationHead": "942467e2669064433e2b50a14dbdd0df4df01d2b",
+  "verificationTree": "4bd0667b6eda0d4d222d1f22380384394c0e072a",
+  "sourceUnchanged": true,
+  "sourceIdentityVerified": true,
+  "dependency": {
+    "commit": "f7f6485886a1d77f9213d9079eb70000efeff499",
+    "tree": "d71d783ab0a030c3c538aea3bee5b0ee944bc01a",
+    "installedDistFiles": 47,
+    "provenance": "published-dependency.json"
+  },
+  "verification": {
+    "run": "run-64mauO",
+    "startedAt": "2026-10-30T01:37:21.378Z",
+    "finishedAt": "2026-10-30T01:40:25.290Z",
+    "outcome": "passed",
+    "gates": {
+      "differential": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "scripts/parity/block-roundtrip.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 130858.725227
+      },
+      "native-carousel-156": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "tests/browser/physical-history.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 10641.709854
+      },
+      "native-carousel-142": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "tests/browser/physical-history.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 10453.857619999999
+      },
+      "projection-156": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "tests/browser/run.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 6646.478429
+      },
+      "projection-142": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "tests/browser/run.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 6367.38337
+      },
+      "native-carousel-media": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "tests/browser/physical-history.mjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 12693.453754999999
+      },
+      "classifier-sensitivity": {
+        "outcome": "passed",
+        "command": [
+          "node",
+          "scripts/parity/checkpoints/2026-10-30/carousel-roundtrip/classifier-sensitivity.mjs",
+          "/tmp/rector-carousel-roundtrip-20261030/test-results/run-64mauO/differential.log"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 2384.86466
+      },
+      "readme-contracts": {
+        "outcome": "passed",
+        "command": [
+          "npm",
+          "run",
+          "docs:validate-readmes"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "sourceUnchanged": true,
+        "elapsedMs": 1367.776538
+      }
+    },
+    "manifest": "runs/run-64mauO/manifest.json"
+  },
+  "sources": [
+    {
+      "source": "v1",
+      "allCaseCount": 57,
+      "allObservationCount": 9740,
+      "allFailureCount": 872,
+      "allClassifiedFailureCount": 872,
+      "allUnexpectedFailures": 0,
+      "errorChannels": {
+        "errors": 0,
+        "pageErrors": 0,
+        "classifiedPageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0
+      },
+      "carouselCases": [
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+          "observations": 79,
+          "failures": 4,
+          "classified": 4,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [
+            "edit",
+            "undo",
+            "redo"
+          ],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+          "observations": 207,
+          "failures": 9,
+          "classified": 9,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "observations": 207,
+          "failures": 39,
+          "classified": 39,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": {
+            "supported": false,
+            "capability": "persistent rich-caption inline widgets",
+            "reason": "v1 Carousel disables inline tools, declares no rich-field mapper and saves captions as literal text. Its observed differences remain explicit."
+          }
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "observations": 207,
+          "failures": 39,
+          "classified": 39,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": {
+            "supported": false,
+            "capability": "persistent rich-caption inline widgets",
+            "reason": "v1 Carousel disables inline tools, declares no rich-field mapper and saves captions as literal text. Its observed differences remain explicit."
+          }
+        }
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "allCaseCount": 57,
+      "allObservationCount": 7176,
+      "allFailureCount": 111,
+      "allClassifiedFailureCount": 111,
+      "allUnexpectedFailures": 0,
+      "errorChannels": {
+        "errors": 1,
+        "pageErrors": 1,
+        "classifiedPageErrors": 1,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0
+      },
+      "carouselCases": [
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+          "observations": 79,
+          "failures": 0,
+          "classified": 0,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [
+            "edit",
+            "undo",
+            "redo"
+          ],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+          "observations": 213,
+          "failures": 18,
+          "classified": 18,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "observations": 30,
+          "failures": 7,
+          "classified": 7,
+          "unexpected": 0,
+          "completedPhases": [
+            "load"
+          ],
+          "incompletePhases": [
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "observations": 30,
+          "failures": 7,
+          "classified": 7,
+          "unexpected": 0,
+          "completedPhases": [
+            "load"
+          ],
+          "incompletePhases": [
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        }
+      ]
+    },
+    {
+      "source": "candidate",
+      "allCaseCount": 57,
+      "allObservationCount": 9847,
+      "allFailureCount": 0,
+      "allClassifiedFailureCount": 0,
+      "allUnexpectedFailures": 0,
+      "errorChannels": {
+        "errors": 0,
+        "pageErrors": 0,
+        "classifiedPageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0
+      },
+      "carouselCases": [
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+          "observations": 79,
+          "failures": 0,
+          "classified": 0,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [
+            "edit",
+            "undo",
+            "redo"
+          ],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+          "observations": 213,
+          "failures": 0,
+          "classified": 0,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "observations": 213,
+          "failures": 0,
+          "classified": 0,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "observations": 213,
+          "failures": 0,
+          "classified": 0,
+          "unexpected": 0,
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "incompletePhases": [],
+          "notApplicablePhases": [],
+          "referenceCapability": null
+        }
+      ]
+    }
+  ],
+  "carouselClassifications": {
+    "repaired-v1-carousel-mode-remount": 16,
+    "repaired-v1-carousel-history-remount": 12,
+    "repaired-v1-carousel-first-undo-caret": 3,
+    "unsupported-v1-carousel-persistent-sidecars": 12,
+    "unsupported-v1-carousel-persistent-widgets": 48,
+    "repaired-baseline-carousel-literalized-rich-captions": 24,
+    "repaired-baseline-carousel-renderer-widgets": 6,
+    "repaired-baseline-carousel-widget-mode-failure": 2
+  },
+  "native": [
+    {
+      "gate": "native-carousel-156",
+      "passed": 4,
+      "names": [
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/default",
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/populated",
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control"
+      ]
+    },
+    {
+      "gate": "native-carousel-142",
+      "passed": 4,
+      "names": [
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/default",
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/populated",
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+        "Block roundtrip differential: BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control"
+      ]
+    },
+    {
+      "gate": "native-carousel-media",
+      "passed": 16,
+      "names": [
+        "Carousel native caption ampersand survives modes and one keyboard Undo/Redo in rendered output",
+        "Carousel custom media source mounts its result and preserves native history",
+        "Carousel URL dialog accepts native input and retains keyboard Undo/Redo",
+        "Carousel autoplay advances and loops without author history in editor mode",
+        "Carousel autoplay advances and loops without author history in read-only mode",
+        "Carousel disabled navigation and pagination remove their actual controls",
+        "Carousel keeps its current slide counter while navigating",
+        "Carousel inline Settings changes thumbnails visibly and preserves native history",
+        "Carousel Remove all slides retains the block and one keyboard Undo/Redo",
+        "Carousel HTML source mounts its authored media and one native history step",
+        "Carousel URL source mounts its authored media and one native history step",
+        "Carousel filled Add drills into sources, returns with Back and commits a selected source once",
+        "Carousel Settings fits a short narrow viewport and keeps every input inside its panel",
+        "Carousel Settings closes with native Escape immediately after mouse opening",
+        "Carousel open Settings follows viewport resizing without changing author content",
+        "Carousel local video Paste retains its blob through Undo/Redo and revokes it on editor destruction"
+      ]
+    }
+  ],
+  "projection": [
+    {
+      "gate": "projection-156",
+      "passed": 147,
+      "browser": {
+        "executable": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "protocolVersion": "1.3",
+        "product": "Chrome/156.0.8078.47",
+        "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+        "jsVersion": "15.6.75.19"
+      }
+    },
+    {
+      "gate": "projection-142",
+      "passed": 147,
+      "browser": {
+        "executable": "/tmp/rector-browsers/chrome-linux64/chrome",
+        "protocolVersion": "1.3",
+        "product": "Chrome/142.0.7444.175",
+        "revision": "@302067f14a4ea3f42001580e6101fa25ed343445",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36",
+        "jsVersion": "14.2.231.21"
+      }
+    }
+  ],
+  "classifierSensitivity": {
+    "classifierSha256": "4898a91e389458e8c1ce89fffe1b8454c6ca08030d60e08d9638e418e07960da",
+    "input": {
+      "file": "/tmp/rector-carousel-roundtrip-20261030/test-results/run-64mauO/differential.log",
+      "storedSha256": "ac1cccf5e031c48ffba973eaf7400c7e24f151615ede568eb24d56f74b69fbb2",
+      "rawSha256": "ac1cccf5e031c48ffba973eaf7400c7e24f151615ede568eb24d56f74b69fbb2",
+      "productionHead": "942467e2669064433e2b50a14dbdd0df4df01d2b"
+    },
+    "classified": 123,
+    "categories": {
+      "repaired-v1-carousel-mode-remount": 16,
+      "repaired-v1-carousel-history-remount": 12,
+      "repaired-v1-carousel-first-undo-caret": 3,
+      "unsupported-v1-carousel-persistent-sidecars": 12,
+      "unsupported-v1-carousel-persistent-widgets": 48,
+      "repaired-baseline-carousel-literalized-rich-captions": 24,
+      "repaired-baseline-carousel-renderer-widgets": 6,
+      "repaired-baseline-carousel-widget-mode-failure": 2
+    },
+    "negativeControls": {
+      "candidate-source": 123,
+      "unknown-source": 123,
+      "opposite-historical-source": 123,
+      "changed-actual": 123,
+      "changed-expected": 123,
+      "changed-property": 123,
+      "changed-phase": 123,
+      "changed-status": 123,
+      "unknown-case": 123,
+      "completed-phase-mismatch": 123,
+      "incomplete-phase-mismatch": 123,
+      "missing-phase": 123,
+      "extra-phase": 123,
+      "changed-independent-author-record": 123,
+      "changed-block-identity": 123,
+      "changed-independent-carousel-record": 123,
+      "changed-independent-sidecars": 123,
+      "changed-mode": 123,
+      "unpaired-execution-error": 123,
+      "changed-native-owner": 3,
+      "changed-reference-capability": 78
+    },
+    "rejected": 2418,
+    "passingObservationsRejected": 1649,
+    "boundary": "Offline recognizer sensitivity only. Candidate failures are rejected; incomplete historical phases remain incomplete."
+  },
+  "artifacts": [
+    {
+      "originalName": "classifier-sensitivity.log",
+      "artifact": "runs/run-64mauO/classifier-sensitivity.log.gz",
+      "rawSha256": "6b966f52c9b0dfd1847ee5b46d181670c0d43aa601851bf19b2e3d233cb79319",
+      "compressedSha256": "31fbce4e2ceedff6b458dbec0516d6f3bb5df37978fe411c0efef0ed522bbf29"
+    },
+    {
+      "originalName": "differential.log",
+      "artifact": "runs/run-64mauO/differential.log.gz",
+      "rawSha256": "ac1cccf5e031c48ffba973eaf7400c7e24f151615ede568eb24d56f74b69fbb2",
+      "compressedSha256": "1f23521005dcd899f0f488f6259f1d938e065b0311abbe91aa9172097edac9a6"
+    },
+    {
+      "originalName": "native-carousel-142.log",
+      "artifact": "runs/run-64mauO/native-carousel-142.log.gz",
+      "rawSha256": "d9d19659a8ecf01730370b081020f931e91aa2a31794aeec2b6e7fad6fb35e84",
+      "compressedSha256": "1f581a916be3872244c86c134a506c8c48e5ddcf031f4f436ea8f31aa37b1ac7"
+    },
+    {
+      "originalName": "native-carousel-156.log",
+      "artifact": "runs/run-64mauO/native-carousel-156.log.gz",
+      "rawSha256": "d9d19659a8ecf01730370b081020f931e91aa2a31794aeec2b6e7fad6fb35e84",
+      "compressedSha256": "1f581a916be3872244c86c134a506c8c48e5ddcf031f4f436ea8f31aa37b1ac7"
+    },
+    {
+      "originalName": "native-carousel-media.log",
+      "artifact": "runs/run-64mauO/native-carousel-media.log.gz",
+      "rawSha256": "0c69a98954c63b34547109ca77a8a9396b278669ee57825875a32a263be3564c",
+      "compressedSha256": "9868c6fd73d29ef9949b874a80c044d88c74eef752a20d33c5f6f7d781c1afb0"
+    },
+    {
+      "originalName": "projection-142.log",
+      "artifact": "runs/run-64mauO/projection-142.log.gz",
+      "rawSha256": "fbe30cbde3014846723a40b30e36e39dcc8136d7f4a34c7b15dee274a4c4aa78",
+      "compressedSha256": "cd9456a0e6fbab30cd9c05091aaf03536be35796167de597d7bd88df6123279e"
+    },
+    {
+      "originalName": "projection-156.log",
+      "artifact": "runs/run-64mauO/projection-156.log.gz",
+      "rawSha256": "9af3808da4f7af1acb10833a02917c601ebc6ef9563db0a087672f9101bcfc0b",
+      "compressedSha256": "6f0567ceeb94479bc68d12c2b2f80092930ab7d484e4de3ff92634ed01c6d65d"
+    },
+    {
+      "originalName": "readme-contracts.log",
+      "artifact": "runs/run-64mauO/readme-contracts.log.gz",
+      "rawSha256": "31448fc62812847e471cb03493fbf0d0e514a22f72896d580f6698810679461c",
+      "compressedSha256": "cb4f2c6b5adf9907e945b558a43f7fa3a98d7d2f4c7918e41d8f5a72f1ded64e"
+    }
+  ],
+  "acceptance": {
+    "locallyCompleteCommonRows": [
+      "BLOCK_CAROUSEL_ROUNDTRIP"
+    ],
+    "centralAcceptance": "Parent-owned integrated 65-case gate and common-row documentation update follow this isolated 57-case result.",
+    "acceptedDetailedRows": [],
+    "htmlStylePolicy": "unchanged"
+  },
+  "previousObservations": [
+    {
+      "run": "run-syi0s1",
+      "artifact": "initial2-differential.json.gz",
+      "outcome": "unclassified historical differences; candidate 285/285 passed; preliminary dependency artifact only"
+    },
+    {
+      "run": "run-gX5U8W",
+      "artifact": "four-case-raw.json.gz",
+      "outcome": "raw historical evidence before exact rich baseline partial-phase classifier; candidate 718/718 passed; preliminary dependency artifact only"
+    }
+  ]
+}
