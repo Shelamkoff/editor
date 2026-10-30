@@ -419,12 +419,6 @@ export function createPollPlugin(config={}){
             project(true)
           })
 
-          const syncAuthoring=()=>{
-            if(readOnly||dead)return
-            // Core serializes owned inline occurrences into canonical references.
-            context.commitDomMutation(()=>{})
-          }
-
           const disposeSubscription=()=>{
             const dispose=unsubscribe
             unsubscribe=null
@@ -555,10 +549,6 @@ export function createPollPlugin(config={}){
               pendingVote.abort()
             }
           }
-
-          wrapper.addEventListener('focusout',event=>{
-            if(!readOnly&&wrapper.contains(/** @type {Node} */(event.target)))queueMicrotask(syncAuthoring)
-          },{signal:context.signal})
 
           project()
           connect()

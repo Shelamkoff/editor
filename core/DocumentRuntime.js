@@ -1673,7 +1673,10 @@ export class DocumentRuntime {
 
     const authority = scope.createAuthority({
       prepareValue: operation => this.prepareExtensionValue(operation),
-      readData: () => currentRecord().data,
+      readData: () => {
+        assertReadOwner()
+        return currentRecord().data
+      },
       updateData: (producer, options) => {
         this.update(id, current => ({
           data: producer(current.data),
@@ -1728,6 +1731,11 @@ export class DocumentRuntime {
     let context
     context = Object.freeze({
       ...authority,
+      getData: () => {
+        const data = authority.getData()
+        assertReadOwner()
+        return data
+      },
       getFieldText,
       ownerDocument: this.#ownerDocument,
       signal,
