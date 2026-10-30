@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-gallery-field-preservation-20261030",
+  "startedAt": "2026-10-30T01:10:09.125Z",
+  "finishedAt": "2026-10-30T01:10:15.817Z",
+  "outcome": "passed",
+  "source": {
+    "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+    "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+    "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/structural-authoring-fixture.js",
+        "mode": 33188,
+        "sha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1"
+      }
+    ],
+    "dirty": true,
+    "identity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+      "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+      "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "browser": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T01:10:09.442Z",
+      "finishedAt": "2026-10-30T01:10:15.705Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-gallery-field-preservation-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+          "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1"
+          }
+        ],
+        "dirty": true,
+        "identity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d"
+      },
+      "elapsedMs": 6260.217907,
+      "sourceAfter": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1"
+          }
+        ],
+        "dirty": true,
+        "identity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+    "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+    "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/structural-authoring-fixture.js",
+        "mode": 33188,
+        "sha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1"
+      }
+    ],
+    "dirty": true,
+    "identity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d"
+  },
+  "sourceUnchanged": true
+}
