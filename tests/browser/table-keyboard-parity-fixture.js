@@ -56,6 +56,17 @@ function selectionIn(fields) {
 const selected = (field, anchor, focus = anchor) => ({ focused: field, anchor: { field, offset: anchor },
   focus: { field, offset: focus }, collapsed: anchor === focus })
 
+function nativeSelectionIn(fields) {
+  const selection = getSelection()
+  const point = (node, offset) => ({ field: fields.findIndex(field => node && field.contains(node)),
+    node: node?.nodeName ?? null, text: node?.nodeType === Node.TEXT_NODE ? node.data : null,
+    parent: node?.parentElement?.tagName ?? null, offset,
+    precedingChild: node?.childNodes?.[offset - 1]?.nodeName ?? null,
+    followingChild: node?.childNodes?.[offset]?.nodeName ?? null,
+  })
+  return { anchor: point(selection.anchorNode, selection.anchorOffset), focus: point(selection.focusNode, selection.focusOffset) }
+}
+
 async function settled() {
   const deadline = Date.now() + 10000
   while ([...document.querySelectorAll('link[rel="stylesheet"]')].some(link => !link.disabled && !link.sheet)) {
@@ -146,7 +157,7 @@ export async function runTableKeyboardCase(specification, { sourceBase = '../../
       renderer.renderTo(saved, output)
       check(phase, 'rendererCells', [...output.querySelector('table').rows].map(row => [...row.cells].map(field => ({ tag: field.tagName, markup: authorMarkup(field) }))), renderGrid(grid))
       if (caret) check(phase, 'selection', selectionIn(fields()), caret)
-      phases.push({ phase, blocks: clone(saved.blocks), selection: selectionIn(fields()), activeTag: document.activeElement?.tagName,
+      phases.push({ phase, blocks: clone(saved.blocks), selection: selectionIn(fields()), nativeSelection: nativeSelectionIn(fields()), activeTag: document.activeElement?.tagName,
         activeClass: document.activeElement?.className, ...(legacy ? {} : { transactions: clone(transactions) }) })
       completedPhases.push(phase)
     }
@@ -204,6 +215,10 @@ export async function runTableKeyboardCase(specification, { sourceBase = '../../
         continuationText = `<b>${left}<br>Y${right}</b> {{mention}} {{swatch}} tailX`
       }
       await pause(); capture('selection', typed, history(true, false), 1, selected(0, anchor, focus))
+      if (specification.variant === 'mark-end') {
+        const expectedPoint = { field: 0, node: '#text', text: 'Alpha', parent: 'B', offset: 5, precedingChild: null, followingChild: null }
+        check('selection', 'markEndStartsInsideBoldText', nativeSelectionIn(fields()), { anchor: expectedPoint, focus: expectedPoint })
+      }
       const broken = clone(typed); broken[0][0] = brokenText
       const continued = clone(typed); continued[0][0] = continuationText
       const afterBreak = Math.min(anchor, focus) + 1
