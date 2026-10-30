@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification",
+  "startedAt": "2026-10-30T19:21:00.860Z",
+  "finishedAt": "2026-10-30T19:21:30.812Z",
+  "outcome": "not-run",
+  "source": {
+    "head": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+    "tree": "94ab697d787cbe0bbffdba4c42c37956ceba3b31",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "f62d315b98c6a1f7959b26fe71d1c5d5f5ac66ebf5e765e2017db6cf62585fce"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "common-parity": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "gallery-parity": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "gallery-classifier-controls": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "presentation-values": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "public-focus": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "formatting-ownership": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "link-ownership": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "gallery-viewer": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "code-languages": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "text-block-settings": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "table-settings": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "columns-layout": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "tool-actions": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "raw-source": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    },
+    "embed-preview": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    }
+  },
+  "sourceAfter": {
+    "head": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+    "tree": "94ab697d787cbe0bbffdba4c42c37956ceba3b31",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "f62d315b98c6a1f7959b26fe71d1c5d5f5ac66ebf5e765e2017db6cf62585fce"
+  },
+  "sourceUnchanged": true
+}

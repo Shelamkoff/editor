@@ -1,0 +1,32 @@
+{
+  "root": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-guards",
+  "sha": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+  "preparedAt": "2026-10-30T19:36:28.032497+00:00",
+  "gates": [
+    [
+      "text-block-settings",
+      "text-block-settings.mjs",
+      21,
+      null
+    ],
+    [
+      "columns-layout",
+      "columns-layout-parity.mjs",
+      12,
+      "columns-layouts/layouts-final-differential.json.gz"
+    ],
+    [
+      "raw-source",
+      "raw-source-preview.mjs",
+      21,
+      "raw-source-preview/raw/final.json.gz"
+    ],
+    [
+      "tool-actions",
+      "tool-actions.mjs",
+      48,
+      "tool-actions/final-differential.json.gz"
+    ]
+  ],
+  "scope": "Only the four maintained runners changed by the incoming published commits; the preceding full corpus retains its original source identity."
+}

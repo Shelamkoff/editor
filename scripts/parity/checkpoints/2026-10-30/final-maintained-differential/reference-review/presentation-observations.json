@@ -1,0 +1,229 @@
+{
+  "current": {
+    "path": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification/test-results/run-AYPL00/presentation-values.log",
+    "rawSha256": "1daa41ee7db0be431b9fb8644d0ba790ff0111d1b7390cac551eb82943ededdf"
+  },
+  "boundedFinding": "All 22 raw v1 failures are neighborDomIdentity=false, expected=true, in Undo/Redo. The maintained in-run classifier recognizes this exact tuple. No archived witness was available; the original no-witness classification remains unchanged.",
+  "rawFailures": [
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_1",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_1",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_2",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_2",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_3",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_3",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_4",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_4",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_5",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_5",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_6",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_6",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_7",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_7",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_8",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_8",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_9",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_FONT_9",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_CLASS_SPAN",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_CLASS_SPAN",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_CLASS_CODE",
+      "phase": "undo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "case": "PRESENTATION_VALUES_CLASS_CODE",
+      "phase": "redo",
+      "property": "neighborDomIdentity",
+      "status": "FAIL",
+      "actual": false,
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "checkedAt": "2026-10-30T19:21:00.810761+00:00",
+  "candidateSha": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+  "referenceShas": {
+    "v1": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "spec-baseline": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+    "pre-fix": "b09c0079c5f2ebbbc68264b4892ce5f8bb8ae63c"
+  },
+  "sourceHashes": {
+    "scripts/parity/block-roundtrip.mjs": "2bd7f2477ff511f1d029a64dede43734f08a0f5eb925a396b1cf0c8046a8f662",
+    "scripts/parity/carousel-roundtrip-classifiers.mjs": "4898a91e389458e8c1ce89fffe1b8454c6ca08030d60e08d9638e418e07960da",
+    "scripts/parity/code-language-highlighting.mjs": "4621fe1e4679db3a940cd7e911f05333b76966a053f84f715501db94a67b841b",
+    "scripts/parity/columns-layout-parity.mjs": "c17e45f2aeef3458e42bda7e50e4f10bb8642b9fd7ec159f75416cf6175a81a1",
+    "scripts/parity/embed-preview-timeout-verification.mjs": "6276307f8d8b08f7d27c8aa60b5cf74eeb7b947576090bc88600184a94434500",
+    "scripts/parity/embed-preview-timeout-verification.test.mjs": "645817ec5f89b87fc5a3acbe7dc3cb270f94427183894527facfb7d35ead9a59",
+    "scripts/parity/embed-preview-timeout.mjs": "4f8ae66b7f0763edc616e898003bf184a53f2ab7e1752fb8426b6401a6ff7ad4",
+    "scripts/parity/formatting-host-ownership.mjs": "36bc2203be0114b1307904a47fda45aa974c8f05fb633c0590de959b6559a263",
+    "scripts/parity/gallery-caption-order-classifiers.mjs": "d9d063cc7782222e511818b8b25df7af12748338fcedf661ac379c38a35308b7",
+    "scripts/parity/gallery-caption-order.mjs": "1b0072391b367caf01cd2f6bcd05365434698181f2dd8a2a59f55b780ad2b239",
+    "scripts/parity/gallery-roundtrip-classifiers.mjs": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85",
+    "scripts/parity/gallery-viewer-captions.mjs": "3d98c1e79213381f8ad408dced138eed06d59ec033c861a2f8eeb4f996559f9c",
+    "scripts/parity/link-owned-formatting.mjs": "fab3cefc6c1259376335fba560bff46921df475b342fbc43c660d83b9c1197ea",
+    "scripts/parity/link-poll-roundtrip-classifiers.mjs": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+    "scripts/parity/person-roundtrip-classifiers.mjs": "64f3711d1fe0d47d2d3314fefd3a4e38a99716bd0acd0a867b07c5204ccf37c9",
+    "scripts/parity/presentation-values.mjs": "dc22da9837ac8375a851a3513420a9398fc5a452c901bd88fa03b3dc362aa9a9",
+    "scripts/parity/public-focus.mjs": "c8e5936367c8e1fe9b548857c9418595de718076958ad37d48a73e82a50dda96",
+    "scripts/parity/raw-source-preview.mjs": "df23c2bdeee181327736cb15dcd31799658ec8de2c2fc8849ff1ba6e3e54b7c0",
+    "scripts/parity/table-settings-parity.mjs": "5856e16185f1d13b8ad20ea177ccfa98df7a4c152495a8a24ebb285c42b2699b",
+    "scripts/parity/text-block-settings.mjs": "700f0138e3a1c3046b28f249d475f5af076bc63891a98eaf965bf24517c75dbd",
+    "scripts/parity/tool-actions.mjs": "6b2759bbabbc8c25574422566b9f33a9c59adc75879900ac8c607ba3a5c7484d",
+    "scripts/parity/verify-embed-preview-timeout.mjs": "c09f000977cd127dcfdd4e3c8308161ec103080c242bd71a3a297ff17d722607",
+    "scripts/parity/verify-gallery-caption-order-classifiers.mjs": "47975d4d1fd59cf7442f0baa1f3a8cb7e994eef82180cbb2206f109c1fe6d450",
+    "scripts/verification-results.mjs": "35aac5e0cb74f43310db0eea8d5923ae7522bbde429cd67a35fb65ba4ab49d00",
+    "tests/browser/block-roundtrip-fixture.js": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e",
+    "tests/browser/code-language-parity-fixture.js": "796a75c402d6308080539aabecdea5fb7ea00f5257267f28ee586914d4027b62",
+    "tests/browser/columns-layout-parity-fixture.js": "3c61fd6a194518f37a39520e0e9f8f7b0d12c131872cac9f98f42586afaab370",
+    "tests/browser/embed-preview-parity-fixture.js": "dd30c565279cb69ebf0929ccf527d94c2e6e2f8260b7d425731f914c30de4ac9",
+    "tests/browser/gallery-caption-order-fixture.js": "776ee272e8cf6bcf1f0041d2f0ee1b23d2f57c8d73fda558bba903865fd31800",
+    "tests/browser/gallery-viewer-captions.js": "bd3100ddf9c7f00634e6e9e99333977aad0803e6910d7e90984083e1fd8e6ac4",
+    "tests/browser/plugin-parity-fixtures.js": "a3585354891c2ff2962f3f809350612a28098fc3fee2e02b446d878079ca5399",
+    "tests/browser/poll-derived-fixture.js": "342d17d81f5be131badc3da026aa0e5cab328c3d2140c93fc544d59b87e7892c",
+    "tests/browser/presentation-values-fixture.js": "f8187d00dc602118f998227e828722913cdacf52f07bcc0dda800e87a013453f",
+    "tests/browser/raw-source-parity-fixture.js": "d1b27d210f45c2b3d6d1594221c6ba4a0a01242a9f1ada543eff4cd419a3c6af",
+    "tests/browser/structural-authoring-fixture.js": "d56a5c54c78ea0cb55878a1375f17cfb048ae4f3ba83f7959844ad335d7b146b",
+    "tests/browser/table-settings-parity-fixture.js": "52b238f34cea9db8c729577c53811c903002f2272cbcf971cf85a7f3a59ab699",
+    "tests/browser/text-block-settings-parity-fixture.js": "13e0fb6e316d87952544945c57f81421f18d4578c35311df9c39b3e3f930b28b",
+    "tests/browser/tool-actions-parity-fixture.js": "6feaebfcb9c67e281a5a661f9514cb28e6a79cb93a1f03a872ce11ac7985f833"
+  },
+  "witnesses": {
+    "common-parity": {
+      "path": "scripts/parity/checkpoints/2026-10-30/continuation-61a-integration/runs/run-fDStBT/common-parity.log.gz",
+      "compressedSha256": "c8e16e373a97085e740248feb6134b681e4bb80ca3498fc26fd6903d22c01810",
+      "rawSha256": "228c167f18f76522dd5d5e28a095c6a40593b316259431cce9c17fcab7207718",
+      "headBefore": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+      "referenceIdentityDifferences": []
+    },
+    "gallery-parity": {
+      "path": "scripts/parity/checkpoints/2026-10-30/continuation-61a-integration/runs/run-fDStBT/gallery-parity.log.gz",
+      "compressedSha256": "856bbfe48be703043b0c76fb615cdecbec7c6a4c1523491cd1f70493b3a6b6f9",
+      "rawSha256": "0e212f8f396e54067ac1f30904c07b197b149ed76b48221053ac263a860a0293",
+      "headBefore": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+      "referenceIdentityDifferences": []
+    },
+    "public-focus": {
+      "path": "scripts/parity/checkpoints/2026-10-30/public-focus/integrated/result.json.gz",
+      "compressedSha256": "3b52dde000cb6a652815a272845c257f0f1328c644009d61119d6cf0ba2b6d1d",
+      "rawSha256": "4501548d681fac146abb89d74915d7fa7636f6430a3fafb866b14e2a83642abf",
+      "headBefore": "a7dc4172198dea9c641f5de41d4331e5a94a17b4",
+      "referenceIdentityDifferences": []
+    },
+    "formatting-ownership": {
+      "path": "scripts/parity/checkpoints/2026-10-30/formatting-host-ownership/differential-final.json.gz",
+      "compressedSha256": "d5095194e4607d32d2a12d7b8e6df3bc32649acc5a1e4f9b8bb15f9830162079",
+      "rawSha256": "2ccf7d25184b44c8f292e43c02eb813fc6350fdf5403793d39c1f4598961bdc7",
+      "headBefore": "94304cc1764ce0b18f0227add598f67da5cf7dcd",
+      "referenceIdentityDifferences": []
+    },
+    "link-ownership": {
+      "path": "scripts/parity/checkpoints/2026-10-30/link-atomic-ownership/three-source-final.json.gz",
+      "compressedSha256": "141f5356dfd1a0887f9ef5b744cf790c7fc3a9e679ff5fdd1b20c2988cd559ac",
+      "rawSha256": "6b061871b64712995dc9e93f6c3a84d3745cbf738bb8f5bf413098f56154fb33",
+      "headBefore": "9fe66c88d1fcf6517e1308550bfb454c392548f8",
+      "referenceIdentityDifferences": []
+    },
+    "gallery-viewer": {
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-renderer-lifecycle-and-viewer/viewer-three-source.json.gz",
+      "compressedSha256": "dc55510992b29990396037420475542f84132e258820c5e2bee5109f5818e6ae",
+      "rawSha256": "3321dd67e9efdfe5a0f69019c779fc06842db4b6a9f4b271c71019ef13004913",
+      "headBefore": "0e2c034f84b2505622f63dfd0981dcfdce19dbfd",
+      "referenceIdentityDifferences": []
+    },
+    "code-languages": {
+      "path": "scripts/parity/checkpoints/2026-10-30/code-language-highlighting/differential.json.gz",
+      "compressedSha256": "0a96ec83207e1b5de64d9688d8f3724dcac5dd64c7e4b165ca4432623d75527b",
+      "rawSha256": "f00cf09824ae6889b214455f8f51060fe75bc0ef7f5a2795129d485748deb8dd",
+      "headBefore": "e37d0195ffef700de03a36665af94be586e4ba9e",
+      "referenceIdentityDifferences": [
+        {
+          "label": "pre-fix",
+          "archivedSha": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+          "currentPinnedSha": "b09c0079c5f2ebbbc68264b4892ce5f8bb8ae63c",
+          "archivedLoadedModules": 91,
+          "loadedByteMismatches": []
+        }
+      ]
+    },
+    "table-settings": {
+      "path": "scripts/parity/checkpoints/2026-10-30/table-settings/settings-final-differential.json.gz",
+      "compressedSha256": "1e2e9920ebac6d5102dfcc3bf71233ceedae86b9d5736e74b2cb0ea9273c3e04",
+      "rawSha256": "0e9b950734b0f24f1eb5cbba496abf3de71e0e92f27a399d6ef238671f6ba04b",
+      "headBefore": "5e3bdd7cd5b73c8652a819d07c6b51cf2335f8df",
+      "referenceIdentityDifferences": []
+    },
+    "columns-layout": {
+      "path": "scripts/parity/checkpoints/2026-10-30/columns-layouts/layouts-final-differential.json.gz",
+      "compressedSha256": "2d901ffcb9aa8608f5fa1088259467bd9245e3703a5db0547663aab77d806479",
+      "rawSha256": "4a11251ee18ed3a12181c5d3b86db2d1b6397829c9a5784e71ce257150a05ffd",
+      "headBefore": "b7ac66388e44999d794368cd00a99b4057d41083",
+      "referenceIdentityDifferences": []
+    },
+    "tool-actions": {
+      "path": "scripts/parity/checkpoints/2026-10-30/tool-actions/final-differential.json.gz",
+      "compressedSha256": "3a013422c40bbb3d0504d6669a5bfe0ceb5cf36b310053d1986f8ecfb02b20e7",
+      "rawSha256": "243d1b71b549e49ade94e6c3c9037eadb1e638c852c9120e2339ea9fcbfc9feb",
+      "headBefore": "9cb70473c9793623632e1018144e490ca2cc73d7",
+      "referenceIdentityDifferences": []
+    },
+    "raw-source": {
+      "path": "scripts/parity/checkpoints/2026-10-30/raw-source-preview/raw/final.json.gz",
+      "compressedSha256": "775598e6cfd8d28a2c8c12ff03ef444e19429d94396be99c1329fd4c22e38941",
+      "rawSha256": "b873419a97654d03279a7dfd7fe1bdbe36c871d001798dcbbe684d475f163f22",
+      "headBefore": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "referenceIdentityDifferences": []
+    }
+  },
+  "environment": {
+    "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_DEPENDENCIES_ROOT": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification/node_modules",
+    "EDITOR_CANDIDATE_ROOT": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification",
+    "EDITOR_CANDIDATE_SHA": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+    "EDITOR_V1_ROOT": "/workspace/scratch/61a2ad7355f4/references/v1",
+    "EDITOR_SPEC_BASELINE_ROOT": "/workspace/scratch/61a2ad7355f4/references/spec-baseline",
+    "EDITOR_ROUNDTRIP_FILTER": "",
+    "EDITOR_GALLERY_FILTER": "",
+    "EDITOR_PRESENTATION_FILTER": "",
+    "EDITOR_TEXT_BLOCK_SETTINGS_FILTER": "",
+    "EDITOR_TABLE_SETTINGS_FILTER": "",
+    "EDITOR_COLUMNS_LAYOUT_FILTER": "",
+    "EDITOR_RAW_FILTER": ""
+  },
+  "packageLockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+  "installedLockSha256": "b021956852a011c817ab156fee4e2acf6f9744a36413b8e52739e169430f2829",
+  "carousel": {
+    "version": "1.0.0",
+    "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+    "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+    "license": "MIT",
+    "dependencies": {
+      "@shelamkoff/event-bus": "^1.0.0"
+    },
+    "engines": {
+      "node": ">=20"
+    }
+  },
+  "supervisorSha256": "71ecb6fe9429dce448033937096fc01f66303b91df9e9a6a6fcc8eec1566238b"
+}
