@@ -88,5 +88,23 @@
     "v1 lacks keyed/numeric public focus and persistent Person widgets; those capabilities remain unsupported.",
     "No renderer, avatar/provider, structural card reordering or full link-action acceptance is asserted.",
     "Historical raw failures and incomplete executions remain failures; no classifier changes their status."
+  ],
+  "restoredOriginalSources": [
+    {
+      "sha": "4a82ac0b73854060f7fbd824b8d69852c9dea776",
+      "tree": "ff9a7af54adbf274c0818f698052b09075f6cc63"
+    },
+    {
+      "sha": "a370a5f7d86f6e3392e3d247a541aa73559134f7",
+      "tree": "f231f24be32b30d6093b277dc107c2205084e847"
+    },
+    {
+      "sha": "2bb32ca8abaa5bef3d525aeda22b7d8101def57a",
+      "tree": "356c194dbe29185ab8ea7327390f6238e98e88c8"
+    },
+    {
+      "sha": "fde41c70584b890a1ae51c9b7f23f752f0a18c8a",
+      "tree": "73a47f391a8d38ace760ae2a061f937fddd1edfb"
+    }
   ]
 }

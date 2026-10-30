@@ -198,3 +198,9 @@ It does not accept `BLOCK_PERSON_CARDS`, `BLOCK_PERSON_AVATAR`,
 reordering, another browser/platform or whole-library parity. No shared
 preservation ledger, main documentation, runtime file or remote ref is changed
 by this isolated checkpoint.
+
+## Archive portability and parent review
+
+The parent integration retains the original raw commit bytes for all four prepared/tested sources in `original-source-commits.json`. The audit now reconstructs their exact trees and commit objects from the published base plus retained binary patches, using a temporary index and object store. It leaves repository refs, index and objects untouched. This permits the audit to run in a fresh clone after cherry-pick/publication changes commit metadata; it does not rerun the browser or relabel the source that was executed.
+
+An independent parent review is retained under `peer-review/`. It checks all recorded verdicts and rebuilds complete literal documents, active-profile transitions and history for all 338 candidate snapshots, including the return to the noninitial third profile. Its first-request caret/range controls and retained author controls support only the two named Person rows. The historical 17 page events, their 17 case-local records and 17 diagnostics describe corresponding observations, not 51 independently diagnosed defects.

@@ -1,15 +1,39 @@
 from pathlib import Path
 from collections import Counter
-import gzip, hashlib, json, re, subprocess, sys
+import gzip, hashlib, json, os, re, subprocess, sys, tempfile
 
 root=Path(subprocess.check_output(['git','rev-parse','--show-toplevel'],text=True).strip())
 checkpoint=Path(sys.argv[1]) if len(sys.argv)>1 else Path(__file__).resolve().parent
+
+# Published counterparts can have different commit metadata and parents.
+# Restore the actual compared commits without changing repository objects,
+# refs or index; a fresh clone only needs the published base and this archive.
+git_environment=dict(os.environ)
+for name in ['GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_OBJECT_DIRECTORY','GIT_ALTERNATE_OBJECT_DIRECTORIES','GIT_COMMON_DIR']:
+ git_environment.pop(name,None)
+git_environment.update(GIT_OPTIONAL_LOCKS='0',GIT_NO_REPLACE_OBJECTS='1')
+object_directory=subprocess.check_output(['git','rev-parse','--path-format=absolute','--git-path','objects'],cwd=root,env=git_environment,text=True).strip()
+temporary=tempfile.TemporaryDirectory(prefix='person-parity-source-')
+scratch=Path(temporary.name);(scratch/'objects').mkdir()
+git_environment.update(GIT_INDEX_FILE=str(scratch/'index'),GIT_OBJECT_DIRECTORY=str(scratch/'objects'),GIT_ALTERNATE_OBJECT_DIRECTORIES=object_directory)
+def git(*args,input=None):
+ return subprocess.check_output(['git',*args],cwd=root,env=git_environment,input=input)
+restored_sources=[]
+for source in json.loads((checkpoint/'original-source-commits.json').read_text())['sources']:
+ commit=source['rawCommit'].encode();patch=gzip.decompress((checkpoint/source['patch']).read_bytes())
+ assert hashlib.sha1(b'commit '+str(len(commit)).encode()+b'\0'+commit).hexdigest()==source['sha']
+ assert hashlib.sha256(patch).hexdigest()==source['patchSha256']
+ git('read-tree',source['base'])
+ git('apply','--cached','--binary','--whitespace=nowarn','-',input=patch)
+ assert git('write-tree').decode().strip()==source['tree']
+ assert git('hash-object','-w','-t','commit','--stdin',input=commit).decode().strip()==source['sha']
+ restored_sources.append({'sha':source['sha'],'tree':source['tree']})
 
 def load(name):
  p=checkpoint/name
  return json.loads(gzip.decompress(p.read_bytes()) if p.suffix=='.gz' else p.read_text())
 def sha(data): return hashlib.sha256(data).hexdigest()
-def gitfile(ref,path): return subprocess.check_output(['git','show',ref+':'+path],cwd=root)
+def gitfile(ref,path): return git('show',ref+':'+path)
 def equal(actual,expected,message):
  assert actual==expected, message+'\nactual: '+str(actual)[:500]+'\nexpected: '+str(expected)[:500]
 def phases(case,legacy=False):
@@ -129,7 +153,7 @@ for source,result in zip(raw['sources'],raw['results'],strict=True):
  equal(source['label'],result['source'],'Source ordering mismatch')
  expected_sha={'v1':'5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340','spec-baseline':'e981ff308000c1d92d7e820df95113c1e19bcee8','candidate':raw['headBefore']}[source['label']]
  equal(source['sha'],expected_sha,'Pinned source mismatch')
- equal(subprocess.check_output(['git','rev-parse',source['sha']+'^{tree}'],cwd=root,text=True).strip(),source['tree'],'Tree mismatch')
+ equal(git('rev-parse',source['sha']+'^{tree}').decode().strip(),source['tree'],'Tree mismatch')
  for path,checksum in source['loaded'].items(): equal(sha(gitfile(source['sha'],path)),checksum,'Served module mismatch: '+source['label']+'/'+path)
  equal([entry['id'] for entry in result['cases']],[case['id'] for case in cases],'Case inventory mismatch')
  truthful=0; complete=[]; unsupported=[]; failures=[]
@@ -197,4 +221,5 @@ native_cases=json.loads(native_bytes.splitlines()[1])['native-plugin-parity.html
 equal(native_cases,[{'name':'Person mode parity '+case['id'],'status':'PASS'} for case in cases],'Native case inventory mismatch')
 equal(raw['candidatePass'],True,'Candidate falsely failed')
 summary={'audit':'PASS','fixtureSource':raw['fixtureSource'],'fixtureSha256':raw['fixtureSha256'],'runnerSha256':raw['runnerSha256'],'nativeCases':len(native_cases),'candidatePlannedPhases':sum(len(phases(case)) for case in cases),'truthfulStoredVerdicts':sum(item['observations'] for item in source_summary),'sources':source_summary,'dependencyFilesVerified':len(raw['dependencyFiles']),'actualComparisonExit':metadata['actualExitCode'],'actualNativeExit':native['actualExitCode'],'productionChanged':False,'limits':['Chrome 156/Linux; recorded three-profile author cases only.','v1 lacks keyed/numeric public focus and persistent Person widgets; those capabilities remain unsupported.','No renderer, avatar/provider, structural card reordering or full link-action acceptance is asserted.','Historical raw failures and incomplete executions remain failures; no classifier changes their status.']}
+summary['restoredOriginalSources']=restored_sources
 print(json.dumps(summary,indent=2))

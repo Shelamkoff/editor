@@ -41,5 +41,6 @@
   "historicalFailuresRemainRaw": true,
   "explicitV1Unsupported": 24,
   "currentSourceComplete": true,
-  "wholePersonParityClaimed": false
+  "wholePersonParityClaimed": false,
+  "sourceReconstruction": "original-source-commits.json; audit.py recreates every original compared/preparation tree and commit in an isolated temporary Git object store."
 }

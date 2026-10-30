@@ -1,0 +1,56 @@
+{
+  "base": "414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab",
+  "baseTree": "39c4f699031040e02da6b4aeb866e418bf6f3595",
+  "head": "9c9d034d60e227c45101b37ed991e7c684cb91e1",
+  "commits": [
+    {
+      "local": "e6842abf21aee9655d56900ec9fb784edd864609",
+      "published": "9bdbbe9b65f3f90d86a590d8ead6f3820993c16c",
+      "tree": "3f63560957dbb38b9f5eba5cc3228bda3cd988a4",
+      "parentLocal": "414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab",
+      "parentPublished": "414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab",
+      "message": "test(code): compare native source indentation and language controls\n",
+      "rawCommit": "tree 3f63560957dbb38b9f5eba5cc3228bda3cd988a4\nparent 414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab\nauthor Codex <codex@openai.com> 1793388140 +0300\ncommitter Codex <codex@openai.com> 1793388140 +0300\n\ntest(code): compare native source indentation and language controls\n"
+    },
+    {
+      "local": "a777f431b0955fde06bc41d1aef01c6c76b88286",
+      "published": "998df7598b85b78f78accca794f5dba50182659b",
+      "tree": "241a9caa730f96600b303e04c8a79db5380d6e1f",
+      "parentLocal": "e6842abf21aee9655d56900ec9fb784edd864609",
+      "parentPublished": "9bdbbe9b65f3f90d86a590d8ead6f3820993c16c",
+      "message": "test(inline-tools): compare native basic mark actions on pinned sources\n",
+      "rawCommit": "tree 241a9caa730f96600b303e04c8a79db5380d6e1f\nparent e6842abf21aee9655d56900ec9fb784edd864609\nauthor Codex <codex@openai.com> 1793387579 +0300\ncommitter Codex <codex@openai.com> 1793388723 +0300\n\ntest(inline-tools): compare native basic mark actions on pinned sources\n"
+    },
+    {
+      "local": "e5e6af4c28ad148262fd06e5b5adaabb8eb3f252",
+      "published": "4d73ca0d8dd0cf9e98fb59cf5e5757a56939338a",
+      "tree": "17e1e23544f61462b6d5931dd9254cfa7b574fc0",
+      "parentLocal": "a777f431b0955fde06bc41d1aef01c6c76b88286",
+      "parentPublished": "998df7598b85b78f78accca794f5dba50182659b",
+      "message": "test(inline-tools): scope widget mode checks to each mark action\n",
+      "rawCommit": "tree 17e1e23544f61462b6d5931dd9254cfa7b574fc0\nparent a777f431b0955fde06bc41d1aef01c6c76b88286\nauthor Codex <codex@openai.com> 1793387859 +0300\ncommitter Codex <codex@openai.com> 1793388723 +0300\n\ntest(inline-tools): scope widget mode checks to each mark action\n"
+    },
+    {
+      "local": "411b533ef777df6dd3f14a4c49bb6c93de00fd79",
+      "published": "e00a02781d87ef05d96fa9e0a93b50f1bdf6596c",
+      "tree": "d615b2a0037bde0b811884d40d22d2c3c1b004e1",
+      "parentLocal": "e5e6af4c28ad148262fd06e5b5adaabb8eb3f252",
+      "parentPublished": "4d73ca0d8dd0cf9e98fb59cf5e5757a56939338a",
+      "message": "test(parity): preserve exact native basic mark action evidence\n",
+      "rawCommit": "tree d615b2a0037bde0b811884d40d22d2c3c1b004e1\nparent e5e6af4c28ad148262fd06e5b5adaabb8eb3f252\nauthor Codex <codex@openai.com> 1793388260 +0300\ncommitter Codex <codex@openai.com> 1793388723 +0300\n\ntest(parity): preserve exact native basic mark action evidence\n"
+    },
+    {
+      "local": "9c9d034d60e227c45101b37ed991e7c684cb91e1",
+      "published": "ff830bfea4ebdb4ff0d4b2b62ce66d9b75c6403b",
+      "tree": "b46d92a2b747b9eac53e98161bf187c61f271ffd",
+      "parentLocal": "411b533ef777df6dd3f14a4c49bb6c93de00fd79",
+      "parentPublished": "e00a02781d87ef05d96fa9e0a93b50f1bdf6596c",
+      "message": "test(parity): archive Code controls and independently review basic marks\n",
+      "rawCommit": "tree b46d92a2b747b9eac53e98161bf187c61f271ffd\nparent 411b533ef777df6dd3f14a4c49bb6c93de00fd79\nauthor Codex <codex@openai.com> 1793388845 +0300\ncommitter Codex <codex@openai.com> 1793388845 +0300\n\ntest(parity): archive Code controls and independently review basic marks\n"
+    }
+  ],
+  "publishedHead": "ff830bfea4ebdb4ff0d4b2b62ce66d9b75c6403b",
+  "branchUpdated": true,
+  "verifiedAfterFetch": true,
+  "note": "Git Data API preserves exact trees, messages and ordered mapped parents; commit author/committer metadata changes. Original raw commits are retained for exact source attribution."
+}
