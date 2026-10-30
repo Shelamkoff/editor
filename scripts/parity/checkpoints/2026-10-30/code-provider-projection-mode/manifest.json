@@ -1,0 +1,59 @@
+{
+  "base": "e68a4fc060004f6b8e01165be646321e45d5e4fc",
+  "baseTree": "ceab0ff9dc0c707f27144fb32569b5e237798f7a",
+  "node": "v24.22.1",
+  "browserExecutable": "/tmp/rector-chrome/opt/google/chrome/chrome",
+  "sourceFiles": {
+    "plugins/code/index.js": "b4fd2614056b4eca103eef6e8dd045d62e39cffefc9aebc0b7a501d7135f80fd",
+    "tests/browser/regressions/code-highlighter-native.js": "a5d7ac1bec08a9a2c35fd7c6269d2c909c60714168175725f4108cd57740258d"
+  },
+  "sourceUnchangedAcrossFinalChecks": true,
+  "artifactHashes": {
+    "candidate.patch.gz": "a0297e763f4c7b2573430bbf94ec477fae0f76ca45478b0507a80d5b96cc787b",
+    "red-tests.patch.gz": "28f68685c3a544f9b9444b6b0ab7d22b35266198dbbc6c8bd692cd4ae3f9a566",
+    "red.log.gz": "964fdd95d6341bdff8bfa424a73794c75a968a509b30bb2a1b3f9fa5f6dcbc88",
+    "green.log.gz": "15b5ad9d39738c4a3a89f910bb7cfbcc8b7ae0b23b1fc44bdcab63081c5921c6",
+    "code-final.log.gz": "4d35c0f6574857bf9a72153cc313bc84184667730451339676adab83fe3aa32d",
+    "unit.log.gz": "6c1f27430ca668a6b3de3f1d5c92bb7b708bade0e3e8ef63a14f627df4b0a60d",
+    "typecheck.log.gz": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2"
+  },
+  "gates": [
+    {
+      "name": "red",
+      "source": "base plus red-tests.patch.gz",
+      "exit": 1,
+      "cases": 2,
+      "failures": 2,
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=\"Code projection mode\" node tests/browser/physical-history.mjs"
+    },
+    {
+      "name": "green",
+      "source": "base plus candidate.patch.gz",
+      "exit": 0,
+      "cases": 2,
+      "passed": 2,
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=\"Code projection mode\" node tests/browser/physical-history.mjs"
+    },
+    {
+      "name": "code-final",
+      "source": "base plus candidate.patch.gz",
+      "exit": 0,
+      "cases": 24,
+      "passed": 24,
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=Code node tests/browser/physical-history.mjs"
+    },
+    {
+      "name": "unit",
+      "exit": 0,
+      "tests": 9,
+      "passed": 9,
+      "skipped": 0,
+      "command": "node --test --test-reporter=tap plugins/code/lifecycle.test.js shared/highlightRuntime.test.js"
+    },
+    {
+      "name": "typecheck",
+      "exit": 0,
+      "command": "npm run typecheck"
+    }
+  ]
+}

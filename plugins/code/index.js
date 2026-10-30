@@ -290,17 +290,19 @@ export function createCodePlugin(config = {}) {
           }
           let highlightRevision = 0
           const refresh = () => {
-            if (dead || context.signal.aborted) return
+            if (dead || context.signal.aborted) return false
             const revision = ++highlightRevision, text = textarea.value, language = data.language
             const matchesRefresh = () => ownsHighlightView() && highlightRevision === revision
               && textarea.value === text && data.language === language
-            highlight(codeElement, text, language, runtime, () => {
+            const isCurrent = () => {
               if (!matchesRefresh()) return false
               // The provider can adopt the whole block while keeping its
               // internal parents intact. Recheck the original core owner too.
               try { context.getData() } catch { return false }
               return matchesRefresh()
-            })
+            }
+            highlight(codeElement, text, language, runtime, isCurrent)
+            return isCurrent()
           }
           const ownsHighlightView = () => !dead && !context.signal.aborted
             && codeElement.parentNode === pre && pre.parentNode === editor
@@ -331,8 +333,7 @@ export function createCodePlugin(config = {}) {
             data = { ...next }
             if (textarea.value !== next.code) textarea.value = next.code
             language.update(next.language)
-            refresh()
-            mode()
+            if (refresh()) mode()
           }
           refreshers.add(refreshAfterLoad)
           project(data)

@@ -189,3 +189,55 @@ for (const part of ['highlight', 'source', 'wrapper', 'shell']) {
     }
   })
 }
+
+for (const part of ['wrapper', 'shell']) {
+  test(`Code projection mode cannot repaint a ${part} adopted by its provider`, () => {
+    let editor, armed = false, completed = false, previousMarkup
+    const foreign = document.createElement('aside')
+    document.body.append(foreign)
+    const runtime = {
+      getLanguage() { return true },
+      highlight(code) {
+        if (armed) {
+          armed = false
+          const shell = blockElement(editor, 'code')
+          const wrapper = shell.querySelector('.oe-code-wrap')
+          const textarea = wrapper.querySelector('textarea')
+          const pre = wrapper.querySelector('pre')
+          const edit = wrapper.querySelector('.oe-code-btn--edit')
+          foreign.append(part === 'wrapper' ? wrapper : shell)
+          wrapper.classList.add('oe-code-wrap--editing')
+          textarea.hidden = false
+          textarea.tabIndex = 7
+          textarea.setAttribute('aria-hidden', 'foreign')
+          pre.hidden = true
+          pre.style.pointerEvents = 'auto'
+          edit.hidden = true
+          edit.disabled = true
+          edit.title = 'Foreign control'
+          edit.setAttribute('aria-label', 'Foreign control')
+          previousMarkup = foreign.innerHTML
+          completed = true
+        }
+        return { value: `<span class="hljs-keyword">${escapeHtml(code)}</span>` }
+      },
+      highlightAuto(code) { return this.highlight(code) },
+    }
+    try {
+      editor = mountCode('javascript', runtime)
+      const before = editor.save().blocks
+      armed = true
+      let failure
+      try { editor.blocks.update('code', current => ({ data: { ...current.data, code: source + 'X' } })) }
+      catch (error) { failure = error }
+      assert(completed, 'Public projection did not invoke the adopting provider')
+      assert(failure instanceof Error, 'Projection unexpectedly accepted its lost block owner')
+      equal(editor.save().blocks, before, 'Rejected projection changed the accepted document')
+      equal({ undo: editor.canUndo, redo: editor.canRedo }, { undo: false, redo: false })
+      equal(foreign.innerHTML, previousMarkup, 'Projection changed a foreign mode after highlighter return')
+    } finally {
+      editor?.destroy()
+      foreign.remove()
+    }
+  })
+}
