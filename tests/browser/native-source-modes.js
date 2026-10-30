@@ -3,6 +3,7 @@ import en from '../../locale/en.js'
 import ru from '../../locale/ru.js'
 import { test, make, para, blockElement, assert, equal, run } from './regressions/harness.js'
 import { dispatchKey, printable, clickNative } from './native-input-helpers.js'
+import './regressions/raw-readonly-selection-native.js'
 
 const variants = [
   { name: 'Code', factory: createCodePlugin, key: 'code', toggle: '.oe-code-btn--edit' },

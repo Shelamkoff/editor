@@ -1,0 +1,147 @@
+{
+  "scope": [
+    "BLOCK_COLUMNS_LAYOUTS",
+    "BLOCK_COLUMNS_NO_LOSS_REDUCE"
+  ],
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "candidate": "b7ac66388e44999d794368cd00a99b4057d41083",
+  "candidateTree": "b42df21e288c4bebfa7d5b1f4764814d215aa5a6",
+  "candidateProductionChanges": [],
+  "candidateChanges": [
+    "scripts/parity/columns-layout-parity.mjs",
+    "tests/browser/columns-layout-parity-fixture.js",
+    "tests/browser/native-plugin-parity.js",
+    "tests/browser/regressions/columns-layout-native.js"
+  ],
+  "sourceStages": [
+    {
+      "sha": "e6b486deee3c26efe7ba8d8c93092164c5b2e225",
+      "tree": "9aa4d9a8362873fb9af0fd3177285ebce595646a",
+      "stage": "single rich reduction probe",
+      "patch": "sources/e6b486de.patch.gz"
+    },
+    {
+      "sha": "81041ed8907ee1161aa7bdba78a4f42de41d351d",
+      "tree": "208c957b1ed909fc6b50495d5dcf5bced63182bf",
+      "stage": "all layout/empty cases and native registration",
+      "patch": "sources/81041ed8.patch.gz"
+    },
+    {
+      "sha": "b7ac66388e44999d794368cd00a99b4057d41083",
+      "tree": "b42df21e288c4bebfa7d5b1f4764814d215aa5a6",
+      "stage": "decisive retired-menu probe after editable mode returns",
+      "patch": "sources/b7ac6638.patch.gz"
+    }
+  ],
+  "finalDifferential": {
+    "file": "layouts-final-differential.json.gz",
+    "stderr": "layouts-final-differential.stderr.gz",
+    "exitCode": 1,
+    "candidatePass": true,
+    "startedAt": "2026-10-30T17:22:48.758Z",
+    "completedAt": "2026-10-30T17:23:22.863Z",
+    "results": [
+      {
+        "source": "v1",
+        "executedCases": 6,
+        "unsupportedCases": 6,
+        "observations": 1253,
+        "rawFailures": 30,
+        "incompleteCases": 0,
+        "pageErrors": []
+      },
+      {
+        "source": "spec-baseline",
+        "executedCases": 12,
+        "unsupportedCases": 0,
+        "observations": 2880,
+        "rawFailures": 0,
+        "incompleteCases": 0,
+        "pageErrors": []
+      },
+      {
+        "source": "candidate",
+        "executedCases": 12,
+        "unsupportedCases": 0,
+        "observations": 2880,
+        "rawFailures": 0,
+        "incompleteCases": 0,
+        "pageErrors": []
+      }
+    ],
+    "runnerSha256": "c17e45f2aeef3458e42bda7e50e4f10bb8642b9fd7ec159f75416cf6175a81a1",
+    "fixtureSha256": "3c61fd6a194518f37a39520e0e9f8f7b0d12c131872cac9f98f42586afaab370",
+    "serverErrors": [],
+    "noClassifiersOrExceptions": true
+  },
+  "focusedNative": {
+    "file": "native-columns.log.gz",
+    "source": "b7ac66388e44999d794368cd00a99b4057d41083",
+    "page": "native-plugin-parity.html",
+    "filter": "Columns ",
+    "cases": 21,
+    "passed": 21,
+    "exitCode": 0
+  },
+  "focusedUnit": {
+    "file": "unit-columns.log.gz",
+    "source": "81041ed8907ee1161aa7bdba78a4f42de41d351d",
+    "command": "node --test plugins/columns/*.test.js renderer/renderers/columns/*.test.js",
+    "tests": 11,
+    "passed": 11,
+    "skipped": 0,
+    "exitCode": 0,
+    "sourceDifferenceToFinal": "Only the Columns browser fixture negative was strengthened; production and these unit tests are byte-identical."
+  },
+  "recheck": {
+    "script": "recheck.py",
+    "report": "recheck.json",
+    "status": "PASS",
+    "recomputedVerdicts": 7013,
+    "reconstructedPhaseStates": 285,
+    "verifiedProductionModules": 489,
+    "verifiedDependencyFiles": 64,
+    "verifiedDependencyVersions": 8,
+    "meaning": "Independent reconstruction from fixed authored records and source hashes; this script was authored by the fixture owner, not an independent human reviewer."
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "browser": "156.0.8078.79",
+    "platform": "linux x64",
+    "dependencyVersions": {
+      "dompurify": "3.4.17",
+      "@shelamkoff/carousel": "1.0.0",
+      "@shelamkoff/color-picker": "1.0.0",
+      "@shelamkoff/cropper": "1.0.0",
+      "@shelamkoff/event-bus": "1.0.0",
+      "@shelamkoff/expose": "1.0.0",
+      "@shelamkoff/masonry": "1.0.0",
+      "@shelamkoff/infinite-scroll": "1.0.1"
+    }
+  },
+  "earlierProbes": [
+    {
+      "file": "probes/first-probe.json.gz",
+      "source": "e6b486deee3c26efe7ba8d8c93092164c5b2e225",
+      "exitCode": 1,
+      "candidatePass": true,
+      "notes": "One shared direct rich 3\u21922\u21923 sequence. No production RED: current/spec 229/229; v1 196 observations, four historical DOM/focus failures."
+    },
+    {
+      "file": "probes/layouts-differential.json.gz",
+      "source": "81041ed8907ee1161aa7bdba78a4f42de41d351d",
+      "exitCode": 1,
+      "candidatePass": true,
+      "notes": "Twelve-case matrix. Current/spec 2856/2856; v1 1241 observations with 30 historical failures and 6 unsupported menu cases. Superseded by stronger retired-menu negative; not additive coverage."
+    }
+  ],
+  "acceptanceRecommendation": "Accept only BLOCK_COLUMNS_LAYOUTS and BLOCK_COLUMNS_NO_LOSS_REDUCE after combined root validation. Retain current host/selection improvements; do not restore historical v1 defects.",
+  "bounds": [
+    "All four layouts via real direct controls on v1/spec/current; same cases through real settings actions on spec/current. v1 menu is explicitly unsupported.",
+    "Distinct rich first/second/third columns and real Mention/Color sidecars; reduction to each two-column layout appends nonblank third content with one br, re-expansion creates a fresh empty third field.",
+    "Empty means literal empty string. Empty removed and empty destination controls cover absence of an extra or leading br.",
+    "Native X is inserted at the end of the first field. Before replay every source deliberately focuses that field end. Exact post-menu caret is not accepted.",
+    "Menu negative targets a different final layout after read-only\u2192editable. Direct buttons remain live and their different-layout negative is executed during read-only.",
+    "Full BLOCK_COLUMNS_FIELDS, broader selection/formatting/conversion, other browsers/platforms and IME remain open."
+  ]
+}

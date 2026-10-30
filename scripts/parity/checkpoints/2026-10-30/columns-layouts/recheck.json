@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "rawSha256": "4a11251ee18ed3a12181c5d3b86db2d1b6397829c9a5784e71ce257150a05ffd",
+  "candidate": "b7ac66388e44999d794368cd00a99b4057d41083",
+  "sourceTree": "b42df21e288c4bebfa7d5b1f4764814d215aa5a6",
+  "recomputedVerdicts": 7013,
+  "reconstructedPhaseStates": 285,
+  "verifiedProductionModules": 489,
+  "verifiedDependencyFiles": 64,
+  "verifiedDependencyVersions": 8,
+  "results": [
+    {
+      "source": "v1",
+      "executedCases": 6,
+      "unsupportedCases": 6,
+      "observations": 1253,
+      "rawFailures": 30
+    },
+    {
+      "source": "spec-baseline",
+      "executedCases": 12,
+      "unsupportedCases": 0,
+      "observations": 2880,
+      "rawFailures": 0
+    },
+    {
+      "source": "candidate",
+      "executedCases": 12,
+      "unsupportedCases": 0,
+      "observations": 2880,
+      "rawFailures": 0
+    }
+  ],
+  "scope": [
+    "BLOCK_COLUMNS_LAYOUTS",
+    "BLOCK_COLUMNS_NO_LOSS_REDUCE"
+  ],
+  "limitations": [
+    "Historical v1 menu surface is unsupported; no stable v1 column IDs are fabricated.",
+    "One native X edits the first field; focusEnd is set before the history sequence on every source.",
+    "Only a literal empty removed/destination field is covered by empty controls.",
+    "Full BLOCK_COLUMNS_FIELDS, exact post-menu caret, IME and other browser/platform behavior remain open."
+  ]
+}

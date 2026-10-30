@@ -1,0 +1,164 @@
+{
+  "reviewedSource": "9199bb27b089de90803d47e4279843282215a637",
+  "rawSha256": "b6ef5727d4bff092ee01575054054382766e374795deb5cac9460b2e91f37524",
+  "finding": "Observation values alias the mutable transactions array; late operations change earlier evidence while stored verdicts retain the original result. Snapshot both sides at check time.",
+  "mismatches": [
+    {
+      "source": "spec-baseline",
+      "case": "caseTransform/lifetime/read-only",
+      "phase": "inactive-ui",
+      "property": "noCompletedAction",
+      "stored": "PASS",
+      "recomputed": "FAIL",
+      "actual": [
+        {
+          "action": "commit",
+          "origin": "user",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "undo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "redo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        }
+      ],
+      "expected": []
+    },
+    {
+      "source": "spec-baseline",
+      "case": "caseTransform/lifetime/destroy",
+      "phase": "inactive-ui",
+      "property": "noCompletedAction",
+      "stored": "PASS",
+      "recomputed": "FAIL",
+      "actual": [
+        {
+          "action": "commit",
+          "origin": "user",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "undo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "redo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        }
+      ],
+      "expected": []
+    },
+    {
+      "source": "candidate",
+      "case": "clearFormatting/lifetime/read-only",
+      "phase": "inactive-ui",
+      "property": "noCompletedAction",
+      "stored": "PASS",
+      "recomputed": "FAIL",
+      "actual": [
+        {
+          "action": "commit",
+          "origin": "user",
+          "name": "inline.clearFormatting"
+        },
+        {
+          "action": "undo",
+          "origin": "history",
+          "name": "inline.clearFormatting"
+        },
+        {
+          "action": "redo",
+          "origin": "history",
+          "name": "inline.clearFormatting"
+        }
+      ],
+      "expected": []
+    },
+    {
+      "source": "candidate",
+      "case": "clearFormatting/lifetime/destroy",
+      "phase": "inactive-ui",
+      "property": "noCompletedAction",
+      "stored": "PASS",
+      "recomputed": "FAIL",
+      "actual": [
+        {
+          "action": "commit",
+          "origin": "user",
+          "name": "inline.clearFormatting"
+        },
+        {
+          "action": "undo",
+          "origin": "history",
+          "name": "inline.clearFormatting"
+        },
+        {
+          "action": "redo",
+          "origin": "history",
+          "name": "inline.clearFormatting"
+        }
+      ],
+      "expected": []
+    },
+    {
+      "source": "candidate",
+      "case": "caseTransform/lifetime/read-only",
+      "phase": "inactive-ui",
+      "property": "noCompletedAction",
+      "stored": "PASS",
+      "recomputed": "FAIL",
+      "actual": [
+        {
+          "action": "commit",
+          "origin": "user",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "undo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "redo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        }
+      ],
+      "expected": []
+    },
+    {
+      "source": "candidate",
+      "case": "caseTransform/lifetime/destroy",
+      "phase": "inactive-ui",
+      "property": "noCompletedAction",
+      "stored": "PASS",
+      "recomputed": "FAIL",
+      "actual": [
+        {
+          "action": "commit",
+          "origin": "user",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "undo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        },
+        {
+          "action": "redo",
+          "origin": "history",
+          "name": "inline.caseTransform"
+        }
+      ],
+      "expected": []
+    }
+  ],
+  "resolution": "Reported to author; final source will supersede this attempt."
+}

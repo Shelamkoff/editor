@@ -1,0 +1,30 @@
+{
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "candidate": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+  "commits": [
+    {
+      "commit": "c66fb93749003589f514eb5d52de45cc6dc3b86e",
+      "parent": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "tree": "dbff757ed28efe9fafc6f16ced51d163a9fb29fe",
+      "rawCommit": "tree dbff757ed28efe9fafc6f16ced51d163a9fb29fe\nparent 69c8425e0081fde69cf5176ccb73d032720c15fc\nauthor Codex <codex@openai.com> 1793380937 +0300\ncommitter Codex <codex@openai.com> 1793380937 +0300\n\ntest(raw): compare literal source editing and preview transitions\n",
+      "patch": "reproduce/c66fb937.patch.gz",
+      "decodedPatchSha256": "ee0514fc153e4e9b4e9accd35cfff868a36c547ec5f57b31fa0a6247f0586655"
+    },
+    {
+      "commit": "e122f317581f116631f9d33c27768012682ac310",
+      "parent": "c66fb93749003589f514eb5d52de45cc6dc3b86e",
+      "tree": "a7515656f3aff78da857f1bfef3bf1ffde08beae",
+      "rawCommit": "tree a7515656f3aff78da857f1bfef3bf1ffde08beae\nparent c66fb93749003589f514eb5d52de45cc6dc3b86e\nauthor Codex <codex@openai.com> 1793380965 +0300\ncommitter Codex <codex@openai.com> 1793380965 +0300\n\ntest(raw): use each registered block schema version in comparison\n",
+      "patch": "reproduce/e122f317.patch.gz",
+      "decodedPatchSha256": "30830b6f738b9147ad8a87ec0d7e8b1239c920a147eb958f88ab42a10ff6e76f"
+    },
+    {
+      "commit": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "parent": "e122f317581f116631f9d33c27768012682ac310",
+      "tree": "6fa6f2946a375bae518a95f91c005ea42ab04833",
+      "rawCommit": "tree 6fa6f2946a375bae518a95f91c005ea42ab04833\nparent e122f317581f116631f9d33c27768012682ac310\nauthor Codex <codex@openai.com> 1793381073 +0300\ncommitter Codex <codex@openai.com> 1793381073 +0300\n\ntest(raw): observe handled Tab keys during event capture\n",
+      "patch": "reproduce/90b28965.patch.gz",
+      "decodedPatchSha256": "80850e0c60a9ecb66b17c2ac4e1514db792eb863aaa6b9bd315c41d7f8af9328"
+    }
+  ]
+}

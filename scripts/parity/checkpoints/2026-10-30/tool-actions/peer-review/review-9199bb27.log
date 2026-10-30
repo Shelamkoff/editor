@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/2231de9d6b0d/tool-actions-peer-review/review.py", line 323, in <module>
+    main()
+  File "/workspace/scratch/2231de9d6b0d/tool-actions-peer-review/review.py", line 240, in main
+    assert observation['status'] == verdict, (row['source'], case['id'], key, observation['status'], verdict)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('spec-baseline', 'caseTransform/lifetime/read-only', ('inactive-ui', 'noCompletedAction'), 'PASS', 'FAIL')
