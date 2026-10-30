@@ -1,0 +1,108 @@
+{
+  "repository": "Shelamkoff/editor",
+  "branch": "refactor/rector-v2-architecture",
+  "transport": "Authenticated GitHub Git Data API; console Git had no credentials.",
+  "originalBase": "132b59923de9bc6b1f3b3f73ba48c6d1f040826a",
+  "originalHead": "a7dc4172198dea9c641f5de41d4331e5a94a17b4",
+  "publishedHead": "0fbe8c78d3dcc14d8a619cc152f08d6343cb3952",
+  "verified": {
+    "commitCount": 10,
+    "allTreesIdentical": true,
+    "allParentLinksVerified": true,
+    "allMessagesIdentical": true,
+    "remoteRefVerified": true,
+    "remoteTipAtPublication": "ae79a89c66c9b4b467e149dcaf45db2c99b0f617"
+  },
+  "commits": [
+    {
+      "local": "633ab90a4a002d21d1595bd598ebb749f87cd370",
+      "published": "98bce348c3cd99f9d1f7dca7948eef07379e101c",
+      "tree": "294c7958aa44a12e4799de4f453957f05db9e2c0",
+      "parentLocal": "132b59923de9bc6b1f3b3f73ba48c6d1f040826a",
+      "parentPublished": "132b59923de9bc6b1f3b3f73ba48c6d1f040826a",
+      "message": "fix(code): keep unknown explicit languages as literal text\n",
+      "rawCommit": "tree 294c7958aa44a12e4799de4f453957f05db9e2c0\nparent 132b59923de9bc6b1f3b3f73ba48c6d1f040826a\nauthor Codex <codex@openai.com> 1793376109 +0300\ncommitter Codex <codex@openai.com> 1793376649 +0300\n\nfix(code): keep unknown explicit languages as literal text\n"
+    },
+    {
+      "local": "2752639dbd03e84cc42658f2cdd04ee0c1f766f5",
+      "published": "1a5677118c07a6c713fb12d2e74c5d4712bca9e2",
+      "tree": "f3357cac535fafc1167612569b985df64fe98feb",
+      "parentLocal": "633ab90a4a002d21d1595bd598ebb749f87cd370",
+      "parentPublished": "98bce348c3cd99f9d1f7dca7948eef07379e101c",
+      "message": "test(code): compare explicit language highlighting with pinned sources\n",
+      "rawCommit": "tree f3357cac535fafc1167612569b985df64fe98feb\nparent 633ab90a4a002d21d1595bd598ebb749f87cd370\nauthor Codex <codex@openai.com> 1793376226 +0300\ncommitter Codex <codex@openai.com> 1793376649 +0300\n\ntest(code): compare explicit language highlighting with pinned sources\n"
+    },
+    {
+      "local": "cebe747b701ddf5584fc066fb242764ac03d975a",
+      "published": "4708358f23e0de425573b39c3d0ec0bd865080df",
+      "tree": "7f15ca8d56d863e7aeda5cc1861356dff3a5b404",
+      "parentLocal": "2752639dbd03e84cc42658f2cdd04ee0c1f766f5",
+      "parentPublished": "1a5677118c07a6c713fb12d2e74c5d4712bca9e2",
+      "message": "test(code): adapt the v1 language label selector\n",
+      "rawCommit": "tree 7f15ca8d56d863e7aeda5cc1861356dff3a5b404\nparent 2752639dbd03e84cc42658f2cdd04ee0c1f766f5\nauthor Codex <codex@openai.com> 1793376289 +0300\ncommitter Codex <codex@openai.com> 1793376649 +0300\n\ntest(code): adapt the v1 language label selector\n"
+    },
+    {
+      "local": "868ae6f77ad17f4d89d0269769d2c097634b43ac",
+      "published": "79f40e3c61c227890240cf9945561bfb091b02f3",
+      "tree": "40b88113d1e5ed745474299bd37b4e2be3c5e9cd",
+      "parentLocal": "cebe747b701ddf5584fc066fb242764ac03d975a",
+      "parentPublished": "4708358f23e0de425573b39c3d0ec0bd865080df",
+      "message": "fix(inline-tools): keep transformations within authored editing hosts\n",
+      "rawCommit": "tree 40b88113d1e5ed745474299bd37b4e2be3c5e9cd\nparent cebe747b701ddf5584fc066fb242764ac03d975a\nauthor Codex <codex@openai.com> 1793376322 +0300\ncommitter Codex <codex@openai.com> 1793376649 +0300\n\nfix(inline-tools): keep transformations within authored editing hosts\n"
+    },
+    {
+      "local": "89bd02bc0620e2b6cba2fea20f97d881ba170391",
+      "published": "37f027b8d89fc9a13314928400108a08dd325c28",
+      "tree": "0cee8d70eca34cefb08de083abbfafef05f12f04",
+      "parentLocal": "868ae6f77ad17f4d89d0269769d2c097634b43ac",
+      "parentPublished": "79f40e3c61c227890240cf9945561bfb091b02f3",
+      "message": "test(inline-tools): compare independent formatting host ownership\n",
+      "rawCommit": "tree 0cee8d70eca34cefb08de083abbfafef05f12f04\nparent 868ae6f77ad17f4d89d0269769d2c097634b43ac\nauthor Codex <codex@openai.com> 1793376500 +0300\ncommitter Codex <codex@openai.com> 1793376649 +0300\n\ntest(inline-tools): compare independent formatting host ownership\n"
+    },
+    {
+      "local": "897657e620ff23639fab6ddf9a02899b71adb8ff",
+      "published": "6e94c9269062679a73d9d11366e7c945e49990c2",
+      "tree": "e3cb7ddc2df4311ec349c6c1f40da1886d3e1a67",
+      "parentLocal": "89bd02bc0620e2b6cba2fea20f97d881ba170391",
+      "parentPublished": "37f027b8d89fc9a13314928400108a08dd325c28",
+      "message": "test(table): verify structural controls and header parity\n",
+      "rawCommit": "tree e3cb7ddc2df4311ec349c6c1f40da1886d3e1a67\nparent 89bd02bc0620e2b6cba2fea20f97d881ba170391\nauthor Codex <codex@openai.com> 1793376662 +0300\ncommitter Codex <codex@openai.com> 1793376662 +0300\n\ntest(table): verify structural controls and header parity\n"
+    },
+    {
+      "local": "80170c3c27d83e1a503a33d0ac52b7d9bd358a12",
+      "published": "3afa6d367b2bbc887ba9b55f50e42eb32112f767",
+      "tree": "c57a4c2aff5b66054948bad2ff3f12fe7d7990c3",
+      "parentLocal": "897657e620ff23639fab6ddf9a02899b71adb8ff",
+      "parentPublished": "6e94c9269062679a73d9d11366e7c945e49990c2",
+      "message": "test(parity): retain exact source identities after publication\n",
+      "rawCommit": "tree c57a4c2aff5b66054948bad2ff3f12fe7d7990c3\nparent 897657e620ff23639fab6ddf9a02899b71adb8ff\nauthor Codex <codex@openai.com> 1793376776 +0300\ncommitter Codex <codex@openai.com> 1793376776 +0300\n\ntest(parity): retain exact source identities after publication\n"
+    },
+    {
+      "local": "e7bd71554df5d2ff74b2d00396f170eb0bc2d4d4",
+      "published": "99ad2218eb43b7d7f7b5112d82dbcd54105f5069",
+      "tree": "04b2ddcdf1c452f0ef313192ba9cb512c0ca6052",
+      "parentLocal": "80170c3c27d83e1a503a33d0ac52b7d9bd358a12",
+      "parentPublished": "3afa6d367b2bbc887ba9b55f50e42eb32112f767",
+      "message": "test(code): retain language selection and native parity evidence\n",
+      "rawCommit": "tree 04b2ddcdf1c452f0ef313192ba9cb512c0ca6052\nparent 80170c3c27d83e1a503a33d0ac52b7d9bd358a12\nauthor Codex <codex@openai.com> 1793376529 +0300\ncommitter Codex <codex@openai.com> 1793376776 +0300\n\ntest(code): retain language selection and native parity evidence\n"
+    },
+    {
+      "local": "530e07df08968b9d3fda3fd8e0206ecc195d0f00",
+      "published": "282af851f319456fc4dc531f7560a8febb580572",
+      "tree": "b972f2c6193884c65f569877c7ae4e29dd17aedc",
+      "parentLocal": "e7bd71554df5d2ff74b2d00396f170eb0bc2d4d4",
+      "parentPublished": "99ad2218eb43b7d7f7b5112d82dbcd54105f5069",
+      "message": "test(parity): retain formatting host ownership evidence\n",
+      "rawCommit": "tree b972f2c6193884c65f569877c7ae4e29dd17aedc\nparent e7bd71554df5d2ff74b2d00396f170eb0bc2d4d4\nauthor Codex <codex@openai.com> 1793376691 +0300\ncommitter Codex <codex@openai.com> 1793376776 +0300\n\ntest(parity): retain formatting host ownership evidence\n"
+    },
+    {
+      "local": "a7dc4172198dea9c641f5de41d4331e5a94a17b4",
+      "published": "0fbe8c78d3dcc14d8a619cc152f08d6343cb3952",
+      "tree": "500d124440261953986dac14afa51d444f35ac5c",
+      "parentLocal": "530e07df08968b9d3fda3fd8e0206ecc195d0f00",
+      "parentPublished": "282af851f319456fc4dc531f7560a8febb580572",
+      "message": "test(table): retain independently reviewed settings parity proof\n",
+      "rawCommit": "tree 500d124440261953986dac14afa51d444f35ac5c\nparent 530e07df08968b9d3fda3fd8e0206ecc195d0f00\nauthor Codex <codex@openai.com> 1793376732 +0300\ncommitter Codex <codex@openai.com> 1793376776 +0300\n\ntest(table): retain independently reviewed settings parity proof\n"
+    }
+  ]
+}

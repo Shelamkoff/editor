@@ -32,12 +32,15 @@ the published history.
 node --input-type=module <<'JS'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
-const map = JSON.parse(readFileSync('scripts/parity/checkpoints/2026-10-30/publication/source-map-first-batch.json', 'utf8'))
-for (const entry of map.commits) {
+const names = ['first-batch', 'second-batch', 'docs-repair']
+for (const name of names) {
+ const map = JSON.parse(readFileSync(`scripts/parity/checkpoints/2026-10-30/publication/source-map-${name}.json`, 'utf8'))
+ for (const entry of map.commits) {
   const actual = execFileSync('git', ['hash-object', '-t', 'commit', '-w', '--stdin'], {
     input: entry.rawCommit, encoding: 'utf8',
   }).trim()
   if (actual !== entry.local) throw new Error('Recorded commit hash mismatch: ' + entry.local)
+ }
 }
 JS
 ```
@@ -45,3 +48,25 @@ JS
 This map establishes exact source equivalence. It does not add a new test run,
 accept a preservation row or claim that original author/committer metadata was
 retained by the GitHub API.
+
+## Runtime and documentation-output continuation
+
+`source-map-second-batch.json` retains the next ten Code, formatting, Table and
+evidence commits. Tested source `a7dc4172198dea9c641f5de41d4331e5a94a17b4`
+is published as `0fbe8c78d3dcc14d8a619cc152f08d6343cb3952`; both trees are
+`500d124440261953986dac14afa51d444f35ac5c`.
+
+`source-map-docs-repair.json` retains the one-line VitePress generated-output
+ignore repair: local `369cf74e33f982eed78d5a8171e98b46e13f9fbb`, published
+`ae79a89c66c9b4b467e149dcaf45db2c99b0f617`, identical tree
+`dccd6e5ca1d77ea087c1ec5ac5dc1589b6240c22`. The original combined run records
+11 passed gates and a documentation cleanliness failure after an exit-0 command;
+the separate documentation repair run records three passed gates on unchanged
+source. [The integration checkpoint](../fifth-integration/README.md) retains both
+original outcomes and explains their different source identities.
+
+These eleven commits were published together with a non-force, expected-head
+update from `132b5992` to `ae79a89c`. A fresh fetch verified every tree, original
+object hash, message and mapped parent before the local branch moved to the
+identical published tree. The previous local chain remains on a preservation
+branch. Final report and documentation validation records follow separately.

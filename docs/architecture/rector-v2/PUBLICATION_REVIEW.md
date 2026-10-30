@@ -700,3 +700,40 @@ The [fourth integration checkpoint](https://github.com/Shelamkoff/editor/tree/re
 The common corpus has 12 more candidate observations than the third integration: four existing retired-caption checks now execute in each of the three populated Embed cases after Undo. All pass; the fixture and runner hashes, 65 case IDs and completed phases are unchanged. The earlier 11,434 total remains a result for its own source.
 
 The final native aggregate is counted once, including its initial JSON groups; overlapping scoped results are not added. Three newer raw comparisons remain separate from the twelve passing gates and retain their historical exit code 1. No new performance measurement or broader platform acceptance is inferred. The interrupted earlier run `run-NKp1Lt` remains interrupted: six gates completed, the browser gate was stopped for Link review, and later gates were not run. Subsequent evidence/report edits and their documentation validation have separate source identities in the checkpoint.
+
+## Table settings and public focus acceptance 2026-10-30
+
+**Accepted scenarios:** `BLOCK_TABLE_ROWS_COLUMNS`, `BLOCK_TABLE_HEADINGS`, `FOCUS_VALUES_OFFSET_1`–`FOCUS_VALUES_OFFSET_6`, and `DEFECT_FIRST_FOCUS`. The frozen implementation is `a7dc4172198dea9c641f5de41d4331e5a94a17b4`. Its [combined validation](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-30/fifth-integration) records 11 original gates PASS: 2,031 unit tests, 38 ordinary pages, 41 native result groups / 2,370 cases, package/declarations, both established differential corpora and resource controls. The documentation command exits 0 with successful build and smoke checks, but its gate fails on exactly three generated untracked assets; the original manifest remains `failed` with `sourceUnchanged: false`. A one-line `.gitignore` correction is the only tracked difference, and the separate `run-0ehV77` run passes all three documentation gates on its own unchanged source `369cf74e`. These nine additions bring the unchanged 209-row register to **46 accepted / 163 open**; those are verification obligations, not a defect count or a completion percentage.
+
+The fresh comparisons execute the pinned v1 source `5e5c7f8d`, specification baseline `e981ff30`, and the frozen implementation. All cases complete without page or server errors. Historical failures retain their raw verdicts. As the user explicitly clarified, improved current behavior is preserved; parity does not require restoring earlier defects.
+
+### Table settings
+
+The [Table evidence](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-30/table-settings) covers **14 cases / 1,346 candidate observations**, all passing. Every existing row/column action and the heading toggle run on a populated 2×2 table both with and without headings. Separate cases cover the disabled deletion controls on a headed 1×1 table and removal of a row/column containing additional Mention/Color occurrences.
+
+Real native input precedes the setting action. The checks preserve text, marks, sidecars, surviving IDs and order; added IDs are nonempty and unique. Editor and renderer output agree on cells, TH/TD and THEAD/TBODY structure. Each setting is exactly one action separate from the preceding input; keyboard Undo/Redo restores the original, typed and final records, including deleted widget payloads and generated IDs. Disabled minimum-size actions create no history. Retained menu controls cannot author after retirement.
+
+The specification baseline also passes 1,346 observations. v1 completes 1,210 observations with 38 historical focus/caret failures; its data, formatting, structure, rendering and positive history checks pass. Current focus and disabled-control improvements remain intact. The fixture explicitly refocuses the first field before the history sequence: it proves action count and input-caret replay, **not an exact caret position immediately after the settings menu**. The minimum-size native controls use headings; their availability depends on dimensions, not the heading flag, in the reviewed implementation.
+
+### Public focus coordinates
+
+The [focus evidence](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-30/public-focus) completes **7 cases / 147 candidate observations**, all passing. On the already-focused five-character `Alpha` field, requests resolve as follows:
+
+| Requested offset | Resulting logical offset |
+| --- | ---: |
+| `2` | 2 |
+| `2.9` | 2 |
+| `-2` | 0 |
+| `1000` | 5 |
+| `'start'` | 0 |
+| `'end'` | 5 |
+
+Each request returns `true`, preserves canonical/caller data and creates no history. The first request to another block's `text` field returns `true` at offset 2; the current-block event observes that completed position. Native insertion and one keyboard Undo/Redo preserve the exact records and caret.
+
+The specification baseline has eight raw differences in `DEFECT_FIRST_FOCUS`: the first request returns `false`, publishes offset 0 and consequently inserts/replays at the wrong position. v1 has no keyed/numeric focus API or boolean acknowledgment. Those seven v1 capabilities remain explicitly **unsupported**; the adapter does not invent them. Its separate public `block.focus()` plus native navigation control completes 20 observations with one historical Undo-caret failure.
+
+Independent review recomputed all **4,216** raw verdicts across the Table and focus comparisons, including the historical failures. It additionally reconstructed 282 Table phase states from fixed author data and checked all 314 focus expectations independently. The corresponding source-module and dependency hashes match their recorded sources.
+
+Acceptance is limited to these nine rows in Chrome 156 on Linux. Other Table operations, hidden/compound-field focus, IME and wider browser/platform coverage retain separate obligations. The Code and formatting-host repairs add bounded regression evidence without accepting their complete detailed rows. `B-HTML`, `B-STYLE`, complete structural `C09`/`T15` and whole-library parity remain open.
+
+The runtime published counterpart is [`0fbe8c78`](https://github.com/Shelamkoff/editor/commit/0fbe8c78d3dcc14d8a619cc152f08d6343cb3952), with the identical full tree `500d124440261953986dac14afa51d444f35ac5c`. The later ignore-only repair is published separately as [`ae79a89c`](https://github.com/Shelamkoff/editor/commit/ae79a89c66c9b4b467e149dcaf45db2c99b0f617), matching its tested tree `dccd6e5ca1d77ea087c1ec5ac5dc1589b6240c22`. Both original and repair validation retain their own sources and outcomes in the checkpoint; final report-content validation is recorded separately.
