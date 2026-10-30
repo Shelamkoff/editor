@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Renderer registration and disposal lifetimes</title></head>
+<body data-status="running"><pre id="result">running</pre>
+<script type="module">
+import { EditorRenderer } from '../../renderer/index.js'
+import { runRendererLifetimeParity } from './renderer-lifetime-parity-fixture.js'
+try {
+  const cases = runRendererLifetimeParity({ EditorRenderer })
+  document.querySelector('#result').textContent = JSON.stringify(cases, null, 2)
+  document.body.dataset.status = cases.every(entry => entry.complete && !entry.errors.length
+    && entry.observations.every(item => item.status === 'PASS')) ? 'pass' : 'fail'
+} catch (error) {
+  document.querySelector('#result').textContent = error.stack ?? String(error)
+  document.body.dataset.status = 'fail'
+}
+</script>
+</body></html>

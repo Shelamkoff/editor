@@ -1,0 +1,107 @@
+{
+  "createdAt": "2026-10-30T18:21:03.199495+00:00",
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "sources": {
+    "initialFixture": {
+      "commit": "4b8971fcfd413134bd0b791a6853208a32ce1dde",
+      "tree": "29fc21d6ac9601ee255a12623daa98c547dc098d",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/initialFixture.patch.gz",
+      "patchSha256": "28cbfd2d162984910dafe81e8c3bd74118e8a08e7f2c0556d0a0ab4da550852a"
+    },
+    "correctedFixture": {
+      "commit": "597f23cb5f6935e0882a35ea3d843752064e16ce",
+      "tree": "4d5862ec19548e28acf1c89e5e6505fa3b4919bc",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/correctedFixture.patch.gz",
+      "patchSha256": "3cf7e460ed70b6db22f8625422a5c163292c4d1ae6b67f39efe8849e4e2821b6"
+    },
+    "nativeRed": {
+      "commit": "bc62b28664b1bd2f357b19ff87fa5f86717d4f41",
+      "tree": "57fd742a5b87218eafe3e0f930c1d504a1a62952",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/nativeRed.patch.gz",
+      "patchSha256": "6bc636af78c01f10883680b92122c85b998e484979cb1fd115501d80feef69f5"
+    },
+    "nativeGreen": {
+      "commit": "6e679939f57ba538c8a2ee4302bf81aa2955e380",
+      "tree": "aa492652e20a86eb3cc7e98ba1793ec24a4dc1f2",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/nativeGreen.patch.gz",
+      "patchSha256": "d206903d5b0611fe8c7465621ad60212d80825d2c663847fce0f0300f2b42c74"
+    },
+    "finalSource": {
+      "commit": "2ffa4bc83e131e8828cfa7f3637774f70777dd75",
+      "tree": "5c6d30bcbbf9e3849d7fdb6b22f61d2242600106",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/finalSource.patch.gz",
+      "patchSha256": "f9b8fbcc2bf0265800a5a64aa76966165e3584c1a6a658a46418bd5283b86d58"
+    }
+  },
+  "checks": [
+    {
+      "name": "native-red",
+      "source": "bc62b28664b1bd2f357b19ff87fa5f86717d4f41",
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code highlighter cannot' node tests/browser/physical-history.mjs",
+      "exitCode": 1,
+      "cases": 2,
+      "failed": 2,
+      "evidence": "native-reentry-red.log.gz"
+    },
+    {
+      "name": "native-green",
+      "source": "6e679939f57ba538c8a2ee4302bf81aa2955e380",
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code highlighter cannot' node tests/browser/physical-history.mjs",
+      "exitCode": 0,
+      "cases": 2,
+      "passed": 2,
+      "evidence": "native-reentry-green.log.gz"
+    },
+    {
+      "name": "native-final",
+      "source": "2ffa4bc83e131e8828cfa7f3637774f70777dd75",
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code ' node tests/browser/physical-history.mjs",
+      "exitCode": 0,
+      "cases": 16,
+      "passed": 16,
+      "evidence": "native-code-final.log.gz"
+    },
+    {
+      "name": "units",
+      "source": "2ffa4bc83e131e8828cfa7f3637774f70777dd75",
+      "command": "node --test plugins/code/*.test.js shared/highlightRuntime.test.js",
+      "exitCode": 0,
+      "cases": 13,
+      "passed": 13,
+      "evidence": "unit-final.log.gz"
+    },
+    {
+      "name": "typecheck",
+      "source": "2ffa4bc83e131e8828cfa7f3637774f70777dd75",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidence": "typecheck-final.log.gz"
+    },
+    {
+      "name": "four-source-differential",
+      "source": "2ffa4bc83e131e8828cfa7f3637774f70777dd75",
+      "command": "node scripts/parity/code-controls.mjs",
+      "exitCode": 1,
+      "candidatePass": true,
+      "evidence": "differential-final.json.gz"
+    }
+  ],
+  "environment": {
+    "chrome": "156.0.8078.79",
+    "node": "v24.22.1",
+    "platform": "linux x64",
+    "dependencyRoot": "/workspace/scratch/40cb45010ec4/editor/node_modules",
+    "dependencyProvenance": "npm ci --ignore-scripts --no-audit --no-fund by integration owner from matching base lockfile; actual served and bundled input hashes recorded in raw comparison"
+  },
+  "limitations": [
+    "Current Chromium/Linux scope; platform breadth is separate.",
+    "Rejected/unavailable clipboard are controlled host API boundaries; allowed copy uses actual browser Clipboard API and native paste.",
+    "No production renderer/highlightRuntime semantics changed.",
+    "This isolated source is not a combined integration or full-library acceptance gate."
+  ]
+}

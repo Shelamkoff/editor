@@ -90,3 +90,64 @@ for (const language of ['auto', 'javascript']) {
     equal(editor.canRedo, false)
   })
 }
+
+test('Code highlighter cannot publish after its callback destroys the editor', async () => {
+  let editor, armed = false, retiredPaint, retiredMarkup, completed = false
+  const runtime = {
+    getLanguage() { return true },
+    highlight(code) {
+      if (armed) {
+        armed = false
+        retiredPaint = blockElement(editor, 'code').querySelector('.oe-code-pre code')
+        editor.destroy()
+        retiredMarkup = retiredPaint.innerHTML
+        completed = true
+      }
+      return { value: `<span class="hljs-keyword">${escapeHtml(code)}</span>` }
+    },
+    highlightAuto(code) { return this.highlight(code) },
+  }
+  editor = mountCode('javascript', runtime)
+  assert(editor.blocks.focus('code', { fieldKey: 'code', offset: 'end' }))
+  armed = true
+  await printable('X')
+  assert(completed, 'Highlighter did not exercise successful retirement')
+  assert(!retiredPaint.isConnected, 'Destroyed Code remained mounted')
+  equal(retiredPaint.innerHTML, retiredMarkup, 'Obsolete highlighter mutated the retired Code view')
+})
+
+test('Code highlighter cannot overwrite a newer public data update from its callback', async () => {
+  let editor, armed = false, completed = false
+  const latest = 'const latest = 42;'
+  const runtime = {
+    getLanguage() { return true },
+    highlight(code) {
+      if (armed) {
+        armed = false
+        editor.blocks.update('code', current => ({ data: { ...current.data, code: latest } }))
+        completed = true
+      }
+      return { value: `<span class="hljs-keyword">${escapeHtml(code)}</span>` }
+    },
+    highlightAuto(code) { return this.highlight(code) },
+  }
+  editor = mountCode('javascript', runtime)
+  assert(editor.blocks.focus('code', { fieldKey: 'code', offset: 'end' }))
+  armed = true
+  await printable('X')
+  assert(completed, 'Highlighter did not exercise the accepted public update')
+  equal(editor.save().blocks[0].data, { code: latest, language: 'javascript' })
+  equal(blockElement(editor, 'code').querySelector('textarea').value, latest)
+  equal(blockElement(editor, 'code').querySelector('.oe-code-pre code').textContent, latest + '\n',
+    'Obsolete highlighter replaced the newer Code presentation')
+  assert(editor.blocks.focus('code', { fieldKey: 'code', offset: 'end' }))
+  await printable('Y')
+  equal(editor.save().blocks[0].data.code, latest + 'Y')
+  equal(blockElement(editor, 'code').querySelector('.oe-code-pre code').textContent, latest + 'Y\n')
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks[0].data.code, latest)
+  equal(blockElement(editor, 'code').querySelector('.oe-code-pre code').textContent, latest + '\n')
+  await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+  equal(editor.save().blocks[0].data.code, latest + 'Y')
+  equal(blockElement(editor, 'code').querySelector('.oe-code-pre code').textContent, latest + 'Y\n')
+})

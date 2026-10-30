@@ -1,0 +1,185 @@
+{
+  "status": "PASS",
+  "sourceTreesReconstructed": 11,
+  "verdictsRecalculated": 8359,
+  "sourceHashRecordsVerified": 2263,
+  "servedDependencyHashRecordsVerified": 261,
+  "highlighterInputHashRecordsVerified": 1358,
+  "archiveHashesVerified": 46,
+  "comparisons": [
+    {
+      "name": "candidate-initial",
+      "candidatePass": false,
+      "counts": {
+        "candidate": {
+          "cases": 14,
+          "observations": 379,
+          "rawFailures": 6,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [],
+      "acceptedForParity": false
+    },
+    {
+      "name": "differential-initial",
+      "candidatePass": true,
+      "counts": {
+        "v1": {
+          "cases": 14,
+          "observations": 384,
+          "rawFailures": 18,
+          "errors": 0
+        },
+        "spec-baseline": {
+          "cases": 14,
+          "observations": 384,
+          "rawFailures": 2,
+          "errors": 0
+        },
+        "candidate": {
+          "cases": 14,
+          "observations": 384,
+          "rawFailures": 0,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [],
+      "acceptedForParity": false
+    },
+    {
+      "name": "differential-final",
+      "candidatePass": true,
+      "counts": {
+        "v1": {
+          "cases": 15,
+          "observations": 397,
+          "rawFailures": 19,
+          "errors": 0
+        },
+        "spec-baseline": {
+          "cases": 15,
+          "observations": 397,
+          "rawFailures": 3,
+          "errors": 0
+        },
+        "pre-fix": {
+          "cases": 15,
+          "observations": 397,
+          "rawFailures": 1,
+          "errors": 0
+        },
+        "candidate": {
+          "cases": 15,
+          "observations": 397,
+          "rawFailures": 0,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [],
+      "acceptedForParity": false
+    },
+    {
+      "name": "renderer-red",
+      "candidatePass": false,
+      "counts": {
+        "candidate": {
+          "cases": 12,
+          "observations": 149,
+          "rawFailures": 5,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [],
+      "acceptedForParity": false
+    },
+    {
+      "name": "complete-candidate",
+      "candidatePass": false,
+      "counts": {
+        "candidate": {
+          "cases": 28,
+          "observations": 563,
+          "rawFailures": 2,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [],
+      "acceptedForParity": false
+    },
+    {
+      "name": "complete-final",
+      "candidatePass": true,
+      "counts": {
+        "v1": {
+          "cases": 28,
+          "observations": 565,
+          "rawFailures": 22,
+          "errors": 0
+        },
+        "spec-baseline": {
+          "cases": 28,
+          "observations": 565,
+          "rawFailures": 5,
+          "errors": 0
+        },
+        "pre-fix": {
+          "cases": 28,
+          "observations": 565,
+          "rawFailures": 2,
+          "errors": 0
+        },
+        "candidate": {
+          "cases": 28,
+          "observations": 565,
+          "rawFailures": 0,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [
+        {
+          "source": "v1",
+          "case": "renderer-copy-pending-retired",
+          "phase": "pending",
+          "property": "exactRequest",
+          "recorded": "PASS",
+          "recalculated": "FAIL"
+        }
+      ],
+      "acceptedForParity": false
+    },
+    {
+      "name": "reviewed-final",
+      "candidatePass": true,
+      "counts": {
+        "v1": {
+          "cases": 28,
+          "observations": 567,
+          "rawFailures": 21,
+          "errors": 0
+        },
+        "spec-baseline": {
+          "cases": 28,
+          "observations": 567,
+          "rawFailures": 4,
+          "errors": 0
+        },
+        "pre-fix": {
+          "cases": 28,
+          "observations": 567,
+          "rawFailures": 2,
+          "errors": 0
+        },
+        "candidate": {
+          "cases": 28,
+          "observations": 567,
+          "rawFailures": 0,
+          "errors": 0
+        }
+      },
+      "recordedVerdictMismatches": [],
+      "acceptedForParity": true
+    }
+  ],
+  "scope": "Recorded verdict consistency and immutable bytes; this is not independent browser execution."
+}
