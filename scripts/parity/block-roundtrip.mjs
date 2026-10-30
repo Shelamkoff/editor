@@ -358,6 +358,142 @@ function classifyImageRichDifference(source, entry, failure) {
   return null
 }
 
+// Exact captured Person reference differences. No candidate exception exists.
+const personCaseIds = ['BLOCK_PERSON_ROUNDTRIP/default', 'BLOCK_PERSON_ROUNDTRIP/populated',
+  'BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control', 'BLOCK_PERSON_ROUNDTRIP/populated-literal']
+const personPhases = ['load', 'read-only', 'editable-again', 'edit', 'undo', 'redo']
+const personPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
+const personMark = (tag, text) => ({ tag, attributes: {}, children: [text] })
+const personName = ({ wrapped, literal, edited, canonical }) => canonical
+  ? [personMark('b', 'Alpha'), ...(wrapped || literal ? [' ', personMark('i', literal ? 'Ada' : '{{mention}}'), ' tail' + (edited ? 'X' : '')] : [' {{mention}} tail' + (edited ? 'X' : '')])]
+  : '<b>Alpha</b> ' + (wrapped || literal ? `<i>${literal ? 'Ada' : '{{mention}}'}</i>` : '{{mention}}') + ' tail' + (edited ? 'X' : '')
+function personRecords({ legacy, wrapped, literal, edited, canonical = false, sidecars = !literal }) {
+  const rich = (tag, text) => canonical ? [personMark(tag, text)] : `<${tag}>${text}</${tag}>`
+  const link = (type, url) => ({ ...(!legacy ? { id: 'site' } : {}), type, url })
+  const record = (id, type, dataVersion, data, inline) => ({ id, type, ...(!legacy ? { dataVersion } : {}), data, ...(inline ? { inline } : {}) })
+  const widget = (type, data) => ({ type, ...(!legacy ? { dataVersion: 1 } : {}), data })
+  const inline = { mention: widget('mention', { id: 'ada', name: 'Ada' }), swatch: widget('color', { value: '#123456' }) }
+  const bio = literal ? canonical ? [personMark('s', 'First'), ' biography'] : '<s>First</s> biography'
+    : canonical ? (wrapped ? [personMark('s', '{{swatch}}'), ' first biography'] : ['{{swatch}} first biography'])
+      : (wrapped ? '<s>{{swatch}}</s>' : '{{swatch}}') + ' first biography'
+  return [
+    record('prefix', 'paragraph', 2, { text: rich('b', 'Before') }),
+    record('probe', 'person', 2, { persons: [
+      { ...(!legacy ? { id: 'lead' } : {}), avatar: personPixel, name: personName({ wrapped, literal, edited, canonical }),
+        role: rich('mark', 'Engineer'), bio, links: [link('website', 'https://example.test/ada')] },
+      { ...(!legacy ? { id: 'guest' } : {}), avatar: '', name: rich('b', 'Grace'), role: rich('i', 'Reviewer'),
+        bio: rich('mark', 'Second biography'), links: [link('github', 'https://example.test/grace')] },
+    ] }, sidecars ? inline : undefined),
+    record('suffix', 'paragraph', 2, { text: rich('i', 'After') }),
+  ]
+}
+function personDefaultRecords(id, legacy, edited) {
+  return [{ id, type: 'person', ...(!legacy ? { dataVersion: 2 } : {}), data: { persons: legacy && !edited ? [] : [{
+    ...(!legacy ? { id: 'person-0' } : {}), avatar: '', name: edited ? 'X' : '', role: '', bio: '', links: [],
+  }] } }]
+}
+function personRendered({ wrapped, literal, edited, rawAlternative }) {
+  const profiles = personRecords({ legacy: false, wrapped, literal, edited, canonical: true })[1].data.persons
+  return [[personMark('b', 'Before')], { cards: profiles.map((profile, index) => ({
+    tag: 'DIV', name: { tag: 'DIV', markup: profile.name }, role: { tag: 'DIV', markup: profile.role }, bio: { tag: 'DIV', markup: profile.bio },
+    avatar: index ? null : { src: personPixel, alt: rawAlternative
+      ? personName({ wrapped, literal, edited, canonical: false }) : 'Alpha ' + (literal ? 'Ada' : '@Ada') + ' tail' + (edited ? 'X' : ''), loading: 'lazy' },
+    links: profile.links.map(link => ({ tag: 'A', href: link.url, title: link.type, target: '_blank', rel: 'noopener noreferrer', text: link.url.replace(/^https?:\/\//, '') })),
+  })) }, [personMark('i', 'After')]]
+}
+const personWidgets = [{ id: 'mention', type: 'mention', text: '@Ada', value: 'ada' }, { id: 'swatch', type: 'color', text: '#123456', value: '#123456' }]
+const personCaret = offset => ({ focused: true, anchor: offset, focus: offset, collapsed: true })
+const personOwner = (id, text, offset) => ({ active: { block: id, node: 'DIV', className: 'oe-person__name' },
+  anchor: { block: id, node: '#text', text, offset }, focus: { block: id, node: '#text', text, offset } })
+function classifyPersonDifference(source, entry, failure) {
+  if (!personCaseIds.includes(entry.id) || !['v1', 'spec-baseline'].includes(source)) return null
+  if (failure.status !== (failure.property === 'execution' ? 'ERROR' : 'FAIL')) return null
+  const same = (left, right) => JSON.stringify(left) === JSON.stringify(right)
+  const matches = (actual, expected) => Object.hasOwn(failure, 'expected') && same(failure.actual, actual) && same(failure.expected, expected)
+  const phase = name => entry.phases?.find(item => item.phase === name)
+  const empty = entry.id === personCaseIds[0], wrapped = entry.id === personCaseIds[1], literal = entry.id === personCaseIds[3]
+  const widgetCase = !empty && !literal, legacy = source === 'v1'
+  const id = empty ? phase('load')?.blocks?.[0]?.id : 'probe'
+  if (typeof id !== 'string' || !id) return null
+  const complete = same(entry.completedPhases, [...personPhases, 'dispose'])
+    && same(entry.phases?.map(item => item.phase), personPhases) && !entry.incompletePhases?.length
+  const incomplete = !legacy && widgetCase && same(entry.completedPhases, ['load'])
+    && same(entry.phases?.map(item => item.phase), ['load'])
+    && same(entry.incompletePhases, ['read-only', 'editable-again', 'edit', 'undo', 'redo', 'dispose'])
+  if (!complete && !incomplete) return null
+  // Every admitted vector belongs to the same exact fixed author/history data.
+  // Legacy widget cases intentionally retain the captured missing sidecars;
+  // they are unsupported-capability observations, never successful v1 parity.
+  if (!(complete ? personPhases : ['load']).every(name => same(phase(name)?.blocks, empty
+    ? personDefaultRecords(id, legacy, ['edit', 'redo'].includes(name))
+    : personRecords({ legacy, wrapped, literal, edited: ['edit', 'redo'].includes(name), sidecars: !legacy && widgetCase })))) return null
+  const observedPhases = complete ? personPhases : ['load']
+  if (!same(entry.observations?.filter(item => item.property === 'historyState'), observedPhases.map(name => {
+    const value = { canUndo: ['edit', 'redo'].includes(name), canRedo: name === 'undo' }
+    return { phase: name, property: 'historyState', status: 'PASS', actual: value, expected: value }
+  }))) return null
+  const edited = ['edit', 'redo'].includes(failure.phase), readonly = failure.phase === 'read-only'
+  if (legacy && complete) {
+    const mode = ['read-only', 'editable-again'].includes(failure.phase)
+    if (mode || ['undo', 'redo'].includes(failure.phase)) {
+      const count = failure.property === 'personWrapperIdentity' ? 1 : failure.property === 'blockDomIdentity' ? empty ? 1 : 3 : 0
+      if (count && matches(Array(count).fill(false), Array(count).fill(true))) return mode ? 'repaired-v1-person-mode-remount' : 'repaired-v1-person-history-remount'
+    }
+    if (widgetCase && personPhases.includes(failure.phase)) {
+      if (failure.property === 'canonicalRecords' && matches(
+        personRecords({ legacy: true, wrapped, literal: false, edited, canonical: true, sidecars: false }),
+        personRecords({ legacy: true, wrapped, literal: false, edited, canonical: true, sidecars: true }),
+      )) return 'unsupported-v1-person-field-sidecars'
+      if (['editorWidgets', 'attachedDetachedWidgets', 'mountedWidgets'].includes(failure.property) && matches([], personWidgets)) {
+        return 'unsupported-v1-person-field-widgets'
+      }
+      const nativeOwner = personOwner('probe', wrapped ? ' tailX' : ' {{mention}} tailX', wrapped ? failure.phase === 'redo' ? 5 : 6 : failure.phase === 'redo' ? 17 : 18)
+      if (failure.phase === 'edit' && failure.property === 'fixtureCaret' && matches(personCaret(22), personCaret(12)) && same(phase('edit')?.selectionOwner, nativeOwner)) {
+        return 'unsupported-v1-person-widget-caret'
+      }
+      if (['edit', 'redo'].includes(failure.phase) && failure.property === 'nativeSelection'
+        && matches(personCaret(failure.phase === 'redo' ? 22 : 23), personCaret(13)) && same(phase(failure.phase)?.selectionOwner, nativeOwner)) {
+        return 'unsupported-v1-person-widget-caret'
+      }
+    }
+    if (failure.property === 'nativeSelection' && ['undo', 'redo'].includes(failure.phase)) {
+      if (empty && matches({ focused: true, anchor: null, focus: null, collapsed: true }, personCaret(edited ? 1 : 0))
+        && same(phase(failure.phase)?.selectionOwner, personOwner(id, 'Links', 5))) return 'repaired-v1-person-empty-history-caret'
+      if (!empty && failure.phase === 'undo' && matches({ focused: false, anchor: null, focus: null, collapsed: true }, personCaret(literal ? 14 : 12))
+        && same(phase('undo')?.selectionOwner, { active: { block: 'prefix', node: 'P', className: 'oe-paragraph' },
+          anchor: { block: 'prefix', node: '#text', text: 'Before', offset: 6 }, focus: { block: 'prefix', node: '#text', text: 'Before', offset: 6 } })) return 'repaired-v1-person-first-undo-caret'
+      if (literal && failure.phase === 'redo' && matches(personCaret(14), personCaret(15))
+        && same(phase('redo')?.selectionOwner, personOwner('probe', ' tailX', 5))) return 'repaired-v1-person-literal-redo-caret'
+    }
+  }
+  if (personPhases.includes(failure.phase) && failure.property === 'personTabs') {
+    if (empty && (['load', 'read-only', 'editable-again', 'undo'].includes(failure.phase) || legacy && failure.phase === 'edit')
+      && matches([{ active: true, draggable: !readonly, label: 'Person {number}' }],
+        [{ active: true, draggable: !readonly, label: edited ? 'X' : 'Person 1' }])) {
+      return legacy && edited ? 'repaired-v1-person-native-tab-label' : `repaired-${legacy ? 'v1' : 'baseline'}-person-fallback-label`
+    }
+    if (!empty) {
+      const expected = [{ active: true, draggable: !readonly, label: 'Alpha ' + (literal ? 'Ada' : '@Ada') + ' tail' + (edited ? 'X' : '') },
+        { active: false, draggable: !readonly, label: 'Grace' }]
+      const actual = legacy ? [{ active: true, draggable: !readonly, label: personName({ wrapped, literal, edited: failure.phase === 'redo', canonical: false }) },
+        { active: false, draggable: !readonly, label: '<b>Grace</b>' }]
+        : [{ active: true, draggable: true, label: 'Alpha {{mention}} tail' }, { active: false, draggable: true, label: 'Grace' }]
+      if ((legacy || incomplete && failure.phase === 'load') && matches(actual, expected)) return legacy
+        ? widgetCase ? 'unsupported-v1-person-widget-tab-label' : 'repaired-v1-person-literal-tab-label'
+        : 'repaired-baseline-person-widget-tab-label'
+    }
+  }
+  if (!empty && ['attachedDetachedAuthoredMarkup', 'mountedAuthoredMarkup'].includes(failure.property)
+    && personPhases.includes(failure.phase) && matches(personRendered({ wrapped, literal, edited, rawAlternative: true }), personRendered({ wrapped, literal, edited, rawAlternative: false }))) {
+    return legacy && widgetCase ? 'unsupported-v1-person-widget-avatar-alternative' : `repaired-${legacy ? 'v1' : 'baseline'}-person-avatar-alternative`
+  }
+  if (incomplete && failure.phase === 'read-only-transition' && failure.property === 'execution'
+    && failure.actual === 'Inline widget root left its projection boundary before hydration' && !Object.hasOwn(failure, 'expected')) {
+    return 'repaired-baseline-person-mode-field-replacement'
+  }
+  return null
+}
+
 const repo = fileURLToPath(new URL('../../', import.meta.url))
 const digest = bytes => createHash('sha256').update(bytes).digest('hex')
 const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
@@ -505,6 +641,7 @@ try {
         if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
         if (tableCaseIds.includes(entry.id)) return classifyTableDifference(source.label, entry, failure)
         if (imageRichCaseIds.includes(entry.id)) return classifyImageRichDifference(source.label, entry, failure)
+        if (personCaseIds.includes(entry.id)) return classifyPersonDifference(source.label, entry, failure)
         if (!observedIds.includes(entry.id)) return null
         if (source.label === 'v1') {
           const populated = !['BLOCK_PARAGRAPH_ROUNDTRIP/default', 'BLOCK_HEADING_ROUNDTRIP/default', 'BLOCK_LIST_ROUNDTRIP/default', 'BLOCK_QUOTE_ROUNDTRIP/default', 'BLOCK_WARNING_ROUNDTRIP/default', 'BLOCK_CODE_ROUNDTRIP/default', 'BLOCK_CHECKLIST_ROUNDTRIP/default', 'BLOCK_DELIMITER_ROUNDTRIP/default', 'BLOCK_IMAGE_ROUNDTRIP/default', 'BLOCK_TOGGLE_ROUNDTRIP/default', 'BLOCK_SPOILER_ROUNDTRIP/default', 'BLOCK_COLUMNS_ROUNDTRIP/default', 'BLOCK_ATTACHES_ROUNDTRIP/default', 'BLOCK_RAW_ROUNDTRIP/default'].includes(entry.id)
@@ -679,6 +816,10 @@ try {
       if (source.label === 'v1' && ['BLOCK_EMBED_ROUNDTRIP/populated', 'BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)) {
         entry.referenceCapability = { supported: false, feature: 'Persistent Embed caption widgets',
           reason: 'Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity.' }
+      }
+      if (source.label === 'v1' && ['BLOCK_PERSON_ROUNDTRIP/populated', 'BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control'].includes(entry.id)) {
+        entry.referenceCapability = { supported: false, feature: 'Persistent Person name and biography widgets',
+          reason: 'Pinned v1 Person declares inlineTools=false and no mapTextFields hook required by its public inline insertion gate. These are current-capability controls, not proof of v1 widget parity.' }
       }
       if (source.label === 'v1' && imageRichCaseIds.includes(entry.id)) {
         entry.referenceCapability = { supported: false, feature: 'Persistent Image caption widgets',

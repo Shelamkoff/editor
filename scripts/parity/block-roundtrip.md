@@ -255,6 +255,47 @@ retained as invalid fixture expectations, not production RED evidence.
 The corrected fixed fixture uses `i`; neither sanitizer policy nor the
 shared markup oracle is changed to admit those earlier failures.
 
+Person adds four cases: its actual one-profile empty default, a fixed pair
+with literal rich names and biography, and the same pair with real Mention
+in the first name and Color in its independent biography, inside and outside
+formatting. A local avatar, fixed website/GitHub links, role/biography markup,
+profile order, current profile/link IDs and the hidden second profile remain
+independent expectations. Trusted input edits only the active first name;
+the other fields and profile must survive mode changes and one Undo/Redo.
+Editor tab labels, exact editable field addresses, the decorative editor
+avatar and the renderer's meaningful alternative text are separate checks.
+
+Person deliberately rebuilds its body for mode changes and changed active
+data. The wrapper always stays stable. Load and native-input field identities
+remain strict; only the two mode transitions and history phases with an
+actually changed name may replace fields. A replaced host must be detached,
+and retained input/blur listeners must not change canonical data, history,
+live field identities, native selection or the current active tab label.
+The separate production regressions also exercise sibling updates, reorder,
+native preedit and removal of the active profile with real widget/range checks.
+
+The multi-profile renderer waits for connected, measurable layout before
+building its carousel cards. Its immediate disconnected `render()` result
+is therefore checked explicitly as an unfinished layout shell, with intact
+neighbor content and block identity. After that same shell is attached and
+the real layout settles, every card, authored field, link, avatar and widget
+must match. The independent `renderTo()` path has the same completed-output
+requirements. The first exploratory trace's synchronous detached-card and
+unconditional field-identity failures are retained as invalid fixture
+expectations, not production defects. No timeout counts as successful layout.
+
+Pinned v1 Person declares `inlineTools = false` and no `mapTextFields` hook;
+its public persistent-widget insertion gate requires the latter. The two
+widget cases are explicitly unsupported v1 reference capability, while the
+default and literal cases establish the supported historical basis. The
+saved-record renderer checks keep any raw missing sidecars visible; there
+is no adapter that strips them. Inactive rich-name tab labels remain OPEN:
+an unprojected profile has no completed rich field from which to derive a
+readable widget label. The active-name repair and a separate real hidden-field
+focus control do not claim to settle every inactive tab. Avatar upload/crop,
+tab activation/reorder, link actions and editing the other profile fields
+remain separate detailed behavior rows.
+
 Other inventory entries below are planned coverage, not completed tests.
 
 ## Source identities and test-only adapters
@@ -288,6 +329,16 @@ current file IDs; filename text is never parsed as rich markup.
 v1 Table receives the identical rectangular text matrix as `content: string[][]`
 with the same `withHeadings`; the current form adds fixed row/cell IDs. The
 adapter does not invent v1 identities or infer expected cells from a save.
+v1 Person receives the same profiles and links without current IDs. Its
+exact empty-default representation needs one further expected-wire adapter:
+only the pinned legacy source and `BLOCK_PERSON_ROUNDTRIP/default` may map
+one independently specified, wholly empty profile to `persons: []`. It
+requires empty avatar/name/role/bio, no links, no sidecars or extra data;
+nonempty or multiple profiles do not qualify. The actual save is untouched,
+and the editor and renderer still require one visible blank profile. Native
+`X` and Redo require that content to be saved, while Undo restores the empty
+representation. One positive and nineteen negative offline controls bound
+this adapter. This is a representation difference, not a repaired defect.
 These are fixture adapters, not production compatibility or a legacy
 decoder.
 
@@ -321,7 +372,7 @@ author data from an initial `save()` result.
 | Columns / 2 | Two empty columns, `1-1` layout | Fixed `1-2` rich columns with independent widgets; edit first column | Implemented: v1 column IDs absent; current IDs, both fields/order, grid/layout controls and renderer columns are checked. |
 | Spoiler / 1 | Empty label/content | Rich label/Mention and content/Color; edit label | Implemented: both fields and transient open/hidden presentation survive mode/history; renderer keeps an empty label and omits an empty body. |
 | Poll / 1 | Single choice, two empty options, always-visible results | Identified choices/question and fixed result data | Canonical results/provider effects must be distinguished; no external voting provider. |
-| Person / 2 | One empty profile and no links | Rich profile fields, local avatar and identified link | v1 profile/link IDs absent; hidden fields and empty draft filtering need explicit controls. |
+| Person / 2 | One empty profile and no links | Literal/current-widget profile fields, local avatar and identified links; edit active name | Implemented: fixed hidden second profile, keyed fields, retired-host controls, layout-completed renderer output and exact native history. v1 empty placeholder has a bounded expected-wire representation; persistent widgets are unsupported reference capability. Inactive rich-name tabs remain OPEN. |
 
 The existing `tests/browser/roundtrip.js` is a useful current-format smoke
 and save/reload check. It does not replace this template's native history,
@@ -388,9 +439,9 @@ history or disposal assertions. Known historical defects, if classified,
 remain visible as raw failures with exact source/scenario/property checks;
 unrelated candidate or baseline failures must remain fatal.
 
-The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed and Table oracle
+The Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed, Table and Person oracle
 classifies only observed historical differences or unsupported reference
-capability, bounded to the forty-seven exact scenario IDs in the runner:
+capability, bounded to the fifty-one exact scenario IDs in the runner:
 
 - v1 remounts the exact block/widget arrays, List items, Quote/Warning/Toggle/Spoiler fields, Columns fields, Code/Raw textareas and
   Checklist rows/buttons/labels, Delimiter HR, Image wrapper/picture/caption
@@ -547,6 +598,34 @@ capability, bounded to the forty-seven exact scenario IDs in the runner:
   The unwrapped populated control receives no exception and completes the
   full template.
 
+- Person has a separate classifier limited to its four exact IDs and the
+  two pinned reference sources. Every admitted pair requires the full fixed
+  canonical records for every completed content phase, exact history-state
+  observations and either all seven completed phases or the specific partial
+  mode failure below. The post-adapter raw v1 trace contains 151 differences:
+  90 unsupported widget-capability observations and 61 separately recorded
+  historical presentation, remount or caret defects. The four earlier empty
+  placeholder record mismatches are representation evidence, not additional
+  repaired defects. Default/literal expectations remain separate from widgets.
+- In both v1 Person widget controls, saved Mention/Color sidecars and actual
+  editor/output widgets are absent. Exact raw HTML/token tab labels and
+  avatar alternatives are retained alongside fixed readable expectations.
+  Native token-length offsets 22/23 versus logical 12/13 are bounded to their
+  actual wrapped/unwrapped text-node owners. The two-mode and two-history
+  block/wrapper remounts are separate defects. First Undo of populated cases
+  focuses the exact prefix Paragraph; literal Redo stops at offset 14 instead
+  of 15. Empty-default Undo/Redo focus the name but retain native endpoints on
+  the same generated block's `Links` text at offset 5. No arbitrary selection
+  or history result is classified.
+- The specification baseline's 24 Person differences comprise four literal
+  default fallback labels, sixteen exact avatar alternatives, two widget tab
+  labels and two mode failures. Both rich controls complete only load and
+  throw `Inline widget root left its projection boundary before hydration`
+  at the read-only transition; the remaining six phases stay incomplete.
+  Default and literal controls complete all seven phases. Missing media,
+  changed links/profiles, lost baseline sidecars, different history states
+  and any other error remain fatal. Candidate failures receive no exception.
+
 The runner also records uncaught browser errors in two independent raw
 channels: Playwright's page-error stack and a synchronous `window.error`
 observation carrying source, case ID, phase, name, message and stack. Neither
@@ -562,12 +641,12 @@ error records.
 
 The candidate receives none of these exceptions. Raw failures remain in
 the JSON alongside classifications. `unsupportedReferenceCases` explicitly
-lists the two v1 Embed and two v1 Image widget controls and does not grant v1 capability
+lists the two v1 Embed, two v1 Image and two v1 Person widget controls and does not grant v1 capability
 coverage. `incompleteCases` lists every partial
 scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed or Table behavior,
-the other 5 built-ins, hostile HTML/class confinement, all renderers,
+This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed, Table or Person behavior,
+the other 4 built-ins, hostile HTML/class confinement, all renderers,
 platform breadth or full editor parity.

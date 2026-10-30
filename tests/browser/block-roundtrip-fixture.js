@@ -138,6 +138,26 @@ const embed = {
     cover: pixel, title: 'Local preview', duration: '1:23' },
 }
 
+const person = {
+  type: 'person', version: 2, className: 'Person',
+  fieldSelector: '.oe-person__name', fieldTag: 'DIV',
+  defaultData: { persons: [{ id: 'person-0', avatar: '', name: '', role: '', bio: '', links: [] }] },
+  populatedData: { persons: [
+    { id: 'lead', avatar: pixel, name: '<b>Alpha</b> <i>{{mention}}</i> tail',
+      role: '<mark>Engineer</mark>', bio: '<s>{{swatch}}</s> first biography',
+      links: [{ id: 'site', type: 'website', url: 'https://example.test/ada' }] },
+    { id: 'guest', avatar: '', name: '<b>Grace</b>', role: '<i>Reviewer</i>',
+      bio: '<mark>Second biography</mark>', links: [{ id: 'site', type: 'github', url: 'https://example.test/grace' }] },
+  ] },
+  unwrappedData: { persons: [
+    { id: 'lead', avatar: pixel, name: '<b>Alpha</b> {{mention}} tail',
+      role: '<mark>Engineer</mark>', bio: '{{swatch}} first biography',
+      links: [{ id: 'site', type: 'website', url: 'https://example.test/ada' }] },
+    { id: 'guest', avatar: '', name: '<b>Grace</b>', role: '<i>Reviewer</i>',
+      bio: '<mark>Second biography</mark>', links: [{ id: 'site', type: 'github', url: 'https://example.test/grace' }] },
+  ] },
+}
+
 const delimiter = {
   type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
   defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
@@ -150,10 +170,11 @@ const withEditedText = (block, data, text) => block.noEditableField ? { ...data 
     cells: row.cells.map((cell, columnIndex) => rowIndex || columnIndex ? { ...cell } : { ...cell, text }),
   })) }
   : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
+  : block.type === 'person' ? { ...data, persons: data.persons.map((profile, index) => index ? { ...profile } : { ...profile, name: text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, person].flatMap(block => {
   const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -173,7 +194,10 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' } },
     { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets-unwrapped-control',
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> {{mention}} {{swatch}} tail' } },
-  ] : [])
+  ] : []).concat(block.type === 'person' ? [{ ...block, populated: true, literalFields: true, id: prefix + 'populated-literal',
+    populatedData: { persons: block.populatedData.persons.map((profile, index) => index ? { ...profile }
+      : { ...profile, name: '<b>Alpha</b> <i>Ada</i> tail', bio: '<s>First</s> biography' }) },
+  }] : [])
 })
 
 const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -260,13 +284,28 @@ async function settled() {
   await pause(20)
 }
 
+// Expected-wire adjustment for the pinned legacy runner only. The source is
+// the fixed expected fixture, never an initial save. v1 omits its sole wholly
+// empty draft profile; current Person keeps that placeholder's stable ID.
+export function expectedLegacyPersonPlaceholder(records, { legacy, caseId }) {
+  if (!legacy || caseId !== 'BLOCK_PERSON_ROUNDTRIP/default' || records.length !== 1) return records
+  const [block] = records
+  if (block.type !== 'person' || Object.hasOwn(block, 'inline')
+    || Object.keys(block.data).join() !== 'persons' || block.data.persons.length !== 1) return records
+  const [profile] = block.data.persons
+  if (Object.keys(profile).sort().join() !== 'avatar,bio,links,name,role'
+    || ['avatar', 'name', 'role', 'bio'].some(key => profile[key] !== '')
+    || !Array.isArray(profile.links) || profile.links.length !== 0) return records
+  return [{ ...block, data: { persons: [] } }]
+}
+
 export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut, onPhase }) {
   const noEditableField = specification.noEditableField === true
   const emptyImage = specification.type === 'image' && !specification.populated
   const emptyAttaches = specification.type === 'attaches' && !specification.populated
   const emptyEmbed = specification.type === 'embed' && !specification.populated
   const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
-  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption
+  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption && !specification.literalFields
   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
     authoringTarget: specification.populated ? { blockId: 'prefix', type: 'paragraph', relation: 'neighbor' } : null,
@@ -298,6 +337,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
         : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
           : legacy && block.type === 'table' ? { withHeadings: data.withHeadings, content: data.rows.map(row => row.cells.map(cell => cell.text)) }
+          : legacy && block.type === 'person' ? { persons: data.persons.map(({ id, ...profile }) => ({ ...profile,
+            links: profile.links.map(({ id: linkId, ...link }) => link),
+          })) }
           : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
@@ -388,12 +430,16 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const tableParts = () => [shell(id).querySelector('.oe-table-wrapper'), shell(id).querySelector('.oe-table'),
       ...tableRows(), ...tableRows().flatMap(row => [...row.cells])]
     let previousTableParts = specification.type === 'table' ? tableParts() : []
+    const personFields = () => ['name', 'role', 'bio'].map(key => shell(id).querySelector('.oe-person__' + key))
+    const personParts = () => [shell(id).querySelector('.oe-person'), ...personFields()]
+    let previousPersonParts = specification.type === 'person' ? personParts() : []
+    let previousPersonText
     const attachmentFields = () => [...shell(id).querySelectorAll('.oe-attaches__name')]
     let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
     const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
     const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = noEditableField ? specification.neighborText : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = noEditableField ? specification.neighborText : specification.type === 'person' ? baseData.persons[0].name : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
@@ -403,7 +449,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => ['spoiler', 'columns', 'attaches', 'table'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => ['spoiler', 'columns', 'attaches', 'table', 'person'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
@@ -414,6 +460,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
       : block.type === 'spoiler' ? { ...block.data, label: markupMeaning(block.data.label), content: markupMeaning(block.data.content) }
       : block.type === 'columns' ? { ...block.data, columns: block.data.columns.map(column => ({ ...column, content: markupMeaning(column.content) })) }
+      : block.type === 'person' ? { ...block.data, persons: block.data.persons.map(profile => ({ ...profile,
+        name: markupMeaning(profile.name), role: markupMeaning(profile.role), bio: markupMeaning(profile.bio),
+      })) }
       : block.type === 'table' ? legacy
         ? { ...block.data, content: block.data.content.map(row => row.map(markupMeaning)) }
         : { ...block.data, rows: block.data.rows.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell, text: markupMeaning(cell.text) })) })) }
@@ -529,7 +578,34 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
       ] }
     }
-    const expectedRendererMarkup = block => block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
+    const personText = html => literalText(html.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456'))
+    const personRendererMarkup = element => ({
+      cards: [...element.querySelectorAll('.editor-person__card')].map(card => {
+        const rich = key => {
+          const field = card.querySelector('.editor-person__' + key)
+          return field ? { tag: field.tagName, markup: authoredMarkup(field) } : null
+        }
+        const avatar = card.querySelector('.editor-person__avatar-img')
+        return { tag: card.tagName, name: rich('name'), role: rich('role'), bio: rich('bio'),
+          avatar: avatar ? { src: avatar.getAttribute('src'), alt: avatar.alt, loading: avatar.loading } : null,
+          links: [...card.querySelectorAll('.editor-person__link')].map(link => ({
+            tag: link.tagName, href: link.getAttribute('href'), title: link.title,
+            target: link.target, rel: link.rel, text: link.querySelector('.editor-person__link-url').textContent,
+          })),
+        }
+      }),
+    })
+    const expectedPersonRendererMarkup = block => ({ cards: block.data.persons.map(profile => {
+      const rich = key => profile[key] ? { tag: 'DIV', markup: markupMeaning(profile[key]) } : null
+      return { tag: 'DIV', name: rich('name'), role: rich('role'), bio: rich('bio'),
+        avatar: profile.avatar ? { src: profile.avatar, alt: personText(profile.name), loading: 'lazy' } : null,
+        links: profile.links.map(link => ({ tag: 'A', href: link.url, title: link.type,
+          target: '_blank', rel: 'noopener noreferrer', text: link.url.replace(/^https?:\/\//, ''),
+        })),
+      }
+    }) })
+    const expectedRendererMarkup = block => block.type === 'person' ? expectedPersonRendererMarkup(block)
+      : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
@@ -575,18 +651,36 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const sourceBefore = JSON.stringify(saved)
       const detached = renderer.render(saved)
       check(phase, 'detachedOutputOwnership', { connected: detached.isConnected, parent: detached.parentNode === null }, { connected: false, parent: true })
-      const inspectOutput = (root, name) => {
+      const pendingPersonLayout = specification.type === 'person' && baseData.persons.length > 1
+      const inspectOutput = (root, name, pendingLayout = false) => {
         const blocks = [...root.querySelectorAll('[data-block-id][data-block-type]')]
         check(phase, name + 'BlockCount', blocks.length, expected.length)
         check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
-        check(phase, name + 'AuthoredMarkup', blocks.map(rendererMarkup), expected.map(expectedRendererMarkup))
-        check(phase, name + 'Widgets', widgets(root), expectedWidgets)
+        if (pendingLayout) {
+          // Same-realm multi-profile output waits for an attached, measurable
+          // carousel container. This is an unfinished layout shell, not a
+          // completed card/inline-widget projection. Both mounted paths below
+          // must still produce every authored card and actual inline widget.
+          const person = blocks.find(element => element.dataset.blockType === 'person')
+          check(phase, name + 'PersonLayoutPending', {
+            cards: person.querySelectorAll('.editor-person__card').length,
+            containers: person.querySelectorAll('.editor-person__carousel').length,
+            widgets: widgets(root),
+          }, { cards: 0, containers: 1, widgets: [] })
+          check(phase, name + 'NeighborAuthoredMarkup', blocks.filter(element => element.dataset.blockType !== 'person').map(rendererMarkup),
+            expected.filter(block => block.type !== 'person').map(expectedRendererMarkup))
+        } else {
+          check(phase, name + 'AuthoredMarkup', blocks.map(element => element.dataset.blockType === 'person'
+            ? personRendererMarkup(element) : rendererMarkup(element)), expected.map(expectedRendererMarkup))
+          check(phase, name + 'Widgets', widgets(root), expectedWidgets)
+        }
         if (specification.type === 'code' && specification.populated) check(phase, name + 'CodeLanguage',
           blocks.find(element => element.dataset.blockId === id).querySelector('.editor-code__content').classList.contains('language-javascript'), true)
       }
-      inspectOutput(detached, 'detached')
+      inspectOutput(detached, 'detached', pendingPersonLayout)
       detachedMount.append(detached)
+      if (pendingPersonLayout) await settled()
       inspectOutput(detached, 'attachedDetached')
       renderer.renderTo(saved, mounted)
       await settled()
@@ -618,7 +712,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       snapshots[phase] = saved.blocks
       const expected = expectedBlocks(text)
       const target = expected.find(block => block.id === id)
-      check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
+      check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expectedLegacyPersonPlaceholder(expected, { legacy, caseId: specification.id })))
       if (hasAuthoring) {
         check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.type === 'table' ? baseData.withHeadings ? 'TH' : 'TD' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
         if (plainField) {
@@ -813,6 +907,67 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           cells: [...row.cells].map(cell => ({ rowId: cell.dataset.rowId, id: cell.dataset.cellId })),
         })), expectedRows.map(row => ({ id: row.id, cells: row.cells.map(cell => ({ rowId: row.id, id: cell.id })) })))
       }
+      if (specification.type === 'person') {
+        const profiles = withEditedText(specification, baseData, text).persons
+        const parts = personParts()
+        const active = profiles[0]
+        check(phase, 'personWrapperIdentity', [previousPersonParts[0] === parts[0]], [true])
+        const modeChanged = ['read-only', 'editable-again'].includes(phase)
+        const authorChanged = ['undo', 'redo'].includes(phase) && text !== previousPersonText
+        if (modeChanged || authorChanged) {
+          const currentFields = parts.slice(1), previousFields = previousPersonParts.slice(1)
+          check(phase, 'personFieldLifetime', currentFields.map((element, index) => ({
+            currentConnected: element.isConnected,
+            predecessorCurrentOrDetached: previousFields[index] === element || !previousFields[index].isConnected,
+          })), currentFields.map(() => ({ currentConnected: true, predecessorCurrentOrDetached: true })))
+          const retired = previousFields.filter(element => !currentFields.includes(element))
+          if (retired.length) {
+            const beforeHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
+            const beforeTabLabels = [...shell(id).querySelectorAll('.oe-person__tab-label')].map(element => element.textContent)
+            const selection = getSelection()
+            const beforeSelection = { active: document.activeElement,
+              anchor: selection.anchorNode, anchorOffset: selection.anchorOffset,
+              focus: selection.focusNode, focusOffset: selection.focusOffset }
+            for (const old of retired) {
+              old.textContent = 'stale retired person field'
+              old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
+              old.dispatchEvent(new FocusEvent('blur'))
+            }
+            await settled()
+            check(phase, 'personRetiredFieldsLeaveCanonical', editor.save().blocks, saved.blocks)
+            check(phase, 'personRetiredFieldsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, beforeHistory)
+            check(phase, 'personRetiredFieldsLeaveCurrentFields', personFields().map((element, index) => element === currentFields[index]), [true, true, true])
+            check(phase, 'personRetiredFieldsLeaveTabLabels', [...shell(id).querySelectorAll('.oe-person__tab-label')].map(element => element.textContent), beforeTabLabels)
+            check(phase, 'personRetiredFieldsLeaveSelection', {
+              active: document.activeElement === beforeSelection.active,
+              anchor: selection.anchorNode === beforeSelection.anchor, anchorOffset: selection.anchorOffset,
+              focus: selection.focusNode === beforeSelection.focus, focusOffset: selection.focusOffset,
+            }, { active: true, anchor: true, anchorOffset: beforeSelection.anchorOffset,
+              focus: true, focusOffset: beforeSelection.focusOffset })
+          }
+        } else check(phase, 'personFieldDomIdentity', previousPersonParts.slice(1).map((element, index) => element === parts[index + 1]), [true, true, true])
+        check(phase, 'personFields', personFields().map(element => ({ tag: element.tagName,
+          markup: authoredMarkup(element), editable: element.isContentEditable,
+        })), ['name', 'role', 'bio'].map(key => ({ tag: 'DIV', markup: markupMeaning(active[key]), editable: !readOnly })))
+        const tabs = [...shell(id).querySelectorAll('.oe-person__tab:not(.oe-person__tab--add)')]
+        check(phase, 'personTabs', tabs.map(tab => ({ active: tab.classList.contains('oe-person__tab--active'),
+          draggable: tab.draggable, label: tab.querySelector('.oe-person__tab-label').textContent,
+        })), profiles.map((profile, index) => ({ active: index === 0, draggable: !readOnly,
+          label: personText(profile.name) || 'Person ' + (index + 1),
+        })))
+        const links = [...shell(id).querySelectorAll('.oe-person__link-url')]
+        // v1 exposes one unsaved empty link input instead of an Add link button.
+        const expectedLinks = [...active.links.map(link => link.url), ...(legacy && !readOnly ? [''] : [])]
+        check(phase, 'personLinks', links.map(input => ({ value: input.value, readOnly: input.readOnly })),
+          expectedLinks.map(value => ({ value, readOnly })))
+        const avatar = shell(id).querySelector('.oe-person__card .oe-person__avatar-img')
+        check(phase, 'personAvatar', avatar ? { src: avatar.getAttribute('src'), alt: avatar.alt } : null,
+          active.avatar ? { src: active.avatar, alt: '' } : null)
+        if (!legacy) {
+          check(phase, 'personDomIds', tabs.map(tab => tab.dataset.personId), profiles.map(profile => profile.id))
+          check(phase, 'personLinkIds', links.map(input => input.dataset.linkId), active.links.map(link => link.id))
+        }
+      }
       if (specification.type === 'attaches') {
         const wrapper = shell(id).querySelector('.oe-attaches')
         const fields = attachmentFields()
@@ -868,6 +1023,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
       previousColumnFields = specification.type === 'columns' ? columnFields() : []
       previousTableParts = specification.type === 'table' ? tableParts() : []
+      previousPersonParts = specification.type === 'person' ? personParts() : []
+      previousPersonText = specification.type === 'person' ? text : undefined
       previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
       previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
       previousPlainFields = plainField ? [field()] : []
