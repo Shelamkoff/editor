@@ -1,6 +1,7 @@
 import './quote-paste-merge.js'
 import './presentation-values.js'
 import './regressions/table-default.js'
+import './regressions/checklist-empty-exit-native.js'
 import './regressions/person-rich-siblings-native.js'
 import './regressions/gallery-native-drag-history.js'
 import './gallery-caption-order-native.js'
