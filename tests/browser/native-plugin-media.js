@@ -1,4 +1,5 @@
 import './regressions/person-url-owner-native.js'
+import './regressions/person-roundtrip-renderer-native.js'
 import './regressions/gallery-derived-alt-native.js'
 import './regressions/carousel-caption-native.js'
 import './regressions/native-derived-owner.js'
