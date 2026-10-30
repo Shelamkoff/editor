@@ -1,0 +1,232 @@
+{
+  "scope": "Person ROUNDTRIP acceptance documentation only; no new full native or runtime acceptance.",
+  "manifestSha256": "2c49fd3004bede388ae8df0547baf7244ad4de497791d52be5340342615998f4",
+  "manifest": {
+    "schemaVersion": 1,
+    "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+    "startedAt": "2026-10-29T22:45:33.905Z",
+    "finishedAt": "2026-10-29T22:46:12.314Z",
+    "outcome": "passed",
+    "source": {
+      "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+      "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": false,
+      "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+    },
+    "environment": {
+      "node": "v24.22.1",
+      "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "npm": "11.9.0",
+      "platform": "linux",
+      "architecture": "x64",
+      "release": "6.18.55",
+      "runner": {},
+      "selection": {}
+    },
+    "context": {},
+    "gates": {
+      "package-build": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T22:45:34.224Z",
+        "finishedAt": "2026-10-29T22:45:41.284Z",
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {}
+        },
+        "sourceBefore": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "elapsedMs": 7056.9916570000005,
+        "sourceAfter": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "sourceUnchanged": true
+      },
+      "docs-contract": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T22:45:41.504Z",
+        "finishedAt": "2026-10-29T22:45:45.477Z",
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "test:docs"
+        ],
+        "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {}
+        },
+        "sourceBefore": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "elapsedMs": 3966.8335469999997,
+        "sourceAfter": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "sourceUnchanged": true
+      },
+      "docs-build": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T22:45:45.701Z",
+        "finishedAt": "2026-10-29T22:46:11.672Z",
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "docs:build"
+        ],
+        "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {}
+        },
+        "sourceBefore": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "elapsedMs": 25968.055325,
+        "sourceAfter": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "sourceUnchanged": true
+      },
+      "docs-smoke": {
+        "outcome": "passed",
+        "startedAt": "2026-10-29T22:46:11.883Z",
+        "finishedAt": "2026-10-29T22:46:12.216Z",
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "scripts/vitepress-docs-smoke.mjs"
+        ],
+        "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.55",
+          "runner": {},
+          "selection": {}
+        },
+        "sourceBefore": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "elapsedMs": 330.805182,
+        "sourceAfter": {
+          "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+          "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+          "untracked": [],
+          "dirty": false,
+          "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+        },
+        "sourceUnchanged": true
+      }
+    },
+    "sourceAfter": {
+      "head": "9df110e0713f6654acdf15ff36fb8e85018bfb8c",
+      "tree": "15b40b814aca984e2997e3032631eb4b37dce76e",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": false,
+      "identity": "b728dbc0666dcb31b854b2b48e2b596695fc286dffa9f752eff3ad214dc1d9d1"
+    },
+    "sourceUnchanged": true
+  },
+  "logs": {
+    "docs-build.log": {
+      "sha256": "1d9385a851460edfe9dd5ca0944fdc15e8722d2d894a4386f2ca25c61bee9e23",
+      "text": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 docs:build\n> npm run docs:sync && vitepress build docs\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 docs:sync\n> npm run docs:validate-readmes && node scripts/sync-vitepress-readmes.mjs\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 docs:validate-readmes\n> node scripts/validate-extension-readmes.mjs\n\n{\"localizedReadmePairs\":47}\nSynchronized 47 README files into docs/reference\n\n  vitepress v2.0.0-alpha.17\n\n- building client + server bundles...\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[32m\u2713\u001b[0m building client + server bundles...\n- rendering pages...\n\u001b[32m\u2713\u001b[0m rendering pages...\nbuild complete in 24.00s.\n"
+    },
+    "docs-contract.log": {
+      "sha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7",
+      "text": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 test:docs\n> npm run docs:validate-readmes && npm run test:plugin-source && npm run test:plugin-locales && node scripts/documentation-contract-audit.mjs && node scripts/readme-smoke.mjs\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 docs:validate-readmes\n> node scripts/validate-extension-readmes.mjs\n\n{\"localizedReadmePairs\":47}\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 test:plugin-source\n> node scripts/plugin-source-audit.mjs\n\nPlugin source audit passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 test:plugin-locales\n> node scripts/plugin-locale-audit.mjs\n\nPlugin locale audit passed\nDocumentation contract audit passed\n{\"readmes\":94,\"languages\":[\"en\",\"ru\"],\"examples\":53,\"json\":44,\"links\":62,\"imports\":true,\"encoding\":true,\"packageReadmeCopiesChecked\":92}\n"
+    },
+    "docs-smoke.log": {
+      "sha256": "f651ddbb983119c8a07635e24b2e4dbcaac10c7f881a26bab52f8783a2051ec7",
+      "text": "{\"readmes\":47,\"htmlPages\":127,\"brokenLinks\":0,\"npmSiteLeak\":false}\n"
+    },
+    "package-build.log": {
+      "sha256": "cf4ed5a69db41abe8803e1af0b8204295da0840a77dd261d22cfb63c3294e86b",
+      "text": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 build\n> npm run docs:validate-readmes && node scripts/build-package.mjs\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @shelamkoff/rector@2.0.0 docs:validate-readmes\n> node scripts/validate-extension-readmes.mjs\n\n{\"localizedReadmePairs\":47}\n{\"runtimeDeclarations\":285,\"sourceDiagnostics\":0,\"sourceDiagnosticDetails\":[],\"dist\":\"dist\"}\n"
+    }
+  }
+}
