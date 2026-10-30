@@ -508,6 +508,8 @@ try {
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
   const nativePluginParity = await runNativePage(client, pageUrl, 'native-plugin-parity.html')
+  const nativeCodeCopyOwnership = await runNativePage(client, pageUrl, 'native-code-copy-ownership.html')
+  const nativePluginSettings = await runNativePage(client, pageUrl, 'native-plugin-settings.html')
   const nativeRoundtripPreservation = await runNativePage(client, pageUrl, 'native-roundtrip-preservation.html')
   const nativePresentationRecovery = await runNativePage(client, pageUrl, 'native-presentation-recovery.html')
   const nativePluginControls = await runNativePage(client, pageUrl, 'native-plugin-controls.html')
@@ -563,6 +565,8 @@ try {
     nativeCrossSelection,
     nativeCoreBehavior,
     nativePluginParity,
+    nativeCodeCopyOwnership,
+    nativePluginSettings,
     nativeRoundtripPreservation,
     nativePresentationRecovery,
     nativePluginControls,

@@ -33,7 +33,11 @@ Tests belonging to the standalone cropper/expose repositories are not part of th
 The CI `size-report` job enforces the Paragraph, default interactive and full preset budgets. The core size is informational by owner decision. Run `node benchmarks/bundle-budget.mjs --enforce` for the same gate locally; without that flag the command only reports measurements.
 
 
-`native-plugin-parity.html` checks all 21 plugins and 34 authoring fields through native input, directed replacement, caret and Undo/Redo, plus multiline/single-line behavior, Code and Raw view controls, literal Code-to-rich conversion, whole conversions and read-only projection (140 cases).
+`native-plugin-parity.html` checks all 21 plugins and 34 authoring fields through native input, directed replacement, caret and Undo/Redo, plus multiline/single-line behavior, Code and Raw view controls, literal Code-to-rich conversion, whole conversions and read-only projection (333 cases).
+
+`native-code-copy-ownership.html` checks 10 Code Copy continuations with trusted clicks, a controlled Clipboard API provider and real reset deadlines. Current editable/read-only buttons complete normally; adopted buttons, toolbars, wrappers and shells preserve their new owner's DOM and canonical history. Select this page with `EDITOR_NATIVE_PAGE=native-code-copy-ownership.html`; `EDITOR_NATIVE_FILTER` continues to select its case names.
+
+`native-plugin-settings.html` checks 21 Heading/List settings scenarios and 12 Columns layouts with native input, control activation and exact Undo/Redo. Its cases retain the `Text block settings parity` and `Columns layout parity` name prefixes for filtered runs. Both new pages run in the default physical suite and appear as `nativeCodeCopyOwnership` and `nativePluginSettings` in its final JSON. The split preserves the original scenario set and the existing 120-second page deadline.
 
 `native-plugin-controls.html` verifies 146 actual controls: all 21 plugins' Move/Duplicate/Delete commands, Table grid and Columns layouts, Gallery and Person drag, Person crop Apply/Cancel, hidden editing hosts after tab/slide changes, Poll option sorting/results/voting/reset, LinkPreview templates and Attaches variants. The OS file chooser is intercepted only to supply the disposable test file; the crop dialog, canvas, upload and history still execute.
 
