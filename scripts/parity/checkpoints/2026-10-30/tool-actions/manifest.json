@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "scope": [
+    "TOOL_CASETRANSFORM_ACTION",
+    "TOOL_CLEARFORMATTING_ACTION"
+  ],
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "source": "9cb70473c9793623632e1018144e490ca2cc73d7",
+  "tree": "882fe5eaba43fc2fc76610be4302c965e76e38c1",
+  "productionChangedPaths": [],
+  "preservedSources": [
+    {
+      "sha": "cef9a068db7c79cf788c11f71a3a82ca6ab46516",
+      "tree": "45159ce3d9fce87c139d547b27a8057dd09fb7fd",
+      "patch": "sources/cef9a068.patch.gz",
+      "patchSha256": "9732041fd15eda8fa4a7f2c69237e5a3bb1857cd075ae568c10370f478dbeb0c",
+      "rawCommit": "tree 45159ce3d9fce87c139d547b27a8057dd09fb7fd\nparent 69c8425e0081fde69cf5176ccb73d032720c15fc\nauthor Codex <codex@openai.com> 1793381313 +0300\ncommitter Codex <codex@openai.com> 1793381313 +0300\n\ntest(inline-tools): prove public formatting actions and retirement\n"
+    },
+    {
+      "sha": "9199bb27b089de90803d47e4279843282215a637",
+      "tree": "0ca7332c79c1e4efa0f1ed2c429105e0aafd85cb",
+      "patch": "sources/9199bb27.patch.gz",
+      "patchSha256": "f8107e50ffcda5c497c1b011206936afc66e8ebcc3ce992af1ad1fcffbd65b3b",
+      "rawCommit": "tree 0ca7332c79c1e4efa0f1ed2c429105e0aafd85cb\nparent cef9a068db7c79cf788c11f71a3a82ca6ab46516\nauthor Codex <codex@openai.com> 1793381507 +0300\ncommitter Codex <codex@openai.com> 1793381507 +0300\n\ntest(inline-tools): isolate tool parity from field-edge trimming\n"
+    },
+    {
+      "sha": "9cb70473c9793623632e1018144e490ca2cc73d7",
+      "tree": "882fe5eaba43fc2fc76610be4302c965e76e38c1",
+      "patch": "sources/9cb70473.patch.gz",
+      "patchSha256": "befd6bd6cd39c41b6aa1fc95576925e2cb9bcb84d19f62b59ca7fa4c38e534ba",
+      "rawCommit": "tree 882fe5eaba43fc2fc76610be4302c965e76e38c1\nparent 9199bb27b089de90803d47e4279843282215a637\nauthor Codex <codex@openai.com> 1793382058 +0300\ncommitter Codex <codex@openai.com> 1793382058 +0300\n\ntest(inline-tools): snapshot evidence and verify live replay\n"
+    }
+  ],
+  "browser": "156.0.8078.79",
+  "node": "v24.22.1",
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78",
+      "loadedFiles": 108
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc",
+      "loadedFiles": 113
+    },
+    {
+      "label": "candidate",
+      "sha": "9cb70473c9793623632e1018144e490ca2cc73d7",
+      "tree": "882fe5eaba43fc2fc76610be4302c965e76e38c1",
+      "loadedFiles": 113
+    }
+  ],
+  "gates": {
+    "native": {
+      "source": "9cb70473c9793623632e1018144e490ca2cc73d7",
+      "cases": 48,
+      "exitCode": 0,
+      "artifact": "native-final.log.gz"
+    },
+    "differential": {
+      "source": "9cb70473c9793623632e1018144e490ca2cc73d7",
+      "rawExitCode": 1,
+      "candidatePass": true,
+      "artifact": "final-differential.json.gz",
+      "stderr": "final-differential.stderr.gz",
+      "historicalRawFails": {
+        "v1": 278,
+        "spec-baseline": 258
+      },
+      "historicalIncompleteAtomicOnlyCases": 4
+    },
+    "typecheck": {
+      "source": "cef9a068db7c79cf788c11f71a3a82ca6ab46516",
+      "exitCode": 0,
+      "artifact": "typecheck.log.gz",
+      "note": "Both TypeScript configurations passed; subsequent commits change only the excluded browser test fixture/regression, so production/declarations/typecheck inputs are identical."
+    }
+  },
+  "candidate": {
+    "cases": 48,
+    "positive": 36,
+    "noops": 8,
+    "lifetime": 4,
+    "observations": 2072,
+    "rawFails": 0,
+    "complete": 48,
+    "pageErrors": 0,
+    "serverErrors": 0,
+    "inputErrors": 0,
+    "diagnostics": 0,
+    "byTool": {
+      "clearFormatting": {
+        "cases": 18,
+        "observations": 766
+      },
+      "caseTransform": {
+        "cases": 30,
+        "observations": 1306
+      }
+    }
+  },
+  "historicalLimits": {
+    "v1TransactionObservationAPI": "unsupported; exact public Undo/Redo executes without the v2 event instrumentation",
+    "v1AtomicOnlyToolbar": "4 valid atomic-only ranges have no visible named action, so execution and replay remain incomplete/unsupported; retained raw errors are not passes"
+  },
+  "developmentAttempts": {
+    "cef9a068": "Initial differential includes field-edge whitespace trimmed by v1 and mutable observation-array references. Not accepted.",
+    "9199bb27": "Inputs aligned by removing the same unnecessary field-edge separator for every source. Peer review found six aliased observations; not accepted.",
+    "draftLogs": "Uncommitted test drafts, no production edit. Invalid imported underline and pre-transition DOM comparisons are fixture errors, not production RED. Other bounded draft logs are progress checks only.",
+    "9cb70473": "Peer-requested live DOM/widget replay oracle and immutable observation snapshots; final accepted source."
+  },
+  "unsupportedClaims": [
+    "other inline tools",
+    "physical mouse-drag selection creation",
+    "other browsers",
+    "whole-library functional parity",
+    "new production bug or behavior change"
+  ],
+  "independentPeerReview": {
+    "source": "9cb70473c9793623632e1018144e490ca2cc73d7",
+    "directory": "peer-review",
+    "artifact": "peer-review/review-9cb70473.json",
+    "verdictsRecomputed": 5930,
+    "independentOracleChecks": 1224,
+    "status": "PASS",
+    "rawSha256": "243d1b71b549e49ade94e6c3c9037eadb1e638c852c9120e2339ea9fcbfc9feb",
+    "peerIndexSha256": "ddcc6e154f27e42b00c93ac62ff490dfec458bd2c0b9d9f95c5ec89af469418d"
+  }
+}

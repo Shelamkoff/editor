@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "reviewedSource": "9cb70473c9793623632e1018144e490ca2cc73d7",
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "rawPath": "/workspace/scratch/2231de9d6b0d/work-tools-sixth/test-results/tool-actions-sixth/verified-actions-differential.json",
+  "rawSha256": "243d1b71b549e49ade94e6c3c9037eadb1e638c852c9120e2339ea9fcbfc9feb",
+  "scriptSha256": "45d837e8e4a01fc4765720d118cd24e177a003727a569654c0821a2a83bab9b8",
+  "sourceFilesChecked": 334,
+  "dependencyFilesChecked": 7,
+  "dependencyVersionsChecked": 8,
+  "rawVerdictsRecomputed": 5930,
+  "independentlyRebuiltOracleChecks": 1224,
+  "summaries": [
+    {
+      "source": "v1",
+      "cases": 48,
+      "observations": 1786,
+      "failed": 278,
+      "incomplete": [
+        "clearFormatting/noop/atomic/forward",
+        "clearFormatting/noop/atomic/backward",
+        "caseTransform/noop/atomic/forward",
+        "caseTransform/noop/atomic/backward"
+      ],
+      "failuresByProperty": {
+        "visibleWidgets": 15,
+        "liveWidgetIdentity": 12,
+        "liveWidgetPayloadAndMarkup": 12,
+        "selection": 120,
+        "intendedTextAndMarks": 32,
+        "visibleTextAndMarks": 48,
+        "retainedButtonCannotMoveSelection": 2,
+        "exactCanonicalDocument": 12,
+        "history": 24,
+        "liveCapabilityStillWorks": 1
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 48,
+      "observations": 2072,
+      "failed": 258,
+      "incomplete": [],
+      "failuresByProperty": {
+        "intendedTextAndMarks": 48,
+        "visibleTextAndMarks": 70,
+        "completedActions": 18,
+        "exactCanonicalDocument": 18,
+        "selection": 40,
+        "history": 40,
+        "exactCompletedActions": 20,
+        "liveCapabilityStillWorks": 2,
+        "oneCompletedAction": 2
+      }
+    },
+    {
+      "source": "candidate",
+      "cases": 48,
+      "observations": 2072,
+      "failed": 0,
+      "incomplete": [],
+      "failuresByProperty": {}
+    }
+  ],
+  "missingVisibleOracleCases": [],
+  "productionChanges": 0,
+  "mainRefWrites": 0,
+  "runtimeSuitesRerun": 0,
+  "reviewScope": "Independent source/hash/raw-verdict audit and manually rebuilt current text/marks/selection/transactions/canonical history oracle. Live projection scope requires the additional static review recorded in README."
+}

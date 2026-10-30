@@ -1,0 +1,2748 @@
+{
+  "status": "PASS",
+  "source": "9cb70473c9793623632e1018144e490ca2cc73d7",
+  "rawSha256": "243d1b71b549e49ade94e6c3c9037eadb1e638c852c9120e2339ea9fcbfc9feb",
+  "verdictsRecomputed": 5930,
+  "rows": [
+    {
+      "source": "v1",
+      "cases": 48,
+      "observations": 1786,
+      "rawFails": 278,
+      "complete": 44,
+      "incomplete": [
+        "clearFormatting/noop/atomic/forward",
+        "clearFormatting/noop/atomic/backward",
+        "caseTransform/noop/atomic/forward",
+        "caseTransform/noop/atomic/backward"
+      ],
+      "unsupported": {
+        "transactionEventsAndProducerCount": 48,
+        "atomicOnlyToolbarActivation": 4
+      },
+      "failures": [
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "liveWidgetIdentity"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "liveWidgetPayloadAndMarkup"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/noop/text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "live-action",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "live-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "undo",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "redo",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "inactive-ui",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "inactive-ui",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "inactive-ui",
+          "property": "retainedButtonCannotMoveSelection"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "live-action",
+          "property": "visibleWidgets"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "live-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "undo",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "redo",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/noop/text/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/lifetime/read-only",
+          "phase": "live-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/lifetime/read-only",
+          "phase": "undo",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/lifetime/read-only",
+          "phase": "redo",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "inactive-ui",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "inactive-ui",
+          "property": "retainedButtonCannotMoveSelection"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "live-action",
+          "property": "liveCapabilityStillWorks"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "live-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "live-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "undo",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "redo",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/lifetime/destroy",
+          "phase": "redo",
+          "property": "selection"
+        }
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 48,
+      "observations": 2072,
+      "rawFails": 258,
+      "complete": 48,
+      "incomplete": [],
+      "unsupported": {},
+      "failures": [
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "clearFormatting/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "live-action",
+          "property": "liveCapabilityStillWorks"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "live-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "live-action",
+          "property": "oneCompletedAction"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "undo",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "redo",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "redo",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/lifetime/read-only",
+          "phase": "redo",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "live-action",
+          "property": "liveCapabilityStillWorks"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "live-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "live-action",
+          "property": "oneCompletedAction"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "undo",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "redo",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "redo",
+          "property": "history"
+        },
+        {
+          "id": "clearFormatting/lifetime/destroy",
+          "phase": "redo",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/single/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "apply",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "apply",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "apply",
+          "property": "completedActions"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "exactCanonicalDocument"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "intendedTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visibleTextAndMarks"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "caseTransform/upper/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "exactCompletedActions"
+        }
+      ]
+    },
+    {
+      "source": "candidate",
+      "cases": 48,
+      "observations": 2072,
+      "rawFails": 0,
+      "complete": 48,
+      "incomplete": [],
+      "unsupported": {},
+      "failures": []
+    }
+  ],
+  "sourceModuleHashes": 334,
+  "dependencyFileHashes": 7,
+  "dependencyVersions": 8,
+  "exactSourcePatchesRestored": [
+    {
+      "source": "cef9a068db7c79cf788c11f71a3a82ca6ab46516",
+      "tree": "45159ce3d9fce87c139d547b27a8057dd09fb7fd"
+    },
+    {
+      "source": "9199bb27b089de90803d47e4279843282215a637",
+      "tree": "0ca7332c79c1e4efa0f1ed2c429105e0aafd85cb"
+    },
+    {
+      "source": "9cb70473c9793623632e1018144e490ca2cc73d7",
+      "tree": "882fe5eaba43fc2fc76610be4302c965e76e38c1"
+    }
+  ],
+  "nativeCases": 48,
+  "scriptSha256": "fda434460583d659c4240cd6a8909502170c50afc3f363ab249feb65058f18db",
+  "scope": "Case IDs, phases, recorded equality verdicts, histories, trusted inputs, module/dependency hashes and exact source reconstruction. Semantic oracle review is a separate peer review."
+}
