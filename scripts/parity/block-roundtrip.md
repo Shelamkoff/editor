@@ -328,10 +328,40 @@ matrix, uploads/cropping and social resolver behavior remain separate rows.
 Separate registered native tests check readable detached cards, responsive
 list-to-carousel reuse of the same cards/widgets, navigation and disposal.
 
-The shared fixture now contains 61 distinct cases. This is an implementation
-inventory, not a claim that the merged count was executed by the two earlier
-57-case checkpoints. The Carousel common-template entry below remains planned
-coverage until its separate proof is recorded.
+Carousel adds four cases: the actual empty `slides: []` default, literal mixed
+image/video/HTML slides, and real Mention/Color captions with and without
+formatting wrappers. The empty case records edit/Undo/Redo as N/A; every
+populated case has fixed slide IDs, independent alternatives, all captions,
+options, sidecars and neighbors. No case sets a fixed aspect ratio. The local
+16-by-16 WebM must provide actual metadata through a served `video/webm` asset.
+
+Trusted clicks select video, HTML and image without author history. Native
+caption input and one keyboard Undo/Redo preserve the full independent records
+and caret. Editor controls, current media and retired callback authority are
+checked alongside detached, immediately attached and `renderTo()` output,
+including rich widgets and all three media types. The registered automatic-
+height regression uses the published dependency fix; it does not replace
+ResizeObserver or suppress an error. Source uploads/actions, arbitrary option
+combinations, Swipe, tall HTML/navigation and task matrices retain separate
+behavior rows.
+
+The actual isolated Carousel `run-64mauO` passes 718/718 Carousel observations
+and 9,847/9,847 across its 57-case candidate corpus. Native four-case and
+147-case projection suites pass in Chrome 156 and 142; existing native Carousel
+media controls pass 16/16. Its [checkpoint](checkpoints/2026-10-30/carousel-roundtrip/README.md)
+retains source `942467e2`, dependency `f7f64858`, raw historical failures,
+positive/negative classifier controls and all eight unchanged-source C11 gates.
+
+The shared fixture now contains 65 distinct cases across all 21 registered
+built-in blocks; its type inventory exactly matches `plugins/index.js`.
+The parent `differential65` gate in `run-2Zb0Ur` passes on immutable `9ccae358`:
+65 cases and 11,458 passing candidate observations, with no unexpected failure
+in any source. **Full parent native/browser proof is still awaiting.** This
+interim differential does not mark the whole C11 run passed. The earlier
+Gallery, Person and Carousel 57-case checkpoints overlap the preceding 53 cases
+and their totals are not added. Only after the remaining parent gate passes is
+the prepared common Carousel acceptance promoted; detailed behavior and
+whole-library parity remain separate.
 
 ## Source identities and test-only adapters
 
@@ -398,7 +428,7 @@ author data from an initial `save()` result.
 | Embed / 1 | Empty service/video/caption/metadata | Fixed Vimeo/local cover; literal and current widget captions | Implemented: actual empty default, native caption history, actual widgets and retired-host controls. v1 persistent caption widgets are unsupported reference evidence. |
 | Raw / 1 | Empty HTML source | Literal multiline authored HTML/entities; edit `html` source | Implemented: exact textarea source, benign rendered markup, existing preview disclosure and native history. HTML confinement/navigation remain separate rows. |
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, literal and wrapped/unwrapped widget captions, fixed layout/options; edit first caption | Implemented: fixed historical plain-caption strings, current IDs/sidecars, readable renderer labels, modes and exact native history. Empty authoring is N/A; v1 persistent rich-caption widgets are unsupported. |
-| Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
+| Carousel / 1 | No slides, autoplay off; no fabricated caption/history field | Fixed image/local video/HTML, literal and wrapped/unwrapped real caption widgets; edit first caption | Implemented: IDs/options, actual automatic height, three renderer contexts, trusted media navigation and native history. Empty authoring is N/A; v1 persistent rich-caption widgets are unsupported. Parent 65-case differential passes; native/browser proof awaits. |
 | Attaches / 2 | No files, variant `f` | Two controlled file URLs, literal names, size/extension; edit first filename | Implemented: v1 file IDs absent; plain text, current keyed focus, retired mode controls, native history and renderer anchors are checked. |
 | LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated literal metadata; edit declared URL | Implemented: real native input, metadata clearing, visible card, plain metadata, URL caret and exact Undo/Redo; no provider request. |
 | Toggle / 1 | Empty title/content, closed | Rich title/Mention and content/Color, explicit open/closed state; edit title | Implemented: both fields, hidden populated content, open state, accessibility relationship and renderer structure survive mode/history. |
@@ -653,6 +683,17 @@ observations include:
   complete-case difference is recognized. Both real candidate tab-switch
   regressions are negative controls: no candidate exception is possible.
 
+- Carousel's exact recognizer is limited to its four IDs, fixed complete phase
+  sequences or the two explicitly incomplete rich baseline cases, full author
+  records, mode and the recorded native Undo owner. It preserves v1 plain-caption
+  wire spelling and unsupported widgets separately from repaired remount/caret
+  and baseline renderer differences. The baseline rich cases stop after load at
+  the exact hydration error; no later phase is manufactured. All 123 original
+  Carousel differences remain visible. Sensitivity rejects 2,418 changed
+  observations and 1,649 PASS observations, including every candidate-source
+  substitution. The media fixture is hashed and checked unchanged, alongside
+  source, dependency and classifier bytes.
+
 The runner also records uncaught browser errors in two independent raw
 channels: Playwright's page-error stack and a synchronous `window.error`
 observation carrying source, case ID, phase, name, message and stack. Neither
@@ -668,12 +709,12 @@ error records.
 
 The candidate receives none of these exceptions. Raw failures remain in
 the JSON alongside classifications. `unsupportedReferenceCases` explicitly
-lists the two v1 Embed and two v1 Image widget controls and does not grant v1 capability
-coverage. `incompleteCases` lists every partial
+lists the unsupported v1 Embed, Image, Poll, Gallery, Person and Carousel
+widget controls and does not grant v1 capability coverage. `incompleteCases` lists every partial
 scenario even when its precise historical cause is known. Exit zero means
 there is no unexpected failure; it does not relabel incomplete baseline
 phases as passes.
 
-This page does not by itself accept full Paragraph, Heading, List, Quote, Warning, Code, Checklist, Delimiter, Image, Toggle, Spoiler, Columns, Attaches, Raw, Embed or Table behavior,
-the other 5 built-ins, hostile HTML/class confinement, all renderers,
-platform breadth or full editor parity.
+Every registered built-in block now has a common-template fixture. This page
+does not by itself accept every detailed behavior row, hostile HTML/class
+confinement, every renderer capability, platform breadth or whole-library parity.
