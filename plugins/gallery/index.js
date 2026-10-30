@@ -686,22 +686,15 @@ export function createGalleryPlugin(config={}){
                 caption:captionFields.get(image.id)?.caption.innerHTML.trim()??image.caption,
               })),
             }),
-            update(next, previousCanonical){
+            update(next){
               if(dead)return
-              // The plugin-local projection may predate a retained native edit.
-              // Compare author text against the actual prior canonical record,
-              // not the older local projection: Undo or an explicit host
-              // reversion to that old value must repaint the live caption.
-              const priorImages=previousCanonical?.images
+              // Core projects changed canonical captions into these exact
+              // rich fields. Preserve their hosts and the untouched siblings
+              // while media identities and the surrounding view stay stable.
               const sameImages=next.images.length===data.images.length
                 &&next.images.every((image,index)=>{
                   const projected=data.images[index]
-                  const canonical=priorImages?.[index]
-                  const priorCaption=canonical?.id===image.id
-                    ?canonical.caption:projected.caption
                   return image.id===projected.id&&image.url===projected.url
-                    &&(image.caption===priorCaption
-                      ||image.caption===captionFields.get(image.id)?.caption.innerHTML.trim())
                 })
               const sameOptions=JSON.stringify(next.options)===JSON.stringify(data.options)
               const sameLayout=next.layout===data.layout

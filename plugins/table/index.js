@@ -240,7 +240,9 @@ export function createTablePlugin(config = {}) {
             return cell
           }
 
-          const reconcile=next=>{
+          const reconcile=(next,previousCanonical)=>{
+            const previousText=new Map((previousCanonical?.rows??[]).flatMap(row=>
+              row.cells.map(cell=>[cellKey(row.id,cell.id),cell.text])))
             data=cloneData(next)
             wrapper.dataset.headings=String(data.withHeadings)
             const liveRows=new Set()
@@ -258,7 +260,11 @@ export function createTablePlugin(config = {}) {
                 // reordering can change the first row without toggling the flag.
                 cell=ensureCellTag(rowData,cellData,rowIndex)??cell
                 cell.contentEditable=readOnly?'false':'true'
-                if(cell.innerHTML!==cellData.text){
+                // Hydrated inline roots spell authored placeholders differently.
+                // A sibling with unchanged canonical text already owns its live
+                // children; rewriting it would retire its widgets and range.
+                if(previousText.get(cellKey(rowData.id,cellData.id))!==cellData.text
+                  &&cell.innerHTML!==cellData.text){
                   if(cellData.text)setSanitizedHtml(cell,cellData.text)
                   else cell.textContent=''
                 }
@@ -291,7 +297,7 @@ export function createTablePlugin(config = {}) {
                 })),
               })),
             }),
-            update(next){if(!instanceDestroyed)reconcile(next)},
+            update(next,previousCanonical){if(!instanceDestroyed)reconcile(next,previousCanonical)},
             editableFields:()=>Object.freeze(data.rows.flatMap(row=>row.cells.flatMap(cell=>{
               const element=cells.get(cellKey(row.id,cell.id))
               return element?[Object.freeze({
