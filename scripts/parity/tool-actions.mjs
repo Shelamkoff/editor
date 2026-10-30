@@ -107,9 +107,12 @@ try {
   assert.equal(git('diff', '--name-only', 'HEAD').toString().trim(), '', 'Tracked source changed during comparison')
   assert.deepEqual(await readFile(fileURLToPath(import.meta.url)), runnerBytes, 'Runner changed during comparison')
   const passed = row => !row.pageErrors.length && !row.inputErrors.length && row.cases.length > 0 && row.cases.every(value =>
-    !value.error && !value.diagnostics.length && value.completedPhases.length === value.planned.length
-      && value.observations.every(observation => observation.status === 'PASS'))
-  const candidatePass = !serverErrors.length && results.filter(row => row.source === 'candidate').every(passed)
+    !value.error && !value.diagnostics.length && value.planned.length > 0
+      && JSON.stringify(value.completedPhases) === JSON.stringify(value.planned)
+      && (row.source !== 'candidate' || !value.unsupported.length)
+      && value.observations.length > 0 && value.observations.every(observation => observation.status === 'PASS'))
+  const candidate = results.find(row => row.source === 'candidate')
+  const candidatePass = !serverErrors.length && Boolean(candidate) && passed(candidate)
   console.log(JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), node: process.version,
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, headBefore, headAfter,
     runnerSha256: digest(runnerBytes), fixtureSha256: digest(fixture),
@@ -119,7 +122,7 @@ try {
     sources, dependencyVersions, dependencyFiles, results, serverErrors, candidatePass,
     note: 'Historical defects remain raw FAIL observations. Unsupported legacy observation APIs are explicitly recorded and never inferred as passes.',
   }, null, 2))
-  if (serverErrors.length || results.some(row => !passed(row))) process.exitCode = 1
+  if (!candidatePass || results.some(row => !passed(row))) process.exitCode = 1
 } finally {
   await browser?.close()
   await new Promise(resolve => server.close(resolve))
