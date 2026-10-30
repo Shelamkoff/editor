@@ -3,6 +3,9 @@
 const source = 'const value = "<b>&copy;</b>";\n// café'
 const pause = () => new Promise(resolve => setTimeout(resolve, 30))
 const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const snapshot = value => value === undefined ? { undefinedValue: true }
+  : value instanceof Node ? { nodeName: value.nodeName, html: value.outerHTML ?? value.textContent }
+    : structuredClone(value)
 
 export async function runCodeControlsCase({ sourceBase, legacy, name }) {
   const base = new URL(sourceBase, import.meta.url)
@@ -11,8 +14,11 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
   ])
   const observations = [], completedPhases = [], trusted = [], calls = []
   let providerArmed = false, retiredPaint, retiredMarkup, retiredCallCount
-  const check = (phase, property, actual, expected) => observations.push({ phase, property, actual, expected,
-    status: JSON.stringify(actual) === JSON.stringify(expected) ? 'PASS' : 'FAIL' })
+  const check = (phase, property, actual, expected) => {
+    const seen = snapshot(actual), wanted = snapshot(expected)
+    observations.push({ phase, property, actual: seen, expected: wanted,
+      status: JSON.stringify(seen) === JSON.stringify(wanted) ? 'PASS' : 'FAIL' })
+  }
   const action = async value => { await window.__codeControlAction(value); await pause() }
   const runtime = {
     getLanguage(language) { return ['javascript', 'python', 'plaintext'].includes(language) },

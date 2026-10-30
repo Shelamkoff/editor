@@ -2,15 +2,22 @@ const source = 'const value = "<b>&copy;</b>";\n// café'
 const replacement = 'const latest = "<i>new</i>";'
 const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const pause = () => new Promise(resolve => setTimeout(resolve, 30))
+const snapshot = value => value === undefined ? { undefinedValue: true }
+  : value instanceof Node ? { nodeName: value.nodeName, html: value.outerHTML ?? value.textContent }
+    : structuredClone(value)
 
 /** Real EditorRenderer construction, publication and disposal in every source. */
 export async function runCodeRendererCase({ sourceBase, legacy, name }) {
   const base = new URL(sourceBase, import.meta.url)
   const observations = [], completedPhases = [], calls = [], clipboardCalls = []
-  const check = (phase, property, actual, expected) => observations.push({ phase, property, actual, expected,
-    status: JSON.stringify(actual) === JSON.stringify(expected) ? 'PASS' : 'FAIL' })
+  const check = (phase, property, actual, expected) => {
+    const seen = snapshot(actual), wanted = snapshot(expected)
+    observations.push({ phase, property, actual: seen, expected: wanted,
+      status: JSON.stringify(seen) === JSON.stringify(wanted) ? 'PASS' : 'FAIL' })
+  }
   const action = async value => { await window.__codeControlAction(value); await pause() }
   let renderer, phase = 'mount', resolveCopy, armed = false, retiredPaint, retiredMarkup, providerRetired = false
+  let providerEntered = false, providerError = null
   const target = document.createElement('section'), destination = document.createElement('textarea')
   target.id = 'code-renderer-target'; destination.id = 'clipboard-target'
   document.body.append(target, destination)
@@ -59,26 +66,34 @@ export async function runCodeRendererCase({ sourceBase, legacy, name }) {
     completedPhases.push(name)
   }
   try {
-    // Start the exact runtime module first so its public plugin is registered
-    // before the renderer's lazy completion invokes that same real runtime.
-    let primed
+    // Load the exact real dependency and register its public hook before Code
+    // selects it through its own lazy completion. Other cases independently
+    // exercise delayed/failed requests initiated by the product itself.
     if (name === 'renderer-lazy-provider-retired') {
-      primed = import(legacy ? new URL('shared/runtime/highlightBundle.js', base).href : 'highlight.js')
-        .then(({ default: runtime }) => runtime.addPlugin({
+      const requested = import(legacy ? new URL('shared/runtime/highlightBundle.js', base).href : 'highlight.js')
+      await action({ kind: 'release-lazy' })
+      const { default: runtime } = await requested
+      runtime.addPlugin({
           'before:highlight'() {
             if (!armed) return
             armed = false
-            retiredPaint = paint()
-            renderer.destroy(target)
-            retiredMarkup = retiredPaint.innerHTML
-            providerRetired = true
+            providerEntered = true
+            try {
+              retiredPaint = paint()
+              renderer.destroy(target)
+              retiredMarkup = retiredPaint.innerHTML
+              providerRetired = true
+            } catch (error) {
+              providerError = { name: error.name, message: error.message }
+              throw error
+            }
           },
-        }))
+        })
     }
     const { EditorRenderer } = await import(new URL('renderer/index.js', base).href)
     renderer = new EditorRenderer({ classPrefix: 'parity', injectStyles: true, blockTypes: ['code'] })
     renderer.renderTo(input, target)
-    await pause()
+    if (name !== 'renderer-lazy-provider-retired') await pause()
     state('mount')
     const originalRoot = target.querySelector('.parity-code'), originalPaint = paint(), originalMarkup = originalPaint.innerHTML
     if (lazy) {
@@ -92,9 +107,10 @@ export async function runCodeRendererCase({ sourceBase, legacy, name }) {
         completedPhases.push('retired')
       } else if (name === 'renderer-lazy-provider-retired') {
         armed = true
-        await action({ kind: 'release-lazy' })
-        await primed
-        await pause()
+        const deadline = Date.now() + 5000
+        while (!providerEntered && Date.now() < deadline) await pause()
+        check('provider-retired', 'callbackEntered', providerEntered, true)
+        check('provider-retired', 'callbackError', providerError, null)
         check('provider-retired', 'retirementCompleted', providerRetired, true)
         check('provider-retired', 'oldProjectionUnchanged', retiredPaint?.innerHTML, retiredMarkup)
         check('provider-retired', 'targetEmpty', target.childNodes.length, 0)
