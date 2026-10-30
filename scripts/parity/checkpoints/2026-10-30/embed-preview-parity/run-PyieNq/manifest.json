@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/embed-preview-parity",
+  "startedAt": "2026-10-30T18:51:24.191Z",
+  "finishedAt": "2026-10-30T18:51:24.692Z",
+  "outcome": "failed",
+  "source": {
+    "head": "0952d22952a3005a1136492963dd89aa0c2af954",
+    "tree": "3ca0a69ae55472a2378ab25f04dd695d17cc7838",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "fbcb7424c03143d45b9878cbb7013e65caff2cf03a91d104c3f79befc4443027"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "custom-timeout-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:51:24.465Z",
+      "finishedAt": "2026-10-30T18:51:24.604Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=Embed custom preview",
+        "plugins/embed/reconciliation.test.js"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/embed-preview-parity",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "0952d22952a3005a1136492963dd89aa0c2af954",
+        "tree": "3ca0a69ae55472a2378ab25f04dd695d17cc7838",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "fbcb7424c03143d45b9878cbb7013e65caff2cf03a91d104c3f79befc4443027"
+      },
+      "elapsedMs": 136.402249,
+      "sourceAfter": {
+        "head": "0952d22952a3005a1136492963dd89aa0c2af954",
+        "tree": "3ca0a69ae55472a2378ab25f04dd695d17cc7838",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "fbcb7424c03143d45b9878cbb7013e65caff2cf03a91d104c3f79befc4443027"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "0952d22952a3005a1136492963dd89aa0c2af954",
+    "tree": "3ca0a69ae55472a2378ab25f04dd695d17cc7838",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "fbcb7424c03143d45b9878cbb7013e65caff2cf03a91d104c3f79befc4443027"
+  },
+  "sourceUnchanged": true
+}
