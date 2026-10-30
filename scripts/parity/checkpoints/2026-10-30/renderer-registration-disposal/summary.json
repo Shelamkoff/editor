@@ -1,0 +1,61 @@
+{
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "candidate": "78fe89e90bd556c25932cdf82bcbc42d9ae4fded",
+  "tree": "21191af755c4008a0deda04458f93a01b8be9d4d",
+  "browser": "156.0.8078.79",
+  "node": "v24.22.1",
+  "rawDifferentialExitCode": 1,
+  "candidatePass": true,
+  "sources": [
+    {
+      "source": "v1",
+      "cases": 21,
+      "observations": 302,
+      "failures": 46,
+      "registrationCases": 12,
+      "registrationObservations": 246,
+      "registrationFailures": 0,
+      "incomplete": 0,
+      "executionErrors": 0,
+      "verdictMismatches": 0
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 21,
+      "observations": 302,
+      "failures": 42,
+      "registrationCases": 12,
+      "registrationObservations": 246,
+      "registrationFailures": 0,
+      "incomplete": 0,
+      "executionErrors": 0,
+      "verdictMismatches": 0
+    },
+    {
+      "source": "parent",
+      "cases": 21,
+      "observations": 302,
+      "failures": 42,
+      "registrationCases": 12,
+      "registrationObservations": 246,
+      "registrationFailures": 0,
+      "incomplete": 0,
+      "executionErrors": 0,
+      "verdictMismatches": 0
+    },
+    {
+      "source": "candidate",
+      "cases": 21,
+      "observations": 302,
+      "failures": 0,
+      "registrationCases": 12,
+      "registrationObservations": 246,
+      "registrationFailures": 0,
+      "incomplete": 0,
+      "executionErrors": 0,
+      "verdictMismatches": 0
+    }
+  ],
+  "acceptedScope": "RENDERER_REGISTRATION subject to independent review and combined integration; RENDERER_ERRORS remains open",
+  "artifactPolicy": "Original failures and source-changing fixture-development run retained; no historical classifier changes any result."
+}
