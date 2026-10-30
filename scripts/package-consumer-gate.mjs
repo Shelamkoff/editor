@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { packInstalledDependency } from './pack-installed-dependency.mjs'
+import { assertConsumerGitDependencies, getPinnedGitDependencies } from './package-git-dependencies.mjs'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const node = process.execPath
@@ -99,10 +100,34 @@ try {
   const forbiddenEntry = tarEntries.find(entry => /(?:^|\/)(?:node_modules|tests|benchmarks|docs|\.vitepress)(?:\/|$)|\.(?:html|vue)$/.test(entry))
   if (forbiddenEntry) throw new Error(`Tarball contains a development-only file: ${forbiddenEntry}`)
 
+  const publishedManifest = JSON.parse(run('tar', ['-xOf', tarball, 'package/package.json'], editorRoot, { capture: true }))
+  const projectLock = JSON.parse(await readFile(join(editorRoot, 'package-lock.json'), 'utf8'))
+  const pinnedGitDependencies = getPinnedGitDependencies(publishedManifest, projectLock)
+  const gitDependencyTarballs = new Map()
+  const dependencyInstallEnv = { ...process.env, npm_config_ignore_scripts: 'true' }
+  const gitPackRoot = join(temporaryRoot, 'git-dependencies')
+  await mkdir(gitPackRoot)
+  for (const dependency of pinnedGitDependencies) {
+    // A same-name file tarball cannot satisfy a Git edge. Pack the exact
+    // published pin into this disposable cache before the offline install.
+    // Both the CLI flag and inherited npm config disable lifecycle scripts,
+    // including any child npm process used while preparing a Git package.
+    const packed = JSON.parse(run(node, [
+      npmCli, 'pack', dependency.spec, '--ignore-scripts', '--json',
+      '--pack-destination', gitPackRoot, '--cache', npmCache,
+    ], editorRoot, { capture: true, env: dependencyInstallEnv }))
+    if (packed.length !== 1 || packed[0].name !== dependency.name || packed[0].version !== dependency.version) {
+      throw new Error(`${dependency.name} packed Git artifact differs from the project lock`)
+    }
+    const artifact = packed[0]
+    gitDependencyTarballs.set(dependency.name, join(gitPackRoot, basename(artifact.filename)))
+    console.log(JSON.stringify({ gitDependency: dependency, integrity: artifact.integrity, lifecycleScripts: false }))
+  }
+
   const dependencyPackRoot = join(temporaryRoot, 'dependencies')
   await mkdir(dependencyPackRoot, { recursive: true })
-  // Test the dependency artifacts consumers actually install. Their source
-  // repositories and build scripts are deliberately not part of this gate.
+  // Check the artifacts selected for the consumer: staged published Git pins
+  // or exact installed registry bytes, with lifecycle scripts disabled.
   const dependencyPackages = ['event-bus', 'color-picker', 'cropper', 'carousel', 'expose', 'infinite-scroll', 'masonry']
     .map(directory => ({
       directory,
@@ -113,9 +138,16 @@ try {
     expose: ['captions', 'zoom', 'thumbnails', 'autoplay', 'transform', 'download', 'fullscreen'],
   }
   const dependencyTarballs = []
-  for (const { directory, packageRoot } of dependencyPackages) {
+  async function prepareDependencyTarball(packageRoot) {
+    const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'))
+    const gitTarball = gitDependencyTarballs.get(manifest.name)
+    if (gitTarball) return gitTarball
     const dependencyTarball = await packInstalledDependency(packageRoot, dependencyPackRoot)
     dependencyTarballs.push(dependencyTarball)
+    return dependencyTarball
+  }
+  for (const { directory, packageRoot } of dependencyPackages) {
+    const dependencyTarball = await prepareDependencyTarball(packageRoot)
     const entries = run('tar', ['-tf', dependencyTarball], packageRoot, { capture: true }).split(/\r?\n/).filter(Boolean)
     const required = ['package/README.md', 'package/README.ru.md', 'package/LICENSE', 'package/package.json']
     for (const plugin of dependencyReadmes[directory] ?? []) {
@@ -133,7 +165,7 @@ try {
   // (older npm pack releases run it even with --ignore-scripts).
   const domPurifyEntry = fileURLToPath(import.meta.resolve('dompurify'))
   const domPurifyRoot = resolve(dirname(domPurifyEntry), '..')
-  dependencyTarballs.push(await packInstalledDependency(domPurifyRoot, dependencyPackRoot))
+  await prepareDependencyTarball(domPurifyRoot)
 
   const transitiveRuntimeDependencies = ['highlight.js', 'jszip', 'lie', 'immediate', 'pako', 'setimmediate']
   for (const dependency of transitiveRuntimeDependencies) {
@@ -147,7 +179,7 @@ try {
       } catch {}
       packageRoot = dirname(packageRoot)
     }
-    dependencyTarballs.push(await packInstalledDependency(packageRoot, dependencyPackRoot))
+    await prepareDependencyTarball(packageRoot)
   }
 
   const nestedRuntimePackages = [
@@ -162,7 +194,7 @@ try {
   ]
   for (const relativeRoot of nestedRuntimePackages) {
     try {
-      dependencyTarballs.push(await packInstalledDependency(join(editorRoot, relativeRoot), dependencyPackRoot))
+      await prepareDependencyTarball(join(editorRoot, relativeRoot))
     } catch (error) {
       if (error?.code !== 'ENOENT') throw error
     }
@@ -183,7 +215,15 @@ try {
     '--cache', npmCache,
     tarball,
     ...dependencyTarballs,
-  ], consumerRoot)
+  ], consumerRoot, { env: dependencyInstallEnv })
+
+  const installedManifest = JSON.parse(await readFile(join(consumerRoot, 'node_modules', publishedManifest.name, 'package.json'), 'utf8'))
+  const consumerLock = JSON.parse(await readFile(join(consumerRoot, 'package-lock.json'), 'utf8'))
+  assertConsumerGitDependencies(installedManifest, consumerLock, pinnedGitDependencies)
+  for (const { name } of pinnedGitDependencies) {
+    await assertExportTargets(join(consumerRoot, 'node_modules', name))
+  }
+  console.log(JSON.stringify({ offlineConsumerGitDependencies: pinnedGitDependencies, provenance: 'passed' }))
 
   const consumerSource = `
 import { createEditor } from '@shelamkoff/rector'
