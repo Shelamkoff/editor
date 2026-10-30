@@ -10,6 +10,7 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
     import(new URL('core/index.js', base).href), import(new URL('plugins/code/index.js', base).href),
   ])
   const observations = [], completedPhases = [], trusted = [], calls = []
+  let providerArmed = false, retiredPaint, retiredMarkup, retiredCallCount
   const check = (phase, property, actual, expected) => observations.push({ phase, property, actual, expected,
     status: JSON.stringify(actual) === JSON.stringify(expected) ? 'PASS' : 'FAIL' })
   const action = async value => { await window.__codeControlAction(value); await pause() }
@@ -18,6 +19,14 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
     highlight(code, options) {
       calls.push({ code, language: options.language })
       if (name === 'provider-throws') throw new Error('Expected highlighting provider failure')
+      if (name === 'provider-retired' && providerArmed) {
+        providerArmed = false
+        retiredPaint = holder.querySelector('.oe-code-pre code')
+        editor.destroy()
+        destroyed = true
+        retiredMarkup = retiredPaint.innerHTML
+        retiredCallCount = calls.length
+      }
       return { value: `<span class="hljs-keyword">${escape(code)}</span>` }
     },
     highlightAuto(code) {
@@ -179,6 +188,16 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
         check('resolved', 'highlighted', paint().childElementCount > 0, name !== 'lazy-failed')
         await history(source + 'X')
       }
+    } else if (name === 'provider-retired') {
+      await enter()
+      providerArmed = true
+      await insert('X')
+      check('retired-provider', 'retirementCompleted', destroyed, true)
+      check('retired-provider', 'oldProjectionUnchanged', retiredPaint?.innerHTML, retiredMarkup)
+      check('retired-provider', 'oldProjectionDetached', retiredPaint?.isConnected, false)
+      check('retired-provider', 'noFurtherProviderCalls', calls.length, retiredCallCount)
+      check('retired-provider', 'rootRemoved', holder.querySelector('.oe-editor'), null)
+      completedPhases.push('retired-provider')
     } else if (name === 'provider-throws' || name === 'injected-runtime') {
       check('mount', 'highlighted', paint().childElementCount > 0, name === 'injected-runtime')
       await enter()

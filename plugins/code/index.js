@@ -140,7 +140,8 @@ function highlight(element, code, language, runtime, isCurrent) {
         if (!isCurrent()) return
         html = result.value + '\n'
         if (!isCurrent()) return
-        if (result.language) detectedClass = 'language-' + result.language
+        const detected = result.language
+        if (detected) detectedClass = 'language-' + detected
       } else {
         const supported = runtime.getLanguage(language)
         if (!isCurrent()) return

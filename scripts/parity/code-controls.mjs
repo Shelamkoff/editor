@@ -1,4 +1,4 @@
-// Three-source Code controls at the public editor and browser boundaries.
+// Four-source Code controls at the public editor and browser boundaries.
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
@@ -29,6 +29,7 @@ for (const path of Object.keys(bundled.metafile.inputs)) highlighterInputs[path]
 const sources = [
   { label: 'v1', sha: '5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340', legacy: true, loaded: {} },
   { label: 'spec-baseline', sha: 'e981ff308000c1d92d7e820df95113c1e19bcee8', legacy: false, loaded: {} },
+  { label: 'pre-fix', sha: '69c8425e0081fde69cf5176ccb73d032720c15fc', legacy: false, loaded: {} },
   { label: 'candidate', sha: headBefore, legacy: false, loaded: {} },
 ]
 const imports = { dompurify: '/dependencies/dompurify/dist/purify.es.mjs' }
@@ -51,7 +52,7 @@ while (pending.length) {
   dependencyVersions[name] = dependency.version
   pending.push(...Object.keys(dependency.dependencies ?? {}).filter(id => id.startsWith('@shelamkoff/')))
 }
-const cases = ['language-keyboard', 'language-cancel-no-match', 'injected-runtime', 'provider-throws',
+const cases = ['language-keyboard', 'language-cancel-no-match', 'injected-runtime', 'provider-throws', 'provider-retired',
   'lazy-default', 'lazy-delayed', 'lazy-failed', 'lazy-retired', 'copy-native', 'copy-read-only',
   'copy-rejected', 'copy-unavailable', 'copy-empty', 'copy-pending-retired']
 const selectedCases = process.env.EDITOR_CODE_CASE ? cases.filter(name => name.includes(process.env.EDITOR_CODE_CASE)) : cases
