@@ -1,5 +1,6 @@
 import './regressions/gallery-derived-alt.js'
 import './regressions/carousel-caption-renderer.js'
+import './regressions/carousel-auto-height.js'
 import './regressions/field-projection-completion.js'
 import './regressions/person-derived-presentation.js'
 import './regressions/poll-derived-presentation.js'

@@ -11,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { classifyLinkPollDifference, linkPollCaseIds } from './link-poll-roundtrip-classifiers.mjs'
 import { classifyGalleryDifference, galleryCaseIds } from './gallery-roundtrip-classifiers.mjs'
 import { classifyPersonDifference, personCaseIds } from './person-roundtrip-classifiers.mjs'
+import { classifyCarouselDifference, carouselCaseIds } from './carousel-roundtrip-classifiers.mjs'
 
 // These fixed values recognize only captured historical Embed failures. They
 // never adapt browser input, rewrite observations or grant candidate exceptions.
@@ -378,9 +379,14 @@ const galleryClassifierPath = new URL('./gallery-roundtrip-classifiers.mjs', imp
 const galleryClassifierSha256 = digest(await readFile(galleryClassifierPath))
 const personClassifierPath = new URL('./person-roundtrip-classifiers.mjs', import.meta.url)
 const personClassifierSha256 = digest(await readFile(personClassifierPath))
+const carouselClassifierPath = new URL('./carousel-roundtrip-classifiers.mjs', import.meta.url)
+const carouselClassifierSha256 = digest(await readFile(carouselClassifierPath))
 const fixturePath = join(repo, 'tests/browser/block-roundtrip-fixture.js')
 const fixtureBytes = await readFile(fixturePath)
 const fixtureSha256 = digest(fixtureBytes)
+const carouselMediaPath = join(repo, 'tests/browser/carousel-roundtrip-16x16.webm')
+const carouselMediaBytes = await readFile(carouselMediaPath)
+const carouselMediaSha256 = digest(carouselMediaBytes)
 const headBefore = git('rev-parse', 'HEAD').toString().trim()
 const requestedFilter = process.env.EDITOR_ROUNDTRIP_FILTER ?? ''
 const sources = [
@@ -417,6 +423,11 @@ const server = createServer(async (request, response) => {
       response.setHeader('content-type', 'text/html')
       response.end('<!doctype html><html><head><meta charset="utf-8"><title>Block roundtrip differential</title>'
         + '<script type="importmap">' + JSON.stringify({ imports }) + '</script></head><body></body></html>')
+      return
+    }
+    if (pathname === '/tests/browser/carousel-roundtrip-16x16.webm') {
+      response.setHeader('content-type', 'video/webm')
+      response.end(carouselMediaBytes)
       return
     }
     response.setHeader('content-type', extname(pathname) === '.css' ? 'text/css' : 'text/javascript')
@@ -513,6 +524,7 @@ try {
       const classify = failure => {
         if (galleryCaseIds.includes(entry.id)) return classifyGalleryDifference(source.label, entry, failure)
         if (personCaseIds.includes(entry.id)) return classifyPersonDifference(source.label, entry, failure)
+        if (carouselCaseIds.includes(entry.id)) return classifyCarouselDifference(source.label, entry, failure)
         if (linkPollCaseIds.includes(entry.id)) return classifyLinkPollDifference(source.label, entry, failure)
         if (embedCaseIds.includes(entry.id)) return classifyEmbedDifference(source.label, entry, failure)
         if (tableCaseIds.includes(entry.id)) return classifyTableDifference(source.label, entry, failure)
@@ -714,16 +726,18 @@ try {
   }
   for (const { bytes, path } of loaded.values()) assert.deepEqual(await readFile(path), bytes, 'Source changed during probe: ' + path)
   assert.deepEqual(await readFile(fixturePath), fixtureBytes, 'The browser fixture changed during its probe')
+  assert.deepEqual(await readFile(carouselMediaPath), carouselMediaBytes, 'The local Carousel video fixture changed during its probe')
   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
   assert.equal(digest(await readFile(classifierPath)), classifierSha256, 'The LinkPreview/Poll classifier changed during its probe')
   assert.equal(digest(await readFile(galleryClassifierPath)), galleryClassifierSha256, 'The Gallery classifier changed during its probe')
   assert.equal(digest(await readFile(personClassifierPath)), personClassifierSha256, 'The Person classifier changed during its probe')
+  assert.equal(digest(await readFile(carouselClassifierPath)), carouselClassifierSha256, 'The Carousel classifier changed during its probe')
   // All source pages are closed before pairing the two independent raw error
   // channels, so a later Playwright report cannot bypass this decision.
   for (const result of results) Object.assign(result, classifyEmbedPageErrors(result.source, result.cases, result.errors, result.pageErrors, origin))
   const failed = results.some(result => result.unexpectedErrors.length || result.unexpectedPageErrors.length || result.cases.some(entry => entry.unexpectedFailures.length))
   console.log(JSON.stringify({
-    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
+    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed/Gallery/Carousel record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
     requestedFilter, selectedCaseIds: results[0]?.cases.map(entry => entry.id) ?? [],
     incompleteCases: results.flatMap(source => source.cases.filter(entry => entry.incompletePhases?.length)
       .map(entry => ({ source: source.source, id: entry.id, completed: entry.completedPhases, incomplete: entry.incompletePhases }))),
@@ -732,7 +746,7 @@ try {
     unsupportedReferenceCases: results.flatMap(source => source.cases.filter(entry => entry.referenceCapability?.supported === false)
       .map(entry => ({ source: source.source, id: entry.id, ...entry.referenceCapability }))),
     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
-    sourceSha256, classifierSha256, galleryClassifierSha256, personClassifierSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
+    sourceSha256, classifierSha256, galleryClassifierSha256, personClassifierSha256, carouselClassifierSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,
     sources, dependencyVersions, dependencyFiles, serverErrors, results,
   }, null, 2))

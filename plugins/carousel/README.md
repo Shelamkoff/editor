@@ -37,9 +37,9 @@ The registered block type is `carousel`. Its factory is also exported by the com
 
 | Field | Required | Meaning and constraints |
 | --- | --- | --- |
-| `slides` | yes | Non-empty array. Every slide needs a non-empty unique `id` and a `type` of `image`, `video`, or `html`. |
+| `slides` | yes | Array, empty by default. Every slide needs a non-empty unique `id` and a `type` of `image`, `video`, or `html`. |
 | `slides[].src` | image/video | Canonical media URL. Image and video slides cannot omit it. |
-| `slides[].html` | HTML | Non-empty HTML string. It is sanitized during normalization and rendering. |
+| `slides[].html` | HTML | HTML string; an empty string is valid. It is sanitized during normalization and rendering. |
 | `slides[].poster` | no | Optional media-policy poster URL for a video. |
 | `slides[].alt`, `slides[].caption` | no | Optional strings. `alt` applies to media alternatives; `caption` is visible slide text. |
 | `options.loop`, `options.autoplay`, `options.navigation`, `options.pagination`, `options.thumbnails` | yes | Boolean behavior controls. Defaults are respectively `false`, `false`, `true`, `true`, and `false`. |
