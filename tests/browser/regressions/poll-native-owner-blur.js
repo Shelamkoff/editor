@@ -1,6 +1,6 @@
 import { assert, equal, pause, test } from './harness.js'
 import { clickNative, printable } from '../native-input-helpers.js'
-import { pollProviderFixture } from './poll-provider-ownership.js'
+import { pollProviderFixture, results } from './poll-provider-ownership.js'
 
 function focusEnd(field) {
   field.focus()
@@ -62,3 +62,25 @@ for (const adopted of ['wrapper', 'shell']) {
     } finally { h.editor.destroy(); foreign.remove(); outside.remove() }
   })
 }
+
+test('Poll native ownership: an outstanding vote cannot repaint an adopted shell or report twice', async () => {
+  const h = await pollProviderFixture(), foreign = document.createElement('aside')
+  document.body.append(foreign)
+  try {
+    const before = h.editor.save().blocks
+    await clickNative(h.wrapper.querySelector('.oe-poll__choice[data-option-id="first"]'))
+    await clickNative(h.wrapper.querySelector('.oe-poll__submit'))
+    equal(h.votes.length, 1)
+    assert(!h.votes[0].signal.aborted)
+    foreign.append(h.shell)
+    const html = h.wrapper.innerHTML, children = [...h.wrapper.childNodes]
+    h.votes[0].resolve(results('2', 8, 2))
+    await pause(30)
+    equal(h.wrapper.innerHTML, html); equal([...h.wrapper.childNodes], children)
+    assert(h.shell.parentNode === foreign)
+    equal(h.errors.length, 1, 'Vote settlement retried the rejected presentation')
+    assert(h.votes[0].signal.aborted, 'Completed vote resources were not released')
+    equal(h.editor.save().blocks, before); equal(h.transactions.length, 0)
+    assert(!h.editor.canUndo && !h.editor.canRedo)
+  } finally { h.editor.destroy(); foreign.remove() }
+})
