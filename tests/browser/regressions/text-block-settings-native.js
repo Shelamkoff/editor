@@ -13,6 +13,7 @@ for (const specification of textBlockSettingsCases) {
     } })
     assert(!result.error, result.error)
     assert(!result.unsupported, 'The current block capability must execute')
+    equal(result.pageErrors, [], 'Text-block control raised a page error')
     const failures = result.observations.filter(observation => observation.status !== 'PASS')
     equal(failures, [], 'Text block settings parity failed: ' + JSON.stringify(failures))
   })

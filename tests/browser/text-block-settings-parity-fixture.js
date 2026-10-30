@@ -83,9 +83,13 @@ export async function runTextBlockSettingsCase(specification, { sourceBase = '..
     ...(!legacy ? { dataVersion: definition.schema.currentVersion } : {}),
     data: specification.type === 'heading' ? { text: originalTexts[0], level: specification.initial }
       : { style: specification.initial, items: legacy ? clone(originalTexts) : clone(originalItems) }, inline: clone(inline) }] }
-  const supplied = clone(input), observations = [], phases = [], trusted = [], transactions = [], completedPhases = []
+  const supplied = clone(input), observations = [], phases = [], trusted = [], transactions = [], completedPhases = [], pageErrors = []
   const check = (phase, property, actual, expected) => observations.push({ phase, property, actual, expected, status: same(actual, expected) ? 'PASS' : 'FAIL' })
-  let editor, renderer, currentPhase = 'load', providers = 0, savedControl
+  let editor, renderer, currentPhase = 'load', providers = 0, savedControl, retiredAlternative
+  const captureError = event => pageErrors.push({ phase: currentPhase, message: event.message ?? String(event.reason),
+    stack: (event.error ?? event.reason)?.stack ?? null })
+  addEventListener('error', captureError)
+  addEventListener('unhandledrejection', captureError)
   const logicalLength = 'Alpha \uFFFC \uFFFC tail'.length
   try {
     editor = createEditor({ holder, injectStyles: true, defaultBlock: specification.type, plugins: [definition], inlineTools: [], data: input,
@@ -165,6 +169,8 @@ export async function runTextBlockSettingsCase(specification, { sourceBase = '..
       await clicked(root().querySelector('.oe-inline-toolbar__level-select'))
       savedControl = [...root().querySelectorAll('.oe-inline-toolbar__level-dropdown [role^="menuitem"]')]
         .find(element => element.textContent.trim() === `Heading ${specification.level}`)
+      retiredAlternative = [...root().querySelectorAll('.oe-inline-toolbar__level-dropdown [role^="menuitem"]')]
+        .find(element => element.textContent.trim() === `Heading ${specification.level === 2 ? 3 : 2}`)
       await clicked(savedControl)
     } else if (specification.route === 'toolbox') {
       await clicked(root().querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)'))
@@ -178,6 +184,10 @@ export async function runTextBlockSettingsCase(specification, { sourceBase = '..
       await clicked(root().querySelector('.oe-toolbar__drag'))
       const label = specification.type === 'heading' ? `Heading ${specification.level}` : specification.style === 'ordered' ? 'Numbered List' : 'Bulleted List'
       savedControl = [...root().querySelectorAll('.oe-settings-menu [role^="menuitem"]')].find(element => element.querySelector('.oe-settings-menu__label')?.textContent === label)
+      const alternativeLabel = specification.type === 'heading' ? `Heading ${specification.level === 2 ? 3 : 2}`
+        : specification.style === 'ordered' ? 'Bulleted List' : 'Numbered List'
+      retiredAlternative = [...root().querySelectorAll('.oe-settings-menu [role^="menuitem"]')]
+        .find(element => element.querySelector('.oe-settings-menu__label')?.textContent === alternativeLabel)
       await clicked(savedControl)
     }
     const added = specification.route === 'toolbox'
@@ -214,7 +224,13 @@ export async function runTextBlockSettingsCase(specification, { sourceBase = '..
       })
     }
     currentPhase = 'retired-control'
-    editor.setReadOnly(true); await pause(); savedControl.click(); await pause(); editor.setReadOnly(false); await pause()
+    // A stale choice of the already active setting could be an accidental
+    // no-op. Choose the opposite setting so an unauthorized action is visible.
+    const stale = added ? savedControl : retiredAlternative
+    if (!stale) throw new Error('Missing decisive alternate control')
+    editor.setReadOnly(true); await pause(); stale.click(); await pause()
+    check('retired-control', 'readOnlyUnchanged', editor.save().blocks, after)
+    editor.setReadOnly(false); await pause(); stale.click(); await pause()
     check('retired-control', 'canonicalUnchanged', editor.save().blocks, after)
     check('retired-control', 'historyUnchanged', { canUndo: editor.canUndo, canRedo: editor.canRedo }, { canUndo: true, canRedo: false })
     if (!legacy) check('retired-control', 'noCompletedAction', transactions.length, changes ? 6 : 3)
@@ -225,10 +241,12 @@ export async function runTextBlockSettingsCase(specification, { sourceBase = '..
     const clicks = trusted.filter(event => event.type === 'click')
     check('gestures', 'trustedClicks', clicks.map(event => [event.trusted, event.intendedControl]), Array.from({ length: added && !legacy ? 3 : 2 }, () => [true, true]))
     check('cleanup', 'providerCalls', providers, 0)
-    return { id: specification.id, observations, phases, completedPhases, trusted, error: null }
+    return { id: specification.id, observations, phases, completedPhases, trusted, pageErrors, error: null }
   } catch (error) {
-    return { id: specification.id, observations, phases, completedPhases, trusted, error: error.stack ?? String(error) }
+    return { id: specification.id, observations, phases, completedPhases, trusted, pageErrors, error: error.stack ?? String(error) }
   } finally {
     renderer?.destroy(); editor?.destroy(); holder.remove(); output.remove()
+    removeEventListener('error', captureError)
+    removeEventListener('unhandledrejection', captureError)
   }
 }
