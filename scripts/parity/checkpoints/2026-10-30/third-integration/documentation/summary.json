@@ -1,0 +1,214 @@
+{
+  "run": "run-7aWAkk",
+  "outcome": "passed",
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-30T10:19:01.939Z",
+  "source": {
+    "head": "1142d8deb418a88693618d9b5a7841cdbd8c1d7e",
+    "tree": "8151183661b9d0128840d7196c8f11664a0f6d11",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "68aaae9a4223391adbeb8d806a30e8770bdb727e9de2e94fe68b0509add1a664"
+  },
+  "publishedSource": {
+    "local": "1142d8deb418a88693618d9b5a7841cdbd8c1d7e",
+    "published": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
+    "tree": "8151183661b9d0128840d7196c8f11664a0f6d11",
+    "message": "docs(rector): record verified third parity integration"
+  },
+  "gates": {
+    "package-docs-build": "passed",
+    "docs": "passed",
+    "docs-build": "passed"
+  },
+  "productionUnchangedSinceCodeVerification": true,
+  "laterChangedFiles": [
+    "RECTOR_V2_IMPLEMENTATION_PROGRESS.md",
+    "RECTOR_V2_PROGRESS_2026-10-29.md",
+    "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/README.md",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/evidence.json",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-21x1qY/iframe-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-21x1qY/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-7Fo1Cl/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-7Fo1Cl/native-controls.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-8ktcoh/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-8ktcoh/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-9qTbJF/fieldless-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-9qTbJF/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-CEbFFH/fieldless-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-CEbFFH/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-KNAeTW/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-KNAeTW/native-final.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-KW7yBM/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-KW7yBM/native-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-KqrRob/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-KqrRob/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-Y3MN1G/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-Y3MN1G/native-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-aaUDOw/fieldless-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-aaUDOw/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-eAmIv5/iframe-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-eAmIv5/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-j0nSVV/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-j0nSVV/native-carousel.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-lUmsHC/fieldless-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-lUmsHC/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-opcT1s/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-opcT1s/native-core.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-pHckTo/fieldless-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-pHckTo/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-rdS1WI/iframe-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-rdS1WI/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-tyXFXa/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-tyXFXa/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-ubO8XY/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-ubO8XY/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-wwjPQo/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-wwjPQo/native-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-xe9STq/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-xe9STq/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-yE8Vtu/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/runs/run-yE8Vtu/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/sources/fieldless-red-fixture.js.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/sources/fieldless-red.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/sources/iframe-red.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/sources/native-red-fixture.js.gz",
+    "scripts/parity/checkpoints/2026-10-30/projection-recovery-focus/sources/native-red.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/README.md",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/isolated-source-reconstruction.json",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/isolated-sources/carousel-fix.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/isolated-sources/checklist-tests.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/isolated-sources/core-recovery-final.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/isolated-sources/person-tests.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/isolated-sources/table-fix.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/browser.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/checklist-review.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/differential.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/gallery-differential.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/package.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/types.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/source-tree-mappings.json",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/verification-summary.json",
+    "scripts/parity/checkpoints/2026-10-30/third-integration/verification-supervisor.py"
+  ],
+  "productionDocumentationResults": [
+    {
+      "localizedReadmePairs": 47
+    },
+    {
+      "readmes": 47,
+      "htmlPages": 127,
+      "brokenLinks": 0,
+      "npmSiteLeak": false
+    },
+    {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  ],
+  "retainedFailedRuns": []
+}

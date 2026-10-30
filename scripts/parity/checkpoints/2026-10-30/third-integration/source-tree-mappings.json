@@ -1,9 +1,9 @@
 {
   "baseLocal": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
   "basePublished": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
-  "parent": "82cf56f1793c454191b2ff2fef40c4929bf352e7",
-  "tree": "f90fa22af6b4149e43972b204da9261502c1f48f",
-  "branchHead": "82cf56f1793c454191b2ff2fef40c4929bf352e7",
+  "parent": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
+  "tree": "8151183661b9d0128840d7196c8f11664a0f6d11",
+  "branchHead": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
   "mappings": [
     {
       "local": "91ce2eae48785a81f16cd70e77d547bf78c1a5b3",
@@ -76,6 +76,18 @@
       "published": "82cf56f1793c454191b2ff2fef40c4929bf352e7",
       "tree": "f90fa22af6b4149e43972b204da9261502c1f48f",
       "message": "fix(core): respect owning document focus during recovery"
+    },
+    {
+      "local": "e0199e94d812e93c51a0c26f35cc4657cabaa0a8",
+      "published": "8181a0e1f1b8e587ece8fd25deb415bac565287b",
+      "tree": "aac1ca877f85f18eda722e35951ae01c0eb586a6",
+      "message": "test(core): archive projection recovery focus evidence"
+    },
+    {
+      "local": "1142d8deb418a88693618d9b5a7841cdbd8c1d7e",
+      "published": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
+      "tree": "8151183661b9d0128840d7196c8f11664a0f6d11",
+      "message": "docs(rector): record verified third parity integration"
     }
   ]
 }

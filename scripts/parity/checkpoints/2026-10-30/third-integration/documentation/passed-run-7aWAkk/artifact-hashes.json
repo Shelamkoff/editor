@@ -1,0 +1,26 @@
+[
+  {
+    "path": "docs-build.log.gz",
+    "sha256": "f67efc4e9365fbebed923d989d85ac4b2e00b94f35d7d03597440022a6954825",
+    "uncompressedSha256": "ca10328d369029eaee2b95677dab5bba813fc15f931f57cc97a4bb80304d6a00",
+    "uncompressedBytes": 2643
+  },
+  {
+    "path": "docs.log.gz",
+    "sha256": "60b12331788850d412e5f5573b444ad97addf9989786b85cd97adb948c760a86",
+    "uncompressedSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7",
+    "uncompressedBytes": 1137
+  },
+  {
+    "path": "manifest.json",
+    "sha256": "39e1d9c31b8f86edaadef459affb7368fbb961d54901e92cbf6b1086e96fe726",
+    "uncompressedSha256": "39e1d9c31b8f86edaadef459affb7368fbb961d54901e92cbf6b1086e96fe726",
+    "uncompressedBytes": 6693
+  },
+  {
+    "path": "package-docs-build.log.gz",
+    "sha256": "c2e8182dd7eb5267141b095edade9dc7f348e90176be20031c55f52f0172e5c5",
+    "uncompressedSha256": "cf4ed5a69db41abe8803e1af0b8204295da0840a77dd261d22cfb63c3294e86b",
+    "uncompressedBytes": 517
+  }
+]

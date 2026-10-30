@@ -41,7 +41,11 @@ The failed Carousel recovery shortcut remains a failed historical record. Its ea
 
 Both differential corpora have zero candidate failures, unexpected errors or incomplete cases. Native totals are counted once from the final aggregate; overlapping isolated results are not added. README contracts pass in the package build. The final documentation/site validation has a separate source identity below.
 
-This checkpoint supplies no new performance measurement, broader platform result or whole-library acceptance. Historical failures and unsuccessful setup/observation attempts keep their original outcomes. Later documentation and archive additions carry their own source identity. Their documentation verification is recorded separately once complete.
+This checkpoint supplies no new performance measurement, broader platform result or whole-library acceptance. Historical failures and unsuccessful setup/observation attempts keep their original outcomes. Later documentation and archive additions carry their own source identity. Their completed documentation verification is recorded below.
+
+## Final documentation validation
+
+**`run-7aWAkk` passes all three gates** on unchanged local `1142d8deb418a88693618d9b5a7841cdbd8c1d7e`, published exact-tree counterpart [`e1eac3529e6d111a9582ab777654f7c322ee31f9`](https://github.com/Shelamkoff/editor/commit/e1eac3529e6d111a9582ab777654f7c322ee31f9), tree `8151183661b9d0128840d7196c8f11664a0f6d11`. Completion: `2026-10-30T10:19:01.939Z`. Package/README build, `npm run test:docs` and `npm run docs:check` all pass. The full manifests/logs and rendered-site observations are retained under `documentation/`; source comparison confirms that changes after the code verification are documentation/evidence only.
 
 ## Reconstructing isolated tested sources
 
