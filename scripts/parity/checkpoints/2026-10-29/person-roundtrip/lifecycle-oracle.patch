@@ -1,0 +1,101 @@
+--- a/tests/browser/block-roundtrip-fixture.js
++++ b/tests/browser/block-roundtrip-fixture.js
+@@ -413,6 +413,7 @@
+     const personFields = () => ['name', 'role', 'bio'].map(key => shell(id).querySelector('.oe-person__' + key))
+     const personParts = () => [shell(id).querySelector('.oe-person'), ...personFields()]
+     let previousPersonParts = specification.type === 'person' ? personParts() : []
++    let previousPersonText
+     const attachmentFields = () => [...shell(id).querySelectorAll('.oe-attaches__name')]
+     let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
+     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
+@@ -628,19 +629,36 @@
+       const sourceBefore = JSON.stringify(saved)
+       const detached = renderer.render(saved)
+       check(phase, 'detachedOutputOwnership', { connected: detached.isConnected, parent: detached.parentNode === null }, { connected: false, parent: true })
+-      const inspectOutput = (root, name) => {
++      const pendingPersonLayout = specification.type === 'person' && baseData.persons.length > 1
++      const inspectOutput = (root, name, pendingLayout = false) => {
+         const blocks = [...root.querySelectorAll('[data-block-id][data-block-type]')]
+         check(phase, name + 'BlockCount', blocks.length, expected.length)
+         check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
+           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
+-        check(phase, name + 'AuthoredMarkup', blocks.map(element => element.dataset.blockType === 'person'
+-          ? personRendererMarkup(element) : rendererMarkup(element)), expected.map(expectedRendererMarkup))
+-        check(phase, name + 'Widgets', widgets(root), expectedWidgets)
++        if (pendingLayout) {
++          // Same-realm multi-profile output waits for an attached, measurable
++          // carousel container. This is an unfinished layout shell, not a
++          // completed card/inline-widget projection. Both mounted paths below
++          // must still produce every authored card and actual inline widget.
++          const person = blocks.find(element => element.dataset.blockType === 'person')
++          check(phase, name + 'PersonLayoutPending', {
++            cards: person.querySelectorAll('.editor-person__card').length,
++            containers: person.querySelectorAll('.editor-person__carousel').length,
++            widgets: widgets(root),
++          }, { cards: 0, containers: 1, widgets: [] })
++          check(phase, name + 'NeighborAuthoredMarkup', blocks.filter(element => element.dataset.blockType !== 'person').map(rendererMarkup),
++            expected.filter(block => block.type !== 'person').map(expectedRendererMarkup))
++        } else {
++          check(phase, name + 'AuthoredMarkup', blocks.map(element => element.dataset.blockType === 'person'
++            ? personRendererMarkup(element) : rendererMarkup(element)), expected.map(expectedRendererMarkup))
++          check(phase, name + 'Widgets', widgets(root), expectedWidgets)
++        }
+         if (specification.type === 'code' && specification.populated) check(phase, name + 'CodeLanguage',
+           blocks.find(element => element.dataset.blockId === id).querySelector('.editor-code__content').classList.contains('language-javascript'), true)
+       }
+-      inspectOutput(detached, 'detached')
++      inspectOutput(detached, 'detached', pendingPersonLayout)
+       detachedMount.append(detached)
++      if (pendingPersonLayout) await settled()
+       inspectOutput(detached, 'attachedDetached')
+       renderer.renderTo(saved, mounted)
+       await settled()
+@@ -871,7 +889,39 @@
+         const profiles = withEditedText(specification, baseData, text).persons
+         const parts = personParts()
+         const active = profiles[0]
+-        check(phase, 'personDomIdentity', previousPersonParts.map((element, index) => element === parts[index]), previousPersonParts.map(() => true))
++        check(phase, 'personWrapperIdentity', [previousPersonParts[0] === parts[0]], [true])
++        const modeChanged = ['read-only', 'editable-again'].includes(phase)
++        const authorChanged = ['undo', 'redo'].includes(phase) && text !== previousPersonText
++        if (modeChanged || authorChanged) {
++          const currentFields = parts.slice(1), previousFields = previousPersonParts.slice(1)
++          check(phase, 'personFieldLifetime', currentFields.map((element, index) => ({
++            currentConnected: element.isConnected,
++            predecessorCurrentOrDetached: previousFields[index] === element || !previousFields[index].isConnected,
++          })), currentFields.map(() => ({ currentConnected: true, predecessorCurrentOrDetached: true })))
++          const retired = previousFields.filter(element => !currentFields.includes(element))
++          if (retired.length) {
++            const beforeHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
++            const selection = getSelection()
++            const beforeSelection = { active: document.activeElement,
++              anchor: selection.anchorNode, anchorOffset: selection.anchorOffset,
++              focus: selection.focusNode, focusOffset: selection.focusOffset }
++            for (const old of retired) {
++              old.textContent = 'stale retired person field'
++              old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
++              old.dispatchEvent(new FocusEvent('blur'))
++            }
++            await settled()
++            check(phase, 'personRetiredFieldsLeaveCanonical', editor.save().blocks, saved.blocks)
++            check(phase, 'personRetiredFieldsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, beforeHistory)
++            check(phase, 'personRetiredFieldsLeaveCurrentFields', personFields().map((element, index) => element === currentFields[index]), [true, true, true])
++            check(phase, 'personRetiredFieldsLeaveSelection', {
++              active: document.activeElement === beforeSelection.active,
++              anchor: selection.anchorNode === beforeSelection.anchor, anchorOffset: selection.anchorOffset,
++              focus: selection.focusNode === beforeSelection.focus, focusOffset: selection.focusOffset,
++            }, { active: true, anchor: true, anchorOffset: beforeSelection.anchorOffset,
++              focus: true, focusOffset: beforeSelection.focusOffset })
++          }
++        } else check(phase, 'personFieldDomIdentity', previousPersonParts.slice(1).map((element, index) => element === parts[index + 1]), [true, true, true])
+         check(phase, 'personFields', personFields().map(element => ({ tag: element.tagName,
+           markup: authoredMarkup(element), editable: element.isContentEditable,
+         })), ['name', 'role', 'bio'].map(key => ({ tag: 'DIV', markup: markupMeaning(active[key]), editable: !readOnly })))
+@@ -950,6 +1000,7 @@
+       previousColumnFields = specification.type === 'columns' ? columnFields() : []
+       previousTableParts = specification.type === 'table' ? tableParts() : []
+       previousPersonParts = specification.type === 'person' ? personParts() : []
++      previousPersonText = specification.type === 'person' ? text : undefined
+       previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
+       previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
+       previousPlainFields = plainField ? [field()] : []

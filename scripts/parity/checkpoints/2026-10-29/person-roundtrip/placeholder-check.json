@@ -1,0 +1,27 @@
+{
+  "positive": 1,
+  "negative": [
+    "native X",
+    "avatar only",
+    "role only",
+    "bio only",
+    "link only",
+    "multiple blank profiles",
+    "no profile",
+    "current profile ID",
+    "whitespace name",
+    "inline payload",
+    "explicit empty sidecar map",
+    "explicit undefined sidecar map",
+    "unknown profile content",
+    "unknown data content",
+    "another block type",
+    "multiple blocks",
+    "candidate source",
+    "populated case",
+    "similar future case"
+  ],
+  "negativeCount": 19,
+  "status": "PASS",
+  "root": "/tmp/rector-person-final-roundtrip-20261029"
+}
