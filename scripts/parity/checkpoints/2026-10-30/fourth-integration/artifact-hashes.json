@@ -1,4 +1,28 @@
 {
+  "documentation-attempts/run-gztFjC/build.log.gz": {
+    "bytes": 280,
+    "decodedBytes": 517,
+    "decodedSha256": "cf4ed5a69db41abe8803e1af0b8204295da0840a77dd261d22cfb63c3294e86b",
+    "sha256": "c2e8182dd7eb5267141b095edade9dc7f348e90176be20031c55f52f0172e5c5"
+  },
+  "documentation-attempts/run-gztFjC/docs-contracts.log.gz": {
+    "bytes": 405,
+    "decodedBytes": 1137,
+    "decodedSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7",
+    "sha256": "60b12331788850d412e5f5573b444ad97addf9989786b85cd97adb948c760a86"
+  },
+  "documentation-attempts/run-gztFjC/docs-site.log.gz": {
+    "bytes": 871,
+    "decodedBytes": 2072,
+    "decodedSha256": "9855d4de9645e7919e74f2a269bc60586360f607035379edf655e14b341eaf11",
+    "sha256": "818caa43bcc75a0606043036818a971a60d1f0139ee0effffed35a3c936d46e3"
+  },
+  "documentation-attempts/run-gztFjC/manifest.json.gz": {
+    "bytes": 953,
+    "decodedBytes": 6658,
+    "decodedSha256": "73bb38d7b2424d8abc77d8417c33b1365aca4c0e968a465361fbe730db1e1086",
+    "sha256": "835ebf3c726fdba4a01b5862bef2c34aa2ca3f5ced235d7806326c0b03779762"
+  },
   "environment/initial-unprivileged-unit.log.gz": {
     "bytes": 3350,
     "decodedBytes": 10988,

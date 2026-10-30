@@ -70,4 +70,9 @@ The initial unprivileged unit command in `environment/` failed to complete subpr
 
 The register retains **209 unique obligations: 37 accepted / 172 open**. This continuation accepts no additional complete row. `B-HTML`, `B-STYLE`, structural `C09`/`T15`, detailed capability matrices and wider platform evidence remain open; `B-PRESENTATION` retains its already settled and implemented status. Open obligations are not a count of known bugs. This checkpoint supplies no new performance measurement or whole-library parity claim.
 
-Later changes are documentation/evidence only; their separate validation will be appended below.
+## Documentation validation attempts
+
+The first documentation run, `run-gztFjC` on `6ed34140e9a2733d3ba821b2d001f1f78715aed4`, passed package build and documentation contracts. Its site gate failed the existing Russian-prose audit because the new translated section retained untranslated terms. The original failed manifest and logs remain in `documentation-attempts/`. The correction translates the new prose and fixes Russian number agreement without changing the validator, runtime, registered fixtures or historical sections. A fresh documentation run is recorded separately below.
+
+Recorded comparison sources preserve their original hashed bytes. In particular, the compound checkpoint's `probe.mjs` retains its original trailing space on line 124; a whole-diff whitespace review reports that single formatting warning. This does not change any execution result or source identity.
+
