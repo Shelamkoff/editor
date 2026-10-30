@@ -118,10 +118,10 @@ export function createWarningPlugin(config = {}) {
           return {
             element:wrapper,
             read:()=>({title:title.innerHTML.trim(),message:message.innerHTML.trim()}),
-            update(next){
+            update(next,previous){
               if(instanceDestroyed)return
-              if(title.innerHTML!==next.title)setSanitizedHtml(title,next.title)
-              if(message.innerHTML!==next.message)setSanitizedHtml(message,next.message)
+              if(previous?.title!==next.title&&title.innerHTML!==next.title)setSanitizedHtml(title,next.title)
+              if(previous?.message!==next.message&&message.innerHTML!==next.message)setSanitizedHtml(message,next.message)
             },
             editableFields:()=>Object.freeze([
               Object.freeze({key:'title',element:title,mode:/** @type {'rich-text'} */('rich-text')}),

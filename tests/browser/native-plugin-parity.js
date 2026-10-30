@@ -1,4 +1,5 @@
 import './regressions/carousel-structure-native.js'
+import './regressions/compound-rich-siblings-native.js'
 import './quote-paste-merge.js'
 import './presentation-values.js'
 import './regressions/table-default.js'

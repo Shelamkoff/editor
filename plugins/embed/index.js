@@ -465,7 +465,7 @@ export function createEmbedPlugin(config = {}) {
             coverActions.insertBefore(button, removeCover)
           }
 
-          const project = next => {
+          const project = (next, previousCanonical) => {
             const sourceChanged = data.service !== next.service || data.videoId !== next.videoId
             // A host update to unrelated metadata must not clear an actively
             // authored video URL or silently cancel its pending debounce.
@@ -480,11 +480,9 @@ export function createEmbedPlugin(config = {}) {
             const Ctor = document.defaultView?.AbortController ?? AbortController
             playerController = new Ctor()
             wrapper.classList.remove('oe-embed--playing')
-            // NativeInputController may have committed a caption without
-            // reprojecting its editing host. Compare both the previous
-            // projection and the still-mounted DOM with incoming canonical
-            // data before replacing any view children.
-            const previousCaption = data.caption
+            // Native input may advance the canonical caption without calling
+            // update. Its hydrated DOM differs from persisted widget tokens.
+            const previousCaption = previousCanonical?.caption ?? data.caption
             const ownedCaption = /** @type {HTMLElement | null} */ (view.querySelector('.oe-embed__caption'))
             const captionWillExist = !!(next.service && next.videoId) || !!next.caption
             const retainCaption = !!ownedCaption && captionWillExist && (
@@ -560,8 +558,8 @@ export function createEmbedPlugin(config = {}) {
               const caption = view.querySelector('.oe-embed__caption')
               return { ...data, caption: caption?.innerHTML?.trim() ?? data.caption }
             },
-            update(next) {
-              if (!dead) project(next)
+            update(next, previousCanonical) {
+              if (!dead) project(next, previousCanonical)
             },
             editableFields() {
               const caption = /** @type {HTMLElement | null} */ (view.querySelector('.oe-embed__caption'))
@@ -579,7 +577,8 @@ export function createEmbedPlugin(config = {}) {
               }
               // Authoring native text can have a newer canonical caption than
               // this retained instance's pre-input data snapshot.
-              project(context.getData())
+              const canonical = context.getData()
+              project(canonical, canonical)
             },
             focus() {
               if (dead || readOnly) return
