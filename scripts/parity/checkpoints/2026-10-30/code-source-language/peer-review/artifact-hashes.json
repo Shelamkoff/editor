@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7602,
+      "sha256": "e0eeef80fe8ab43786608f985757d5953288aa6e8687afab84689348eaa1456f"
+    },
+    {
+      "path": "review.json",
+      "bytes": 1612,
+      "sha256": "ed411dd5af195a471fbf7aa07bdd7c4211b0260d6421c5c49c41a9f900d30451"
+    },
+    {
+      "path": "review.py",
+      "bytes": 20251,
+      "sha256": "46ea550fc00ff7d16305aefe5e03d098c5a75781ba8a0a074df7415eb47e0034"
+    }
+  ]
+}

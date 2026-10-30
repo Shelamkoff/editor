@@ -1,0 +1,55 @@
+{
+  "status": "PASS",
+  "reviewer": "code_peer_finish (independent of fixture author)",
+  "source": "e6842abf21aee9655d56900ec9fb784edd864609",
+  "sourceTree": "3f63560957dbb38b9f5eba5cc3228bda3cd988a4",
+  "rawSha256": "3933f6c82d12f2b727ae6a1776ceea9849ad31f475e278b833714b2e9001b0a7",
+  "checks": {
+    "evidence": 149,
+    "source": 13,
+    "servedModule": 300,
+    "dependencyFile": 6,
+    "dependencyVersion": 8,
+    "archive": 66,
+    "oracle": 10324,
+    "phase": 180,
+    "rawVerdict": 6018,
+    "candidateOracle": 1764,
+    "candidateSnapshot": 320,
+    "native": 40,
+    "lifetime": 60
+  },
+  "totalChecks": 19248,
+  "sources": [
+    {
+      "source": "v1",
+      "cases": 20,
+      "observations": 1894,
+      "failures": 178
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 20,
+      "observations": 2062,
+      "failures": 232
+    },
+    {
+      "source": "candidate",
+      "cases": 20,
+      "observations": 2062,
+      "failures": 0
+    }
+  ],
+  "scope": [
+    "BLOCK_CODE_SOURCE",
+    "BLOCK_CODE_LANGUAGE"
+  ],
+  "sourceReconstructedInTemporaryObjectStore": true,
+  "limitations": [
+    "Recorded Chrome environment only; no new browser run performed by reviewer.",
+    "Console messages and onDiagnostic were not collected by the author fixture.",
+    "Native harness process metadata records starting HEAD and actual exit; only the separate differential records before/after source equality.",
+    "Language history explicitly refocuses the source; no historical post-menu focus equivalence is claimed.",
+    "No other Code row, B-HTML/B-STYLE or whole-library acceptance."
+  ]
+}
