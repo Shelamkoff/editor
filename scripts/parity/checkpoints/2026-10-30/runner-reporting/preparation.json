@@ -1,0 +1,8 @@
+{
+  "nonProductAttempt": {
+    "command": "node reporting-gate-probes.mjs 24cc569c2fdcb3f115417ae895a01084858cdf67 red-gates",
+    "outcome": "Sandboxed Node child_process execFileSync reported spawnSync git EPERM before probe execution. Repeated with require_escalated; exact-source probe then completed.",
+    "classification": "Environment execution limitation; not a product or reporting RED."
+  },
+  "intermediate": "green-working-gates was a pre-commit logic check. Only green-gates on exact 67bb364d is counted as the final 62-probe gate."
+}

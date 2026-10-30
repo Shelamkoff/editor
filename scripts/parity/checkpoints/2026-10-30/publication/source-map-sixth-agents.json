@@ -1,0 +1,126 @@
+{
+  "repository": "Shelamkoff/editor",
+  "branch": "refactor/rector-v2-architecture",
+  "transport": "Authenticated GitHub Git Data API; console Git had no credentials.",
+  "originalBase": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+  "originalHead": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+  "publishedHead": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+  "verified": {
+    "commitCount": 12,
+    "allTreesIdentical": true,
+    "allParentLinksVerified": true,
+    "allMessagesIdentical": true,
+    "remoteRefVerified": true,
+    "remoteTipAtPublication": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8"
+  },
+  "commits": [
+    {
+      "local": "9c2b3acd8805925a1f1d213848bfd1e7541eab1c",
+      "published": "b044df1ea2455428ecbc1b6707191740ed65d58b",
+      "tree": "83980ef1af13e0e2b3809484f9a4598269dd8591",
+      "parentLocal": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+      "parentPublished": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+      "message": "test(inline-tools): prove public formatting actions and retirement\n",
+      "rawCommit": "tree 83980ef1af13e0e2b3809484f9a4598269dd8591\nparent 220d4553b6d72396fddaeb15aa426a2f779c1744\nauthor Codex <codex@openai.com> 1793381313 +0300\ncommitter Codex <codex@openai.com> 1793386245 +0300\n\ntest(inline-tools): prove public formatting actions and retirement\n"
+    },
+    {
+      "local": "9b2caa206f23cd6b5de10f3b6388e8f7a23c8d5a",
+      "published": "bd587789157d472d21a71287bbf95e3f43fc6506",
+      "tree": "a370039b5f3bf29fb7955aa298ab8b49eaf8b6b0",
+      "parentLocal": "9c2b3acd8805925a1f1d213848bfd1e7541eab1c",
+      "parentPublished": "b044df1ea2455428ecbc1b6707191740ed65d58b",
+      "message": "test(inline-tools): isolate tool parity from field-edge trimming\n",
+      "rawCommit": "tree a370039b5f3bf29fb7955aa298ab8b49eaf8b6b0\nparent 9c2b3acd8805925a1f1d213848bfd1e7541eab1c\nauthor Codex <codex@openai.com> 1793381507 +0300\ncommitter Codex <codex@openai.com> 1793386245 +0300\n\ntest(inline-tools): isolate tool parity from field-edge trimming\n"
+    },
+    {
+      "local": "09430f7ac36aba9de1bb5ea7fb47461d962249fe",
+      "published": "3dddfcc0f16dee358c7f0c62a459ecddd5ee24d2",
+      "tree": "91bfdcd9270eee95d0382c3e80dff9e143003a07",
+      "parentLocal": "9b2caa206f23cd6b5de10f3b6388e8f7a23c8d5a",
+      "parentPublished": "bd587789157d472d21a71287bbf95e3f43fc6506",
+      "message": "test(inline-tools): snapshot evidence and verify live replay\n",
+      "rawCommit": "tree 91bfdcd9270eee95d0382c3e80dff9e143003a07\nparent 9b2caa206f23cd6b5de10f3b6388e8f7a23c8d5a\nauthor Codex <codex@openai.com> 1793382058 +0300\ncommitter Codex <codex@openai.com> 1793386245 +0300\n\ntest(inline-tools): snapshot evidence and verify live replay\n"
+    },
+    {
+      "local": "fa5e5bc9f65a1f46a3e99e6cc8eb591b5ae2d047",
+      "published": "2e3d28ce3090b287745d96d91d84765aded6b269",
+      "tree": "c16ee3060a7806180a94560d3bd665f21339b5dd",
+      "parentLocal": "09430f7ac36aba9de1bb5ea7fb47461d962249fe",
+      "parentPublished": "3dddfcc0f16dee358c7f0c62a459ecddd5ee24d2",
+      "message": "test(inline-tools): retain independently reviewed tool action proof\n",
+      "rawCommit": "tree c16ee3060a7806180a94560d3bd665f21339b5dd\nparent 09430f7ac36aba9de1bb5ea7fb47461d962249fe\nauthor Codex <codex@openai.com> 1793382490 +0300\ncommitter Codex <codex@openai.com> 1793386245 +0300\n\ntest(inline-tools): retain independently reviewed tool action proof\n"
+    },
+    {
+      "local": "f2d958eb551f3058ab230f61f407481b5a86ec73",
+      "published": "edd7da2a7ea57fc73d51262a2b14953c394d4dfc",
+      "tree": "81f0e84f358ca9a43f3cd25182344ea6f7f5063b",
+      "parentLocal": "fa5e5bc9f65a1f46a3e99e6cc8eb591b5ae2d047",
+      "parentPublished": "2e3d28ce3090b287745d96d91d84765aded6b269",
+      "message": "test(columns): probe rich layout reduction through real controls\n",
+      "rawCommit": "tree 81f0e84f358ca9a43f3cd25182344ea6f7f5063b\nparent fa5e5bc9f65a1f46a3e99e6cc8eb591b5ae2d047\nauthor Codex <codex@openai.com> 1793380755 +0300\ncommitter Codex <codex@openai.com> 1793386250 +0300\n\ntest(columns): probe rich layout reduction through real controls\n"
+    },
+    {
+      "local": "ba266b29c9fa0402225c579670b1da1c5016050d",
+      "published": "5a1adc3d8b95ddb6399c1fb509c2f84a0f07462e",
+      "tree": "2d47082aedf3486d915806307ab05c43746ebf52",
+      "parentLocal": "f2d958eb551f3058ab230f61f407481b5a86ec73",
+      "parentPublished": "edd7da2a7ea57fc73d51262a2b14953c394d4dfc",
+      "message": "test(columns): cover layout surfaces and empty-column reduction\n",
+      "rawCommit": "tree 2d47082aedf3486d915806307ab05c43746ebf52\nparent f2d958eb551f3058ab230f61f407481b5a86ec73\nauthor Codex <codex@openai.com> 1793380843 +0300\ncommitter Codex <codex@openai.com> 1793386250 +0300\n\ntest(columns): cover layout surfaces and empty-column reduction\n"
+    },
+    {
+      "local": "37d63ce38eea43af5a66665d9509803f7bf86bd6",
+      "published": "04dee2855d342537625fbc57a4ec5bb1ac71f248",
+      "tree": "5019da1518e99e0517c07b4828a3b9f6f90ad290",
+      "parentLocal": "ba266b29c9fa0402225c579670b1da1c5016050d",
+      "parentPublished": "5a1adc3d8b95ddb6399c1fb509c2f84a0f07462e",
+      "message": "test(columns): make retired settings checks decisive after mode changes\n",
+      "rawCommit": "tree 5019da1518e99e0517c07b4828a3b9f6f90ad290\nparent ba266b29c9fa0402225c579670b1da1c5016050d\nauthor Codex <codex@openai.com> 1793380958 +0300\ncommitter Codex <codex@openai.com> 1793386250 +0300\n\ntest(columns): make retired settings checks decisive after mode changes\n"
+    },
+    {
+      "local": "6c1b0f72d3520733280d846ab4c722f2e509037a",
+      "published": "b4fa44507c8c23ca5dc0a450b4ddfe781cd3aae8",
+      "tree": "94f1ebe7a8c0237d5cf649db7d824fd0a8d92e4d",
+      "parentLocal": "37d63ce38eea43af5a66665d9509803f7bf86bd6",
+      "parentPublished": "04dee2855d342537625fbc57a4ec5bb1ac71f248",
+      "message": "test(columns): retain exact-source layout and no-loss parity evidence\n",
+      "rawCommit": "tree 94f1ebe7a8c0237d5cf649db7d824fd0a8d92e4d\nparent 37d63ce38eea43af5a66665d9509803f7bf86bd6\nauthor Codex <codex@openai.com> 1793381404 +0300\ncommitter Codex <codex@openai.com> 1793386250 +0300\n\ntest(columns): retain exact-source layout and no-loss parity evidence\n"
+    },
+    {
+      "local": "283abbb828bd567824da0e24680f99295d05aeb6",
+      "published": "6e0e6f4fdba98716345fc947e063bff31e3c990a",
+      "tree": "e757cae0dfe6750a234cc81039ea9bbfcb136578",
+      "parentLocal": "6c1b0f72d3520733280d846ab4c722f2e509037a",
+      "parentPublished": "b4fa44507c8c23ca5dc0a450b4ddfe781cd3aae8",
+      "message": "test(raw): compare literal source editing and preview transitions\n",
+      "rawCommit": "tree e757cae0dfe6750a234cc81039ea9bbfcb136578\nparent 6c1b0f72d3520733280d846ab4c722f2e509037a\nauthor Codex <codex@openai.com> 1793380937 +0300\ncommitter Codex <codex@openai.com> 1793386253 +0300\n\ntest(raw): compare literal source editing and preview transitions\n"
+    },
+    {
+      "local": "fdcb9ed99828402e76654f1edf1de62ab4740fe4",
+      "published": "d930c4df7e29dc42733fccb8f2a3d99a082e0276",
+      "tree": "3f29f9da829b77155417d4d5d7a266683a88128e",
+      "parentLocal": "283abbb828bd567824da0e24680f99295d05aeb6",
+      "parentPublished": "6e0e6f4fdba98716345fc947e063bff31e3c990a",
+      "message": "test(raw): use each registered block schema version in comparison\n",
+      "rawCommit": "tree 3f29f9da829b77155417d4d5d7a266683a88128e\nparent 283abbb828bd567824da0e24680f99295d05aeb6\nauthor Codex <codex@openai.com> 1793380965 +0300\ncommitter Codex <codex@openai.com> 1793386253 +0300\n\ntest(raw): use each registered block schema version in comparison\n"
+    },
+    {
+      "local": "a90bb548e68fee6051fa1b37d6a8d0a830906d64",
+      "published": "dd6b0104fc3d2d7a5a4fc4457c8cf009ff75cbd3",
+      "tree": "264c6e3b450291485f8b77c7c7a46f2ddbd3bb64",
+      "parentLocal": "fdcb9ed99828402e76654f1edf1de62ab4740fe4",
+      "parentPublished": "d930c4df7e29dc42733fccb8f2a3d99a082e0276",
+      "message": "test(raw): observe handled Tab keys during event capture\n",
+      "rawCommit": "tree 264c6e3b450291485f8b77c7c7a46f2ddbd3bb64\nparent fdcb9ed99828402e76654f1edf1de62ab4740fe4\nauthor Codex <codex@openai.com> 1793381073 +0300\ncommitter Codex <codex@openai.com> 1793386253 +0300\n\ntest(raw): observe handled Tab keys during event capture\n"
+    },
+    {
+      "local": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+      "published": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+      "tree": "a3a77a3670e6b17f8000b4cd95720eec1a7edc2a",
+      "parentLocal": "a90bb548e68fee6051fa1b37d6a8d0a830906d64",
+      "parentPublished": "dd6b0104fc3d2d7a5a4fc4457c8cf009ff75cbd3",
+      "message": "test(parity): retain exact-source Raw source and preview proof\n",
+      "rawCommit": "tree a3a77a3670e6b17f8000b4cd95720eec1a7edc2a\nparent a90bb548e68fee6051fa1b37d6a8d0a830906d64\nauthor Codex <codex@openai.com> 1793381630 +0300\ncommitter Codex <codex@openai.com> 1793386253 +0300\n\ntest(parity): retain exact-source Raw source and preview proof\n"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "base": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+  "candidate": "67bb364d01ff3939ff3f7724df087211643efce7",
+  "tree": "117dc71c90108b5605c25a8907d41b90c649914a",
+  "parent": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+  "rawCommit": "tree 117dc71c90108b5605c25a8907d41b90c649914a\nparent 24cc569c2fdcb3f115417ae895a01084858cdf67\nauthor Codex <codex@openai.com> 1793386552 +0300\ncommitter Codex <codex@openai.com> 1793386552 +0300\n\nfix(parity): reject empty and incomplete comparison results\n",
+  "changedPaths": [
+    "scripts/parity/columns-layout-parity.mjs",
+    "scripts/parity/raw-source-preview.mjs",
+    "scripts/parity/text-block-settings.mjs",
+    "scripts/parity/tool-actions.mjs"
+  ],
+  "productionChanged": false,
+  "fixturesChanged": false,
+  "workingTreeClean": true,
+  "gitDiffCheckExit": 0,
+  "scope": "Only four newly added parity runners. Source-dependent fixture verdicts and historical artifacts are unchanged."
+}

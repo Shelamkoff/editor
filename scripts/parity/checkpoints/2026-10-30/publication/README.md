@@ -32,7 +32,7 @@ the published history.
 node --input-type=module <<'JS'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
-const names = ['first-batch', 'second-batch', 'docs-repair', 'reports']
+const names = ['first-batch', 'second-batch', 'docs-repair', 'reports', 'sixth-root', 'sixth-agents']
 for (const name of names) {
  const map = JSON.parse(readFileSync(`scripts/parity/checkpoints/2026-10-30/publication/source-map-${name}.json`, 'utf8'))
  for (const entry of map.commits) {
@@ -81,3 +81,21 @@ unchanged source; their original records are archived in the
 [integration checkpoint](../fifth-integration/README.md#final-documentation-verification).
 The subsequent archival commit only retains these completed results and this
 source map; it does not claim another test run.
+
+## Sixth continuation
+
+`source-map-sixth-root.json` retains two Heading/List verification commits; final
+original `d483be745b0bc00f40a89b823a12f993f1ae21f8` is published as
+`220d4553b6d72396fddaeb15aa426a2f779c1744`. `source-map-sixth-agents.json` retains
+twelve integrated Tools, Columns and Raw commits. The focused native source
+`24cc569c2fdcb3f115417ae895a01084858cdf67` is published as
+`0cceb84eceeb6299f2338ac4798ff40e9aa36ec8`, identical tree
+`a3a77a3670e6b17f8000b4cd95720eec1a7edc2a`. Both batches advanced the remote branch
+without force using the observed expected head. Fresh fetches verified all 14
+trees, parent links, messages and original commit-object hashes before moving
+the clean local branch to each identical published tree.
+
+The [sixth integration checkpoint](../sixth-integration/README.md) records the
+new focused verification and unchanged production-source relationship to the
+previous full run. Later reporting fixes and documentation have separate source
+identities; these maps do not add another test execution.

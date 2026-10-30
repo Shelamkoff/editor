@@ -1,0 +1,90 @@
+[
+  {
+    "scope": "heading-list",
+    "isolatedSource": "d483be745b0bc00f40a89b823a12f993f1ae21f8",
+    "integratedSource": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "files": [
+      {
+        "path": "tests/browser/text-block-settings-parity-fixture.js",
+        "sha256": "13e0fb6e316d87952544945c57f81421f18d4578c35311df9c39b3e3f930b28b",
+        "bytes": 18371
+      },
+      {
+        "path": "tests/browser/regressions/text-block-settings-native.js",
+        "sha256": "e1234b080cadaac434760531c05802d74af06671ce5841d5bdab8d210df1971c",
+        "bytes": 1192
+      },
+      {
+        "path": "scripts/parity/text-block-settings.mjs",
+        "sha256": "700f0138e3a1c3046b28f249d475f5af076bc63891a98eaf965bf24517c75dbd",
+        "bytes": 7662
+      }
+    ]
+  },
+  {
+    "scope": "columns",
+    "isolatedSource": "b7ac66388e44999d794368cd00a99b4057d41083",
+    "integratedSource": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "files": [
+      {
+        "path": "tests/browser/columns-layout-parity-fixture.js",
+        "sha256": "3c61fd6a194518f37a39520e0e9f8f7b0d12c131872cac9f98f42586afaab370",
+        "bytes": 20698
+      },
+      {
+        "path": "tests/browser/regressions/columns-layout-native.js",
+        "sha256": "f7e5b19b13fea3f60263ac7cb27745a7d63beea7ee142ea5e37d252069d39b2b",
+        "bytes": 1094
+      },
+      {
+        "path": "scripts/parity/columns-layout-parity.mjs",
+        "sha256": "c17e45f2aeef3458e42bda7e50e4f10bb8642b9fd7ec159f75416cf6175a81a1",
+        "bytes": 7821
+      }
+    ]
+  },
+  {
+    "scope": "raw",
+    "isolatedSource": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+    "integratedSource": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "files": [
+      {
+        "path": "tests/browser/raw-source-parity-fixture.js",
+        "sha256": "d1b27d210f45c2b3d6d1594221c6ba4a0a01242a9f1ada543eff4cd419a3c6af",
+        "bytes": 16276
+      },
+      {
+        "path": "tests/browser/regressions/raw-readonly-selection-native.js",
+        "sha256": "05b03e2b23406edd290a27b85ec43bd45ad47a94e4f617ba82c5c48de0baac74",
+        "bytes": 2093
+      },
+      {
+        "path": "scripts/parity/raw-source-preview.mjs",
+        "sha256": "df23c2bdeee181327736cb15dcd31799658ec8de2c2fc8849ff1ba6e3e54b7c0",
+        "bytes": 8289
+      }
+    ]
+  },
+  {
+    "scope": "tools",
+    "isolatedSource": "9cb70473c9793623632e1018144e490ca2cc73d7",
+    "integratedSource": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "files": [
+      {
+        "path": "tests/browser/tool-actions-parity-fixture.js",
+        "sha256": "6feaebfcb9c67e281a5a661f9514cb28e6a79cb93a1f03a872ce11ac7985f833",
+        "bytes": 29477
+      },
+      {
+        "path": "tests/browser/regressions/tool-actions.js",
+        "sha256": "72c5d4e08bfd080d781dcaf93573e735d388332bb6017a0bbcf889a08d6487db",
+        "bytes": 866
+      },
+      {
+        "path": "scripts/parity/tool-actions.mjs",
+        "sha256": "6b2759bbabbc8c25574422566b9f33a9c59adc75879900ac8c607ba3a5c7484d",
+        "bytes": 8137
+      }
+    ]
+  }
+]
