@@ -1,0 +1,6 @@
+{
+  "outcome": "failed",
+  "source": "80ce7b580a86630eed43cf53def71ef9e0cf80f1",
+  "reason": "The new Russian publication-review prose contained untranslated terms. The production documentation build succeeded, but the existing Russian-prose smoke rejected utc, manifest, production, en, ru, p50, p95, v8, ram, weakref and drop.",
+  "repair": "Translate ordinary prose, spell out percentiles, and preserve the exact V8 engine name as a code identifier. No runtime source, validator allowlist or assertion was changed. A fresh documentation run follows on its own source."
+}
