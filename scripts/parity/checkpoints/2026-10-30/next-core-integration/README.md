@@ -60,6 +60,13 @@ No timing repeat, small-Table timing or isolated core-only browser ablation was 
 - `canonical-read-work.json`: integrated e99 → 8d2 exact-source deterministic rerun and source hashes.
 - `canonical-read-work-isolated.json`: original e99 → 4dcb isolated mechanism proof and source hashes.
 - `canonical-read-work-negative-control.json`: original e99 → e99 sensitivity control.
-- Raw run directory: `/tmp/rector-next-core-ab-20261030/structural`; its results JSON and 16 compressed trace/allocation artifacts are individually hashed in the summary.
+- `structural-results.json.gz`: deterministic archive of the complete original `structural/results.json`, including every recorded source/dependency hash, control observation and raw sample.
+- `raw-results-archive.json`: archive/original/provenance hashes, compression settings and verification results.
+- `run-manifest.json`, `invocation.json`, `structural.log`: original pinned-source manifest, exact command/environment overrides and short runner stdout, copied without modification.
+- Original run directory: `/tmp/rector-next-core-ab-20261030/structural`; its results JSON and 16 compressed trace/allocation artifacts are individually hashed in the summary.
 - Raw results SHA256: `33f8f8e3a5ed540ac32349ac2dfdbe05294d445693d9774de8f385f2d6d7b95e`.
 - This document covers this performance/proof run only; other integration gates are owned and recorded separately.
+
+The archived JSON is 261,936 bytes before compression and 24,306 bytes compressed. Gzip uses level 9, `mtime=0`, no filename and OS byte 255. Two independent compressions produced identical bytes, decompression reproduced the original JSON byte for byte, and original/provenance hashes match the previously recorded summary. Archive SHA256: `5f64e29732185262ec6f1ad64a3b18fece688ef3593d69f82100fdeae8defa1b`.
+
+The eight Chrome trace files and eight V8 allocation profiles (1,781,157 compressed bytes total) are omitted from the repository. Their individual hashes and the recorded aggregate/derived attribution remain in the summary. Complete event/stack inspection or independent allocation re-attribution requires the retained original files; a hash inventory does not embed those contents. This archival follow-up did not rerun tests, timing or profiling and does not change the C09/T15 assessment.

@@ -1,0 +1,51 @@
+{
+  "scope": "Archive of the original completed e99-to-integrated8d2 browser run; no recollection or new test run.",
+  "original": {
+    "logicalPath": "structural/results.json",
+    "bytes": 261936,
+    "sha256": "33f8f8e3a5ed540ac32349ac2dfdbe05294d445693d9774de8f385f2d6d7b95e"
+  },
+  "archive": {
+    "path": "structural-results.json.gz",
+    "bytes": 24306,
+    "sha256": "5f64e29732185262ec6f1ad64a3b18fece688ef3593d69f82100fdeae8defa1b",
+    "gzip": {
+      "mtime": 0,
+      "filename": "",
+      "compressionLevel": 9,
+      "osByte": 255,
+      "python": "3.12.14",
+      "zlibRuntime": "1.3.2"
+    }
+  },
+  "verified": {
+    "twoIndependentCompressionsEqual": true,
+    "decompressedBytesEqualOriginal": true,
+    "originalShaMatchesRecordedSummary": true,
+    "provenanceMatchesRecordedSummary": true
+  },
+  "provenance": [
+    {
+      "path": "run-manifest.json",
+      "bytes": 1087,
+      "sha256": "d5014891169ba91ff6fba1371bfe5cc4e2da1201adc7ffad766ca947456ef25e"
+    },
+    {
+      "path": "invocation.json",
+      "bytes": 941,
+      "sha256": "4d205c45def661eababda2d3855349d86fb41008aacaaae1a38a32114c29c7bd"
+    },
+    {
+      "path": "structural.log",
+      "bytes": 130,
+      "sha256": "deba87a31a5555de705a9f4b38cdd74339a01e3ed29ea22e444b9f9249b4fbb2"
+    }
+  ],
+  "omittedLargeProfiles": {
+    "count": 16,
+    "bytes": 1781157,
+    "hashInventory": "performance-summary.json: rawArtifacts",
+    "originalLocation": "/tmp/rector-next-core-ab-20261030/structural",
+    "limits": "The eight Chrome trace files and eight V8 allocation profiles are not checked in. Their individual hashes, recorded aggregate observations, and derived attribution remain in the summary. Full event/stack inspection or independent re-attribution requires the retained original files; a digest does not substitute for their contents."
+  }
+}
