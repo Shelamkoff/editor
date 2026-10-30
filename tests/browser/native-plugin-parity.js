@@ -1559,9 +1559,11 @@ test('Gallery accepts a file drag after a caption update retains its image slots
   }))
   equal(root.querySelector('.oe-gallery__slot[data-image-id="first"]'), source,
     'caption-only projection replaced the drag source')
-  const transfer = new DataTransfer()
-  transfer.items.add(new File(['image'], 'external.png', { type: 'image/png' }))
-  const over = new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer })
+  // A constructed DataTransfer ignores dropEffect writes in Chromium. Record
+  // the dragover protocol explicitly; the drop cases below use real files.
+  const transfer = { types: ['Files'], dropEffect: 'none' }
+  const over = new Event('dragover', { bubbles: true, cancelable: true })
+  Object.defineProperty(over, 'dataTransfer', { value: transfer })
   target.dispatchEvent(over)
   assert(over.defaultPrevented, 'old image drag prevented a fresh file drop after Gallery projection')
   equal(transfer.dropEffect, 'copy')
