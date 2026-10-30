@@ -204,6 +204,9 @@ export function createTablePlugin(config = {}) {
           const rows=new Map()
           const cells=new Map()
           const cellKey=tableFieldKey
+          const emptyFields=Object.freeze([])
+          /** @type {ReadonlyArray<import('../../plugin-kit/types').EditableField>} */
+          let fields=emptyFields
 
           const createRow=rowData=>{
             const row=document.createElement('tr')
@@ -247,14 +250,18 @@ export function createTablePlugin(config = {}) {
             wrapper.dataset.headings=String(data.withHeadings)
             const liveRows=new Set()
             const liveCells=new Set()
+            let fieldIndex=0
+            /** @type {Array<import('../../plugin-kit/types').EditableField> | null} */
+            let nextFields=null
             data.rows.forEach((rowData,rowIndex)=>{
               liveRows.add(rowData.id)
               const row=rows.get(rowData.id)??createRow(rowData)
               // Keep existing rows connected when their order is unchanged.
               if(table.children[rowIndex]!==row)table.insertBefore(row,table.children[rowIndex]??null)
               rowData.cells.forEach((cellData,columnIndex)=>{
-                liveCells.add(cellKey(rowData.id,cellData.id))
-                let cell=cells.get(cellKey(rowData.id,cellData.id))??createCell(rowData,cellData,rowIndex)
+                const key=cellKey(rowData.id,cellData.id)
+                liveCells.add(key)
+                let cell=cells.get(key)??createCell(rowData,cellData,rowIndex)
                 // Header cells are positional, not owned by a row identity.
                 // Reconcile tags on every update: insertion, deletion and
                 // reordering can change the first row without toggling the flag.
@@ -263,13 +270,23 @@ export function createTablePlugin(config = {}) {
                 // Hydrated inline roots spell authored placeholders differently.
                 // A sibling with unchanged canonical text already owns its live
                 // children; rewriting it would retire its widgets and range.
-                if(previousText.get(cellKey(rowData.id,cellData.id))!==cellData.text
+                if(previousText.get(key)!==cellData.text
                   &&cell.innerHTML!==cellData.text){
                   if(cellData.text)setSanitizedHtml(cell,cellData.text)
                   else cell.textContent=''
                 }
                 // Reparenting an unchanged focused TD/TH collapses the caret.
                 if(row.children[columnIndex]!==cell)row.insertBefore(cell,row.children[columnIndex]??null)
+                // Descriptors depend only on ordered keys and exact hosts.
+                // Reuse this immutable list between updates; core still checks
+                // every returned host's current ownership on each discovery.
+                const previous=fields[fieldIndex]
+                const same=previous?.key===key&&previous.element===cell
+                if(!same)nextFields??=fields.slice(0,fieldIndex)
+                if(nextFields)nextFields.push(same?previous:Object.freeze({
+                  key,element:cell,mode:/** @type {'rich-text'} */('rich-text'),
+                }))
+                fieldIndex++
               })
             })
             for(const [id,cell] of cells){
@@ -282,6 +299,8 @@ export function createTablePlugin(config = {}) {
               row.remove()
               rows.delete(id)
             }
+            if(nextFields)fields=Object.freeze(nextFields)
+            else if(fields.length!==fieldIndex)fields=Object.freeze(fields.slice(0,fieldIndex))
           }
 
           reconcile(data)
@@ -298,14 +317,7 @@ export function createTablePlugin(config = {}) {
               })),
             }),
             update(next,previousCanonical){if(!instanceDestroyed)reconcile(next,previousCanonical)},
-            editableFields:()=>Object.freeze(data.rows.flatMap(row=>row.cells.flatMap(cell=>{
-              const element=cells.get(cellKey(row.id,cell.id))
-              return element?[Object.freeze({
-                key:tableFieldKey(row.id,cell.id),
-                element,
-                mode:/** @type {'rich-text'} */('rich-text'),
-              })]:[]
-            }))),
+            editableFields:()=>fields,
             setReadOnly(value){
               readOnly=value
               for(const cell of cells.values())cell.contentEditable=value?'false':'true'
@@ -321,7 +333,7 @@ export function createTablePlugin(config = {}) {
               const first=firstRow?.cells[0]?.id
               if(firstRow&&first)cells.get(cellKey(firstRow.id,first))?.focus()
             },
-            destroy(){instanceDestroyed=true;rows.clear();cells.clear()},
+            destroy(){instanceDestroyed=true;rows.clear();cells.clear();fields=emptyFields},
           }
         },
         destroy(){destroyed=true},
