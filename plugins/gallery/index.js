@@ -239,6 +239,11 @@ export function createGalleryPlugin(config={}){
           const captionFields=new Map()
           let viewController=null
           let dragId=null
+          const clearDrag=()=>{
+            dragId=null
+            wrapper.querySelectorAll('.'+CSS.itemDragging+',.'+CSS.slotOver+',.'+CSS.overflowItemOver)
+              .forEach(element=>element.classList.remove(CSS.itemDragging,CSS.slotOver,CSS.overflowItemOver))
+          }
 
           const ownsCaptionImage=view=>{
             if(!view||captionFields.get(view.id)!==view||dead||context.signal.aborted||view.signal.aborted
@@ -423,20 +428,16 @@ export function createGalleryPlugin(config={}){
                 event.dataTransfer.setData('text/plain',image.id)
               }
             },{signal:viewController.signal})
-            slot.addEventListener('dragend',()=>{
-              dragId=null
-              wrapper.querySelectorAll('.'+CSS.itemDragging+',.'+CSS.slotOver+',.'+CSS.overflowItemOver)
-                .forEach(element=>element.classList.remove(CSS.itemDragging,CSS.slotOver,CSS.overflowItemOver))
-            },{signal:viewController.signal})
+            slot.addEventListener('dragend',clearDrag,{signal:viewController.signal})
             slot.addEventListener('dragover',event=>{
-              if(readOnly||!dragId||dragId===image.id)return
+              if(readOnly||!dragId||dragId===image.id||event.dataTransfer?.types.includes('Files'))return
               event.preventDefault()
               event.stopPropagation()
               slot.classList.add(slot.classList.contains(CSS.overflowItem)?CSS.overflowItemOver:CSS.slotOver)
             },{signal:viewController.signal})
             slot.addEventListener('dragleave',()=>slot.classList.remove(CSS.slotOver,CSS.overflowItemOver),{signal:viewController.signal})
             slot.addEventListener('drop',event=>{
-              if(readOnly||!dragId||dragId===image.id)return
+              if(readOnly||!dragId||dragId===image.id||event.dataTransfer?.types.includes('Files'))return
               event.preventDefault()
               event.stopPropagation()
               const from=dragId
@@ -665,12 +666,16 @@ export function createGalleryPlugin(config={}){
           }
 
           wrapper.addEventListener('dragover',event=>{
-            if(readOnly||dragId||!event.dataTransfer?.types.includes('Files'))return
+            if(readOnly||!event.dataTransfer?.types.includes('Files'))return
+            // A foreign file drag supersedes any previous image reorder even
+            // when caption projection retained its source and no dragend ran.
+            if(dragId)clearDrag()
             event.preventDefault()
             if(event.dataTransfer)event.dataTransfer.dropEffect='copy'
           },{signal:context.signal})
           wrapper.addEventListener('drop',event=>{
-            if(readOnly||dragId||!event.dataTransfer?.files.length)return
+            if(readOnly||!event.dataTransfer?.files.length)return
+            if(dragId)clearDrag()
             event.preventDefault();event.stopPropagation()
             void resolveFiles([...event.dataTransfer.files])
           },{signal:context.signal})
