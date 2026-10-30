@@ -12,7 +12,7 @@ This checkpoint records the completed continuation from `e99fec9d`: three reprod
 - Environment: Linux x64, Node 24.22.1, npm 11.9.0, Chrome 156.0.8078.47.
 - References remain pinned at v1 `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` and specification baseline `e981ff308000c1d92d7e820df95113c1e19bcee8`.
 
-Git Data publication verifies each complete tree before creating its corresponding commit, then updates the branch with an expected-head comparison. Different commit metadata produces different commit IDs; matching trees establish source equivalence, not a second test execution. `source-tree-mappings.json` preserves this continuation's mappings through the tested source. Earlier checkpoints retain their own immutable sources and outcomes.
+Git Data publication verifies each complete tree before creating its corresponding commit, then updates the branch with an expected-head comparison. Different commit metadata produces different commit IDs; matching trees establish source equivalence, not a second test execution. `source-tree-mappings.json` preserves this continuation's code and validated documentation source mappings. Earlier checkpoints retain their own immutable sources and outcomes.
 
 | Check | Recorded result |
 | --- | --- |
@@ -73,4 +73,10 @@ Sampled V8 allocations for full edit/Undo/Redo/reset/oracle sequences fall by 9.
 
 B-HTML/B-STYLE confinement and preservation decisions, detailed plugin actions, complete structural performance acceptance and broader browser/platform coverage remain open. This run uses Chrome 156 on Linux; earlier sources retain their own Chrome 142 evidence. No whole-library or cross-platform parity is inferred from the completed bounded corpora.
 
-The later publication documentation and archive commits change no production behavior. Their documentation verification is recorded separately once complete.
+The later publication documentation and archive commits change no production behavior. Their completed documentation verification is recorded below.
+
+## Final documentation validation
+
+**`run-OjMZrE` passes all three gates** on unchanged local `d38d84f1fad9a0242c3af4bac59cc55539592b7b`, published exact-tree counterpart [`accfd5726e9435b497874bfad36cdcf5e09a6341`](https://github.com/Shelamkoff/editor/commit/accfd5726e9435b497874bfad36cdcf5e09a6341), tree `ff76ccf5ff6b06538baa4d3f96dfa119d1bda100`. Completion: `2026-10-30T08:45:01.108Z`. Package/README build, `npm run test:docs` and `npm run docs:check` all pass. The full manifests/logs and rendered-site observations are retained under `documentation/`; source comparison confirms that changes after the code verification are documentation/evidence only.
+
+The failed documentation runs `run-oTlMzN`, `run-SfXrAc`, `run-UvzzqM` and `run-Ykk6Lb` remain failed. The first three identify untranslated widget names in the Person README, the inline README, and untranslated prose in the Gallery preservation/review sections. The route follow-up also retains the four rejected relative guide cross-links. Corrections translate the prose, check every Russian Markdown source, and use the established absolute guide routes without weakening any validator. These failures do not relabel the separate successful code verification.
