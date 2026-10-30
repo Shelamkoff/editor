@@ -1,0 +1,2 @@
+Native native-plugin-parity.html: 2 passed
+{"native-plugin-parity.html":[{"name":"Table Toggle header after native first cell input preserves rich cells, sidecars and separate history","status":"PASS"},{"name":"Table Toggle header after native last cell input preserves rich cells, sidecars and separate history","status":"PASS"}]}

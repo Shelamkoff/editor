@@ -22,7 +22,7 @@ const input = (key, fieldKey, extra = {}) => ({
   ...extra,
 })
 
-test('Table Enter splits only the addressed rich-text cell and leaves other cells unchanged', () => {
+test('Table Enter admits the addressed rich-text cell to its native line-break owner without changing data', () => {
   let reads = 0
   const result = shortcuts.handle(input('Enter', 'cell:r%3A0:c%250'), data, {
     splitField(key, range) {
@@ -33,13 +33,7 @@ test('Table Enter splits only the addressed rich-text cell and leaves other cell
     },
   })
   assert.equal(reads, 1)
-  assert.equal(result.kind, 'update')
-  assert.equal(result.focus.fieldKey, 'cell:r%3A0:c%250')
-  assert.equal(result.focus.offset, 3)
-  assert.deepEqual(result.data.rows.map(row => row.cells.map(cell => cell.text)), [
-    ['<b>Al</b><br><b>ha</b>', 'Bravo'],
-    ['Charlie', 'Delta'],
-  ])
+  assert.deepEqual(result, { kind: 'native' })
   assert.deepEqual(data.rows[0].cells.map(c => c.text), ['<b>Alpha</b>', 'Bravo'],
     'Table shortcut mutated its source data')
 })

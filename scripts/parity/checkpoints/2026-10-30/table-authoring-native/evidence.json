@@ -1,0 +1,206 @@
+{
+  "scope": [
+    "BLOCK_TABLE_ROWS_COLUMNS",
+    "BLOCK_TABLE_HEADINGS",
+    "BLOCK_TABLE_KEYBOARD"
+  ],
+  "createdAt": "2026-10-30T09:13:43.244678+00:00",
+  "baselineCommit": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+  "baselineTree": "2eef70961d69c1721cd04f73c8d2f3e9c8a4a53f",
+  "v1Commit": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "testedTreeBeforeAddingThisCheckpoint": "91c6e9aa5c2b5e583c2bfff9dfc7243d87ca279d",
+  "sourceIdentityNote": "Tests ran against the baseline plus exactly the four listed source/test files. The tree above was recorded from their staged contents before adding this checkpoint. The commit containing this checkpoint also contains these files byte for byte. This avoids a self-referential commit ID.",
+  "changedSourceFiles": {
+    "plugins/table/index.js": {
+      "bytes": 17356,
+      "sha256": "d55d65dfa63464b9cf7de3f851b9b4447d711885a64ef3e9b9ec92f9ef8caa99",
+      "gitBlob": "797d2f04ec8c6ca2f37b6453e00d4b0a7c100e21"
+    },
+    "plugins/table/shortcut-parity.test.js": {
+      "bytes": 2329,
+      "sha256": "940d221b64b1e6117f3e38c8b20c53e848936081c537fef6897f962301337686",
+      "gitBlob": "55123cfaa427c52e52ee5c3eac2d68d82aef3e94"
+    },
+    "tests/browser/native-plugin-parity.js": {
+      "bytes": 117972,
+      "sha256": "ea91a3d9a68dc27eaa1d953bbf692f2771d298fdbc5427e1c592cdbfceaaf262",
+      "gitBlob": "5251024d30ba0430312addece2e92ca9d8ba5a7e"
+    },
+    "tests/browser/regressions/table-authoring-native.js": {
+      "bytes": 16213,
+      "sha256": "83b9bb2ca50b83904d58702a4796b49867b79bc9c4014c826bcd9665ba425df1",
+      "gitBlob": "8a0427b767adca29e6cb5f9251ac9593dd7398da"
+    }
+  },
+  "runtimeChange": "Only plugins/table/index.js: validated plain Enter delegates to the existing native line-break owner, preserving rich-text wrappers and its logical range. The nullable splitField admission guard is unchanged.",
+  "mechanismSources": {
+    "core/NativeInputController.js": {
+      "gitBlob": "e86a78d87fee4ac673feab26bde68f55622817a6",
+      "sha256": "0a08aeac7fae14e0f85ad1b896a3734b49b629f82e89e8ff368aa39feeb9a26d"
+    },
+    "core/KeyboardRouter.js": {
+      "gitBlob": "1b182d365fec9cd2a2a1186b7f7cb90bc924a785",
+      "sha256": "e2854bad9ffee852f8cab211f166a4f0a201cad10176c7df2481372b8f1aded8"
+    }
+  },
+  "preFixProbe": {
+    "v1Commit": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "baselineCommit": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+    "sourceIdentityVerified": true,
+    "sourceUnchanged": true,
+    "sourceFileCounts": {
+      "v1": 100,
+      "candidate": 88
+    },
+    "browser": "156.0.8078.47",
+    "serverErrors": [],
+    "pageErrorCounts": {
+      "v1": 0,
+      "candidate": 0
+    }
+  },
+  "negativeControl": {
+    "artifact": "enter-native-red.log",
+    "production": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+    "failure": "After trusted Enter then X at the end of <b>Alpha</b>, bold text was Alpha rather than AlphaX.",
+    "assertion": "Enter lost the active bold mark for subsequent trusted input"
+  },
+  "results": {
+    "targetedEnter": {
+      "passed": 1,
+      "artifact": "enter-native-green.log"
+    },
+    "rowColumnHeaderControls": {
+      "passed": 10,
+      "artifact": "structural-controls-native.log"
+    },
+    "realFormattingBackwardRangeAndNavigation": {
+      "passed": 2,
+      "artifact": "selection-formatting-native.log"
+    },
+    "tableNativeSlice": {
+      "passed": 30,
+      "failed": 0,
+      "artifact": "table-native-final.log"
+    },
+    "tableUnitSlice": {
+      "passed": 15,
+      "failed": 0,
+      "artifact": "table-unit-final.log"
+    },
+    "typecheck": {
+      "passed": true,
+      "projects": [
+        "jsconfig.json",
+        "jsconfig.runtime.json"
+      ],
+      "artifact": "typecheck-final.log.gz"
+    }
+  },
+  "commands": {
+    "native": {
+      "argv": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environmentOverrides": {
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs",
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Table"
+      }
+    },
+    "unit": {
+      "argv": [
+        "node",
+        "--test",
+        "plugins/table/clipboard-grid.test.js",
+        "plugins/table/shortcut-parity.test.js",
+        "plugins/table/table-import.test.js",
+        "plugins/table/table-reconciliation.test.js"
+      ],
+      "environmentRemoved": [
+        "EDITOR_VITE_PATH"
+      ]
+    },
+    "typecheck": {
+      "argv": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "environmentRemoved": [
+        "EDITOR_VITE_PATH"
+      ]
+    }
+  },
+  "limits": [
+    "Only the pinned pre-fix observation probe executes v1. The final native contract tests execute the candidate, not v1, and do not establish complete editor parity.",
+    "Pinned v1 preserves the active bold mark but inserts following text before the terminal BR. Candidate explicitly preserves the existing v2 new-line placement and does not reproduce that legacy terminal-BR bug.",
+    "The original exploratory probe retains its first field reference. Legacy Undo remounts the field, so its post-Undo html/active observations refer to the detached old element; saved canonical snapshots remain valid. Final native candidate tests query live data and verify focus, caret and Undo/Redo.",
+    "selection-formatting-fixture-error.log records a wrong test import and resulting startup timeout before correction. It is not a product RED; the source-specific product RED is enter-native-red.log.",
+    "No new timing, allocation, memory, broad integration or non-Chromium browser acceptance claim is made."
+  ],
+  "artifacts": {
+    "enter-native-red.log": {
+      "bytes": 1191,
+      "sha256": "150abdcf95f1819f37d43b31a94922d2e618bf9cdeb8957e898770cde190f54f"
+    },
+    "enter-native-green.log": {
+      "bytes": 205,
+      "sha256": "a61f4060d23e6c147eedab78107b018a2b3bbbdab7ef9c0f4211692253bd38b9"
+    },
+    "headings-native-initial.log": {
+      "bytes": 332,
+      "sha256": "2ae30f15d38d9e76a5bec4321ca86757de3cbde19a040222eb14c9fd56fde3be"
+    },
+    "structural-controls-native.log": {
+      "bytes": 1337,
+      "sha256": "1872339431e09af4603c18089f8e70a878ea9a204845f29917cf24a351612e72"
+    },
+    "selection-formatting-native.log": {
+      "bytes": 347,
+      "sha256": "c13ef964410397743fc83418577bfc442ed4e554a89827c11362102db6caf353"
+    },
+    "selection-formatting-fixture-error.log": {
+      "bytes": 527,
+      "sha256": "a30753498d81c59e6fa4313a8aa5a1203a921144ac87d2f12748c5faad457a44"
+    },
+    "table-native-final.log": {
+      "bytes": 3609,
+      "sha256": "c60c53d8b215de4046fbcf4b43b7f912a2c485f783d9d30421adb75b75313bd8"
+    },
+    "table-unit-final.log": {
+      "bytes": 1634,
+      "sha256": "9772938e103c2ee3c8be6906b60e90207f3a03b12f85e9334bc44ae58ebc36f6"
+    },
+    "pre-fix-probe.mjs": {
+      "bytes": 8559,
+      "sha256": "ae126148e48a81dafb072acb89ee09fa2bcdeeae4e7af55dacb95ab730114ed1"
+    },
+    "enter-pre-fix-observations.json.gz": {
+      "bytes": 10721,
+      "sha256": "3f34a7578fcc5a90f8ab2c40df4fadc883bd8ecb0be1672f7540e494cfbe2fa3",
+      "uncompressedBytes": 35234,
+      "uncompressedSha256": "e0782d6ab7a0c12d3300de0e4252dfe001b8e88547e7c45cf79417f101fb03dc",
+      "gzip": {
+        "mtime": 0,
+        "filename": "",
+        "compressionLevel": 9
+      },
+      "roundtripVerified": true
+    },
+    "typecheck-final.log.gz": {
+      "bytes": 185,
+      "sha256": "12eeba458279cdcf2f07bcdb6775db13c184ee454e62f493f95817de1859e0a0",
+      "uncompressedBytes": 259,
+      "uncompressedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "gzip": {
+        "mtime": 0,
+        "filename": "",
+        "compressionLevel": 9
+      },
+      "roundtripVerified": true
+    }
+  }
+}

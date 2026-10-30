@@ -40,16 +40,12 @@ export function createTablePlugin(config = {}) {
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data,context){
         if(input.key==='Enter'&&!input.shiftKey){
-          const parts=context.splitField(input.fieldKey,input.selection)
           // The nullable shortcut contract rejects a stale/foreign field.
-          // Do not dereference a missing DOM-owned rich-text selection.
-          if(!parts)return null
-          return {
-            kind:'update',
-            data:{...data,rows:data.rows.map(row=>({...row,cells:row.cells.map(cell=>
-              tableFieldKey(row.id,cell.id)===input.fieldKey?{...cell,text:parts.before+'<br>'+parts.after}:cell)}))},
-            focus:{fieldKey:input.fieldKey,offset:input.selection.start+1},
-          }
+          if(!context.splitField(input.fieldKey,input.selection))return null
+          // The existing native line-break owner replaces the logical range
+          // inside its formatting wrappers and preserves atomic inline refs.
+          // Joining split HTML here would move the caret outside those marks.
+          return {kind:'native'}
         }
         if(input.key==='Enter')return {kind:'native'}
         if(input.key!=='Tab')return null

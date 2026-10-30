@@ -1,0 +1,10 @@
+file:///tmp/rector-third-table-20261030/tests/browser/physical-history.mjs:152
+  throw new Error('Timed out waiting for history matrix')
+        ^
+
+Error: Timed out waiting for history matrix
+    at waitForHistoryMatrix (file:///tmp/rector-third-table-20261030/tests/browser/physical-history.mjs:152:9)
+    at async runNativePage (file:///tmp/rector-third-table-20261030/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-third-table-20261030/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1
