@@ -1,5 +1,5 @@
 import { assert, equal, pause, test } from './harness.js'
-import { clickNative, printable, dispatchKey } from '../native-input-helpers.js'
+import { clickNative, printable } from '../native-input-helpers.js'
 import { pollProviderFixture } from './poll-provider-ownership.js'
 
 function focusEnd(field) {
