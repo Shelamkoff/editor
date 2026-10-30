@@ -1,0 +1,211 @@
+{
+  "historicalRun": "run-2Zb0Ur",
+  "historicalSource": "9ccae3589fed3cc9f601fdf847654efbdcb1d584",
+  "historicalCandidateObservations": 11458,
+  "currentRun": "run-M5oL2Z",
+  "currentSource": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+  "currentCandidateObservations": 11434,
+  "fingerprints": {
+    "sourceSha256": {
+      "before": "2db74dbb5cf36630a4d302c5b1da290bf28c425c9235c1a8e97df11c3139e538",
+      "after": "2bd7f2477ff511f1d029a64dede43734f08a0f5eb925a396b1cf0c8046a8f662",
+      "unchanged": false
+    },
+    "classifierSha256": {
+      "before": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+      "after": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+      "unchanged": true
+    },
+    "galleryClassifierSha256": {
+      "before": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85",
+      "after": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85",
+      "unchanged": true
+    },
+    "personClassifierSha256": {
+      "before": "64f3711d1fe0d47d2d3314fefd3a4e38a99716bd0acd0a867b07c5204ccf37c9",
+      "after": "64f3711d1fe0d47d2d3314fefd3a4e38a99716bd0acd0a867b07c5204ccf37c9",
+      "unchanged": true
+    },
+    "carouselClassifierSha256": {
+      "before": "4898a91e389458e8c1ce89fffe1b8454c6ca08030d60e08d9638e418e07960da",
+      "after": "4898a91e389458e8c1ce89fffe1b8454c6ca08030d60e08d9638e418e07960da",
+      "unchanged": true
+    },
+    "fixtureSha256": {
+      "before": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e",
+      "after": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e",
+      "unchanged": true
+    },
+    "carouselMediaSha256": {
+      "before": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75",
+      "after": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75",
+      "unchanged": true
+    }
+  },
+  "all65CaseIdentitiesUnchanged": true,
+  "allCompletedPhasesUnchanged": true,
+  "allTrustedEventSequencesUnchanged": true,
+  "changes": [
+    {
+      "id": "BLOCK_PERSON_ROUNDTRIP/default",
+      "beforeCount": 215,
+      "afterCount": 209,
+      "removed": [
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        }
+      ],
+      "added": [],
+      "completedPhasesUnchanged": true,
+      "trustedEventSequenceUnchanged": true
+    },
+    {
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+      "beforeCount": 237,
+      "afterCount": 231,
+      "removed": [
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        }
+      ],
+      "added": [],
+      "completedPhasesUnchanged": true,
+      "trustedEventSequenceUnchanged": true
+    },
+    {
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+      "beforeCount": 237,
+      "afterCount": 231,
+      "removed": [
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        }
+      ],
+      "added": [],
+      "completedPhasesUnchanged": true,
+      "trustedEventSequenceUnchanged": true
+    },
+    {
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated-literal",
+      "beforeCount": 237,
+      "afterCount": 231,
+      "removed": [
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveCanonical",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveHistory",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "personRetiredFieldsLeaveSelection",
+          "count": 1
+        }
+      ],
+      "added": [],
+      "completedPhasesUnchanged": true,
+      "trustedEventSequenceUnchanged": true
+    }
+  ],
+  "explanation": "Person keeps healthy rich field hosts mounted through sibling edits and history. Six conditional retired-field observations are consequently inapplicable in each of four Person cases. No fixture assertions or selected cases were removed. The identical fixture hash and complete observation identity comparison are retained."
+}

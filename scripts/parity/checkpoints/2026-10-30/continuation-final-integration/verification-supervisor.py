@@ -1,0 +1,59 @@
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+root = Path('/workspace/scratch/2e2d45a6049b/editor')
+status_path = Path('/tmp/rector-verification-current-status.json')
+environment = dict(os.environ)
+environment.pop('EDITOR_VITE_PATH', None)
+environment.update({
+    'EDITOR_CHROME_PATH': '/tmp/rector-browsers-156/chrome-linux64/chrome',
+    'EDITOR_PLAYWRIGHT_PATH': '/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs',
+    'EDITOR_V1_ROOT': '/tmp/rector-v1-5e5c7f8',
+    'EDITOR_SPEC_BASELINE_ROOT': '/tmp/rector-e981ff3',
+    'EDITOR_CANDIDATE_ROOT': str(root),
+    'EDITOR_CANDIDATE_SHA': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
+    'EDITOR_DEPENDENCIES_ROOT': str(root / 'node_modules'),
+})
+gates = [
+    ('typecheck', ['npm', 'run', 'typecheck'], {}),
+    ('unit', ['npm', 'test'], {}),
+    ('build', ['npm', 'run', 'build'], {}),
+    ('types', ['npm', 'run', 'test:types'], {}),
+    ('docs', ['npm', 'run', 'test:docs'], {}),
+    ('performance-table', ['node', 'benchmarks/structural-authoring.mjs',
+        '/tmp/rector-perf-before-cache-current', str(root), '/tmp/rector-table-performance-current-20261030'], {
+        'EDITOR_STRUCTURAL_FILTER': 'table',
+        'EDITOR_STRUCTURAL_WARMUP': '5',
+        'EDITOR_STRUCTURAL_SAMPLES': '21',
+        'EDITOR_STRUCTURAL_STAGES': 'controls,timing,attribution,memory',
+    }),
+    ('package', ['npm', 'run', 'test:package'], {}),
+    ('differential', ['node', 'scripts/parity/block-roundtrip.mjs'], {}),
+    ('browser', ['npm', 'run', 'test:browser'], {'EDITOR_VITE_PATH': '/tmp/rector-root-vite.mjs'}),
+    ('docs-build', ['npm', 'run', 'docs:check'], {}),
+]
+directory = subprocess.check_output(['node', 'scripts/verification-results.mjs', 'init', *[g[0] for g in gates]],
+    cwd=root, env=environment, text=True).strip().splitlines()[-1]
+environment['EDITOR_RESULTS_DIR'] = directory
+status = {'source': environment['EDITOR_CANDIDATE_SHA'], 'directory': directory, 'outcome': 'running', 'gates': {}}
+status_path.write_text(json.dumps(status, indent=2))
+print(json.dumps(status), flush=True)
+for name, command, additions in gates:
+    status['current'] = name
+    status_path.write_text(json.dumps(status, indent=2))
+    with open('/tmp/rector-verification-current-supervisor.log', 'a') as log:
+        process = subprocess.run(['node', 'scripts/verification-results.mjs', 'run', name, '--', *command],
+            cwd=root, env={**environment, **additions}, stdout=log, stderr=subprocess.STDOUT)
+    status['gates'][name] = process.returncode
+    status_path.write_text(json.dumps(status, indent=2))
+    print(json.dumps({'gate': name, 'exitCode': process.returncode}), flush=True)
+    if process.returncode:
+        break
+finished = subprocess.run(['node', 'scripts/verification-results.mjs', 'finish'], cwd=root, env=environment)
+status['outcome'] = json.loads(Path(directory, 'manifest.json').read_text())['outcome']
+status_path.write_text(json.dumps(status, indent=2))
+print(json.dumps(status), flush=True)
+sys.exit(finished.returncode)

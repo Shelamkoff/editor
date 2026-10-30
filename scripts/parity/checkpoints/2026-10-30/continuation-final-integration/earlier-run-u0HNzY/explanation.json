@@ -1,0 +1,5 @@
+{
+  "outcome": "failed",
+  "reason": "The EDITOR_VITE_PATH browser wrapper was mistakenly inherited by the unit gate; bundle-budget resolved its library import relative to /tmp and failed to find /dist/node/index.js.",
+  "correction": "The final supervisor clears EDITOR_VITE_PATH globally and sets the wrapper only for the browser command. No product assertion was removed or weakened. The failed result remains failed."
+}

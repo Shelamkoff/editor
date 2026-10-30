@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 1,
+  "run": "run-M5oL2Z",
+  "outcome": "passed",
+  "startedAt": "2026-10-30T02:38:12.307Z",
+  "finishedAt": "2026-10-30T03:02:16.865Z",
+  "source": {
+    "head": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+    "tree": "0d65a81e4678088fa07d59b7c1539793b0ab47c9",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "5ccd77f435e81f52a4ab82ff76fc6927ebe24e7375ed59bae6b9557de63f6016"
+  },
+  "publishedTreeEquivalent": "fc669f9178a6ea9d8d566380e450fb47fa7c595f",
+  "sourceUnchanged": true,
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "gates": {
+    "typecheck": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-10-30T02:38:12.647Z",
+      "finishedAt": "2026-10-30T02:38:21.689Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "unit": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "startedAt": "2026-10-30T02:38:21.896Z",
+      "finishedAt": "2026-10-30T02:38:44.772Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "build": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-30T02:38:44.999Z",
+      "finishedAt": "2026-10-30T02:38:51.989Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "types": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ],
+      "startedAt": "2026-10-30T02:38:52.234Z",
+      "finishedAt": "2026-10-30T02:39:02.764Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "docs": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:docs"
+      ],
+      "startedAt": "2026-10-30T02:39:03.005Z",
+      "finishedAt": "2026-10-30T02:39:06.662Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "performance-table": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "benchmarks/structural-authoring.mjs",
+        "/tmp/rector-perf-before-cache-current",
+        "/workspace/scratch/2e2d45a6049b/editor",
+        "/tmp/rector-table-performance-current-20261030"
+      ],
+      "startedAt": "2026-10-30T02:39:06.881Z",
+      "finishedAt": "2026-10-30T02:41:00.569Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "package": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "startedAt": "2026-10-30T02:41:00.780Z",
+      "finishedAt": "2026-10-30T02:41:29.158Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "differential": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "startedAt": "2026-10-30T02:41:29.378Z",
+      "finishedAt": "2026-10-30T02:43:59.802Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "browser": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:browser"
+      ],
+      "startedAt": "2026-10-30T02:44:00.007Z",
+      "finishedAt": "2026-10-30T03:01:25.820Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    },
+    "docs-build": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "startedAt": "2026-10-30T03:01:26.035Z",
+      "finishedAt": "2026-10-30T03:02:16.768Z",
+      "exitCode": 0,
+      "sourceUnchanged": true
+    }
+  },
+  "unit": {
+    "tests": 2027,
+    "pass": 2027,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "declarations": {
+    "tests": 7,
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "packageBuild": {
+    "runtimeDeclarations": 285,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "documentationContracts": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "documentationProduction": {
+    "readmes": 47,
+    "htmlPages": 127,
+    "brokenLinks": 0,
+    "npmSiteLeak": false
+  },
+  "documentationBrowser": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0
+  },
+  "installedPackage": {
+    "tarball": "shelamkoff-rector-2.0.0.tgz",
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "import": "passed",
+    "externalBrowser": "passed"
+  },
+  "packageAssets": {
+    "cssAssets": 22,
+    "inlineStylesheets": false
+  },
+  "differential": {
+    "caseCount": 65,
+    "blockTypes": 21,
+    "sources": [
+      {
+        "source": "v1",
+        "observations": 11258,
+        "failures": 1156,
+        "classifiedDifferences": 1156,
+        "unexpectedFailures": 0
+      },
+      {
+        "source": "spec-baseline",
+        "observations": 8043,
+        "failures": 183,
+        "classifiedDifferences": 183,
+        "unexpectedFailures": 0
+      },
+      {
+        "source": "candidate",
+        "observations": 11434,
+        "failures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0
+      }
+    ],
+    "incompleteCases": 21,
+    "candidateIncompleteCases": 0,
+    "scope": "Common ROUNDTRIP corpus, with historical capabilities and classified deviations preserved in differential-summary.json and the original raw log."
+  },
+  "browser": {
+    "ordinaryPages": 36,
+    "nativePages": 41,
+    "nativePassed": 2247,
+    "nativeFailed": 0,
+    "heapSentinels": 23,
+    "heapRetained": 0,
+    "historyEvictionReleased": true
+  },
+  "preservationRegister": {
+    "uniqueObligations": 209,
+    "acceptedWithinRecordedScopes": 35,
+    "open": 174,
+    "meaning": "Proof obligations, not known defects or percentage of refactor completion."
+  },
+  "performance": {
+    "controls": 24,
+    "functionalControls": 20,
+    "deliberateFailureControls": 4,
+    "generalC09T15Accepted": false,
+    "record": "performance-summary.json"
+  }
+}

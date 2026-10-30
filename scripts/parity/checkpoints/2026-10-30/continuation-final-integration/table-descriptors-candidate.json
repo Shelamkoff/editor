@@ -1,0 +1,24 @@
+{
+  "kind": "Distinct immutable descriptor return identities; allocation lower bound, no latency or heap claim",
+  "head": "2b88e3c10294db49bdd6af8e75854879dc4a901d",
+  "sourceSha256": "dfd29d71143131aade0648d5d5d3b805bf607080174ad629b923c96de5b87a79",
+  "runnerSha256": "dc2792a44c865bf82ce0f179f6c3130ad55d6f7a4c9fc5b0518b90bdb801da55",
+  "node": "v24.22.1",
+  "browser": "156.0.8078.47",
+  "observations": [
+    {
+      "rows": 2,
+      "columns": 2,
+      "queries": 100,
+      "distinctReturnedArrays": 1,
+      "distinctReturnedDescriptors": 4
+    },
+    {
+      "rows": 20,
+      "columns": 20,
+      "queries": 100,
+      "distinctReturnedArrays": 1,
+      "distinctReturnedDescriptors": 400
+    }
+  ]
+}

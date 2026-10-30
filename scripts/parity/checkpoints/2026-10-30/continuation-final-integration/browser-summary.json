@@ -1,0 +1,781 @@
+{
+  "source": {
+    "head": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+    "tree": "0d65a81e4678088fa07d59b7c1539793b0ab47c9",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "5ccd77f435e81f52a4ab82ff76fc6927ebe24e7375ed59bae6b9557de63f6016"
+  },
+  "browserGate": {
+    "outcome": "passed",
+    "exitCode": 0,
+    "startedAt": "2026-10-30T02:44:00.007Z",
+    "finishedAt": "2026-10-30T03:01:25.820Z",
+    "sourceUnchanged": true
+  },
+  "logBytes": 349630,
+  "logSha256": "c34bdc0c84ccc886334f87ece048f422546e5999e2103d214bbac8de29aad0d3",
+  "ordinary": {
+    "completedPages": 36,
+    "pages": [
+      "harness-contract.html",
+      "mode-recovery.html",
+      "scoped-authority.html",
+      "formatting-correspondence.html",
+      "script-panel.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html",
+      "projection-contracts.html",
+      "optional-inline-update.html",
+      "inline-pattern-transfer.html",
+      "toolbar-keyboard.html",
+      "public-extension-contracts.html",
+      "poll-state-contracts.html",
+      "presentation-recovery.html"
+    ],
+    "duplicateLabels": [],
+    "qualification": "run.mjs prints each page label only after that page reports pass. Harness-contract intentionally contains nested FAIL controls; they are not page failures."
+  },
+  "namedNativeMarkers": {
+    "completedPages": 35,
+    "passedRecords": 1945,
+    "pages": [
+      {
+        "page": "native-conversion-grouping.html",
+        "passed": 88
+      },
+      {
+        "page": "native-conversion-preservation.html",
+        "passed": 53
+      },
+      {
+        "page": "native-interaction-sequences.html",
+        "passed": 39
+      },
+      {
+        "page": "native-retained-tools.html",
+        "passed": 64
+      },
+      {
+        "page": "native-conversion-continuations.html",
+        "passed": 65
+      },
+      {
+        "page": "native-font-cancel.html",
+        "passed": 58
+      },
+      {
+        "page": "native-background-cancel.html",
+        "passed": 36
+      },
+      {
+        "page": "native-link-cancel.html",
+        "passed": 36
+      },
+      {
+        "page": "native-panel-keyboard.html",
+        "passed": 36
+      },
+      {
+        "page": "native-source-indentation.html",
+        "passed": 54
+      },
+      {
+        "page": "native-source-modes.html",
+        "passed": 61
+      },
+      {
+        "page": "native-config-snapshot.html",
+        "passed": 30
+      },
+      {
+        "page": "native-poll-runtime.html",
+        "passed": 26
+      },
+      {
+        "page": "native-library-boundaries.html",
+        "passed": 42
+      },
+      {
+        "page": "native-instance-methods.html",
+        "passed": 8
+      },
+      {
+        "page": "native-color-popup.html",
+        "passed": 8
+      },
+      {
+        "page": "native-color-popup-trusted.html",
+        "passed": 8
+      },
+      {
+        "page": "native-mention-popup.html",
+        "passed": 64
+      },
+      {
+        "page": "native-audit-edges.html",
+        "passed": 21
+      },
+      {
+        "page": "native-audit-poll.html",
+        "passed": 4
+      },
+      {
+        "page": "native-audit-hidden-fields.html",
+        "passed": 4
+      },
+      {
+        "page": "native-audit-recheck.html",
+        "passed": 49
+      },
+      {
+        "page": "native-structural.html",
+        "passed": 21
+      },
+      {
+        "page": "native-cross-selection.html",
+        "passed": 42
+      },
+      {
+        "page": "native-core-behavior.html",
+        "passed": 66
+      },
+      {
+        "page": "native-plugin-parity.html",
+        "passed": 240
+      },
+      {
+        "page": "native-roundtrip-preservation.html",
+        "passed": 65
+      },
+      {
+        "page": "native-presentation-recovery.html",
+        "passed": 14
+      },
+      {
+        "page": "native-plugin-controls.html",
+        "passed": 156
+      },
+      {
+        "page": "native-plugin-ranges.html",
+        "passed": 116
+      },
+      {
+        "page": "native-plugin-local-ranges.html",
+        "passed": 76
+      },
+      {
+        "page": "native-plugin-clipboard.html",
+        "passed": 48
+      },
+      {
+        "page": "native-plugin-field-clipboard.html",
+        "passed": 68
+      },
+      {
+        "page": "native-plugin-media.html",
+        "passed": 95
+      },
+      {
+        "page": "native-plugin-design.html",
+        "passed": 84
+      }
+    ],
+    "qualification": "Progress markers repeat arrays in the final aggregate and must never be added to aggregate totals."
+  },
+  "nativeAggregate": {
+    "pages": 41,
+    "records": 2247,
+    "statuses": {
+      "PASS": 2247
+    },
+    "initialPages": 6,
+    "initialRecords": 302,
+    "initial": [
+      {
+        "key": "nativeTextInput",
+        "page": null,
+        "records": 52,
+        "statuses": {
+          "PASS": 52
+        },
+        "progressMarker": false
+      },
+      {
+        "key": "nativeTools",
+        "page": null,
+        "records": 92,
+        "statuses": {
+          "PASS": 92
+        },
+        "progressMarker": false
+      },
+      {
+        "key": "nativeClipboard",
+        "page": null,
+        "records": 25,
+        "statuses": {
+          "PASS": 25
+        },
+        "progressMarker": false
+      },
+      {
+        "key": "nativeIme",
+        "page": null,
+        "records": 16,
+        "statuses": {
+          "PASS": 16
+        },
+        "progressMarker": false
+      },
+      {
+        "key": "nativeConversion",
+        "page": null,
+        "records": 7,
+        "statuses": {
+          "PASS": 7
+        },
+        "progressMarker": false
+      },
+      {
+        "key": "nativeBlockMenus",
+        "page": null,
+        "records": 110,
+        "statuses": {
+          "PASS": 110
+        },
+        "progressMarker": false
+      }
+    ],
+    "namedPages": 35,
+    "namedRecords": 1945,
+    "named": [
+      {
+        "key": "nativeConversionGrouping",
+        "page": "native-conversion-grouping.html",
+        "records": 88,
+        "statuses": {
+          "PASS": 88
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeConversionPreservation",
+        "page": "native-conversion-preservation.html",
+        "records": 53,
+        "statuses": {
+          "PASS": 53
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeInteractionSequences",
+        "page": "native-interaction-sequences.html",
+        "records": 39,
+        "statuses": {
+          "PASS": 39
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeRetainedTools",
+        "page": "native-retained-tools.html",
+        "records": 64,
+        "statuses": {
+          "PASS": 64
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeConversionContinuations",
+        "page": "native-conversion-continuations.html",
+        "records": 65,
+        "statuses": {
+          "PASS": 65
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeFontCancel",
+        "page": "native-font-cancel.html",
+        "records": 58,
+        "statuses": {
+          "PASS": 58
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeBackgroundCancel",
+        "page": "native-background-cancel.html",
+        "records": 36,
+        "statuses": {
+          "PASS": 36
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeLinkCancel",
+        "page": "native-link-cancel.html",
+        "records": 36,
+        "statuses": {
+          "PASS": 36
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePanelKeyboard",
+        "page": "native-panel-keyboard.html",
+        "records": 36,
+        "statuses": {
+          "PASS": 36
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeSourceIndentation",
+        "page": "native-source-indentation.html",
+        "records": 54,
+        "statuses": {
+          "PASS": 54
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeSourceModes",
+        "page": "native-source-modes.html",
+        "records": 61,
+        "statuses": {
+          "PASS": 61
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeConfigSnapshot",
+        "page": "native-config-snapshot.html",
+        "records": 30,
+        "statuses": {
+          "PASS": 30
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePollRuntime",
+        "page": "native-poll-runtime.html",
+        "records": 26,
+        "statuses": {
+          "PASS": 26
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeLibraryBoundaries",
+        "page": "native-library-boundaries.html",
+        "records": 42,
+        "statuses": {
+          "PASS": 42
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeInstanceMethods",
+        "page": "native-instance-methods.html",
+        "records": 8,
+        "statuses": {
+          "PASS": 8
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeColorPopup",
+        "page": "native-color-popup.html",
+        "records": 8,
+        "statuses": {
+          "PASS": 8
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeColorPopupTrusted",
+        "page": "native-color-popup-trusted.html",
+        "records": 8,
+        "statuses": {
+          "PASS": 8
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeMentionPopup",
+        "page": "native-mention-popup.html",
+        "records": 64,
+        "statuses": {
+          "PASS": 64
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeAuditEdges",
+        "page": "native-audit-edges.html",
+        "records": 21,
+        "statuses": {
+          "PASS": 21
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeAuditPoll",
+        "page": "native-audit-poll.html",
+        "records": 4,
+        "statuses": {
+          "PASS": 4
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeAuditHiddenFields",
+        "page": "native-audit-hidden-fields.html",
+        "records": 4,
+        "statuses": {
+          "PASS": 4
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeAuditRecheck",
+        "page": "native-audit-recheck.html",
+        "records": 49,
+        "statuses": {
+          "PASS": 49
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeStructural",
+        "page": "native-structural.html",
+        "records": 21,
+        "statuses": {
+          "PASS": 21
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeCrossSelection",
+        "page": "native-cross-selection.html",
+        "records": 42,
+        "statuses": {
+          "PASS": 42
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeCoreBehavior",
+        "page": "native-core-behavior.html",
+        "records": 66,
+        "statuses": {
+          "PASS": 66
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginParity",
+        "page": "native-plugin-parity.html",
+        "records": 240,
+        "statuses": {
+          "PASS": 240
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativeRoundtripPreservation",
+        "page": "native-roundtrip-preservation.html",
+        "records": 65,
+        "statuses": {
+          "PASS": 65
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePresentationRecovery",
+        "page": "native-presentation-recovery.html",
+        "records": 14,
+        "statuses": {
+          "PASS": 14
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginControls",
+        "page": "native-plugin-controls.html",
+        "records": 156,
+        "statuses": {
+          "PASS": 156
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginRanges",
+        "page": "native-plugin-ranges.html",
+        "records": 116,
+        "statuses": {
+          "PASS": 116
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginLocalRanges",
+        "page": "native-plugin-local-ranges.html",
+        "records": 76,
+        "statuses": {
+          "PASS": 76
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginClipboard",
+        "page": "native-plugin-clipboard.html",
+        "records": 48,
+        "statuses": {
+          "PASS": 48
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginFieldClipboard",
+        "page": "native-plugin-field-clipboard.html",
+        "records": 68,
+        "statuses": {
+          "PASS": 68
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginMedia",
+        "page": "native-plugin-media.html",
+        "records": 95,
+        "statuses": {
+          "PASS": 95
+        },
+        "progressMarker": true
+      },
+      {
+        "key": "nativePluginDesign",
+        "page": "native-plugin-design.html",
+        "records": 84,
+        "statuses": {
+          "PASS": 84
+        },
+        "progressMarker": true
+      }
+    ],
+    "markerMismatches": [],
+    "physicalScenarioGroups": {
+      "enterScenario": [
+        "beforeBold",
+        "afterBold",
+        "afterUndo",
+        "afterRedo",
+        "afterRemoveBold",
+        "afterUndoRemoval"
+      ],
+      "toolboxScenario": [
+        "toolboxBeforeBold",
+        "toolboxAfterImmediateUndo",
+        "deleteLastImmediateUndo",
+        "deleteLastRedo",
+        "deleteLastUndoAgain",
+        "deleteMiddle",
+        "deleteMiddleUndo",
+        "inlineAfterDeleteUndo"
+      ]
+    },
+    "historyMatrix": {
+      "historyCases": [
+        "native typing",
+        "structural Enter split",
+        "insert",
+        "move",
+        "convert",
+        "remove",
+        "clear",
+        "render",
+        "toolbar insert",
+        "keyboard undo/redo",
+        "read-only transition",
+        "pointer drag session",
+        "read-only host authority",
+        "direct/inverse transaction events"
+      ],
+      "publicEvents": [
+        "transaction:committed",
+        "document:changed",
+        "history:changed"
+      ]
+    },
+    "qualification": "Native total counts each final-aggregate case record exactly once. Initial physical scenario snapshots and descriptive historyMatrix categories are reported separately, not invented test counts."
+  },
+  "heap": {
+    "sentinels": 23,
+    "retained": 0,
+    "usedHeapMiB": 15.02,
+    "embedderHeapMiB": 1.25,
+    "historyEviction": {
+      "payloadBytes": 32768,
+      "authoredActions": 12,
+      "historyMaxBytes": 1,
+      "historyMaxStack": 100,
+      "retainedControlReleased": true,
+      "replay": {
+        "currentCase": 12,
+        "undoCase": 11,
+        "editorAlive": true
+      },
+      "phases": [
+        {
+          "phase": "before-eviction",
+          "counts": [
+            0,
+            1,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "usedHeapMiB": 15.03,
+          "snapshotMiB": 27.8
+        },
+        {
+          "phase": "after-eviction-with-retained-control",
+          "counts": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 15.11,
+          "snapshotMiB": 27.86
+        },
+        {
+          "phase": "after-releasing-control",
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 15.08,
+          "snapshotMiB": 27.86
+        }
+      ]
+    }
+  },
+  "historyHeapPhases": [
+    {
+      "phase": "before-eviction",
+      "counts": [
+        0,
+        1,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "usedHeapMiB": 15.03,
+      "snapshotMiB": 27.8
+    },
+    {
+      "phase": "after-eviction-with-retained-control",
+      "counts": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2
+      ],
+      "usedHeapMiB": 15.11,
+      "snapshotMiB": 27.86
+    },
+    {
+      "phase": "after-releasing-control",
+      "counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2
+      ],
+      "usedHeapMiB": 15.08,
+      "snapshotMiB": 27.86
+    }
+  ]
+}
