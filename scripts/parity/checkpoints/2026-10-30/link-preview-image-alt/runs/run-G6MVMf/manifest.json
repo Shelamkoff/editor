@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current",
+  "startedAt": "2026-10-30T18:22:09.051Z",
+  "finishedAt": "2026-10-30T18:22:09.585Z",
+  "outcome": "passed",
+  "source": {
+    "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+    "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0c4858ac0355262046cb7aef149c252a2b848e3d3820486d0827e5184330d8bc"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "units-green": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:22:09.345Z",
+      "finishedAt": "2026-10-30T18:22:09.497Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "plugins/link-preview/input-lifetime.test.js"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+        "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "0c4858ac0355262046cb7aef149c252a2b848e3d3820486d0827e5184330d8bc"
+      },
+      "elapsedMs": 145.523006,
+      "sourceAfter": {
+        "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+        "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "0c4858ac0355262046cb7aef149c252a2b848e3d3820486d0827e5184330d8bc"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+    "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "0c4858ac0355262046cb7aef149c252a2b848e3d3820486d0827e5184330d8bc"
+  },
+  "sourceUnchanged": true
+}

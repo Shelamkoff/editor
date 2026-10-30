@@ -1,0 +1,255 @@
+{
+  "format": 1,
+  "recordedAt": "2026-10-30T18:23:16.375493+00:00",
+  "scope": "LinkPreview editor main-image alternatives follow canonical plain titles through load, modes, host metadata, real provider completion, native URL replacement and history. No complete behavior row or later integration acceptance is claimed.",
+  "base": {
+    "head": "1f37ee35c778c7e0f569565912379e88452517a7",
+    "runtimeBase": "69c8425e0081fde69cf5176ccb73d032720c15fc"
+  },
+  "testFirst": {
+    "head": "a42985db9b616fcb332807913c722310e90b2e26",
+    "tree": "1c703a3f56a691fb5dcc8a2ef3b17680f079a4df"
+  },
+  "implementation": {
+    "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+    "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "chrome": "156.0.8078.47",
+    "chromePath": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+    "dependencies": "Separate physical node_modules copy from the successfully npm-ci --ignore-scripts installed current lock; no shared Vite cache or browser modification.",
+    "carouselPin": "f7f6485886a1d77f9213d9079eb70000efeff499"
+  },
+  "gates": [
+    {
+      "run": "run-EkJ6hh",
+      "gate": "ordinary-red",
+      "total": 194,
+      "passed": 191,
+      "failed": 3,
+      "reason": "Only the three new nonempty-title cases fail: editor image alt is empty; canonical records, renderer alternative and decorative favicon checks preceding them pass."
+    },
+    {
+      "run": "run-EkJ6hh",
+      "gate": "native-red",
+      "total": 19,
+      "passed": 18,
+      "failed": 1,
+      "reason": "The populated native URL/history case fails at its initial image alternative; the actual default and 17 other LinkPreview controls pass."
+    },
+    {
+      "run": "run-69aS0Q",
+      "gate": "ordinary-green",
+      "total": 194,
+      "passed": 194,
+      "failed": 0
+    },
+    {
+      "run": "run-69aS0Q",
+      "gate": "native-green",
+      "total": 19,
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "run": "run-69aS0Q",
+      "gate": "typecheck",
+      "outcome": "passed",
+      "configurations": [
+        "jsconfig.json",
+        "jsconfig.runtime.json"
+      ]
+    },
+    {
+      "run": "run-69aS0Q",
+      "gate": "units",
+      "outcome": "failed",
+      "classification": "Invalid session command: nonexistent reconciliation.test.js. The original manifest remains failed; this is not a product test failure."
+    },
+    {
+      "run": "run-G6MVMf",
+      "gate": "units-green",
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  ],
+  "referenceEvidence": {
+    "kind": "Static source alignment, not a new differential run",
+    "v1": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "path": "plugins/link-preview/index.js",
+    "blob": "43f1ff997a373aede3ab0ad17d7207d957884f2e",
+    "behavior": "Main card image.alt = s.data.title || empty string; favicons retain empty alternatives. Current renderer uses the same plain-title policy."
+  },
+  "sourceFiles": [
+    {
+      "path": "plugins/link-preview/index.js",
+      "sha256": "55e745d3c21efb95dfc6150440f03adf614111713c34286a9dec3b4237234f13",
+      "gitBlob": "1b0e4c1375c86e535d3ced51fc4c0f3249304917"
+    },
+    {
+      "path": "tests/browser/projection-contracts.js",
+      "sha256": "4c825a249abd4d1c3f079e3e572f9776b624e9de5df6b3e6c8a36fa74361c151",
+      "gitBlob": "12fe56cd20670e5a974c21372c079d2efca91aeb"
+    },
+    {
+      "path": "tests/browser/regressions/link-preview-image-alt.js",
+      "sha256": "0413c0dc5f7c690f3d1ae77556af70acc3d6eb2a290b89e85e25bf54ce7ba44c",
+      "gitBlob": "35f91aa2a20222df163be6e5869ff6825b6caa2a"
+    },
+    {
+      "path": "tests/browser/native-link-preview-derived.js",
+      "sha256": "7eaaa02e33a486b1a1d315554c4a4525cfb83291746c58619b7068bd6c3da098",
+      "gitBlob": "29d2322658c1fc5df7c4051dd2437f603c41146d"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "runs/run-EkJ6hh/browser-projection-contracts.html.json.gz",
+      "sha256": "2db1f6ab6ef6efbc92530d8a84b96bf9a00d6c45cd1c4baa6d71a2ab8fbd6f15",
+      "bytes": 4438,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-EkJ6hh/browser-projection-contracts.html.json",
+      "originalSha256": "03050e9cd6a6e6e69879056b844546823ed25f7b550ac2de6f184ddbb8fe1781",
+      "originalBytes": 26807
+    },
+    {
+      "path": "runs/run-EkJ6hh/manifest.json",
+      "sha256": "a96a50b916ad1d0966dbe89f02ccb14c28ff86aa3377e8b8513d2ce3546d9ff2",
+      "bytes": 5268,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-EkJ6hh/manifest.json",
+      "originalSha256": "a96a50b916ad1d0966dbe89f02ccb14c28ff86aa3377e8b8513d2ce3546d9ff2",
+      "originalBytes": 5268
+    },
+    {
+      "path": "runs/run-EkJ6hh/native-red.log.gz",
+      "sha256": "df3b04fb1b39690051c9320f18845fda19514d626367bcb6afca90ce60f11df3",
+      "bytes": 1071,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-EkJ6hh/native-red.log",
+      "originalSha256": "bff929f98cad5a320cea45c864336da54698a909203b590089c8db612cbc1a8a",
+      "originalBytes": 4035
+    },
+    {
+      "path": "runs/run-EkJ6hh/ordinary-red.log.gz",
+      "sha256": "248ed064be149eb95fbb973d25c7607754348487bb190cd0ccc999dad8934c86",
+      "bytes": 918,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-EkJ6hh/ordinary-red.log",
+      "originalSha256": "e3d32e621977b707c205ac433722b229892a195428b1427209c964054b854d3a",
+      "originalBytes": 3224
+    },
+    {
+      "path": "runs/run-69aS0Q/manifest.json",
+      "sha256": "94d5d7aa322b4afccd14e2704e769ceeace1d1758ee01ada8c2854e00ca3a20c",
+      "bytes": 8877,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-69aS0Q/manifest.json",
+      "originalSha256": "94d5d7aa322b4afccd14e2704e769ceeace1d1758ee01ada8c2854e00ca3a20c",
+      "originalBytes": 8877
+    },
+    {
+      "path": "runs/run-69aS0Q/native-green.log.gz",
+      "sha256": "08ebe88371d6cf675847d1a1d2096422da64846482a3932d1000da7bfeafb553",
+      "bytes": 523,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-69aS0Q/native-green.log",
+      "originalSha256": "3964a6ffe819f118fd43919790fd89f42915b4f1e858c497f0b9cd6151a70ec7",
+      "originalBytes": 2024
+    },
+    {
+      "path": "runs/run-69aS0Q/ordinary-green.log.gz",
+      "sha256": "8ff2bf3d95fcb367ae6f6c8571d70577cf0a76bfed5a97ca48bb32ef2d7553ab",
+      "bytes": 4449,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-69aS0Q/ordinary-green.log",
+      "originalSha256": "5ea0748b761b4f3662c58140084ed120c83509c440b5d7d1bc57d7537f70fd61",
+      "originalBytes": 25384
+    },
+    {
+      "path": "runs/run-69aS0Q/typecheck.log.gz",
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "bytes": 185,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-69aS0Q/typecheck.log",
+      "originalSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "originalBytes": 259
+    },
+    {
+      "path": "runs/run-69aS0Q/units.log.gz",
+      "sha256": "b6278b4aa6f574f8a7e1ea2e5f06bfcaf8fe75e3cab48b7cdd1421727f1e2095",
+      "bytes": 80,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-69aS0Q/units.log",
+      "originalSha256": "4ef75b3f77e178781b5b2f629e1556e84c035279cea4b756969cdfcdfebfc015",
+      "originalBytes": 61
+    },
+    {
+      "path": "runs/run-G6MVMf/manifest.json",
+      "sha256": "0e45b6edc83bb550cbd24f5654dde5f28755888804ecc2640598075df641d202",
+      "bytes": 3118,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-G6MVMf/manifest.json",
+      "originalSha256": "0e45b6edc83bb550cbd24f5654dde5f28755888804ecc2640598075df641d202",
+      "originalBytes": 3118
+    },
+    {
+      "path": "runs/run-G6MVMf/units-green.log.gz",
+      "sha256": "e358c89d8deadb31e0ca7d073baf63de22db9d5f56a81ad3608fa63f9d91f6bc",
+      "bytes": 1127,
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/parity-audit-current/test-results/run-G6MVMf/units-green.log",
+      "originalSha256": "fdbb6683b407edae6e25ee04d4e7b8f41db119100117715c4847cfd7ee90c959",
+      "originalBytes": 2998
+    },
+    {
+      "path": "source.patch",
+      "sha256": "5ba92fc6f01295d855fbd88f48f0ff29637a1ad05909ed251a5352b156c9cfa6",
+      "bytes": 9840
+    }
+  ],
+  "runIdentities": [
+    {
+      "run": "run-EkJ6hh",
+      "source": {
+        "head": "a42985db9b616fcb332807913c722310e90b2e26",
+        "tree": "1c703a3f56a691fb5dcc8a2ef3b17680f079a4df",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "1e3b82af9a6761cf60b546d32f1ffe2a9f85623e0ad0c7cbd24b971f395d3b84"
+      },
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:19:49.495Z",
+      "finishedAt": "2026-10-30T18:20:08.042Z",
+      "sourceUnchanged": true
+    },
+    {
+      "run": "run-69aS0Q",
+      "source": {
+        "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+        "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "0c4858ac0355262046cb7aef149c252a2b848e3d3820486d0827e5184330d8bc"
+      },
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:21:13.863Z",
+      "finishedAt": "2026-10-30T18:21:41.119Z",
+      "sourceUnchanged": true
+    },
+    {
+      "run": "run-G6MVMf",
+      "source": {
+        "head": "506822bcf811c214c4794819dc27a6aee4b1bde2",
+        "tree": "23cf78593be4f6332ea6e27f8e15669f8d410fb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "0c4858ac0355262046cb7aef149c252a2b848e3d3820486d0827e5184330d8bc"
+      },
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:22:09.051Z",
+      "finishedAt": "2026-10-30T18:22:09.585Z",
+      "sourceUnchanged": true
+    }
+  ]
+}

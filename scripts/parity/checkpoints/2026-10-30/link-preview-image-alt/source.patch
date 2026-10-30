@@ -1,0 +1,162 @@
+diff --git a/plugins/link-preview/index.js b/plugins/link-preview/index.js
+index 59fca547..1b0e4c13 100644
+--- a/plugins/link-preview/index.js
++++ b/plugins/link-preview/index.js
+@@ -236,6 +236,7 @@ export function createLinkPreviewPlugin(config={}){
+             if(filled)setSafeUrlAttribute(card,'href',data.url,'external')
+             else card.removeAttribute('href')
+             title.textContent=data.title||data.url
++            image.alt=data.title
+             description.textContent=data.description
+             domainText.textContent=data.domain||host(data.url)
+             for(const element of [favicon,largeFavicon,urlFavicon]){
+diff --git a/tests/browser/native-link-preview-derived.js b/tests/browser/native-link-preview-derived.js
+index 18d487d7..29d23226 100644
+--- a/tests/browser/native-link-preview-derived.js
++++ b/tests/browser/native-link-preview-derived.js
+@@ -2,10 +2,12 @@ import { createLinkPreviewPlugin } from '../../plugins/link-preview/index.js'
+ import { test, make, blockElement, assert, equal, pause } from './regressions/harness.js'
+ import { printable, dispatchKey } from './native-input-helpers.js'
+ 
++const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
++
+ for (const populated of [false, true]) test(`LinkPreview native URL typing preserves visible card and exact Undo/Redo from ${populated ? 'populated data' : 'the actual default'}`, async () => {
+   const definition = createLinkPreviewPlugin(), defaults = { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' }
+   const initial = populated ? { ...defaults, url: 'https://example.test/story', title: 'Original title',
+-    description: 'Original description', domain: 'display.example', template: 'horizontal' } : defaults
++    description: 'Original description', image: pixel, domain: 'display.example', template: 'horizontal' } : defaults
+   const editor = make(populated ? [{ id: 'link', type: 'linkPreview', dataVersion: 1, data: initial }] : [],
+     { plugins: [definition], defaultBlock: 'linkPreview', inlineTools: [], ...(!populated ? { data: undefined } : {}) })
+   try {
+@@ -18,8 +20,10 @@ for (const populated of [false, true]) test(`LinkPreview native URL typing prese
+       equal(input.value, data.url)
+       const card = root.querySelector('.oe-lp__card')
+       equal({ hidden: card.hidden, href: card.getAttribute('href'), title: card.querySelector('.oe-lp__title').textContent,
+-        description: card.querySelector('.oe-lp__desc').textContent },
+-      { hidden: !data.url, href: data.url || null, title: data.title || data.url, description: data.description })
++        description: card.querySelector('.oe-lp__desc').textContent,
++        image: { src: card.querySelector('.oe-lp__image img').getAttribute('src'), alt: card.querySelector('.oe-lp__image img').alt } },
++      { hidden: !data.url, href: data.url || null, title: data.title || data.url, description: data.description,
++        image: { src: data.image || null, alt: data.title } })
+       assert(blockElement(editor, id) === root && root.querySelector('.oe-lp__url-input') === input)
+     }
+     check(initial)
+diff --git a/tests/browser/projection-contracts.js b/tests/browser/projection-contracts.js
+index 0dd15274..12fe56cd 100644
+--- a/tests/browser/projection-contracts.js
++++ b/tests/browser/projection-contracts.js
+@@ -7,6 +7,7 @@ import './regressions/canonical-field-text.js'
+ import './regressions/person-derived-presentation.js'
+ import './regressions/poll-derived-presentation.js'
+ import './regressions/image-derived-alt.js'
++import './regressions/link-preview-image-alt.js'
+ import { assembleCanonicalRecord, filterCanonicalInline, remapCanonicalInline } from '../../core/CanonicalTransforms.js'
+ import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
+ import { getTextLength, getTextOffset, findNodeAtOffset, editableTextWalker } from '../../shared/textOffset.js'
+diff --git a/tests/browser/regressions/link-preview-image-alt.js b/tests/browser/regressions/link-preview-image-alt.js
+new file mode 100644
+index 00000000..35f91aa2
+--- /dev/null
++++ b/tests/browser/regressions/link-preview-image-alt.js
+@@ -0,0 +1,101 @@
++import { createLinkPreviewPlugin } from '../../../plugins/link-preview/index.js'
++import { EditorRenderer } from '../../../renderer/index.js'
++import { assert, blockElement, equal, make, pause, test } from './harness.js'
++
++const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
++const literalTitle = 'Literal <b>headline</b> &amp; & {{literal}} "quoted"'
++const initialData = title => ({
++  url: 'https://example.test/story', title, description: 'Plain <i>description</i> &amp;',
++  image: pixel, favicon: pixel, domain: 'display.example', template: 'horizontal',
++})
++const record = data => ({ id: 'link', type: 'linkPreview', dataVersion: 1, data })
++
++function fixture(data, config = {}) {
++  const editor = make([record(data)], {
++    plugins: [createLinkPreviewPlugin({ injectStyles: false, ...config })],
++    defaultBlock: 'linkPreview', inlineTools: [],
++  })
++  const renderer = new EditorRenderer({ blockTypes: ['linkPreview'], injectStyles: false })
++  const root = blockElement(editor, 'link'), image = root.querySelector('.oe-lp__image img')
++  const input = root.querySelector('.oe-lp__url-input'), transactions = []
++  editor.on('transaction:committed', event => transactions.push(event))
++  const check = expected => {
++    equal(editor.save().blocks, [record(expected)], 'Alternative text must not change canonical plain metadata')
++    assert(blockElement(editor, 'link') === root && root.querySelector('.oe-lp__image img') === image)
++    assert(root.querySelector('.oe-lp__url-input') === input, 'Metadata projection must retain the URL control')
++    equal(root.querySelector('.oe-lp__title').textContent, expected.title || expected.url)
++    equal(root.querySelector('.oe-lp__title').childElementCount, 0, 'The title is literal metadata, not author HTML')
++    equal([...root.querySelectorAll('.oe-lp__favicon,.oe-lp__favicon-large,.oe-lp__url-icon img')].map(element => element.alt), ['', '', ''],
++      'Decorative favicons must keep empty alternatives')
++    const rendered = renderer.renderBlock(editor.save().blocks[0])
++    equal(rendered.querySelector('.editor-link-preview__title').textContent, expected.title || expected.url)
++    equal(rendered.querySelector('.editor-link-preview__title').childElementCount, 0)
++    const renderedImage = rendered.querySelector('.editor-link-preview__image img')
++    if (expected.image) {
++      equal(renderedImage?.alt, expected.title, 'The public renderer is an independent image-alternative control')
++    } else equal(renderedImage, null)
++    equal(image.getAttribute('src'), expected.image || null)
++    equal(image.alt, expected.title, 'The editor image must expose the same canonical plain title')
++  }
++  return { editor, transactions, check, dispose() { renderer.destroy(); editor.destroy() } }
++}
++
++for (const title of ['', literalTitle]) test(`LinkPreview image alternatives retain ${title ? 'literal title characters' : 'an empty title'} across read-only modes`, () => {
++  const data = initialData(title), h = fixture(data)
++  try {
++    h.check(data)
++    for (const mode of [true, false]) {
++      h.editor.setReadOnly(mode)
++      h.check(data)
++      equal(h.editor.readOnly, mode)
++    }
++    equal(h.transactions.length, 0)
++    assert(!h.editor.canUndo && !h.editor.canRedo, 'Derived alternatives must not create history')
++  } finally { h.dispose() }
++})
++
++test('LinkPreview image alternatives follow canonical title replacement, clearing and one Undo/Redo per action', () => {
++  const before = initialData(''), after = { ...before, title: literalTitle }, cleared = { ...after, title: '' }
++  const h = fixture(before)
++  try {
++    h.check(before)
++    h.editor.blocks.update('link', () => ({ data: after }))
++    h.check(after)
++    equal(h.transactions.length, 1)
++    assert(h.editor.undo()); h.check(before)
++    assert(!h.editor.canUndo && h.editor.canRedo)
++    assert(h.editor.redo()); h.check(after)
++    h.editor.blocks.update('link', () => ({ data: cleared }))
++    h.check(cleared)
++    assert(h.editor.undo()); h.check(after)
++    assert(h.editor.redo()); h.check(cleared)
++    equal(h.transactions.length, 6, 'Alternative projection must not add a transaction to either title edit or replay')
++  } finally { h.dispose() }
++})
++
++test('LinkPreview image alternatives follow real metadata task completion and replay without another provider request', async () => {
++  const before = { ...initialData(''), image: '', favicon: '' }, requests = []
++  let resolveMetadata
++  const h = fixture(before, { fetchMeta(url, { signal }) {
++    requests.push({ url, signal })
++    return new Promise(resolve => { resolveMetadata = resolve })
++  } })
++  try {
++    h.check(before)
++    await pause()
++    equal(requests.map(request => request.url), [before.url])
++    assert(requests[0].signal instanceof AbortSignal && !requests[0].signal.aborted)
++    assert(typeof resolveMetadata === 'function')
++    resolveMetadata({ title: literalTitle, image: pixel, favicon: pixel })
++    await pause()
++    const after = { ...before, title: literalTitle, image: pixel, favicon: pixel }
++    h.check(after)
++    equal(h.transactions.length, 1)
++    assert(h.editor.undo()); h.check(before)
++    assert(!h.editor.canUndo && h.editor.canRedo)
++    assert(h.editor.redo()); h.check(after)
++    await pause()
++    equal(requests.map(request => request.url), [before.url])
++    equal(h.transactions.length, 3, 'Metadata replay must keep the original single history action')
++  } finally { h.dispose() }
++})
