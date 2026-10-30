@@ -61,6 +61,24 @@ test('Poll provider ownership: a current subscription refresh preserves author f
   } finally { h.editor.destroy() }
 })
 
+test('Poll completed labels: provider refresh ignores uncommitted author DOM drift', async () => {
+  const h = await pollProviderFixture()
+  try {
+    const before = h.editor.save().blocks
+    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>Alpha</b>')
+    h.field.querySelector('b').textContent = 'Unaccepted author drift'
+    h.subscriptions[0].onUpdate(results('2', 8, 2))
+    await pause()
+    equal([...h.wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), ['80%', '20%'])
+    assert(h.wrapper.querySelector('.oe-poll__option-text[data-option-id="first"]') === h.field)
+    equal(h.field.innerHTML, '<b>Unaccepted author drift</b>', 'A provider refresh rewrote the author field')
+    equal(h.editor.save().blocks, before)
+    equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 0, undo: false, redo: false })
+    equal(h.errors, [])
+    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>Alpha</b>', 'Unaccepted DOM drift leaked into a completed result label')
+  } finally { h.editor.destroy() }
+})
+
 for (const adopted of ['wrapper', 'shell']) {
   test(`Poll provider ownership: a subscription cannot repaint an adopted whole ${adopted}`, async () => {
     const h = await pollProviderFixture(), foreign = document.createElement('aside')

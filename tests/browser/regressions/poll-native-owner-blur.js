@@ -39,6 +39,28 @@ test('Poll native ownership: current option input and blur keep one Undo/Redo ac
   } finally { h.editor.destroy(); outside.remove() }
 })
 
+test('Poll completed labels: provider refresh uses the last trusted native option completion', async () => {
+  const h = await pollProviderFixture()
+  try {
+    const before = h.editor.save().blocks, input = []
+    h.field.addEventListener('input', event => input.push({ trusted: event.isTrusted, type: event.inputType }))
+    focusEnd(h.field)
+    await printable('X')
+    equal(input, [{ trusted: true, type: 'insertText' }])
+    const after = structuredClone(before); after[0].data.options[0].text = '<b>AlphaX</b>'
+    equal(h.editor.save().blocks, after)
+    h.subscriptions[0].onUpdate(results('2', 8, 2))
+    await pause()
+    equal([...h.wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), ['80%', '20%'])
+    assert(h.wrapper.querySelector('.oe-poll__option-text[data-option-id="first"]') === h.field)
+    equal(h.field.innerHTML, '<b>AlphaX</b>')
+    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>AlphaX</b>')
+    equal(h.editor.save().blocks, after)
+    equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 1, undo: true, redo: false })
+    equal(h.errors, [])
+  } finally { h.editor.destroy() }
+})
+
 for (const adopted of ['wrapper', 'shell']) {
   test(`Poll native ownership: native blur cannot submit an adopted whole ${adopted}`, async () => {
     const h = await pollProviderFixture(), foreign = document.createElement('aside'), outside = outsideButton()
