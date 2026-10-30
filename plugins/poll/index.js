@@ -191,8 +191,16 @@ export function createPollPlugin(config={}){
             runtimeViewController?.abort()
           },{once:true})
 
-          const report=error=>{
-            if(!dead){failed=true;projectRuntime()}
+          const report=(error,repaint=true)=>{
+            if(!dead){
+              failed=true
+              if(repaint){
+                try{projectRuntime()}
+                catch(presentationError){
+                  error=new AggregateError([error,presentationError],'Poll failure presentation failed',{cause:error})
+                }
+              }
+            }
             if(snapshot.onError){
               try{
                 const observed=snapshot.onError(error)
@@ -412,12 +420,17 @@ export function createPollPlugin(config={}){
             }
           }
 
-          const projectRuntime=()=>retainControlFocus(wrapper,()=>{
+          const projectRuntime=()=>{
             // Native source projections may commit without calling update().
-            // Read authoring data from the current canonical owner, not an old cache.
-            data=cloneData(context.getData())
-            project(true)
-          })
+            // Admit the current canonical owner before touching its view.
+            const next=cloneData(context.getData())
+            retainControlFocus(wrapper,()=>{data=next;project(true)})
+          }
+
+          const refreshRuntime=()=>{
+            try{projectRuntime();return true}
+            catch(error){report(error,false);return false}
+          }
 
           const disposeSubscription=()=>{
             const dispose=unsubscribe
@@ -453,7 +466,7 @@ export function createPollPlugin(config={}){
                     if(dead||connectionController.signal.aborted||version!==connectionVersion)return
                     loadVersion++
                     loading=false
-                    try{if(acceptResults(results))projectRuntime()}
+                    try{if(acceptResults(results))refreshRuntime()}
                     catch(error){report(error)}
                   },
                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
@@ -469,18 +482,20 @@ export function createPollPlugin(config={}){
                 if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)
               }
             }
+            let loadFailure
             void Promise.resolve().then(()=>{
               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return undefined
               return snapshot.dataSource.load({pollId:data.pollId,signal:connectionController.signal})
             }).then(results=>{
               if(results===undefined||dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
-              if(acceptResults(results))projectRuntime()
+              acceptResults(results)
             }).catch(error=>{
-              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)report(error)
+              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)loadFailure={error}
             }).finally(()=>{
               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
               loading=false
-              projectRuntime()
+              if(loadFailure)report(loadFailure.error)
+              else refreshRuntime()
             })
           }
 
@@ -496,7 +511,7 @@ export function createPollPlugin(config={}){
               next.add(optionId)
             }
             selected=next
-            projectRuntime()
+            refreshRuntime()
           }
 
           const submitVote=async ()=>{
@@ -525,7 +540,13 @@ export function createPollPlugin(config={}){
             context.signal.addEventListener('abort',abort,{once:true,signal:pendingVote.signal})
             submitting=true
             failed=false
-            projectRuntime()
+            if(!refreshRuntime()){
+              submitting=false
+              voteController=null
+              pendingVote.abort()
+              return
+            }
+            let voteFailure
             try{
               const results=await snapshot.dataSource.vote({
                 pollId:data.pollId,
@@ -536,15 +557,17 @@ export function createPollPlugin(config={}){
               if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote){
                 hasVoted=true
                 acceptResults(results)
-                projectRuntime()
               }
             }catch(error){
-              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)report(error)
+              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)voteFailure={error}
             }finally{
               if(voteController===pendingVote){
                 voteController=null
                 submitting=false
-                if(!dead)projectRuntime()
+                if(!dead){
+                  if(voteFailure)report(voteFailure.error)
+                  else refreshRuntime()
+                }
               }
               pendingVote.abort()
             }
