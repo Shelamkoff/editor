@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "scope": "Package consumer gate only; no production, dependency declaration, lockfile or preservation-ledger changes.",
+  "baseCommit": "9a60deb51a6f1906a9ad4a17080deedc52b2426a",
+  "codeCommit": "32138be5e2e8a1e72f9d960ce64111a6a5810c3a",
+  "node": "v24.22.1",
+  "npm": "11.9.0",
+  "browser": "Chrome/156.0.8078.47",
+  "dependency": {
+    "name": "@shelamkoff/carousel",
+    "declared": "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+    "locked": {
+      "version": "1.0.0",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+      "license": "MIT",
+      "dependencies": {
+        "@shelamkoff/event-bus": "^1.0.0"
+      },
+      "engines": {
+        "node": ">=20"
+      }
+    },
+    "packProbe": {
+      "name": "@shelamkoff/carousel",
+      "version": "1.0.0",
+      "filename": "shelamkoff-carousel-1.0.0.tgz",
+      "shasum": "3f0930430bb2bd264534dd7da0a9e2102710bbf2",
+      "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA=="
+    },
+    "integrityMatchesProjectLock": true,
+    "probeTarball": {
+      "originalPath": "/tmp/rector-package-git-pack-probe-o7hvu5lk/shelamkoff-carousel-1.0.0.tgz",
+      "bytes": 29123,
+      "sha256": "3f3c8474fbfe20d10916eb5b8a7d137b89468b24c37b0c73021ac33178af609a"
+    }
+  },
+  "red": {
+    "manifest": "runs/run-1AYbcn/manifest.json",
+    "outcome": "failed",
+    "sourceUnchanged": true,
+    "reason": "ENOTCACHED for the immutable codeload Git artifact in an empty disposable cache; same-name direct file tgz cannot satisfy Rector Git edge."
+  },
+  "green": {
+    "manifest": "runs/run-l1ye6E/manifest.json",
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "targetedUnitTests": {
+      "pass": 14,
+      "total": 14,
+      "newProvenanceTests": 10
+    },
+    "externalConsumerBrowserCases": {
+      "pass": 39,
+      "total": 39
+    },
+    "consumerTypeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "nodeImports": "passed",
+    "cssAssets": 22,
+    "inlineStylesheets": false,
+    "packageElapsedMs": 29181.793503
+  },
+  "guardChecks": [
+    "Full immutable Git commit in actual Rector tarball manifest",
+    "Published Git declaration equals project lock root edge",
+    "Locked resolved commit matches published commit",
+    "Packed Git artifact name/version match lock",
+    "Consumer install retains --offline and --ignore-scripts",
+    "Installed Rector manifest and lock preserve original Git edge",
+    "Consumer has no direct same-name override",
+    "Resolved Git URL/version match original lock and are not a link",
+    "Actual installed Git package export targets exist"
+  ],
+  "commandPolicy": {
+    "staging": "npm pack <exact published Git spec> --ignore-scripts --json --pack-destination <temporary Git artifacts> --cache <disposable cache>",
+    "consumer": "npm install --offline --ignore-scripts --no-audit --no-fund --cache <same disposable cache> <unaltered Rector tgz> <registry dependency tgz files only>",
+    "childNpmEnvironment": {
+      "npm_config_ignore_scripts": "true"
+    },
+    "proxyAndCA": "Inherited unchanged",
+    "productionPinRewritten": false
+  },
+  "failedSetupAttempts": [
+    {
+      "kind": "sandbox",
+      "outcome": "failed before C11 test initialization",
+      "observedToolError": "spawnSync git EPERM",
+      "note": "No product outcome was recorded for this initialization attempt; authorized sandbox escalation then ran the same unchanged source."
+    },
+    {
+      "kind": "sandbox cache-add probe",
+      "outcome": "failed",
+      "log": "experiments/sandbox-cache-add.log",
+      "reason": "Operating system denied connection to the inherited proxy (EPERM)."
+    },
+    {
+      "kind": "npm cache add exact Git spec",
+      "outcome": "failed",
+      "log": "experiments/cache-add-arborist-debug.log",
+      "reason": "npm 11.9.0 cache add does not provide the Arborist constructor needed by its GitFetcher. Official npm pack does provide it."
+    }
+  ],
+  "files": [
+    {
+      "path": "scripts/package-consumer-gate.mjs",
+      "sha256": "f9db1c2f421d061d9e976ceeac41de9fe7ba505dadb480c300ce8da8180e8313"
+    },
+    {
+      "path": "scripts/package-git-dependencies.mjs",
+      "sha256": "d465dea387d19312b0d1b6d24d137fb537679becc80ae8a69764c3b6cda2bb71"
+    },
+    {
+      "path": "scripts/package-git-dependencies.test.mjs",
+      "sha256": "c698d133e0eb8802b39ce43b00cc831c047704c19bb6faf385a12d70f4a4cb71"
+    }
+  ],
+  "unchangedManifestSha256": "ba8cf115d724b08c0d0df6f1fcd849f37134310e836f5633a74c27c10fa9af60",
+  "unchangedLockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+  "limits": [
+    "This checkpoint proves the package gate on the specified source/environment. It does not accept whole-library functional parity, additional preservation rows or unexecuted npm/Node versions.",
+    "Git cache staging may use the network; the subsequent real consumer install remains offline.",
+    "No lifecycle hooks are enabled to build or repair the published dependency."
+  ]
+}

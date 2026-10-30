@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "artifacts": [
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-1AYbcn/manifest.json",
+      "storedPath": "runs/run-1AYbcn/manifest.json",
+      "bytes": 3203,
+      "sha256": "6e19d028ba05f16b53050636092eeac47e8c4d6d10f98ec931c5a7ab9f87262d"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-1AYbcn/package.log",
+      "storedPath": "runs/run-1AYbcn/package.log",
+      "bytes": 3737,
+      "sha256": "d3ceb8d090625c53b056bffee03ab3e27779d9af9b5952c1cb4e0e992e9dd102"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-l1ye6E/manifest.json",
+      "storedPath": "runs/run-l1ye6E/manifest.json",
+      "bytes": 5018,
+      "sha256": "19e523761f93dfbe8dcf7e9682cc9c95ad8753697f2a0d920e17b533ea4b2e2f"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-l1ye6E/unit.log",
+      "storedPath": "runs/run-l1ye6E/unit.log",
+      "bytes": 1365,
+      "sha256": "54cd2adf85246445a5ba9e79ce57a73c4f5392f0a479e0bfdae2821614dbc15a"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-l1ye6E/package.log",
+      "storedPath": "runs/run-l1ye6E/package.log",
+      "bytes": 20398,
+      "sha256": "e20a84756ec521770638e936f5cf95d4d1b6ea9a7fcc9a8fed78b5d02a70761e"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-pack-probe-o7hvu5lk/result.json",
+      "storedPath": "pack-probe/result.json",
+      "bytes": 745,
+      "sha256": "5ac70da26f33c63c18b7cd6a0dc53fb95c1efcd83c5e224e77e3f59e1c4d2dc9"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-pack-probe-o7hvu5lk/pack.log",
+      "storedPath": "pack-probe/pack.log",
+      "bytes": 405,
+      "sha256": "eb48c9ad577dbdcf3a8572375eae525a04de697a20fecfbb13b0cba4c7ca9141"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-pack-probe-o7hvu5lk/pack.json",
+      "storedPath": "pack-probe/pack.json",
+      "bytes": 5858,
+      "sha256": "7486f518cf26da188a1727c2344ac24af6a0148f67a38fcc2e75d104c6523911"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-cache-probe-xjg644ee/result.json",
+      "storedPath": "experiments/sandbox-cache-add-result.json",
+      "bytes": 436,
+      "sha256": "351d8e49abd8e3344a0977fb9688a3a443768185a1dec3662a2bf81bd3c23561"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-cache-probe-xjg644ee/cache-add.log",
+      "storedPath": "experiments/sandbox-cache-add.log",
+      "bytes": 1601,
+      "sha256": "dbd9495793bfa8d97bc29393b2d457b04033f8a688e08ea61c38bb843be12d70"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-cache-probe-approved-20261030/_logs/2026-10-30T01_38_24_999Z-debug-0.log",
+      "storedPath": "experiments/cache-add-arborist-debug.log",
+      "bytes": 3036,
+      "sha256": "13d939a470aea66f86e6d9d9b176b147acb76bebe402ff49741b9391e740dda0"
+    }
+  ]
+}

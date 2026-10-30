@@ -1,0 +1,26 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm error code EPERM
+npm error syscall connect
+npm error errno EPERM
+npm error FetchError: request to https://codeload.github.com/Shelamkoff/carousel/tar.gz/f7f6485886a1d77f9213d9079eb70000efeff499 failed, reason: connect EPERM 172.31.8.204:8889 - Local (undefined:undefined)
+npm error     at ClientRequest.<anonymous> (/opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/npm/node_modules/minipass-fetch/lib/index.js:130:14)
+npm error     at ClientRequest.emit (node:events:514:28)
+npm error     at emitErrorEvent (node:_http_client:114:11)
+npm error     at _destroy (node:_http_client:1175:9)
+npm error     at onSocketNT (node:_http_client:1196:5)
+npm error     at process.processTicksAndRejections (node:internal/process/task_queues:91:21) {
+npm error   code: 'EPERM',
+npm error   errno: 'EPERM',
+npm error   syscall: 'connect',
+npm error   address: '172.31.8.204',
+npm error   port: 8889,
+npm error   type: 'system'
+npm error }
+npm error
+npm error The operation was rejected by your operating system.
+npm error It is likely you do not have the permissions to access this file as the current user
+npm error
+npm error If you believe this might be a permissions issue, please double-check the
+npm error permissions of the file and its containing directories, or try running
+npm error the command again as root/Administrator.
+npm error A complete log of this run can be found in: /tmp/rector-package-git-cache-probe-xjg644ee/npm-cache/_logs/2026-10-30T01_36_51_227Z-debug-0.log
