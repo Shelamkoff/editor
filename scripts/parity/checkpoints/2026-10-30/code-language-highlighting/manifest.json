@@ -1,0 +1,232 @@
+{
+  "recordedAt": "2026-10-30T16:08:06.432670+00:00",
+  "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+  "productionCommit": "9b7f6989e1740d0d21bbcbc76800631aeb57df07",
+  "finalCheckedSource": "e37d0195ffef700de03a36665af94be586e4ba9e",
+  "finalCheckedTree": "c3248d67c628968d20245ec44cf7f2813b28d573",
+  "productionUnchangedAfterFix": true,
+  "commands": [
+    {
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code highlighter' node tests/browser/physical-history.mjs",
+      "label": "RED",
+      "exitCode": 1,
+      "results": {
+        "passed": 2,
+        "failed": 1
+      },
+      "source": "red-fixture reconstruction (unchanged b856 production)"
+    },
+    {
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code highlighter' node tests/browser/physical-history.mjs",
+      "label": "GREEN",
+      "exitCode": 0,
+      "results": {
+        "passed": 3,
+        "failed": 0
+      },
+      "source": "9b7f6989 production and native fixture bytes"
+    },
+    {
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code ' node tests/browser/physical-history.mjs",
+      "label": "final native affected group",
+      "exitCode": 0,
+      "passed": 14,
+      "source": "e37d0195ffef700de03a36665af94be586e4ba9e"
+    },
+    {
+      "command": "node --test plugins/code/*.test.js shared/highlightRuntime.test.js",
+      "label": "final targeted units",
+      "exitCode": 0,
+      "passed": 13,
+      "source": "e37d0195ffef700de03a36665af94be586e4ba9e"
+    },
+    {
+      "command": "npm run typecheck",
+      "label": "both final source typecheck projects",
+      "exitCode": 0,
+      "source": "e37d0195ffef700de03a36665af94be586e4ba9e"
+    },
+    {
+      "command": "node scripts/parity/code-language-highlighting.mjs",
+      "label": "final raw differential",
+      "exitCode": 1,
+      "candidatePass": true,
+      "source": "e37d0195ffef700de03a36665af94be586e4ba9e"
+    }
+  ],
+  "environment": {
+    "node": "v24.22.1",
+    "browser": "156.0.8078.79",
+    "platform": "linux x64"
+  },
+  "reconstruction": [
+    {
+      "label": "red-fixture",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "red-fixture.patch.gz",
+      "patchSha256": "5c6ea3b889883330a27808cea4bfedce2e1caffb7a03dab96951368edde4003d",
+      "sourceCommit": null,
+      "tree": "966f61c797f3cd7437ee54a0c566f41b139cf10d",
+      "verifiedBy": "Fresh GIT_INDEX_FILE; read-tree base; apply --cached --binary; write-tree"
+    },
+    {
+      "label": "production-and-native",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "production-and-native.patch.gz",
+      "patchSha256": "36e243da05d14fb2aa45e0b9f42e7ad0093e312d1468525123a5eff1151cc561",
+      "sourceCommit": "9b7f6989e1740d0d21bbcbc76800631aeb57df07",
+      "tree": "1c7a96d6e3c6ad4dbcaa50ab7e24e3d5fac5a864",
+      "verifiedBy": "Fresh GIT_INDEX_FILE; read-tree base; apply --cached --binary; write-tree"
+    },
+    {
+      "label": "initial-differential-fixture",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "initial-differential-fixture.patch.gz",
+      "patchSha256": "41bb97fd6736ff16679287a7f139697c7ab699cd0e7c715948b31fe4fa42c878",
+      "sourceCommit": "91fb9c5af1e648fae493c60fb8526c8e0c344ea7",
+      "tree": "c50f26c0502d6b2b788ab8deeef42fb6542b6753",
+      "verifiedBy": "Fresh GIT_INDEX_FILE; read-tree base; apply --cached --binary; write-tree"
+    },
+    {
+      "label": "final-isolated-source",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "final-isolated-source.patch.gz",
+      "patchSha256": "35910c140de6397b86f8e83dd54dd476e80d6e67b5c90a2ac9869c86c8e998f6",
+      "sourceCommit": "e37d0195ffef700de03a36665af94be586e4ba9e",
+      "tree": "c3248d67c628968d20245ec44cf7f2813b28d573",
+      "verifiedBy": "Fresh GIT_INDEX_FILE; read-tree base; apply --cached --binary; write-tree"
+    }
+  ],
+  "differential": [
+    {
+      "source": "v1",
+      "language": "custom-unknown-language",
+      "observations": 62,
+      "failures": 2,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "v1",
+      "language": "auto",
+      "observations": 62,
+      "failures": 3,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "v1",
+      "language": "javascript",
+      "observations": 62,
+      "failures": 3,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "spec-baseline",
+      "language": "custom-unknown-language",
+      "observations": 62,
+      "failures": 12,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "spec-baseline",
+      "language": "auto",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "spec-baseline",
+      "language": "javascript",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "pre-fix",
+      "language": "custom-unknown-language",
+      "observations": 62,
+      "failures": 12,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "pre-fix",
+      "language": "auto",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "pre-fix",
+      "language": "javascript",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "candidate",
+      "language": "custom-unknown-language",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "candidate",
+      "language": "auto",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    },
+    {
+      "source": "candidate",
+      "language": "javascript",
+      "observations": 62,
+      "failures": 0,
+      "completedPhases": 7,
+      "incomplete": false,
+      "errors": 0,
+      "executionError": null
+    }
+  ],
+  "audit": {
+    "independentlyRecomputedVerdicts": 744,
+    "verifiedSourceModuleHashRecords": 377,
+    "verifiedDependencyFileHashes": 6,
+    "runnerHashMatches": true,
+    "fixtureHashMatches": true
+  },
+  "initialDifferentialCorrection": "The original adapter selected the v2 .oe-code-lang-label for v1. Eighteen apparent v1 label failures were fixture errors, corrected solely to the real v1 .oe-code-lang selector. Both raw runs are retained; only the final run describes product differences.",
+  "acceptance": "Bounded Code language selection and native replay proof only; no full BLOCK_CODE_LANGUAGE or BLOCK_CODE_HIGHLIGHT_COPY acceptance and no new register row. The current README/spec requires unknown explicit language to remain literal. Existing auto and supported explicit highlighting remain unchanged.",
+  "peerReview": "Separate 7/7 real-browser controls against tool agent worktree with four unchanged production-file hashes; not Code acceptance."
+}
