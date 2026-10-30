@@ -48,7 +48,7 @@ export async function runCodeLanguageCase({ sourceBase, legacy, language }) {
       check(name, 'providerSelection', language === 'custom-unknown-language' ? calls.length : calls.at(-1),
         language === 'custom-unknown-language' ? 0 : language === 'auto'
           ? { kind: 'auto', code: text } : { kind: 'explicit', code: text, language })
-      check(name, 'languageStoredAndShown', holder.querySelector('.oe-code-lang-label')?.textContent,
+      check(name, 'languageStoredAndShown', holder.querySelector(legacy ? '.oe-code-lang' : '.oe-code-lang-label')?.textContent,
         language === 'auto' ? 'Auto' : language === 'javascript' ? 'JavaScript' : language)
       check(name, 'history', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
       check(name, 'readOnly', field().readOnly, readOnly)
