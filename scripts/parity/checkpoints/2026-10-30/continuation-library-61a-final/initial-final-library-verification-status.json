@@ -1,0 +1,11 @@
+{
+  "source": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+  "directory": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-TDNe8l",
+  "outcome": "failed",
+  "gates": {
+    "typecheck": 0,
+    "unit": 1
+  },
+  "current": "unit",
+  "sourceUnchanged": true
+}
