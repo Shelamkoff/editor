@@ -1,0 +1,723 @@
+{
+  "run": "run-ph5JBn",
+  "source": {
+    "head": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+    "tree": "cbec281d0b485f8fa8cf08412bd412ee94bbb839",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "d7cd29f2aacf2e9d28a558a251e28bed6b5147c85ac6e6dec16bf896fbd00f07"
+  },
+  "outcome": "failed",
+  "sourceUnchanged": true,
+  "startedAt": "2026-10-30T19:45:01.410Z",
+  "finishedAt": "2026-10-30T20:04:05.611Z",
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+    }
+  },
+  "gates": {
+    "unit": {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 18114.407589
+    },
+    "typecheck": {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 7157.781913
+    },
+    "build": {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 5836.34054
+    },
+    "docs-contracts": {
+      "command": [
+        "npm",
+        "run",
+        "test:docs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 3133.109395
+    },
+    "types": {
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 7750.3031550000005
+    },
+    "package": {
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 23135.260016
+    },
+    "ordinary-browser": {
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 36104.453686
+    },
+    "native-browser": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "outcome": "failed",
+      "exitCode": 1,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 811846.204544
+    },
+    "heap": {
+      "command": [
+        "node",
+        "tests/browser/heap-gate.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 13239.600601
+    },
+    "common-parity": {
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 150706.719893
+    },
+    "gallery-parity": {
+      "command": [
+        "node",
+        "scripts/parity/gallery-caption-order.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 15221.130903
+    },
+    "docs-site": {
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "sourceUnchanged": true,
+      "elapsedMs": 49572.660717
+    }
+  },
+  "unit": {
+    "tests": 2055,
+    "pass": 2055,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "build": {
+    "runtimeDeclarations": 285,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "declarationContracts": 7,
+  "ordinaryBrowser": {
+    "pages": 38,
+    "labels": [
+      "harness-contract.html",
+      "mode-recovery.html",
+      "scoped-authority.html",
+      "formatting-correspondence.html",
+      "script-panel.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html",
+      "projection-contracts.html",
+      "optional-inline-update.html",
+      "inline-pattern-transfer.html",
+      "toolbar-keyboard.html",
+      "public-extension-contracts.html",
+      "poll-state-contracts.html",
+      "presentation-recovery.html",
+      "inline-style-grammar.html",
+      "inline-style-grammar-trusted-types.html"
+    ]
+  },
+  "nativeBrowser": {
+    "run": "run-pKWT4L",
+    "source": {
+      "head": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+      "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+      "untracked": [],
+      "dirty": false,
+      "identity": "c5e9ae8dd8e61bda41a9045377956097fe6b94c84485c99430c8187d950ab310"
+    },
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "gates": {
+      "build": {
+        "outcome": "passed",
+        "startedAt": "2026-10-30T20:12:46.012Z",
+        "finishedAt": "2026-10-30T20:12:51.030Z",
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "cwd": "/workspace/scratch/2231de9d6b0d/work-seventh-docs",
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.57",
+          "runner": {},
+          "selection": {
+            "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+          }
+        },
+        "sourceBefore": {
+          "head": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+          "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+          "untracked": [],
+          "dirty": false,
+          "identity": "c5e9ae8dd8e61bda41a9045377956097fe6b94c84485c99430c8187d950ab310"
+        },
+        "elapsedMs": 5016.244074,
+        "sourceAfter": {
+          "head": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+          "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+          "untracked": [],
+          "dirty": false,
+          "identity": "c5e9ae8dd8e61bda41a9045377956097fe6b94c84485c99430c8187d950ab310"
+        },
+        "sourceUnchanged": true
+      },
+      "native-browser": {
+        "outcome": "passed",
+        "startedAt": "2026-10-30T20:12:51.228Z",
+        "finishedAt": "2026-10-30T20:32:19.995Z",
+        "exitCode": 0,
+        "signal": null,
+        "command": [
+          "node",
+          "tests/browser/physical-history.mjs"
+        ],
+        "cwd": "/workspace/scratch/2231de9d6b0d/work-seventh-docs",
+        "environment": {
+          "node": "v24.22.1",
+          "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "npm": "11.9.0",
+          "platform": "linux",
+          "architecture": "x64",
+          "release": "6.18.57",
+          "runner": {},
+          "selection": {
+            "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+          }
+        },
+        "sourceBefore": {
+          "head": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+          "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+          "untracked": [],
+          "dirty": false,
+          "identity": "c5e9ae8dd8e61bda41a9045377956097fe6b94c84485c99430c8187d950ab310"
+        },
+        "elapsedMs": 1168763.260375,
+        "sourceAfter": {
+          "head": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+          "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+          "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+          "untracked": [],
+          "dirty": false,
+          "identity": "c5e9ae8dd8e61bda41a9045377956097fe6b94c84485c99430c8187d950ab310"
+        },
+        "sourceUnchanged": true
+      }
+    },
+    "groups": 45,
+    "cases": 2626,
+    "byGroup": {
+      "nativeTextInput": 52,
+      "nativeTools": 265,
+      "nativeClipboard": 25,
+      "nativeIme": 16,
+      "nativeConversion": 7,
+      "nativeBlockMenus": 110,
+      "nativeConversionGrouping": 88,
+      "nativeConversionPreservation": 53,
+      "nativeInteractionSequences": 39,
+      "nativeRetainedTools": 64,
+      "nativeConversionContinuations": 65,
+      "nativeFontCancel": 58,
+      "nativeBackgroundCancel": 36,
+      "nativeLinkCancel": 36,
+      "nativePanelKeyboard": 36,
+      "nativeSourceIndentation": 54,
+      "nativeSourceModes": 62,
+      "nativeConfigSnapshot": 30,
+      "nativePollRuntime": 26,
+      "nativeLibraryBoundaries": 42,
+      "nativeInstanceMethods": 8,
+      "nativeColorPopup": 8,
+      "nativeColorPopupTrusted": 8,
+      "nativeMentionPopup": 64,
+      "nativeAuditEdges": 21,
+      "nativeAuditPoll": 4,
+      "nativeAuditHiddenFields": 4,
+      "nativeAuditRecheck": 49,
+      "nativeStructural": 21,
+      "nativeCrossSelection": 42,
+      "nativeCoreBehavior": 67,
+      "nativePluginParity": 333,
+      "nativeBlockSettings": 33,
+      "nativeCodeSourceLanguage": 20,
+      "nativePersonModes": 28,
+      "nativeTableKeyboard": 30,
+      "nativeRoundtripPreservation": 65,
+      "nativePresentationRecovery": 14,
+      "nativePluginControls": 156,
+      "nativePluginRanges": 116,
+      "nativePluginLocalRanges": 76,
+      "nativePluginClipboard": 48,
+      "nativePluginFieldClipboard": 68,
+      "nativePluginMedia": 95,
+      "nativePluginDesign": 84
+    },
+    "counting": "The final aggregate array groups are counted once; separately scoped browser runs, peer unit repeats and historical comparisons are not added."
+  },
+  "heap": {
+    "sentinels": 23,
+    "retained": 0,
+    "usedHeapMiB": 15.11,
+    "embedderHeapMiB": 1.25,
+    "historyEviction": {
+      "payloadBytes": 32768,
+      "authoredActions": 12,
+      "historyMaxBytes": 1,
+      "historyMaxStack": 100,
+      "retainedControlReleased": true,
+      "replay": {
+        "currentCase": 12,
+        "undoCase": 11,
+        "editorAlive": true
+      },
+      "phases": [
+        {
+          "phase": "before-eviction",
+          "counts": [
+            0,
+            1,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "usedHeapMiB": 15.12,
+          "snapshotMiB": 27.88
+        },
+        {
+          "phase": "after-eviction-with-retained-control",
+          "counts": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 15.21,
+          "snapshotMiB": 27.94
+        },
+        {
+          "phase": "after-releasing-control",
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 15.18,
+          "snapshotMiB": 27.94
+        }
+      ]
+    }
+  },
+  "differentialCorpora": {
+    "common-parity": [
+      {
+        "source": "v1",
+        "cases": 65,
+        "observations": 11258,
+        "rawFailures": 1156,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "caseErrors": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 65,
+        "observations": 8043,
+        "rawFailures": 162,
+        "incompleteCases": 21,
+        "errors": 1,
+        "pageErrors": 1,
+        "caseErrors": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 65,
+        "observations": 11446,
+        "rawFailures": 0,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "caseErrors": 0
+      }
+    ],
+    "gallery-parity": [
+      {
+        "source": "v1",
+        "cases": 6,
+        "observations": 336,
+        "rawFailures": 123,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "caseErrors": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 6,
+        "observations": 378,
+        "rawFailures": 101,
+        "incompleteCases": 0,
+        "errors": 4,
+        "pageErrors": 4,
+        "caseErrors": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 6,
+        "observations": 378,
+        "rawFailures": 0,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "caseErrors": 0
+      }
+    ]
+  },
+  "documentationAtRuntimeSource": {
+    "static": {
+      "readmes": 47,
+      "htmlPages": 127,
+      "brokenLinks": 0,
+      "npmSiteLeak": false
+    },
+    "browser": {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  },
+  "sourceBeforeIntegrationArchive": "611075bf4bc9e97996b35ec00ed5bafbe1d04916",
+  "implementationAndRegressionFixturesUnchangedAfterRuntimeSource": true,
+  "nativePagePartitionChanged": true,
+  "validationOutcome": "passed",
+  "validationBasis": "Eleven original gates pass; the original full native gate remains failed after its 120-second monolithic page deadline. A separate complete native gate passes after an exact inventory-preserving page partition, with unchanged production, regression fixtures and deadline. These are separate source-attributed runs, not a twelve-gate rerun on the repair source.",
+  "equivalentPaths": [
+    "all tracked files except the eleven explicit native page/runner/readme paths, six report documents and retained checkpoint evidence"
+  ],
+  "nativePartitionEvidence": {
+    "path": "../native-partition/",
+    "candidate": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+    "originalCaseCount": 444,
+    "finalCaseCount": 444,
+    "finalPageInventory": [
+      {
+        "page": "native-plugin-parity.html",
+        "count": 333,
+        "executedOn": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+        "evidence": "final-five/remaining.stdout.gz",
+        "kind": "direct"
+      },
+      {
+        "page": "native-block-settings.html",
+        "count": 33,
+        "executedOn": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+        "evidence": "final-five/settings.stdout.gz",
+        "kind": "direct"
+      },
+      {
+        "page": "native-code-source-language.html",
+        "count": 20,
+        "executedOn": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+        "evidence": "intermediate-four/code.stdout.gz",
+        "kind": "retained execution with exact source equivalence"
+      },
+      {
+        "page": "native-person-modes.html",
+        "count": 28,
+        "executedOn": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+        "evidence": "intermediate-four/person.stdout.gz",
+        "kind": "retained execution with exact source equivalence"
+      },
+      {
+        "page": "native-table-keyboard.html",
+        "count": 30,
+        "executedOn": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+        "evidence": "intermediate-four/table.stdout.gz",
+        "kind": "retained execution with exact source equivalence"
+      }
+    ],
+    "causalDiagnostic": {
+      "artifact": "peer-review/diagnostic/process.json",
+      "sha256": "4438d6259e9ef4e1f67c08e89ed62081580fd2e8ee6d04894d5950fd47e9dca5",
+      "source": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+      "actualExitCode": 0,
+      "passed": 444,
+      "diagnosticOnlyPageDeadlineMs": 360000,
+      "pageNavigationToCompletionMs": 198717.8857421875,
+      "wholeProcessElapsedMs": 204404.23203400132,
+      "claim": "A single deadline-only diagnostic completed every original scenario in the same page. It establishes page capacity, and does not replace the failed shipping gate."
+    }
+  },
+  "newlyAcceptedRows": [
+    "BLOCK_CODE_SOURCE",
+    "BLOCK_CODE_LANGUAGE",
+    "BLOCK_TABLE_KEYBOARD",
+    "BLOCK_PERSON_HIDDEN_FOCUS",
+    "BLOCK_PERSON_READONLY_TABS",
+    "TOOL_BOLD_ACTION",
+    "TOOL_ITALIC_ACTION",
+    "TOOL_STRIKETHROUGH_ACTION"
+  ],
+  "preservationRegister": {
+    "uniqueIds": 209,
+    "previousAccepted": 54,
+    "accepted": 62,
+    "open": 147
+  },
+  "frozenComparisons": {
+    "candidateCases": 165,
+    "candidateObservations": 15488,
+    "candidateFailures": 0,
+    "runtimeSources": [
+      "e6842abf21aee9655d56900ec9fb784edd864609",
+      "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "fde41c70584b890a1ae51c9b7f23f752f0a18c8a",
+      "3a16cf9fe64046780d4573464387dd2eb864b80e"
+    ],
+    "note": "Separate exact-source comparisons; the same native fixture cases are included in this merged runtime run. Historical failures and missing capabilities retain their original outcomes."
+  }
+}

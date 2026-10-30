@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "reviewer": "code_peer_finish (independent read-only source/manifest review)",
+  "reviewedAt": "2026-10-30T20:07:55.021598+00:00",
+  "sourceComparison": {
+    "base": "cd446e5866d09881011176d881278fff6449c6ef",
+    "baseTree": "8cbd7175e7d0a05b42102720c064f9cf077f21a3",
+    "repair": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+    "repairTree": "9c2511729daa800511486f4ba693b556405a3ef7",
+    "changedFiles": [
+      "tests/browser/README.md",
+      "tests/browser/native-code-source-language.html",
+      "tests/browser/native-code-source-language.js",
+      "tests/browser/native-person-modes.html",
+      "tests/browser/native-person-modes.js",
+      "tests/browser/native-plugin-parity.js",
+      "tests/browser/native-table-keyboard.html",
+      "tests/browser/native-table-keyboard.js",
+      "tests/browser/physical-history.mjs"
+    ],
+    "changedFileCount": 9,
+    "productionPackageBuildAndFixtureBytesUnchanged": true,
+    "allNonHarnessPathsUnchanged": true,
+    "regressionModulesMovedExactlyOnce": {
+      "native-code-source-language": "code-source-language-native",
+      "native-person-modes": "person-modes-native",
+      "native-table-keyboard": "table-keyboard-native"
+    },
+    "newHtmlSameDriverStylesAndMarkupExceptTitleAndModule": true,
+    "oldRegistryOnlyRemovesThoseThreeImports": true,
+    "physicalRunnerOnlyAddsThreeCallsAndThreeAggregateFields": true,
+    "pageBudgetMillisecondsBefore": 120000,
+    "pageBudgetMillisecondsAfter": 120000,
+    "protectedInputs": [
+      "core",
+      "plugins",
+      "inline-tools",
+      "inline-plugins",
+      "renderer",
+      "shared",
+      "plugin-kit",
+      "package.json",
+      "package-lock.json",
+      "vite.config.js",
+      "rollup.config.js",
+      "tsconfig.json",
+      "scripts",
+      "tests/browser/regressions",
+      "tests/browser/native-input-driver.js",
+      "tests/browser/native-input-helpers.js",
+      "tests/browser/code-source-language-parity-fixture.js",
+      "tests/browser/person-modes-parity-fixture.js",
+      "tests/browser/table-keyboard-parity-fixture.js"
+    ],
+    "fileHashes": {
+      "tests/browser/README.md": "907d591295aecea825574d29775aba53fb4aa7231449f30c4869b3aa27da3bc4",
+      "tests/browser/native-code-source-language.html": "431cf67b8a6ee90452ac8474af12ad92b978615ad4f1e9ad642835bdf3045209",
+      "tests/browser/native-code-source-language.js": "31ebad8b69f356384d3c5db9fdae5d03ccd4234273494d740ed8759edf2d269d",
+      "tests/browser/native-person-modes.html": "8230a02718583eb823bd3128d5d7dd347ba31e0326b0384a8031e57dfa4410b1",
+      "tests/browser/native-person-modes.js": "8f8e630446f0dc34790edea5fd61af31a8ea9923820fed8b059e4a60d26ad802",
+      "tests/browser/native-plugin-parity.js": "5949cbd5ff8b2b590e683ed175ce176ddb53ef4af117b8ed868f82ee0af3ede9",
+      "tests/browser/native-table-keyboard.html": "df41bfb8da063ceea4f6154777722cce4b237754bd79583a0317e9da836d557b",
+      "tests/browser/native-table-keyboard.js": "0d56950882945b6b3439898642c026966ffc0b176d09e271277324ce1993e025",
+      "tests/browser/physical-history.mjs": "288390d6d627b88d885b34c00a947da42dc2c3fb2aa2ac5e8950983d1b33aabc"
+    }
+  },
+  "originalRun": {
+    "directory": "test-results/run-ph5JBn",
+    "manifestSha256": "a4c9bd2df836d82f7fa7b6e18b76d692a556eed1e4a2001df728586cfadd2e4e",
+    "source": {
+      "head": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+      "tree": "cbec281d0b485f8fa8cf08412bd412ee94bbb839",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+      "untracked": [],
+      "dirty": false,
+      "identity": "d7cd29f2aacf2e9d28a558a251e28bed6b5147c85ac6e6dec16bf896fbd00f07"
+    },
+    "outcome": "failed",
+    "finishedAt": "2026-10-30T20:04:05.611Z",
+    "sourceUnchanged": true,
+    "gateCounts": {
+      "passed": 11,
+      "failed": 1
+    },
+    "gates": {
+      "unit": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "typecheck": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "build": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "docs-contracts": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "types": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "package": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "ordinary-browser": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "native-browser": {
+        "outcome": "failed",
+        "exitCode": 1,
+        "sourceUnchanged": true
+      },
+      "heap": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "common-parity": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "gallery-parity": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      },
+      "docs-site": {
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true
+      }
+    },
+    "failedGate": "native-browser",
+    "failedGateActualExitCode": 1,
+    "failedPageFromSourceStack": "native-plugin-parity.html",
+    "failure": "Timed out waiting for history matrix",
+    "nativeLogSha256": "aff456ce26de78b7f7a345c77b8afcef6e8a20372169010e3efe6c9052c18c52",
+    "completedPageSummariesBeforeTimeout": 25,
+    "completedCasesBeforeTimeout": 985,
+    "partialNativeCountsAreNotACompletedNativePass": true
+  },
+  "limits": [
+    "No broad or browser test was run by this reviewer.",
+    "Source equivalence is not behavioral proof that the partitioned native run succeeds.",
+    "The original 12-gate run remains failed; its native timeout is not reclassified.",
+    "A separate completed native run on the repair source is required."
+  ]
+}

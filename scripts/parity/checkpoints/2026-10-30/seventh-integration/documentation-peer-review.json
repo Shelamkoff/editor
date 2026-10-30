@@ -1,0 +1,21 @@
+{
+  "reviewer": "code_peer_finish",
+  "reviewedSource": "2c507bf1",
+  "status": "PASS",
+  "register": {
+    "ids": 209,
+    "uniqueIds": 209,
+    "accepted": 62,
+    "open": 147,
+    "newlyAccepted": 8
+  },
+  "currentComparativeCases": 165,
+  "currentObservations": 15488,
+  "newSectionLinksVerified": 15,
+  "notes": [
+    "The full runtime matrix was not yet claimed successful in the reviewed documentation.",
+    "The then-missing Table archive link was resolved by integrating a4c0971a and cd446e58.",
+    "17 historical Person page events are not counted as 51 distinct defects.",
+    "Code wrapper source-attribution limitation remains explicit."
+  ]
+}
