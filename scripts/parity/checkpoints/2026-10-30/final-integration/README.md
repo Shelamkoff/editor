@@ -36,7 +36,7 @@ test execution on the remapped commit IDs.
 | Historical classifier sensitivity | PASS | `60fec50c`, `run-T69Tfd` |
 | Ordinary browser pages and first 25 named native pages | 36/36 pages and 970 named-native records passed before interruption | `f04e63da`, `run-bJYxpZ` |
 | Remaining ten native pages and heap | 10/10 pages, 939 recorded cases; heap 23 sentinels, 0 retained, eviction controls PASS | `f04e63da`, `run-aO0xLM` |
-| Documentation tests and production documentation build | Separate final gate pending | See the subsequent final documentation manifest |
+| Documentation tests and production documentation build | PASS; 127 built pages, zero broken links; browser smoke PASS | `a897fee3`, `run-dwjVxd` |
 
 The size check's 51 KiB reference is informational. Passing that command is not
 acceptance of all comparative performance or allocation obligations. These

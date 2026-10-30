@@ -29,6 +29,11 @@
       "local": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
       "remote": "490aa09c3750d523feb8401f18318b6dee9c1058",
       "tree": "94193654b29acd021200367787cb234d9fbd8cb1"
+    },
+    {
+      "local": "a897fee31111e63f03899d55678111f7284dadc0",
+      "remote": "237fa16c43033a66bec998b017eead0fbfe1da87",
+      "tree": "5d93c028ed895eeeae97884311b9a18236370898"
     }
   ],
   "qualification": "Evidence names the original checked source. Matching complete trees establish source equivalence, not a second execution on remapped commit IDs. The final evidence-only commit has its own subsequent GitHub identity."
