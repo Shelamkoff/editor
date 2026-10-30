@@ -1,0 +1,112 @@
+{
+  "repository": "Shelamkoff/carousel",
+  "pullRequestUrl": "https://github.com/Shelamkoff/carousel/pull/1",
+  "state": "open",
+  "draft": true,
+  "headSha": "ebbc9758e3d4fdef415335e692b14538cecabb72",
+  "baseSha": "9896ddf60e594501b612ce38dbac66270f93181e",
+  "mergeCommitSha": "54d97ff6b433526262d3d0c673d83a5e7489c38a",
+  "workflowRun": {
+    "id": 40987280915,
+    "name": "Quality",
+    "status": "completed",
+    "conclusion": "success",
+    "run_number": 5,
+    "jobs_url": "https://api.github.com/repos/Shelamkoff/carousel/actions/runs/40987280915/jobs",
+    "logs_url": "https://api.github.com/repos/Shelamkoff/carousel/actions/runs/40987280915/logs",
+    "workflow_id": 380531900
+  },
+  "job": {
+    "id": 123841137674,
+    "name": "test",
+    "status": "completed",
+    "conclusion": "success",
+    "run_id": 40987280915,
+    "logs_url": null,
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1
+      },
+      {
+        "name": "Checkout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2
+      },
+      {
+        "name": "Use Node.js",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3
+      },
+      {
+        "name": "Install dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4
+      },
+      {
+        "name": "Run tests, typecheck and package build",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5
+      },
+      {
+        "name": "Install Chromium",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6
+      },
+      {
+        "name": "Browser integration tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7
+      },
+      {
+        "name": "Post Use Node.js",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13
+      },
+      {
+        "name": "Post Checkout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15
+      }
+    ]
+  },
+  "runUrl": "https://github.com/Shelamkoff/carousel/actions/runs/40987280915",
+  "jobUrl": "https://github.com/Shelamkoff/carousel/actions/runs/40987280915/job/123841137674",
+  "checkedOutSha": "54d97ff6b433526262d3d0c673d83a5e7489c38a",
+  "nodeVersion": "22.23.4",
+  "chromiumVersion": "156.0.8078.4",
+  "checks": {
+    "unitTests": {
+      "passed": 38,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "browserTests": {
+      "passed": 8,
+      "failed": 0,
+      "workers": 2,
+      "retriesObserved": 0,
+      "command": "npm run test:browser",
+      "nativeCdnTransport": true
+    }
+  },
+  "qualification": "GitHub Actions checked out the PR merge commit and ran the repository's ordinary browser command. All four existing smoke cases and all four new auto-height cases passed. No local cached-CDN fixture was part of the published three-file tree."
+}
+
