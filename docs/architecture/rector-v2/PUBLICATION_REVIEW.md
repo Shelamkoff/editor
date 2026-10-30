@@ -584,3 +584,22 @@ The [fresh combined checkpoint](https://github.com/Shelamkoff/editor/tree/refact
 The common three-source corpus remains **65 cases across 21 types / 11,434 candidate observations**. The detailed Gallery corpus adds **six cases / 378 candidate observations**; neither candidate has a historical exception, incomplete case or unexpected error. This validates the newly combined Gallery keyboard-history repair, the never-opened Person label contract and CSS grammar repair together. Scoped Gallery caption-order acceptance brings the register to **36 accepted / 173 open**, with all **209 IDs** retained. Other detailed Person/Gallery/Carousel rows remain separate obligations.
 
 The separate quiet-window Table 20×20 experiment confirms two fewer payload traversals in public/native edit paths. It does not establish stable latency improvement: public synchronous p50/p95 changes **64.6/81.7 → 65.3/93.0 ms**, native **74.4/100.3 → 73.5/88.7 ms**, with only **9/21** and **10/21** faster pairs. Sampled edit-sequence allocations fall by 9.6%/5.1%, while the empty-no-op sample rises by 17.1%; these are not exact per-edit or RAM measurements. Full C09/T15, B-HTML/B-STYLE and wider platform/detailed capability acceptance stay open. The new documentation and evidence do not change production behavior; their validation is recorded separately.
+
+
+## Checklist empty exit parity 2026-10-30
+
+**Accepted scenario: `BLOCK_CHECKLIST_EMPTY_EXIT`.** The [checkpoint](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-30/checklist-empty-exit) records eight native cases on unchanged `ebf128b1` production. The test commit `d70b318420afd105d311912110dd1caa44444d2c` has the published exact-tree counterpart [`47a0c1f5`](https://github.com/Shelamkoff/editor/commit/47a0c1f5af0d978731435a4a5f92718c99d70437), tree `7c5f943c49d979d05c6c5105ad78b2a72c47b77d`. No production repair was needed for this row.
+
+Six cases cover an empty, BR-only or formatting-only sole/last item. Two positive controls require visible formatting and real Mention/Color content to split into another Checklist item. A preceding native text edit, rich checked surviving items and neighboring Paragraphs exercise separate structure/input history. Tests use native Enter and two keyboard Undo/Redo steps without repairing focus between history commands. Fixed records, sidecars, identities, focus/caret, caller immutability and provider silence are checked.
+
+| Source | Cases | Observations | Raw historical differences | Unexpected differences |
+| --- | ---: | ---: | ---: | ---: |
+| v1 `5e5c7f8` | 8 | 217 | 5 | 0 |
+| Specification baseline `e981ff3` | 8 | 222 | 35 | 0 |
+| Candidate `d70b3184` | 8 | 222 | 0 | 0 |
+
+Every source completes every planned phase with zero page/server errors, verified loaded Git bytes and unchanged source. Chromium is `156.0.8078.47`, Node `24.22.1`, Linux x64. The separate native gate `run-X2E06e` passes 8/8 and records the exact added test bytes. The raw three-source command exits **1** because it preserves the historical failures; it is not presented as an all-source green gate.
+
+The five v1 differences are incorrect caret restoration after trailing-empty Undo and visible-item split Redo; canonical records and both keyboard history steps still pass. The baseline does not perform the three trailing-empty exits and cannot split the widget-only control. Its 35 consequent mismatches remain raw failures. The offline review independently builds fixed author input, verifies case metadata and recomputes every observation verdict. Exact historical values are recognized separately; eight mutation controls are rejected and the candidate receives no exemption. The initial review weaknesses and their corrections are retained in the checkpoint history.
+
+Acceptance is bounded to these eight Chromium cases. Separate Checklist CRUD/merge/export rows, arbitrary cross-item selection, other engines, IME and read-only composition are not accepted by this proof. The register retains all **209 IDs**, now **37 accepted / 172 open**; earlier dated counts remain historical.
