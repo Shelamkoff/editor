@@ -1,0 +1,80 @@
+{
+  "sentinels": 23,
+  "retained": 0,
+  "usedHeapMiB": 15.11,
+  "embedderHeapMiB": 1.25,
+  "historyEviction": {
+    "payloadBytes": 32768,
+    "authoredActions": 12,
+    "historyMaxBytes": 1,
+    "historyMaxStack": 100,
+    "retainedControlReleased": true,
+    "replay": {
+      "currentCase": 12,
+      "undoCase": 11,
+      "editorAlive": true
+    },
+    "phases": [
+      {
+        "phase": "before-eviction",
+        "counts": [
+          0,
+          1,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "usedHeapMiB": 15.12,
+        "snapshotMiB": 27.88
+      },
+      {
+        "phase": "after-eviction-with-retained-control",
+        "counts": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "usedHeapMiB": 15.21,
+        "snapshotMiB": 27.95
+      },
+      {
+        "phase": "after-releasing-control",
+        "counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "usedHeapMiB": 15.18,
+        "snapshotMiB": 27.94
+      }
+    ]
+  }
+}

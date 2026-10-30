@@ -1,0 +1,40 @@
+{
+  "classification": "environment-only not-run",
+  "source": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "explanation": "Two default-sandbox C11 initialization attempts failed before a manifest or gate was created. The existing checkout and dependencies were retained, independently rechecked, and resumed through the tool's approved require_escalated execution. These attempts are not product RED results.",
+  "attempts": [
+    {
+      "command": [
+        "python",
+        "/workspace/scratch/61a2ad7355f4/tools/verify-native-continuation.py",
+        "eae1b93ee6bc39a32230de1b46c67f27b39c8015"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4",
+      "sandboxPermissions": "use_default",
+      "exitCode": 1,
+      "observation": "Setup and dependency verification completed. The supervisor reported subprocess.CalledProcessError for node scripts/verification-results.mjs init native heap; its helper captured the child's stderr but the original exception did not print it.",
+      "toolOutputVerbatim": "Traceback (most recent call last):\n  File \"/workspace/scratch/61a2ad7355f4/tools/verify-native-continuation.py\", line 212, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/workspace/scratch/61a2ad7355f4/tools/verify-native-continuation.py\", line 173, in main\n    directory = Path(capture([*recorder, 'init', *[name for name, _ in GATES]], env=environment).decode().strip().splitlines()[-1])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/scratch/61a2ad7355f4/tools/verify-native-continuation.py\", line 40, in capture\n    return subprocess.check_output(command, cwd=cwd, env=env, stderr=subprocess.PIPE)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['node', 'scripts/verification-results.mjs', 'init', 'native', 'heap']' returned non-zero exit status 1.\n"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/verification-results.mjs",
+        "init",
+        "native",
+        "heap"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final",
+      "sandboxPermissions": "use_default",
+      "exitCode": 1,
+      "toolOutputVerbatim": "spawnSync git EPERM\n"
+    }
+  ],
+  "manifestCreated": false,
+  "nativeStarted": false,
+  "heapStarted": false,
+  "orderingNote": "The two empty initialization directories were observed after both attempts. No manifest exists to bind either directory to a particular attempt.",
+  "emptyInitializationDirectories": [
+    "test-results/run-Cd5yUM",
+    "test-results/run-yfl7Nc"
+  ]
+}

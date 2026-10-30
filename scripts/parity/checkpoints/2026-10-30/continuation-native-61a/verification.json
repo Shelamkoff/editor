@@ -1,0 +1,385 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+    "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+  },
+  "frozenSha": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "rawCommitBase64": "dHJlZSBiNGViMjZmZmMxZjljMDRjMTRjNjBhMDkwMzFhOGFmZmU1YTdjZGI4CnBhcmVudCA1ZDFiMDljYzgwZWZlNTM3OTE0Y2VhNTZkYTg1NWFhNzMxZDYyMTJkCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NTcxOSArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODU3NTQgKzAzMDAKCmRvY3MocGFyaXR5KTogYXJjaGl2ZSBjb21wbGV0ZWQgUG9sbCBsYWJlbCBSRUQgYW5kIHNjb3BlZCBHUkVFTgo=",
+  "run": "run-ODin2d",
+  "outcome": "passed",
+  "sourceUnchanged": true,
+  "commands": {
+    "native": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "heap": [
+      "node",
+      "tests/browser/heap-gate.mjs"
+    ]
+  },
+  "summary": {
+    "nativeGroups": {
+      "nativeTextInput": 52,
+      "nativeTools": 121,
+      "nativeClipboard": 25,
+      "nativeIme": 16,
+      "nativeConversion": 7,
+      "nativeBlockMenus": 110,
+      "nativeConversionGrouping": 88,
+      "nativeConversionPreservation": 53,
+      "nativeInteractionSequences": 39,
+      "nativeRetainedTools": 64,
+      "nativeConversionContinuations": 65,
+      "nativeFontCancel": 58,
+      "nativeBackgroundCancel": 36,
+      "nativeLinkCancel": 36,
+      "nativePanelKeyboard": 36,
+      "nativeSourceIndentation": 54,
+      "nativeSourceModes": 61,
+      "nativeConfigSnapshot": 30,
+      "nativePollRuntime": 26,
+      "nativeLibraryBoundaries": 48,
+      "nativeInstanceMethods": 8,
+      "nativeColorPopup": 8,
+      "nativeColorPopupTrusted": 8,
+      "nativeMentionPopup": 64,
+      "nativeAuditEdges": 21,
+      "nativeAuditPoll": 4,
+      "nativeAuditHiddenFields": 4,
+      "nativeAuditRecheck": 49,
+      "nativeStructural": 21,
+      "nativeCrossSelection": 42,
+      "nativeCoreBehavior": 67,
+      "nativePluginParity": 333,
+      "nativeRoundtripPreservation": 65,
+      "nativePresentationRecovery": 14,
+      "nativePluginControls": 169,
+      "nativePluginRanges": 116,
+      "nativePluginLocalRanges": 76,
+      "nativePluginClipboard": 48,
+      "nativePluginFieldClipboard": 68,
+      "nativePluginMedia": 95,
+      "nativePluginDesign": 84
+    },
+    "nativeGroupCount": 41,
+    "nativeCases": 2389,
+    "physicalScenarioGroups": 2,
+    "historyMatrixCases": 14,
+    "historyMatrix": [
+      "native typing",
+      "structural Enter split",
+      "insert",
+      "move",
+      "convert",
+      "remove",
+      "clear",
+      "render",
+      "toolbar insert",
+      "keyboard undo/redo",
+      "read-only transition",
+      "pointer drag session",
+      "read-only host authority",
+      "direct/inverse transaction events"
+    ],
+    "heap": {
+      "sentinels": 23,
+      "retained": 0,
+      "usedHeapMiB": 15.11,
+      "embedderHeapMiB": 1.25,
+      "historyEviction": {
+        "payloadBytes": 32768,
+        "authoredActions": 12,
+        "historyMaxBytes": 1,
+        "historyMaxStack": 100,
+        "retainedControlReleased": true,
+        "replay": {
+          "currentCase": 12,
+          "undoCase": 11,
+          "editorAlive": true
+        },
+        "phases": [
+          {
+            "phase": "before-eviction",
+            "counts": [
+              0,
+              1,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "usedHeapMiB": 15.12,
+            "snapshotMiB": 27.88
+          },
+          {
+            "phase": "after-eviction-with-retained-control",
+            "counts": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 15.21,
+            "snapshotMiB": 27.95
+          },
+          {
+            "phase": "after-releasing-control",
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 15.18,
+            "snapshotMiB": 27.94
+          }
+        ]
+      }
+    }
+  },
+  "runnerFiles": [
+    {
+      "path": "scripts/verification-results.mjs",
+      "sha256": "35aac5e0cb74f43310db0eea8d5923ae7522bbde429cd67a35fb65ba4ab49d00"
+    },
+    {
+      "path": "tests/browser/physical-history.mjs",
+      "sha256": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab"
+    },
+    {
+      "path": "tests/browser/heap-gate.mjs",
+      "sha256": "004942e2098ee9888f12b809ffc2c9ab6b2f1b4832a4535250356418bfcd1a6b"
+    },
+    {
+      "path": "tests/browser/environment.mjs",
+      "sha256": "536cdb9041fd70d7b9158a8d32bf7758262a4c04234e770c2bd375c3011fcd9e"
+    },
+    {
+      "path": "tests/browser/history.js",
+      "sha256": "7c4367f358c9b4c0786e4661825fb160e3de42d443dbdbbe5f35bc42d7483b03"
+    },
+    {
+      "path": "tests/browser/lifecycle.js",
+      "sha256": "e244b30eae99cb46c2db8b47e54c249c62cde40393b883e44a0847900981398d"
+    }
+  ],
+  "dependencyVerification": {
+    "carouselFiles": 51,
+    "carouselFilesUnchangedAfterGates": true,
+    "installedLockUnchangedAfterGates": true
+  },
+  "payloads": [
+    {
+      "path": "c11/finish.wrapper.log.gz",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/finish.wrapper.log",
+      "encoding": "gzip",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "c11/heap-result.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/heap-result.json",
+      "encoding": "identity",
+      "rawBytes": 1342,
+      "rawSha256": "07393007f2a19413b649a1adf1f4497d1bf3f2562e2b5769a0c919ba899a0437",
+      "storedBytes": 1342,
+      "storedSha256": "07393007f2a19413b649a1adf1f4497d1bf3f2562e2b5769a0c919ba899a0437"
+    },
+    {
+      "path": "c11/heap.log.gz",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/heap.log",
+      "encoding": "gzip",
+      "rawBytes": 1453,
+      "rawSha256": "6be1e8c7627b4957905c67fa07f848547ebb1d6f6d3739172819ba696df59ae0",
+      "storedBytes": 607,
+      "storedSha256": "75e6b9bace5d9f2572cef7e015556edcd9d2f3beeadd0f86c69304b9fbb913f0"
+    },
+    {
+      "path": "c11/heap.wrapper.log.gz",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/heap.wrapper.log",
+      "encoding": "gzip",
+      "rawBytes": 1453,
+      "rawSha256": "6be1e8c7627b4957905c67fa07f848547ebb1d6f6d3739172819ba696df59ae0",
+      "storedBytes": 607,
+      "storedSha256": "75e6b9bace5d9f2572cef7e015556edcd9d2f3beeadd0f86c69304b9fbb913f0"
+    },
+    {
+      "path": "c11/manifest.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/manifest.json",
+      "encoding": "identity",
+      "rawBytes": 5107,
+      "rawSha256": "eeb444a9fea65fe985359211e2ab2338fc132fa5c38ff3c01edf60b876c1aa5f",
+      "storedBytes": 5107,
+      "storedSha256": "eeb444a9fea65fe985359211e2ab2338fc132fa5c38ff3c01edf60b876c1aa5f"
+    },
+    {
+      "path": "c11/native-result.json.gz",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/native-result.json",
+      "encoding": "gzip",
+      "rawBytes": 325074,
+      "rawSha256": "82c5543b5d47b797b19b2c93d19aa2125321e4e1802dbc75204b340ebae23afc",
+      "storedBytes": 29018,
+      "storedSha256": "9a55215556f1cb9f9af671adc551194740b1a9aeccf1a2dd7eaa86fa507f90a8"
+    },
+    {
+      "path": "c11/native.log.gz",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/native.log",
+      "encoding": "gzip",
+      "rawBytes": 260893,
+      "rawSha256": "305bc2cf7184b4284b07c9197decb5fb49dc7d285cb231d66904b6a619d39fb7",
+      "storedBytes": 28638,
+      "storedSha256": "795dfe03f866a936c342bf496b03ff37da3a1b5be3f16586d7d145c8247052cb"
+    },
+    {
+      "path": "c11/native.wrapper.log.gz",
+      "origin": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d/native.wrapper.log",
+      "encoding": "gzip",
+      "rawBytes": 260893,
+      "rawSha256": "305bc2cf7184b4284b07c9197decb5fb49dc7d285cb231d66904b6a619d39fb7",
+      "storedBytes": 28638,
+      "storedSha256": "795dfe03f866a936c342bf496b03ff37da3a1b5be3f16586d7d145c8247052cb"
+    },
+    {
+      "path": "supervisor/environment-not-run.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/environment-not-run.json",
+      "encoding": "identity",
+      "rawBytes": 3093,
+      "rawSha256": "2e5f1f9356ce04130a88abc7f12abea1b773d4026bf297c9b914aec422ed2661",
+      "storedBytes": 3093,
+      "storedSha256": "2e5f1f9356ce04130a88abc7f12abea1b773d4026bf297c9b914aec422ed2661"
+    },
+    {
+      "path": "supervisor/init.stderr.log",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/init.stderr.log",
+      "encoding": "identity",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "supervisor/init.stdout.log",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/init.stdout.log",
+      "encoding": "identity",
+      "rawBytes": 92,
+      "rawSha256": "a04a33e2f9b2f37e72d64caa6855f71209846b5bb58e4d7a67c162146bc5eae0",
+      "storedBytes": 92,
+      "storedSha256": "a04a33e2f9b2f37e72d64caa6855f71209846b5bb58e4d7a67c162146bc5eae0"
+    },
+    {
+      "path": "supervisor/preflight.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/preflight.json",
+      "encoding": "identity",
+      "rawBytes": 10131,
+      "rawSha256": "eb1a9787651610b9c6fb708ddbca464ed404eb9d8f3da1b2d3acdf1bd7db4c03",
+      "storedBytes": 10131,
+      "storedSha256": "eb1a9787651610b9c6fb708ddbca464ed404eb9d8f3da1b2d3acdf1bd7db4c03"
+    },
+    {
+      "path": "supervisor/resume-preflight.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/resume-preflight.json",
+      "encoding": "identity",
+      "rawBytes": 1058,
+      "rawSha256": "d40b8a19578949c4235d198ed6c45506c4b00af71a2cbd89048df19dbf484ce3",
+      "storedBytes": 1058,
+      "storedSha256": "d40b8a19578949c4235d198ed6c45506c4b00af71a2cbd89048df19dbf484ce3"
+    },
+    {
+      "path": "supervisor/setup.log",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/setup.log",
+      "encoding": "identity",
+      "rawBytes": 158,
+      "rawSha256": "35d8c4047dd9725b4a6a78df8668330a40d5b35414001001d28282fad3730b7c",
+      "storedBytes": 158,
+      "storedSha256": "35d8c4047dd9725b4a6a78df8668330a40d5b35414001001d28282fad3730b7c"
+    },
+    {
+      "path": "supervisor/status.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/status.json",
+      "encoding": "identity",
+      "rawBytes": 571,
+      "rawSha256": "ecc0b81eafdfa46e1ce6cb1b6daf63c4c05334f6c2bfc9ce288b48b52573c983",
+      "storedBytes": 571,
+      "storedSha256": "ecc0b81eafdfa46e1ce6cb1b6daf63c4c05334f6c2bfc9ce288b48b52573c983"
+    },
+    {
+      "path": "supervisor/summary.json",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/summary.json",
+      "encoding": "identity",
+      "rawBytes": 3271,
+      "rawSha256": "51e5b96de54e312cd69b2cdea668decad191f2652d020772d145afd87cbda3ed",
+      "storedBytes": 3271,
+      "storedSha256": "51e5b96de54e312cd69b2cdea668decad191f2652d020772d145afd87cbda3ed"
+    },
+    {
+      "path": "supervisor/supervisor-resume.log",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final/supervisor-resume.log",
+      "encoding": "identity",
+      "rawBytes": 1125,
+      "rawSha256": "0cccac1a53a5645c7cfd23d3ccefd0b08deb9a8491a0b0a20fd4ff20f211d0b1",
+      "storedBytes": 1125,
+      "storedSha256": "0cccac1a53a5645c7cfd23d3ccefd0b08deb9a8491a0b0a20fd4ff20f211d0b1"
+    },
+    {
+      "path": "supervisor/verify-native-continuation.py",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/verify-native-continuation.py",
+      "encoding": "identity",
+      "rawBytes": 10723,
+      "rawSha256": "d8755537d08c3ccf6e750ef9509e8e65206e386a6e1c12b89965b6615e622e82",
+      "storedBytes": 10723,
+      "storedSha256": "d8755537d08c3ccf6e750ef9509e8e65206e386a6e1c12b89965b6615e622e82"
+    },
+    {
+      "path": "supervisor/resume-native-continuation.py",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/resume-native-continuation.py",
+      "encoding": "identity",
+      "rawBytes": 4858,
+      "rawSha256": "ede2a1435e0344962038a5eff5a96be13e6c911f658743cc7cc0509b161767e6",
+      "storedBytes": 4858,
+      "storedSha256": "ede2a1435e0344962038a5eff5a96be13e6c911f658743cc7cc0509b161767e6"
+    },
+    {
+      "path": "supervisor/archive-native-continuation.py",
+      "origin": "/workspace/scratch/61a2ad7355f4/tools/archive-native-continuation.py",
+      "encoding": "identity",
+      "rawBytes": 9391,
+      "rawSha256": "f72d7859b6d5e8ee9d5e2a3e6fd6cdd0257d0d5e2ae1cc762d8a2c2f67040301",
+      "storedBytes": 9391,
+      "storedSha256": "f72d7859b6d5e8ee9d5e2a3e6fd6cdd0257d0d5e2ae1cc762d8a2c2f67040301"
+    }
+  ]
+}
