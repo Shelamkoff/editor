@@ -1,0 +1,80 @@
+{
+  "startedAt": "2026-10-30T01:30:13.270873+00:00",
+  "cwd": "/tmp/rector-carousel-master-autoheight-20261030",
+  "state": "finished",
+  "commands": [
+    {
+      "gate": "units",
+      "command": [
+        "npm",
+        "test"
+      ]
+    },
+    {
+      "gate": "types",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ]
+    },
+    {
+      "gate": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ]
+    },
+    {
+      "gate": "browser",
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config=/tmp/rector-carousel-master-autoheight-test.config.mjs"
+      ]
+    }
+  ],
+  "completed": [
+    {
+      "gate": "units",
+      "exitCode": 0
+    },
+    {
+      "gate": "types",
+      "exitCode": 0
+    },
+    {
+      "gate": "build",
+      "exitCode": 0
+    },
+    {
+      "gate": "browser",
+      "exitCode": 1
+    }
+  ],
+  "recorderSha256": "35aac5e0cb74f43310db0eea8d5923ae7522bbde429cd67a35fb65ba4ab49d00",
+  "configSha256": "8746d566547072f2360c7087dddd3dcb5402b0a4150b37eb537f475885e7dcdf",
+  "dependencies": {
+    "@playwright/test": {
+      "version": "1.64.1",
+      "packageSha256": "6b1c8bb530059f2555530e8dcc1b3803565237e17598683b3766c0fa313b3fd6"
+    },
+    "playwright": {
+      "version": "1.64.1",
+      "packageSha256": "313d23ce667d93962d3a1ab4be80908cefe840e4d9e48f1cd5863b91f65e8e39"
+    },
+    "@shelamkoff/event-bus": {
+      "version": "1.0.0",
+      "packageSha256": "0dbcddd120fa69657daa6ed515b23cda5e20ce930a2a627b9ae6f0e973e2bc2e"
+    },
+    "typescript": {
+      "version": "5.8.3",
+      "packageSha256": "ebb0ce176c85ac13ce82f5be7e6f15114732ba0f064ccc893fd9051426d35d3a"
+    }
+  },
+  "resultsDirectory": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-5B1cgy",
+  "finish": 1,
+  "finishedAt": "2026-10-30T01:30:45.057318+00:00"
+}

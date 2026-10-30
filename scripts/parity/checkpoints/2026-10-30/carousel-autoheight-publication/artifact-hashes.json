@@ -1,0 +1,57 @@
+[
+  {
+    "path": "consumer-lock.json",
+    "bytes": 1143,
+    "sha256": "75c2f0359645066e895ac0cba683960c6e00f2ec4960544b3ed41f706b9e537c"
+  },
+  {
+    "path": "consumer-package.json",
+    "bytes": 228,
+    "sha256": "36274d6f950c2fc3e2f0ed828f3384edac54d624a5fd547d0fe481a742e77b2f"
+  },
+  {
+    "path": "consumer-probe.py",
+    "bytes": 1796,
+    "sha256": "60f9fec1315da2c53c62d8a890b53c67d944e9b005c27636382a81c723be6c26"
+  },
+  {
+    "path": "distribution.patch.gz",
+    "bytes": 24642,
+    "sha256": "ced432a14ff43975252e5f87793c55fe20d7ae66331454d3b5f89f77b0e49f2c"
+  },
+  {
+    "path": "rector-carousel-dist-consumer.log",
+    "bytes": 683,
+    "sha256": "117ff6837fc5c9d31732cb0014001b11d5a56fb55205190a5bdd2ce20a920aad"
+  },
+  {
+    "path": "rector-carousel-dist-consumer.status.json",
+    "bytes": 7621,
+    "sha256": "d4998373a782fc8b898515f47969207e30ddde0eaf3adea87a4cd9927923f762"
+  },
+  {
+    "path": "rector-carousel-dist-published-20261030.json",
+    "bytes": 346,
+    "sha256": "75c3d734140d4d4095a8365aeb911074e87f7a247bf0a56ef2517cc483e503db"
+  },
+  {
+    "path": "rector-carousel-master-pr-20261030.json",
+    "bytes": 2795,
+    "sha256": "f10407c32d9c4be1bb53d56fedceb03a1addabdd9d1921ec1aa5c975faee59d5"
+  },
+  {
+    "path": "rector-carousel-master-published-20261030.json",
+    "bytes": 352,
+    "sha256": "81e3d4c3479ac123deb64d2ccaba942ddf4e983d7d5d37219249b2cae42af815"
+  },
+  {
+    "path": "rector-carousel-published-20261030.json",
+    "bytes": 346,
+    "sha256": "e7c0ec34d7a14412a21ef834d68bd0032b5a882d100e87e675578b167be7cd3c"
+  },
+  {
+    "path": "README.md",
+    "bytes": 2419,
+    "sha256": "8fc78d8c6789161871acae19482591062ad3a5044dd19836368da2f59cf6dfcd"
+  }
+]

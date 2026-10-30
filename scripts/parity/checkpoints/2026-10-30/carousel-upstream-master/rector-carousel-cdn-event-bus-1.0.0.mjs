@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/@shelamkoff/event-bus@1.0.0/dist/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+class n{#t=new Map;#o;constructor({debug:t=!1}={}){if(typeof t!="boolean")throw new TypeError("debug must be a boolean");this.#o=t}on(t,r){if(this.#r(t),typeof r!="function")throw new TypeError(`Handler must be a function, got ${typeof r}`);return this.#t.has(t)||this.#t.set(t,new Set),this.#t.get(t).add(r),()=>this.off(t,r)}off(t,r){if(this.#r(t),typeof r!="function")throw new TypeError("Handler must be a function");const o=this.#t.get(t);o&&(o.delete(r),o.size===0&&this.#t.delete(t))}once(t,r){if(typeof r!="function")throw new TypeError(`Handler must be a function, got ${typeof r}`);const o=(...s)=>(this.off(t,o),r(...s));return this.on(t,o)}emit(t,...r){this.#r(t),this.#o&&console.log(`[EventBus] emit: ${t}`,...r);const o=this.#t.get(t);if(o)for(const s of[...o])try{const e=s(...r);e&&typeof e.then=="function"&&Promise.resolve(e).catch(i=>{console.error(`[EventBus] Error in async handler for "${t}":`,i)})}catch(e){console.error(`[EventBus] Error in handler for "${t}":`,e)}}clear(t){t!==void 0?(this.#r(t),this.#t.delete(t)):this.#t.clear()}has(t){return this.#r(t),this.#t.has(t)}#r(t){if(typeof t!="string"||t.length===0)throw new TypeError("Event name must be a non-empty string")}}export{n as EventBus};
+//# sourceMappingURL=/sm/782fe1055e1b571e85ea025d433efb9713675bc0c4fbdc95a0db964c5f1b2be0.map

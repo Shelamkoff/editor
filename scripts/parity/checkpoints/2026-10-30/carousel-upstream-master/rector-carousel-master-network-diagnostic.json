@@ -1,0 +1,22 @@
+{
+  "startedAt": "2026-10-30T01:33:06.315Z",
+  "failedRequests": [
+    {
+      "url": "https://cdn.jsdelivr.net/npm/@shelamkoff/event-bus@1.0.0/+esm",
+      "failure": {
+        "errorText": "net::ERR_CERT_AUTHORITY_INVALID"
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "pageErrors": [],
+  "page": {
+    "status": "running",
+    "carousels": 0
+  },
+  "browser": "156.0.8078.47",
+  "finishedAt": "2026-10-30T01:33:07.743Z"
+}

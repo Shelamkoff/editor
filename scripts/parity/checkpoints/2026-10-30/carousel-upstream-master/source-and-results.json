@@ -1,0 +1,34 @@
+{
+  "repository": "Shelamkoff/carousel",
+  "root": "/tmp/rector-carousel-master-autoheight-20261030",
+  "branch": "fix/autoheight-observed-layout-master-20261030",
+  "parent": "9896ddf60e594501b612ce38dbac66270f93181e",
+  "localCommit": "824c6eb7266393d900be09854229f4ec275cf064",
+  "tree": "973e4e29bb0eac44842ddd9c247fab79d5f04f4c",
+  "patch": "/tmp/rector-carousel-master-autoheight-final.patch",
+  "patchSha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b",
+  "files": {
+    "src/TrackRenderer.js": "e795f414a72215468f22a0cb6c62c3ee8b371515d3de28d1bdb94cf75b58381f",
+    "test/navigation-regressions.test.js": "01f111a728697da7c34927def9716449e1bc9e5eae488ca65269661cba3183d8",
+    "tests/browser/auto-height.spec.mjs": "6e79ea813956d78089346d5aebfe34fb072c4b4410670f05b6b0ae90ccef8c06"
+  },
+  "freshResults": {
+    "units": {
+      "passed": 38,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "autoHeightActualLocalDependency": {
+      "passed": 4,
+      "failed": 0
+    },
+    "completeBrowserWithExactCdnResponseCache": {
+      "passed": 8,
+      "failed": 0
+    },
+    "nativeCdnSmoke": "environment-blocked: ERR_CERT_AUTHORITY_INVALID; original failed runs retained"
+  },
+  "runtimeFixScope": "Only src/TrackRenderer.js. No package, dist, declaration, manager or shim change; observed-layout methods and lastViewportWidth settlement match final release-backport source.",
+  "evidenceDirectory": "/tmp/rector-carousel-master-autoheight-evidence-20261030"
+}

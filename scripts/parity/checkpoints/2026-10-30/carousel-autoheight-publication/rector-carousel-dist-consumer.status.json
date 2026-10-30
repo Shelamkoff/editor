@@ -1,0 +1,219 @@
+{
+  "startedAt": "2026-10-30T01:22:53.942384+00:00",
+  "commands": [
+    {
+      "args": [
+        "npm",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "npm",
+        "ci",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "publicImportExitCode": 0,
+  "distFiles": {
+    "styles/carousel.css": {
+      "sha256": "8aeb1884d1ecacf326b50ab46f1f16b0b6efb1cba9fada533ebb94064b4e6259",
+      "identical": true
+    },
+    "src/LoopEngine.d.ts": {
+      "sha256": "5003f3bf9de12f1b5ea9cf7103a187bf6f77fa2a7b9299e82129037db65f44fe",
+      "identical": true
+    },
+    "src/LoopEngine.js": {
+      "sha256": "0efae61567ab966f50161698c5cc02f54792c4791919d11ef3a0e18b661e5ed3",
+      "identical": true
+    },
+    "src/BreakpointManager.js": {
+      "sha256": "3d3cc67866108ef71fd094188c303d7cb499d31f9cd8b44f50cfff582676b2f4",
+      "identical": true
+    },
+    "src/TrackRenderer.js": {
+      "sha256": "637086ae6119d8fed554acc9e5d47465ab79179137761f68c8bf1c7d1ce40fee",
+      "identical": true
+    },
+    "src/TrackRenderer.d.ts": {
+      "sha256": "f44726aac2c22ca52588f446507b4734b4e0ccc6b8b3f7100bddb45044b9b61a",
+      "identical": true
+    },
+    "src/Carousel.d.ts": {
+      "sha256": "5da13db2ca82f51fd527a639d74e0c435e580846089061675bc63d9e88455819",
+      "identical": true
+    },
+    "src/SlideManager.d.ts": {
+      "sha256": "3af07797feb3ec88311fe022f9a33a9d64fe364faef07e7b718466607c8462ae",
+      "identical": true
+    },
+    "src/index.js": {
+      "sha256": "6c73f6583b1b7d3280a1a2aa75885a8ca8b0c0265fce23d3a123fbe99007b1b6",
+      "identical": true
+    },
+    "src/types.d.ts": {
+      "sha256": "b18dd77d73ceb78c5e3f1b3ffdc3f67d4b82840ce202db32b13c0b5ad05ea83c",
+      "identical": true
+    },
+    "src/Carousel.js": {
+      "sha256": "a3969ff43b5ff8d326e297fff122c11ffeb7747ff7f68f0bfd38fa6a32cdef1f",
+      "identical": true
+    },
+    "src/index.d.ts": {
+      "sha256": "618ad18a98d0cf8fc72af0e9ca6a2a0289114cc6e4c1082a1d94921c1a50fd1d",
+      "identical": true
+    },
+    "src/SlideManager.js": {
+      "sha256": "096bb3d1effe623e9445f92933bc8b34b4030414df212addcac39c3ef214f1af",
+      "identical": true
+    },
+    "src/BreakpointManager.d.ts": {
+      "sha256": "5bfc96021544a46521c53efaea8fc92828eeac22eee857e79782754eb3ec5526",
+      "identical": true
+    },
+    "src/plugins/dots.js": {
+      "sha256": "261b11c5de5f9656c95e1dae89cec4f963d30b7252a3a9550b0815b42e0b3228",
+      "identical": true
+    },
+    "src/plugins/thumbnails.d.ts": {
+      "sha256": "e3f949206a46416e5930febbf32a271e806f13a8190573c676c48649a038c16a",
+      "identical": true
+    },
+    "src/plugins/autoplay.js": {
+      "sha256": "8b502f680cf86862ed8f37260aedb9e1a605c157821661feca9db212053fec46",
+      "identical": true
+    },
+    "src/plugins/swipe.js": {
+      "sha256": "33a8cfe76b99c5be0f6b08cfd5f7c299c29f6d9cc2fa80c46fa6c894055374f7",
+      "identical": true
+    },
+    "src/plugins/arrows.js": {
+      "sha256": "91bbe344b1131a8798fca7e652466b2fdd8a494dd10b55669abddb18b3fcc5da",
+      "identical": true
+    },
+    "src/plugins/index.js": {
+      "sha256": "1a6980e086a61291e1e993079d977244a1451dbd45fe8603d1124ae4b612853f",
+      "identical": true
+    },
+    "src/plugins/parallax.js": {
+      "sha256": "d03d759e1fb41efbd7ed12864a1348a6f46e2ccb7acb629f0ad266191efdb22e",
+      "identical": true
+    },
+    "src/plugins/thumbnails.js": {
+      "sha256": "f612dc43eaa0d8dafc7090d39b00e64a6b2455a07b7c04fc3c55643b5a0e593d",
+      "identical": true
+    },
+    "src/plugins/autoplay.d.ts": {
+      "sha256": "7acab5dd76479c0abe8a9e075838b9cedcfe1ffa81b449870cf7067e931291b4",
+      "identical": true
+    },
+    "src/plugins/parallax.d.ts": {
+      "sha256": "2a5507e021c7e47f764ff5d5610542e800ef2dcf20484beb8d562cee921430c7",
+      "identical": true
+    },
+    "src/plugins/dots.d.ts": {
+      "sha256": "83ba5db2fe31189119ad2dcd005e9a3ba685a0a02c90fe79934524057a6cd0ae",
+      "identical": true
+    },
+    "src/plugins/keyboard.d.ts": {
+      "sha256": "0c58151a0992a759ab4fe3693f51b8fdb17bb19dce32fae21656c79b1cb59d63",
+      "identical": true
+    },
+    "src/plugins/lazyload.d.ts": {
+      "sha256": "db0c936c3615a759e8ef3a88550224e27bc19d7d2b10c0e35d26b9ce37f5e40f",
+      "identical": true
+    },
+    "src/plugins/arrows.d.ts": {
+      "sha256": "c4a41c51d9c213ec20e1fd2a9afff3526ebe726b7962f8434fdd59e936bf819f",
+      "identical": true
+    },
+    "src/plugins/keyboard.js": {
+      "sha256": "affb6d74026a59c9758871702bba4cf4f8af22309a6cfa34c67dc6f8dffd94f2",
+      "identical": true
+    },
+    "src/plugins/swipe.d.ts": {
+      "sha256": "18463b03bac91543d736168a79ffde74d022430d4882e4e7e3c8dc7dd3b81549",
+      "identical": true
+    },
+    "src/plugins/lazyload.js": {
+      "sha256": "2425cda1df630f375168e631f27f5f29465ac6013b3fb1e14f616a11af41fcd3",
+      "identical": true
+    },
+    "src/plugins/parallax/README.md": {
+      "sha256": "ce3ab473021b49c1dcb234d44678314ab140a86c4e0ecc01a8a2200ee43ad8ea",
+      "identical": true
+    },
+    "src/plugins/parallax/README.ru.md": {
+      "sha256": "26554df10954e0b93d992a72e7e3b7a06799f7f905e0a38f8f8c0cda16a7fdd0",
+      "identical": true
+    },
+    "src/plugins/thumbnails/README.md": {
+      "sha256": "3dc2d632880b89417310f15e9eaf7ea7e4c40d7ccf85d7b65fb87c88ec56118f",
+      "identical": true
+    },
+    "src/plugins/thumbnails/README.ru.md": {
+      "sha256": "1d972cc0c57bb91200b7704e371dc13127c7e373f2708b02bf5dd9a2985bd896",
+      "identical": true
+    },
+    "src/plugins/autoplay/README.md": {
+      "sha256": "ef0ba1185eb4957d2a7ba8350382ec2519cca839f29dced2b3153cda03b709d9",
+      "identical": true
+    },
+    "src/plugins/autoplay/README.ru.md": {
+      "sha256": "43fda056ad1473d8caad7424c8e7e7a248c481dcb82750811a98d43758201291",
+      "identical": true
+    },
+    "src/plugins/lazyload/README.md": {
+      "sha256": "7e9cb6d3cee6bbb693f2c5362668c19c27a4e162e400cdf4e3c641d8913f9204",
+      "identical": true
+    },
+    "src/plugins/lazyload/README.ru.md": {
+      "sha256": "f13f502fc1217dfe2ba42e3fe8f2ca3595fa838eb95a76f506e830885e2e9400",
+      "identical": true
+    },
+    "src/plugins/keyboard/README.md": {
+      "sha256": "f5830be42195120e1af9f26f2a4c6918c760e396ff0385f1d4aaf2c040dd645e",
+      "identical": true
+    },
+    "src/plugins/keyboard/README.ru.md": {
+      "sha256": "423b4d52e43e56b6bfe7fdef74ca512b2c7a1ca8d7d28ccfd140d8017160b407",
+      "identical": true
+    },
+    "src/plugins/arrows/README.md": {
+      "sha256": "8e2306aa1acabb115fe0935299e9b5db1a866f34b50abd17f8cde223d8150683",
+      "identical": true
+    },
+    "src/plugins/arrows/README.ru.md": {
+      "sha256": "f40a9b74f9a18a2a409a6e4c260930ba0f6ed643226ef6a84ef2a7270cc73c9b",
+      "identical": true
+    },
+    "src/plugins/dots/README.md": {
+      "sha256": "ea8ade3e3eac671bd2f118dcef602c9e45ba24e97339b4385f1cc6ac66d1ad96",
+      "identical": true
+    },
+    "src/plugins/dots/README.ru.md": {
+      "sha256": "6ca2e7827a12a296b0ef17700a7a2a571cd6163c2424fd2b024ed882c182013a",
+      "identical": true
+    },
+    "src/plugins/swipe/README.md": {
+      "sha256": "e06d642fc5a744ff40abe4eb47c29e3fd34afd598018a1ca716f3cd4fa75e3ea",
+      "identical": true
+    },
+    "src/plugins/swipe/README.ru.md": {
+      "sha256": "6992f0819062db9f63a430e9012b85a530162806b4a6b29742632374b66a85c6",
+      "identical": true
+    }
+  },
+  "allDistBytesEqual": true,
+  "lockSha256": "75c2f0359645066e895ac0cba683960c6e00f2ec4960544b3ed41f706b9e537c",
+  "finishedAt": "2026-10-30T01:22:57.603553+00:00"
+}

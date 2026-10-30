@@ -1,0 +1,10 @@
+{
+  "state": "finished",
+  "startedAt": "2026-10-30T01:32:18.406983+00:00",
+  "resultsDirectory": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-KMP4LV",
+  "config": "/tmp/rector-carousel-master-autoheight-proxy-test.config.mjs",
+  "configSha256": "0e44821e53bf025e33eddf8437f7536c6aa586ced99b7dc152cc3f38814f9ede",
+  "exitCode": 1,
+  "finish": 1,
+  "finishedAt": "2026-10-30T01:32:46.821148+00:00"
+}

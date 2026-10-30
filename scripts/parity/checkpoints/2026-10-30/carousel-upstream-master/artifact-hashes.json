@@ -1,0 +1,233 @@
+{
+  "direct-status.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-checks-status.json",
+    "sha256": "d72851579e30a08fc75a45af991d224c3ad2a224859d8332e80f0da277116249",
+    "rawSha256": "d72851579e30a08fc75a45af991d224c3ad2a224859d8332e80f0da277116249",
+    "bytes": 1891,
+    "rawBytes": 1891
+  },
+  "direct-manifest.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-5B1cgy/manifest.json",
+    "sha256": "4548acbe509f09ae57b91be6f4e4daae344e4092a03d6bc88a11f6905522d5f7",
+    "rawSha256": "4548acbe509f09ae57b91be6f4e4daae344e4092a03d6bc88a11f6905522d5f7",
+    "bytes": 7893,
+    "rawBytes": 7893
+  },
+  "direct-browser.log.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-5B1cgy/browser.log",
+    "sha256": "acf7e64be93698dbdbd9f83a4fc34f43e73b3d8ef0c687dee08152dd00c71205",
+    "rawSha256": "63ede984afb3419068b91985d5b319e150149ca64471121091542b1e70d8ccb3",
+    "bytes": 1446,
+    "rawBytes": 7244
+  },
+  "direct-types.log.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-5B1cgy/types.log",
+    "sha256": "aa070da5346c5e08e8b332b6de1fe30161e38bc541dd3bb4316d178a9b57c677",
+    "rawSha256": "b18d4f5d0c4aa567edcede3bcfed14a2450a21340febe1e1e7bfbbca3557ae68",
+    "bytes": 155,
+    "rawBytes": 174
+  },
+  "direct-units.log.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-5B1cgy/units.log",
+    "sha256": "130eec9fafaa08339d908ad505d2350dbd46c68122e26fc27c317dde150e64e4",
+    "rawSha256": "fa7d2b7e977c76fee3ec6647e4bb3396b975956014878b52dabf1f19a457ccad",
+    "bytes": 1623,
+    "rawBytes": 3358
+  },
+  "direct-build.log.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-5B1cgy/build.log",
+    "sha256": "858634d787e6a758733c77d892773e8716203c5fa8b1cf69c5ddcd81c00484b0",
+    "rawSha256": "3d837318cbc35ccc178987db8a1d66197ad1b78ac56995ba74dd8b4542d1df6d",
+    "bytes": 153,
+    "rawBytes": 169
+  },
+  "proxy-status.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-proxy-status.json",
+    "sha256": "c828e165ebcb775919fddfe8989c25dbd74c9d816b9d8973bb9e05635603f54f",
+    "rawSha256": "c828e165ebcb775919fddfe8989c25dbd74c9d816b9d8973bb9e05635603f54f",
+    "bytes": 419,
+    "rawBytes": 419
+  },
+  "proxy-manifest.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-KMP4LV/manifest.json",
+    "sha256": "1857fd7bdfb7fec988edcecbdb07d6e4f8c38206b55231a21172d40d8fb4c573",
+    "rawSha256": "1857fd7bdfb7fec988edcecbdb07d6e4f8c38206b55231a21172d40d8fb4c573",
+    "bytes": 6892,
+    "rawBytes": 6892
+  },
+  "proxy-browser-proxy.log.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-KMP4LV/browser-proxy.log",
+    "sha256": "33eeedf8c12e8d60e551ac79845e8612a1bf67f726512278b45a9b79ac4ac08d",
+    "rawSha256": "152b0ca036a629050c40cf77c922619c09086b7dd9fca87d76350a3ecf12863e",
+    "bytes": 1449,
+    "rawBytes": 7268
+  },
+  "cached-cdn-status.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-cached-status.json",
+    "sha256": "525bf47b6b15cbef95152d740944759d5883601b7ead5326411b9d882861d6db",
+    "rawSha256": "525bf47b6b15cbef95152d740944759d5883601b7ead5326411b9d882861d6db",
+    "bytes": 420,
+    "rawBytes": 420
+  },
+  "cached-cdn-manifest.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-RHrbbb/manifest.json",
+    "sha256": "633b477465c316c17417b201c150f5bbd7e5437f208176d8ff13a689f94ebf6e",
+    "rawSha256": "633b477465c316c17417b201c150f5bbd7e5437f208176d8ff13a689f94ebf6e",
+    "bytes": 8455,
+    "rawBytes": 8455
+  },
+  "cached-cdn-browser-cached-cdn.log.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-RHrbbb/browser-cached-cdn.log",
+    "sha256": "1a01052ab52f087ab7f7c441f7330af98560c1f82c3cdfe26ab3334b650ee8ae",
+    "rawSha256": "0ea8e91f3d378d3a7ec71f565ab6e8db4aab37ad301738b2c8a41cb66786e77c",
+    "bytes": 622,
+    "rawBytes": 1839
+  },
+  "rector-carousel-master-network-diagnostic.json": {
+    "originalPath": "/tmp/rector-carousel-master-network-diagnostic.json",
+    "sha256": "68e9bfeba373d3d086b0d76759e086533ac9ced252117d7ef658daec9e715763",
+    "rawSha256": "68e9bfeba373d3d086b0d76759e086533ac9ced252117d7ef658daec9e715763",
+    "bytes": 575,
+    "rawBytes": 575
+  },
+  "rector-carousel-master-cdn-fixture-20261030.json": {
+    "originalPath": "/tmp/rector-carousel-master-cdn-fixture-20261030.json",
+    "sha256": "1e03d7533be70e3ea1d314d3fca6eb4f0069dc416d23a9663346c53fce9a9a45",
+    "rawSha256": "1e03d7533be70e3ea1d314d3fca6eb4f0069dc416d23a9663346c53fce9a9a45",
+    "bytes": 2101,
+    "rawBytes": 2101
+  },
+  "rector-carousel-master-autoheight-test.config.mjs": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-test.config.mjs",
+    "sha256": "8746d566547072f2360c7087dddd3dcb5402b0a4150b37eb537f475885e7dcdf",
+    "rawSha256": "8746d566547072f2360c7087dddd3dcb5402b0a4150b37eb537f475885e7dcdf",
+    "bytes": 559,
+    "rawBytes": 559
+  },
+  "rector-carousel-master-autoheight-proxy-test.config.mjs": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-proxy-test.config.mjs",
+    "sha256": "0e44821e53bf025e33eddf8437f7536c6aa586ced99b7dc152cc3f38814f9ede",
+    "rawSha256": "0e44821e53bf025e33eddf8437f7536c6aa586ced99b7dc152cc3f38814f9ede",
+    "bytes": 994,
+    "rawBytes": 994
+  },
+  "rector-carousel-master-autoheight-cached-test.config.mjs": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-cached-test.config.mjs",
+    "sha256": "def4eecb27a4e4f4a46992aa059ede0205629ad5f631b70b50323deba8164744",
+    "rawSha256": "def4eecb27a4e4f4a46992aa059ede0205629ad5f631b70b50323deba8164744",
+    "bytes": 260,
+    "rawBytes": 260
+  },
+  "rector-carousel-cdn-event-bus-1.0.0.mjs": {
+    "originalPath": "/tmp/rector-carousel-cdn-event-bus-1.0.0.mjs",
+    "sha256": "191adc7ff085945a0f70c2fb2e802e822fed8c842903146f51637147398d98d7",
+    "rawSha256": "191adc7ff085945a0f70c2fb2e802e822fed8c842903146f51637147398d98d7",
+    "bytes": 1583,
+    "rawBytes": 1583
+  },
+  "rector-carousel-upstream-red-manifest.json": {
+    "originalPath": "/tmp/rector-carousel-upstream-red-manifest.json",
+    "sha256": "54f079d97b3c5dc406c30903f346120577fef3464b2fe32508b6934af9db60e1",
+    "rawSha256": "54f079d97b3c5dc406c30903f346120577fef3464b2fe32508b6934af9db60e1",
+    "bytes": 15009,
+    "rawBytes": 15009
+  },
+  "rector-carousel-upstream-red-supervisor.log.gz": {
+    "originalPath": "/tmp/rector-carousel-upstream-red-supervisor.log",
+    "sha256": "305610dfef224929719577a8726b3443b06d4601b77309c185be8bff78566296",
+    "rawSha256": "d08211ad18e1d05ffa6feb735dbe42886cc0fac47d853d93759d5f60305d8282",
+    "bytes": 820,
+    "rawBytes": 3130
+  },
+  "rector-carousel-upstream-rebuild-red-manifest.json": {
+    "originalPath": "/tmp/rector-carousel-upstream-rebuild-red-manifest.json",
+    "sha256": "fea95f85e1f59c2de440136e2511355bdbf200a8b1632c00e8a944ff21483d30",
+    "rawSha256": "fea95f85e1f59c2de440136e2511355bdbf200a8b1632c00e8a944ff21483d30",
+    "bytes": 14972,
+    "rawBytes": 14972
+  },
+  "rector-carousel-upstream-rebuild-red.log.gz": {
+    "originalPath": "/tmp/rector-carousel-upstream-rebuild-red.log",
+    "sha256": "f7df9e942619581d5d4a2152a0a6a134240e7d2153ee4ec2307e2ebd41d9bef6",
+    "rawSha256": "b5469ded829270418821332812e23690c597c7ee9b6b40635586b9cfb1952771",
+    "bytes": 627,
+    "rawBytes": 1270
+  },
+  "rector-carousel-upstream-rebuild-green-manifest.json": {
+    "originalPath": "/tmp/rector-carousel-upstream-rebuild-green-manifest.json",
+    "sha256": "b4cf94b6b646136a0fb3a485608c30cef2d2abfa24469f4bc9af906d86e4fabb",
+    "rawSha256": "b4cf94b6b646136a0fb3a485608c30cef2d2abfa24469f4bc9af906d86e4fabb",
+    "bytes": 14972,
+    "rawBytes": 14972
+  },
+  "rector-carousel-upstream-rebuild-green.log.gz": {
+    "originalPath": "/tmp/rector-carousel-upstream-rebuild-green.log",
+    "sha256": "8e4d69b1db6cbe5cbd081eb35fded311c93521bcf818e874657ae4354afb2819",
+    "rawSha256": "c1194b4c506f5c8cc9fc149f90c195172c2e559d51300b6a25d5eccb1e99f626",
+    "bytes": 261,
+    "rawBytes": 343
+  },
+  "source.patch.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-final.patch",
+    "sha256": "69e4f1df4aecb0942b12e8b0c2017ffd0c3bf76c8fd5d7eabcc081eaabaca168",
+    "rawSha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b",
+    "bytes": 3255,
+    "rawBytes": 10810
+  },
+  "source-src_TrackRenderer.js.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/src/TrackRenderer.js",
+    "sha256": "36289936857bc29aecb39b184a62cf9b70b1feae7f13e6f527a89df1cb1c4176",
+    "rawSha256": "e795f414a72215468f22a0cb6c62c3ee8b371515d3de28d1bdb94cf75b58381f",
+    "bytes": 3750,
+    "rawBytes": 14393
+  },
+  "source-test_navigation-regressions.test.js.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/test/navigation-regressions.test.js",
+    "sha256": "4722dff1eaf17b33f1ecc626fefb804b627e690b42ac69c4ebeecd3258cad33e",
+    "rawSha256": "01f111a728697da7c34927def9716449e1bc9e5eae488ca65269661cba3183d8",
+    "bytes": 6201,
+    "rawBytes": 24120
+  },
+  "source-tests_browser_auto-height.spec.mjs.gz": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-20261030/tests/browser/auto-height.spec.mjs",
+    "sha256": "afce290d4c4d708147c2048bc64a802fd5718cd6647874473d37fd6f2ec053f8",
+    "rawSha256": "6e79ea813956d78089346d5aebfe34fb072c4b4410670f05b6b0ae90ccef8c06",
+    "bytes": 1446,
+    "rawBytes": 3989
+  },
+  "README.md": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-evidence-20261030/README.md",
+    "sha256": "8c375251a3f84f799a8591090c1855750346835f8d8b00fd218f4f02f7b893a2",
+    "rawSha256": "8c375251a3f84f799a8591090c1855750346835f8d8b00fd218f4f02f7b893a2",
+    "bytes": 5224,
+    "rawBytes": 5224
+  },
+  "pr-body.md": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-pr-body.md",
+    "sha256": "bf5fbbef31d9a73853fd59c1c488ef0077e84bbda6b03675b7f123fb6517463a",
+    "rawSha256": "bf5fbbef31d9a73853fd59c1c488ef0077e84bbda6b03675b7f123fb6517463a",
+    "bytes": 1581,
+    "rawBytes": 1581
+  },
+  "source-and-results.json": {
+    "originalPath": "/tmp/rector-carousel-master-autoheight-handoff.json",
+    "sha256": "ebb76faa1c4c655d7b37e860acc2791e9183440d03a25d0901c2531c67223d46",
+    "rawSha256": "ebb76faa1c4c655d7b37e860acc2791e9183440d03a25d0901c2531c67223d46",
+    "bytes": 1520,
+    "rawBytes": 1520
+  },
+  "cached-fixture-auto-height.spec.mjs.gz": {
+    "originalPath": "/tmp/rector-carousel-master-cdn-fixture-20261030/tests/auto-height.spec.mjs",
+    "sha256": "248ba8ad0cce79609e6c3b1523a91699e809ae21601a514f53732508260085b6",
+    "rawSha256": "8e005c08d443ad51a74a8b38c8eebc8f6e217032a9111ccd87c01b31c700f2a5",
+    "bytes": 1644,
+    "rawBytes": 4414
+  },
+  "cached-fixture-smoke.spec.mjs.gz": {
+    "originalPath": "/tmp/rector-carousel-master-cdn-fixture-20261030/tests/smoke.spec.mjs",
+    "sha256": "08e5ca6e6a2a30ceeaa7a8eebb2d1aa126fe24eae20e79084ae524ddd591b204",
+    "rawSha256": "b8fd728baabaf03f628ae3334e66338860b19f1ba076948b442f0bd56144cca0",
+    "bytes": 1190,
+    "rawBytes": 3440
+  }
+}

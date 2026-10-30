@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-carousel-master-autoheight-20261030",
+  "startedAt": "2026-10-30T01:35:13.135Z",
+  "finishedAt": "2026-10-30T01:35:21.883Z",
+  "outcome": "passed",
+  "source": {
+    "head": "9896ddf60e594501b612ce38dbac66270f93181e",
+    "tree": "35a7c7fa8c2bab31beef6aaca66fb55f5e2792a5",
+    "patchSha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b",
+    "lockSha256": null,
+    "untracked": [
+      {
+        "path": "test-results/run-5B1cgy/browser.log",
+        "mode": 33188,
+        "sha256": "63ede984afb3419068b91985d5b319e150149ca64471121091542b1e70d8ccb3"
+      },
+      {
+        "path": "test-results/run-5B1cgy/build.log",
+        "mode": 33188,
+        "sha256": "3d837318cbc35ccc178987db8a1d66197ad1b78ac56995ba74dd8b4542d1df6d"
+      },
+      {
+        "path": "test-results/run-5B1cgy/manifest.json",
+        "mode": 33188,
+        "sha256": "4548acbe509f09ae57b91be6f4e4daae344e4092a03d6bc88a11f6905522d5f7"
+      },
+      {
+        "path": "test-results/run-5B1cgy/types.log",
+        "mode": 33188,
+        "sha256": "b18d4f5d0c4aa567edcede3bcfed14a2450a21340febe1e1e7bfbbca3557ae68"
+      },
+      {
+        "path": "test-results/run-5B1cgy/units.log",
+        "mode": 33188,
+        "sha256": "fa7d2b7e977c76fee3ec6647e4bb3396b975956014878b52dabf1f19a457ccad"
+      },
+      {
+        "path": "test-results/run-KMP4LV/browser-proxy.log",
+        "mode": 33188,
+        "sha256": "152b0ca036a629050c40cf77c922619c09086b7dd9fca87d76350a3ecf12863e"
+      },
+      {
+        "path": "test-results/run-KMP4LV/manifest.json",
+        "mode": 33188,
+        "sha256": "1857fd7bdfb7fec988edcecbdb07d6e4f8c38206b55231a21172d40d8fb4c573"
+      }
+    ],
+    "dirty": true,
+    "identity": "02e86f351d6e66d4398f5f213b0c84e6073cdb291894e4850240ece50e750b0f"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "browser-cached-cdn": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T01:35:13.476Z",
+      "finishedAt": "2026-10-30T01:35:21.771Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config=/tmp/rector-carousel-master-autoheight-cached-test.config.mjs"
+      ],
+      "cwd": "/tmp/rector-carousel-master-autoheight-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "9896ddf60e594501b612ce38dbac66270f93181e",
+        "tree": "35a7c7fa8c2bab31beef6aaca66fb55f5e2792a5",
+        "patchSha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b",
+        "lockSha256": null,
+        "untracked": [
+          {
+            "path": "test-results/run-5B1cgy/browser.log",
+            "mode": 33188,
+            "sha256": "63ede984afb3419068b91985d5b319e150149ca64471121091542b1e70d8ccb3"
+          },
+          {
+            "path": "test-results/run-5B1cgy/build.log",
+            "mode": 33188,
+            "sha256": "3d837318cbc35ccc178987db8a1d66197ad1b78ac56995ba74dd8b4542d1df6d"
+          },
+          {
+            "path": "test-results/run-5B1cgy/manifest.json",
+            "mode": 33188,
+            "sha256": "4548acbe509f09ae57b91be6f4e4daae344e4092a03d6bc88a11f6905522d5f7"
+          },
+          {
+            "path": "test-results/run-5B1cgy/types.log",
+            "mode": 33188,
+            "sha256": "b18d4f5d0c4aa567edcede3bcfed14a2450a21340febe1e1e7bfbbca3557ae68"
+          },
+          {
+            "path": "test-results/run-5B1cgy/units.log",
+            "mode": 33188,
+            "sha256": "fa7d2b7e977c76fee3ec6647e4bb3396b975956014878b52dabf1f19a457ccad"
+          },
+          {
+            "path": "test-results/run-KMP4LV/browser-proxy.log",
+            "mode": 33188,
+            "sha256": "152b0ca036a629050c40cf77c922619c09086b7dd9fca87d76350a3ecf12863e"
+          },
+          {
+            "path": "test-results/run-KMP4LV/manifest.json",
+            "mode": 33188,
+            "sha256": "1857fd7bdfb7fec988edcecbdb07d6e4f8c38206b55231a21172d40d8fb4c573"
+          }
+        ],
+        "dirty": true,
+        "identity": "02e86f351d6e66d4398f5f213b0c84e6073cdb291894e4850240ece50e750b0f"
+      },
+      "elapsedMs": 8287.977244000002,
+      "sourceAfter": {
+        "head": "9896ddf60e594501b612ce38dbac66270f93181e",
+        "tree": "35a7c7fa8c2bab31beef6aaca66fb55f5e2792a5",
+        "patchSha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b",
+        "lockSha256": null,
+        "untracked": [
+          {
+            "path": "test-results/run-5B1cgy/browser.log",
+            "mode": 33188,
+            "sha256": "63ede984afb3419068b91985d5b319e150149ca64471121091542b1e70d8ccb3"
+          },
+          {
+            "path": "test-results/run-5B1cgy/build.log",
+            "mode": 33188,
+            "sha256": "3d837318cbc35ccc178987db8a1d66197ad1b78ac56995ba74dd8b4542d1df6d"
+          },
+          {
+            "path": "test-results/run-5B1cgy/manifest.json",
+            "mode": 33188,
+            "sha256": "4548acbe509f09ae57b91be6f4e4daae344e4092a03d6bc88a11f6905522d5f7"
+          },
+          {
+            "path": "test-results/run-5B1cgy/types.log",
+            "mode": 33188,
+            "sha256": "b18d4f5d0c4aa567edcede3bcfed14a2450a21340febe1e1e7bfbbca3557ae68"
+          },
+          {
+            "path": "test-results/run-5B1cgy/units.log",
+            "mode": 33188,
+            "sha256": "fa7d2b7e977c76fee3ec6647e4bb3396b975956014878b52dabf1f19a457ccad"
+          },
+          {
+            "path": "test-results/run-KMP4LV/browser-proxy.log",
+            "mode": 33188,
+            "sha256": "152b0ca036a629050c40cf77c922619c09086b7dd9fca87d76350a3ecf12863e"
+          },
+          {
+            "path": "test-results/run-KMP4LV/manifest.json",
+            "mode": 33188,
+            "sha256": "1857fd7bdfb7fec988edcecbdb07d6e4f8c38206b55231a21172d40d8fb4c573"
+          }
+        ],
+        "dirty": true,
+        "identity": "02e86f351d6e66d4398f5f213b0c84e6073cdb291894e4850240ece50e750b0f"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "9896ddf60e594501b612ce38dbac66270f93181e",
+    "tree": "35a7c7fa8c2bab31beef6aaca66fb55f5e2792a5",
+    "patchSha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b",
+    "lockSha256": null,
+    "untracked": [
+      {
+        "path": "test-results/run-5B1cgy/browser.log",
+        "mode": 33188,
+        "sha256": "63ede984afb3419068b91985d5b319e150149ca64471121091542b1e70d8ccb3"
+      },
+      {
+        "path": "test-results/run-5B1cgy/build.log",
+        "mode": 33188,
+        "sha256": "3d837318cbc35ccc178987db8a1d66197ad1b78ac56995ba74dd8b4542d1df6d"
+      },
+      {
+        "path": "test-results/run-5B1cgy/manifest.json",
+        "mode": 33188,
+        "sha256": "4548acbe509f09ae57b91be6f4e4daae344e4092a03d6bc88a11f6905522d5f7"
+      },
+      {
+        "path": "test-results/run-5B1cgy/types.log",
+        "mode": 33188,
+        "sha256": "b18d4f5d0c4aa567edcede3bcfed14a2450a21340febe1e1e7bfbbca3557ae68"
+      },
+      {
+        "path": "test-results/run-5B1cgy/units.log",
+        "mode": 33188,
+        "sha256": "fa7d2b7e977c76fee3ec6647e4bb3396b975956014878b52dabf1f19a457ccad"
+      },
+      {
+        "path": "test-results/run-KMP4LV/browser-proxy.log",
+        "mode": 33188,
+        "sha256": "152b0ca036a629050c40cf77c922619c09086b7dd9fca87d76350a3ecf12863e"
+      },
+      {
+        "path": "test-results/run-KMP4LV/manifest.json",
+        "mode": 33188,
+        "sha256": "1857fd7bdfb7fec988edcecbdb07d6e4f8c38206b55231a21172d40d8fb4c573"
+      }
+    ],
+    "dirty": true,
+    "identity": "02e86f351d6e66d4398f5f213b0c84e6073cdb291894e4850240ece50e750b0f"
+  },
+  "sourceUnchanged": true
+}
