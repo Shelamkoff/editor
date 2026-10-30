@@ -65,9 +65,8 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 // Measurement only upgrades this readable list to a carousel.
                 const list = ownerDocument.createElement('div')
                 list.className = `${p}__list`
-                for (const person of persons) {
-                    list.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
-                }
+                const cards = persons.map(person => renderCard(person, parseInline, p, t, ownerDocument))
+                list.append(...cards)
                 carouselContainer.appendChild(list)
 
                 // @shelamkoff/carousel 1.x is not safe to initialize in a
@@ -80,8 +79,13 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                     return wrapper
                 }
 
-                const slides = persons.map(person => ({
-                    content: () => renderCard(person, parseInline, p, t, ownerDocument),
+                const slides = cards.map(card => ({
+                    content: () => {
+                        if (mounted.get(wrapper) !== resources || list.parentNode !== carouselContainer || card.parentNode !== list) {
+                            throw new Error('Person card left its renderer before carousel mounting')
+                        }
+                        return card
+                    },
                 }))
 
                 const CARD_W = 300
@@ -90,7 +94,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 if (!ResizeObserverCtor) return wrapper
                 const ro = new ResizeObserverCtor(() => {
                     if (mounted.get(wrapper) !== resources) return
-                    if (carouselContainer.parentNode !== wrapper || list.parentNode !== carouselContainer) return
+                    if (carouselContainer.parentNode !== wrapper || list.parentNode !== carouselContainer || cards.some(card => card.parentNode !== list)) return
                     if (!carouselContainer.offsetWidth) return
                     ro.disconnect()
 
@@ -100,7 +104,6 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                         return
                     }
 
-                    list.remove()
                     const slidesPerView = Math.max(1, Math.floor(carouselContainer.offsetWidth / (CARD_W + GAP)))
                     const carousel = new Carousel(carouselContainer, slides, {
                         slidesPerView,
@@ -108,7 +111,12 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                         loop: persons.length > slidesPerView,
                         plugins: [createSwipe()],
                     })
+                    if (mounted.get(wrapper) !== resources || carouselContainer.parentNode !== wrapper || list.parentNode !== carouselContainer) {
+                        carousel.destroy()
+                        return
+                    }
                     resources.carousel = carousel
+                    list.remove()
 
                     const nav = ownerDocument.createElement('div')
                     nav.className = `${p}__nav`
