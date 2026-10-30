@@ -1,0 +1,121 @@
+{
+  "sourceCommit": "9fe66c88d1fcf6517e1308550bfb454c392548f8",
+  "sourceTree": "ca2c8c5327d919db872f7e77e298827df8d54a4b",
+  "intermediateSourceCommit": "4d1f666962aca917045cca76863b9950de42a222",
+  "intermediateSourceTree": "78dd46ad9c9801c867aa2193bd779f3076857475",
+  "initialRedProductionCommit": "aba12c41833e1d07271f24c41b4d5fd9ace6fd1c",
+  "browser": "156.0.8078.79",
+  "node": "v24.22.1",
+  "focusedFinalCases": {
+    "total": 15,
+    "directPublicToolDom": 12,
+    "nativeEditor": 3,
+    "failures": 0
+  },
+  "unitCases": {
+    "total": 18,
+    "failures": 0,
+    "skipped": 0
+  },
+  "typecheck": {
+    "jsconfig": "PASS",
+    "runtime": "PASS"
+  },
+  "comparison": {
+    "commandExitCode": 1,
+    "serverErrors": [],
+    "results": [
+      {
+        "source": "v1",
+        "cases": 13,
+        "observations": 113,
+        "rawFailures": 33,
+        "allComplete": true,
+        "executionErrors": [],
+        "pageErrors": []
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 13,
+        "observations": 113,
+        "rawFailures": 27,
+        "allComplete": true,
+        "executionErrors": [],
+        "pageErrors": []
+      },
+      {
+        "source": "candidate",
+        "cases": 13,
+        "observations": 113,
+        "rawFailures": 0,
+        "allComplete": true,
+        "executionErrors": [],
+        "pageErrors": []
+      }
+    ]
+  },
+  "files": {
+    "red-atomic-and-nested-br.log.gz": {
+      "sha256": "b100449ec94b900d0d02aa09ef4b38ec0c7b6f52c8deb09d285f4e3a2a37e704",
+      "decodedSha256": "d5ffa2685bbacbebaa90b1aceaca77e04f553dc73b4b89e1d707c85a1616cc2b",
+      "decodedBytes": 4867
+    },
+    "green-atomic-and-nested-br.log.gz": {
+      "sha256": "2a485b8b2f040065acb33e014f233d49dbcc34922ab63aa6f58bcfb5a4bfedd1",
+      "decodedSha256": "c2ab2b934134067e1c31c413988cc85252c40418bb3776f6f36bfba856186375",
+      "decodedBytes": 1442
+    },
+    "three-source-intermediate.json.gz": {
+      "sha256": "8afecfc7bd6bc8fa878bd007a1fb2e71406821ffae62e559edeafc7415ae54b4",
+      "decodedSha256": "0709d94230882021b3933084211669813ea3c913e56d9291523862b5eecce0fa",
+      "decodedBytes": 76312
+    },
+    "red-cross-host-public-tools.log.gz": {
+      "sha256": "d6174384736d00eacb0b0d35b120b32b68921a9ae467005df1870a02d1b2d65a",
+      "decodedSha256": "73dcd8b060e3887a002ea2ca26e8699c2f76558965bd92daed6adcdb5c5308c8",
+      "decodedBytes": 3639
+    },
+    "green-final-focused.log.gz": {
+      "sha256": "db4f832b88095eb4bdf72d2bec3c7ccfd9a0454b096974faa1140b8666a3fc78",
+      "decodedSha256": "b9718a4849faa2b0b3be58f1d67ae1df0a60c4004223ecebad2242a40e78dab6",
+      "decodedBytes": 1661
+    },
+    "typecheck-final.log.gz": {
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "decodedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "decodedBytes": 259
+    },
+    "unit-final.log.gz": {
+      "sha256": "841ffc4ff4d2c5519330f9ac3d55a8f9ac0cb89f27adc855dc0f9e4127c3fb76",
+      "decodedSha256": "7ed3152cb43dab3b27bb65068947a68ff8f3eebce4fc4c67a7d27f104c397ba5",
+      "decodedBytes": 1810
+    },
+    "three-source-final.json.gz": {
+      "sha256": "141f5356dfd1a0887f9ef5b744cf790c7fc3a9e679ff5fdd1b20c2988cd559ac",
+      "decodedSha256": "6b061871b64712995dc9e93f6c3a84d3745cbf738bb8f5bf413098f56154fb33",
+      "decodedBytes": 87254
+    },
+    "setup-attempts/unsupported-runtime-mount.log.gz": {
+      "sha256": "7b19ad53217a2eb727824da7d5a014381c7c5701084f7b1ea76f1eef0876d899",
+      "decodedSha256": "c71218a5d496b298124e48acae108f9bedf24c37564d21068da01f1d3e414003",
+      "decodedBytes": 3409
+    },
+    "setup-attempts/unsupported-after-projection.log.gz": {
+      "sha256": "242d31fff4e4a3946795d126803d0949888a124944fe27cd4e79cfbec036a6c1",
+      "decodedSha256": "031783fae73a10c3141ec9ecaa03dea6b3e0301f221fa03f60e347fe766e15b4",
+      "decodedBytes": 3875
+    }
+  },
+  "sourceIdentityQualification": "Focused GREEN and typechecks ran on unchanged production and fixture bytes subsequently committed as 9fe66c88. The final comparison serves exact Git objects, hashes every loaded module and verifies stable HEAD and runner bytes. The complete integrated browser gate is recorded separately by the root agent; this checkpoint does not claim that integrated gate.",
+  "excludedSetupAttempts": [
+    {
+      "file": "setup-attempts/unsupported-runtime-mount.log.gz",
+      "reason": "The proposed nested-host plugin fixture was removed by initial rich-field projection; expected two controls, got zero. This is fixture setup failure, not product RED."
+    },
+    {
+      "file": "setup-attempts/unsupported-after-projection.log.gz",
+      "reason": "The attempted afterProjection callback inserted nodes inside the declared author field and correctly raised Field completion changed author content. This is an unsupported fixture lifecycle, not product RED."
+    }
+  ],
+  "reconstruction": "../fourth-integration/isolated-sources/README.md"
+}
