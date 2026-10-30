@@ -1,4 +1,5 @@
 import { createPersonPlugin } from '../../../plugins/person/index.js'
+import { createMentionPlugin } from '../../../inline-plugins/mention/index.js'
 import { getTextOffset } from '../../../shared/textOffset.js'
 import { printable } from '../native-input-helpers.js'
 import { test, make, blockElement, assert, equal } from './harness.js'
@@ -64,4 +65,53 @@ test('Person native URL continues after changing a rich field in the same card',
   equal(editor.save().blocks[0].data.persons[0].links[0].url, original + 'XY')
   assert(editor.undo()); equal(editor.save().blocks, afterSibling)
   assert(editor.undo()); equal(editor.save().blocks, afterInput)
+})
+
+test('Person native URL survives a pending sibling name sidecar-only update and exact history replay', async () => {
+  const original = 'https://example.com/Alpha'
+  const person = (id, name, links = []) => ({ id, name, role: '', bio: '', avatar: '', links })
+  let created = 0, providers = 0, mentionContext
+  const mention = createMentionPlugin({ searchFunction: async () => { providers++; return [] } })
+  const editor = make([{ id: 'person', type: 'person', dataVersion: 2, data: { persons: [
+    person('active', 'Alpha {{ref}}', [{ id: 'site', type: 'website', url: original }]), person('other', 'Other'),
+  ] }, inline: { ref: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada' } } } }], {
+    plugins: [createPersonPlugin({ injectStyles: false })], defaultBlock: 'person',
+    inlinePlugins: [{ ...mention, setup(context) {
+      const runtime = mention.setup(context)
+      return { ...runtime, create(...args) { created++; mentionContext = args.at(-1); return runtime.create(...args) } }
+    } }],
+  })
+  const before = editor.save().blocks
+  assert(editor.blocks.focus('person', { fieldKey: 'person:active:link:site:url', offset: 'end' }))
+  const input = blockElement(editor, 'person').querySelector('.oe-person__link-url')
+  const icon = input.parentNode.querySelector('.oe-person__link-icon')
+  let duringInput, deliveries = 0
+  input.addEventListener('beforeinput', () => {
+    mentionContext.updateData(data => ({ ...data, name: 'Grace' }))
+    duringInput = editor.save().blocks
+    deliveries++
+  }, { once: true })
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.persons[0].links[0].url, original + 'X')
+  equal(deliveries, 1, 'The sidecar update must happen during real native beforeinput')
+  mentionContext.updateData(data => ({ ...data, name: 'Lin' }))
+  const afterLabel = editor.save().blocks
+  equal(blockElement(editor, 'person').querySelector('[data-person-id="active"] .oe-person__tab-label').textContent, 'Alpha @Lin')
+  equal(blockElement(editor, 'person').querySelector('.oe-person__link-url'), input)
+  equal(input.parentNode.querySelector('.oe-person__link-icon'), icon)
+  equal(document.activeElement, input)
+  equal([input.selectionStart, input.selectionEnd], [original.length + 1, original.length + 1])
+  equal([created, providers], [1, 0])
+  await printable('Y')
+  const afterContinuation = editor.save().blocks
+  equal(afterContinuation[0].data.persons[0].links[0].url, original + 'XY')
+  assert(editor.undo()); equal(editor.save().blocks, afterLabel)
+  assert(editor.undo()); equal(editor.save().blocks, afterInput)
+  assert(editor.undo()); equal(editor.save().blocks, duringInput)
+  assert(editor.undo()); equal(editor.save().blocks, before); assert(!editor.canUndo)
+  assert(editor.redo()); equal(editor.save().blocks, duringInput)
+  assert(editor.redo()); equal(editor.save().blocks, afterInput)
+  assert(editor.redo()); equal(editor.save().blocks, afterLabel)
+  assert(editor.redo()); equal(editor.save().blocks, afterContinuation); assert(!editor.canRedo)
 })

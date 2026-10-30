@@ -115,6 +115,7 @@ function mount(initial = input()) {
     isReadOnly: () => false,
     signal: new AbortController().signal,
     getData: () => canonical,
+    getFieldText: key => canonical.persons.find(person => key === 'person:' + person.id + ':name')?.name ?? '',
     commitDomMutation() {},
   })
   return { instance, ownerDocument, setCanonicalData(next) { canonical = next } }

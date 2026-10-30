@@ -319,8 +319,7 @@ export function createPersonPlugin(config={}){
               }
               const label=document.createElement('span')
               label.className='oe-person__tab-label'
-              setSanitizedHtml(label,person.name)
-              label.textContent=label.textContent.trim()||fallbackName(index)
+              label.textContent=context.getFieldText('person:'+person.id+':name').trim()||fallbackName(index)
               select.appendChild(label)
               if(person.id===activeId)activeTabView={personId:person.id,label,select,tab}
               select.addEventListener('click',()=>{

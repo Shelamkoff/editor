@@ -459,7 +459,8 @@ export class BlockReconciler {
         }
 
         const dataChanged = !sameJson(before.data, after.data)
-        if (dataChanged && typeof current.instance.update !== 'function') {
+        const inlineTextChanged = current.lifetime.readsFieldText && !sameJson(before.inline, after.inline)
+        if ((dataChanged || inlineTextChanged) && typeof current.instance.update !== 'function') {
           const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
@@ -472,7 +473,7 @@ export class BlockReconciler {
           || !sameJson(before.inline, after.inline)
           || before.dataVersion !== after.dataVersion
         ) {
-          updates.push({ id, entry: current, before, after, dataChanged })
+          updates.push({ id, entry: current, before, after, dataChanged, inlineTextChanged })
         }
       }
     } catch (error) {
@@ -534,10 +535,11 @@ export class BlockReconciler {
           const failedPresentation=item.entry.presentationFailure
           const completedSourceField=item.id===sourceBlockId&&completedSourceFieldKey!==undefined
             ?item.entry.fields.find(field=>field.key===completedSourceFieldKey):null
-          const captured=item.dataChanged&&item.id!==sourceBlockId&&item.entry.instance.afterProjection
+          const updateInstance=(item.dataChanged||item.inlineTextChanged)&&item.id!==sourceBlockId
+          const captured=updateInstance&&item.entry.instance.afterProjection
             ?this.#captureFieldContent(item.entry):null
           item.entry.lifetime.candidate = item.after
-          if (item.dataChanged && item.id !== sourceBlockId) {
+          if (updateInstance) {
             item.entry.instance.update(item.after.data, item.before.data)
           }
           item.entry.record = item.after
@@ -921,7 +923,7 @@ export class BlockReconciler {
 
   #createEntry(record, { candidate = false, stageInline = false, generation = this.#store?.generation ?? 0, restoring = false } = {}) {
     const ownerDocument = this.#container.ownerDocument
-    const lifetime = { candidate: candidate ? record : null }
+    const lifetime = { candidate: candidate ? record : null, readsFieldText: false }
     const scope = new InstanceScope({ staged: true, generation, readOnly: this.#readOnly })
 
     if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
@@ -962,13 +964,28 @@ export class BlockReconciler {
     let destroySource
     let instance = null
     let element = null
+    let textOwner = null
     let borrowedLiveRoot = false
 
     try {
       const readRecord = () => lifetime.candidate ?? this.#store?.peek(record.id) ?? record
-      const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope) ?? {}
+      const assertReadOwner = () => {
+        if (this.#destroyed || scope.revoked) throw new Error('Canonical field text owner is retired')
+        if (!textOwner) return // The current staged create() has not returned its root yet.
+        if (liveBlockRoots.get(instance.element) !== scope || instance.element.parentNode !== element
+          || (scope.active ? !this.#isCurrentMountedEntry(record.id, textOwner)
+            : element.parentNode && element.parentNode !== this.#container)) {
+          throw new Error('Canonical field text owner left its accepted boundary')
+        }
+      }
+      const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope, assertReadOwner) ?? {}
       const context = Object.freeze({
         ...base,
+        ...(typeof base.getFieldText === 'function' ? { getFieldText: fieldKey => {
+          const text = base.getFieldText(fieldKey)
+          lifetime.readsFieldText = true
+          return text
+        } } : {}),
         // A fresh user block may load metadata once; a replay/recovery
         // projection must not repeat automatic side effects.
         restoring: restoring === true,
@@ -1015,6 +1032,7 @@ export class BlockReconciler {
         lifetime,
         scope,
       }
+      textOwner = entry
       this.#blockOwners.set(element, record.id)
       instance.setReadOnly(this.#readOnly)
       this.#refreshFields(record.id, entry)

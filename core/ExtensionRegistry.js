@@ -284,6 +284,7 @@ function snapshotInlineDefinition(source) {
     styles: source.styles,
     schema: source.schema,
     trigger: source.trigger,
+    toText: source.toText,
     paste: source.paste,
     editing: source.editing,
     insertion: source.insertion,
@@ -305,6 +306,13 @@ function snapshotInlineDefinition(source) {
     }
     trigger = candidate.trigger
   }
+
+  const textMethod = bindMethod(source, candidate.toText, `Inline definition "${candidate.type}" toText`, { optional: true })
+  const toText = textMethod ? data => {
+    const text = textMethod(data)
+    if (typeof text !== 'string') throw new TypeError(`Inline definition "${candidate.type}" toText must return a string`)
+    return text
+  } : undefined
 
   let paste
   if (candidate.paste !== undefined) {
@@ -350,6 +358,7 @@ function snapshotInlineDefinition(source) {
     styles: Object.freeze(ownedStyles),
     schema: snapshotSchema(candidate.schema, `Inline definition "${candidate.type}"`),
     ...(trigger === undefined ? {} : { trigger }),
+    ...(toText ? { toText } : {}),
     ...(paste ? { paste } : {}),
     ...(editing ? { editing } : {}),
     ...(insertion ? { insertion } : {}),

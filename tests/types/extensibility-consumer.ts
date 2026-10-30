@@ -63,6 +63,12 @@ const noteDefinition: BlockPluginDefinition<NoteData> = {
   type: 'external-note', label: { key: 'note', fallback: 'Note' }, icon: '', schema: noteSchema,
   setup(runtime) { return {
     create(initial, context) {
+      const canonicalLabel: string = context.getFieldText('item:first')
+      // @ts-expect-error only canonical rich-field keys are accepted
+      context.getFieldText({ key: 'item:first' })
+      // @ts-expect-error a text snapshot does not grant mutation authority
+      context.getFieldText('text').updateData(() => note)
+      void canonicalLabel
       const element = runtime.ownerDocument.createElement('div')
       let data = decodeNote(initial)
       setSanitizedHtml(element, data.text)
@@ -79,6 +85,12 @@ const noteDefinition: BlockPluginDefinition<NoteData> = {
 }
 const badgeDefinition: InlinePluginDefinition<BadgeData> = {
   type: 'external-badge', label: { key: 'badge', fallback: 'Badge' }, icon: '', schema: badgeSchema,
+  toText(data) {
+    const label: string = data.label
+    // @ts-expect-error canonical text receives a readonly payload
+    data.label = 'forbidden'
+    return label
+  },
   editing: {
     handle(input, data) {
       if (input.inputType !== 'deleteContentBackward') return null

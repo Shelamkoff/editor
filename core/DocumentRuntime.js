@@ -9,7 +9,7 @@ import { richTextFieldMap } from './projectionFields.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { ensureRichTextReferenceSuffix, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
+import { ensureRichTextReferenceSuffix, getRichTextPlainText, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
   createSessionIdAllocator,
@@ -160,7 +160,7 @@ export class DocumentRuntime {
     this.#store = new DocumentStore(initial)
     this.#history = new HistoryStore(options.history)
 
-    const contextFactory = (id, type, signal, readRecord, scope) => this.#blockContext(id, type, signal, readRecord, scope)
+    const contextFactory = (id, type, signal, readRecord, scope, assertReadOwner) => this.#blockContext(id, type, signal, readRecord, scope, assertReadOwner)
     const activationResolver = (id, record) => this.#canActivate(id, record)
     this.#projector = options.projectorFactory
       ? options.projectorFactory({
@@ -1650,7 +1650,7 @@ export class DocumentRuntime {
     return this.#allocateId(prefix,occupied)
   }
 
-  #blockContext(id, type, signal, readRecord, scope) {
+  #blockContext(id, type, signal, readRecord, scope, assertReadOwner = () => {}) {
     if (!scope?.createAuthority) throw new TypeError('Block instance scope is unavailable')
     scope.configure({
       readOnly: this.#readOnly,
@@ -1686,9 +1686,47 @@ export class DocumentRuntime {
       createId: prefix => this.createDataId(prefix),
     })
 
+    let readingFieldText = false
+    const getFieldText = fieldKey => {
+      const epoch = scope.interactionEpoch, generation = scope.generation
+      const assertOwner = () => {
+        scope.assertReadable()
+        assertReadOwner()
+        if (scope.interactionEpoch !== epoch || scope.generation !== generation) {
+          throw new Error('Canonical field text owner changed during its read')
+        }
+      }
+      assertOwner()
+      if (readingFieldText) throw new Error('Cannot reenter canonical field text derivation')
+      if (typeof fieldKey !== 'string' || !fieldKey) throw new TypeError('Canonical rich-text field key must be nonempty')
+      readingFieldText = true
+      try {
+        const text = this.prepareExtensionValue(() => {
+          const record = currentRecord()
+          const fields = richTextFieldMap(this.#registry.getBlockDefinition(type), record.data)
+          assertOwner()
+          if (!fields.has(fieldKey)) throw new RangeError('Unknown canonical rich-text field: ' + fieldKey)
+          return getRichTextPlainText(fields.get(fieldKey), record.inline, this.#ownerDocument, inlineId => {
+            assertOwner()
+            const ref = record.inline[inlineId]
+            const definition = this.#registry.getInlineDefinition(ref.type)
+            if (!definition?.toText) return '{{' + inlineId + '}}'
+            const data = deepFreezeClipboardValue(definition.schema.decode({ dataVersion: ref.dataVersion, data: ref.data }).data)
+            assertOwner()
+            const result = definition.toText(data)
+            assertOwner()
+            return result
+          })
+        })
+        assertOwner()
+        return text
+      } finally { readingFieldText = false }
+    }
+
     let context
     context = Object.freeze({
       ...authority,
+      getFieldText,
       ownerDocument: this.#ownerDocument,
       signal,
       requestSplit: () => scope.runMutation(() => this.#requestSplit?.(id)),
