@@ -107,6 +107,25 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
   const holder = document.createElement('section')
   holder.style.width = '1000px'; document.body.appendChild(holder)
   let active = null, notices = 0, providerCalls = 0, retention = null
+  const released = (value, kind) => {
+    if (value && typeof value === 'object') retention.released.push({ kind, reference: new WeakRef(value) })
+  }
+  const retainObservation = (value, kind) => {
+    if (!retention) return
+    released(value, kind + ':envelope')
+    if (Array.isArray(value.changes)) {
+      released(value.changes, kind + ':changes')
+      for (const change of value.changes) for (const key of ['before', 'after']) {
+        released(change[key]?.data, kind + ':' + key + ':data')
+        released(change[key]?.inline, kind + ':' + key + ':inline')
+      }
+    }
+    if (Array.isArray(value.blocks)) {
+      released(value.blocks, kind + ':blocks')
+      const probe = value.blocks.find(block => block.id === 'probe')
+      released(probe?.data, kind + ':data'); released(probe?.inline, kind + ':inline')
+    }
+  }
   let editor
   try { editor = createEditor({ holder, injectStyles: true, historyMaxStack: 1, changeDebounceMs: 0,
     plugins: shape.type === 'paragraph' ? [plugins.createParagraphPlugin()] : [plugins.createParagraphPlugin(), plugins[factory]()],
@@ -114,21 +133,31 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
     inlineTools: [], data: input,
     onChange(document) {
       notices++
-      if (retention) retention.released.push(new WeakRef(document))
+      retainObservation(document, 'onChange')
       if (active) {
-        active.notice = document; active.notifiedAt = performance.now()
-        if (sensitivity !== 'missing-notification') active.notify()
+        const observation = active
+        observation.notice = document; observation.notifiedAt = performance.now()
+        // Rendering settlement starts at notification, independently of when
+        // the native input driver's transport promise returns to this page.
+        observation.rendered = frames().then(() => {
+          observation.renderedAt = performance.now()
+          performance.mark(observation.traceId + ':end')
+        })
+        if (sensitivity !== 'missing-notification') observation.notify()
       }
     },
   }) } catch (error) { holder.remove(); throw error }
   const stop = [editor.on('transaction:committed', event => {
-    if (retention) retention.released.push(new WeakRef(event))
+    retainObservation(event, 'transaction')
     if (active) { active.transactions++; active.action = event.action }
   }), editor.on('document:changed', event => {
-    if (retention) retention.released.push(new WeakRef(event))
+    retainObservation(event, 'document')
     if (active) active.documents++
   })]
-  const beforeInput = event => { if (active && holder.contains(event.target)) { active.inputAt = performance.now(); active.trusted = event.isTrusted } }
+  const beforeInput = event => { if (active && holder.contains(event.target)) {
+    active.inputAt = performance.now(); active.trusted = event.isTrusted
+    if (active.kind === 'native') performance.mark(active.traceId + ':start')
+  } }
   const afterInput = event => { if (active && holder.contains(event.target)) active.inputFinishedAt = performance.now() }
   document.addEventListener('beforeinput', beforeInput, true); document.addEventListener('input', afterInput)
   const destroy = () => {
@@ -154,7 +183,7 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
   let serial = 0
   const verify = data => {
     const saved = editor.save()
-    if (retention) retention.released.push(new WeakRef(saved))
+    retainObservation(saved, 'snapshot')
     same(saved.blocks, blocks(data), 'Structural document or sidecars changed unexpectedly')
     check(JSON.stringify(input) === originalInput, 'Caller input was mutated')
     check(providerCalls === 0, 'Fixture unexpectedly called a provider')
@@ -173,10 +202,11 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
     const bookmark = { canUndo: editor.canUndo, canRedo: editor.canRedo }
     let notify, timer
     const notified = new Promise((resolve, reject) => { notify = resolve; if (changes) timer = setTimeout(() => reject(new Error('Missing scheduled onChange')), sensitivity === 'missing-notification' ? 80 : 5000) })
-    active = { transactions: 0, documents: 0, notice: null, notify, trusted: false, inputAt: null, inputFinishedAt: null }
+    active = { kind, transactions: 0, documents: 0, notice: null, notify, trusted: false, inputAt: null, inputFinishedAt: null }
     const state = active, count = instrument ? counters() : null
     const label = traceId || `structural-${++serial}`
-    performance.mark(label + ':start')
+    state.traceId = label
+    if (kind !== 'native') performance.mark(label + ':start')
     const began = performance.now()
     let synchronousMs
     try {
@@ -204,12 +234,11 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
         else throw new Error('Unknown structural operation')
         synchronousMs = performance.now() - began
       }
-      if (changes) await notified
-      else await pause(50)
+      if (changes) { await notified; await state.rendered }
+      else { await pause(50); await frames(); performance.mark(label + ':end') }
       clearTimeout(timer)
-      await frames()
-      performance.mark(label + ':end')
-      const finished = performance.now(), start = kind === 'native' ? state.inputAt : began
+      const driverFinished = performance.now(), finished = changes ? state.renderedAt : driverFinished
+      const start = kind === 'native' ? state.inputAt : began
       count?.restore()
       if (kind === 'native') check(state.trusted && state.inputFinishedAt >= state.inputAt, 'Expected trusted complete native input')
       same([state.transactions, state.documents, notices - beforeNotices], changes ? [1, 1, 1] : [0, 0, 0], 'Wrong complete-path notification count')
@@ -219,7 +248,7 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
       try { verify(expected) } catch (error) { throw new Error(`${shape.id}/${kind}: ${error.message}`, { cause: error }) }
       return { kind, traceId: label, synchronousMs: kind === 'native' ? state.inputFinishedAt - state.inputAt : synchronousMs,
         notificationMs: changes ? state.notifiedAt - start : null, settledRenderOpportunityMs: finished - start,
-        driverRoundTripMs: finished - began, transactions: state.transactions, documents: state.documents,
+        driverRoundTripMs: driverFinished - began, transactions: state.transactions, documents: state.documents,
         notifications: notices - beforeNotices, trustedNativeInput: kind === 'native' ? state.trusted : null,
         counters: count?.values ?? null }
     } finally { clearTimeout(timer); count?.restore(); active = null }
@@ -234,8 +263,13 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
     },
     observeRetention() {
       check(retention, 'Retention controls were not initialized')
+      const categories = {}
+      for (const { kind, reference } of retention.released) {
+        const count = categories[kind] ??= { observed: 0, retained: 0 }
+        count.observed++; if (reference.deref()) count.retained++
+      }
       return { observedReleasedObjects: retention.released.length,
-        retainedReleasedObjects: retention.released.filter(reference => reference.deref()).length,
+        retainedReleasedObjects: Object.values(categories).reduce((sum, count) => sum + count.retained, 0), categories,
         livePositiveControl: retention.positiveReference.deref() === retention.positive,
         liveFieldControls: fields.filter(field => field.isConnected).length,
         canUndo: editor.canUndo, canRedo: editor.canRedo }
