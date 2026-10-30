@@ -13,9 +13,14 @@ const layouts = {
   '1-1-1': { label: '33 / 33 / 33', tracks: '1fr 1fr 1fr', weights: [1, 1, 1] },
 }
 
-export const columnsLayoutCases = [
-  { id: 'COLUMNS_LAYOUT/direct/reduce-rich-1-1', surface: 'direct', initial: '1-1-1', target: '1-1', expand: true },
-]
+export const columnsLayoutCases = ['direct', 'menu'].flatMap(surface => [
+  ...['1-1', '1-2', '2-1'].map(target => ({
+    id: `COLUMNS_LAYOUT/${surface}/reduce-rich-${target}`, surface, initial: '1-1-1', target, expand: true,
+  })),
+  { id: `COLUMNS_LAYOUT/${surface}/expand-1-1-1`, surface, initial: '1-1', target: '1-1-1', expand: false },
+  { id: `COLUMNS_LAYOUT/${surface}/empty-removed`, surface, initial: '1-1-1', target: '1-2', expand: true, empty: 'removed' },
+  { id: `COLUMNS_LAYOUT/${surface}/empty-destination`, surface, initial: '1-1-1', target: '2-1', expand: true, empty: 'destination' },
+])
 
 function markup(html) {
   const template = document.createElement('template')
@@ -112,6 +117,12 @@ export async function runColumnsLayoutCase(specification, { sourceBase = '../../
     const initialHosts = fields(), initialWidgets = [...first().querySelectorAll('[data-inline-plugin]')]
     const initialSaved = clone(editor.save().blocks), retainedSnapshot = editor.save().blocks, retainedCopy = clone(retainedSnapshot)
     const firstLength = 'Alpha \uFFFC \uFFFC tail'.length
+    const widgetRecords = columnFields => columnFields.map(field => [...field.querySelectorAll('[data-inline-plugin]')].map(node => ({
+      id: node.getAttribute('data-id'), type: node.getAttribute('data-inline-plugin'), text: node.textContent,
+    })))
+    const expectedWidgets = texts => texts.map(text => [...text.matchAll(/\{\{(\w+)\}\}/g)].map(([, id]) => ({
+      id, type: allInline[id].type, text: allInline[id].type === 'mention' ? `@${allInline[id].data.name}` : allInline[id].data.value,
+    })))
     const layoutShape = (phase, prefix, grid, columns, layout) => {
       const { weights, tracks } = layouts[layout]
       check(phase, `${prefix}.trackDefinition`, grid.style.gridTemplateColumns, tracks)
@@ -129,6 +140,7 @@ export async function runColumnsLayoutCase(specification, { sourceBase = '../../
       check(phase, 'sidecars', block.inline, sidecarsFor(texts))
       check(phase, 'singleBlockIdentity', saved.blocks.map(value => ({ id: value.id, type: value.type })), [{ id: 'columns', type: 'columns' }])
       check(phase, 'editorColumns', fields().map(authorMarkup), texts.map(markup))
+      check(phase, 'editorWidgets', widgetRecords(fields()), expectedWidgets(texts))
       check(phase, 'firstWidgets', [...first().querySelectorAll('[data-inline-plugin]')].map(node => ({ id: node.getAttribute('data-id'), text: node.textContent })),
         [{ id: 'leftMention', text: '@Ada' }, { id: 'leftColor', text: '#123456' }])
       check(phase, 'layoutControls', [...wrapper().querySelectorAll('.oe-columns__layout-btn')].map(button => ({ label: button.getAttribute('aria-label'), pressed: button.getAttribute('aria-pressed') })),
@@ -147,6 +159,7 @@ export async function runColumnsLayoutCase(specification, { sourceBase = '../../
       await settled()
       const rendered = output.querySelector('.editor-columns'), renderedFields = [...rendered.querySelectorAll('.editor-columns__col')]
       check(phase, 'rendererColumns', renderedFields.map(authorMarkup), texts.map(markup))
+      check(phase, 'rendererWidgets', widgetRecords(renderedFields), expectedWidgets(texts))
       const widths = {
         editor: layoutShape(phase, 'editor', wrapper().querySelector('.oe-columns__grid'), fields(), layout),
         renderer: layoutShape(phase, 'renderer', rendered, renderedFields, layout),
@@ -200,6 +213,7 @@ export async function runColumnsLayoutCase(specification, { sourceBase = '../../
         : specification.empty === 'destination' ? [typed[0], typed[2]] : [typed[0], `${typed[1]}<br>${typed[2]}`]
     const layoutSaved = await capture('layout', changed, specification.target, { canUndo: true, canRedo: false }, 2)
     check('layout', 'unchangedFirstHost', first() === initialHosts[0], true)
+    check('layout', 'survivingHosts', fields().slice(0, 2).map((field, index) => field === initialHosts[index]), [true, true])
     check('layout', 'unchangedFirstWidgets', [...first().querySelectorAll('[data-inline-plugin]')].map((node, index) => node === initialWidgets[index]), [true, true])
     check('layout', 'focusInsideEditor', root().contains(document.activeElement), true)
     if (!legacy && original.length === 3 && changed.length === 2) check('layout', 'removedHostDisconnected', initialHosts[2].isConnected, false)

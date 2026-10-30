@@ -13,6 +13,8 @@ const headBefore = git('rev-parse', 'HEAD').toString().trim(), startedAt = new D
 const fixturePath = 'tests/browser/columns-layout-parity-fixture.js'
 const fixture = git('show', `${headBefore}:${fixturePath}`)
 assert.deepEqual(fixture, await readFile(join(repo, fixturePath)), 'Fixture differs from committed source')
+const runnerPath = 'scripts/parity/columns-layout-parity.mjs'
+assert.deepEqual(git('show', `${headBefore}:${runnerPath}`), await readFile(fileURLToPath(import.meta.url)), 'Runner differs from committed source')
 const dependencyRoot = resolve(process.env.EDITOR_DEPENDENCIES_ROOT ?? join(repo, 'node_modules'))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
   ? pathToFileURL(resolve(process.env.EDITOR_PLAYWRIGHT_PATH)).href : 'playwright')
@@ -21,6 +23,7 @@ const sources = [
   { label: 'spec-baseline', sha: 'e981ff308000c1d92d7e820df95113c1e19bcee8', legacy: false, loaded: {} },
   { label: 'candidate', sha: headBefore, legacy: false, loaded: {} },
 ]
+for (const source of sources) source.tree = git('rev-parse', `${source.sha}^{tree}`).toString().trim()
 const imports = { dompurify: '/dependencies/dompurify/dist/purify.es.mjs' }
 const dependencyVersions = { dompurify: JSON.parse(await readFile(join(dependencyRoot, 'dompurify/package.json'), 'utf8')).version }
 const manifest = JSON.parse(await readFile(join(repo, 'package.json'), 'utf8'))
@@ -92,6 +95,7 @@ try {
     results.push({ source: source.label, cases, errors,
       failures: cases.flatMap(entry => entry.observations.filter(value => value.status !== 'PASS').map(value => ({ id: entry.id, ...value }))),
       incompleteCases: cases.filter(entry => entry.error),
+      unsupportedCases: cases.filter(entry => entry.unsupported).map(entry => ({ id: entry.id, reason: entry.unsupported })),
     })
     await page.close()
   }
@@ -103,7 +107,7 @@ try {
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, filter: process.env.EDITOR_COLUMNS_LAYOUT_FILTER ?? '',
     runnerSha256: digest(await readFile(fileURLToPath(import.meta.url))), fixtureSha256: digest(fixture),
     headBefore, headAfter, sources, dependencyVersions, dependencyFiles, serverErrors, results,
-    candidatePass: !candidate.errors.length && !candidate.failures.length && !candidate.incompleteCases.length,
+    candidatePass: candidate.cases.length > 0 && !candidate.unsupportedCases.length && !candidate.errors.length && !candidate.failures.length && !candidate.incompleteCases.length,
     note: 'Raw differential: historical differences retain failure status; there are no classifiers or candidate exceptions.',
   }, null, 2))
   if (serverErrors.length || results.some(result => result.errors.length || result.failures.length || result.incompleteCases.length)) process.exitCode = 1
