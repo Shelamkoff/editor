@@ -186,7 +186,8 @@ export function createListPlugin(config = {}) {
             return li
           }
 
-          const reconcile=next=>{
+          const reconcile=(next,previousCanonical)=>{
+            const previousText=new Map((previousCanonical?.items??[]).map(item=>[item.id,item.text]))
             const tag=next.style==='ordered'?'ol':'ul'
             if(!list||list.tagName.toLowerCase()!==tag){
               const replacement=document.createElement(tag)
@@ -201,7 +202,9 @@ export function createListPlugin(config = {}) {
               live.add(item.id)
               const li=nodes.get(item.id)??createItem(item)
               li.contentEditable=readOnly?'false':'true'
-              if(li.innerHTML!==item.text){
+              // Hydrated inline widgets differ from canonical token markup.
+              // An unchanged item keeps its live children and native range.
+              if(previousText.get(item.id)!==item.text&&li.innerHTML!==item.text){
                 if(item.text)setSanitizedHtml(li,item.text)
                 else li.textContent=''
               }
@@ -227,7 +230,7 @@ export function createListPlugin(config = {}) {
                 text:nodes.get(item.id)?.innerHTML.trim()??item.text,
               })),
             }),
-            update(next){if(!instanceDestroyed)reconcile(next)},
+            update(next,previousCanonical){if(!instanceDestroyed)reconcile(next,previousCanonical)},
             editableFields:()=>Object.freeze(data.items.flatMap(item=>{
               const element=nodes.get(item.id)
               return element?[Object.freeze({

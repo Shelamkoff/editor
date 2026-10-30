@@ -182,23 +182,25 @@ export function createChecklistPlugin(config = {}) {
             return record
           }
 
-          const projectRow=(record,item)=>{
+          const projectRow=(record,item,previousText)=>{
             record.row.classList.toggle('oe-checklist__item--checked',item.checked)
             record.checkbox.setAttribute('aria-pressed',String(item.checked))
             record.checkbox.disabled=readOnly
             record.text.contentEditable=readOnly?'false':'true'
-            if(record.text.innerHTML!==item.text){
+            if(previousText!==item.text&&record.text.innerHTML!==item.text){
               if(item.text)setSanitizedHtml(record.text,item.text)
               else record.text.textContent=''
             }
           }
 
-          const reconcile=next=>{
+          const reconcile=(next,previousCanonical)=>{
+            const previousText=new Map((previousCanonical?.items??[]).map(item=>[item.id,item.text]))
             const live=new Set()
             for(const [index,item] of next.items.entries()){
               live.add(item.id)
               const record=rows.get(item.id)??createRow(item)
-              projectRow(record,item)
+              // Checked-state and sibling edits keep hydrated author fields.
+              projectRow(record,item,previousText.get(item.id))
               const at=wrapper.children[index]
               if(at!==record.row)wrapper.insertBefore(record.row,at??null)
             }
@@ -220,7 +222,7 @@ export function createChecklistPlugin(config = {}) {
                 checked:item.checked,
               })),
             }),
-            update(next){if(!instanceDestroyed)reconcile(next)},
+            update(next,previousCanonical){if(!instanceDestroyed)reconcile(next,previousCanonical)},
             editableFields:()=>Object.freeze(data.items.flatMap(item=>{
               const element=rows.get(item.id)?.text
               return element?[Object.freeze({key:`item:${item.id}`,element,mode:/** @type {'rich-text'} */('rich-text')})]:[]

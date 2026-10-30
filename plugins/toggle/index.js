@@ -162,10 +162,10 @@ export function createTogglePlugin(config = {}) {
               content:body.innerHTML.trim(),
               open:persistedOpen,
             }),
-            update(next){
+            update(next,previousCanonical){
               if(instanceDestroyed)return
-              if(title.innerHTML!==next.title)setSanitizedHtml(title,next.title)
-              if(body.innerHTML!==next.content)setSanitizedHtml(body,next.content)
+              if(previousCanonical?.title!==next.title&&title.innerHTML!==next.title)setSanitizedHtml(title,next.title)
+              if(previousCanonical?.content!==next.content&&body.innerHTML!==next.content)setSanitizedHtml(body,next.content)
               persistedOpen=next.open
               projectOpen(next.open)
             },
