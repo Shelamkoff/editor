@@ -5,6 +5,22 @@ import { createMentionPlugin } from '../../../inline-plugins/mention/index.js'
 import { createColorSwatchPlugin } from '../../../inline-plugins/color.js'
 import { createDefaultInlineTools } from '../../../preset/index.js'
 import { getTextOffset } from '../../../shared/textOffset.js'
+import { tableSettingsCases, runTableSettingsCase } from '../table-settings-parity-fixture.js'
+
+for (const specification of tableSettingsCases) {
+  test(`Table settings parity ${specification.id}`, async () => {
+    const result = await runTableSettingsCase(specification, { native: async (action, value) => {
+      if (action === 'type') await printable(value)
+      else if (action === 'click') await window.__testInput('Input.click', value)
+      else if (action === 'undo') await dispatchKey('z', 'KeyZ', 90, 2)
+      else if (action === 'redo') await dispatchKey('z', 'KeyZ', 90, 10)
+      else throw new Error(`Unknown Table test action: ${action}`)
+    } })
+    assert(!result.error, result.error)
+    const failures = result.observations.filter(observation => observation.status !== 'PASS')
+    equal(failures, [], 'Table settings parity failed: ' + JSON.stringify(failures))
+  })
+}
 
 test('Table Enter retains the active mark for trusted input on its new line and two separate history actions', async () => {
   const input = { id: 'table', type: 'table', dataVersion: 2, data: {
