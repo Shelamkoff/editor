@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "baseGateCommit": "32138be5e2e8a1e72f9d960ce64111a6a5810c3a",
+  "codeCommit": "00fe355ace54a4dc69005ebe60486bba9afc41e6",
+  "finding": "Previous helpers omitted lock.integrity. npm GitFetcher skips its own supplied-integrity enforcement, so the previous Git provenance proof did not establish the locked archive bytes.",
+  "repair": [
+    "Require a canonical single sha512 SRI in the project lock",
+    "Carry that SRI in the immutable Git pin record",
+    "Require npm packed metadata SRI to equal the lock",
+    "Compute SHA512 directly from actual staged tgz bytes and require equality",
+    "Require actual installed consumer lock SRI to equal the project lock",
+    "Log actual consumer declaration, resolution, version and SRI"
+  ],
+  "previousEvidenceUnchanged": "../package-git-dependency",
+  "meaningfulRedGreen": {
+    "unchangedHarnessAndInputs": true,
+    "harnessSha256": "46eaef590d65e0369dbfbd8de544551b7f26402c9dc3d3fce451061128c17271",
+    "inputsSha256": "0bd587733b2eb8bf1a98f4a1230df3bd892448c7f24aedf8703599021680655e",
+    "oldSource": "32138be5e2e8a1e72f9d960ce64111a6a5810c3a",
+    "oldExitCode": 1,
+    "oldObservations": {
+      "pinCarriesLockedIntegrity": false,
+      "consumerDiffersFromProjectIntegrityAccepted": true,
+      "originalIntegrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+      "changedIntegrity": "sha512-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "error": null
+    },
+    "newSource": "00fe355ace54a4dc69005ebe60486bba9afc41e6",
+    "newExitCode": 0,
+    "newObservations": {
+      "pinCarriesLockedIntegrity": true,
+      "consumerDiffersFromProjectIntegrityAccepted": false,
+      "originalIntegrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+      "changedIntegrity": "sha512-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "error": "@shelamkoff/carousel consumer integrity differs from the locked Git artifact"
+    }
+  },
+  "executed": {
+    "manifest": "runs/run-ph0ERM/manifest.json",
+    "sourceUnchanged": true,
+    "targetedTests": {
+      "pass": 20,
+      "total": 20,
+      "gitDependencyTests": 16,
+      "existingExportsTests": 4
+    },
+    "packageOutcome": "passed",
+    "packageElapsedMs": 32851.707596,
+    "consumerTypeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "nodeImports": "passed",
+    "externalBrowser": {
+      "pass": 39,
+      "total": 39
+    },
+    "cssAssets": 22
+  },
+  "stagedActualArchiveVerification": {
+    "gitDependency": {
+      "name": "@shelamkoff/carousel",
+      "spec": "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "commit": "f7f6485886a1d77f9213d9079eb70000efeff499",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "version": "1.0.0",
+      "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA=="
+    },
+    "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+    "lifecycleScripts": false
+  },
+  "actualInstalledConsumer": {
+    "offlineConsumerGitDependencies": [
+      {
+        "name": "@shelamkoff/carousel",
+        "declared": "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+        "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+        "version": "1.0.0",
+        "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA=="
+      }
+    ],
+    "provenance": "passed"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "codeFiles": [
+    {
+      "path": "scripts/package-consumer-gate.mjs",
+      "sha256": "25acddee2ade8d0cfc7cabcbbfb0636e271b09ec93e389dd05885e369c336653"
+    },
+    {
+      "path": "scripts/package-git-dependencies.mjs",
+      "sha256": "fad9a20d508a551e70e38ea996d67efa3eac81592ee02d2d364190f550e1bd49"
+    },
+    {
+      "path": "scripts/package-git-dependencies.test.mjs",
+      "sha256": "e061af4295cde6df8e91185dd413d58c14a5b5e283eea5916771330260926dad"
+    }
+  ],
+  "productionManifestLockUnchanged": true,
+  "scope": "The same three gate scripts only; separate evidence archive. No ledger or overall parity acceptance."
+}

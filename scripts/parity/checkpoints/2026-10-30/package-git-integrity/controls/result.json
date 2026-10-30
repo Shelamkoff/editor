@@ -1,0 +1,35 @@
+{
+  "harnessSha256": "46eaef590d65e0369dbfbd8de544551b7f26402c9dc3d3fce451061128c17271",
+  "inputsSha256": "0bd587733b2eb8bf1a98f4a1230df3bd892448c7f24aedf8703599021680655e",
+  "unchangedHarnessAndInputs": true,
+  "results": [
+    {
+      "label": "old",
+      "sourceCommit": "32138be5e2e8a1e72f9d960ce64111a6a5810c3a",
+      "command": [
+        "node",
+        "/tmp/rector-package-git-integrity-controls-20261030/integrity-control.mjs",
+        "/tmp/rector-package-git-integrity-controls-20261030/old-helper.mjs",
+        "/tmp/rector-package-git-integrity-controls-20261030/inputs.json"
+      ],
+      "exitCode": 1,
+      "seconds": 0.04403352737426758,
+      "helperSha256": "d465dea387d19312b0d1b6d24d137fb537679becc80ae8a69764c3b6cda2bb71",
+      "log": "/tmp/rector-package-git-integrity-controls-20261030/old.log"
+    },
+    {
+      "label": "new",
+      "sourceCommit": "00fe355ace54a4dc69005ebe60486bba9afc41e6",
+      "command": [
+        "node",
+        "/tmp/rector-package-git-integrity-controls-20261030/integrity-control.mjs",
+        "/tmp/rector-package-git-integrity-controls-20261030/new-helper.mjs",
+        "/tmp/rector-package-git-integrity-controls-20261030/inputs.json"
+      ],
+      "exitCode": 0,
+      "seconds": 0.05035805702209473,
+      "helperSha256": "fad9a20d508a551e70e38ea996d67efa3eac81592ee02d2d364190f550e1bd49",
+      "log": "/tmp/rector-package-git-integrity-controls-20261030/new.log"
+    }
+  ]
+}
