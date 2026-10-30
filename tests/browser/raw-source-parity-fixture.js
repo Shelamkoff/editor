@@ -70,7 +70,8 @@ export async function runRawSourceCase(specification, { sourceBase = '../../', l
     editor = createEditor({ holder, plugins: [paragraph, raw], inlinePlugins: [], inlineTools: [], defaultBlock: 'paragraph',
       injectStyles: true, readOnly: Boolean(specification.initialReadOnly), data: input })
     if (!legacy) editor.on('transaction:committed', () => transactions.push(phase))
-    holder.addEventListener('keydown', event => trusted.push({ phase, type: 'keydown', key: event.key, shift: event.shiftKey, trusted: event.isTrusted }))
+    // Raw intentionally stops Tab propagation after handling the source edit.
+    holder.addEventListener('keydown', event => trusted.push({ phase, type: 'keydown', key: event.key, shift: event.shiftKey, trusted: event.isTrusted }), { capture: true })
     holder.addEventListener('input', event => trusted.push({ phase, type: 'input', inputType: event.inputType, trusted: event.isTrusted }))
     const shell = () => holder.querySelector('.oe-raw')
     const field = () => shell().querySelector('textarea')
