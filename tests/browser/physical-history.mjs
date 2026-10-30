@@ -508,6 +508,9 @@ try {
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
   const nativePluginParity = await runNativePage(client, pageUrl, 'native-plugin-parity.html')
+  const nativeCodeSourceLanguage = await runNativePage(client, pageUrl, 'native-code-source-language.html')
+  const nativePersonModes = await runNativePage(client, pageUrl, 'native-person-modes.html')
+  const nativeTableKeyboard = await runNativePage(client, pageUrl, 'native-table-keyboard.html')
   const nativeRoundtripPreservation = await runNativePage(client, pageUrl, 'native-roundtrip-preservation.html')
   const nativePresentationRecovery = await runNativePage(client, pageUrl, 'native-presentation-recovery.html')
   const nativePluginControls = await runNativePage(client, pageUrl, 'native-plugin-controls.html')
@@ -563,6 +566,9 @@ try {
     nativeCrossSelection,
     nativeCoreBehavior,
     nativePluginParity,
+    nativeCodeSourceLanguage,
+    nativePersonModes,
+    nativeTableKeyboard,
     nativeRoundtripPreservation,
     nativePresentationRecovery,
     nativePluginControls,

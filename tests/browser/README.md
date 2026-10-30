@@ -33,7 +33,7 @@ Tests belonging to the standalone cropper/expose repositories are not part of th
 The CI `size-report` job enforces the Paragraph, default interactive and full preset budgets. The core size is informational by owner decision. Run `node benchmarks/bundle-budget.mjs --enforce` for the same gate locally; without that flag the command only reports measurements.
 
 
-`native-plugin-parity.html` checks all 21 plugins and 34 authoring fields through native input, directed replacement, caret and Undo/Redo, plus multiline/single-line behavior, Code and Raw view controls, literal Code-to-rich conversion, whole conversions and read-only projection (140 cases).
+`native-plugin-parity.html` checks all 21 plugins and 34 authoring fields through native input, directed replacement, caret and Undo/Redo, plus multiline/single-line behavior, Code and Raw view controls, literal Code-to-rich conversion, whole conversions and read-only projection.
 
 `native-plugin-controls.html` verifies 146 actual controls: all 21 plugins' Move/Duplicate/Delete commands, Table grid and Columns layouts, Gallery and Person drag, Person crop Apply/Cancel, hidden editing hosts after tab/slide changes, Poll option sorting/results/voting/reset, LinkPreview templates and Attaches variants. The OS file chooser is intercepted only to supply the disposable test file; the crop dialog, canvas, upload and history still execute.
 
@@ -42,6 +42,8 @@ The CI `size-report` job enforces the Paragraph, default interactive and full pr
 `native-plugin-clipboard.html` checks 48 trusted Copy/Cut/Paste gestures between independent editors for 12 compound plugins, including structured fragment preservation and keeping unselected assets/settings in the source.
 
 `native-plugin-media.html` checks 70 visible media/presentation effects: Embed URL/Replace/settings/cover/Play, five custom source actions, four native URL dialogs, Carousel HTML/video/counter/settings/remove-all/autoplay, every Gallery layout's actual geometry, and read-only Toggle/Spoiler interaction. It also checks Image Replace and Gallery/Carousel Add drill-downs, Image dimensions/switches with history, separate Gallery thumbnail controls, opened Settings panels at 320×500, resizing an already open panel, native Escape immediately after mouse opening, and Settings above a focused neighboring block. Provider iframe integration is checked; remote provider availability/playback is not a local gate.
+
+`native-code-source-language.html`, `native-person-modes.html` and `native-table-keyboard.html` run the detailed Code controls, Person hidden-field/read-only modes and Table keyboard corpora as separate pages. They use the same native driver, regression modules, styles and case harness as `native-plugin-parity.html`. The full physical runner includes all four pages in its final aggregate, retaining the existing 120-second budget per page.
 
 Native coordinate helpers wait for mounted stylesheets and fonts before measuring click/drag targets. They still require trusted input, real hit testing and exact offsets; they do not retry a failed gesture or replace it with a programmed selection.
 
