@@ -10,7 +10,7 @@ All 14 maintained differential corpora complete 235 candidate cases without cand
 
 The register now retains **209 unique IDs: 54 accepted / 155 open**, including the eight independently reviewed upstream acceptances. These are proof obligations, not known defects. B-HTML/B-STYLE, full C09/T15 and remaining detailed/platform/IME obligations remain open. The core informational bundle-size target remains unmet; no new latency or allocation improvement is claimed.
 
-Published upstream `414c6af1` was merged normally. New local continuation commits are not pushed: the GitHub write attempt timed out and the CLI has no credentials. The fallback Git bundle records its own final commit, tree, checksum and recovery verification. Earlier sections below preserve their original sources and scopes; later documentation checks identify their own source.
+Published upstream `414c6af1` was merged normally. New local continuation commits are not pushed. The earlier GitHub API probe timed out and CLI checks found no credentials. A subsequent ordinary push of `5ceef35c` was blocked before execution by automatic approval review, which requires explicit approval of the outgoing history and `https://github.com/Shelamkoff/editor.git` destination. The fallback Git bundle records its own final commit, tree, checksum and recovery verification. Earlier sections below preserve their original sources and scopes; later documentation checks identify their own source.
 
 ## Preserved baseline
 

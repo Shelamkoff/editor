@@ -3,9 +3,14 @@
 This checkpoint combines the local refactor repairs with published upstream
 `414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab`. Both histories are retained by normal
 merges. The integrated source before this prose update is `be21671683d8812070f49282ed26de42884740e5`.
-New local continuation commits have not been pushed: the GitHub write route
-timed out and the CLI has no available credentials. The read-only upstream
-fetch succeeded. No automatic approval-review rejection was returned.
+New local continuation commits have not been pushed. The earlier GitHub API
+probe timed out and CLI checks found no available credentials; the read-only
+upstream fetch succeeded. After final documentation validation, automatic
+approval review blocked an ordinary push of `5ceef35c` before execution. It
+requires explicit approval of the outgoing history and
+`https://github.com/Shelamkoff/editor.git` destination. No Git process ran for
+that attempt. [The publication receipt](./publication-attempt.json) preserves
+the visible rejection excerpt and marks its truncation explicitly.
 
 ## Behavior completed
 
