@@ -1,0 +1,753 @@
+{
+  "format": 1,
+  "createdAt": "2026-10-30T18:31:47.707167+00:00",
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "testedHead": "5fd7144a7aac3bbfa18d868d65cbe296dd234e90",
+  "testedTree": "25becc5e9af3ca4815295fc61478ff06eaac1fea",
+  "scope": "Trusted paired ordinary native input with unchanged canonical data; no full library or ROUNDTRIP acceptance.",
+  "runtimeFiles": [
+    "core/NativeInputController.js",
+    "core/DocumentRuntime.js",
+    "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md"
+  ],
+  "sourceHashes": {
+    "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md": "61339d42118fe2388d20fbd282a862b1d2749dbbd517305b15a3eb97523eafc1",
+    "core/DocumentRuntime.js": "a4d2a3193afa8384938a6a2bc6f12257bc583a0f6d0a30b26f4b1364d9a9e38d",
+    "core/NativeInputController.js": "f4b633f7dda9e54c6eb9c083a5fe364529f4b2a7f65812e82fdd73521ceff8cc",
+    "core/NativeInputController.test.js": "16a3bd83323bb067c628cfe590415dd125c305b5aa24c8466fe7543426b2dc9a",
+    "tests/browser/regressions/field-source-completion-native.js": "d2bf528d0027af217b697b094e0df5220eaec4085911325505346502d1999723"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "chrome": "Google Chrome for Testing 156.0.8078.47",
+    "installedCarousel": {
+      "version": "1.0.0",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+      "license": "MIT",
+      "dependencies": {
+        "@shelamkoff/event-bus": "^1.0.0"
+      },
+      "engines": {
+        "node": ">=20"
+      }
+    },
+    "carouselFilesMatchFreshMainInstall": true,
+    "carouselFileHashes": {
+      "LICENSE": "ee385e1b8ccc05bbd96d114f77bfde8163ff52631783691234d35211838ac302",
+      "README.md": "88385995f7feb230a23ca5589dbc928a2a7f2442cd0cd737ab2f6909184bd15f",
+      "README.ru.md": "031b45c9d01bf273f686a05ed916a38a8ca1bd74f762523dc0e4c871aca65072",
+      "dist/src/BreakpointManager.d.ts": "5bfc96021544a46521c53efaea8fc92828eeac22eee857e79782754eb3ec5526",
+      "dist/src/BreakpointManager.js": "3d3cc67866108ef71fd094188c303d7cb499d31f9cd8b44f50cfff582676b2f4",
+      "dist/src/Carousel.d.ts": "5da13db2ca82f51fd527a639d74e0c435e580846089061675bc63d9e88455819",
+      "dist/src/Carousel.js": "a3969ff43b5ff8d326e297fff122c11ffeb7747ff7f68f0bfd38fa6a32cdef1f",
+      "dist/src/LoopEngine.d.ts": "5003f3bf9de12f1b5ea9cf7103a187bf6f77fa2a7b9299e82129037db65f44fe",
+      "dist/src/LoopEngine.js": "0efae61567ab966f50161698c5cc02f54792c4791919d11ef3a0e18b661e5ed3",
+      "dist/src/SlideManager.d.ts": "3af07797feb3ec88311fe022f9a33a9d64fe364faef07e7b718466607c8462ae",
+      "dist/src/SlideManager.js": "096bb3d1effe623e9445f92933bc8b34b4030414df212addcac39c3ef214f1af",
+      "dist/src/TrackRenderer.d.ts": "f44726aac2c22ca52588f446507b4734b4e0ccc6b8b3f7100bddb45044b9b61a",
+      "dist/src/TrackRenderer.js": "637086ae6119d8fed554acc9e5d47465ab79179137761f68c8bf1c7d1ce40fee",
+      "dist/src/index.d.ts": "618ad18a98d0cf8fc72af0e9ca6a2a0289114cc6e4c1082a1d94921c1a50fd1d",
+      "dist/src/index.js": "6c73f6583b1b7d3280a1a2aa75885a8ca8b0c0265fce23d3a123fbe99007b1b6",
+      "dist/src/plugins/arrows/README.md": "8e2306aa1acabb115fe0935299e9b5db1a866f34b50abd17f8cde223d8150683",
+      "dist/src/plugins/arrows/README.ru.md": "f40a9b74f9a18a2a409a6e4c260930ba0f6ed643226ef6a84ef2a7270cc73c9b",
+      "dist/src/plugins/arrows.d.ts": "c4a41c51d9c213ec20e1fd2a9afff3526ebe726b7962f8434fdd59e936bf819f",
+      "dist/src/plugins/arrows.js": "91bbe344b1131a8798fca7e652466b2fdd8a494dd10b55669abddb18b3fcc5da",
+      "dist/src/plugins/autoplay/README.md": "ef0ba1185eb4957d2a7ba8350382ec2519cca839f29dced2b3153cda03b709d9",
+      "dist/src/plugins/autoplay/README.ru.md": "43fda056ad1473d8caad7424c8e7e7a248c481dcb82750811a98d43758201291",
+      "dist/src/plugins/autoplay.d.ts": "7acab5dd76479c0abe8a9e075838b9cedcfe1ffa81b449870cf7067e931291b4",
+      "dist/src/plugins/autoplay.js": "8b502f680cf86862ed8f37260aedb9e1a605c157821661feca9db212053fec46",
+      "dist/src/plugins/dots/README.md": "ea8ade3e3eac671bd2f118dcef602c9e45ba24e97339b4385f1cc6ac66d1ad96",
+      "dist/src/plugins/dots/README.ru.md": "6ca2e7827a12a296b0ef17700a7a2a571cd6163c2424fd2b024ed882c182013a",
+      "dist/src/plugins/dots.d.ts": "83ba5db2fe31189119ad2dcd005e9a3ba685a0a02c90fe79934524057a6cd0ae",
+      "dist/src/plugins/dots.js": "261b11c5de5f9656c95e1dae89cec4f963d30b7252a3a9550b0815b42e0b3228",
+      "dist/src/plugins/index.js": "1a6980e086a61291e1e993079d977244a1451dbd45fe8603d1124ae4b612853f",
+      "dist/src/plugins/keyboard/README.md": "f5830be42195120e1af9f26f2a4c6918c760e396ff0385f1d4aaf2c040dd645e",
+      "dist/src/plugins/keyboard/README.ru.md": "423b4d52e43e56b6bfe7fdef74ca512b2c7a1ca8d7d28ccfd140d8017160b407",
+      "dist/src/plugins/keyboard.d.ts": "0c58151a0992a759ab4fe3693f51b8fdb17bb19dce32fae21656c79b1cb59d63",
+      "dist/src/plugins/keyboard.js": "affb6d74026a59c9758871702bba4cf4f8af22309a6cfa34c67dc6f8dffd94f2",
+      "dist/src/plugins/lazyload/README.md": "7e9cb6d3cee6bbb693f2c5362668c19c27a4e162e400cdf4e3c641d8913f9204",
+      "dist/src/plugins/lazyload/README.ru.md": "f13f502fc1217dfe2ba42e3fe8f2ca3595fa838eb95a76f506e830885e2e9400",
+      "dist/src/plugins/lazyload.d.ts": "db0c936c3615a759e8ef3a88550224e27bc19d7d2b10c0e35d26b9ce37f5e40f",
+      "dist/src/plugins/lazyload.js": "2425cda1df630f375168e631f27f5f29465ac6013b3fb1e14f616a11af41fcd3",
+      "dist/src/plugins/parallax/README.md": "ce3ab473021b49c1dcb234d44678314ab140a86c4e0ecc01a8a2200ee43ad8ea",
+      "dist/src/plugins/parallax/README.ru.md": "26554df10954e0b93d992a72e7e3b7a06799f7f905e0a38f8f8c0cda16a7fdd0",
+      "dist/src/plugins/parallax.d.ts": "2a5507e021c7e47f764ff5d5610542e800ef2dcf20484beb8d562cee921430c7",
+      "dist/src/plugins/parallax.js": "d03d759e1fb41efbd7ed12864a1348a6f46e2ccb7acb629f0ad266191efdb22e",
+      "dist/src/plugins/swipe/README.md": "e06d642fc5a744ff40abe4eb47c29e3fd34afd598018a1ca716f3cd4fa75e3ea",
+      "dist/src/plugins/swipe/README.ru.md": "6992f0819062db9f63a430e9012b85a530162806b4a6b29742632374b66a85c6",
+      "dist/src/plugins/swipe.d.ts": "18463b03bac91543d736168a79ffde74d022430d4882e4e7e3c8dc7dd3b81549",
+      "dist/src/plugins/swipe.js": "33a8cfe76b99c5be0f6b08cfd5f7c299c29f6d9cc2fa80c46fa6c894055374f7",
+      "dist/src/plugins/thumbnails/README.md": "3dc2d632880b89417310f15e9eaf7ea7e4c40d7ccf85d7b65fb87c88ec56118f",
+      "dist/src/plugins/thumbnails/README.ru.md": "1d972cc0c57bb91200b7704e371dc13127c7e373f2708b02bf5dd9a2985bd896",
+      "dist/src/plugins/thumbnails.d.ts": "e3f949206a46416e5930febbf32a271e806f13a8190573c676c48649a038c16a",
+      "dist/src/plugins/thumbnails.js": "f612dc43eaa0d8dafc7090d39b00e64a6b2455a07b7c04fc3c55643b5a0e593d",
+      "dist/src/types.d.ts": "b18dd77d73ceb78c5e3f1b3ffdc3f67d4b82840ce202db32b13c0b5ad05ea83c",
+      "dist/styles/carousel.css": "8aeb1884d1ecacf326b50ab46f1f16b0b6efb1cba9fada533ebb94064b4e6259",
+      "package.json": "0c8a77116957f083fc08483e69fbdf806e56fd71b34853cbddf86a540e85eff6"
+    },
+    "dependencyNote": "run-ysyhCc used the initial independent dependency copy before the fresh npm installation. The same RED was repeated as run-yHfJQi after copying the fresh root installation; all subsequent runs use that copy. The core fixture does not import Carousel."
+  },
+  "runs": [
+    {
+      "run": "run-ysyhCc",
+      "head": "a6863077ca3c6bdf63e17a49e39de752e6f9fb68",
+      "tree": "92f5cb9cc3acade5c9853fcdea89405163eafa30",
+      "dirty": false,
+      "outcome": "failed",
+      "gates": [
+        {
+          "name": "ordinary-noop-red",
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:15:43.124Z",
+          "finishedAt": "2026-10-30T18:15:45.733Z",
+          "elapsedMs": 2606.383236,
+          "observedCases": 1,
+          "passed": 0,
+          "failed": 1,
+          "cases": [
+            {
+              "name": "field source completion trusted same-character replacement completes once without a canonical action",
+              "status": "FAIL",
+              "error": "Error: \nexpected [[\"a\",\"note\",\"Note a-note tail\"]], got []\n    at equal (http://127.0.0.1:43365/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:43365/tests/browser/regressions/field-source-completion-native.js:34:5\n    at async run (http://127.0.0.1:43365/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:43365/tests/browser/native-library-boundaries.js:354:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "run-yHfJQi",
+      "head": "a00c3728fe538660243cdcd74aecc33768a5f41a",
+      "tree": "40ae8643564cb0d0b4c230aca039bf9bcc1e100d",
+      "dirty": false,
+      "outcome": "failed",
+      "gates": [
+        {
+          "name": "ordinary-noop-red",
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:18:14.180Z",
+          "finishedAt": "2026-10-30T18:18:16.476Z",
+          "elapsedMs": 2293.985242,
+          "observedCases": 2,
+          "passed": 0,
+          "failed": 2,
+          "cases": [
+            {
+              "name": "field source completion trusted same-character replacement completes once without a canonical action",
+              "status": "FAIL",
+              "error": "Error: \nexpected [[\"a\",\"note\",\"Note a-note tail\"]], got []\n    at equal (http://127.0.0.1:36045/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:36045/tests/browser/regressions/field-source-completion-native.js:34:5\n    at async run (http://127.0.0.1:36045/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:36045/tests/browser/native-library-boundaries.js:354:1"
+            },
+            {
+              "name": "field source completion trusted semantic no-op failure recovers before a later native edit and history replay",
+              "status": "FAIL",
+              "error": "Error: The actual native no-op must reach its fallible completion boundary\nexpected 1, got 0\n    at equal (http://127.0.0.1:36045/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:36045/tests/browser/regressions/field-source-completion-native.js:70:5\n    at async run (http://127.0.0.1:36045/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:36045/tests/browser/native-library-boundaries.js:354:1\nExpected browser error was not raised: /controlled ordinary no-op completion failure/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "run-fXLYNY",
+      "head": "e992e176b2c340bc7d91aff0dd455c0b8ca3e9c9",
+      "tree": "f744afafaf2d5946176b20e578641dac98b64f58",
+      "dirty": false,
+      "outcome": "passed",
+      "gates": [
+        {
+          "name": "source-completion",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:19:33.465Z",
+          "finishedAt": "2026-10-30T18:19:41.376Z",
+          "elapsedMs": 7907.814605,
+          "observedCases": 8,
+          "passed": 8,
+          "failed": 0,
+          "cases": [
+            {
+              "name": "field source completion trusted same-character replacement completes once without a canonical action",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion trusted semantic no-op failure recovers before a later native edit and history replay",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion native author text settles only its exact field before canonical acceptance",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion native failure restores accepted content without a history action",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects schema-callback shell adoption before hydration and preserves the foreign shell",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects throwing schema-callback shell adoption before hydration and preserves the foreign shell",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion same-key successor receives its own completion after native removal",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects author mutation by a schema callback without accepting history",
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "name": "inline-completion",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:19:41.636Z",
+          "finishedAt": "2026-10-30T18:19:48.788Z",
+          "elapsedMs": 7149.752448,
+          "observedCases": 6,
+          "passed": 6,
+          "failed": 0,
+          "cases": [
+            {
+              "name": "field completion native canonical no-op normalization settles the exact affected field",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native sidecar commit and one Undo/Redo settles the exact affected field",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native cancelled beforeinput does not acquire a completion or history action",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native changed commit with Error failure recovers its accepted projection once",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native canonical no-op with undefined failure recovers its accepted projection once",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native removal completes the remaining author field before retiring the removed occurrence",
+              "status": "PASS"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "run-9TZbNd",
+      "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+      "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+      "dirty": false,
+      "outcome": "passed",
+      "gates": [
+        {
+          "name": "affected-node",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:23:30.094Z",
+          "finishedAt": "2026-10-30T18:23:30.350Z",
+          "elapsedMs": 253.90794100000002,
+          "tests": {
+            "tests": 287,
+            "pass": 287,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "typecheck",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:23:30.524Z",
+          "finishedAt": "2026-10-30T18:23:38.115Z",
+          "elapsedMs": 7587.848566000001
+        }
+      ]
+    },
+    {
+      "run": "run-kvns9p",
+      "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+      "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+      "dirty": false,
+      "outcome": "passed",
+      "gates": [
+        {
+          "name": "source-completion-final",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:24:55.428Z",
+          "finishedAt": "2026-10-30T18:25:02.756Z",
+          "elapsedMs": 7326.101149,
+          "observedCases": 11,
+          "passed": 11,
+          "failed": 0,
+          "cases": [
+            {
+              "name": "field source completion trusted same-character replacement completes once without a canonical action",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion trusted semantic no-op failure recovers before a later native edit and history replay",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion semantic no-op rejects schema adoption of its captured field owner",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion plain input retains native no-op and one-step history without a rich hook",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion plain textarea retains native no-op and one-step history without a rich hook",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion native author text settles only its exact field before canonical acceptance",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion native failure restores accepted content without a history action",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects schema-callback shell adoption before hydration and preserves the foreign shell",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects throwing schema-callback shell adoption before hydration and preserves the foreign shell",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion same-key successor receives its own completion after native removal",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects author mutation by a schema callback without accepting history",
+              "status": "PASS"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "run-Ecxvr9",
+      "head": "cea090636f12a688b13b486d1aaab14818b33450",
+      "tree": "7a0d530b279c551c89536c026449450b0e45a079",
+      "dirty": false,
+      "outcome": "failed",
+      "gates": [
+        {
+          "name": "capture-recovery-red",
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:27:53.613Z",
+          "finishedAt": "2026-10-30T18:27:55.455Z",
+          "elapsedMs": 1839.366634,
+          "observedCases": 1,
+          "passed": 0,
+          "failed": 1,
+          "cases": [
+            {
+              "name": "field source completion descriptor capture failure restores the accepted native source",
+              "status": "FAIL",
+              "error": "Error: A rejected descriptor capture must not leave unaccepted native text\nexpected \"Note a-note tail\", got \"Note a-note tailX\"\n    at equal (http://127.0.0.1:37545/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:37545/tests/browser/regressions/field-source-completion-native.js:112:5\n    at async run (http://127.0.0.1:37545/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:37545/tests/browser/native-library-boundaries.js:354:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "run-aDFlkg",
+      "head": "5fd7144a7aac3bbfa18d868d65cbe296dd234e90",
+      "tree": "25becc5e9af3ca4815295fc61478ff06eaac1fea",
+      "dirty": false,
+      "outcome": "passed",
+      "gates": [
+        {
+          "name": "source-completion",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:29:03.380Z",
+          "finishedAt": "2026-10-30T18:29:10.855Z",
+          "elapsedMs": 7472.144179,
+          "observedCases": 12,
+          "passed": 12,
+          "failed": 0,
+          "cases": [
+            {
+              "name": "field source completion trusted same-character replacement completes once without a canonical action",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion trusted semantic no-op failure recovers before a later native edit and history replay",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion descriptor capture failure restores the accepted native source",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion semantic no-op rejects schema adoption of its captured field owner",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion plain input retains native no-op and one-step history without a rich hook",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion plain textarea retains native no-op and one-step history without a rich hook",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion native author text settles only its exact field before canonical acceptance",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion native failure restores accepted content without a history action",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects schema-callback shell adoption before hydration and preserves the foreign shell",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects throwing schema-callback shell adoption before hydration and preserves the foreign shell",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion same-key successor receives its own completion after native removal",
+              "status": "PASS"
+            },
+            {
+              "name": "field source completion rejects author mutation by a schema callback without accepting history",
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "name": "inline-completion",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:29:11.027Z",
+          "finishedAt": "2026-10-30T18:29:17.977Z",
+          "elapsedMs": 6947.536336,
+          "observedCases": 6,
+          "passed": 6,
+          "failed": 0,
+          "cases": [
+            {
+              "name": "field completion native canonical no-op normalization settles the exact affected field",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native sidecar commit and one Undo/Redo settles the exact affected field",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native cancelled beforeinput does not acquire a completion or history action",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native changed commit with Error failure recovers its accepted projection once",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native canonical no-op with undefined failure recovers its accepted projection once",
+              "status": "PASS"
+            },
+            {
+              "name": "field completion native removal completes the remaining author field before retiring the removed occurrence",
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "name": "affected-node",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:29:18.158Z",
+          "finishedAt": "2026-10-30T18:29:18.432Z",
+          "elapsedMs": 271.696958,
+          "tests": {
+            "tests": 287,
+            "pass": 287,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "typecheck",
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true,
+          "startedAt": "2026-10-30T18:29:18.597Z",
+          "finishedAt": "2026-10-30T18:29:25.564Z",
+          "elapsedMs": 6965.048558
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "head": "a6863077ca3c6bdf63e17a49e39de752e6f9fb68",
+      "tree": "92f5cb9cc3acade5c9853fcdea89405163eafa30",
+      "patch": "sources/a6863077ca3c6bdf63e17a49e39de752e6f9fb68.patch.gz",
+      "commitObjectBase64": "dHJlZSA5MmY1Y2I5Y2MzYWNhZGU1Yzk4NTNmY2RlYTg5NDA1MTYzZWFmYTMwCnBhcmVudCA2OWM4NDI1ZTAwODFmZGU2OWNmNTE3NmNjYjczZDAzMjcyMGMxNWZjCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4Mzk1OCArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODM5NTggKzAzMDAKCnRlc3QoY29yZSk6IHJlcXVpcmUgbmF0aXZlIHNlbWFudGljIG5vLW9wIGZpZWxkIGNvbXBsZXRpb24K"
+    },
+    {
+      "head": "a00c3728fe538660243cdcd74aecc33768a5f41a",
+      "tree": "40ae8643564cb0d0b4c230aca039bf9bcc1e100d",
+      "patch": "sources/a00c3728fe538660243cdcd74aecc33768a5f41a.patch.gz",
+      "commitObjectBase64": "dHJlZSA0MGFlODY0MzU2NGNiMGQwYjRjMjMwYWNhMDM5YmY5YmNjMWUxMDBkCnBhcmVudCBhNjg2MzA3N2NhM2M2YmRmNjNlMTdhNDllMzlkZTc1MmU2ZjlmYjY4CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NDI1OCArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODQyNTggKzAzMDAKCnRlc3QoY29yZSk6IHByZXNlcnZlIHJlY292ZXJ5IG9mIGZhaWxlZCBvcmRpbmFyeSBuYXRpdmUgbm8tb3AgY29tcGxldGlvbgo="
+    },
+    {
+      "head": "e992e176b2c340bc7d91aff0dd455c0b8ca3e9c9",
+      "tree": "f744afafaf2d5946176b20e578641dac98b64f58",
+      "patch": "sources/e992e176b2c340bc7d91aff0dd455c0b8ca3e9c9.patch.gz",
+      "commitObjectBase64": "dHJlZSBmNzQ0YWZhZmFmMmQ1OTQ2MTc2YjIwZTU3ODY0MWRhYzk4YjY0ZjU4CnBhcmVudCBhMDBjMzcyOGZlNTM4NjYwMjQzY2RjZDc0YWVjYzMzNzY4YTVmNDFhCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NDM0NCArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODQzNDQgKzAzMDAKCmZpeChjb3JlKTogY29tcGxldGUgdHJ1c3RlZCBuYXRpdmUgbm8tb3BzIGJlZm9yZSBsZWF2aW5nIHByb2plY3Rpb24gc3luYwo="
+    },
+    {
+      "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+      "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+      "patch": "sources/11e91a50ca2f9e44139d768018d547fc00016162.patch.gz",
+      "commitObjectBase64": "dHJlZSBkMjU5OWU0ZmI1YzMwMWI1MDI4ZDY5ZGE3OGI1YTQwMzdhZDdkYWZmCnBhcmVudCBlOTkyZTE3NmIyYzM0MGJjN2Q5MWFmZjBkZDQ1NWMwYjhjYTNlOWM5CmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NDU4MyArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODQ1ODMgKzAzMDAKCnRlc3QoY29yZSk6IGJvdW5kIG9yZGluYXJ5IG5vLW9wIGNvbXBsZXRpb24gdG8gaXRzIGN1cnJlbnQgbmF0aXZlIG93bmVyCg=="
+    },
+    {
+      "head": "cea090636f12a688b13b486d1aaab14818b33450",
+      "tree": "7a0d530b279c551c89536c026449450b0e45a079",
+      "patch": "sources/cea090636f12a688b13b486d1aaab14818b33450.patch.gz",
+      "commitObjectBase64": "dHJlZSA3YTBkNTMwYjI3OWM1NTFjODk1MzZjMDI2NDQ5NDUwYjBlNDVhMDc5CnBhcmVudCAxMWU5MWE1MGNhMmY5ZTQ0MTM5ZDc2ODAxOGQ1NDdmYzAwMDE2MTYyCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NDgxNCArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODQ4MTQgKzAzMDAKCnRlc3QoY29yZSk6IGtlZXAgbmF0aXZlIGRlc2NyaXB0b3IgY2FwdHVyZSBpbnNpZGUgY29oZXJlbnQgcmVjb3ZlcnkK"
+    },
+    {
+      "head": "5fd7144a7aac3bbfa18d868d65cbe296dd234e90",
+      "tree": "25becc5e9af3ca4815295fc61478ff06eaac1fea",
+      "patch": "sources/5fd7144a7aac3bbfa18d868d65cbe296dd234e90.patch.gz",
+      "commitObjectBase64": "dHJlZSAyNWJlY2M1ZTlhZjNjYTQ4MTUyOTVmYzYxNDc4ZmYwNmVhYWMxZmVhCnBhcmVudCBjZWEwOTA2MzZmMTJhNjg4YjEzYjQ4NmQxYWFhYjE0ODE4YjMzNDUwCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NDkwOCArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODQ5MDggKzAzMDAKCmZpeChjb3JlKTogY2FwdHVyZSBuYXRpdmUgY29tcGxldGlvbiBmaWVsZHMgd2l0aGluIHByb2plY3Rpb24gcmVjb3ZlcnkK"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "runs/run-ysyhCc/manifest.json",
+      "rawSha256": "9813c012d25edb733c60c6c95904e2ae55732bb52571b3ba76d580ea403470ef",
+      "storedSha256": "9813c012d25edb733c60c6c95904e2ae55732bb52571b3ba76d580ea403470ef",
+      "rawBytes": 3620,
+      "storedBytes": 3620,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-ysyhCc/manifest.json"
+    },
+    {
+      "path": "runs/run-ysyhCc/ordinary-noop-red.log.gz",
+      "rawSha256": "40a6fbb3257a8b9c20dc19d135bc1247ae91bc20f90f97344ea0dc5e045fdb7e",
+      "storedSha256": "933f6471ef755c1ee885c8ca52ea9f467ea60c544f31fb298acf7c805212d222",
+      "rawBytes": 1303,
+      "storedBytes": 513,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-ysyhCc/ordinary-noop-red.log"
+    },
+    {
+      "path": "runs/run-yHfJQi/manifest.json",
+      "rawSha256": "a99a2ec1f8bfcee64f478e8fbb35ff68754f9ec9ec5ae7dba256ea63d9dcf385",
+      "storedSha256": "a99a2ec1f8bfcee64f478e8fbb35ff68754f9ec9ec5ae7dba256ea63d9dcf385",
+      "rawBytes": 3590,
+      "storedBytes": 3590,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-yHfJQi/manifest.json"
+    },
+    {
+      "path": "runs/run-yHfJQi/ordinary-noop-red.log.gz",
+      "rawSha256": "a51861dc56b92dd5adbd41dc6235b696973e4c571a875cbd3005453f6b3f92a8",
+      "storedSha256": "d7c218c784297857769e59205576788bd169137da5be4b7a4ba8f36415ff78bb",
+      "rawBytes": 2005,
+      "storedBytes": 652,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-yHfJQi/ordinary-noop-red.log"
+    },
+    {
+      "path": "runs/run-fXLYNY/manifest.json",
+      "rawSha256": "a614effb4c115d235c0943aa78f5c1ef59285e72569000ccdac351806315f27a",
+      "storedSha256": "a614effb4c115d235c0943aa78f5c1ef59285e72569000ccdac351806315f27a",
+      "rawBytes": 5450,
+      "storedBytes": 5450,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-fXLYNY/manifest.json"
+    },
+    {
+      "path": "runs/run-fXLYNY/source-completion.log.gz",
+      "rawSha256": "c979af11cb708d4a0a1b8b870675737571838f51d7f44713a57b6597e965dbbe",
+      "storedSha256": "15677f5bff5567339a295e892f3e658720f31b8ea3e02281664fe380bd75754d",
+      "rawBytes": 1122,
+      "storedBytes": 391,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-fXLYNY/source-completion.log"
+    },
+    {
+      "path": "runs/run-fXLYNY/inline-completion.log.gz",
+      "rawSha256": "ab33f0061d49fd88166c99ec4bb3f55350658bb5e6c9235cbc64008ae51a32c6",
+      "storedSha256": "d8f99bca6f686fa2311d22b632b54f01a4a8e49ddceb404217e88b763e928aca",
+      "rawBytes": 823,
+      "storedBytes": 322,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-fXLYNY/inline-completion.log"
+    },
+    {
+      "path": "runs/run-9TZbNd/manifest.json",
+      "rawSha256": "d4bcdb48afa1b47a26331f4536c77ff6bdc7bb1437bd4a88d61815dd623ad77f",
+      "storedSha256": "d4bcdb48afa1b47a26331f4536c77ff6bdc7bb1437bd4a88d61815dd623ad77f",
+      "rawBytes": 4982,
+      "storedBytes": 4982,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-9TZbNd/manifest.json"
+    },
+    {
+      "path": "runs/run-9TZbNd/affected-node.log.gz",
+      "rawSha256": "36842c1bf15cf9032912270f1b2a7c67853e9629cb482d8add3d2f6a2cbab7c2",
+      "storedSha256": "5a7644cf229232e84d49bea371f450115150cd1a8ccb351f3f665d439e687cce",
+      "rawBytes": 26900,
+      "storedBytes": 8528,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-9TZbNd/affected-node.log"
+    },
+    {
+      "path": "runs/run-9TZbNd/typecheck.log.gz",
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawBytes": 259,
+      "storedBytes": 185,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-9TZbNd/typecheck.log"
+    },
+    {
+      "path": "runs/run-kvns9p/manifest.json",
+      "rawSha256": "083bbe1ecb499823dc4cc60bd5419264351a2fe79829ebd545ff7801d4506f2e",
+      "storedSha256": "083bbe1ecb499823dc4cc60bd5419264351a2fe79829ebd545ff7801d4506f2e",
+      "rawBytes": 3580,
+      "storedBytes": 3580,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-kvns9p/manifest.json"
+    },
+    {
+      "path": "runs/run-kvns9p/source-completion-final.log.gz",
+      "rawSha256": "9818e8d9e91ed268760eceed44a1977efb43c0aabf9dee3f4ec073f7f088a4b0",
+      "storedSha256": "f80f3c46b775a5e8ff28a32a9dd41f1d6e825bd9b27814f271d9fb36271821a7",
+      "rawBytes": 1494,
+      "storedBytes": 460,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-kvns9p/source-completion-final.log"
+    },
+    {
+      "path": "runs/run-Ecxvr9/manifest.json",
+      "rawSha256": "5227d1cb280ec46ef93ed9b96d026d8e2d443118adf318e4ddaff5222ddbcedd",
+      "storedSha256": "5227d1cb280ec46ef93ed9b96d026d8e2d443118adf318e4ddaff5222ddbcedd",
+      "rawBytes": 3631,
+      "storedBytes": 3631,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-Ecxvr9/manifest.json"
+    },
+    {
+      "path": "runs/run-Ecxvr9/capture-recovery-red.log.gz",
+      "rawSha256": "a4fb3b58b361f495432d7eecca6fc8b2a4f9c4ecf54ec045e1ef0d43cb18c718",
+      "storedSha256": "428be3abaa1c008f049336d5309c78e931ea5e705458491a30859bcbabd2d669",
+      "rawBytes": 1357,
+      "storedBytes": 517,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-Ecxvr9/capture-recovery-red.log"
+    },
+    {
+      "path": "runs/run-aDFlkg/manifest.json",
+      "rawSha256": "0172efcb0225c71cb12b7ab4fb4661ab34f4b00a46460df92ca554f40452a85e",
+      "storedSha256": "0172efcb0225c71cb12b7ab4fb4661ab34f4b00a46460df92ca554f40452a85e",
+      "rawBytes": 9168,
+      "storedBytes": 9168,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-aDFlkg/manifest.json"
+    },
+    {
+      "path": "runs/run-aDFlkg/source-completion.log.gz",
+      "rawSha256": "4dae290470f94af0ef66145fde2d6dcf48e4c6a6c9e0966900719ab70b2a7016",
+      "storedSha256": "4fc2aa888ea3ae688d7521a67565cc0c4fb819bd09701d863b1c26148a682447",
+      "rawBytes": 1608,
+      "storedBytes": 482,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-aDFlkg/source-completion.log"
+    },
+    {
+      "path": "runs/run-aDFlkg/inline-completion.log.gz",
+      "rawSha256": "ab33f0061d49fd88166c99ec4bb3f55350658bb5e6c9235cbc64008ae51a32c6",
+      "storedSha256": "d8f99bca6f686fa2311d22b632b54f01a4a8e49ddceb404217e88b763e928aca",
+      "rawBytes": 823,
+      "storedBytes": 322,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-aDFlkg/inline-completion.log"
+    },
+    {
+      "path": "runs/run-aDFlkg/affected-node.log.gz",
+      "rawSha256": "0ba84e5ead73cc185ffa969c9ea26bbea211f26f151eff11353f4897d6a39173",
+      "storedSha256": "96c74c9ef20013fe55bac7c5944bef6aa65f24919874dc2facc3b85388d8c301",
+      "rawBytes": 26910,
+      "storedBytes": 8538,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-aDFlkg/affected-node.log"
+    },
+    {
+      "path": "runs/run-aDFlkg/typecheck.log.gz",
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawBytes": 259,
+      "storedBytes": 185,
+      "original": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current/test-results/run-aDFlkg/typecheck.log"
+    },
+    {
+      "path": "sources/a6863077ca3c6bdf63e17a49e39de752e6f9fb68.patch.gz",
+      "rawSha256": "83e2bee6a851239238f4911928f8179955ad350e178943f12decbe5228537c03",
+      "storedSha256": "987b683ef6768b95fa901eae0b85b74de610001f07e9f9b1b213379559251f97",
+      "rawBytes": 3102,
+      "storedBytes": 1321
+    },
+    {
+      "path": "sources/a00c3728fe538660243cdcd74aecc33768a5f41a.patch.gz",
+      "rawSha256": "860975f66b203bb4f44c59dffc683a0b271e97680265070c58c8a63389bdd2f2",
+      "storedSha256": "642288fe6d71e550d4f116253ebba98d9efb4705b58179f9731f9f8026dd4e5c",
+      "rawBytes": 5847,
+      "storedBytes": 1919
+    },
+    {
+      "path": "sources/e992e176b2c340bc7d91aff0dd455c0b8ca3e9c9.patch.gz",
+      "rawSha256": "0fed69f89963b063720026f087b72034abf3e5840a0735119b48cdda9df51e43",
+      "storedSha256": "738929e1c01cd86b6cf8aae66fbaeffed424ab6871cc3befcd357d698841aae4",
+      "rawBytes": 13522,
+      "storedBytes": 4548
+    },
+    {
+      "path": "sources/11e91a50ca2f9e44139d768018d547fc00016162.patch.gz",
+      "rawSha256": "eb8add6dee69de50d3625696f36aa344bcf809984be62e7d374f992a9ec347cb",
+      "storedSha256": "9db90289a416dd126be78b66878927d39ba0b74fc29d4b073268512aa8866312",
+      "rawBytes": 22485,
+      "storedBytes": 6591
+    },
+    {
+      "path": "sources/cea090636f12a688b13b486d1aaab14818b33450.patch.gz",
+      "rawSha256": "7f9b60c063e2c094e735e588fb990d856d048a494ec1ffd0a357b7dc3a60b246",
+      "storedSha256": "45db59fe7b60ffdc1f5c89d0e4c3bb30b2eb612d7ecb6f80808243bd28fc78db",
+      "rawBytes": 23864,
+      "storedBytes": 6744
+    },
+    {
+      "path": "sources/5fd7144a7aac3bbfa18d868d65cbe296dd234e90.patch.gz",
+      "rawSha256": "9fe70b47634e14f753fc2bf6670b5bcd55bb1996012b8ff1e94e7969a6cdec6f",
+      "storedSha256": "ae018d9f8c8989286d6baf43a5a9383f664f862412e88014535ae3a3da23efc5",
+      "rawBytes": 24424,
+      "storedBytes": 6869
+    },
+    {
+      "path": "runtime-and-spec.patch",
+      "rawSha256": "51fdfd712d55b49d994d09aacd333d3b83e51d2f44bbca72d1424de77ae95e7b",
+      "storedSha256": "51fdfd712d55b49d994d09aacd333d3b83e51d2f44bbca72d1424de77ae95e7b",
+      "rawBytes": 8235,
+      "storedBytes": 8235
+    }
+  ]
+}
