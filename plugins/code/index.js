@@ -292,15 +292,22 @@ export function createCodePlugin(config = {}) {
           const refresh = () => {
             if (dead || context.signal.aborted) return
             const revision = ++highlightRevision, text = textarea.value, language = data.language
-            highlight(codeElement, text, language, runtime, () => !dead && !context.signal.aborted
-              && highlightRevision === revision && textarea.value === text && data.language === language)
+            const matchesRefresh = () => ownsHighlightView() && highlightRevision === revision
+              && textarea.value === text && data.language === language
+            highlight(codeElement, text, language, runtime, () => {
+              if (!matchesRefresh()) return false
+              // The provider can adopt the whole block while keeping its
+              // internal parents intact. Recheck the original core owner too.
+              try { context.getData() } catch { return false }
+              return matchesRefresh()
+            })
           }
           const ownsHighlightView = () => !dead && !context.signal.aborted
             && codeElement.parentNode === pre && pre.parentNode === editor
             && textarea.parentNode === editor && editor.parentNode === wrapper
           const refreshAfterLoad = () => {
             if (!ownsHighlightView()) return
-            // Only the late loader continuation needs a new owner admission.
+            // Admit the late loader before it invokes the provider too.
             // Synchronous projection keeps its existing fallible refresh.
             try { context.getData() } catch { return }
             if (ownsHighlightView()) refresh()

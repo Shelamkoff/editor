@@ -151,3 +151,41 @@ test('Code highlighter cannot overwrite a newer public data update from its call
   equal(editor.save().blocks[0].data.code, latest + 'Y')
   equal(blockElement(editor, 'code').querySelector('.oe-code-pre code').textContent, latest + 'Y\n')
 })
+
+for (const part of ['highlight', 'source', 'wrapper', 'shell']) {
+  test(`Code highlighter cannot repaint after its provider adopts the ${part} element`, async () => {
+    let editor, armed = false, paint, previousMarkup, completed = false
+    const foreign = document.createElement('div')
+    document.body.append(foreign)
+    const runtime = {
+      getLanguage() { return true },
+      highlight(code) {
+        if (armed) {
+          armed = false
+          const block = blockElement(editor, 'code')
+          paint = block.querySelector('.oe-code-pre code')
+          const adopted = part === 'highlight' ? paint
+            : part === 'source' ? block.querySelector('textarea')
+              : part === 'wrapper' ? block.querySelector('.oe-code-wrap') : block
+          foreign.append(adopted)
+          previousMarkup = paint.innerHTML
+          completed = true
+        }
+        return { value: `<span class="hljs-keyword">${escapeHtml(code)}</span>` }
+      },
+      highlightAuto(code) { return this.highlight(code) },
+    }
+    try {
+      editor = mountCode('javascript', runtime)
+      assert(editor.blocks.focus('code', { fieldKey: 'code', offset: 'end' }))
+      armed = true
+      await printable('X')
+      assert(completed, 'Highlighter did not exercise synchronous DOM adoption')
+      equal(paint.innerHTML, previousMarkup, 'Highlighter repainted after losing its source or output')
+      assert(foreign.isConnected && foreign.children.length === 1, 'Adopted node was reclaimed')
+    } finally {
+      editor?.destroy()
+      foreign.remove()
+    }
+  })
+}

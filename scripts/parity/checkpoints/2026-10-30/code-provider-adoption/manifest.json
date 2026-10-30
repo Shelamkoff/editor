@@ -1,0 +1,65 @@
+{
+  "base": "2afd45aaaab3f60574ed19cfb60bd37a55bda342",
+  "baseTree": "e838d6c196f4f0d91faaa95145733d23f28fcfde",
+  "runtime": "Node v24.22.1",
+  "browserExecutable": "/tmp/rector-chrome/opt/google/chrome/chrome",
+  "browserSha256": "da143614d917f346b02c1b29587cc13bf891d4b73faf2bea7b20cbd8fa61510f",
+  "candidatePatchSha256": "c30efa800a501c72d8ee218b609da049fc886abbda766bbe852d1012de3123d0",
+  "redTestPatchSha256": "46d6e5b9997033ba8f53fe4e85a251b7f440585e848b0e531da2721bde508ea2",
+  "sourceUnchangedDuringFinalChecks": true,
+  "gates": [
+    {
+      "name": "native-red",
+      "exit": 1,
+      "cases": 4,
+      "passed": 0,
+      "failed": 4,
+      "source": "base + red-tests.patch.gz",
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=\"Code highlighter cannot repaint\" node tests/browser/physical-history.mjs"
+    },
+    {
+      "name": "native-green",
+      "exit": 0,
+      "cases": 9,
+      "passed": 9,
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=\"Code highlighter\" node tests/browser/physical-history.mjs"
+    },
+    {
+      "name": "native-code-final",
+      "exit": 0,
+      "cases": 22,
+      "passed": 22,
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=Code node tests/browser/physical-history.mjs"
+    },
+    {
+      "name": "projection-final",
+      "exit": 0,
+      "cases": 213,
+      "passed": 213,
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_BROWSER_PAGE=projection-contracts.html node tests/browser/run.mjs"
+    },
+    {
+      "name": "unit",
+      "exit": 0,
+      "tests": 9,
+      "passed": 9,
+      "skipped": 0,
+      "command": "node --test --test-reporter=tap plugins/code/lifecycle.test.js shared/highlightRuntime.test.js"
+    },
+    {
+      "name": "typecheck",
+      "exit": 0,
+      "command": "npm run typecheck"
+    }
+  ],
+  "testedSourceFiles": {
+    "plugins/code/index.js": "13fa9161dd17cacc4e6a113abcff718340eb44d44470cdbcea530bc792968a77",
+    "tests/browser/regressions/code-highlighter-native.js": "14b63550667b4521e112d6a6f087936857e94eae923344151fd03ddbea9c1d20"
+  },
+  "publicationSourceFiles": {
+    "plugins/code/index.js": "ab6dc4076b800b17a0c4b3a238758d7158924734a798292d810c8d6a154e649f",
+    "tests/browser/regressions/code-highlighter-native.js": "14b63550667b4521e112d6a6f087936857e94eae923344151fd03ddbea9c1d20"
+  },
+  "publicationPatchSha256": "8de903f6bf7bf8b41b42f707903566f9a538148359e8394fb56a0f89bcc17d47",
+  "publicationAdjustment": "After the recorded checks, one source comment was corrected to acknowledge post-provider admission in synchronous refresh. Runtime behavior and tests are identical."
+}
