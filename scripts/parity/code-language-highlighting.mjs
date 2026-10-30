@@ -22,7 +22,8 @@ const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
 const sources = [
   { label: 'v1', sha: '5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340', legacy: true, loaded: {} },
   { label: 'spec-baseline', sha: 'e981ff308000c1d92d7e820df95113c1e19bcee8', legacy: false, loaded: {} },
-  { label: 'pre-fix', sha: 'b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13', legacy: false, loaded: {} },
+  // Published counterpart of b856d85e; the full source tree is identical.
+  { label: 'pre-fix', sha: 'b09c0079c5f2ebbbc68264b4892ce5f8bb8ae63c', legacy: false, loaded: {} },
   { label: 'candidate', sha: headBefore, legacy: false, loaded: {} },
 ]
 const imports = { dompurify: '/dependencies/dompurify/dist/purify.es.mjs' }
