@@ -442,9 +442,10 @@ export function createGalleryPlugin(config={}){
               event.stopPropagation()
               const from=dragId
               dragId=null
-              // Keep the logical authoring host in the transaction bookmark;
-              // replacing the gallery view must not strand Undo/Redo on body.
-              caption.focus()
+              // Reordering replaces every caption. Keep native keyboard
+              // ownership on the retained wrapper, so drop cannot strand
+              // subsequent Undo/Redo on body when the old caption detaches.
+              wrapper.focus({preventScroll:true})
               context.updateData(current=>{
                 const images=[...current.images]
                 const start=images.findIndex(item=>item.id===from)
