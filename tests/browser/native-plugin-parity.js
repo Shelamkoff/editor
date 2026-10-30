@@ -1551,7 +1551,8 @@ test('Gallery accepts a file drag after a caption update retains its image slots
   const target = root.querySelector('.oe-gallery__slot[data-image-id="second"]')
   target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: internal }))
   assert(source.classList.contains('oe-gallery__item--dragging'))
-  assert(target.classList.contains('oe-gallery__slot--over'))
+  assert(target.classList.contains('oe-gallery__slot--over')
+    || target.classList.contains('oe-gallery__overflow-item--over'))
   editor.blocks.update('a', current => ({
     data: { ...current.data, images: current.data.images.map(image =>
       image.id === 'second' ? { ...image, caption: 'Updated second' } : image) },
@@ -1564,7 +1565,7 @@ test('Gallery accepts a file drag after a caption update retains its image slots
   target.dispatchEvent(over)
   assert(over.defaultPrevented, 'old image drag prevented a fresh file drop after Gallery projection')
   equal(transfer.dropEffect, 'copy')
-  assert(!root.querySelector('.oe-gallery__item--dragging,.oe-gallery__slot--over'),
+  assert(!root.querySelector('.oe-gallery__item--dragging,.oe-gallery__slot--over,.oe-gallery__overflow-item--over'),
     'foreign file drag retained the preceding image-reorder decorations')
   equal(editor.save().blocks[0].data.images.map(image => image.id), ['first', 'second'])
 })
@@ -1607,7 +1608,7 @@ for (const destination of ['wrapper', 'image slot']) {
     equal(afterDrop[0].data.images.length, 3)
     equal(afterDrop[0].data.images[2].caption, 'Dropped external image')
     equal(afterDrop[0].data.images[2].url, pixel)
-    assert(!root.querySelector('.oe-gallery__item--dragging,.oe-gallery__slot--over'))
+    assert(!root.querySelector('.oe-gallery__item--dragging,.oe-gallery__slot--over,.oe-gallery__overflow-item--over'))
     equal(editor.undo(), true)
     equal(editor.save().blocks, beforeDrop, 'one Undo did not revert only the external file insertion')
     equal(editor.redo(), true)
