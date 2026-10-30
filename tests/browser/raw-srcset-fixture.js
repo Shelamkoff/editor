@@ -33,9 +33,13 @@ export function srcsetDefinition(name, origin = location.href) {
   if (name === 'leading-dot-density') return exact(primary + ' .5x')
   if (name === 'positive-exponent-density') return exact(primary + ' 1E+0x')
   if (name === 'width-height-descriptors') return exact(primary + ' 2w 1h')
-  if (name === 'trailing-comma') return { ...exact(primary), input: primary + ',, ' }
-  if (name === 'ascii-whitespace') return {
-    ...exact(primary + ' 1e0x'), input: ' ,\t' + primary + '\n\r\t1e0x\f ',
+  if (name === 'trailing-comma') {
+    const input = primary + ',, '
+    return { ...exact(primary), input, controlSrcset: input }
+  }
+  if (name === 'ascii-whitespace') {
+    const input = ' ,\t' + primary + '\n\r\t1e0x\f '
+    return { ...exact(primary + ' 1e0x'), input, controlSrcset: input }
   }
   if (name === 'unsafe-neighbors') return {
     ...exact(primary + ' 1x'),
