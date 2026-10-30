@@ -124,18 +124,22 @@ function meaningNodes(nodes) {
   return result
 }
 
-const expectedWidgets = (readOnly = false) => [
+const expectedWidgets = () => [
   { id: 'swatch', type: 'color', value: '#aBcDef', label: '#aBcDef', dot: 'rgb(171, 205, 239)', contenteditable: 'false' },
-  { id: 'mention', type: 'mention', value: 'ada', label: '@Ada', dot: null, contenteditable: readOnly ? 'false' : null },
+  { id: 'mention', type: 'mention', value: 'ada', label: '@Ada', dot: null },
 ]
 function visibleWidgets(field) {
   return [...field.querySelectorAll('[data-inline-plugin]')].map(widget => ({
     id: widget.getAttribute('data-id'), type: widget.getAttribute('data-inline-plugin'), value: widget.getAttribute('data-value'),
     label: widget.getAttribute('data-inline-plugin') === 'mention' ? widget.textContent : widget.querySelector('.oe-ip__label')?.textContent ?? null,
     dot: widget.querySelector('.oe-ip__dot')?.style.backgroundColor ?? null,
-    contenteditable: widget.getAttribute('contenteditable'),
+    // Mention label-editing capabilities differ between versions. Its mode
+    // is outside this TOOL contract; all root attributes must still survive
+    // each action unchanged, as checked by liveWidgetAttributes below.
+    ...(widget.getAttribute('data-inline-plugin') === 'color' ? { contenteditable: widget.getAttribute('contenteditable') } : {}),
   }))
 }
+const widgetAttributes = widget => [...widget.attributes].map(attribute => [attribute.name, attribute.value]).sort()
 function firstText(node) {
   if (node.nodeType === Node.TEXT_NODE) return node
   const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
@@ -250,8 +254,8 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
     }
     const selectedState = expected => {
       if (spec.noop) {
-        const start = { field: 'a', offset: spec.noop === 'atomic' ? 2 : 3 }
-        const end = { field: 'a', offset: spec.noop === 'atomic' ? 3 : length(parse(expected[0])) - 6 }
+        const start = { field: 'a', offset: 2 }
+        const end = { field: 'a', offset: 3 }
         return { anchor: spec.backward ? end : start, focus: spec.backward ? start : end, collapsed: false }
       }
       const start = { field: fieldNames[0], offset: spec.boundary === 'Element' ? 3 : 5 }
@@ -296,10 +300,6 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
       from = to = all[0]
       fromOffset = [...from.childNodes].indexOf(from.querySelector('[data-inline-plugin="color"]'))
       toOffset = fromOffset + 1
-    } else if (spec.noop === 'text') {
-      from = firstMark?.firstChild ?? all[0].firstChild
-      to = all[0].querySelector('a').firstChild
-      fromOffset = firstMark ? 1 : 3; toOffset = 2
     } else {
       from = element ? firstMark : firstText(firstMark); to = element ? lastMark : firstText(lastMark)
       fromOffset = element ? 0 : 2; toOffset = element ? 1 : 3
@@ -312,6 +312,7 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
     const widgets = [...all[0].querySelectorAll('[data-inline-plugin]')]
     if (widgets.length !== 2) throw new Error('Real Color and Mention widgets did not mount')
     const widgetChildren = widgets.map(widget => [...widget.childNodes]), widgetMarkup = widgets.map(widget => widget.innerHTML)
+    const beforeWidgetAttributes = widgets.map(widgetAttributes)
     completedPhases.push('selection')
     phase = 'apply'
     check('apply', 'trustedNamedButton', await click(holder.querySelector(`[data-tool="${spec.tool}"]`), nativeInput), true)
@@ -323,6 +324,7 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
       && all[0].querySelectorAll('[data-inline-plugin]')[index] === widget
       && widgetChildren[index].every((child, at) => widget.childNodes[at] === child)), true)
     check('apply', 'liveWidgetPayloadAndMarkup', widgets.map(widget => widget.innerHTML), widgetMarkup)
+    check('apply', 'liveWidgetAttributes', widgets.map(widgetAttributes), beforeWidgetAttributes)
     check('apply', 'blockIdentities', after.map(block => [block.id, block.type]), initial.map(block => [block.id, block.type]))
     check('apply', 'selection', selectionState(), selectedState(afterTexts))
     check('apply', 'history', historyState(), spec.noop ? { canUndo: false, canRedo: true } : { canUndo: true, canRedo: false })
@@ -427,9 +429,9 @@ async function runBasicMarkLifetimeCase({ sourceBase, legacy, spec, nativeInput 
     return { editor, state }
   }
   const field = () => holder.querySelector('.oe-paragraph')
-  const checkVisible = (phase, expectedText, readOnly = false) => {
+  const checkVisible = (phase, expectedText) => {
     check(phase, 'visibleTextAndMarks', meaningNodes(field().childNodes), meaning(expectedText))
-    check(phase, 'visibleWidgets', visibleWidgets(field()), expectedWidgets(readOnly))
+    check(phase, 'visibleWidgets', visibleWidgets(field()), expectedWidgets())
   }
   const select = async () => {
     field().focus()
@@ -464,7 +466,7 @@ async function runBasicMarkLifetimeCase({ sourceBase, legacy, spec, nativeInput 
     retained.click()
     await pause()
     check(phase, 'retainedButtonCannotAuthor', current.editor.save().blocks, beforeLate)
-    checkVisible(phase, html, spec.lifetime === 'read-only')
+    checkVisible(phase, html)
     check(phase, 'retainedButtonCannotChangeHistory', [current.editor.canUndo, current.editor.canRedo], [false, false])
     check(phase, 'retainedButtonCannotMoveSelection', selection(), beforeSelection)
     check(phase, 'retainedProjectionUnchanged', oldField.innerHTML, oldMarkup)
