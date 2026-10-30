@@ -1,0 +1,207 @@
+{
+  "failedSource": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+  "base": "cd446e5866d09881011176d881278fff6449c6ef",
+  "intermediate": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+  "candidate": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+  "orderedSourceChain": [
+    "57cd3539cf07de2759da259e0692136847f057c5",
+    "2c507bf1d5612d3ad7d8cbd3fab5eb2ba1255741",
+    "a4c0971aedf160f94d56ef1e989865cdf5ce5062",
+    "cd446e5866d09881011176d881278fff6449c6ef",
+    "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+    "d06547af677fc55152bd2d6e3f0df9b941eeb159"
+  ],
+  "commits": [
+    {
+      "commit": "57cd3539cf07de2759da259e0692136847f057c5",
+      "parent": "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b",
+      "tree": "f0f024535a20c6eb9710a6e13215eba8c2147be3",
+      "raw": "source/commits/57cd3539cf07de2759da259e0692136847f057c5.raw.gz",
+      "rawSha256": "3c89ff24cf9f968ac322a1734acabd44429d6a8986ad1118436d24743b26fcec",
+      "patch": "source/patches/57cd3539cf07de2759da259e0692136847f057c5.patch.gz",
+      "patchSha256": "bff46033f99e0f14156c381c4d793cf27dc1d3b0da0b797c0e0150f973a05ffd",
+      "role": "unchanged-runtime-base-bridge"
+    },
+    {
+      "commit": "2c507bf1d5612d3ad7d8cbd3fab5eb2ba1255741",
+      "parent": "57cd3539cf07de2759da259e0692136847f057c5",
+      "tree": "dac5da3be2039fb3c5a0be7d82a7e71c1e3f1515",
+      "raw": "source/commits/2c507bf1d5612d3ad7d8cbd3fab5eb2ba1255741.raw.gz",
+      "rawSha256": "12cb15004ac9984bf4baa71f07a84f8ce68a14cc4692f9e320b4b2dc78cfc85f",
+      "patch": "source/patches/2c507bf1d5612d3ad7d8cbd3fab5eb2ba1255741.patch.gz",
+      "patchSha256": "2577dee516f80ce00466d17de54eea2f312381840cfa12b56aabe8490ccce436",
+      "role": "unchanged-runtime-base-bridge"
+    },
+    {
+      "commit": "a4c0971aedf160f94d56ef1e989865cdf5ce5062",
+      "parent": "2c507bf1d5612d3ad7d8cbd3fab5eb2ba1255741",
+      "tree": "76bf6760da0807a7988d25a6eb792e924a1d79c2",
+      "raw": "source/commits/a4c0971aedf160f94d56ef1e989865cdf5ce5062.raw.gz",
+      "rawSha256": "68c34f03687f73dc42eedae55152f3ad574635d515e46e2446037a9a2180b583",
+      "patch": "source/patches/a4c0971aedf160f94d56ef1e989865cdf5ce5062.patch.gz",
+      "patchSha256": "ff9193c419a2c452aedde214dfb77c828f6700d51b42653ba70efd22afd0a871",
+      "role": "unchanged-runtime-base-bridge"
+    },
+    {
+      "commit": "cd446e5866d09881011176d881278fff6449c6ef",
+      "parent": "a4c0971aedf160f94d56ef1e989865cdf5ce5062",
+      "tree": "8cbd7175e7d0a05b42102720c064f9cf077f21a3",
+      "raw": "source/commits/cd446e5866d09881011176d881278fff6449c6ef.raw.gz",
+      "rawSha256": "c561fcb25068444fd178c44051c827ee8f1647ee81aa9fdbd1169ab7160ff7c0",
+      "patch": "source/patches/cd446e5866d09881011176d881278fff6449c6ef.patch.gz",
+      "patchSha256": "2a9aa12b332b7da7bb9d431c24eb1b6b3b13beb28f037329a62d5daf5b3432df",
+      "role": "unchanged-runtime-base-bridge"
+    },
+    {
+      "commit": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+      "parent": "cd446e5866d09881011176d881278fff6449c6ef",
+      "tree": "9c2511729daa800511486f4ba693b556405a3ef7",
+      "raw": "source/commits/8e626f6f9332a887c4b8de8894cdd702c9cc4707.raw.gz",
+      "rawSha256": "42b4318539d6f858bec14486fdcf4bed746d52fe7db0eb27bb086f3587236dfe",
+      "patch": "source/patches/8e626f6f9332a887c4b8de8894cdd702c9cc4707.patch.gz",
+      "patchSha256": "99cfddefcc90a774581942a108ce0c59aa20a8f8e02bfe823b1e2d379f79e845",
+      "role": "harness-partition"
+    },
+    {
+      "commit": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+      "parent": "8e626f6f9332a887c4b8de8894cdd702c9cc4707",
+      "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+      "raw": "source/commits/d06547af677fc55152bd2d6e3f0df9b941eeb159.raw.gz",
+      "rawSha256": "c664c947840cba59ba383992358f2d0121d2ac80c2dd4f1231341a6374b63842",
+      "patch": "source/patches/d06547af677fc55152bd2d6e3f0df9b941eeb159.patch.gz",
+      "patchSha256": "3d1220019f7c6d6d81d20a3f014009e2eb51eafa31cdf809c2179bf06092e8a2",
+      "role": "harness-partition"
+    }
+  ],
+  "sourcePins": {
+    "8e22c752a1712c0a8c3908f59fe65a2d25e1db1b": {
+      "tree": "cbec281d0b485f8fa8cf08412bd412ee94bbb839",
+      "files": {
+        "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab",
+        "tests/browser/native-plugin-parity.js": "4ab9c5c5cdd254d9c3772d80ca3d0a77727ecf77a4cc1b168137a5a7a9581588",
+        "tests/browser/native-plugin-parity.html": "a4dcd28ecaef4d94166998f9a04ed85a77ffb6f3eb459769d53e84428b342e08"
+      }
+    },
+    "cd446e5866d09881011176d881278fff6449c6ef": {
+      "tree": "8cbd7175e7d0a05b42102720c064f9cf077f21a3",
+      "files": {
+        "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab",
+        "tests/browser/native-plugin-parity.js": "4ab9c5c5cdd254d9c3772d80ca3d0a77727ecf77a4cc1b168137a5a7a9581588",
+        "tests/browser/native-plugin-parity.html": "a4dcd28ecaef4d94166998f9a04ed85a77ffb6f3eb459769d53e84428b342e08"
+      }
+    },
+    "8e626f6f9332a887c4b8de8894cdd702c9cc4707": {
+      "tree": "9c2511729daa800511486f4ba693b556405a3ef7",
+      "files": {
+        "tests/browser/physical-history.mjs": "288390d6d627b88d885b34c00a947da42dc2c3fb2aa2ac5e8950983d1b33aabc",
+        "tests/browser/native-plugin-parity.js": "5949cbd5ff8b2b590e683ed175ce176ddb53ef4af117b8ed868f82ee0af3ede9",
+        "tests/browser/native-plugin-parity.html": "a4dcd28ecaef4d94166998f9a04ed85a77ffb6f3eb459769d53e84428b342e08"
+      }
+    },
+    "d06547af677fc55152bd2d6e3f0df9b941eeb159": {
+      "tree": "020cda6d1ecf1c334c2134d9164a79ec7fe011d4",
+      "files": {
+        "tests/browser/physical-history.mjs": "964b792567378717dadd797490ae2cc09e3abb25d951104cbb7a59ed8efbf022",
+        "tests/browser/native-plugin-parity.js": "ac3f251c4816574c388a2187967e27ffc56b6e55c3f98fe1d1de45a3f5b61536",
+        "tests/browser/native-plugin-parity.html": "a4dcd28ecaef4d94166998f9a04ed85a77ffb6f3eb459769d53e84428b342e08"
+      }
+    }
+  },
+  "baseToFinalChangedPaths": [
+    "tests/browser/README.md",
+    "tests/browser/native-block-settings.html",
+    "tests/browser/native-block-settings.js",
+    "tests/browser/native-code-source-language.html",
+    "tests/browser/native-code-source-language.js",
+    "tests/browser/native-person-modes.html",
+    "tests/browser/native-person-modes.js",
+    "tests/browser/native-plugin-parity.js",
+    "tests/browser/native-table-keyboard.html",
+    "tests/browser/native-table-keyboard.js",
+    "tests/browser/physical-history.mjs"
+  ],
+  "intermediateToFinalChangedPaths": [
+    "tests/browser/README.md",
+    "tests/browser/native-block-settings.html",
+    "tests/browser/native-block-settings.js",
+    "tests/browser/native-plugin-parity.js",
+    "tests/browser/physical-history.mjs"
+  ],
+  "failedToBaseChangedPaths": [
+    "RECTOR_V2_IMPLEMENTATION_PROGRESS.md",
+    "RECTOR_V2_PROGRESS_2026-10-29.md",
+    "docs/architecture/rector-v2/PRESERVATION.md",
+    "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "docs/ru/architecture/rector-v2/PRESERVATION.md",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "scripts/parity/checkpoints/2026-10-30/code-source-language/peer-review/README.md",
+    "scripts/parity/checkpoints/2026-10-30/code-source-language/peer-review/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/code-source-language/peer-review/review.json",
+    "scripts/parity/checkpoints/2026-10-30/code-source-language/peer-review/review.py",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/README.md",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-boundary-red.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-boundary-red.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-controlled-experiment.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-controls-before.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-end-bias-experiment.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-final-controls-before.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-final-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-final-terminal-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-focused-unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-green-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-guard-unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-initial-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-paragraph-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-red.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-red.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-terminal-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/attempts/table-keyboard-seventh-typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/audit.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/audit.py",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/comparison.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/comparison.meta.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/comparison.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/native.meta.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/native.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/pre-fix-shared-controls.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/pre-fix-shared.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/pre-fix-shared.meta.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/pre-fix-shared.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/terminal.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/terminal.meta.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/terminal.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/typecheck.meta.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/typecheck.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/unit.meta.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/final/unit.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/README.md",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/author-executions-reviewed.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/core-unit.meta.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/core-unit.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/core-unit.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.meta.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.py",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/sandbox-file-only-core-unit.meta.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/sandbox-file-only-core-unit.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/sandbox-file-only-core-unit.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/sources.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/sources/candidate.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/sources/pre-fix.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/run-supervisor.py.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/runtime-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/sources/01fb551a.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/sources/3a16cf9f.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/table-keyboard/sources/9fe6a385.patch.gz"
+  ],
+  "unchangedRuntimeAndFixtureFiles": 655,
+  "unchangedManifest": "source/unchanged-runtime-and-fixtures.json.gz"
+}

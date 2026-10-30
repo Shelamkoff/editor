@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-30T20:15:27.122070+00:00",
+  "head": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+  "gitStatus": "?? node_modules\n",
+  "path": "node_modules",
+  "isSymlink": true,
+  "target": "/workspace/scratch/2231de9d6b0d/editor/node_modules",
+  "trackedClean": true,
+  "claim": "Tracked source is clean and immutable. The worktree has an untracked dependency-only node_modules symlink; it is not wholly clean.",
+  "historicalLimit": "Intermediate metadata records tracked cleanliness only; this observation is after the four executions. Final metadata additionally records the actual status and symlink at each process start/end."
+}

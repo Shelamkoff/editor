@@ -1,0 +1,41 @@
+{
+  "outcome": "PASS",
+  "checks": 3947,
+  "candidate": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+  "base": "cd446e5866d09881011176d881278fff6449c6ef",
+  "sourceCommitsReconstructed": 6,
+  "unchangedRuntimeAndFixtureFiles": 655,
+  "intermediateNativeCases": 444,
+  "finalNewNativeCases": 366,
+  "finalPageCases": [
+    333,
+    33,
+    20,
+    28,
+    30
+  ],
+  "finalUnionCases": 444,
+  "retainedEquivalentSourceCases": 78,
+  "duplicateNames": [],
+  "actualProcessExits": {
+    "originalFailedNativeGate": 1,
+    "intermediateFour": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "finalChangedPages": [
+      0,
+      0
+    ],
+    "registrationOnlyProbes": [
+      0,
+      0
+    ]
+  },
+  "shippingPageDeadlineMs": 120000,
+  "browserScenariosExecutedByThisAudit": 0,
+  "diagnosticEvidenceOwner": "peer-review",
+  "fullNativeSuiteResultClaimed": false
+}

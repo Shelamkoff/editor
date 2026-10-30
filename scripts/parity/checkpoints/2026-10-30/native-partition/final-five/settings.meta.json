@@ -1,0 +1,51 @@
+{
+  "gitStatusBefore": "?? node_modules\n",
+  "dependencyLinkState": {
+    "path": "node_modules",
+    "isSymlink": true,
+    "target": "/workspace/scratch/2231de9d6b0d/editor/node_modules"
+  },
+  "job": "settings",
+  "headBefore": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+  "trackedCleanBefore": true,
+  "sourceSha256": {
+    "tests/browser/physical-history.mjs": "964b792567378717dadd797490ae2cc09e3abb25d951104cbb7a59ed8efbf022",
+    "tests/browser/native-plugin-parity.js": "ac3f251c4816574c388a2187967e27ffc56b6e55c3f98fe1d1de45a3f5b61536",
+    "tests/browser/native-plugin-parity.html": "a4dcd28ecaef4d94166998f9a04ed85a77ffb6f3eb459769d53e84428b342e08",
+    "tests/browser/regressions/harness.js": "e985fdb92be7dc9e921e5ef5e421fb37031ac0604f29b44a67770a84ddc5a1d8",
+    "tests/browser/native-input-driver.js": "8be2f4b6123667ddf212ecd6bc6348d1687003bcbd2d45e9d1bc5883f43ac4bc",
+    "tests/browser/native-input-helpers.js": "be973b1d6b907b9441c272122d8166a9f6eec82c82b15b6c2a4237a0f8b9b2d0",
+    "tests/browser/native-code-source-language.html": "431cf67b8a6ee90452ac8474af12ad92b978615ad4f1e9ad642835bdf3045209",
+    "tests/browser/native-code-source-language.js": "31ebad8b69f356384d3c5db9fdae5d03ccd4234273494d740ed8759edf2d269d",
+    "tests/browser/regressions/code-source-language-native.js": "9b4d91da79bc5a1279a014d4d2142766b52b1b382aeefaaf3f3693c9036820c5",
+    "tests/browser/native-person-modes.html": "8230a02718583eb823bd3128d5d7dd347ba31e0326b0384a8031e57dfa4410b1",
+    "tests/browser/native-person-modes.js": "8f8e630446f0dc34790edea5fd61af31a8ea9923820fed8b059e4a60d26ad802",
+    "tests/browser/regressions/person-modes-native.js": "0f76a9be21fb3f6d9b4dbcdc8797beec3d43052d97f7f8a1568fd163cf02661e",
+    "tests/browser/native-table-keyboard.html": "df41bfb8da063ceea4f6154777722cce4b237754bd79583a0317e9da836d557b",
+    "tests/browser/native-table-keyboard.js": "0d56950882945b6b3439898642c026966ffc0b176d09e271277324ce1993e025",
+    "tests/browser/regressions/table-keyboard-native.js": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+    "tests/browser/native-block-settings.html": "394e0f02d7c2674860e7d65b654ab1852cba433b82e49fda1c95134cb83ac0b0",
+    "tests/browser/native-block-settings.js": "2476eea211b0f91e09f7f7b7881044849f9621cecf41776f2e51f686b9ad8a69",
+    "tests/browser/regressions/text-block-settings-native.js": "e1234b080cadaac434760531c05802d74af06671ce5841d5bdab8d210df1971c",
+    "tests/browser/regressions/columns-layout-native.js": "f7e5b19b13fea3f60263ac7cb27745a7d63beea7ee142ea5e37d252069d39b2b"
+  },
+  "command": [
+    "node",
+    "tests/browser/physical-history.mjs"
+  ],
+  "environment": {
+    "EDITOR_NATIVE_PAGE": "native-block-settings.html"
+  },
+  "pageDeadlineMs": 120000,
+  "startedAt": "2026-10-30T20:14:34.126682+00:00",
+  "status": "complete",
+  "gitStatusAfter": "?? node_modules\n",
+  "actualExitCode": 0,
+  "elapsedSeconds": 37.246,
+  "completedAt": "2026-10-30T20:15:11.372545+00:00",
+  "headAfter": "d06547af677fc55152bd2d6e3f0df9b941eeb159",
+  "trackedCleanAfter": true,
+  "sourceUnchanged": true,
+  "stdoutSha256": "47da8cf85a1290f29efc1d8436e3ff4e9bc819d00a391a4f60acfb9526a25ae2",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
