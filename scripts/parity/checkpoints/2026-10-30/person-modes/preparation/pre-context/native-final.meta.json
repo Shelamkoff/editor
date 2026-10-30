@@ -1,0 +1,25 @@
+{
+  "command": [
+    "node",
+    "tests/browser/physical-history.mjs"
+  ],
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome",
+    "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+    "EDITOR_NATIVE_FILTER": "Person mode parity "
+  },
+  "headBefore": "2bb32ca8abaa5bef3d525aeda22b7d8101def57a",
+  "treeBefore": "356c194dbe29185ab8ea7327390f6238e98e88c8",
+  "startedAt": "2026-10-30T19:21:09.104859+00:00",
+  "trackedCleanBefore": true,
+  "fixtureSha256": "5e4bd9a3a9199270ae86ae57c1ca6b58d2d01f7fa9da526ab4f7d66cc476d632",
+  "runnerSha256": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab",
+  "actualExitCode": 0,
+  "completedAt": "2026-10-30T19:21:42.205562+00:00",
+  "headAfter": "2bb32ca8abaa5bef3d525aeda22b7d8101def57a",
+  "trackedCleanAfter": true,
+  "stdoutFile": "native-final.log",
+  "stdoutSha256": "e533a26c16fec8a205b856b0fba11a65155859f3b6c27cb1ffae56e5601176e6",
+  "stderrFile": "native-final.stderr",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

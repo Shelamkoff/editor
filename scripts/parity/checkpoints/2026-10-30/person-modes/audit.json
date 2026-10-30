@@ -1,0 +1,92 @@
+{
+  "audit": "PASS",
+  "fixtureSource": "fde41c70584b890a1ae51c9b7f23f752f0a18c8a",
+  "fixtureSha256": "a48eb9a863635e9e04fb5706651b844598e6138eb1801e024d0b7251c3f42069",
+  "runnerSha256": "fd24f8b556cf4bd74a81f326b40044f6a98197bb76fada8a3124547a2cf2a610",
+  "nativeCases": 28,
+  "candidatePlannedPhases": 338,
+  "truthfulStoredVerdicts": 11329,
+  "sources": [
+    {
+      "source": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "loadedModules": 109,
+      "cases": 28,
+      "completedCases": 4,
+      "unsupportedCases": 24,
+      "observations": 791,
+      "rawFailures": 193,
+      "incompleteCases": 0,
+      "pageErrors": 0,
+      "casePageErrors": 0,
+      "diagnostics": 0,
+      "failedProperties": {
+        "tabLabels": 52,
+        "activeProfile": 23,
+        "nameMarkup": 23,
+        "roleMarkup": 23,
+        "bioMarkup": 23,
+        "urlValue": 23,
+        "canonicalRecords": 8,
+        "selection": 14,
+        "history": 4
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "loadedModules": 107,
+      "cases": 28,
+      "completedCases": 26,
+      "unsupportedCases": 0,
+      "observations": 5041,
+      "rawFailures": 901,
+      "incompleteCases": 2,
+      "pageErrors": 17,
+      "casePageErrors": 17,
+      "diagnostics": 17,
+      "failedProperties": {
+        "firstRequestAccepted": 20,
+        "selection": 157,
+        "canonicalRecords": 71,
+        "tabLabels": 125,
+        "nameMarkup": 70,
+        "activeProfile": 57,
+        "roleMarkup": 73,
+        "bioMarkup": 73,
+        "urlValue": 64,
+        "pressedTab": 57,
+        "visibleWidgets": 41,
+        "history": 29,
+        "transactionCount": 52,
+        "healthyDiagnostics": 10,
+        "publicFocusAccepted": 2
+      }
+    },
+    {
+      "source": "candidate",
+      "sha": "fde41c70584b890a1ae51c9b7f23f752f0a18c8a",
+      "loadedModules": 107,
+      "cases": 28,
+      "completedCases": 28,
+      "unsupportedCases": 0,
+      "observations": 5497,
+      "rawFailures": 0,
+      "incompleteCases": 0,
+      "pageErrors": 0,
+      "casePageErrors": 0,
+      "diagnostics": 0,
+      "failedProperties": {}
+    }
+  ],
+  "dependencyFilesVerified": 23,
+  "actualComparisonExit": 1,
+  "actualNativeExit": 0,
+  "productionChanged": false,
+  "limits": [
+    "Chrome 156/Linux; recorded three-profile author cases only.",
+    "v1 lacks keyed/numeric public focus and persistent Person widgets; those capabilities remain unsupported.",
+    "No renderer, avatar/provider, structural card reordering or full link-action acceptance is asserted.",
+    "Historical raw failures and incomplete executions remain failures; no classifier changes their status."
+  ]
+}

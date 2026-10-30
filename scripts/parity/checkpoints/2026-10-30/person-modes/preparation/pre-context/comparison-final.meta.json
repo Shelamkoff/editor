@@ -1,0 +1,24 @@
+{
+  "command": [
+    "node",
+    "scripts/parity/person-modes.mjs"
+  ],
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs"
+  },
+  "headBefore": "2bb32ca8abaa5bef3d525aeda22b7d8101def57a",
+  "treeBefore": "356c194dbe29185ab8ea7327390f6238e98e88c8",
+  "startedAt": "2026-10-30T19:21:12.241109+00:00",
+  "trackedCleanBefore": true,
+  "fixtureSha256": "5e4bd9a3a9199270ae86ae57c1ca6b58d2d01f7fa9da526ab4f7d66cc476d632",
+  "runnerSha256": "fd24f8b556cf4bd74a81f326b40044f6a98197bb76fada8a3124547a2cf2a610",
+  "actualExitCode": 1,
+  "completedAt": "2026-10-30T19:21:57.124926+00:00",
+  "headAfter": "2bb32ca8abaa5bef3d525aeda22b7d8101def57a",
+  "trackedCleanAfter": true,
+  "stdoutFile": "comparison-final.json",
+  "stdoutSha256": "a8b96112b7902c7f8d370421fa7e7c717a1cfc044e3691b3d961fda81517255f",
+  "stderrFile": "comparison-final.stderr",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

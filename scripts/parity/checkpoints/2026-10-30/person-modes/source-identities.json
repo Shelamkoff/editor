@@ -1,0 +1,20 @@
+{
+  "base": "d67229c08f5fae7101cb2a252f2d56385224da08",
+  "testedSource": "fde41c70584b890a1ae51c9b7f23f752f0a18c8a",
+  "baseTree": "93b95eff7a2511c5e4be209d561a980e610f62a3",
+  "testedTree": "73a47f391a8d38ace760ae2a061f937fddd1edfb",
+  "changedFiles": [
+    "scripts/parity/person-modes.mjs",
+    "tests/browser/native-plugin-parity.js",
+    "tests/browser/person-modes-parity-fixture.js",
+    "tests/browser/regressions/person-modes-native.js"
+  ],
+  "productionChanged": false,
+  "testSourcePatchSha256": "9aa9f5af1cb3ea53d39a26970a630a8604f5cc1518709c153c061efcdccf78ae",
+  "fileSha256": {
+    "scripts/parity/person-modes.mjs": "fd24f8b556cf4bd74a81f326b40044f6a98197bb76fada8a3124547a2cf2a610",
+    "tests/browser/native-plugin-parity.js": "bc1b1885167322e6136dfc8f4b41854323078fffbd437b6a763bfa3b82a8b46f",
+    "tests/browser/person-modes-parity-fixture.js": "a48eb9a863635e9e04fb5706651b844598e6138eb1801e024d0b7251c3f42069",
+    "tests/browser/regressions/person-modes-native.js": "0f76a9be21fb3f6d9b4dbcdc8797beec3d43052d97f7f8a1568fd163cf02661e"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "command": [
+    "node",
+    "tests/browser/physical-history.mjs"
+  ],
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome",
+    "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+    "EDITOR_NATIVE_FILTER": "Person mode parity "
+  },
+  "headBefore": "a370a5f7d86f6e3392e3d247a541aa73559134f7",
+  "treeBefore": "f231f24be32b30d6093b277dc107c2205084e847",
+  "startedAt": "2026-10-30T19:19:02.012108+00:00",
+  "trackedCleanBefore": true,
+  "actualExitCode": 1,
+  "completedAt": "2026-10-30T19:19:27.257766+00:00",
+  "headAfter": "a370a5f7d86f6e3392e3d247a541aa73559134f7",
+  "trackedCleanAfter": true,
+  "logSha256": "4eec36f2995859496a3886b95c1e054ddb69fb6e068a2e6dd88f1019425ada42"
+}
