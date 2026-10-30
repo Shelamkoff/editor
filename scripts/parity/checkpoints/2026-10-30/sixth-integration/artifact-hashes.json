@@ -1,7 +1,47 @@
 {
   "README.md": {
-    "bytes": 4580,
-    "sha256": "0ec6649883305a44f0fde8e00112ede8160cb578273cd017c0484ca5fa25d2a3"
+    "bytes": 5921,
+    "sha256": "089410dd2a2e13240bdc22a7f8d1e1b75663e31edb04666dbcafd468399f0ac0"
+  },
+  "final-documentation/run-97QdlX/build.log.gz": {
+    "bytes": 280,
+    "sha256": "c2e8182dd7eb5267141b095edade9dc7f348e90176be20031c55f52f0172e5c5",
+    "decodedBytes": 517,
+    "decodedSha256": "cf4ed5a69db41abe8803e1af0b8204295da0840a77dd261d22cfb63c3294e86b"
+  },
+  "final-documentation/run-97QdlX/docs-contracts.log.gz": {
+    "bytes": 405,
+    "sha256": "60b12331788850d412e5f5573b444ad97addf9989786b85cd97adb948c760a86",
+    "decodedBytes": 1137,
+    "decodedSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7"
+  },
+  "final-documentation/run-97QdlX/docs-site.log.gz": {
+    "bytes": 775,
+    "sha256": "5754b32384bdb4005f967065ee3ada51403a2e55a9b17b4fb55f868c3af8c9da",
+    "decodedBytes": 1912,
+    "decodedSha256": "de3811e143b31aa8119daa223f1801c14ad64269e160f7c208358c4ebe79fd2b"
+  },
+  "final-documentation/run-97QdlX/manifest.json.gz": {
+    "bytes": 962,
+    "sha256": "da62ab3f72bfe2ba190a195d6ced0ff6019b29b6e35822037861b9ef0a038aa5",
+    "decodedBytes": 6663,
+    "decodedSha256": "d8dc1cab530d12200c037083f95a24267aba1239fbd8b5c833e4afdd3ff7b459"
+  },
+  "final-documentation/run-oIf2Xb/docs-site.log.gz": {
+    "bytes": 1003,
+    "sha256": "1aee6bf15f2d9bf6de23616fca5c0e5b2312688fa56b6e2e9f5d7cc7ea42920e",
+    "decodedBytes": 2643,
+    "decodedSha256": "6fbb77bd155b0914dc13ab44eac58224d1e227ffe9351e9a342b9f125eae13b0"
+  },
+  "final-documentation/run-oIf2Xb/manifest.json.gz": {
+    "bytes": 833,
+    "sha256": "875c723f4524a827b6e1f6998f49b80fd7d9a12a929854a75a8141bf173d67c8",
+    "decodedBytes": 3199,
+    "decodedSha256": "5f5677b264b87ad83476e0b4f2b7b1d76984ece0827f632cd84cbd3a6bb5d8af"
+  },
+  "final-documentation/verification-summary.json": {
+    "bytes": 2984,
+    "sha256": "f220eb4151d09fec4c590fb6b3342c1e17215d555d2682c4d27712b706385542"
   },
   "fixture-equivalence.json": {
     "bytes": 3026,

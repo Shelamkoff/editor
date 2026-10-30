@@ -32,7 +32,7 @@ the published history.
 node --input-type=module <<'JS'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
-const names = ['first-batch', 'second-batch', 'docs-repair', 'reports', 'sixth-root', 'sixth-agents']
+const names = ['first-batch', 'second-batch', 'docs-repair', 'reports', 'sixth-root', 'sixth-agents', 'sixth-completion']
 for (const name of names) {
  const map = JSON.parse(readFileSync(`scripts/parity/checkpoints/2026-10-30/publication/source-map-${name}.json`, 'utf8'))
  for (const entry of map.commits) {
@@ -99,3 +99,18 @@ The [sixth integration checkpoint](../sixth-integration/README.md) records the
 new focused verification and unchanged production-source relationship to the
 previous full run. Later reporting fixes and documentation have separate source
 identities; these maps do not add another test execution.
+
+## Sixth completion and documentation repair
+
+`source-map-sixth-completion.json` preserves five further exact-tree mappings:
+Heading/List evidence, the comparison-reporting repair, the eight-row acceptance
+report, integrated evidence and the Russian prose correction. The checked
+documentation-repair source `65c3179840b9df3b50b6df680f88df929f3956e6` is
+published as `d67229c08f5fae7101cb2a252f2d56385224da08`, identical tree
+`93b95eff7a2511c5e4be209d561a980e610f62a3`. The non-force update used the
+expected remote head; a fresh fetch verified all five trees, messages, mapped
+parents and original object hashes.
+
+The [documentation record](../sixth-integration/README.md#final-documentation-verification)
+keeps the original translation-gate failure and the successful site-only repair
+separate. Their publication mapping adds no new test result.

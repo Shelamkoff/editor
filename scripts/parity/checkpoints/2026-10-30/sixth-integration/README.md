@@ -76,3 +76,26 @@ preserved by the API. A fresh Git fetch independently verified all 14 pairs.
 
 Later documentation and archive validation identifies its own source and result.
 This checkpoint does not claim that its own archival commit ran the native suite.
+
+## Final documentation verification
+
+The original `run-97QdlX` uses `84ecd81ccf25e1276928fa492a0d0a36d978a0cb`
+(published as `b35a40a264d07d5ce50379be8e23f4a653b550e8`). Package build and
+documentation contracts pass. The site build completes, but its smoke check
+rejects untranslated terms in the newly added Russian prose. The original run
+remains **failed**, with unchanged source and the full stderr/log retained.
+
+The two-file Russian prose correction is
+`65c3179840b9df3b50b6df680f88df929f3956e6`, published as
+`d67229c08f5fae7101cb2a252f2d56385224da08`, identical tree
+`93b95eff7a2511c5e4be209d561a980e610f62a3`. The separate `run-oIf2Xb`
+repeats only the affected `docs-site` gate (`npm run docs:check`): site build,
+documentation smoke and browser smoke all **PASS**, exit 0, unchanged clean
+source. Production, browser fixtures and comparison runners are unchanged by
+that prose correction. No unnecessary full runtime suite was repeated.
+
+`final-documentation/verification-summary.json` and the compressed original
+manifests/logs preserve both outcomes, sources and exact changed paths. The
+[source map](../publication/source-map-sixth-completion.json) records the five
+completion commits and their verified published equivalents. The later archival
+commit adds only these records and metadata and is not another test execution.
