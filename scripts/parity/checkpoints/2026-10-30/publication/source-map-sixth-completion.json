@@ -1,0 +1,63 @@
+{
+  "repository": "Shelamkoff/editor",
+  "branch": "refactor/rector-v2-architecture",
+  "transport": "Authenticated GitHub Git Data API; console Git had no credentials.",
+  "originalBase": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+  "originalHead": "65c3179840b9df3b50b6df680f88df929f3956e6",
+  "publishedHead": "d67229c08f5fae7101cb2a252f2d56385224da08",
+  "verified": {
+    "commitCount": 5,
+    "allTreesIdentical": true,
+    "allParentLinksVerified": true,
+    "allMessagesIdentical": true,
+    "remoteRefVerified": true,
+    "remoteTipAtPublication": "d67229c08f5fae7101cb2a252f2d56385224da08"
+  },
+  "commits": [
+    {
+      "local": "2d7f0b8365999b49b4335926b9b663a25d7d279f",
+      "published": "0c36bfa7f04eec79249b4ed4887bf6cc31d9ab90",
+      "tree": "b5c945167faba15f9996f5207495850aee486041",
+      "parentLocal": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+      "parentPublished": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+      "message": "test(parity): archive independently audited heading and list settings evidence\n",
+      "rawCommit": "tree b5c945167faba15f9996f5207495850aee486041\nparent 0cceb84eceeb6299f2338ac4798ff40e9aa36ec8\nauthor Codex <codex@openai.com> 1793386591 +0300\ncommitter Codex <codex@openai.com> 1793386628 +0300\n\ntest(parity): archive independently audited heading and list settings evidence\n"
+    },
+    {
+      "local": "f9f347f9d338dab120838775f5f92f39e4c7ac2e",
+      "published": "b594317a4ad5e6548063d229cde1cf495c227266",
+      "tree": "21ce1973b741effdc8c01ae3938b1ecbc7a08c88",
+      "parentLocal": "2d7f0b8365999b49b4335926b9b663a25d7d279f",
+      "parentPublished": "0c36bfa7f04eec79249b4ed4887bf6cc31d9ab90",
+      "message": "fix(parity): reject empty and incomplete comparison results\n",
+      "rawCommit": "tree 21ce1973b741effdc8c01ae3938b1ecbc7a08c88\nparent 2d7f0b8365999b49b4335926b9b663a25d7d279f\nauthor Codex <codex@openai.com> 1793386552 +0300\ncommitter Codex <codex@openai.com> 1793386628 +0300\n\nfix(parity): reject empty and incomplete comparison results\n"
+    },
+    {
+      "local": "cc552b7c6fb5008852e5d4000804faefde1e0dc7",
+      "published": "a9e88525d338b3008bea1f7c74fcb0c9e676586d",
+      "tree": "c25f9543d1e5374320ad2efb58072a26378b1b06",
+      "parentLocal": "f9f347f9d338dab120838775f5f92f39e4c7ac2e",
+      "parentPublished": "b594317a4ad5e6548063d229cde1cf495c227266",
+      "message": "docs(parity): accept eight reviewed action and source contracts\n",
+      "rawCommit": "tree c25f9543d1e5374320ad2efb58072a26378b1b06\nparent f9f347f9d338dab120838775f5f92f39e4c7ac2e\nauthor Codex <codex@openai.com> 1793386588 +0300\ncommitter Codex <codex@openai.com> 1793386628 +0300\n\ndocs(parity): accept eight reviewed action and source contracts\n"
+    },
+    {
+      "local": "84ecd81ccf25e1276928fa492a0d0a36d978a0cb",
+      "published": "b35a40a264d07d5ce50379be8e23f4a653b550e8",
+      "tree": "bf3638c8cefd2570269ed82b44f5ff8c04be77c4",
+      "parentLocal": "cc552b7c6fb5008852e5d4000804faefde1e0dc7",
+      "parentPublished": "a9e88525d338b3008bea1f7c74fcb0c9e676586d",
+      "message": "test(parity): retain integrated validation and runner reporting proof\n",
+      "rawCommit": "tree bf3638c8cefd2570269ed82b44f5ff8c04be77c4\nparent cc552b7c6fb5008852e5d4000804faefde1e0dc7\nauthor Codex <codex@openai.com> 1793386875 +0300\ncommitter Codex <codex@openai.com> 1793386875 +0300\n\ntest(parity): retain integrated validation and runner reporting proof\n"
+    },
+    {
+      "local": "65c3179840b9df3b50b6df680f88df929f3956e6",
+      "published": "d67229c08f5fae7101cb2a252f2d56385224da08",
+      "tree": "93b95eff7a2511c5e4be209d561a980e610f62a3",
+      "parentLocal": "84ecd81ccf25e1276928fa492a0d0a36d978a0cb",
+      "parentPublished": "b35a40a264d07d5ce50379be8e23f4a653b550e8",
+      "message": "docs(ru): translate parity review prose for the site gate\n",
+      "rawCommit": "tree 93b95eff7a2511c5e4be209d561a980e610f62a3\nparent 84ecd81ccf25e1276928fa492a0d0a36d978a0cb\nauthor Codex <codex@openai.com> 1793387025 +0300\ncommitter Codex <codex@openai.com> 1793387025 +0300\n\ndocs(ru): translate parity review prose for the site gate\n"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "original": {
+    "run": "run-97QdlX",
+    "source": {
+      "head": "84ecd81ccf25e1276928fa492a0d0a36d978a0cb",
+      "tree": "bf3638c8cefd2570269ed82b44f5ff8c04be77c4",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+      "untracked": [],
+      "dirty": false,
+      "identity": "34ce2f51ee7037ecbcad244d8aff45c1847fdd9e3785b659c728bf7158b7f775"
+    },
+    "publishedHead": "b35a40a264d07d5ce50379be8e23f4a653b550e8",
+    "outcome": "failed",
+    "sourceUnchanged": true,
+    "startedAt": "2026-10-30T19:01:42.957Z",
+    "finishedAt": "2026-10-30T19:02:12.516Z",
+    "gates": {
+      "build": {
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "elapsedMs": 5043.595676
+      },
+      "docs-contracts": {
+        "command": [
+          "npm",
+          "run",
+          "test:docs"
+        ],
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "elapsedMs": 3199.15654
+      },
+      "docs-site": {
+        "command": [
+          "npm",
+          "run",
+          "docs:check"
+        ],
+        "outcome": "failed",
+        "exitCode": 1,
+        "sourceUnchanged": true,
+        "elapsedMs": 20541.706975999998
+      }
+    }
+  },
+  "repair": {
+    "run": "run-oIf2Xb",
+    "source": {
+      "head": "65c3179840b9df3b50b6df680f88df929f3956e6",
+      "tree": "93b95eff7a2511c5e4be209d561a980e610f62a3",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+      "untracked": [],
+      "dirty": false,
+      "identity": "4b1b7f664b1df1ae4172ad1e14f397ec9f0e515c2aa79249330edecfc1717f8a"
+    },
+    "publishedHead": "d67229c08f5fae7101cb2a252f2d56385224da08",
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "startedAt": "2026-10-30T19:03:48.786Z",
+    "finishedAt": "2026-10-30T19:04:36.556Z",
+    "gates": {
+      "docs-site": {
+        "command": [
+          "npm",
+          "run",
+          "docs:check"
+        ],
+        "outcome": "passed",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "elapsedMs": 47394.381654
+      }
+    }
+  },
+  "repairChangedPaths": [
+    "docs/ru/architecture/rector-v2/PRESERVATION.md",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md"
+  ],
+  "interpretation": "The original build and documentation-contract gates pass; its site gate fails on untranslated new Russian prose. The two-file prose repair passes the site gate on unchanged source. Neither original failure nor separate sources are relabelled. Runtime and browser fixtures are unchanged.",
+  "archiveCommitScope": "Only checkpoint evidence and source-mapping metadata; no additional browser run or preservation acceptance."
+}

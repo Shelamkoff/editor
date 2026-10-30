@@ -1,0 +1,86 @@
+[
+  {
+    "name": "columns",
+    "command": [
+      "node",
+      "scripts/parity/columns-layout-parity.mjs"
+    ],
+    "filterVariable": "EDITOR_COLUMNS_LAYOUT_FILTER",
+    "filter": "__no_matching_reporting_case__",
+    "startedAt": "2026-10-30T18:56:24.407017+00:00",
+    "completedAt": "2026-10-30T18:56:25.854095+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "79823f29b4a1480aa12023643a71fb525acfa4f0bb2f827aa530f501f8bdf741",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": false,
+    "caseCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "failureCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "8e722bf852a652c410010a488413116a9176c2b10037a8cba2885a594b517083",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "text",
+    "command": [
+      "node",
+      "scripts/parity/text-block-settings.mjs"
+    ],
+    "filterVariable": "EDITOR_TEXT_BLOCK_SETTINGS_FILTER",
+    "filter": "__no_matching_reporting_case__",
+    "startedAt": "2026-10-30T18:56:24.407358+00:00",
+    "completedAt": "2026-10-30T18:56:25.895596+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "b6dd6222660d1c6ddd88c9ceda2134d0f697daf4c3af8485f31cbf61cdd827b8",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": false,
+    "caseCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "failureCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "c7647ee43382b96bfcc374b42fb0a4c5c4b3535f956c3c23928648a77a1cadcd",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "raw",
+    "command": [
+      "node",
+      "scripts/parity/raw-source-preview.mjs"
+    ],
+    "filterVariable": "EDITOR_RAW_FILTER",
+    "filter": "__no_matching_reporting_case__",
+    "startedAt": "2026-10-30T18:56:24.407965+00:00",
+    "completedAt": "2026-10-30T18:56:25.838864+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "6f7fa153b026a210ef145101218602b67c14eb284b2e65de970c7a03a6f295d9",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": false,
+    "caseCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "failureCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "f1c0475291660755ec608fc3cd3da319fca1af3c4af31d1ca52170daa14b08ea",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

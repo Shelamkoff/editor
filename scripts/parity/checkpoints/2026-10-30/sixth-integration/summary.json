@@ -1,0 +1,161 @@
+{
+  "run": "run-OXtLxQ",
+  "source": {
+    "head": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "tree": "a3a77a3670e6b17f8000b4cd95720eec1a7edc2a",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "45fc7ca00b13deb4d50a96de9899dd4c05734a84430ba05a2175925f85c7ae5e"
+  },
+  "publishedHead": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+  "outcome": "passed",
+  "sourceUnchanged": true,
+  "startedAt": "2026-10-30T18:52:28.724Z",
+  "finishedAt": "2026-10-30T18:54:39.090Z",
+  "gates": {
+    "typecheck": {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "elapsedMs": 7413.980111
+    },
+    "heading-list-native": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "elapsedMs": 24673.639249
+    },
+    "columns-native": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "elapsedMs": 22910.484203
+    },
+    "tool-actions-native": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "elapsedMs": 23909.239587
+    },
+    "source-indentation-native": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "elapsedMs": 23310.647880999997
+    },
+    "source-modes-native": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "elapsedMs": 26848.850395
+    }
+  },
+  "native": {
+    "heading-list-native": {
+      "page": "native-plugin-parity.html",
+      "cases": 21,
+      "failures": 0,
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Text block settings parity",
+        "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+      }
+    },
+    "columns-native": {
+      "page": "native-plugin-parity.html",
+      "cases": 23,
+      "failures": 0,
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Columns",
+        "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+      }
+    },
+    "tool-actions-native": {
+      "page": "native-tools.html",
+      "cases": 48,
+      "failures": 0,
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-tools.html",
+        "EDITOR_NATIVE_FILTER": "tool action ",
+        "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+      }
+    },
+    "source-indentation-native": {
+      "page": "native-source-indentation.html",
+      "cases": 54,
+      "failures": 0,
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-source-indentation.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+      }
+    },
+    "source-modes-native": {
+      "page": "native-source-modes.html",
+      "cases": 62,
+      "failures": 0,
+      "selection": {
+        "EDITOR_NATIVE_PAGE": "native-source-modes.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+      }
+    }
+  },
+  "nativeCases": 208,
+  "candidateComparisons": {
+    "heading-list": {
+      "cases": 21,
+      "observations": 2323
+    },
+    "columns": {
+      "cases": 12,
+      "observations": 2880
+    },
+    "raw": {
+      "cases": 21,
+      "observations": 1421
+    },
+    "tools": {
+      "cases": 48,
+      "observations": 2072
+    }
+  },
+  "candidateComparisonTotals": {
+    "cases": 102,
+    "observations": 8696,
+    "failures": 0
+  },
+  "scope": "Focused integration of four bounded parity fixtures plus neighboring Columns and Code/Raw controls, and both typechecks. Separate comparison observations overlap native cases and are not added to the 208 count.",
+  "limits": [
+    "No fresh complete browser, heap, unit, package or performance matrix is asserted.",
+    "Full source pages include Code and are not counted as Raw-only cases.",
+    "Historical FAIL, unsupported capabilities, tool-case incompleteness and Heading spec page errors retain their original meanings in the four scoped archives.",
+    "The completed Heading/List JSON has no retained shell exit; expected policy exit 1 is not an observed process result."
+  ]
+}

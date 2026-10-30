@@ -1,0 +1,849 @@
+{
+  "revision": "67bb364d01ff3939ff3f7724df087211643efce7",
+  "scope": "Actual runner aggregation and final report blocks on controlled result inputs; not browser coverage.",
+  "runners": [
+    {
+      "name": "columns",
+      "path": "scripts/parity/columns-layout-parity.mjs",
+      "runnerSha256": "79823f29b4a1480aa12023643a71fb525acfa4f0bb2f827aa530f501f8bdf741",
+      "reportBlockSha256": "a29c54595136ebffe4db747d29d8034de325e7bdafd4b1a4ce1ba86605f11f83",
+      "aggregationBlockSha256": "852ed8e0cd9bce916114282bd90dfacde8ee9a53d028ba9ced3b1861a745b057",
+      "probes": [
+        {
+          "scenario": "positive",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-historical",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "server-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "page-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "native-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "case-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "unsupported-current",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-observations",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-phase",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "wrong-phase-same-count",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-phase-plan",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-unsupported",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-failure",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        }
+      ]
+    },
+    {
+      "name": "text",
+      "path": "scripts/parity/text-block-settings.mjs",
+      "runnerSha256": "b6dd6222660d1c6ddd88c9ceda2134d0f697daf4c3af8485f31cbf61cdd827b8",
+      "reportBlockSha256": "2a3f37058ec0eebd219da0cfa86549211a57b77dd3e53d13aa5655bf2954b1ec",
+      "aggregationBlockSha256": "a9799a6bee1c03cd54caa45698274cbce9e2859fff1c092480c73eda0f923ada",
+      "probes": [
+        {
+          "scenario": "positive",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-historical",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "server-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "page-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "native-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "case-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "unsupported-current",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-observations",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-phase",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "wrong-phase-same-count",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-phase-plan",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-unsupported",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-failure",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "case-page-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        }
+      ]
+    },
+    {
+      "name": "raw",
+      "path": "scripts/parity/raw-source-preview.mjs",
+      "runnerSha256": "6f7fa153b026a210ef145101218602b67c14eb284b2e65de970c7a03a6f295d9",
+      "reportBlockSha256": "35b473316bf2373403c71a864ed540e22757110df048ce53d5d986ca6b4a7611",
+      "aggregationBlockSha256": "2bd27d42591840fcfde682ef1b73885358de3481709b8a9f66a76b16e9ee5252",
+      "probes": [
+        {
+          "scenario": "positive",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-historical",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "server-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "page-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "native-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "case-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "unsupported-current",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-observations",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-phase",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "wrong-phase-same-count",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-phase-plan",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-unsupported",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-failure",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        }
+      ]
+    },
+    {
+      "name": "tools",
+      "path": "scripts/parity/tool-actions.mjs",
+      "runnerSha256": "d328de293c6f8f7510ee37cdc53ded5ab116ab3888c1a920472687f71e7126e3",
+      "reportBlockSha256": "5a87afb438e6d1a74919bd474d32b01541d44db142bb1686e0e8dc140d45d554",
+      "aggregationBlockSha256": "7f133eaa960d36f4ea02f61573ea81032e60b68942172a99b91690ecf0692f9f",
+      "probes": [
+        {
+          "scenario": "positive",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-historical",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "server-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "page-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "native-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "case-error",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "unsupported-current",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-observations",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-phase",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "wrong-phase-same-count",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "empty-phase-plan",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "missing-candidate",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-unsupported",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 0
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 0,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "historical-failure",
+          "expected": {
+            "candidatePass": true,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": true,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        },
+        {
+          "scenario": "diagnostic",
+          "expected": {
+            "candidatePass": false,
+            "exitCode": 1
+          },
+          "actual": {
+            "candidatePass": false,
+            "exitCode": 1,
+            "error": null
+          },
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

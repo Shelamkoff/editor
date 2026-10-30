@@ -87,7 +87,6 @@ try {
     const cases = await page.evaluate(async ({ source, filter }) => {
       const { rawSourceCases, runRawSourceCase } = await import('/fixture.js')
       const selected = rawSourceCases.filter(value => !filter || value.id.includes(filter))
-      if (!selected.length) throw new Error('Raw comparison filter selected no cases')
       const results = []
       for (const specification of selected) results.push(await runRawSourceCase(specification, {
         sourceBase: `/${source.label}/`, legacy: source.legacy, native: window.__rawInput,
@@ -96,7 +95,8 @@ try {
     }, { source: { label: source.label, legacy: source.legacy }, filter })
     results.push({ source: source.label, cases, errors,
       failures: cases.flatMap(entry => entry.observations.filter(value => value.status !== 'PASS').map(value => ({ id: entry.id, ...value }))),
-      incompleteCases: cases.filter(entry => entry.error || JSON.stringify(entry.completedPhases) !== JSON.stringify(entry.plannedPhases)),
+      incompleteCases: cases.filter(entry => entry.error || !entry.observations.length || !entry.plannedPhases.length
+        || JSON.stringify(entry.completedPhases) !== JSON.stringify(entry.plannedPhases)),
     })
     await page.close()
   }
@@ -105,13 +105,16 @@ try {
   assert.equal(changedTracked, '', 'Tracked source changed during comparison')
   assert.deepEqual(await readFile(runnerPath), runnerBytes, 'Runner bytes changed during comparison')
   assert.deepEqual(await readFile(join(repo, fixturePath)), fixture, 'Fixture bytes changed during comparison')
+  const passed = result => result.cases.length > 0 && !result.errors.length && !result.failures.length && !result.incompleteCases.length
+    && (result.source !== 'candidate' || !result.cases.some(entry => entry.unsupported))
   const current = results.find(result => result.source === 'candidate')
+  const candidatePass = !serverErrors.length && Boolean(current) && passed(current)
   console.log(JSON.stringify({ startedAt, completedAt: new Date().toISOString(), node: process.version,
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, filter,
     runnerSha256: digest(runnerBytes), fixtureSha256: digest(fixture), fixtureSource: headBefore,
     headBefore, headAfter, sourceUnchanged: true, sources, dependencyVersions, dependencyFiles, serverErrors, results,
-    candidatePass: !serverErrors.length && !current.errors.length && !current.failures.length && !current.incompleteCases.length,
+    candidatePass,
     note: 'Bounded Raw source/preview differential. Historical failures retain their raw status. No classifier, candidate exception, fabricated legacy API or B-HTML/B-STYLE topology decision is used.',
   }, null, 2))
-  if (serverErrors.length || results.some(result => result.errors.length || result.failures.length || result.incompleteCases.length)) process.exitCode = 1
+  if (!candidatePass || results.some(result => !passed(result))) process.exitCode = 1
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)) }

@@ -1,0 +1,67 @@
+[
+  {
+    "name": "columns",
+    "command": [
+      "node",
+      "scripts/parity/columns-layout-parity.mjs"
+    ],
+    "filterVariable": "EDITOR_COLUMNS_LAYOUT_FILTER",
+    "filter": "__no_matching_reporting_case__",
+    "startedAt": "2026-10-30T18:52:22.663131+00:00",
+    "completedAt": "2026-10-30T18:52:24.241048+00:00",
+    "source": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "runnerSha256": "c17e45f2aeef3458e42bda7e50e4f10bb8642b9fd7ec159f75416cf6175a81a1",
+    "exitCode": 0,
+    "jsonReport": true,
+    "candidatePass": false,
+    "caseCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "8f7ff9bac38cc6dd2e44531880c0e37527db5b636bc6d784f38834b5bca8d35f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "text",
+    "command": [
+      "node",
+      "scripts/parity/text-block-settings.mjs"
+    ],
+    "filterVariable": "EDITOR_TEXT_BLOCK_SETTINGS_FILTER",
+    "filter": "__no_matching_reporting_case__",
+    "startedAt": "2026-10-30T18:52:22.663532+00:00",
+    "completedAt": "2026-10-30T18:52:24.218215+00:00",
+    "source": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "runnerSha256": "700f0138e3a1c3046b28f249d475f5af076bc63891a98eaf965bf24517c75dbd",
+    "exitCode": 0,
+    "jsonReport": true,
+    "candidatePass": true,
+    "caseCounts": {
+      "v1": 0,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "e1f37267e1229226a2a1b4db34e3e0b946f5e45bdcb83b0e990a695961d4c2a1",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "raw",
+    "command": [
+      "node",
+      "scripts/parity/raw-source-preview.mjs"
+    ],
+    "filterVariable": "EDITOR_RAW_FILTER",
+    "filter": "__no_matching_reporting_case__",
+    "startedAt": "2026-10-30T18:52:22.663953+00:00",
+    "completedAt": "2026-10-30T18:52:23.971259+00:00",
+    "source": "24cc569c2fdcb3f115417ae895a01084858cdf67",
+    "runnerSha256": "df23c2bdeee181327736cb15dcd31799658ec8de2c2fc8849ff1ba6e3e54b7c0",
+    "exitCode": 1,
+    "jsonReport": false,
+    "candidatePass": null,
+    "caseCounts": null,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "224b16bb340f2d413f46e398fc61b57adbc5787a97bc0417526168b00ab5455b"
+  }
+]

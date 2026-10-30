@@ -85,14 +85,18 @@ try {
       const { textBlockSettingsCases, runTextBlockSettingsCase } = await import('/fixture.js')
       const cases = []
       for (const specification of textBlockSettingsCases.filter(value => !filter || value.id.includes(filter))) {
-        cases.push(await runTextBlockSettingsCase(specification, { sourceBase: `/${source.label}/`, legacy: source.legacy, native: window.__textBlockInput }))
+        const changes = specification.route === 'toolbox' || specification.initial !== (specification.type === 'heading' ? specification.level : specification.style)
+        const plannedPhases = ['load', 'input', 'control', ...(changes ? ['undo-control'] : []),
+          'undo-input', 'redo-input', ...(changes ? ['redo-control'] : []), 'retired-control']
+        cases.push({ ...await runTextBlockSettingsCase(specification, { sourceBase: `/${source.label}/`, legacy: source.legacy, native: window.__textBlockInput }), plannedPhases })
       }
       return cases
     }, { source: { label: source.label, legacy: source.legacy }, filter: process.env.EDITOR_TEXT_BLOCK_SETTINGS_FILTER ?? '' })
     results.push({ source: source.label, cases, errors,
       unsupportedCases: cases.filter(entry => entry.unsupported).map(entry => ({ id: entry.id, reason: entry.unsupported })),
       failures: cases.flatMap(entry => entry.observations.filter(value => value.status !== 'PASS').map(value => ({ id: entry.id, ...value }))),
-      incompleteCases: cases.filter(entry => entry.error),
+      incompleteCases: cases.filter(entry => entry.error || (!entry.unsupported && (!entry.observations.length || !entry.plannedPhases.length
+        || JSON.stringify(entry.completedPhases) !== JSON.stringify(entry.plannedPhases)))),
       casePageErrors: cases.flatMap(entry => (entry.pageErrors ?? []).map(error => ({ id: entry.id, ...error }))),
     })
     await page.close()
@@ -100,13 +104,16 @@ try {
   const headAfter = git('rev-parse', 'HEAD').toString().trim(), changedTracked = git('diff', '--name-only', 'HEAD').toString().trim()
   assert.equal(headAfter, headBefore, 'Source HEAD changed during comparison')
   assert.equal(changedTracked, '', 'Tracked source changed during comparison')
+  const passed = result => result.cases.length > 0 && !result.errors.length && !result.failures.length && !result.incompleteCases.length
+    && !result.casePageErrors.length && (result.source !== 'candidate' || !result.unsupportedCases.length)
   const candidate = results.find(result => result.source === 'candidate')
+  const candidatePass = !serverErrors.length && Boolean(candidate) && passed(candidate)
   console.log(JSON.stringify({ startedAt, completedAt: new Date().toISOString(), node: process.version,
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, filter: process.env.EDITOR_TEXT_BLOCK_SETTINGS_FILTER ?? '',
     runnerSha256: digest(await readFile(fileURLToPath(import.meta.url))), fixtureSha256: digest(fixture),
     headBefore, headAfter, sources, dependencyVersions, dependencyFiles, serverErrors, results,
-    candidatePass: !candidate.errors.length && !candidate.failures.length && !candidate.incompleteCases.length && !candidate.casePageErrors.length,
+    candidatePass,
     note: 'Raw differential: historical differences retain failure status; there are no classifiers or candidate exceptions.',
   }, null, 2))
-  if (serverErrors.length || results.some(result => result.errors.length || result.failures.length || result.incompleteCases.length || result.casePageErrors.length)) process.exitCode = 1
+  if (!candidatePass || results.some(result => !passed(result))) process.exitCode = 1
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)) }

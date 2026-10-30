@@ -1,0 +1,118 @@
+[
+  {
+    "name": "columns",
+    "command": [
+      "node",
+      "scripts/parity/columns-layout-parity.mjs"
+    ],
+    "filterVariable": "EDITOR_COLUMNS_LAYOUT_FILTER",
+    "filter": "direct/empty-removed",
+    "startedAt": "2026-10-30T18:56:40.663167+00:00",
+    "completedAt": "2026-10-30T18:56:48.288935+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "79823f29b4a1480aa12023643a71fb525acfa4f0bb2f827aa530f501f8bdf741",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": true,
+    "caseCounts": {
+      "v1": 1,
+      "spec-baseline": 1,
+      "candidate": 1
+    },
+    "failureCounts": {
+      "v1": 5,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "bb2c6eb20e9bff4ceff52efa8f9edbff3ac7bd4fef690dc0be4a7e770c7ce169",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidateObservations": 252
+  },
+  {
+    "name": "text",
+    "command": [
+      "node",
+      "scripts/parity/text-block-settings.mjs"
+    ],
+    "filterVariable": "EDITOR_TEXT_BLOCK_SETTINGS_FILTER",
+    "filter": "LIST_STYLE/unordered/ordered",
+    "startedAt": "2026-10-30T18:56:40.663505+00:00",
+    "completedAt": "2026-10-30T18:56:47.426910+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "b6dd6222660d1c6ddd88c9ceda2134d0f697daf4c3af8485f31cbf61cdd827b8",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": true,
+    "caseCounts": {
+      "v1": 1,
+      "spec-baseline": 1,
+      "candidate": 1
+    },
+    "failureCounts": {
+      "v1": 4,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "cc8b38c1b48a4ba3b7f95802d2cac377b51be3e00cc9b713416f34be97be05a0",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidateObservations": 120
+  },
+  {
+    "name": "raw",
+    "command": [
+      "node",
+      "scripts/parity/raw-source-preview.mjs"
+    ],
+    "filterVariable": "EDITOR_RAW_FILTER",
+    "filter": "RAW_SOURCE/tab-caret",
+    "startedAt": "2026-10-30T18:56:40.663905+00:00",
+    "completedAt": "2026-10-30T18:56:45.068171+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "6f7fa153b026a210ef145101218602b67c14eb284b2e65de970c7a03a6f295d9",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": true,
+    "caseCounts": {
+      "v1": 1,
+      "spec-baseline": 1,
+      "candidate": 1
+    },
+    "failureCounts": {
+      "v1": 4,
+      "spec-baseline": 0,
+      "candidate": 0
+    },
+    "stdoutSha256": "22320da54f58727aa02048122c1449ba1afd5013d458f7682b73d8498c3003e7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidateObservations": 67
+  },
+  {
+    "name": "tools",
+    "command": [
+      "node",
+      "scripts/parity/tool-actions.mjs"
+    ],
+    "filterVariable": null,
+    "filter": null,
+    "startedAt": "2026-10-30T18:56:45.068509+00:00",
+    "completedAt": "2026-10-30T18:57:40.867560+00:00",
+    "source": "67bb364d01ff3939ff3f7724df087211643efce7",
+    "runnerSha256": "d328de293c6f8f7510ee37cdc53ded5ab116ab3888c1a920472687f71e7126e3",
+    "exitCode": 1,
+    "jsonReport": true,
+    "candidatePass": true,
+    "caseCounts": {
+      "v1": 48,
+      "spec-baseline": 48,
+      "candidate": 48
+    },
+    "failureCounts": {
+      "v1": 278,
+      "spec-baseline": 258,
+      "candidate": 0
+    },
+    "stdoutSha256": "812e5a473fa57ba0cd053d3402481a289a2b07d6b1333bee39f0a19586a338df",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidateObservations": 2072
+  }
+]

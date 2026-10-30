@@ -1,0 +1,132 @@
+{
+  "auditPassed": true,
+  "gzipPayloadsVerified": 10,
+  "sourceRevisions": [
+    {
+      "original": "99157b4dbf450b3ad25639bd570b02995aa960c7",
+      "published": "e5829ca7635b2f1bce61ced0e1f7bdb2e55552ee",
+      "tree": "c6f8fecefc610cf23a79a844e191dd34d43e5e71",
+      "rawCommitValid": true,
+      "patchMatches": true,
+      "productionChanged": false
+    },
+    {
+      "original": "d483be745b0bc00f40a89b823a12f993f1ae21f8",
+      "published": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+      "tree": "0d1eb6ee624e8b943cec91c33a50b893d3839b25",
+      "rawCommitValid": true,
+      "patchMatches": true,
+      "productionChanged": false
+    }
+  ],
+  "runs": {
+    "early": {
+      "candidateSource": "99157b4dbf450b3ad25639bd570b02995aa960c7",
+      "observationsRecomputed": 6278,
+      "verdictMismatches": 0,
+      "phaseSnapshotsChecked": 389,
+      "fixedOracleValuesChecked": 5449,
+      "sourceFileHashesVerified": 499,
+      "dependencyFileHashesVerified": 64,
+      "fixtureAndRunnerHashesVerified": true,
+      "candidatePass": true,
+      "results": [
+        {
+          "source": "v1",
+          "executedCases": 17,
+          "unsupportedCases": 4,
+          "observations": 1674,
+          "failures": 20,
+          "incompleteCases": 0,
+          "globalPageErrors": 0,
+          "casePageErrors": null,
+          "candidatePhaseDocumentsReconstructed": 0
+        },
+        {
+          "source": "spec-baseline",
+          "executedCases": 21,
+          "unsupportedCases": 0,
+          "observations": 2302,
+          "failures": 185,
+          "incompleteCases": 0,
+          "globalPageErrors": 10,
+          "casePageErrors": null,
+          "candidatePhaseDocumentsReconstructed": 0
+        },
+        {
+          "source": "candidate",
+          "executedCases": 21,
+          "unsupportedCases": 0,
+          "observations": 2302,
+          "failures": 0,
+          "incompleteCases": 0,
+          "globalPageErrors": 0,
+          "casePageErrors": null,
+          "candidatePhaseDocumentsReconstructed": 139
+        }
+      ]
+    },
+    "final": {
+      "candidateSource": "d483be745b0bc00f40a89b823a12f993f1ae21f8",
+      "observationsRecomputed": 6337,
+      "verdictMismatches": 0,
+      "phaseSnapshotsChecked": 389,
+      "fixedOracleValuesChecked": 5449,
+      "sourceFileHashesVerified": 499,
+      "dependencyFileHashesVerified": 64,
+      "fixtureAndRunnerHashesVerified": true,
+      "candidatePass": true,
+      "results": [
+        {
+          "source": "v1",
+          "executedCases": 17,
+          "unsupportedCases": 4,
+          "observations": 1691,
+          "failures": 29,
+          "incompleteCases": 0,
+          "globalPageErrors": 0,
+          "casePageErrors": 0,
+          "candidatePhaseDocumentsReconstructed": 0
+        },
+        {
+          "source": "spec-baseline",
+          "executedCases": 21,
+          "unsupportedCases": 0,
+          "observations": 2323,
+          "failures": 185,
+          "incompleteCases": 0,
+          "globalPageErrors": 10,
+          "casePageErrors": 10,
+          "candidatePhaseDocumentsReconstructed": 0
+        },
+        {
+          "source": "candidate",
+          "executedCases": 21,
+          "unsupportedCases": 0,
+          "observations": 2323,
+          "failures": 0,
+          "incompleteCases": 0,
+          "globalPageErrors": 0,
+          "casePageErrors": 0,
+          "candidatePhaseDocumentsReconstructed": 139
+        }
+      ]
+    }
+  },
+  "earlyNative": {
+    "passed": 21,
+    "source": null,
+    "acceptanceEvidence": false
+  },
+  "finalProcess": {
+    "completedJson": true,
+    "candidatePass": true,
+    "runnerExpectedExitCode": 1,
+    "actualShellExitCode": null
+  },
+  "proposedAcceptance": [
+    "BLOCK_HEADING_LEVELS",
+    "BLOCK_LIST_STYLES"
+  ],
+  "note": "Audit success verifies evidence integrity and interpretation; historical FAIL/error results remain unchanged."
+}
