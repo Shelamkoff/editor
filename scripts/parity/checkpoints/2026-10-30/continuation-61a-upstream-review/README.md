@@ -55,6 +55,6 @@ Upstream `414c6af1` was fetched successfully. New local continuation commits
 have **not** been pushed. The retained bounded GitHub write probe timed out;
 the expected immutable object subsequently returned 404. No automatic
 approval-review rejection was returned. The CLI has no available GitHub
-credentials. The final delivery therefore includes a separately verified
-Git bundle, with its exact final commit and complete unpublished parent
-history recorded after all local evidence and documentation are committed.
+credentials. The fallback delivery is a Git bundle. Its final commit, complete unpublished
+parent history, checksum and independent recovery result belong to the separate
+delivery manifest after all local evidence and documentation are committed.

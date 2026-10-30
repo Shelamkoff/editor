@@ -1,0 +1,35 @@
+{
+  "archive": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-guards/scripts/parity/checkpoints/2026-10-30/final-maintained-differential",
+  "artifactIndexSha256": "d93aeeb8af7275880772b74f17ea54a210f5d61082108790582cb72b96736b95",
+  "verifiedPayloads": 92,
+  "verifiedOriginals": 90,
+  "runs": [
+    {
+      "run": "run-AYPL00",
+      "source": "1c933545c6f05701741031997945c64b1ab5ba9d",
+      "candidateCases": 235,
+      "candidateObservations": 22961,
+      "candidateFailures": 0,
+      "rawC11Outcome": "failed",
+      "rawGateOutcomes": {
+        "passed": 5,
+        "failed": 10
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "run": "run-a15oUo",
+      "source": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+      "candidateCases": 102,
+      "candidateObservations": 8696,
+      "candidateFailures": 0,
+      "rawC11Outcome": "failed",
+      "rawGateOutcomes": {
+        "failed": 4
+      },
+      "sourceUnchanged": true
+    }
+  ],
+  "recomputedCandidateObservations": 31657,
+  "actualExpectedMismatches": []
+}
