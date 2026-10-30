@@ -1,0 +1,11 @@
+{
+  "source": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+  "scope": "diagnostic-only; not acceptance; external runner observes beyond original120000ms deadline and external served harness adds only progress/timing; original assertions, per-case timers and selected cases unchanged",
+  "originalRunnerSha256": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab",
+  "diagnosticRunnerSha256": "98f127996d75dcda46d1d99a5e5a737a0d739868f36e023d4fbbcffcadbea50f",
+  "originalHarnessSha256": "e985fdb92be7dc9e921e5ef5e421fb37031ac0604f29b44a67770a84ddc5a1d8",
+  "diagnosticHarnessSha256": "a07ad987a266c6a8291144f00feb4e5c52471622be900447be45fc3524b64bde",
+  "page": "native-plugin-parity.html",
+  "originalPageDeadlineMs": 120000,
+  "diagnosticObservationDeadlineMs": 240000
+}
