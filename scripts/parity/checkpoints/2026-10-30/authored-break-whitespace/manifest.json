@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "scope": "Visible whitespace after authored line breaks; focused regression verification, not whole-library acceptance.",
+  "source": {
+    "base_commit": "2afd45aaaab3f60574ed19cfb60bd37a55bda342",
+    "candidate_commit": "03d4407da664b2bf63aa7c9987bcf86d1ddb30ab",
+    "candidate_tree": "f09ba286ebb9f91086eb331c66d5b0f454a955bb",
+    "candidate_file_sha256": {
+      "core/NativeInputController.authoredBreak.test.js": "c538f9067b33f085db430ca9a94db3b59d2fedb9d087f308acad2be8f338112b",
+      "core/NativeInputController.js": "09cf4b3136399d95cf0f179c2296b0bdbb0d3f0bdcc93340a590e3f65b819a4d",
+      "tests/browser/README.md": "05c5fa5a950e3b823afeb2a0dd241b1590bb6a988f1947cc25ef34766816faf7",
+      "tests/browser/native-authored-break.html": "ed595dc902a261eb8b97383953f1316c851a66c595cb3d207faad3a40dcf0ccb",
+      "tests/browser/physical-history.mjs": "0f5230c85bc54f969253d17111045cdaee12e19b7a2165bed9de75c1d65bf249",
+      "tests/browser/regressions/authored-break-whitespace-native.js": "09731e6d551ef56bd5d47233ba6e6a3fac8288db46fa9f2212fb9b5f598cf0e8"
+    },
+    "red_reconstruction": "Candidate regression fixtures and runner with core/NativeInputController.js restored byte-for-byte from base_commit. No other production source changes.",
+    "red_controller_sha256": "90063f753753b0746a035c2ce876f908c0b3a32645666ed9771fee7806bd3c6f",
+    "green_source": "Production, registered regression fixture, runner and focused unit files are byte-identical to candidate_commit. Temporary unregistered exploratory pages were removed before commit.",
+    "typecheck_source": "Production source is byte-identical to candidate_commit; both jsconfig files exclude browser fixtures and test files."
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "browser": "Google Chrome 156.0.8078.79",
+    "browser_path": "/tmp/rector-chrome/opt/google/chrome/chrome"
+  },
+  "checks": [
+    {
+      "name": "native RED",
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-authored-break.html node tests/browser/physical-history.mjs",
+      "source": "red_reconstruction",
+      "exit_code": 1,
+      "cases": 16,
+      "passed": 8,
+      "failed": 8,
+      "log": "native-red.log.gz",
+      "failures": [
+        "authored break Checklist one space follows native whitespace and atomic history",
+        "authored break Checklist successive spaces follows native whitespace and atomic history",
+        "authored break Checklist three spaces in one native insertion follows native whitespace and atomic history",
+        "authored break Checklist spaces followed by author text follows native whitespace and atomic history",
+        "authored break Checklist native text with leading and trailing spaces follows native whitespace and atomic history",
+        "authored break follows computed normal in Paragraph",
+        "authored break follows computed nowrap in Paragraph",
+        "authored break follows computed pre-line in Paragraph"
+      ]
+    },
+    {
+      "name": "native GREEN",
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-authored-break.html node tests/browser/physical-history.mjs",
+      "source": "candidate_commit",
+      "exit_code": 0,
+      "cases": 16,
+      "passed": 16,
+      "failed": 0,
+      "log": "native-green.log.gz"
+    },
+    {
+      "name": "focused unit",
+      "command": "node --test --test-isolation=none --test-reporter=tap core/NativeInputController.authoredBreak.test.js core/NativeInputController.test.js core/LogicalSelection.test.js core/DocumentRuntime.test.js",
+      "source": "candidate_commit",
+      "exit_code": 0,
+      "tests": 162,
+      "passed": 162,
+      "failed": 0,
+      "log": "unit.log.gz"
+    },
+    {
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "source": "typecheck_source",
+      "exit_code": 0,
+      "configs": [
+        "jsconfig.json",
+        "jsconfig.runtime.json"
+      ],
+      "log": "typecheck.log.gz"
+    }
+  ],
+  "oracle": {
+    "input": "Actual trusted browser beforeinput through the existing native CDP driver; standalone contenteditable is the reference.",
+    "collapse_modes": [
+      "normal",
+      "nowrap",
+      "pre-line"
+    ],
+    "preserving_modes": [
+      "pre",
+      "pre-wrap",
+      "break-spaces"
+    ],
+    "equivalence": "In collapsing CSS only, SPACE and NBSP are equivalent for logical-text comparison. Each requested space must independently occupy nonzero width. Exact formatting, caret and save/Undo/Redo snapshots remain asserted.",
+    "reason": "Keeping the authored BR inside its formatting wrapper changes browser whitespace affinity. Two sequential spaces can become NBSP+NBSP while an unformatted native continuation uses NBSP+SPACE. Requiring the latter bytes would couple acceptance to the browser path that drops the active mark.",
+    "diagnostic": "diagnostic-strict-serialization.log.gz preserves the intermediate overly strict byte-comparison attempt. It is not a final verification gate; the final fixture was rerun against both unchanged and repaired production source."
+  },
+  "artifacts": {
+    "source.patch.gz": {
+      "compressed_bytes": 4482,
+      "compressed_sha256": "2b05b721cda375f17a0dd61ab46dee6914d47eaca237a889f8422021041a7dbd",
+      "uncompressed_bytes": 12395,
+      "uncompressed_sha256": "9c1b9f6c9310a0a20cd9fe9def98b234cc462587eaab152c60a1340f875b8ba0"
+    },
+    "native-red.log.gz": {
+      "compressed_bytes": 708,
+      "compressed_sha256": "5188501d0610770056cac51af10b1bf8209672318404fcf669c8ad5678e11f92",
+      "uncompressed_bytes": 7106,
+      "uncompressed_sha256": "5550228b901ab4dcb2f8865878bcf9bffbfcf73b43dc06c7a015454de0dc87f0"
+    },
+    "native-green.log.gz": {
+      "compressed_bytes": 301,
+      "compressed_sha256": "fc280d7cddf183eb851f73eca806a14d34e95434c66acdce0d271df929d18bf6",
+      "uncompressed_bytes": 1811,
+      "uncompressed_sha256": "613793435220f54ffd9cdad26c6c6d19d1cb06ec44de2e5bd0d4ec23c5c76e6e"
+    },
+    "unit.log.gz": {
+      "compressed_bytes": 6721,
+      "compressed_sha256": "d5dcfec8c18210969f82969b2375daecc0b4a75b70165f0e35dbe7218be4cabb",
+      "uncompressed_bytes": 36466,
+      "uncompressed_sha256": "c95b25b5d33ec727a9ca7c013c7fe5c4c0c2426005af91b3f7657c900a3b7ccf"
+    },
+    "typecheck.log.gz": {
+      "compressed_bytes": 185,
+      "compressed_sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "uncompressed_bytes": 259,
+      "uncompressed_sha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "diagnostic-strict-serialization.log.gz": {
+      "compressed_bytes": 682,
+      "compressed_sha256": "6daf8cab6cca64ff8981a16587415cfa58b919d6568f66611220181ce7f452a3",
+      "uncompressed_bytes": 3179,
+      "uncompressed_sha256": "a6ede8800d4e3e6527fe3aef2b7a5e00da0b0bf481385ffb36108c3653df3788"
+    }
+  }
+}

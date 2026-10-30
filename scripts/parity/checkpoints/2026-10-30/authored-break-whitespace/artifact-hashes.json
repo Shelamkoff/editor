@@ -1,0 +1,13 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "README.md": "a5e5aaedca913e30e637a7aed45ab66f060bda1d92a916f743930c145ee43fa3",
+    "diagnostic-strict-serialization.log.gz": "6daf8cab6cca64ff8981a16587415cfa58b919d6568f66611220181ce7f452a3",
+    "manifest.json": "ad0cb994c6d088af51000dd0d952c0471d66d7356a286a4eaede5e7a98d37a93",
+    "native-green.log.gz": "fc280d7cddf183eb851f73eca806a14d34e95434c66acdce0d271df929d18bf6",
+    "native-red.log.gz": "5188501d0610770056cac51af10b1bf8209672318404fcf669c8ad5678e11f92",
+    "source.patch.gz": "2b05b721cda375f17a0dd61ab46dee6914d47eaca237a889f8422021041a7dbd",
+    "typecheck.log.gz": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+    "unit.log.gz": "d5dcfec8c18210969f82969b2375daecc0b4a75b70165f0e35dbe7218be4cabb"
+  }
+}
