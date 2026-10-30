@@ -1,7 +1,7 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el } from '../shared/editorDom.js'
 import { sanitizeUrl } from '../shared/sanitize/sanitizeUrl.js'
-import { hasProtectedDomContent } from './inlineContent.js'
+import { hasProtectedDomContent, authoredEditingHosts } from './inlineContent.js'
 import {
   createSelectionPortBinding,
   ICON_LINK, ICON_CHECK, ICON_UNLINK,
@@ -60,34 +60,22 @@ function collectLinkContent(range) {
   /** @type {{ text: ReturnType<typeof collectTextTargets>, atoms: Element[] }} */
   const content = { text: [], atoms: [] }
   const root = getWalkRoot(range)
-  if (!root || root.closest(`${NATIVE_CONTROL_SELECTOR}, [data-inline-plugin]`)) return content
-  /** @param {Element} parent @param {boolean} inField */
-  const visit = (parent, inField) => {
+  if (!root) return content
+  content.text = collectTextTargets(root, range)
+  /** @param {Element} parent */
+  const visit = parent => {
     for (const element of parent.children) {
       if (element.hasAttribute('data-inline-plugin')) {
-        if (inField && containsAtom(range, element)) content.atoms.push(element)
+        if (containsAtom(range, element)) content.atoms.push(element)
         continue
       }
-      if (element.matches(NATIVE_CONTROL_SELECTOR)) continue
-      if (element.hasAttribute('contenteditable')) {
-        // Outside a field, discover explicit fields through plugin shells.
-        // Inside one, every nested host is an independent editing boundary.
-        if (!inField) {
-          const isField = element.getAttribute('contenteditable') === 'true'
-          if (isField) content.text.push(...collectTextTargets(/** @type {HTMLElement} */ (element), range))
-          visit(element, isField)
-        }
-        continue
-      }
+      if (element.matches(NATIVE_CONTROL_SELECTOR) || element.hasAttribute('contenteditable')) continue
       if (element.tagName === 'BR') {
-        if (inField && containsAtom(range, element)) content.atoms.push(element)
-      } else visit(element, inField)
+        if (containsAtom(range, element)) content.atoms.push(element)
+      } else visit(element)
     }
   }
-  const host = root.closest('[contenteditable]')
-  const inField = host?.getAttribute('contenteditable') === 'true'
-  if (inField) content.text.push(...collectTextTargets(/** @type {HTMLElement} */ (host), range))
-  visit(root, inField)
+  for (const host of authoredEditingHosts(root)) visit(host)
   return content
 }
 

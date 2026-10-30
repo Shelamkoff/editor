@@ -21,6 +21,35 @@ function authorHost(element) {
   return host?.getAttribute('contenteditable') === 'true' ? host : null
 }
 
+/** Discover the editing hosts owned by a formatting walk. A false plugin
+ * shell may contain real fields; a true host owns only its own text and
+ * never transfers formatting rights to a nested editing host or control.
+ * @param {Element} root
+ * @returns {HTMLElement[]}
+ */
+export function authoredEditingHosts(root) {
+  if (root.closest(NATIVE_OWNER_SELECTOR)) return []
+  const nearest = root.closest('[contenteditable]')
+  if (nearest?.getAttribute('contenteditable') === 'true') {
+    return [/** @type {HTMLElement} */ (nearest)]
+  }
+  /** @type {HTMLElement[]} */
+  const hosts = []
+  /** @param {Element} parent */
+  const visit = parent => {
+    for (const node of parent.childNodes) {
+      if (node.nodeType !== ELEMENT_NODE) continue
+      const child = /** @type {Element} */ (node)
+      if (child.matches(NATIVE_OWNER_SELECTOR)) continue
+      if (child.getAttribute('contenteditable') === 'true') {
+        hosts.push(/** @type {HTMLElement} */ (child))
+      } else visit(child)
+    }
+  }
+  visit(root)
+  return hosts
+}
+
 /** Identify independently owned controls and editing hosts inside a subtree.
  * @param {Node} node
  * @returns {boolean}
@@ -49,20 +78,7 @@ export function normalizeAuthoredText(root) {
     // The walk root may be an editor shell or a contenteditable=false block
     // shell containing legitimate nested author fields. Never edit text in
     // that shell itself; discover only explicit true editing hosts beneath it.
-    /** @param {Element} parent */
-    const visitHosts = parent => {
-      for (const node of Array.from(parent.childNodes)) {
-        if (node.nodeType !== ELEMENT_NODE) continue
-        const child = /** @type {Element} */ (node)
-        if (child.matches(NATIVE_OWNER_SELECTOR)) continue
-        if (child.getAttribute('contenteditable') === 'true') {
-          normalizeAuthoredText(child)
-        } else {
-          visitHosts(child)
-        }
-      }
-    }
-    visitHosts(element)
+    for (const host of authoredEditingHosts(element)) normalizeAuthoredText(host)
     return
   }
   if (!authorHost(element)) return

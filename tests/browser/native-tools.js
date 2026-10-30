@@ -18,6 +18,7 @@ import { findNodeAtOffset, getTextLength, getTextOffset, editableTextWalker, fir
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
 import './regressions/link-owned-formatting.js'
+import './regressions/tool-host-ownership.js'
 
 const types = ['bold', 'italic', 'strikethrough', 'link', 'code', 'marker', 'bgcolor', 'fontSize', 'script', 'align', 'caseTransform', 'clearFormatting']
 const tags = { bold: 'b', italic: 'i', strikethrough: 's', code: 'code', marker: 'mark', script: 'sup' }
