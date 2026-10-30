@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { packInstalledDependency } from './pack-installed-dependency.mjs'
-import { assertConsumerGitDependencies, getPinnedGitDependencies } from './package-git-dependencies.mjs'
+import { assertConsumerGitDependencies, assertGitArtifactIntegrity, getPinnedGitDependencies } from './package-git-dependencies.mjs'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const node = process.execPath
@@ -120,8 +120,10 @@ try {
       throw new Error(`${dependency.name} packed Git artifact differs from the project lock`)
     }
     const artifact = packed[0]
-    gitDependencyTarballs.set(dependency.name, join(gitPackRoot, basename(artifact.filename)))
-    console.log(JSON.stringify({ gitDependency: dependency, integrity: artifact.integrity, lifecycleScripts: false }))
+    const gitTarball = join(gitPackRoot, basename(artifact.filename))
+    const integrity = assertGitArtifactIntegrity(dependency, artifact, await readFile(gitTarball))
+    gitDependencyTarballs.set(dependency.name, gitTarball)
+    console.log(JSON.stringify({ gitDependency: dependency, integrity, lifecycleScripts: false }))
   }
 
   const dependencyPackRoot = join(temporaryRoot, 'dependencies')
@@ -223,7 +225,14 @@ try {
   for (const { name } of pinnedGitDependencies) {
     await assertExportTargets(join(consumerRoot, 'node_modules', name))
   }
-  console.log(JSON.stringify({ offlineConsumerGitDependencies: pinnedGitDependencies, provenance: 'passed' }))
+  const installedGitDependencies = pinnedGitDependencies.map(({ name }) => ({
+    name,
+    declared: installedManifest.dependencies[name],
+    resolved: consumerLock.packages[`node_modules/${name}`].resolved,
+    version: consumerLock.packages[`node_modules/${name}`].version,
+    integrity: consumerLock.packages[`node_modules/${name}`].integrity,
+  }))
+  console.log(JSON.stringify({ offlineConsumerGitDependencies: installedGitDependencies, provenance: 'passed' }))
 
   const consumerSource = `
 import { createEditor } from '@shelamkoff/rector'
