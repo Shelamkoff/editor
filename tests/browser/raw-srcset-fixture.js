@@ -10,7 +10,8 @@ export const srcsetCases = [
 // never from the sanitizer. The bare-browser control independently selects it.
 export function srcsetDefinition(name, origin = location.href) {
   const asset = label => new URL('/tests/browser/fixtures/srcset-pixel.svg?case=' + label, origin).href
-  const primary = asset(name + ',primary')
+  const commaUrl = name === 'comma-url' || name === 'comma-url-without-descriptor'
+  const primary = asset(name + (commaUrl ? ',primary' : '-primary'))
   const secondary = asset(name + '-secondary')
   const fallback = asset(name + '-fallback')
   const common = { name, fallback: null, sizes: '2px', expectedCurrentSrc: primary, controlKind: 'bare-authored' }
@@ -23,7 +24,7 @@ export function srcsetDefinition(name, origin = location.href) {
     if (name === 'blob-url') {
       const bytes = Uint8Array.from(atob(data.split(',')[1]), character => character.charCodeAt(0))
       revokeUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
-      resource = revokeUrl + '#asset,one'
+      resource = revokeUrl + '#asset-one'
     }
     return { ...exact(resource + ' 1x'), expectedCurrentSrc: resource, revokeUrl }
   }
