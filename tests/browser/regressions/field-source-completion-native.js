@@ -50,6 +50,49 @@ test('field source completion trusted same-character replacement completes once 
   } finally { h.dispose() }
 })
 
+test('field source completion trusted semantic no-op failure recovers before a later native edit and history replay', async () => {
+  const h = createCompletionFixture({ publicEditor: true })
+  try {
+    h.mount(); await pause(20)
+    const panel = h.panels.get('a'), field = panel.note, tail = field.lastChild
+    const before = h.editor.save().blocks, oldWidget = h.latest('a-note'), attempts = [], inputs = []
+    let armed = true, failures = 0
+    h.state.onCompletion = notice => {
+      if (notice.name !== 'a' || notice.key !== 'note') return
+      attempts.push(notice)
+      if (armed) { armed = false; failures++; throw new Error('controlled ordinary no-op completion failure') }
+    }
+    field.addEventListener('input', event => inputs.push({ trusted: event.isTrusted, type: event.inputType }), { once: true })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length - 1, tail, tail.length)
+    expectError(/controlled ordinary no-op completion failure/)
+    await printable('l')
+    equal(inputs, [{ trusted: true, type: 'insertText' }])
+    equal(failures, 1, 'The actual native no-op must reach its fallible completion boundary')
+    equal(h.editor.save().blocks, before); equal(h.state.transactions, [])
+    assert(h.editor.isReady && !h.editor.readOnly && !h.editor.canUndo && !h.editor.canRedo)
+    const recovered = h.panels.get('a'), widget = h.latest('a-note')
+    assert(recovered !== panel && recovered.note !== field && !field.isConnected)
+    assert(widget !== oldWidget && oldWidget.context.signal.aborted && !widget.context.signal.aborted)
+    equal(recovered.note.textContent, 'Note a-note tail')
+    equal(recovered.derived.get('note').textContent, 'Note a-note tail')
+    equal(attempts.filter(item => item.element === field).length, 1, 'The failed field must not receive another completion')
+    assert(attempts.at(-1).element === recovered.note)
+    equal(attempts.at(-1).text, 'Note a-note tail')
+
+    const count = attempts.length
+    for (let index = 0; index < 3; index++) h.editor.blocks.focus('a', { fieldKey: 'note', offset: 'end' })
+    equal(attempts.length, count, 'Healthy queries cannot replay the failed native completion')
+    await printable('X')
+    const edited = structuredClone(before); edited[0].data.note += 'X'
+    equal(h.editor.save().blocks, edited); assert(h.editor.canUndo && !h.editor.canRedo)
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(h.editor.save().blocks, before); assert(!h.editor.canUndo && h.editor.canRedo)
+    await dispatchKey('z', 'KeyZ', 90, 10)
+    equal(h.editor.save().blocks, edited)
+    equal(h.state.transactions.map(event => event.action), ['commit', 'undo', 'redo'])
+  } finally { h.dispose() }
+})
+
 const observedWidgetTag = 'rector-source-completion-widget'
 if (!customElements.get(observedWidgetTag)) customElements.define(observedWidgetTag, class extends HTMLElement {
   static get observedAttributes() { return ['data-inline-plugin', 'data-id'] }
