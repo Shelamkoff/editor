@@ -23,6 +23,17 @@ const aliases = { strong: 'b', em: 'i', strike: 's', del: 's' }
 const widgetPattern = /\{\{swatch\}\}/g
 const colorData = { value: '#aBcDef' }
 
+function createCheck(observations) {
+  const snapshot = value => value === undefined ? { $undefined: true } : JSON.parse(JSON.stringify(value))
+  return (phase, property, actual, expected) => {
+    // Event arrays and canonical values can be reused by later phases. Store
+    // the observation now, so its values cannot drift after its verdict.
+    const observed = snapshot(actual), intended = snapshot(expected)
+    observations.push({ phase, property, actual: observed, expected: intended,
+      status: JSON.stringify(observed) === JSON.stringify(intended) ? 'PASS' : 'FAIL' })
+  }
+}
+
 function richMiddle(word, greek) {
   return '<span style="font-size:24px;color:#800000;background-color:#ffff00">'
     + '<em><strong><sup><sub><s><code><mark>' + word
@@ -72,6 +83,10 @@ function parse(html) {
 // Compare author meaning while allowing equivalent strong/b and em/i wire
 // spelling and CSS declaration order. No source-specific result is excused.
 function meaning(html) {
+  return meaningNodes(parse(html).childNodes)
+}
+
+function meaningNodes(nodes) {
   const result = []
   const append = (text, marks, kind = 'text') => {
     if (!text) return
@@ -87,6 +102,10 @@ function meaning(html) {
       return
     }
     if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.hasAttribute('data-inline-plugin')) {
+        append('{{' + node.getAttribute('data-id') + '}}', marks, 'widget')
+        return
+      }
       const tag = node.localName
       if (tag === 'br') { append('\n', marks, 'break'); return }
       if (tag === 'span') {
@@ -99,8 +118,20 @@ function meaning(html) {
     }
     for (const child of node.childNodes) walk(child, marks)
   }
-  walk(parse(html))
+  for (const node of nodes) walk(node)
   return result
+}
+
+const expectedWidget = { id: 'swatch', type: 'color', value: '#aBcDef', label: '#aBcDef',
+  dot: 'rgb(171, 205, 239)', contenteditable: 'false' }
+
+function visibleWidgets(field) {
+  return [...field.querySelectorAll('[data-inline-plugin]')].map(widget => ({
+    id: widget.getAttribute('data-id'), type: widget.getAttribute('data-inline-plugin'), value: widget.getAttribute('data-value'),
+    label: widget.querySelector('.oe-ip__label')?.textContent ?? null,
+    dot: widget.querySelector('.oe-ip__dot')?.style.backgroundColor ?? null,
+    contenteditable: widget.getAttribute('contenteditable'),
+  }))
 }
 
 function length(node) {
@@ -157,8 +188,7 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     spec.shape === 'fields' ? import(new URL('plugins/quote/index.js', base)) : null,
   ])
   const observations = [], completedPhases = [], transactions = [], trusted = [], unsupported = [], diagnostics = []
-  const check = (phase, property, actual, expected) => observations.push({ phase, property, actual, expected,
-    status: JSON.stringify(actual) === JSON.stringify(expected) ? 'PASS' : 'FAIL' })
+  const check = createCheck(observations)
   const holder = document.createElement('section')
   holder.style.cssText = 'width:900px; margin:80px auto;'
   document.body.append(holder)
@@ -196,6 +226,10 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     const states = () => editor.save().blocks
     const texts = () => spec.shape === 'fields' ? [states()[0].data.text, states()[0].data.caption] : states().map(block => block.data.text)
     const fieldMeaning = () => texts().map(meaning)
+    const checkVisible = (phase, expectedTexts) => {
+      check(phase, 'visibleTextAndMarks', fields().map(field => meaningNodes(field.childNodes)), expectedTexts.map(meaning))
+      check(phase, 'visibleWidgets', fields().map(visibleWidgets), expectedTexts.map((_, index) => index ? [] : [expectedWidget]))
+    }
     const selectionState = () => {
       const native = window.getSelection(), current = fields()
       const endpoint = (node, value) => {
@@ -219,6 +253,7 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     await pause(50)
     const initial = states()
     check('load', 'fixedInputMeaning', fieldMeaning(), content.before.map(meaning))
+    checkVisible('load', content.before)
     check('load', 'fixedWidgetPayload', { type: initial[0].inline?.swatch?.type, data: initial[0].inline?.swatch?.data }, { type: 'color', data: colorData })
     check('load', 'history', historyState(), { canUndo: false, canRedo: false })
     completedPhases.push('load')
@@ -228,6 +263,7 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     await nativeInput('Input.insertText', { text: 'X' }); await pause()
     const typed = states(), beforeTexts = content.before.map((text, index) => (index ? '' : 'X') + text)
     check('input', 'independentPrecedingEdit', fieldMeaning(), beforeTexts.map(meaning))
+    checkVisible('input', beforeTexts)
     check('input', 'trustedInsert', trusted.some(value => value.type === 'input' && value.inputType === 'insertText' && value.trusted), true)
     if (!legacy) check('input', 'completedActions', eventActions(), ['commit'])
     completedPhases.push('input')
@@ -235,6 +271,7 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     if (spec.noop) {
       phase = 'prepare-redo'; await history(nativeInput, false)
       check(phase, 'exactCanonicalDocument', states(), initial)
+      checkVisible(phase, content.before)
       check(phase, 'redoAvailableBeforeNoop', historyState(), { canUndo: false, canRedo: true })
       selectionTexts = content.before
       completedPhases.push(phase)
@@ -268,6 +305,7 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     check('apply', 'trustedNamedButton', await click(holder.querySelector(`[data-tool="${spec.tool}"]`), nativeInput), true)
     const after = states(), afterTexts = spec.noop ? content.after : content.after.map((text, index) => (index ? '' : 'X') + text)
     check('apply', 'intendedTextAndMarks', fieldMeaning(), afterTexts.map(meaning))
+    checkVisible('apply', afterTexts)
     check('apply', 'sidecars', after.map(block => block.inline), typed.map(block => block.inline))
     check('apply', 'liveWidgetIdentity', widget.isConnected && all[0].querySelector('[data-inline-plugin="color"]') === widget
       && widgetChildren.every((child, index) => widget.childNodes[index] === child), true)
@@ -283,10 +321,12 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     if (spec.noop) {
       phase = 'redo-input'; await history(nativeInput, true)
       check(phase, 'originalRedoPreserved', states(), typed)
+      checkVisible(phase, beforeTexts)
       check(phase, 'history', historyState(), { canUndo: true, canRedo: false })
       completedPhases.push(phase)
       phase = 'undo-input'; await history(nativeInput, false)
       check(phase, 'onlyOriginalEditWasUndoable', states(), initial)
+      checkVisible(phase, content.before)
       check(phase, 'history', historyState(), { canUndo: false, canRedo: true })
       check(phase, 'trustedHistory', trusted.filter(value => value.type === 'keydown').map(value => value.trusted), [true, true, true])
       if (!legacy) check(phase, 'exactCompletedActions', eventActions(), ['commit', 'undo', 'redo', 'undo'])
@@ -294,20 +334,24 @@ export async function runToolActionCase({ sourceBase = '../../', legacy = false,
     } else {
     phase = 'undo-action'; await history(nativeInput, false)
     check(phase, 'exactCanonicalDocument', states(), typed)
+    checkVisible(phase, beforeTexts)
     check(phase, 'selection', selectionState(), selectedState(beforeTexts))
     check(phase, 'history', historyState(), { canUndo: true, canRedo: true })
     completedPhases.push(phase)
     phase = 'undo-input'; await history(nativeInput, false)
     check(phase, 'exactCanonicalDocument', states(), initial)
+    checkVisible(phase, content.before)
     check(phase, 'history', historyState(), { canUndo: false, canRedo: true })
     completedPhases.push(phase)
     phase = 'redo-input'; await history(nativeInput, true)
     check(phase, 'exactCanonicalDocument', states(), typed)
+    checkVisible(phase, beforeTexts)
     check(phase, 'history', historyState(), { canUndo: true, canRedo: true })
     completedPhases.push(phase)
     phase = 'redo-action'; await history(nativeInput, true)
     check(phase, 'exactCanonicalDocument', states(), after)
     check(phase, 'intendedTextAndMarks', fieldMeaning(), afterTexts.map(meaning))
+    checkVisible(phase, afterTexts)
     check(phase, 'selection', selectionState(), selectedState(afterTexts))
     check(phase, 'history', historyState(), { canUndo: true, canRedo: false })
     check(phase, 'trustedHistory', trusted.filter(value => value.type === 'keydown').map(value => value.trusted), [true, true, true, true])
@@ -337,8 +381,7 @@ async function runToolLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {
   ])
   const observations = [], completedPhases = [], trusted = [], unsupported = [], diagnostics = [], transactions = []
   const planned = ['load', 'inactive-ui', 'live-action', 'undo', 'redo', 'dispose']
-  const check = (phase, property, actual, expected) => observations.push({ phase, property, actual, expected,
-    status: JSON.stringify(actual) === JSON.stringify(expected) ? 'PASS' : 'FAIL' })
+  const check = createCheck(observations)
   if (legacy) unsupported.push({ property: 'transactionEventsAndProducerCount', reason: 'The historical default-tool resolver owns its selection injection and has no v2 transaction-event contract. Public canonical/lifetime effects and exact Undo/Redo still execute.' })
   const holder = document.createElement('section')
   holder.style.cssText = 'width:900px; margin:80px auto;'
@@ -367,6 +410,10 @@ async function runToolLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {
     return { editor, state }
   }
   const field = () => holder.querySelector('.oe-paragraph')
+  const checkVisible = (phase, expectedText) => {
+    check(phase, 'visibleTextAndMarks', meaningNodes(field().childNodes), meaning(expectedText))
+    check(phase, 'visibleWidgets', visibleWidgets(field()), [expectedWidget])
+  }
   const select = async () => {
     field().focus()
     const text = field().querySelector('b')?.firstChild ?? field().firstChild
@@ -383,6 +430,7 @@ async function runToolLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {
     original = current = create(); await pause(50); await select()
     const initial = current.editor.save().blocks
     check('load', 'fixedInputMeaning', meaning(initial[0].data.text), meaning(html))
+    checkVisible('load', html)
     check('load', 'history', [current.editor.canUndo, current.editor.canRedo], [false, false])
     const retained = holder.querySelector(`[data-tool="${spec.tool}"]`), oldField = field()
     if (!retained) throw new Error('Named toolbar button did not mount')
@@ -399,6 +447,7 @@ async function runToolLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {
     retained.click()
     await pause()
     check(phase, 'retainedButtonCannotAuthor', current.editor.save().blocks, beforeLate)
+    checkVisible(phase, html)
     check(phase, 'retainedButtonCannotChangeHistory', [current.editor.canUndo, current.editor.canRedo], [false, false])
     check(phase, 'retainedButtonCannotMoveSelection', selection(), beforeSelection)
     check(phase, 'retainedProjectionUnchanged', oldField.innerHTML, oldMarkup)
@@ -415,6 +464,7 @@ async function runToolLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {
     const after = current.editor.save().blocks
     const expected = spec.tool === 'caseTransform' ? '<b>ABC</b> {{swatch}} Tail' : 'Abc {{swatch}} Tail'
     check(phase, 'liveCapabilityStillWorks', meaning(after[0].data.text), meaning(expected))
+    checkVisible(phase, expected)
     check(phase, 'sidecars', after[0].inline, initial[0].inline)
     check(phase, 'selection', selection(), { anchor: 3, focus: 0, collapsed: false })
     if (!legacy) {
@@ -425,11 +475,13 @@ async function runToolLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {
     completedPhases.push(phase)
     phase = 'undo'; await history(nativeInput, false)
     check(phase, 'exactCanonicalDocument', current.editor.save().blocks, initial)
+    checkVisible(phase, html)
     check(phase, 'selection', selection(), { anchor: 3, focus: 0, collapsed: false })
     check(phase, 'history', [current.editor.canUndo, current.editor.canRedo], [false, true])
     completedPhases.push(phase)
     phase = 'redo'; await history(nativeInput, true)
     check(phase, 'exactCanonicalDocument', current.editor.save().blocks, after)
+    checkVisible(phase, expected)
     check(phase, 'selection', selection(), { anchor: 3, focus: 0, collapsed: false })
     check(phase, 'history', [current.editor.canUndo, current.editor.canRedo], [true, false])
     check(phase, 'trustedHistory', trusted.map(value => value.trusted), [true, true])
