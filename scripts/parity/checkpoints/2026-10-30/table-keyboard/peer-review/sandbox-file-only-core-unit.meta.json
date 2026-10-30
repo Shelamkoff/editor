@@ -1,0 +1,17 @@
+{
+  "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+  "command": [
+    "node",
+    "--test",
+    "core/NativeInputController.authoredBreak.test.js",
+    "core/LogicalSelection.test.js",
+    "core/NativeInputController.test.js"
+  ],
+  "actualExitCode": 0,
+  "elapsedSeconds": 0.15,
+  "stdoutSha256": "b64618c6f67154b24cae920611bd2f3fdf15037cc561a5c53748ccc927ec019f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceUnchanged": true,
+  "coverageAccepted": false,
+  "reason": "Only three file-level results were reported; no individual scenario inventory. Preserved as an environment attempt, not accepted test coverage."
+}

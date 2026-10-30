@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "reviewer": "independent table_core_peer",
+  "candidate": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+  "preFix": "01fb551a9542ddd94e6b5652f637193875b55888",
+  "rawSha256": "59b2600838f0c6664f600d8bca37c6b9dbc561af332886749d7c9fb46cfb517d",
+  "checks": 16945,
+  "verdictsRecomputed": 13043,
+  "candidatePhaseDocumentsRebuilt": 227,
+  "additionalFixedOracleChecks": 2457,
+  "servedSourceFilesVerified": 655,
+  "realUnitCases": 81,
+  "sources": [
+    {
+      "source": "v1",
+      "recordedCases": 21,
+      "executedCases": 19,
+      "observations": 2738,
+      "failures": 159,
+      "unsupported": 2,
+      "incomplete": 0
+    },
+    {
+      "source": "spec-baseline",
+      "recordedCases": 21,
+      "executedCases": 21,
+      "observations": 3435,
+      "failures": 216,
+      "unsupported": 0,
+      "incomplete": 0
+    },
+    {
+      "source": "pre-fix",
+      "recordedCases": 21,
+      "executedCases": 21,
+      "observations": 3435,
+      "failures": 12,
+      "unsupported": 0,
+      "incomplete": 0
+    },
+    {
+      "source": "candidate",
+      "recordedCases": 21,
+      "executedCases": 21,
+      "observations": 3435,
+      "failures": 0,
+      "unsupported": 0,
+      "incomplete": 0
+    }
+  ],
+  "findings": [],
+  "scope": [
+    "BLOCK_TABLE_KEYBOARD",
+    "shared authored-BR typing repair"
+  ],
+  "limits": [
+    "Chrome 156/Linux runtime only",
+    "No full Paragraph editing/split-merge acceptance",
+    "Broad integration gates owned by root; this review does not claim they ran",
+    "Unit initial sandbox file-only output is excluded from scenario coverage"
+  ]
+}

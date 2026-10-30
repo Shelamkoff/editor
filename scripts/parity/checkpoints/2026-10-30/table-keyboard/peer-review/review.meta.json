@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python",
+    "/workspace/scratch/2231de9d6b0d/work-table-core-peer-seventh/scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.py",
+    "--repo",
+    "/workspace/scratch/2231de9d6b0d/work-table-core-peer-seventh",
+    "--raw",
+    "/workspace/scratch/2231de9d6b0d/work-table-keyboard-seventh/test-results/table-keyboard-seventh-final/comparison.json",
+    "--output",
+    "/workspace/scratch/2231de9d6b0d/work-table-core-peer-seventh/scripts/parity/checkpoints/2026-10-30/table-keyboard/peer-review/review.json"
+  ],
+  "startedAt": "2026-10-30T19:51:02.963504+00:00",
+  "completedAt": "2026-10-30T19:51:05.165716+00:00",
+  "elapsedSeconds": 2.202,
+  "actualExitCode": 0,
+  "stdoutSha256": "043add155d8282fdfba317698b66418cdecd2201ed53f77e559fbb660c7c4b9b",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

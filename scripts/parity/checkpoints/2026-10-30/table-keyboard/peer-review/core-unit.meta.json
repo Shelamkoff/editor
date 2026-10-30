@@ -1,0 +1,15 @@
+{
+  "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+  "command": [
+    "node",
+    "--test",
+    "core/NativeInputController.authoredBreak.test.js",
+    "core/LogicalSelection.test.js",
+    "core/NativeInputController.test.js"
+  ],
+  "actualExitCode": 0,
+  "elapsedSeconds": 0.187,
+  "stdoutSha256": "a7c3eac4d5c47637eb861524c071b9a8a610f4f5b49db569ee0a2645e728970f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceUnchanged": true
+}

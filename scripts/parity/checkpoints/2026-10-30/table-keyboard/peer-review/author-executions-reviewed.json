@@ -1,0 +1,47 @@
+{
+  "authorResultsReviewedNotRerun": [
+    {
+      "gate": "native",
+      "metadataSha256": "178ec9e02c7bb3bd09cd82ad35fd03cd014b2afbd5cebff4d1e9156834296d5d",
+      "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "sourceUnchanged": true,
+      "actualExitCode": 0
+    },
+    {
+      "gate": "terminal",
+      "metadataSha256": "1965b085b3e7f1c0fcf1e9826c27e3210e9476f87b6c127eede49818c4600528",
+      "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "sourceUnchanged": true,
+      "actualExitCode": 0
+    },
+    {
+      "gate": "comparison",
+      "metadataSha256": "095922e083992f2747bd5a37967db8454a1ec7372709dda1c5b930b704c75ff4",
+      "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "sourceUnchanged": true,
+      "actualExitCode": 1
+    },
+    {
+      "gate": "unit",
+      "metadataSha256": "e97072459535790be141b5aba0851b1ce08b441e76b4ccfe9b430c2ff41dfec0",
+      "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "sourceUnchanged": true,
+      "actualExitCode": 0
+    },
+    {
+      "gate": "typecheck",
+      "metadataSha256": "c2b24d95b8967f757cccc9c74fafa3287698ea6fcd80f8df8ad8d90a44a58e13",
+      "source": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "sourceUnchanged": true,
+      "actualExitCode": 0
+    }
+  ],
+  "nativeCaseInventory": 30,
+  "terminalCaseInventory": 1,
+  "comparisonRawSha256": "59b2600838f0c6664f600d8bca37c6b9dbc561af332886749d7c9fb46cfb517d"
+}

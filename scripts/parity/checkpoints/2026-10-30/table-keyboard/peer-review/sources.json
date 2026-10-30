@@ -1,0 +1,21 @@
+{
+  "base": "d67229c08f5fae7101cb2a252f2d56385224da08",
+  "restorableSources": [
+    {
+      "label": "pre-fix",
+      "sha": "01fb551a9542ddd94e6b5652f637193875b55888",
+      "tree": "654ff2a764f72f0c6d6c277e977af6ed18ca3639",
+      "rawCommit": "tree 654ff2a764f72f0c6d6c277e977af6ed18ca3639\nparent 9fe6a3851976727c3ba54de8fb4f36f23bb5bfd4\nauthor Codex <codex@openai.com> 1793387908 +0300\ncommitter Codex <codex@openai.com> 1793387908 +0300\n\ntest(selection): record marked break DOM boundary and paragraph control\n",
+      "patch": "sources/pre-fix.patch.gz",
+      "patchSha256": "a68f75247c55804a45399e9fc16fc10503f6dcbe269f1277e1c40e3219a812c5"
+    },
+    {
+      "label": "candidate",
+      "sha": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "tree": "1300b23d2785743a34fde9d436ac26a657dc26c7",
+      "rawCommit": "tree 1300b23d2785743a34fde9d436ac26a657dc26c7\nparent 01fb551a9542ddd94e6b5652f637193875b55888\nauthor Codex <codex@openai.com> 1793389191 +0300\ncommitter Codex <codex@openai.com> 1793389191 +0300\n\nfix(input): retain authored break formatting during native typing\n",
+      "patch": "sources/candidate.patch.gz",
+      "patchSha256": "cb36eedd020103926f4373ad5a67bfbb42288c0f6c63899185c30c271bfaafbc"
+    }
+  ]
+}
