@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Native authored break whitespace</title></head>
+<body data-status="running"><pre id="result">running</pre>
+<script type="module">
+  import './native-input-driver.js'
+  await import('./regressions/authored-break-whitespace-native.js')
+  const { run } = await import('./regressions/harness.js')
+  await run()
+</script></body></html>

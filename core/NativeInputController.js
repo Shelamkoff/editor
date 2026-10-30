@@ -229,9 +229,21 @@ export class NativeInputController {
     // Chromium can move typing after a marked BR into the next visual text
     // run even when the caret remains inside the break's formatting wrapper.
     // Keep the authored DOM boundary, then use the existing native commit path.
+    let data = event.data
+    if (data.includes(' ')) {
+      const whiteSpace = document.defaultView?.getComputedStyle?.(node).whiteSpace
+      if (whiteSpace === 'normal' || whiteSpace === 'nowrap' || whiteSpace === 'pre-line') {
+        // Native input protects leading and repeated spaces in collapsing
+        // fields. Alternate NBSPs so authored spaces remain visible without
+        // making the whole run unbreakable; preserving CSS keeps plain spaces.
+        data = data.replace(/ +/g, (spaces, index) => index === 0 || spaces.length > 1
+          ? spaces.replace(/ /g, (_space, offset) => offset % 2 === 0 ? '\u00a0' : ' ')
+          : spaces)
+      }
+    }
     event.preventDefault()
     event.stopImmediatePropagation?.()
-    const text = document.createTextNode(event.data)
+    const text = document.createTextNode(data)
     range.insertNode(text)
     native.setBaseAndExtent(text, text.data.length, text, text.data.length)
     this.#endingComposition = null

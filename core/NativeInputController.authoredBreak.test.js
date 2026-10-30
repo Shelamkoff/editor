@@ -51,6 +51,19 @@ test('trusted input after an authored BR uses one existing native history commit
   h.controller.destroy()
 })
 
+test('authored BR whitespace follows the insertion wrapper rather than its enclosing field', () => {
+  const h = fixture()
+  h.event.data = '  X  '
+  h.document.defaultView.getComputedStyle = node => {
+    assert.equal(node, h.mark)
+    return { whiteSpace: 'normal' }
+  }
+  h.controller.handleBeforeInput(h.event)
+  assert.deepEqual(h.outcome().inserted, ['\u00a0 X\u00a0 '])
+  assert.equal(h.outcome().commits.length, 1)
+  h.controller.destroy()
+})
+
 for (const [name, alter] of [
   ['untrusted', h => { h.event.isTrusted = false }],
   ['uncancelable', h => { h.event.cancelable = false }],

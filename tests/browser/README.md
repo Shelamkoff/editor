@@ -49,6 +49,8 @@ The CI `size-report` job enforces the Paragraph, default interactive and full pr
 
 Native coordinate helpers wait for mounted stylesheets and fonts before measuring click/drag targets. They still require trusted input, real hit testing and exact offsets; they do not retry a failed gesture or replace it with a programmed selection.
 
+`native-authored-break.html` compares controlled typing after a marked line break with actual browser text input. Checklist and Paragraph cover single, repeated and bulk spaces, subsequent text, computed whitespace modes, formatting, logical caret positions, saved data and one-step Undo/Redo. The suite uses the same native driver and page budget as the other physical checks.
+
 `native-core-behavior.html` checks layout-independent shortcuts on Russian keys, the v1 Ctrl+A cycle (including empty/plain hosts), modified cross-range deletion, public disjoint block selection and native clipboard/typing/IME, stale selection after render, native drag identity, slash cancellation/commit/IME, planned caret restoration after inline insertion/pattern paste/widget deletion, external plain/HTML/multiline paste, committed event/debounce/destroy semantics, failed protected-edit caret/range recovery in both directions, and exact protected-edit Undo/Redo bookmarks. Its prepared-file case supplies a synthetic disposable File, then checks actual keyboard Undo/Redo; it does not exercise the OS file chooser. The runner reports the actual case results for every native group alongside the physical Enter/toolbox/history scenarios.
 
 

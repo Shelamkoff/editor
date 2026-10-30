@@ -512,6 +512,7 @@ try {
   const nativeCodeSourceLanguage = await runNativePage(client, pageUrl, 'native-code-source-language.html')
   const nativePersonModes = await runNativePage(client, pageUrl, 'native-person-modes.html')
   const nativeTableKeyboard = await runNativePage(client, pageUrl, 'native-table-keyboard.html')
+  const nativeAuthoredBreak = await runNativePage(client, pageUrl, 'native-authored-break.html')
   const nativeCodeCopyOwnership = await runNativePage(client, pageUrl, 'native-code-copy-ownership.html')
   const nativeRoundtripPreservation = await runNativePage(client, pageUrl, 'native-roundtrip-preservation.html')
   const nativePresentationRecovery = await runNativePage(client, pageUrl, 'native-presentation-recovery.html')
@@ -572,6 +573,7 @@ try {
     nativeCodeSourceLanguage,
     nativePersonModes,
     nativeTableKeyboard,
+    nativeAuthoredBreak,
     nativeCodeCopyOwnership,
     nativeRoundtripPreservation,
     nativePresentationRecovery,
