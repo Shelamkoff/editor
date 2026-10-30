@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "scope": "Gallery external Files delivery after retained caption projection; live internal reorder, structural retirement and single-action file history controls.",
+  "runtimeSource": "f3df1aa2",
+  "finalTestSource": "f722c66ba98b3457a5d651cb01ad1ddbe7c3911c",
+  "platform": {
+    "node": "v24.22.1",
+    "browser": "Chrome for Testing 156.0.8078.47",
+    "os": "Linux"
+  },
+  "sourceHashes": {
+    "plugins/gallery/index.js": "caa69be65743d8e96dda14a58871f4aff94d00c6fb3905b577d3697f83346709",
+    "tests/browser/native-plugin-parity.js": "d1337e216618351e9065b6b7f0ce8de4f4c48016169227f863b77f8fffc2c009"
+  },
+  "fixtureCorrections": [
+    "Retired authoring/settings controls require an actual layout replacement. Caption-only projection intentionally retains those controls and fields.",
+    "Overflow image targets use overflow-item--over instead of slot--over.",
+    "Constructed Chromium DataTransfer ignores dropEffect writes. Hover uses the existing writable transfer protocol; both delivery cases use real DataTransfer, File and DragEvent objects."
+  ],
+  "acceptance": {
+    "red": "retained-final-red",
+    "targetedGreen": "retained-final-green",
+    "fullPageGreen": "native-full",
+    "qualification": "Earlier failed fixture attempts retain their original failed status. Only the final three runs form the accepted comparison. No whole-library parity or platform breadth is claimed."
+  },
+  "reproduceRed": {
+    "base": "de8d8d21959d176dfa092fa6464314ddc46aaee3",
+    "overlayFrom": "f722c66ba98b3457a5d651cb01ad1ddbe7c3911c",
+    "overlayPaths": [
+      "tests/browser/native-plugin-parity.js"
+    ]
+  },
+  "reproduceCurrent": {
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "environment": {
+      "EDITOR_CHROME_PATH": "/path/to/chrome",
+      "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+      "EDITOR_NATIVE_FILTER": "Gallery (omit for all cases)"
+    }
+  },
+  "runs": [
+    {
+      "label": "retained-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "source": {
+        "head": "1634eb8fad06f9771a168289d7b870b8cc3ef7ad",
+        "tree": "2d24b7dac92da07d9703fb0b8adf32aecfe07c83",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          }
+        ],
+        "dirty": true,
+        "identity": "53e0e3e184794831145a0b39bed17d24926d22bb87c8be71a4bfa4972094f0a5"
+      },
+      "sourceUnchanged": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Gallery",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-gallery-vite.mjs"
+      },
+      "startedAt": "2026-10-30T02:15:02.148Z",
+      "finishedAt": "2026-10-30T02:15:06.661Z",
+      "cases": 20,
+      "passed": 17,
+      "failed": [
+        {
+          "name": "Gallery accepts a file drag after a caption update retains its image slots",
+          "error": "Error: Assertion failed"
+        },
+        {
+          "name": "Gallery file drop on the wrapper supersedes an interrupted retained image drag",
+          "error": "Error: file drop was rejected because the previous reorder lacked dragend"
+        },
+        {
+          "name": "Gallery file drop on the image slot supersedes an interrupted retained image drag",
+          "error": "Error: file delivery did not invoke its upload provider exactly once\nexpected [\"external.png\"], got []"
+        }
+      ],
+      "originalManifest": "/tmp/rector-gallery-fix-current/test-results/run-xXRNX5/manifest.json",
+      "manifestSha256": "3030880865b3152020fa72e387a923d99b8806575b148693bc883eb2958b926a",
+      "originalLog": "/tmp/rector-gallery-fix-current/test-results/run-xXRNX5/retained-red.log",
+      "logSha256": "913a4c86abd8d85fa4bf4a0d3bbfbaf205ff9c3fcb37ffa709b4f352e3a3867a"
+    },
+    {
+      "label": "retained-red-corrected",
+      "outcome": "failed",
+      "exitCode": 1,
+      "source": {
+        "head": "de8d8d21959d176dfa092fa6464314ddc46aaee3",
+        "tree": "e59e3d9d6c23068677bfcdee4f5e8fcd597e84f2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          }
+        ],
+        "dirty": true,
+        "identity": "cf706be7a6890860bc71b6c7f2fca20066955d9f9b8f0a43842d009f4353276c"
+      },
+      "sourceUnchanged": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Gallery",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-gallery-vite.mjs"
+      },
+      "startedAt": "2026-10-30T02:15:21.344Z",
+      "finishedAt": "2026-10-30T02:15:25.465Z",
+      "cases": 20,
+      "passed": 17,
+      "failed": [
+        {
+          "name": "Gallery accepts a file drag after a caption update retains its image slots",
+          "error": "Error: \nexpected \"copy\", got \"none\""
+        },
+        {
+          "name": "Gallery file drop on the wrapper supersedes an interrupted retained image drag",
+          "error": "Error: file drop was rejected because the previous reorder lacked dragend"
+        },
+        {
+          "name": "Gallery file drop on the image slot supersedes an interrupted retained image drag",
+          "error": "Error: file delivery did not invoke its upload provider exactly once\nexpected [\"external.png\"], got []"
+        }
+      ],
+      "originalManifest": "/tmp/rector-gallery-fix-current/test-results/run-jksmmA/manifest.json",
+      "manifestSha256": "f8e8d3b373754df4ec1d9f4681820387664116e4fd06c0bf943ce225a787d627",
+      "originalLog": "/tmp/rector-gallery-fix-current/test-results/run-jksmmA/retained-red-corrected.log",
+      "logSha256": "7f539204b4de51ce01c4e8294526747030c959f3ffdea9433b12492cc07d1054"
+    },
+    {
+      "label": "retained-green",
+      "outcome": "failed",
+      "exitCode": 1,
+      "source": {
+        "head": "f3df1aa2901bf26babc78a149fc0dc7a712abda1",
+        "tree": "0a1fe016476eb2b15006f1046a3f27912564927f",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          }
+        ],
+        "dirty": true,
+        "identity": "1e27707ef6ac5889c728f82b91432f70394c9ca6c05113f98dfd740e3d11c11b"
+      },
+      "sourceUnchanged": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Gallery",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-gallery-vite.mjs"
+      },
+      "startedAt": "2026-10-30T02:15:59.331Z",
+      "finishedAt": "2026-10-30T02:16:03.425Z",
+      "cases": 20,
+      "passed": 19,
+      "failed": [
+        {
+          "name": "Gallery accepts a file drag after a caption update retains its image slots",
+          "error": "Error: \nexpected \"copy\", got \"none\""
+        }
+      ],
+      "originalManifest": "/tmp/rector-gallery-fix-current/test-results/run-nkv2GL/manifest.json",
+      "manifestSha256": "d6ff3cd9c91d578cfd618436ed3889b7197ca45b1d09a3cb25b72ec880eaee9c",
+      "originalLog": "/tmp/rector-gallery-fix-current/test-results/run-nkv2GL/retained-green.log",
+      "logSha256": "15db8757b2feb4859b1864e241b816600987211bdc2058d643c3cb7eeb3d8f9c"
+    },
+    {
+      "label": "retained-final-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "source": {
+        "head": "de8d8d21959d176dfa092fa6464314ddc46aaee3",
+        "tree": "e59e3d9d6c23068677bfcdee4f5e8fcd597e84f2",
+        "patchSha256": "e68be28ca2e4d41df7914e4b268e59934a1a5e7c4012cdd724ac66cf77402761",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          }
+        ],
+        "dirty": true,
+        "identity": "a97328e6bea104d12cacf71d71f525a2e37b38bee1e4e61eafcf39da7fe84e97"
+      },
+      "sourceUnchanged": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Gallery",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-gallery-vite.mjs"
+      },
+      "startedAt": "2026-10-30T02:17:31.056Z",
+      "finishedAt": "2026-10-30T02:17:35.364Z",
+      "cases": 20,
+      "passed": 17,
+      "failed": [
+        {
+          "name": "Gallery accepts a file drag after a caption update retains its image slots",
+          "error": "Error: \nexpected \"copy\", got \"none\""
+        },
+        {
+          "name": "Gallery file drop on the wrapper supersedes an interrupted retained image drag",
+          "error": "Error: file drop was rejected because the previous reorder lacked dragend"
+        },
+        {
+          "name": "Gallery file drop on the image slot supersedes an interrupted retained image drag",
+          "error": "Error: file delivery did not invoke its upload provider exactly once\nexpected [\"external.png\"], got []"
+        }
+      ],
+      "originalManifest": "/tmp/rector-gallery-red-current/test-results/run-i8zDWa/manifest.json",
+      "manifestSha256": "031cd12480f55be9bcdeb8f6f206969fc6ffffd5ac2d229a7709176336f35d59",
+      "originalLog": "/tmp/rector-gallery-red-current/test-results/run-i8zDWa/retained-final-red.log",
+      "logSha256": "f4c4183ba84a0ac810c409d6cd8c01dad478bcc2d217fc569f8fad81475e72f5"
+    },
+    {
+      "label": "retained-final-green",
+      "outcome": "passed",
+      "exitCode": 0,
+      "source": {
+        "head": "f722c66ba98b3457a5d651cb01ad1ddbe7c3911c",
+        "tree": "f75412e153cda3aac699cf7f3a2969a9fe6c62e2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          }
+        ],
+        "dirty": true,
+        "identity": "84df9285f3e1f79e86f956d28fb51b5435c28fb4be19716757075a4b884861e0"
+      },
+      "sourceUnchanged": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Gallery",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-gallery-vite.mjs"
+      },
+      "startedAt": "2026-10-30T02:17:57.739Z",
+      "finishedAt": "2026-10-30T02:18:07.324Z",
+      "cases": 20,
+      "passed": 20,
+      "failed": [],
+      "originalManifest": "/tmp/rector-gallery-fix-current/test-results/run-cd2HX7/manifest.json",
+      "manifestSha256": "cb5bf70d27870ce558fc81f15478ee558db7364403130be4ad1a10ac29457d34",
+      "originalLog": "/tmp/rector-gallery-fix-current/test-results/run-cd2HX7/retained-final-green.log",
+      "logSha256": "3b3bd133b9c403c41bd7dadc56554cf2fbdde4b4d80f8451e488a67d261f9417"
+    },
+    {
+      "label": "native-full",
+      "outcome": "passed",
+      "exitCode": 0,
+      "source": {
+        "head": "f722c66ba98b3457a5d651cb01ad1ddbe7c3911c",
+        "tree": "f75412e153cda3aac699cf7f3a2969a9fe6c62e2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          }
+        ],
+        "dirty": true,
+        "identity": "84df9285f3e1f79e86f956d28fb51b5435c28fb4be19716757075a4b884861e0"
+      },
+      "sourceUnchanged": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-gallery-vite.mjs"
+      },
+      "startedAt": "2026-10-30T02:18:26.712Z",
+      "finishedAt": "2026-10-30T02:19:25.151Z",
+      "cases": 235,
+      "passed": 235,
+      "failed": [],
+      "originalManifest": "/tmp/rector-gallery-fix-current/test-results/run-jyvi39/manifest.json",
+      "manifestSha256": "f823dd8a29a26acbb3ab5a847a0a57d74720e1e2dd068572995ea63f515d444e",
+      "originalLog": "/tmp/rector-gallery-fix-current/test-results/run-jyvi39/native-full.log",
+      "logSha256": "f55032cc8f37df7a7dce45b70009fe3bc087c288e254904aa91dc8b2ef5c0c48"
+    }
+  ],
+  "supplementary": {
+    "galleryUnits": {
+      "command": "node --test --test-isolation=none plugins/gallery/*.test.js",
+      "passed": 16,
+      "failed": 0,
+      "log": "/tmp/rector-gallery-units-isolation-none.log"
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "source": "f3df1aa2 (runtime identical to final test-only correction)",
+      "log": "/tmp/rector-gallery-typecheck.log"
+    }
+  }
+}
