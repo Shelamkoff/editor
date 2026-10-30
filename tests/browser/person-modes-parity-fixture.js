@@ -266,7 +266,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       }
     } else {
       const browse = async (prefix, expected, history, count) => {
-        for (const index of [1, 2, 0]) {
+        for (const index of [1, 0, 2]) {
           const name = prefix + '-profile-' + index; plannedPhases.push(name); phase = name
           await clickTab(index, spec.keyboard)
           check('readonlyRichFields', ['name', 'role', 'bio'].map(kind => field(kind).isContentEditable), [false, false, false])
@@ -288,7 +288,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       if (spec.initialReadOnly) {
         await browse('initial-readonly', original, [false, false], 0)
         plannedPhases.push('initial-editable'); phase = 'initial-editable'; editor.setReadOnly(false); await pause()
-        capture('initial-editable', original, 0, [false, false], 0)
+        capture('initial-editable', original, 2, [false, false], 0)
       }
       plannedPhases.push('preceding-input', 'read-only', 'retired-readonly')
       phase = 'preceding-input'; await clickTab(1)
@@ -305,23 +305,23 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       await browse('readonly', preceding, [false, false], 1)
       plannedPhases.push('editable-return', 'retired-editable', 'continued-input', 'undo-continuation', 'undo-first', 'redo-first', 'redo-continuation')
       phase = 'editable-return'; editor.setReadOnly(false); await pause()
-      capture('editable-return', preceding, 0, [true, false], 1)
+      capture('editable-return', preceding, 2, [true, false], 1)
       check('editableRichFields', ['name', 'role', 'bio'].map(kind => field(kind).isContentEditable), [true, true, true])
       check('editableUrl', field('url').readOnly, false)
       phase = 'retired-editable'; check('retiredControlsDetached', retired.map(button => button.isConnected), retired.map(() => false))
       retired.forEach(button => button.click()); await pause()
-      capture('retired-editable', preceding, 0, [true, false], 1)
+      capture('retired-editable', preceding, 2, [true, false], 1)
       phase = 'continued-input'; await nativeClick(field('bio')); await native('key', 'End'); await native('type', 'X'); await pause()
-      const final = appendBio(preceding, 0, 'X'), finalBioEnd = logicalText(original[1].data.persons[0].bio).length
-      capture('continued-input', final, 0, [true, false], 2, { kind: 'bio', anchor: finalBioEnd + 1 })
+      const final = appendBio(preceding, 2, 'X'), finalBioEnd = logicalText(original[1].data.persons[2].bio).length
+      capture('continued-input', final, 2, [true, false], 2, { kind: 'bio', anchor: finalBioEnd + 1 })
       phase = 'undo-continuation'; await native('key', 'Control+z'); await pause()
-      capture('undo-continuation', preceding, 0, [true, true], 3, { kind: 'bio', anchor: finalBioEnd })
+      capture('undo-continuation', preceding, 2, [true, true], 3, { kind: 'bio', anchor: finalBioEnd })
       phase = 'undo-first'; await native('key', 'Control+z'); await pause()
       capture('undo-first', original, 1, [false, true], 4, { kind: 'bio', anchor: bioEnd })
       phase = 'redo-first'; await native('key', 'Control+Shift+z'); await pause()
       capture('redo-first', preceding, 1, [true, true], 5, { kind: 'bio', anchor: bioEnd + 1 })
       phase = 'redo-continuation'; await native('key', 'Control+Shift+z'); await pause()
-      capture('redo-continuation', final, 0, [true, false], 6, { kind: 'bio', anchor: finalBioEnd + 1 })
+      capture('redo-continuation', final, 2, [true, false], 6, { kind: 'bio', anchor: finalBioEnd + 1 })
     }
     phase = 'complete'
     check('completePhases', completedPhases, plannedPhases)
