@@ -73,6 +73,9 @@ const server = createServer(async (request, response) => {
     if (pathname === '/favicon.ico') { response.statusCode = 204; response.end(); return }
     if (pathname === '/') {
       response.setHeader('content-type', 'text/html')
+      if (url.searchParams.get('case')?.endsWith('copy-native-denied')) {
+        response.setHeader('permissions-policy', 'clipboard-write=()')
+      }
       response.end('<!doctype html><html><head><meta charset="utf-8"><title>Code controls parity</title>'
         + '<style>body{padding:24px}#code-fixture{max-width:760px}#clipboard-target{display:block;width:700px;height:100px;margin:30px}</style>'
         + '<script type="importmap">' + JSON.stringify({ imports: { ...imports, 'highlight.js': `/highlight/${url.searchParams.get('case')}.js` } })
@@ -149,15 +152,6 @@ try {
       else throw new Error(`Unknown action ${action.kind}`)
     })
     await page.goto(`${origin}/?case=${id}`)
-    if (name.endsWith('copy-native-denied')) {
-      const session = await context.newCDPSession(page)
-      const { targetInfo } = await session.send('Target.getTargetInfo')
-      for (const allowWithoutGesture of [false, true]) await session.send('Browser.setPermission', {
-        permission: { name: 'clipboard-write', allowWithoutGesture }, setting: 'denied', origin,
-        browserContextId: targetInfo.browserContextId,
-      })
-      await session.detach()
-    }
     const result = await page.evaluate(async ({ source, name }) => {
       if (name.startsWith('renderer-')) {
         const { runCodeRendererCase } = await import('/renderer-fixture.js')
