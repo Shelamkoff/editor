@@ -1,0 +1,494 @@
+{
+  "row": "BLOCK_GALLERY_CAPTION_ORDER",
+  "scope": "Three fixed images, literal/supported rich/widget captions, native middle-caption input, native image swap or removal, two separate native Undo and two Redo; canonical marks/IDs/sidecars/order, neighbors, live ownership, history and input immutability. This does not claim upload/source, layout or viewer rows.",
+  "runtimeFix": {
+    "sha": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+    "parent": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "reason": "Native drop focused a caption that structural projection immediately retired. Focusing the retained Gallery wrapper keeps keyboard history inside the editor.",
+    "nativeRed": {
+      "path": "/tmp/rector-gallery-native-drag-red.log",
+      "sha256": "a54393af53574670458b435f59c68bc236a5049b999dcf8c3e936a36c17af893",
+      "cases": 241,
+      "passed": 240,
+      "failed": [
+        {
+          "name": "Gallery native image drag retains keyboard Undo and Redo for a preceding caption edit",
+          "status": "FAIL",
+          "error": "Error: Native drop left keyboard history outside the Gallery\n    at assert (http://127.0.0.1:34929/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:34929/tests/browser/regressions/gallery-native-drag-history.js:39:3\n    at async run (http://127.0.0.1:34929/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34929/tests/browser/native-plugin-parity.js:2361:1"
+        }
+      ]
+    },
+    "nativeFocusedGreen": {
+      "path": "/tmp/rector-gallery-native-drag-green.log",
+      "sha256": "dfd68a887df7a79c5008b3cc871ad1e1be23fca4c1d31d20590eaf6a6d0621fb",
+      "cases": 1,
+      "passed": 1,
+      "failed": []
+    },
+    "nativeFullGreenBeforeDetailedCasesAdded": {
+      "path": "/tmp/rector-gallery-native-drag-full-green.log",
+      "sha256": "6f58def7aca92c3b3c95120382dbe9eef5ef8c59d022dda2abfe6335109e9077",
+      "cases": 241,
+      "passed": 241,
+      "failed": []
+    }
+  },
+  "finalThreeSourceProof": {
+    "exitCode": 0,
+    "path": "/tmp/rector-gallery-caption-order-final.json",
+    "sha256": "965c243c15ad2627f727b8e9c910e741edf424a4f4ee10da2673ba66bfd3fffa",
+    "startedAt": "2026-10-30T03:57:54.734Z",
+    "finishedAt": "2026-10-30T03:58:10.311Z",
+    "browser": "156.0.8078.47",
+    "node": "v24.22.1",
+    "candidateSource": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "runnerSha256": "1b0072391b367caf01cd2f6bcd05365434698181f2dd8a2a59f55b780ad2b239",
+    "fixtureSha256": "776ee272e8cf6bcf1f0041d2f0ee1b23d2f57c8d73fda558bba903865fd31800",
+    "classifierSha256": "d9d063cc7782222e511818b8b25df7af12748338fcedf661ac379c38a35308b7",
+    "sources": [
+      {
+        "source": "v1",
+        "cases": 6,
+        "observations": 336,
+        "rawFailures": 123,
+        "classifiedDifferences": 123,
+        "unexpectedFailures": 0,
+        "pageErrors": 0,
+        "playwrightErrors": 0,
+        "unexpectedErrors": 0,
+        "incompleteCases": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 6,
+        "observations": 378,
+        "rawFailures": 101,
+        "classifiedDifferences": 101,
+        "unexpectedFailures": 0,
+        "pageErrors": 4,
+        "playwrightErrors": 4,
+        "unexpectedErrors": 0,
+        "incompleteCases": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 6,
+        "observations": 378,
+        "rawFailures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0,
+        "pageErrors": 0,
+        "playwrightErrors": 0,
+        "unexpectedErrors": 0,
+        "incompleteCases": 0
+      }
+    ],
+    "loadedSources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "root": "/tmp/rector-v1-5e5c7f8",
+        "loadedFiles": 125,
+        "manifestSha256": "07838cfe15dd23bf1ce612951baeb230f91e6dae84fb0a2ab99a4be2109a517a"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "root": "/tmp/rector-e981ff3",
+        "loadedFiles": 117,
+        "manifestSha256": "7b16b0f7d7c84fbd228b416b43e199282eb8a12f0722c0f7a7e2d5c772f0adee"
+      },
+      {
+        "label": "candidate",
+        "sha": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+        "root": "/tmp/rector-next-gallery-20261030",
+        "loadedFiles": 117,
+        "manifestSha256": "cc3b188c967909775d889408946b5e6b4256c1db7d9fb646ce0f170f9b822164"
+      }
+    ],
+    "dependencyVersions": {
+      "dompurify": "3.4.17",
+      "@shelamkoff/carousel": "1.0.0",
+      "@shelamkoff/color-picker": "1.0.0",
+      "@shelamkoff/cropper": "1.0.0",
+      "@shelamkoff/event-bus": "1.0.0",
+      "@shelamkoff/expose": "1.0.0",
+      "@shelamkoff/masonry": "1.0.0",
+      "@shelamkoff/infinite-scroll": "1.0.1"
+    },
+    "dependencyFileCount": 14,
+    "serverErrors": []
+  },
+  "nativeDetailedCases": {
+    "exitCode": 0,
+    "path": "/tmp/rector-gallery-caption-order-native-final.log",
+    "sha256": "970a0b93eab962475429f63052657ad112b18b6b8b222693bb22349e85d4a3ee",
+    "cases": 6,
+    "passed": 6,
+    "failed": []
+  },
+  "offlineClassifierControls": {
+    "exitCode": 0,
+    "path": "/tmp/rector-gallery-caption-order-classifier-controls.json",
+    "sha256": "7f3c6607d6ccf93528d73074599c563d8f6b81bbd99b0afdce9f63af40dc5b00",
+    "historicalObservationsAccepted": 224,
+    "negativeObservationControls": 3808,
+    "pairedHistoricalPageErrorsAccepted": 4,
+    "negativePageErrorControls": 11,
+    "candidateExceptions": 0
+  },
+  "galleryUnitTests": {
+    "exitCode": 0,
+    "tests": 16,
+    "passed": 16,
+    "failed": 0,
+    "path": "/tmp/rector-gallery-unit-final.log",
+    "sha256": "1d39c22f62d7c66ea5daff5a5d40c32d38073fa058fd05a6ba46361b85753fb8"
+  },
+  "preservedExploration": {
+    "initialLiteralDragRed": {
+      "exitCode": 1,
+      "purpose": "Real native drag comparison before the runtime fix; v1 passes, baseline/candidate lose keyboard owner.",
+      "path": "/tmp/rector-gallery-caption-order-literal-swap-raw.json",
+      "sha256": "b08bcd071ae5049742ec361de990a946a9b9c7059e84750e7e4d00af9437abcb",
+      "startedAt": "2026-10-30T03:29:16.724Z",
+      "finishedAt": "2026-10-30T03:29:22.828Z",
+      "browser": "156.0.8078.47",
+      "node": "v24.22.1",
+      "candidateSource": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "runnerSha256": "0ca317d01d7e50a9faae5e05a80571208bfacb581ffd52a65b82eb2c383fe7a0",
+      "fixtureSha256": "13c394e019f075846a328ef29b7ee954a27654114480b9d85da1dbe1bc8f144c",
+      "sources": [
+        {
+          "source": "v1",
+          "cases": 1,
+          "observations": 56,
+          "rawFailures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 1,
+          "observations": 63,
+          "rawFailures": 26,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 1,
+          "observations": 63,
+          "rawFailures": 22,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        }
+      ],
+      "loadedSources": [
+        {
+          "label": "v1",
+          "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "root": "/tmp/rector-v1-5e5c7f8",
+          "loadedFiles": 125,
+          "manifestSha256": "07838cfe15dd23bf1ce612951baeb230f91e6dae84fb0a2ab99a4be2109a517a"
+        },
+        {
+          "label": "spec-baseline",
+          "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+          "root": "/tmp/rector-e981ff3",
+          "loadedFiles": 117,
+          "manifestSha256": "7b16b0f7d7c84fbd228b416b43e199282eb8a12f0722c0f7a7e2d5c772f0adee"
+        },
+        {
+          "label": "candidate",
+          "sha": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+          "root": "/tmp/rector-next-gallery-20261030",
+          "loadedFiles": 117,
+          "manifestSha256": "dd87d9c9abd5b715d2a79f26a3b236f48c91608a1fd45b061730492c21e10a74"
+        }
+      ],
+      "dependencyVersions": {
+        "dompurify": "3.4.17",
+        "@shelamkoff/carousel": "1.0.0",
+        "@shelamkoff/color-picker": "1.0.0",
+        "@shelamkoff/cropper": "1.0.0",
+        "@shelamkoff/event-bus": "1.0.0",
+        "@shelamkoff/expose": "1.0.0",
+        "@shelamkoff/masonry": "1.0.0",
+        "@shelamkoff/infinite-scroll": "1.0.1"
+      },
+      "dependencyFileCount": 14,
+      "serverErrors": []
+    },
+    "unsupportedUnderlineOracle": {
+      "exitCode": 1,
+      "classification": "fixture-oracle-error",
+      "reason": "The exploratory third caption used <u>, outside shared/sanitize/allowlist.js. Its correct removal is not a Gallery defect. The final fixed author input uses supported <code>; no candidate exemption or runtime sanitation change.",
+      "path": "/tmp/rector-gallery-caption-order-all-raw.json",
+      "sha256": "1cdfa1389b479b957720349cf22afc016883330ff21ae2e4301c6a3738d550c5",
+      "startedAt": "2026-10-30T03:33:42.094Z",
+      "finishedAt": "2026-10-30T03:33:58.181Z",
+      "browser": "156.0.8078.47",
+      "node": "v24.22.1",
+      "candidateSource": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "runnerSha256": "0ca317d01d7e50a9faae5e05a80571208bfacb581ffd52a65b82eb2c383fe7a0",
+      "fixtureSha256": "49a96bdad9de385268e37eeebfcef1215bb536ac657640442380a2c458132df8",
+      "sources": [
+        {
+          "source": "v1",
+          "cases": 6,
+          "observations": 336,
+          "rawFailures": 123,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 6,
+          "observations": 378,
+          "rawFailures": 139,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 4,
+          "playwrightErrors": 4,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 6,
+          "observations": 378,
+          "rawFailures": 56,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        }
+      ],
+      "loadedSources": [
+        {
+          "label": "v1",
+          "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "root": "/tmp/rector-v1-5e5c7f8",
+          "loadedFiles": 125,
+          "manifestSha256": "07838cfe15dd23bf1ce612951baeb230f91e6dae84fb0a2ab99a4be2109a517a"
+        },
+        {
+          "label": "spec-baseline",
+          "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+          "root": "/tmp/rector-e981ff3",
+          "loadedFiles": 117,
+          "manifestSha256": "7b16b0f7d7c84fbd228b416b43e199282eb8a12f0722c0f7a7e2d5c772f0adee"
+        },
+        {
+          "label": "candidate",
+          "sha": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+          "root": "/tmp/rector-next-gallery-20261030",
+          "loadedFiles": 117,
+          "manifestSha256": "cc3b188c967909775d889408946b5e6b4256c1db7d9fb646ce0f170f9b822164"
+        }
+      ],
+      "dependencyVersions": {
+        "dompurify": "3.4.17",
+        "@shelamkoff/carousel": "1.0.0",
+        "@shelamkoff/color-picker": "1.0.0",
+        "@shelamkoff/cropper": "1.0.0",
+        "@shelamkoff/event-bus": "1.0.0",
+        "@shelamkoff/expose": "1.0.0",
+        "@shelamkoff/masonry": "1.0.0",
+        "@shelamkoff/infinite-scroll": "1.0.1"
+      },
+      "dependencyFileCount": 14,
+      "serverErrors": []
+    },
+    "supportedBeforeHistoricalClassification": {
+      "exitCode": 1,
+      "reason": "Candidate already has zero raw failures. This run intentionally remains failed because historical differences and page errors were not yet classified.",
+      "path": "/tmp/rector-gallery-caption-order-supported-raw.json",
+      "sha256": "a55afd637f5fc54ae8818acac05a6af6c3774526b176e07e6bcc0886ad484f4e",
+      "startedAt": "2026-10-30T03:35:46.614Z",
+      "finishedAt": "2026-10-30T03:36:02.184Z",
+      "browser": "156.0.8078.47",
+      "node": "v24.22.1",
+      "candidateSource": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "runnerSha256": "0ca317d01d7e50a9faae5e05a80571208bfacb581ffd52a65b82eb2c383fe7a0",
+      "fixtureSha256": "8d5071795f3d43ae8308b09312e4d7c1051e938ecf7e0c3a7d345eee204f8ac4",
+      "sources": [
+        {
+          "source": "v1",
+          "cases": 6,
+          "observations": 336,
+          "rawFailures": 123,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 6,
+          "observations": 378,
+          "rawFailures": 101,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 4,
+          "playwrightErrors": 4,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 6,
+          "observations": 378,
+          "rawFailures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": null,
+          "pageErrors": 0,
+          "playwrightErrors": 0,
+          "unexpectedErrors": null,
+          "incompleteCases": 0
+        }
+      ],
+      "loadedSources": [
+        {
+          "label": "v1",
+          "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "root": "/tmp/rector-v1-5e5c7f8",
+          "loadedFiles": 125,
+          "manifestSha256": "07838cfe15dd23bf1ce612951baeb230f91e6dae84fb0a2ab99a4be2109a517a"
+        },
+        {
+          "label": "spec-baseline",
+          "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+          "root": "/tmp/rector-e981ff3",
+          "loadedFiles": 117,
+          "manifestSha256": "7b16b0f7d7c84fbd228b416b43e199282eb8a12f0722c0f7a7e2d5c772f0adee"
+        },
+        {
+          "label": "candidate",
+          "sha": "ff828ef5a6db070172f56a6c4a92ba68b2740c4f",
+          "root": "/tmp/rector-next-gallery-20261030",
+          "loadedFiles": 117,
+          "manifestSha256": "cc3b188c967909775d889408946b5e6b4256c1db7d9fb646ce0f170f9b822164"
+        }
+      ],
+      "dependencyVersions": {
+        "dompurify": "3.4.17",
+        "@shelamkoff/carousel": "1.0.0",
+        "@shelamkoff/color-picker": "1.0.0",
+        "@shelamkoff/cropper": "1.0.0",
+        "@shelamkoff/event-bus": "1.0.0",
+        "@shelamkoff/expose": "1.0.0",
+        "@shelamkoff/masonry": "1.0.0",
+        "@shelamkoff/infinite-scroll": "1.0.1"
+      },
+      "dependencyFileCount": 14,
+      "serverErrors": []
+    }
+  },
+  "proofSourceSha256": {
+    "scripts/parity/gallery-caption-order.mjs": "1b0072391b367caf01cd2f6bcd05365434698181f2dd8a2a59f55b780ad2b239",
+    "scripts/parity/gallery-caption-order-classifiers.mjs": "d9d063cc7782222e511818b8b25df7af12748338fcedf661ac379c38a35308b7",
+    "scripts/parity/verify-gallery-caption-order-classifiers.mjs": "47975d4d1fd59cf7442f0baa1f3a8cb7e994eef82180cbb2206f109c1fe6d450",
+    "scripts/parity/gallery-caption-order.md": "eef47a1f23328294ce865ee0e8bf55a2ac4e25ff306bcd8f211bfc03877b4da0",
+    "tests/browser/gallery-caption-order-fixture.js": "776ee272e8cf6bcf1f0041d2f0ee1b23d2f57c8d73fda558bba903865fd31800",
+    "tests/browser/gallery-caption-order-native.js": "463a85f75b7e96637c634949d4a6745f18947237ef9dc764daeab198e911e05c",
+    "tests/browser/native-plugin-parity.js": "b3d0baa0b7e9de569a3af5740cc6681f0b7a64cf0b1077392f41626fff56eebe",
+    "tests/browser/regressions/gallery-native-drag-history.js": "10b34962e28a5dfd0256aec417570db3488701b4eb27864df307bf896629372b",
+    "plugins/gallery/index.js": "59d66238218ab749d71b2839d86c6892d376fc19ca50bd841a3cbf710ab5fe4d"
+  },
+  "reproductionCommands": {
+    "cwd": "/tmp/rector-next-gallery-20261030",
+    "threeSource": {
+      "env": {
+        "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+        "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs"
+      },
+      "argv": [
+        "node",
+        "scripts/parity/gallery-caption-order.mjs"
+      ]
+    },
+    "nativeDetailed": {
+      "env": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs",
+        "EDITOR_NATIVE_FILTER": "Gallery caption/order:"
+      },
+      "argv": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ]
+    },
+    "nativeFull": {
+      "env": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+      },
+      "argv": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ]
+    },
+    "classifierControls": {
+      "argv": [
+        "node",
+        "scripts/parity/verify-gallery-caption-order-classifiers.mjs",
+        "/tmp/rector-gallery-caption-order-final.json"
+      ]
+    },
+    "units": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-isolation=none",
+        "plugins/gallery/settings-lifecycle.test.js",
+        "plugins/gallery/uploader.failures.test.js",
+        "plugins/gallery/uploader.realm.test.js"
+      ]
+    }
+  },
+  "review": {
+    "agent": "/root/gallery_lifetimes/review_gallery_proof",
+    "kind": "read-only static review of fixture, runner, classifier, validator, native adapter and harness",
+    "substantiatedFindings": [],
+    "browserOrTestsRun": false
+  },
+  "limitations": [
+    "The final six-case native registration was verified with its focused filter. The production-fix full page had already passed 241/241; the next integrated full gate must include all newly registered cases.",
+    "No timing or full browser suite was run by this slice.",
+    "v1 unsupported rich-caption/sidecar controls are capability limits; its Remove focus failure and the baseline focus/alt/projection failures are historical defects. All candidate failures remain fatal."
+  ]
+}
