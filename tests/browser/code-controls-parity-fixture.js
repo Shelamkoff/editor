@@ -62,6 +62,20 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
     clipboardCalls.push(text)
     return Promise.reject(new DOMException('Fixture permission denial', 'NotAllowedError'))
   } })
+  if (name === 'copy-native-denied') {
+    const native = navigator.clipboard.writeText.bind(navigator.clipboard)
+    replaceClipboard({ writeText(text) {
+      clipboardCalls.push({ text, state: 'pending' })
+      return native(text).then(value => {
+        clipboardCalls.at(-1).state = 'resolved'
+        return value
+      }, error => {
+        clipboardCalls.at(-1).state = 'rejected'
+        clipboardCalls.at(-1).name = error.name
+        throw error
+      })
+    } })
+  }
   if (name === 'copy-pending-retired') replaceClipboard({ writeText(text) {
     clipboardCalls.push(text)
     return new Promise(resolve => { resolveCopy = resolve })
@@ -241,11 +255,16 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
         void retired
       } else {
         const markup = button().innerHTML
+        if (name === 'copy-native-denied') {
+          check('permission', 'actualBrowserDenied', (await navigator.permissions.query({ name: 'clipboard-write' })).state, 'denied')
+        }
         await action({ kind: 'click', selector: '.oe-code-btn--copy' })
         state('copy')
         check('copy', 'feedbackAbsent', button().classList.contains('oe-code-btn--copied'), false)
         check('copy', 'buttonUnchanged', button().innerHTML, markup)
         if (name === 'copy-rejected') check('copy', 'rejectedExactText', clipboardCalls, [source])
+        if (name === 'copy-native-denied') check('copy', 'realNativeRejection', clipboardCalls,
+          [{ text: source, state: 'rejected', name: 'NotAllowedError' }])
       }
     } else throw new Error(`Unknown Code control case ${name}`)
 

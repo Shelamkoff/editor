@@ -16,6 +16,9 @@ const startedAt = new Date().toISOString()
 const fixturePath = 'tests/browser/code-controls-parity-fixture.js'
 const fixture = git('show', `${headBefore}:${fixturePath}`)
 assert.deepEqual(fixture, await readFile(join(repo, fixturePath)), 'Fixture differs from committed source')
+const rendererFixturePath = 'tests/browser/code-renderer-parity-fixture.js'
+const rendererFixture = git('show', `${headBefore}:${rendererFixturePath}`)
+assert.deepEqual(rendererFixture, await readFile(join(repo, rendererFixturePath)), 'Renderer fixture differs from committed source')
 assert.equal(git('diff', '--name-only', 'HEAD').toString().trim(), '', 'Commit source changes before comparing')
 const dependencyRoot = resolve(process.env.EDITOR_DEPENDENCIES_ROOT ?? join(repo, 'node_modules'))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
@@ -54,7 +57,10 @@ while (pending.length) {
 }
 const cases = ['language-keyboard', 'language-cancel-no-match', 'injected-runtime', 'provider-throws', 'provider-retired',
   'lazy-default', 'lazy-delayed', 'lazy-failed', 'lazy-retired', 'copy-native', 'copy-read-only',
-  'copy-rejected', 'copy-unavailable', 'copy-empty', 'copy-pending-retired']
+  'copy-native-denied', 'copy-rejected', 'copy-unavailable', 'copy-empty', 'copy-pending-retired',
+  'renderer-injected', 'renderer-provider-throws', 'renderer-lazy-default', 'renderer-lazy-delayed',
+  'renderer-lazy-failed', 'renderer-lazy-retired', 'renderer-lazy-replaced', 'renderer-lazy-provider-retired',
+  'renderer-copy-native', 'renderer-copy-native-denied', 'renderer-copy-unavailable', 'renderer-copy-pending-retired']
 const selectedCases = process.env.EDITOR_CODE_CASE ? cases.filter(name => name.includes(process.env.EDITOR_CODE_CASE)) : cases
 assert(selectedCases.length, 'No case matches EDITOR_CODE_CASE')
 const selectedSources = process.env.EDITOR_CODE_SOURCE ? sources.filter(source => source.label === process.env.EDITOR_CODE_SOURCE) : sources
@@ -75,22 +81,23 @@ const server = createServer(async (request, response) => {
     }
     response.setHeader('content-type', extname(pathname) === '.css' ? 'text/css' : 'text/javascript')
     if (pathname === '/fixture.js') { response.end(fixture); return }
+    if (pathname === '/renderer-fixture.js') { response.end(rendererFixture); return }
     // V1 ships its dependency bundle as a relative module. Delay/fail that
     // request without replacing or rewriting any of its immutable bytes.
     if (pathname.endsWith('/shared/runtime/highlightBundle.js')) {
       assert(currentGate, 'Missing v1 lazy-load boundary')
       currentGate.requested = true
-      if (currentGate.name !== 'lazy-default') await currentGate.promise
-      loadOutcomes.push({ case: currentGate.id, mode: currentGate.name, status: currentGate.name === 'lazy-failed' ? 503 : 200 })
-      if (currentGate.name === 'lazy-failed') { response.statusCode = 503; response.end('Deliberate unavailable highlighter boundary'); return }
+      if (!currentGate.name.endsWith('lazy-default')) await currentGate.promise
+      loadOutcomes.push({ case: currentGate.id, mode: currentGate.name, status: currentGate.name.endsWith('lazy-failed') ? 503 : 200 })
+      if (currentGate.name.endsWith('lazy-failed')) { response.statusCode = 503; response.end('Deliberate unavailable highlighter boundary'); return }
     }
     if (pathname.startsWith('/highlight/')) {
       const gate = gates.get(pathname)
       assert(gate, `Unexpected highlighter request ${pathname}`)
       gate.requested = true
-      if (gate.name !== 'lazy-default') await gate.promise
-      loadOutcomes.push({ case: gate.id, mode: gate.name, status: gate.name === 'lazy-failed' ? 503 : 200 })
-      if (gate.name === 'lazy-failed') { response.statusCode = 503; response.end('Deliberate unavailable highlighter boundary'); return }
+      if (!gate.name.endsWith('lazy-default')) await gate.promise
+      loadOutcomes.push({ case: gate.id, mode: gate.name, status: gate.name.endsWith('lazy-failed') ? 503 : 200 })
+      if (gate.name.endsWith('lazy-failed')) { response.statusCode = 503; response.end('Deliberate unavailable highlighter boundary'); return }
       response.end(highlighter)
       return
     }
@@ -136,12 +143,26 @@ try {
         assert(gate.requested, 'Lazy import did not reach the controlled network boundary')
         gate.release()
         await page.waitForTimeout(80)
-      } else if (action.kind === 'wait-highlight') await page.locator('.oe-code-pre code span').first().waitFor({ state: 'attached', timeout: 10000 })
-      else if (action.kind === 'wait-copy-reset') await page.waitForFunction(() => !document.querySelector('.oe-code-btn--copy')?.classList.contains('oe-code-btn--copied'), null, { timeout: 5000 })
+      } else if (action.kind === 'wait-highlight') await page.locator(action.selector ?? '.oe-code-pre code span').first().waitFor({ state: 'attached', timeout: 10000 })
+      else if (action.kind === 'wait-copy-reset') await page.waitForFunction(({ selector, successClass }) => !document.querySelector(selector)?.classList.contains(successClass),
+        { selector: action.selector ?? '.oe-code-btn--copy', successClass: action.successClass ?? 'oe-code-btn--copied' }, { timeout: 5000 })
       else throw new Error(`Unknown action ${action.kind}`)
     })
     await page.goto(`${origin}/?case=${id}`)
+    if (name.endsWith('copy-native-denied')) {
+      const session = await context.newCDPSession(page)
+      const { targetInfo } = await session.send('Target.getTargetInfo')
+      for (const allowWithoutGesture of [false, true]) await session.send('Browser.setPermission', {
+        permission: { name: 'clipboard-write', allowWithoutGesture }, setting: 'denied', origin,
+        browserContextId: targetInfo.browserContextId,
+      })
+      await session.detach()
+    }
     const result = await page.evaluate(async ({ source, name }) => {
+      if (name.startsWith('renderer-')) {
+        const { runCodeRendererCase } = await import('/renderer-fixture.js')
+        return runCodeRendererCase({ sourceBase: `/${source.label}/`, legacy: source.legacy, name })
+      }
       const { runCodeControlsCase } = await import('/fixture.js')
       return runCodeControlsCase({ sourceBase: `/${source.label}/`, legacy: source.legacy, name })
     }, { source: { label: source.label, legacy: source.legacy }, name })
@@ -160,9 +181,10 @@ try {
   console.log(JSON.stringify({ startedAt, completedAt: new Date().toISOString(), node: process.version,
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, headBefore, treeBefore, headAfter,
     runnerSha256: digest(await readFile(fileURLToPath(import.meta.url))), fixtureSha256: digest(fixture),
+    rendererFixtureSha256: digest(rendererFixture),
     highlighterBundleSha256: digest(highlighter), highlighterInputs, sources, dependencyVersions, dependencyFiles,
     serverErrors, loadOutcomes, selectedCases, results, candidatePass,
-    note: 'All observations retain raw verdicts; historical defects are not candidate exceptions. Clipboard rejection and unavailability are controlled host boundaries; successful copy uses the real browser clipboard.' }, null, 2))
+    note: 'All observations retain raw verdicts; historical defects are not candidate exceptions. Native denied-permission and successful clipboard cases use the actual browser API; separate controlled rejection/unavailability/pending cases exercise host boundaries.' }, null, 2))
   if (serverErrors.length || results.some(result => result.error || result.errors.length || result.failures.length || result.incomplete)) process.exitCode = 1
 } finally {
   for (const gate of gates.values()) gate.release()
