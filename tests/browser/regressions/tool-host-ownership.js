@@ -6,6 +6,27 @@ import { getTextOffset } from '../../../shared/textOffset.js'
 import { clickNative, dispatchKey } from '../native-input-helpers.js'
 import { test, make, para, editableField, editorRoot, pause, assert, equal } from './harness.js'
 
+for (const [name, createTool] of [['case transformation', createCaseTransformTool], ['clear formatting', createClearFormattingTool]]) {
+  test(`owned tool ${name} can edit an independently targeted nested editing host`, () => {
+    const root = document.createElement('div')
+    root.className = 'oe-block'
+    root.innerHTML = '<div contenteditable="true"><b>Outer</b>'
+      + '<span contenteditable="true"><b>Nested</b></span><i>Suffix</i></div>'
+    document.body.append(root)
+    const field = root.firstChild, nested = field.querySelector('[contenteditable]')
+    const siblings = [field.firstChild, field.lastChild], markup = siblings.map(node => node.outerHTML)
+    const range = document.createRange(); range.selectNodeContents(nested)
+    const tool = createTool(name)
+    tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+    try {
+      tool.toggle({ range })
+      equal(nested.innerHTML, name === 'case transformation' ? '<b>NESTED</b>' : 'Nested')
+      equal(siblings.map(node => node.outerHTML), markup, 'Explicit nested edit changed the outer owner')
+      assert(siblings.every(node => node.parentNode === field), 'Explicit nested edit replaced outer siblings')
+    } finally { tool.bindSelectionPort(null); root.remove() }
+  })
+}
+
 for (const crossBlock of [false, true]) {
   for (const [name, createTool] of [['case transformation', createCaseTransformTool], ['clear formatting', createClearFormattingTool]]) {
     test(`owned tool ${name} preserves nested editing hosts in ${crossBlock ? 'cross-block' : 'single-field'} selections`, () => {
