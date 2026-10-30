@@ -324,14 +324,21 @@ export function createTablePlugin(config = {}) {
             },
             focus(target){
               if(instanceDestroyed||readOnly)return
-              const key=target?.fieldKey
-              if(key?.startsWith('cell:')){
-                cells.get(key)?.focus()
-                return
-              }
               const firstRow=data.rows[0]
-              const first=firstRow?.cells[0]?.id
-              if(firstRow&&first)cells.get(cellKey(firstRow.id,first))?.focus()
+              const first=firstRow?.cells[0]
+              const key=target?.fieldKey!==undefined?target.fieldKey:
+                firstRow&&first?cellKey(firstRow.id,first.id):undefined
+              const cell=cells.get(key)
+              if(!cell)return
+              const {rowId,cellId}=cell.dataset
+              // Attributes are lookup hints, never new ownership. A retained
+              // host must still follow its original row/table/instance path.
+              if(typeof rowId!=='string'||typeof cellId!=='string'
+                ||cellKey(rowId,cellId)!==key)return
+              const row=rows.get(rowId)
+              if(!row||cell.parentNode!==row||row.parentNode!==table
+                ||table.parentNode!==wrapper)return
+              cell.focus()
             },
             destroy(){instanceDestroyed=true;rows.clear();cells.clear();fields=emptyFields},
           }

@@ -1916,6 +1916,45 @@ test('displaced block shell cannot focus while detached host retains normal oper
   reconciler.destroy()
 })
 
+test('focus refuses an adopted plugin root before its hook and rejects transfer during the hook', () => {
+  const document = new FakeDocument(), container = document.createElement('main')
+  const foreign = document.createElement('aside')
+  let focused = 0, moveDuringFocus = false, root
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      root = document.createElement('article')
+      return {
+        element: root, read() { return initial },
+        editableFields() { return [] }, setReadOnly() {}, destroy() {},
+        focus() { focused++; if (moveDuringFocus) foreign.appendChild(root) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  reconciler.mount(store)
+  const shell = reconciler.getElement('a'), layout = document.createElement('section')
+  shell.appendChild(layout); layout.appendChild(root)
+  assert.equal(reconciler.focus('a'), true, 'a detached editor and harmless layout wrapper remain supported')
+  assert.equal(focused, 1)
+  foreign.appendChild(root)
+  assert.equal(reconciler.focus('a'), false)
+  assert.equal(focused, 1, 'the adopted root received a focus callback')
+  assert.equal(root.parentNode, foreign)
+  layout.appendChild(root)
+  assert.equal(reconciler.focus('a'), true)
+  assert.equal(focused, 2)
+  moveDuringFocus = true
+  assert.equal(reconciler.focus('a'), false, 'focus claimed a root transferred by its own callback')
+  assert.equal(focused, 3)
+  assert.equal(root.parentNode, foreign)
+  assert.equal(store.get('a').data.text, 'a')
+  reconciler.destroy()
+  assert.equal(root.parentNode, foreign, 'disposal recaptured the foreign root')
+})
+
 for (const operation of ['read', 'mode']) for (const transfer of ['plugin root', 'outer shell']) {
   test(`block ${operation} rejects an adopted ${transfer} before calling its retired instance`, () => {
     const document = new FakeDocument(), container = document.createElement('main'), foreign = document.createElement('aside')

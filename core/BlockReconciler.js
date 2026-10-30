@@ -290,7 +290,8 @@ export class BlockReconciler {
 
   focus(id, target) {
     const entry = this.#entries.get(id)
-    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered) return false
+    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered
+      || !entry.element.contains(entry.instance.element)) return false
     try {
       const result=this.#projectPresentation(() => {
         if (typeof entry.instance.focus === 'function') {
@@ -308,7 +309,8 @@ export class BlockReconciler {
         field.element.focus({ preventScroll: true })
         return field.element.ownerDocument.activeElement === field.element
       })
-      return this.#isCurrentMountedEntry(id,entry) ? result : false
+      return this.#isCurrentMountedEntry(id,entry)
+        && entry.element.contains(entry.instance.element) ? result : false
     } catch (error) {
       console.error('Block focus failed', error)
       return false

@@ -283,6 +283,65 @@ test('Table Shift+Tab focuses the previous cell at its end as in v1', async () =
   caret(blockElement(editor, 'a').querySelector('[data-cell-id="second"]'), 0)
 })
 
+test('Table rejected adopted-cell focus preserves the next native input outside the editor', async () => {
+  const definition = createTablePlugin()
+  const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false,
+    rows: [{ id: 'row', cells: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }] }],
+  } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  const cell = blockElement(editor, 'a').querySelector('[data-cell-id="first"]')
+  const foreign = document.createElement('section')
+  const sentinel = document.createElement('textarea')
+  sentinel.value = 'Outside'
+  foreign.append(sentinel); document.body.append(foreign)
+  try {
+    assert(editor.blocks.focus('a', { fieldKey: 'cell:row:first', offset: 2 }))
+    caret(cell, 2)
+    foreign.append(cell)
+    await clickNative(sentinel)
+    sentinel.setSelectionRange(2, 4, 'backward')
+    let accepted = false
+    try { accepted = editor.blocks.focus('a', { fieldKey: 'cell:row:first', offset: 1 }) }
+    catch (error) { assert(/ownership|boundary|mounted|field/i.test(String(error)), String(error)) }
+    assert(accepted !== true, 'Adopted cell focus was accepted')
+    assert(document.activeElement === sentinel, 'Rejected Table focus stole the foreign input')
+    equal([sentinel.selectionStart, sentinel.selectionEnd, sentinel.selectionDirection], [2, 4, 'backward'])
+    await printable('X')
+    equal(sentinel.value, 'OuXide', 'Next native input did not reach the retained foreign selection')
+    equal(cell.textContent, 'Alpha', 'Next native input mutated the adopted Table cell')
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  } finally { editor.destroy(); foreign.remove() }
+})
+
+test('Table exact focus preserves valid default and keyed editing through a mode round trip', async () => {
+  const definition = createTablePlugin()
+  const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false,
+    rows: [{ id: 'row', cells: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }] }],
+  } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  const cell = id => blockElement(editor, 'a').querySelector(`[data-cell-id="${id}"]`)
+  assert(editor.blocks.focus('a'))
+  caret(cell('first'), 0)
+  assert(editor.blocks.focus('a', { fieldKey: 'cell:row:second', offset: 2.9 }))
+  caret(cell('second'), 2)
+  equal(editor.blocks.focus('a', { fieldKey: 'retired-cell', offset: 1 }), false)
+  caret(cell('second'), 2)
+  editor.setReadOnly(true)
+  equal(cell('first').contentEditable, 'false')
+  equal(cell('second').contentEditable, 'false')
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  editor.setReadOnly(false)
+  assert(editor.blocks.focus('a', { fieldKey: 'cell:row:second', offset: 'end' }))
+  caret(cell('second'), 5)
+  await printable('X')
+  equal(editor.save().blocks[0].data.rows[0].cells.map(field => field.text), ['Alpha', 'BravoX'])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+})
+
 test('Table Enter inserts a line break in the cell and keeps typing at that boundary', async () => {
   const definition = createTablePlugin()
   const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false, rows: [{ id: 'row', cells: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }] }] } }], { plugins: [createParagraphPlugin(), definition] })
