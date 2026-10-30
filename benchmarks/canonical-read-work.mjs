@@ -5,12 +5,13 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-// node benchmarks/canonical-read-work.mjs BASELINE CANDIDATE [OUTPUT_JSON]
+// node benchmarks/canonical-read-work.mjs BASELINE CANDIDATE [OUTPUT_JSON] [all|changed]
 // Deterministic JSON-boundary work, not timing. Real runtime/public adapters
 // and Table schema; a headless projection port supplies authored data. Live
 // DOM ownership, native input and paint require the separate browser controls.
-const [baseline, candidate, output] = process.argv.slice(2)
+const [baseline, candidate, output, expectedReduction = 'all'] = process.argv.slice(2)
 assert(baseline && candidate, 'Provide baseline and candidate source checkouts')
+assert(['all', 'changed'].includes(expectedReduction), 'Expected reduction must be all or changed')
 const files = ['core/DocumentRuntime.js', 'core/DocumentStore.js', 'core/TransactionEngine.js',
   'core/HistoryStore.js', 'core/PublicEditorApi.js', 'core/CanonicalTransforms.js',
   'shared/jsonData.js', 'shared/cloneEditorData.js', 'shared/snapshotDataSchema.js',
@@ -98,6 +99,7 @@ const result = {
   kind: 'Deterministic JSON-boundary work with input detachment, no-op, canonical data and history controls',
   limits: 'Headless Table schema/runtime/public path. Counts exclude setup, assertions and Undo/Redo; no latency, native DOM, RAM, retained heap or leak claim.',
   node: process.version, runnerSha256: hash(await readFile(new URL(import.meta.url))),
+  expectedReduction,
   sources: variants.map(({ label, root, head, hashes }) => ({ label, root, head, hashes })),
   sourceUnchanged: true, rows,
 }
@@ -105,6 +107,13 @@ const json = JSON.stringify(result, null, 2) + '\n'
 if (output) await writeFile(resolve(output), json)
 else process.stdout.write(json)
 for (const row of rows) {
-  assert(row.avoidedJsonRecordVisits > 0 && row.avoidedTablePayloadVisits > 0,
-    `${row.size}x${row.size} ${row.command}: no avoided payload work`)
+  if (expectedReduction === 'all' || row.command.endsWith('-change')) {
+    assert(row.avoidedJsonRecordVisits > 0 && row.avoidedTablePayloadVisits > 0,
+      `${row.size}x${row.size} ${row.command}: no avoided payload work`)
+  } else {
+    // A journal-only optimization cannot change no-op work: no journal
+    // entry exists. Keep these controls exact instead of requiring a gain.
+    assert.equal(row.avoidedJsonRecordVisits, 0, 'No-op JSON work changed')
+    assert.equal(row.avoidedTablePayloadVisits, 0, 'No-op payload work changed')
+  }
 }

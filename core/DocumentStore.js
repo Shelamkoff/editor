@@ -183,7 +183,9 @@ export class DocumentDraft {
     this.#ensureOwnOrder()
     this.#order.splice(index, 0, block.id)
     this.#blocks = this.#blocks.withSet(block.id, block)
-    this.#changes.push({ kind: 'block.insert', index, block: cloneEditorData(block) })
+    // The private journal can share this store-owned, deeply frozen record.
+    // Only changes/get/list/export cross the detached snapshot boundary.
+    this.#changes.push({ kind: 'block.insert', index, block })
     return block.id
   }
 
@@ -200,8 +202,8 @@ export class DocumentDraft {
     this.#changes.push({
       kind: 'block.update',
       id,
-      before: cloneEditorData(current),
-      after: cloneEditorData(next),
+      before: current,
+      after: next,
     })
   }
 
@@ -215,7 +217,7 @@ export class DocumentDraft {
     this.#changes.push({
       kind: 'block.remove',
       index,
-      block: cloneEditorData(block),
+      block,
     })
   }
 
