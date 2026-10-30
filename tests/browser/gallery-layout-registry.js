@@ -1,6 +1,7 @@
 import { createGalleryRenderer } from '../../renderer/renderers/gallery/index.js'
 import { runGalleryAccessibleCaptionTests } from './gallery-accessible-captions.js'
 import { runGalleryRendererLifetimeTests } from './gallery-renderer-lifetimes.js'
+import { runGalleryViewerCaptionTests } from './gallery-viewer-captions.js'
 
 const sandbox = document.querySelector('#sandbox')
 const result = document.querySelector('#result')
@@ -38,6 +39,7 @@ try {
 
   results.push(...await runGalleryAccessibleCaptionTests(sandbox))
   results.push(...await runGalleryRendererLifetimeTests(sandbox))
+  results.push(...await runGalleryViewerCaptionTests(sandbox))
   document.body.dataset.status = results.every(result => result.status === 'PASS') ? 'pass' : 'fail'
   result.textContent = JSON.stringify(results)
 } catch (error) {

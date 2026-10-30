@@ -45,7 +45,15 @@ export function createGalleryRenderer(classPrefix, locale) {
      * @returns {HTMLElement}
      */
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
-      const { images, styles, options } = block.data
+      const { styles, options } = block.data
+      // Grid labels and both viewer implementations consume plain text.
+      // Resolve the canonical rich field once through its owning parser so
+      // entities, literal tokens and registered inline widgets have the same
+      // readable meaning on visible and overflow images.
+      const images = block.data.images.map(image => ({
+        ...image,
+        caption: image.caption ? parseInline(image.caption).textContent || '' : '',
+      }))
       const ownerDocument = context.ownerDocument
       const layout = block.data.layout
 
@@ -84,7 +92,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         }
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           const img = item.querySelector('img')
           if (img) {
             let settled = false
@@ -121,7 +129,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         masonryItems = []
 
         images.forEach((image) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           const img = item.querySelector('img')
           if (img) img.loading = 'eager'
           masonryItems?.push(item)
@@ -132,7 +140,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         container.classList.add(`eg--${layout}`)
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           if (overflowCount > 0 && i === visibleImages.length - 1) {
             item.appendChild(createOverflow(overflowCount, classPrefix, ownerDocument))
           }
@@ -335,11 +343,10 @@ function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, 
  * @param {string} classPrefix
  * @param {string} openLabel
  * @param {Document} ownerDocument
- * @param {import('../../types').InlineParser} parseInline
  * @returns {HTMLElement}
  */
-function createItem(image, classPrefix, openLabel, ownerDocument, parseInline) {
-  const caption = image.caption ? parseInline(image.caption).textContent || '' : ''
+function createItem(image, classPrefix, openLabel, ownerDocument) {
+  const caption = image.caption || ''
   const figure = ownerDocument.createElement('figure')
   figure.className = `${classPrefix}-gallery__item`
   figure.tabIndex = 0
