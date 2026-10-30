@@ -88,3 +88,11 @@ The [earlier combined attempt](../continuation-65-integration/README.md) remains
 The never-opened inactive Person tab still exposes literal inline-widget tokens in its label until the name field is opened. Its actual RED proof and positive hydration control remain in [the Person checkpoint](../person-rich-field-preservation/README.md). Solving this requires a supported way to derive inactive labels without acquiring hidden widget lifetimes or introducing plugin-specific sidecar decoding.
 
 Other remaining obligations include B-HTML/B-STYLE, full structural performance acceptance, detailed plugin actions, and wider browser/platform/differential coverage. B-PRESENTATION is already settled in the specification. This checkpoint accepts the stated common templates and scoped repairs; it does not mark the whole refactor or complete v1 parity finished.
+
+## Verification of the accompanying documentation
+
+The final production-document text is verified separately by **`run-7prZJH`**, completed at **2026-10-30 03:11:55.478 UTC**. Both `npm run test:docs` and `npm run docs:check` pass on unchanged local source `11245c27f40658430e1442da32a7f45543600b4b`, published tree-equivalent [`9de4c6a98192d8cad659a203ae2f38d4d891ca56`](https://github.com/Shelamkoff/editor/commit/9de4c6a98192d8cad659a203ae2f38d4d891ca56), tree `ee0bc68f2dfb9ef16ee8e0481602051a835f6713`. Production output again has **127 HTML pages, zero broken links and zero missing assets**, with the browser smoke passing.
+
+`documentation-followup/passed-run-7prZJH/` preserves its original manifest, complete compressed logs and source mapping. Its summary records every changed path since the full runtime run: only the five review/progress documents and this evidence checkpoint changed. Runtime, tests, dependencies and build configuration retain the fully tested source bytes. The final archival commit adds this result record after the checks finish.
+
+The first documentation follow-up, `run-nrHZU6`, remains failed: the existing Russian-language check rejected untranslated prose in the new review. `documentation-followup/failed-run-nrHZU6/` retains that outcome. The text was translated and clarified without changing the validator or its allowlist.
