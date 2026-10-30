@@ -291,7 +291,47 @@ Separate native controls verify read-only input, retired timers, and external
 metadata abort callbacks that author a successor URL. Templates, provider
 history continuation and arbitrary URL-policy inputs retain separate rows.
 
-Other inventory entries below are planned coverage, not completed tests.
+Gallery adds four cases: its actual empty-images default, two fixed local
+images with literal captions, and rich-caption controls with real Mention/Color
+inside and outside formatting. Literal captions preserve entities, markup-like
+text and an unowned token. The empty block has no declared caption field and
+records edit/Undo/Redo as N/A. Populated cases keep fixed IDs/order, presentation
+styles and viewer options. All captions, completed image alternatives, current
+field addresses, modes, native first-caption input and one Undo/Redo are
+observed. Mode changes may replace presentation fields; retained old input,
+blur and removal controls must not author through a successor. Native input
+must retain the current caption hosts.
+
+Gallery's detached, immediately attached and `renderTo()` outputs express
+captions through image alternatives and accessible names. The expected labels
+come from fixed caption content and real widget labels. The grid deliberately
+contains no inline widget DOM. Its local images must decode to the fixed
+one-pixel dimensions. This does not accept upload/actions, every layout,
+reorder/removal, opened-viewer options or the whole caption-order detail row.
+
+Person adds four cases: its real empty-profile default, fixed literal rich
+profiles, and wrapped/unwrapped real Mention/Color controls. Two populated
+profiles carry independently fixed avatars, names, roles, biographies and
+identified links. Current rich fields, link controls, tab labels/identity,
+mode, the entire saved document and all three renderer surfaces are checked.
+Trusted clicks open the second profile and return to the first without
+authoring; native input then edits the first name through one Undo/Redo.
+Retired authoring fields must lose mutation authority, while mode changes
+preserve an independent host control's focus.
+
+The first profile contains the real widgets; the second contains literal rich
+text. A widget in a never-opened second profile's name is not covered by these
+passing cases and remains an explicit open presentation gap. Preserving an
+already completed first-name tab across a view switch does not resolve it.
+Profile operations, programmatic hidden-field focus, the complete reader-tab
+matrix, uploads/cropping and social resolver behavior remain separate rows.
+Separate registered native tests check readable detached cards, responsive
+list-to-carousel reuse of the same cards/widgets, navigation and disposal.
+
+The shared fixture now contains 61 distinct cases. This is an implementation
+inventory, not a claim that the merged count was executed by the two earlier
+57-case checkpoints. The Carousel common-template entry below remains planned
+coverage until its separate proof is recorded.
 
 ## Source identities and test-only adapters
 
@@ -324,6 +364,14 @@ current file IDs; filename text is never parsed as rich markup.
 v1 Table receives the identical rectangular text matrix as `content: string[][]`
 with the same `withHeadings`; the current form adds fixed row/cell IDs. The
 adapter does not invent v1 identities or infer expected cells from a save.
+v1 Gallery has plain `textContent` captions and no image IDs. Its fixed
+historical strings preserve the equivalent literal visible text; they are not
+decoded through product helpers. v1 Person receives fixed profile/link values
+without current IDs. Its actual empty-draft filtering is recorded by the
+historical classifier, not used to construct the current expected output.
+Both v1 blocks disable inline tools and lack the required persistent rich-field
+hook. Their two real-widget cases remain explicitly unsupported historical
+capabilities with their input sidecars and raw differences preserved.
 These are fixture adapters, not production compatibility or a legacy
 decoder.
 
@@ -349,7 +397,7 @@ author data from an initial `save()` result.
 | Warning / 1 | Empty title and message | Rich title/Mention and independent rich message/Color; edit `title` | Implemented: both canonical fields and renderer slots are checked; message survives the sibling edit. |
 | Embed / 1 | Empty service/video/caption/metadata | Fixed Vimeo/local cover; literal and current widget captions | Implemented: actual empty default, native caption history, actual widgets and retired-host controls. v1 persistent caption widgets are unsupported reference evidence. |
 | Raw / 1 | Empty HTML source | Literal multiline authored HTML/entities; edit `html` source | Implemented: exact textarea source, benign rendered markup, existing preview disclosure and native history. HTML confinement/navigation remain separate rows. |
-| Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, captions, layout/options; edit first caption | v1 image IDs absent; no fabricated caption on an empty gallery. |
+| Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, literal and wrapped/unwrapped widget captions, fixed layout/options; edit first caption | Implemented: fixed historical plain-caption strings, current IDs/sidecars, readable renderer labels, modes and exact native history. Empty authoring is N/A; v1 persistent rich-caption widgets are unsupported. |
 | Carousel / 1 | No slides, autoplay off | Identified local slides/captions, deterministic controls | IDs already exist in v1; no external media playback/provider assumptions. |
 | Attaches / 2 | No files, variant `f` | Two controlled file URLs, literal names, size/extension; edit first filename | Implemented: v1 file IDs absent; plain text, current keyed focus, retired mode controls, native history and renderer anchors are checked. |
 | LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated literal metadata; edit declared URL | Implemented: real native input, metadata clearing, visible card, plain metadata, URL caret and exact Undo/Redo; no provider request. |
@@ -357,7 +405,7 @@ author data from an initial `save()` result.
 | Columns / 2 | Two empty columns, `1-1` layout | Fixed `1-2` rich columns with independent widgets; edit first column | Implemented: v1 column IDs absent; current IDs, both fields/order, grid/layout controls and renderer columns are checked. |
 | Spoiler / 1 | Empty label/content | Rich label/Mention and content/Color; edit label | Implemented: both fields and transient open/hidden presentation survive mode/history; renderer keeps an empty label and omits an empty body. |
 | Poll / 1 | Single choice, two empty options, always-visible results | Identified rich choices/question, literal and widget controls, fixed local results; edit question | Implemented: fixed results/IDs/marks, readable derived labels, native history and retired-host controls; v1 persistent widgets are explicitly unsupported. |
-| Person / 2 | One empty profile and no links | Rich profile fields, local avatar and identified link | v1 profile/link IDs absent; hidden fields and empty draft filtering need explicit controls. |
+| Person / 2 | One empty profile and no links | Two fixed profiles, literal and wrapped/unwrapped widgets, local avatar and identified links; edit first name | Implemented: current IDs/data, rendered profiles, actual tab-switch body, modes and native history. v1 IDs/draft filtering are explicit; never-opened widget-name tabs and detailed hidden-field focus remain open. |
 
 The existing `tests/browser/roundtrip.js` is a useful current-format smoke
 and save/reload check. It does not replace this template's native history,
@@ -587,6 +635,23 @@ observations include:
   case stops after load at the exact known inline mode hydration failure.
   The unwrapped populated control receives no exception and completes the
   full template.
+
+- Gallery has an exact recognizer limited to its four IDs and the recorded
+  source/phase sequences, full authored records, mode/history and native owners.
+  It distinguishes v1 plain-caption wire spelling and missing rich-widget
+  capability from repaired remount/caret defects. The two baseline widget
+  cases stop after load at the exact mode-hydration failure; subsequent phases
+  remain incomplete. Accessible-label and focus-result differences are matched
+  to their recorded values. The original unclassified probe and all sensitivity
+  inputs remain in the dated Gallery checkpoint.
+- Person's separate recognizer also binds every executed phase's full records,
+  including the inactive profile and all sidecars. It records the actual empty
+  v1 draft filtering, unsupported persistent widgets, historical tab/renderer
+  labels, missing detached cards and exact caret/remount differences. The two
+  baseline widget cases are explicitly incomplete after load. Populated cases
+  must include their actual `view-second` and `view-return` phases before any
+  complete-case difference is recognized. Both real candidate tab-switch
+  regressions are negative controls: no candidate exception is possible.
 
 The runner also records uncaught browser errors in two independent raw
 channels: Playwright's page-error stack and a synchronous `window.error`
