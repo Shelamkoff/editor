@@ -1,0 +1,82 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 4987,
+    "sha256": "9af582b684afe31a8a671d0305c38907ceccb4dc4e8d4e8ff5e0dc6dccd66b86"
+  },
+  {
+    "path": "checked-tracked.patch",
+    "bytes": 10632,
+    "sha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1"
+  },
+  {
+    "path": "green/manifest.json",
+    "bytes": 12965,
+    "sha256": "a6d869e46aebef4af46d202e44acee1ccecef48615f1386ba692e23db11d0ecf"
+  },
+  {
+    "path": "green/native.log.gz",
+    "bytes": 578,
+    "sha256": "a5823f9cee2ec66d557b056589c626ad22349881e73dd3bc6f7f286bb4097d65"
+  },
+  {
+    "path": "green/projection.log.gz",
+    "bytes": 3714,
+    "sha256": "6c13d0cb916bd7665eaabbfee0a9c772a852dc8a9895c87f5ebc90cf388be00e"
+  },
+  {
+    "path": "green/typecheck.log.gz",
+    "bytes": 185,
+    "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2"
+  },
+  {
+    "path": "green/unit.log.gz",
+    "bytes": 734,
+    "sha256": "9225339570265bd9b42b42143b81abc7dfb0bd8c073812e321b8420b62d9eb15"
+  },
+  {
+    "path": "inactive-label-open/browser-projection-contracts.html.json.gz",
+    "bytes": 405,
+    "sha256": "e52ce59a318089e52f15b271212df1b223ed21397ad6fc0f8f03ccbeaf051a16"
+  },
+  {
+    "path": "inactive-label-open/inactive-label-open.log.gz",
+    "bytes": 791,
+    "sha256": "3ab4d62add48a6a848a67e60d21d78d3d5b5cee0463fbd763ba1069eefcf2c0e"
+  },
+  {
+    "path": "inactive-label-open/manifest.json",
+    "bytes": 6124,
+    "sha256": "3a10df59550cc324286b36fa8dec1ab036dae412478a88e8f56b8f5f35b0149a"
+  },
+  {
+    "path": "inactive-label-probe.html",
+    "bytes": 372,
+    "sha256": "0cc7e3f0ec12de0677a60722f3bf47ac94e8995e08e8883a8ae90dcb480c9a04"
+  },
+  {
+    "path": "inactive-label-probe.js",
+    "bytes": 1877,
+    "sha256": "ef32ec79d1ec411443916fca8aff899905f22a9e3809e894e21040356f4a2f09"
+  },
+  {
+    "path": "red-native/fixture.js",
+    "bytes": 3865,
+    "sha256": "5bf97e493a6340af5763ac1ac917ceda604afaee3cc57e9aecddfb5ec838fa9a"
+  },
+  {
+    "path": "red-native/native.log.gz",
+    "bytes": 569,
+    "sha256": "18a554a87559973b0ef06ef960bbdab033caecc45ff3b4bc7a8e29f7c514073f"
+  },
+  {
+    "path": "red-native/source.json",
+    "bytes": 408,
+    "sha256": "9bcf785735e063102dfac6ad2030ea6ae8bf7aec28b7250b1a5486c51cb205ed"
+  },
+  {
+    "path": "summary.json",
+    "bytes": 2385,
+    "sha256": "c78b318d04a50ed4ea6bc11a54273946a5325ea88349c917dd7fa18f611dfbc3"
+  }
+]

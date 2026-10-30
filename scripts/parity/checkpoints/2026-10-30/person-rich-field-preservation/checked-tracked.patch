@@ -1,0 +1,171 @@
+diff --git a/plugins/person/index.js b/plugins/person/index.js
+index 5c863b78..41735332 100644
+--- a/plugins/person/index.js
++++ b/plugins/person/index.js
+@@ -557,9 +557,12 @@ export function createPersonPlugin(config={}){
+               const previousActive=previous.persons.find(person=>person.id===previousId)
+               data=cloneData(next)
+               const nextActive=data.persons.find(person=>person.id===previousId)
+-              // Reordering tabs or changing another person must not detach
+-              // the current editing host and collapse its native caret.
+-              if(activeNameView?.personId===previousId&&nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
++              // Core projects rich fields independently. Changing one rich
++              // value must not detach healthy sibling hosts or native inputs;
++              // only changes to the card's non-rich structure need a new body.
++              if(activeNameView?.personId===previousId&&nextActive&&previousActive
++                &&nextActive.avatar===previousActive.avatar
++                &&JSON.stringify(nextActive.links)===JSON.stringify(previousActive.links)){
+                 renderTabs()
+               }else render()
+             },
+diff --git a/plugins/person/reconciliation.test.js b/plugins/person/reconciliation.test.js
+index 45140cbe..b8e28411 100644
+--- a/plugins/person/reconciliation.test.js
++++ b/plugins/person/reconciliation.test.js
+@@ -146,6 +146,24 @@ test('Person retains active editing host after tabs are reordered', () => {
+   assert.deepEqual(instance.read().persons.map(item => item.id), ['b', 'a'])
+   instance.destroy()
+ })
++
++for (const key of ['role', 'bio']) test(`Person leaves the active name mounted when its ${key} changes`, () => {
++  const initial = input()
++  initial.persons[0].name = 'Alpha'
++  const { instance, ownerDocument } = mount(initial)
++  const field = nameField(instance, 'a')
++  const originalFields = instance.editableFields().map(descriptor => descriptor.element)
++  field.focus()
++  const next = structuredClone(initial)
++  next.persons[0][key] = 'Changed sibling'
++  instance.update(next, initial)
++  assert.equal(nameField(instance, 'a'), field, 'same-profile sibling update replaced the active name')
++  assert.equal(ownerDocument.activeElement, field)
++  assert.deepEqual(instance.editableFields().map(descriptor => descriptor.element), originalFields,
++    'core must receive the existing rich hosts for selective projection')
++  assert.deepEqual(instance.read(), next)
++  instance.destroy()
++})
+ test('Person replaces active author fields when the active person is removed', () => {
+   const { instance } = mount()
+   const before = nameField(instance, 'a')
+@@ -380,7 +398,7 @@ test('Person keeps natively edited active fields when another record changes', (
+   }
+ })
+ 
+-test('Person still reprojects an externally changed active field', () => {
++test('Person exposes external rich changes to core without replacing the field host', () => {
+   const { instance, setCanonicalData } = mount()
+   const original = nameField(instance, 'a')
+   original.innerHTML = 'Local pending name'
+@@ -388,9 +406,10 @@ test('Person still reprojects an externally changed active field', () => {
+   next.persons[0].name = 'Remote author name'
+   setCanonicalData(next)
+   instance.update(next, input())
+-  assert.notEqual(nameField(instance, 'a'), original,
+-    'remote active-person data change did not update its editing field')
+-  assert.equal(nameField(instance, 'a').textContent, 'Remote author name')
++  assert.equal(nameField(instance, 'a'), original,
++    'rich field projection belongs to core and must retain this declared host')
++  assert.equal(original.textContent, 'Local pending name',
++    'the block adapter must not overwrite author DOM before core projection')
+   assert.equal(instance.read().persons[0].name, 'Remote author name')
+   instance.destroy()
+ })
+diff --git a/tests/browser/native-plugin-parity.js b/tests/browser/native-plugin-parity.js
+index b55bc73f..5a5a863e 100644
+--- a/tests/browser/native-plugin-parity.js
++++ b/tests/browser/native-plugin-parity.js
+@@ -1,6 +1,7 @@
+ import './quote-paste-merge.js'
+ import './presentation-values.js'
+ import './regressions/table-default.js'
++import './regressions/person-rich-siblings-native.js'
+ import { test, make, para, editorRoot, blockElement, editableField, pause, assert, equal, run } from './regressions/harness.js'
+ import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+ import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createChecklistPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
+diff --git a/tests/browser/regressions/person-derived-presentation.js b/tests/browser/regressions/person-derived-presentation.js
+index 35e28264..03d87916 100644
+--- a/tests/browser/regressions/person-derived-presentation.js
++++ b/tests/browser/regressions/person-derived-presentation.js
+@@ -148,6 +148,82 @@ for (const action of ['sibling edit', 'reorder']) test(`Person derived active ta
+   } finally { h.dispose() }
+ })
+ 
++for (const key of ['role', 'bio']) test(`Person updating the active ${key} preserves the other rich field and its backward selection`, async () => {
++  const h = await fixture()
++  try {
++    const before = h.editor.save().blocks, after = structuredClone(before), range = backwardTail(h)
++    const oldWidgets = [h.widget('mention'), h.widget('swatch')]
++    after[0].data.persons[0][key] = '<b>Changed sibling</b>'
++    h.completions.length = 0
++    h.editor.blocks.update('person', current => ({ data: { ...current.data,
++      persons: current.data.persons.map(item => item.id === 'active'
++        ? { ...item, [key]: '<b>Changed sibling</b>' } : item),
++    } }))
++    equal(h.editor.save().blocks, after)
++    equal(retainedRange(h, range), expectedRange(range.text), 'A different rich field discarded the active name or its native selection')
++    equal(h.label('active').textContent, visibleName)
++    equal(oldWidgets.map(widget => h.widget(widget.id) === widget), [true, true], 'A sibling field edit remounted healthy name widgets')
++    equal(h.completions.map(field => field.key), ['person:active:' + key], 'Only the changed rich field needs projection completion')
++    equal(h.current().element.querySelector('.oe-person__' + key).innerHTML, '<b>Changed sibling</b>')
++    equal(h.transactions.length, 1)
++    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
++    equal(retainedRange(h, range), expectedRange(range.text))
++    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
++    equal(retainedRange(h, range), expectedRange(range.text))
++    equal(h.transactions.length, 3, 'Derived presentation must not create another history action')
++  } finally { h.dispose() }
++})
++
++test('Person external rich values project into retained fields and survive both mode transitions', async () => {
++  const h = await fixture({ widgets: false, profiles: [person('active', 'Original'), person('other', 'Grace')] })
++  try {
++    const before = h.editor.save().blocks, after = structuredClone(before)
++    const fields = [...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')]
++    after[0].data.persons[0].name = '<b>New name</b>'
++    after[0].data.persons[0].role = '<i>New role</i>'
++    after[0].data.persons[0].bio = '<mark>New bio</mark>'
++    h.editor.blocks.update('person', current => ({ data: { ...current.data, persons: after[0].data.persons } }))
++    equal([...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')], fields,
++      'Selective projection must reuse the declared rich field hosts')
++    equal(fields.map(element => element.innerHTML), ['<b>New name</b>', '<i>New role</i>', '<mark>New bio</mark>'])
++    for (const readOnly of [true, false]) {
++      h.editor.setReadOnly(readOnly)
++      equal(h.editor.save().blocks, after)
++      equal(h.label('active').textContent, 'New name')
++      equal([...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')].map(element => element.isContentEditable),
++        [!readOnly, !readOnly, !readOnly])
++    }
++    equal(h.transactions.length, 1, 'Mode presentation must not add author history')
++    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
++    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
++  } finally { h.dispose() }
++})
++
++test('Person external avatar and URL changes still update their actual non-rich controls', async () => {
++  const h = await fixture({ widgets: false, profiles: [{ ...person('active', 'Alpha'),
++    links: [{ id: 'site', type: 'website', url: 'https://example.com/alpha' }] }, person('other', 'Grace')] })
++  try {
++    const before = h.editor.save().blocks
++    const oldInput = h.current().element.querySelector('.oe-person__link-url')
++    const oldIcon = oldInput.parentNode.querySelector('.oe-person__link-icon').innerHTML
++    h.editor.blocks.update('person', current => ({ data: { persons: current.data.persons.map(item => item.id === 'active'
++      ? { ...item, avatar: pixel, links: [{ id: 'site', type: 'github', url: 'https://github.com/example' }] } : item) } }))
++    const after = h.editor.save().blocks, current = h.current().element
++    equal(current.querySelector('.oe-person__avatar-img').getAttribute('src'), pixel)
++    const input = current.querySelector('.oe-person__link-url'), icon = input.parentNode.querySelector('.oe-person__link-icon')
++    equal(input.value, 'https://github.com/example')
++    assert(icon.innerHTML !== oldIcon && icon.querySelector('svg'), 'A changed URL must update its resolved social icon')
++    equal(current.querySelector('.oe-person__name').textContent, 'Alpha')
++    oldInput.value = 'https://example.com/retired'
++    oldInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
++    await pause()
++    equal(h.editor.save().blocks, after, 'A retired non-rich control must not author the new card')
++    equal(h.transactions.length, 1)
++    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
++    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
++  } finally { h.dispose() }
++})
++
+ test('Person derived tab settles a previously hidden widget name when its actual field is focused', async () => {
+   const h = await fixture({ profiles: [person('active', 'Grace'), person('other', richName)] })
+   try {
