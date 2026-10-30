@@ -125,3 +125,26 @@ Omit `EDITOR_NATIVE_FILTER` for the full affected page. The normal project
 native gate also executes these registered cases. These are functional
 results, not a performance comparison. Upload/source delivery, layout and
 viewer controls remain separate Gallery preservation rows.
+
+## Archived evidence
+
+The [durable evidence checkpoint](checkpoints/2026-10-30/gallery-caption-order-evidence/README.md)
+contains the original RED, oracle-failure, pre-classification and final raw
+outputs, native/unit logs, classifier controls and exact source evidence.
+Its hash index records both compressed and decoded byte hashes. The
+[summary](checkpoints/2026-10-30/gallery-caption-order.json) now resolves
+artifact paths within the repository; recorded execution roots remain
+historical environment metadata.
+
+The accepted `BLOCK_GALLERY_CAPTION_ORDER` scope is the six native cases
+described above on Chromium 156. Step buttons, final-item/overflow variants,
+additional caret/range boundaries and a fresh mode/renderer matrix are not
+claimed by these runs. Their absence does not turn another Gallery row or
+an unexecuted variant into a pass.
+
+To inspect or validate the archived final raw without rerunning a browser:
+
+```sh
+gzip -dc scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/final-three-source.json.gz > /tmp/gallery-caption-order.json
+node scripts/parity/verify-gallery-caption-order-classifiers.mjs /tmp/gallery-caption-order.json
+```

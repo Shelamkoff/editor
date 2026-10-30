@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "Documentation/evidence integrity only; no browser, project tests or build launched",
+  "scenarioIdsRetained": 209,
+  "accepted": 36,
+  "open": 173,
+  "onlyNewAcceptedRow": "BLOCK_GALLERY_CAPTION_ORDER",
+  "gzipArtifacts": 15,
+  "indexedFiles": 17,
+  "allStoredAndDecodedHashesMatch": true,
+  "migratedArtifactReferences": 10,
+  "frozenProofFilesVerified": 9,
+  "markdownFilesChecked": 6,
+  "newLocalLinksAndAnchorsChecked": 38,
+  "sourceRuntimeOrTestFilesChanged": false
+}

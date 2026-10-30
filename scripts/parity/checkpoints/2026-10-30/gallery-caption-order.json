@@ -6,7 +6,7 @@
     "parent": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
     "reason": "Native drop focused a caption that structural projection immediately retired. Focusing the retained Gallery wrapper keeps keyboard history inside the editor.",
     "nativeRed": {
-      "path": "/tmp/rector-gallery-native-drag-red.log",
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-drag-red.log.gz",
       "sha256": "a54393af53574670458b435f59c68bc236a5049b999dcf8c3e936a36c17af893",
       "cases": 241,
       "passed": 240,
@@ -16,26 +16,38 @@
           "status": "FAIL",
           "error": "Error: Native drop left keyboard history outside the Gallery\n    at assert (http://127.0.0.1:34929/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:34929/tests/browser/regressions/gallery-native-drag-history.js:39:3\n    at async run (http://127.0.0.1:34929/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34929/tests/browser/native-plugin-parity.js:2361:1"
         }
-      ]
+      ],
+      "encoding": "gzip",
+      "compressedSha256": "6368c7c634f5ef15f7370f85cd44ce409a65c88f0de90d2b613b962d836fbe88",
+      "compressedBytes": 4193,
+      "decodedBytes": 29722
     },
     "nativeFocusedGreen": {
-      "path": "/tmp/rector-gallery-native-drag-green.log",
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-drag-focused-green.log.gz",
       "sha256": "dfd68a887df7a79c5008b3cc871ad1e1be23fca4c1d31d20590eaf6a6d0621fb",
       "cases": 1,
       "passed": 1,
-      "failed": []
+      "failed": [],
+      "encoding": "gzip",
+      "compressedSha256": "bd72bea670459786339071057e4a2652dc160b3953ca275036f10094841d5516",
+      "compressedBytes": 158,
+      "decodedBytes": 188
     },
     "nativeFullGreenBeforeDetailedCasesAdded": {
-      "path": "/tmp/rector-gallery-native-drag-full-green.log",
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-drag-full-green.log.gz",
       "sha256": "6f58def7aca92c3b3c95120382dbe9eef5ef8c59d022dda2abfe6335109e9077",
       "cases": 241,
       "passed": 241,
-      "failed": []
+      "failed": [],
+      "encoding": "gzip",
+      "compressedSha256": "322e5045aa66ee08faadb3a62dbb1a30de7657b915e33fda8ffae0c47afa4ee7",
+      "compressedBytes": 3806,
+      "decodedBytes": 24451
     }
   },
   "finalThreeSourceProof": {
     "exitCode": 0,
-    "path": "/tmp/rector-gallery-caption-order-final.json",
+    "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/final-three-source.json.gz",
     "sha256": "965c243c15ad2627f727b8e9c910e741edf424a4f4ee10da2673ba66bfd3fffa",
     "startedAt": "2026-10-30T03:57:54.734Z",
     "finishedAt": "2026-10-30T03:58:10.311Z",
@@ -119,39 +131,55 @@
       "@shelamkoff/infinite-scroll": "1.0.1"
     },
     "dependencyFileCount": 14,
-    "serverErrors": []
+    "serverErrors": [],
+    "encoding": "gzip",
+    "compressedSha256": "2b273bc5d4443bc706a97bf4f4cf5cfdaf943933521deb05e23c0eacb17b8845",
+    "compressedBytes": 84647,
+    "decodedBytes": 3512497
   },
   "nativeDetailedCases": {
     "exitCode": 0,
-    "path": "/tmp/rector-gallery-caption-order-native-final.log",
+    "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-caption-order-green.log.gz",
     "sha256": "970a0b93eab962475429f63052657ad112b18b6b8b222693bb22349e85d4a3ee",
     "cases": 6,
     "passed": 6,
-    "failed": []
+    "failed": [],
+    "encoding": "gzip",
+    "compressedSha256": "41d11ba568b89ee73b60803a42265a3d4f329288c9ef81a55bda228894816a06",
+    "compressedBytes": 160,
+    "decodedBytes": 453
   },
   "offlineClassifierControls": {
     "exitCode": 0,
-    "path": "/tmp/rector-gallery-caption-order-classifier-controls.json",
+    "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/classifier-controls.json.gz",
     "sha256": "7f3c6607d6ccf93528d73074599c563d8f6b81bbd99b0afdce9f63af40dc5b00",
     "historicalObservationsAccepted": 224,
     "negativeObservationControls": 3808,
     "pairedHistoricalPageErrorsAccepted": 4,
     "negativePageErrorControls": 11,
-    "candidateExceptions": 0
+    "candidateExceptions": 0,
+    "encoding": "gzip",
+    "compressedSha256": "5470e4f27671f1cc6175c97fa7a3bdfce292a51dee753380f31d2e153261bb55",
+    "compressedBytes": 135,
+    "decodedBytes": 168
   },
   "galleryUnitTests": {
     "exitCode": 0,
     "tests": 16,
     "passed": 16,
     "failed": 0,
-    "path": "/tmp/rector-gallery-unit-final.log",
-    "sha256": "1d39c22f62d7c66ea5daff5a5d40c32d38073fa058fd05a6ba46361b85753fb8"
+    "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/gallery-unit-green.log.gz",
+    "sha256": "1d39c22f62d7c66ea5daff5a5d40c32d38073fa058fd05a6ba46361b85753fb8",
+    "encoding": "gzip",
+    "compressedSha256": "11f1a0bc17d657ffe87be5d9bab6e3b6d0592bf46d2693b7a23ff65c8501aa76",
+    "compressedBytes": 703,
+    "decodedBytes": 1560
   },
   "preservedExploration": {
     "initialLiteralDragRed": {
       "exitCode": 1,
       "purpose": "Real native drag comparison before the runtime fix; v1 passes, baseline/candidate lose keyboard owner.",
-      "path": "/tmp/rector-gallery-caption-order-literal-swap-raw.json",
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/literal-drag-red.json.gz",
       "sha256": "b08bcd071ae5049742ec361de990a946a9b9c7059e84750e7e4d00af9437abcb",
       "startedAt": "2026-10-30T03:29:16.724Z",
       "finishedAt": "2026-10-30T03:29:22.828Z",
@@ -234,13 +262,17 @@
         "@shelamkoff/infinite-scroll": "1.0.1"
       },
       "dependencyFileCount": 14,
-      "serverErrors": []
+      "serverErrors": [],
+      "encoding": "gzip",
+      "compressedSha256": "8ce3712b961ef1aa535ae1533e3793f76aa343a98de7fb9cb9cc3ec44561cf82",
+      "compressedBytes": 23635,
+      "decodedBytes": 438141
     },
     "unsupportedUnderlineOracle": {
       "exitCode": 1,
       "classification": "fixture-oracle-error",
       "reason": "The exploratory third caption used <u>, outside shared/sanitize/allowlist.js. Its correct removal is not a Gallery defect. The final fixed author input uses supported <code>; no candidate exemption or runtime sanitation change.",
-      "path": "/tmp/rector-gallery-caption-order-all-raw.json",
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/unsupported-underline-oracle.json.gz",
       "sha256": "1cdfa1389b479b957720349cf22afc016883330ff21ae2e4301c6a3738d550c5",
       "startedAt": "2026-10-30T03:33:42.094Z",
       "finishedAt": "2026-10-30T03:33:58.181Z",
@@ -323,12 +355,16 @@
         "@shelamkoff/infinite-scroll": "1.0.1"
       },
       "dependencyFileCount": 14,
-      "serverErrors": []
+      "serverErrors": [],
+      "encoding": "gzip",
+      "compressedSha256": "20915831c8c39926e3c23c76609cc83b15313de73de13c94f3ee525908fec0d3",
+      "compressedBytes": 83845,
+      "decodedBytes": 3552810
     },
     "supportedBeforeHistoricalClassification": {
       "exitCode": 1,
       "reason": "Candidate already has zero raw failures. This run intentionally remains failed because historical differences and page errors were not yet classified.",
-      "path": "/tmp/rector-gallery-caption-order-supported-raw.json",
+      "path": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/supported-unclassified.json.gz",
       "sha256": "a55afd637f5fc54ae8818acac05a6af6c3774526b176e07e6bcc0886ad484f4e",
       "startedAt": "2026-10-30T03:35:46.614Z",
       "finishedAt": "2026-10-30T03:36:02.184Z",
@@ -411,7 +447,11 @@
         "@shelamkoff/infinite-scroll": "1.0.1"
       },
       "dependencyFileCount": 14,
-      "serverErrors": []
+      "serverErrors": [],
+      "encoding": "gzip",
+      "compressedSha256": "2715de9ba21968e4927be9a8f956839220f27def542bd8e9c1ca84235425734c",
+      "compressedBytes": 76137,
+      "decodedBytes": 3012494
     }
   },
   "proofSourceSha256": {
@@ -490,5 +530,23 @@
     "The final six-case native registration was verified with its focused filter. The production-fix full page had already passed 241/241; the next integrated full gate must include all newly registered cases.",
     "No timing or full browser suite was run by this slice.",
     "v1 unsupported rich-caption/sidecar controls are capability limits; its Remove focus failure and the baseline focus/alt/projection failures are historical defects. All candidate failures remain fatal."
-  ]
+  ],
+  "proofSourceCommit": "f795edf098fe733146e2cf34de77977bdcb01819",
+  "artifactIndex": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/hash-index.json",
+  "artifactEncoding": "Artifact paths resolve from the repository root. sha256 is the original decoded byte hash; compressedSha256 identifies the stored gzip. Execution cwd/root and command paths remain historical environment metadata.",
+  "publicationCounterparts": {
+    "fix": {
+      "publishedCommit": "836fed7db5af30240b8156f811cb2a10b4fa0511",
+      "localIntegratedCommit": "479cbf5a96a6efbaedba7d3ed0bfcb03a5a2698f",
+      "localIntegratedTree": "d89699d6d88de4a32d970ce75baa179ac65ed8d4",
+      "mappingProvenance": "Publication mapping reported by the parent integration agent; local integrated identity read from Git. This is distinct from the isolated executed tree."
+    },
+    "proof": {
+      "publishedCommit": "24c012015542e0f955164a47d52fa4c4c7db75ae",
+      "localIntegratedCommit": "2e0b80e63cf0e460296108056b099606034f7d56",
+      "localIntegratedTree": "5dfb00c40829208936c1672b6330bd18ff546369",
+      "mappingProvenance": "Publication mapping reported by the parent integration agent; local integrated identity read from Git. This is distinct from the isolated executed tree."
+    }
+  },
+  "sourceFacts": "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/source-facts.json"
 }
