@@ -1,0 +1,316 @@
+[
+  {
+    "name": "01-literal-red",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "environment": {
+      "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_ROUNDTRIP_FILTER": "BLOCK_PERSON_ROUNDTRIP/populated-literal"
+    },
+    "startedAtUtc": "2026-10-30T00:46:09.807533+00:00",
+    "pid": 361911,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "cd207f5177e9e8fb86e697cbca38bdc3b5bc68b7aee26c216f1c975a598a4cf1",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "b8b0aa407e1809c36c75ccd4839557e16614a22d672abbe19b74c3517ae7f8c9"
+    },
+    "exitCode": 1,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "cd207f5177e9e8fb86e697cbca38bdc3b5bc68b7aee26c216f1c975a598a4cf1",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "b8b0aa407e1809c36c75ccd4839557e16614a22d672abbe19b74c3517ae7f8c9"
+    },
+    "finishedAtUtc": "2026-10-30T00:46:17.281635+00:00"
+  },
+  {
+    "name": "02-literal-render-green",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "environment": {
+      "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_ROUNDTRIP_FILTER": "BLOCK_PERSON_ROUNDTRIP/populated-literal"
+    },
+    "startedAtUtc": "2026-10-30T00:48:03.120431+00:00",
+    "pid": 364622,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "cd207f5177e9e8fb86e697cbca38bdc3b5bc68b7aee26c216f1c975a598a4cf1",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "7409634453e3fcdd701f18a41d29b3a33966d871ada1d0500506aa71c1335b50"
+    },
+    "exitCode": 1,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "cd207f5177e9e8fb86e697cbca38bdc3b5bc68b7aee26c216f1c975a598a4cf1",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "7409634453e3fcdd701f18a41d29b3a33966d871ada1d0500506aa71c1335b50"
+    },
+    "finishedAtUtc": "2026-10-30T00:48:09.855148+00:00"
+  },
+  {
+    "name": "03-person-initial-raw",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "environment": {
+      "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_ROUNDTRIP_FILTER": "BLOCK_PERSON_ROUNDTRIP/"
+    },
+    "startedAtUtc": "2026-10-30T00:49:46.918218+00:00",
+    "pid": 367821,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "7409634453e3fcdd701f18a41d29b3a33966d871ada1d0500506aa71c1335b50"
+    },
+    "exitCode": 1,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "7409634453e3fcdd701f18a41d29b3a33966d871ada1d0500506aa71c1335b50"
+    },
+    "finishedAtUtc": "2026-10-30T00:49:58.881593+00:00"
+  },
+  {
+    "name": "04-renderer-reuse-red",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "environment": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_NATIVE_PAGE": "native-plugin-media.html",
+      "EDITOR_NATIVE_FILTER": "Person detached profiles"
+    },
+    "startedAtUtc": "2026-10-30T00:51:25.718089+00:00",
+    "pid": 369065,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "7409634453e3fcdd701f18a41d29b3a33966d871ada1d0500506aa71c1335b50"
+    },
+    "exitCode": 1,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "7409634453e3fcdd701f18a41d29b3a33966d871ada1d0500506aa71c1335b50"
+    },
+    "finishedAtUtc": "2026-10-30T00:51:28.231916+00:00"
+  },
+  {
+    "name": "05-renderer-reuse-green",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "environment": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_NATIVE_PAGE": "native-plugin-media.html",
+      "EDITOR_NATIVE_FILTER": "Person detached profiles"
+    },
+    "startedAtUtc": "2026-10-30T00:52:23.611790+00:00",
+    "pid": 369469,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "exitCode": 0,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "finishedAtUtc": "2026-10-30T00:52:32.038214+00:00"
+  },
+  {
+    "name": "06-person-tabs-raw",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "environment": {
+      "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_ROUNDTRIP_FILTER": "BLOCK_PERSON_ROUNDTRIP/"
+    },
+    "startedAtUtc": "2026-10-30T00:53:03.340053+00:00",
+    "pid": 369739,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "exitCode": 1,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "finishedAtUtc": "2026-10-30T00:53:18.280292+00:00"
+  },
+  {
+    "name": "07-person-tabs-green",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "environment": {
+      "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_ROUNDTRIP_FILTER": "BLOCK_PERSON_ROUNDTRIP/"
+    },
+    "startedAtUtc": "2026-10-30T00:55:29.874241+00:00",
+    "pid": 372679,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "exitCode": 1,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "finishedAtUtc": "2026-10-30T00:55:45.038936+00:00"
+  },
+  {
+    "name": "10-final57",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "environment": {
+      "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_ROUNDTRIP_FILTER": ""
+    },
+    "startedAtUtc": "2026-10-30T01:01:58.908686+00:00",
+    "pid": 376360,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "exitCode": 0,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "finishedAtUtc": "2026-10-30T01:04:11.601354+00:00"
+  },
+  {
+    "name": "11-person-native142",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "environment": {
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome",
+      "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+      "EDITOR_NATIVE_FILTER": "BLOCK_PERSON_ROUNDTRIP"
+    },
+    "startedAtUtc": "2026-10-30T01:04:52.297778+00:00",
+    "pid": 378764,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "exitCode": 0,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "finishedAtUtc": "2026-10-30T01:05:03.561554+00:00"
+  },
+  {
+    "name": "12-renderer-native142",
+    "cwd": "/tmp/rector-person-roundtrip-20261030",
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "environment": {
+      "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome",
+      "EDITOR_NATIVE_PAGE": "native-plugin-media.html",
+      "EDITOR_NATIVE_FILTER": "Person detached profiles"
+    },
+    "startedAtUtc": "2026-10-30T01:05:26.876193+00:00",
+    "pid": 379371,
+    "state": "complete",
+    "sourceBefore": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "exitCode": 0,
+    "sourceAfter": {
+      "tests/browser/block-roundtrip-fixture.js": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55",
+      "scripts/parity/block-roundtrip.mjs": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d",
+      "plugins/person/index.js": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+      "renderer/renderers/person/index.js": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    "finishedAtUtc": "2026-10-30T01:05:34.743847+00:00"
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "finishedAtUtc": "2026-10-30T01:02:01.107677+00:00",
+  "isolation": "separate Node process per existing test file",
+  "files": [
+    {
+      "file": "renderer/EditorRenderer.realm.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/config-members.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/config.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/construction.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/index.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/inlineWidgets.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/input-boundary.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/reentrancy.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/schema-ownership.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "renderer/version-preflight.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "plugins/person/reconciliation.test.js",
+      "exitCode": 0
+    }
+  ]
+}

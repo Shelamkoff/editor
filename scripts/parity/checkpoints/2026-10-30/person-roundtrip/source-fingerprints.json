@@ -1,0 +1,50 @@
+{
+  "base": "4bfb39426744bc0a96725258c06dc9192b58098b",
+  "head": "b1bf7bc9bf16802d690165e67adfe231eac3e6e4",
+  "tree": "b26955c95b6f2d6848ba750cdcc6e06d6953bf4f",
+  "commits": [
+    "b1bf7bc9bf16802d690165e67adfe231eac3e6e4 test(person): verify complete three-source native roundtrip and responsive output",
+    "69b55a903f5513fbecf2b7a851e25f210b89abbf fix(person): preserve derived tab labels when switching the active card",
+    "3ae3bad33717730b393f09a7f756ae41e2b9a427 fix(person): retain rendered cards when enabling responsive carousel",
+    "6eddaf38bd800f0c752192d2f3f260462868766c fix(person): render detached profile lists before measurement"
+  ],
+  "patch": "/tmp/rector-person-roundtrip-code-final-20261030.patch",
+  "patchSha256": "fa118891bf4e0ac19887935896e07ad3a6ad53b05a92d7a2f353923af9a5b96d",
+  "files": [
+    {
+      "path": "plugins/person/index.js",
+      "beforeSha256": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe",
+      "afterSha256": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc"
+    },
+    {
+      "path": "renderer/renderers/person/index.js",
+      "beforeSha256": "b8b0aa407e1809c36c75ccd4839557e16614a22d672abbe19b74c3517ae7f8c9",
+      "afterSha256": "81ec700db62b4ea9ef9c58a2a7c89cb49e42ce7c5379935f40527575ede840a9"
+    },
+    {
+      "path": "scripts/parity/block-roundtrip.mjs",
+      "beforeSha256": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "afterSha256": "37979914b034a766b727e03219b19d29ed5e78d54a82f7f675a9fdfb31641f7d"
+    },
+    {
+      "path": "scripts/parity/person-roundtrip-classifiers.mjs",
+      "beforeSha256": null,
+      "afterSha256": "64f3711d1fe0d47d2d3314fefd3a4e38a99716bd0acd0a867b07c5204ccf37c9"
+    },
+    {
+      "path": "tests/browser/block-roundtrip-fixture.js",
+      "beforeSha256": "499386bb8be98d9858f84839ec2cf88e92b1835166dd383ff4523820abd9eb6d",
+      "afterSha256": "19277b9a9f65380c2f555e3fc08934f091372e2100813c937eca86dda042da55"
+    },
+    {
+      "path": "tests/browser/native-plugin-media.js",
+      "beforeSha256": "f03b9388d5c8aa01670ec69c3d1503a196cf2e622dc88963107dfce5495b55cc",
+      "afterSha256": "f3124ba32813f0257e0c0f9bfdab5992b6ac6eb265d3793223d85519a5986527"
+    },
+    {
+      "path": "tests/browser/regressions/person-roundtrip-renderer-native.js",
+      "beforeSha256": null,
+      "afterSha256": "b3461cd15745ac5c3e944ae867a771603f45f3c5113e4c37c648cd39991006df"
+    }
+  ]
+}
