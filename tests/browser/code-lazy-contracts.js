@@ -22,18 +22,15 @@ test('Code lazy highlighter cannot publish after its provider disposes the outpu
       retired = true
     },
   }
-  // This is the same real dependency loaded by Code. Register its public
-  // provider hook before the renderer's pending import completion runs.
-  const primed = import('highlight.js').then(module => {
-    runtime = module.default
-    runtime.addPlugin(hook)
-  })
+  // Loading this real dependency does not select it into Rector's runtime.
+  // Register its public hook before Code starts its own lazy completion.
+  runtime = (await import('highlight.js')).default
+  runtime.addPlugin(hook)
   try {
     renderer.renderTo(input, target)
     liveRenderer.renderTo(documentFor(liveSource), liveTarget)
     equal(target.querySelector('code').textContent, source)
     equal(liveTarget.querySelector('code').textContent, liveSource)
-    await primed
     const deadline = Date.now() + 5000
     while ((!retired || !liveTarget.querySelector('code span')) && Date.now() < deadline) await pause(10)
     assert(retired, 'Real highlighter did not invoke the retirement control')

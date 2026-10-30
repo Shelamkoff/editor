@@ -121,7 +121,8 @@ export async function runCodeRendererCase({ sourceBase, legacy, name }) {
     } else if (name.startsWith('renderer-copy-')) {
       const originalButton = copy(), buttonMarkup = originalButton.innerHTML
       if (name === 'renderer-copy-native-denied') {
-        check('permission', 'actualBrowserDenied', (await navigator.permissions.query({ name: 'clipboard-write' })).state, 'denied')
+        check('permission', 'actualBrowserPolicyDenied', document.featurePolicy.allowsFeature('clipboard-write'), false)
+        check('permission', 'permissionGrantDoesNotBypassPolicy', (await navigator.permissions.query({ name: 'clipboard-write' })).state, 'granted')
       }
       await action({ kind: 'click', selector: '.parity-code__copy' })
       state('copy')

@@ -256,7 +256,8 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
       } else {
         const markup = button().innerHTML
         if (name === 'copy-native-denied') {
-          check('permission', 'actualBrowserDenied', (await navigator.permissions.query({ name: 'clipboard-write' })).state, 'denied')
+          check('permission', 'actualBrowserPolicyDenied', document.featurePolicy.allowsFeature('clipboard-write'), false)
+          check('permission', 'permissionGrantDoesNotBypassPolicy', (await navigator.permissions.query({ name: 'clipboard-write' })).state, 'granted')
         }
         await action({ kind: 'click', selector: '.oe-code-btn--copy' })
         state('copy')
