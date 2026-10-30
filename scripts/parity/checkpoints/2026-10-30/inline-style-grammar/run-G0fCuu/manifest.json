@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-next-inline-style-20261030",
+  "startedAt": "2026-10-30T07:58:50.459Z",
+  "finishedAt": "2026-10-30T07:58:53.727Z",
+  "outcome": "failed",
+  "source": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "a7ce4dd20f9e9f3e4150532fbef99417e84765a06026e4620c080db0c9a83f37",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/inline-style-grammar.html",
+        "mode": 33188,
+        "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+      },
+      {
+        "path": "tests/browser/inline-style-grammar.js",
+        "mode": 33188,
+        "sha256": "a0be48b3e97aa74c9ee1e84f48b8f8d6b0ac46fd65231017a4537e3e2bdcdcb4"
+      }
+    ],
+    "dirty": true,
+    "identity": "ca2cb58eabf9c43b37cc58cee84887ce46fd4051eb729427bfa50a46f7e85dae"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "inline-style-grammar.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+    }
+  },
+  "context": {},
+  "gates": {
+    "style-corners-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T07:58:50.898Z",
+      "finishedAt": "2026-10-30T07:58:53.597Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-next-inline-style-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "inline-style-grammar.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "a7ce4dd20f9e9f3e4150532fbef99417e84765a06026e4620c080db0c9a83f37",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/inline-style-grammar.html",
+            "mode": 33188,
+            "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+          },
+          {
+            "path": "tests/browser/inline-style-grammar.js",
+            "mode": 33188,
+            "sha256": "a0be48b3e97aa74c9ee1e84f48b8f8d6b0ac46fd65231017a4537e3e2bdcdcb4"
+          }
+        ],
+        "dirty": true,
+        "identity": "ca2cb58eabf9c43b37cc58cee84887ce46fd4051eb729427bfa50a46f7e85dae"
+      },
+      "elapsedMs": 2695.5132040000003,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "a7ce4dd20f9e9f3e4150532fbef99417e84765a06026e4620c080db0c9a83f37",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/inline-style-grammar.html",
+            "mode": 33188,
+            "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+          },
+          {
+            "path": "tests/browser/inline-style-grammar.js",
+            "mode": 33188,
+            "sha256": "a0be48b3e97aa74c9ee1e84f48b8f8d6b0ac46fd65231017a4537e3e2bdcdcb4"
+          }
+        ],
+        "dirty": true,
+        "identity": "ca2cb58eabf9c43b37cc58cee84887ce46fd4051eb729427bfa50a46f7e85dae"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "a7ce4dd20f9e9f3e4150532fbef99417e84765a06026e4620c080db0c9a83f37",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/inline-style-grammar.html",
+        "mode": 33188,
+        "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+      },
+      {
+        "path": "tests/browser/inline-style-grammar.js",
+        "mode": 33188,
+        "sha256": "a0be48b3e97aa74c9ee1e84f48b8f8d6b0ac46fd65231017a4537e3e2bdcdcb4"
+      }
+    ],
+    "dirty": true,
+    "identity": "ca2cb58eabf9c43b37cc58cee84887ce46fd4051eb729427bfa50a46f7e85dae"
+  },
+  "sourceUnchanged": true
+}

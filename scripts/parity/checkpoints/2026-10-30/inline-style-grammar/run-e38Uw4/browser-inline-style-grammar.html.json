@@ -1,0 +1,40 @@
+[
+  {
+    "name": "A theme variable containing expression in its name retains canonical and visible formatting",
+    "status": "FAIL",
+    "error": "Error: A valid custom-property reference was stripped\nexpected \"var(--expression-size)\", got \"\"\n    at equal (http://127.0.0.1:40943/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:21:5\n    at async run (http://127.0.0.1:40943/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:128:1"
+  },
+  {
+    "name": "CSS comments and escaped names survive canonicalization with declaration precedence intact",
+    "status": "FAIL",
+    "error": "Error: \nexpected \"important\", got \"\"\n    at equal (http://127.0.0.1:40943/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:49:5\n    at async run (http://127.0.0.1:40943/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:128:1"
+  },
+  {
+    "name": "Pending shorthand values do not emit invalid empty longhands: background:var(--theme-bg);color:red",
+    "status": "PASS"
+  },
+  {
+    "name": "Pending shorthand values do not emit invalid empty longhands: font:var(--theme-font);color:blue",
+    "status": "PASS"
+  },
+  {
+    "name": "Pending shorthand values do not emit invalid empty longhands: background:var(--bg)!important;background-color:blue",
+    "status": "FAIL",
+    "error": "Error: \nexpected \"\", got \"background-color: blue;\"\n    at equal (http://127.0.0.1:40943/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:63:3\n    at async run (http://127.0.0.1:40943/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:128:1"
+  },
+  {
+    "name": "CSS grammar does not admit additional properties or resource-loading declarations",
+    "status": "FAIL",
+    "error": "Error: \nexpected null, got \"color: u\\\\72l(\\\"http://127.0.0.1:40943/tests/browser/inline-style-grammar.html?css-grammar-9b41b4b5-ab5b-4253-a692-bcb39622ef11\\\"); font-size: ex\\\\70ression(alert(1));\"\n    at equal (http://127.0.0.1:40943/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:80:5\n    at async run (http://127.0.0.1:40943/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:128:1"
+  },
+  {
+    "name": "Only allowed longhands survive shorthand expansion and native cascade precedence",
+    "status": "FAIL",
+    "error": "Error: \nexpected [\"background-color\",\"color\",\"font-size\"], got [\"color\"]\n    at equal (http://127.0.0.1:40943/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:101:3\n    at async run (http://127.0.0.1:40943/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:128:1"
+  },
+  {
+    "name": "A foreign owning document retains its own theme and canonical CSS",
+    "status": "FAIL",
+    "error": "Error: \nexpected \"37px\", got \"16px\"\n    at equal (http://127.0.0.1:40943/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:122:5\n    at async run (http://127.0.0.1:40943/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40943/tests/browser/inline-style-grammar.js:128:1"
+  }
+]

@@ -1,0 +1,7 @@
+[
+  {
+    "name": "A theme variable containing expression in its name retains canonical and visible formatting",
+    "status": "FAIL",
+    "error": "Error: A valid custom-property reference was stripped\nexpected \"var(--expression-size)\", got \"\"\n    at equal (http://127.0.0.1:40097/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:40097/tests/browser/inline-style-grammar.js:20:5\n    at async run (http://127.0.0.1:40097/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:40097/tests/browser/inline-style-grammar.js:39:1"
+  }
+]
