@@ -1,0 +1,59 @@
+{
+  "source": "66b5a1c60f3aea3825d8382cbef77faa692dad50",
+  "tree": "31fb517ae7b3fe34d98c075e5d8b5c3e1d17e7a2",
+  "sources": {
+    "v1": {
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "cases": 15,
+      "observations": 165,
+      "failures": 33,
+      "failureProperties": {
+        "sanitized.srcset": 14,
+        "image.currentSrc": 11,
+        "image.decoded": 8
+      },
+      "incomplete": 0,
+      "errors": 0
+    },
+    "spec-baseline": {
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "cases": 15,
+      "observations": 165,
+      "failures": 32,
+      "failureProperties": {
+        "sanitized.srcset": 13,
+        "image.currentSrc": 11,
+        "image.decoded": 8
+      },
+      "incomplete": 0,
+      "errors": 0
+    },
+    "pre-fix": {
+      "sha": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "cases": 15,
+      "observations": 165,
+      "failures": 32,
+      "failureProperties": {
+        "sanitized.srcset": 13,
+        "image.currentSrc": 11,
+        "image.decoded": 8
+      },
+      "incomplete": 0,
+      "errors": 0
+    },
+    "candidate": {
+      "sha": "66b5a1c60f3aea3825d8382cbef77faa692dad50",
+      "cases": 15,
+      "observations": 165,
+      "failures": 0,
+      "failureProperties": {},
+      "incomplete": 0,
+      "errors": 0
+    }
+  },
+  "observationsRecomputed": 660,
+  "sourceFilesVerified": 13,
+  "dependencyFilesVerified": 1,
+  "artifactsVerified": 3,
+  "candidatePass": true
+}
