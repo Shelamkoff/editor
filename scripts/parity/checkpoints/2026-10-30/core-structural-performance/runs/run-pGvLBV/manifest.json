@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-structural-performance-20261030",
+  "startedAt": "2026-10-30T01:11:55.494Z",
+  "finishedAt": "2026-10-30T01:12:08.592Z",
+  "outcome": "passed",
+  "source": {
+    "head": "a26f1ab9693b3cd0f7847e7c0cd392f7adcab476",
+    "tree": "3ca5c9d1019ea3bee8da9068620f27b206bde6a2",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "6943a288f3b0613cc8fa3dd96496d2a0c9ae907d3ec66122be9c6a6d000fd09d"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "runner-controls": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T01:11:55.810Z",
+      "finishedAt": "2026-10-30T01:12:08.473Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "benchmarks/structural-authoring.mjs",
+        "/tmp/rector-structural-events-baseline-20261030",
+        "/tmp/rector-structural-performance-20261030",
+        "/tmp/rector-structural-runner-probe-20261030"
+      ],
+      "cwd": "/tmp/rector-structural-performance-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "a26f1ab9693b3cd0f7847e7c0cd392f7adcab476",
+        "tree": "3ca5c9d1019ea3bee8da9068620f27b206bde6a2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6943a288f3b0613cc8fa3dd96496d2a0c9ae907d3ec66122be9c6a6d000fd09d"
+      },
+      "elapsedMs": 12660.313372,
+      "sourceAfter": {
+        "head": "a26f1ab9693b3cd0f7847e7c0cd392f7adcab476",
+        "tree": "3ca5c9d1019ea3bee8da9068620f27b206bde6a2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6943a288f3b0613cc8fa3dd96496d2a0c9ae907d3ec66122be9c6a6d000fd09d"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "a26f1ab9693b3cd0f7847e7c0cd392f7adcab476",
+    "tree": "3ca5c9d1019ea3bee8da9068620f27b206bde6a2",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "6943a288f3b0613cc8fa3dd96496d2a0c9ae907d3ec66122be9c6a6d000fd09d"
+  },
+  "sourceUnchanged": true
+}

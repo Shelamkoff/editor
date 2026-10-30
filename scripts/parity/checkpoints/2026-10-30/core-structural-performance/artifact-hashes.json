@@ -1,0 +1,1322 @@
+[
+  {
+    "path": "runs/run-yf5axQ/manifest.json",
+    "bytes": 4182,
+    "sha256": "d945597e458c07ef0efd386719e381cc49b4b52f6543ab1f675d7e9855a45032",
+    "rawBytes": 4182,
+    "rawSha256": "d945597e458c07ef0efd386719e381cc49b4b52f6543ab1f675d7e9855a45032",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-yf5axQ/manifest.json"
+  },
+  {
+    "path": "runs/run-yf5axQ/events-red.log.gz",
+    "bytes": 716,
+    "sha256": "475af85c1a14860d712f656f623275621aa32e5aba0f8bff1c8585cfb7bde43e",
+    "rawBytes": 1442,
+    "rawSha256": "ed2ad35fadf01c5915a9270ecc23066e66a5b08492d487ebf32a13d7bdc02a63",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-yf5axQ/events-red.log"
+  },
+  {
+    "path": "runs/run-U0XLGE/manifest.json",
+    "bytes": 8668,
+    "sha256": "42fabc11d167eae8baf4eed7431b943d2c694bf99236a146c3040cefd9075942",
+    "rawBytes": 8668,
+    "rawSha256": "42fabc11d167eae8baf4eed7431b943d2c694bf99236a146c3040cefd9075942",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-U0XLGE/manifest.json"
+  },
+  {
+    "path": "runs/run-U0XLGE/history.log.gz",
+    "bytes": 465,
+    "sha256": "dfb75666123cdf13a41c87a4bb0889ffba575443141b5b33654ca06d2ea0aaf0",
+    "rawBytes": 697,
+    "rawSha256": "0078dd21d3ddf4563ce0e2aec439982024a780275f089e00a4253645134fa341",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-U0XLGE/history.log"
+  },
+  {
+    "path": "runs/run-U0XLGE/events-green.log.gz",
+    "bytes": 3333,
+    "sha256": "bf21696c7ba70a2cbbb3fd155003f5c084b1e06687d3f15a5ce7c3e1406eb8cb",
+    "rawBytes": 13309,
+    "rawSha256": "2237aee8ddfbb8ca51b0d4137b1982dc3c4b02ae8793c1106c9ebd2fd06125f0",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-U0XLGE/events-green.log"
+  },
+  {
+    "path": "runs/run-U0XLGE/typecheck.log.gz",
+    "bytes": 185,
+    "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+    "rawBytes": 259,
+    "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-U0XLGE/typecheck.log"
+  },
+  {
+    "path": "runs/run-4Q1cYc/manifest.json",
+    "bytes": 4284,
+    "sha256": "98d586ca11ef8bf88a37b05e11aa91dd0bb70b0967bdf116aa91c585f2c33b20",
+    "rawBytes": 4284,
+    "rawSha256": "98d586ca11ef8bf88a37b05e11aa91dd0bb70b0967bdf116aa91c585f2c33b20",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-4Q1cYc/manifest.json"
+  },
+  {
+    "path": "runs/run-4Q1cYc/structural-controls.log.gz",
+    "bytes": 543,
+    "sha256": "1890dd133a2f7dad072e164207893a52ace06b13710ffe2db5d6d335bb3dc124",
+    "rawBytes": 3717,
+    "rawSha256": "c6279b0339db72ca8281f176462407c08df1eecb46ff882cc2ddf0612cc7b2d4",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-4Q1cYc/structural-controls.log"
+  },
+  {
+    "path": "runs/run-colWqh/manifest.json",
+    "bytes": 4290,
+    "sha256": "2f5624d463250e49a255dc28bdb5a50fb4eedce2759e8366412c6dd675964a1b",
+    "rawBytes": 4290,
+    "rawSha256": "2f5624d463250e49a255dc28bdb5a50fb4eedce2759e8366412c6dd675964a1b",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-colWqh/manifest.json"
+  },
+  {
+    "path": "runs/run-colWqh/structural-controls.log.gz",
+    "bytes": 685,
+    "sha256": "699eb30d65d423aabcd1bed206ef982993e18798e8777c0b4386d2c4701c282e",
+    "rawBytes": 5488,
+    "rawSha256": "2b6b826a98dd993d08a864440c0228657ee758f6da42c8ac6b1013292962ac1c",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-colWqh/structural-controls.log"
+  },
+  {
+    "path": "runs/run-Nd8cy9/manifest.json",
+    "bytes": 4284,
+    "sha256": "4dc27c7a38a925bf32fe478417de47783758a733d7d042b4c31c7e75d2663aef",
+    "rawBytes": 4284,
+    "rawSha256": "4dc27c7a38a925bf32fe478417de47783758a733d7d042b4c31c7e75d2663aef",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-Nd8cy9/manifest.json"
+  },
+  {
+    "path": "runs/run-Nd8cy9/structural-controls.log.gz",
+    "bytes": 658,
+    "sha256": "ee5a7fb82e920215c6daa2590157515469eab21af00c59888af556c21197cda6",
+    "rawBytes": 4920,
+    "rawSha256": "837fbe63629926c2136b76a2289c0d0710ed60c37ba0bab9858770112463b2d5",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-Nd8cy9/structural-controls.log"
+  },
+  {
+    "path": "runs/run-rfW2mz/manifest.json",
+    "bytes": 5050,
+    "sha256": "17f4f997d1c9625880e148763760c9c68eaaaafb216c60eaf87392146b5e3cfe",
+    "rawBytes": 5050,
+    "rawSha256": "17f4f997d1c9625880e148763760c9c68eaaaafb216c60eaf87392146b5e3cfe",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-rfW2mz/manifest.json"
+  },
+  {
+    "path": "runs/run-rfW2mz/structural-controls.log.gz",
+    "bytes": 595,
+    "sha256": "a2bb921bfa5bf6a05dccaa35f3de622d0fffbd79116a83df47c563ef8d49fea3",
+    "rawBytes": 2728,
+    "rawSha256": "e725221854455b484fa3fba01664f33a456c186341f16cc205a36bc3d3ca690f",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-rfW2mz/structural-controls.log"
+  },
+  {
+    "path": "runs/run-2sDW2V/manifest.json",
+    "bytes": 5045,
+    "sha256": "845dda58dd413e47058677693a7dda3fe056091843a2a798506f71debac6afc2",
+    "rawBytes": 5045,
+    "rawSha256": "845dda58dd413e47058677693a7dda3fe056091843a2a798506f71debac6afc2",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-2sDW2V/manifest.json"
+  },
+  {
+    "path": "runs/run-2sDW2V/structural-controls.log.gz",
+    "bytes": 224,
+    "sha256": "e6a43d8882e15aab2875552fae1cc68cc8c4cf38276ba1fb64b55ff5e0263433",
+    "rawBytes": 940,
+    "rawSha256": "426036b09539e689e7aaea19dd9e58a7def121465787d17cbb378c1c15517ec8",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-2sDW2V/structural-controls.log"
+  },
+  {
+    "path": "runs/run-pGvLBV/manifest.json",
+    "bytes": 3402,
+    "sha256": "4bd1c8d4dc782edad0524ea7fd6b89807069074bd1d79d733fd007b7a44b8f11",
+    "rawBytes": 3402,
+    "rawSha256": "4bd1c8d4dc782edad0524ea7fd6b89807069074bd1d79d733fd007b7a44b8f11",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-pGvLBV/manifest.json"
+  },
+  {
+    "path": "runs/run-pGvLBV/runner-controls.log.gz",
+    "bytes": 128,
+    "sha256": "57a27c7b97786ec39f148e234939a81d4129a371951132c9b44d44f70c18df87",
+    "rawBytes": 134,
+    "rawSha256": "7017a15c420e68481ffee30bad5a86fb89cd9e9c595656bead8a4c08c1d05dc3",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-pGvLBV/runner-controls.log"
+  },
+  {
+    "path": "runs/run-2yA8Wz/manifest.json",
+    "bytes": 3407,
+    "sha256": "2ff7f3b5cc278b677a6a3515d67e1cf739bc9eb243e9571ed4e5fe809e53c528",
+    "rawBytes": 3407,
+    "rawSha256": "2ff7f3b5cc278b677a6a3515d67e1cf739bc9eb243e9571ed4e5fe809e53c528",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-2yA8Wz/manifest.json"
+  },
+  {
+    "path": "runs/run-2yA8Wz/structural-comparison.log.gz",
+    "bytes": 165,
+    "sha256": "a2cdc12d67061a53ab3d0397d3b27bd7a9adfd363c171ee635c67135bc757236",
+    "rawBytes": 380,
+    "rawSha256": "fe4483325c06c8675dbb248f0e960432721d3d4ac6ed246acf4db765c7cf532f",
+    "original": "/tmp/rector-structural-performance-20261030/test-results/run-2yA8Wz/structural-comparison.log"
+  },
+  {
+    "path": "comparison/baseline-columns-large-native.allocation.json.gz",
+    "bytes": 22568,
+    "sha256": "0e6c339a8fa0a229bd05174d6716700f868ec24dce40b0266405cba38650acd5",
+    "rawBytes": 22568,
+    "rawSha256": "0e6c339a8fa0a229bd05174d6716700f868ec24dce40b0266405cba38650acd5",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-native.trace.json.gz",
+    "bytes": 23148,
+    "sha256": "8a78191f6feea64627058e8c79225557ce5ff45316bca7d9c014b9d85d80ed0e",
+    "rawBytes": 23148,
+    "rawSha256": "8a78191f6feea64627058e8c79225557ce5ff45316bca7d9c014b9d85d80ed0e",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-noop-empty.allocation.json.gz",
+    "bytes": 4358,
+    "sha256": "1700ffccd3da696a0c05da866bd139be64bbbdbad86dc5ffcd8b0d7f521fc722",
+    "rawBytes": 4358,
+    "rawSha256": "1700ffccd3da696a0c05da866bd139be64bbbdbad86dc5ffcd8b0d7f521fc722",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-noop-empty.trace.json.gz",
+    "bytes": 2747,
+    "sha256": "da690b9a564e0fed3cb4735339f7e8bd3ffbc0f75a24d43ccf363d73ffa69569",
+    "rawBytes": 2747,
+    "rawSha256": "da690b9a564e0fed3cb4735339f7e8bd3ffbc0f75a24d43ccf363d73ffa69569",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-noop-equal.allocation.json.gz",
+    "bytes": 4344,
+    "sha256": "1648481b15b84c3abe5972b027914faf8e15a838aed2cbf010275980c5b6dc93",
+    "rawBytes": 4344,
+    "rawSha256": "1648481b15b84c3abe5972b027914faf8e15a838aed2cbf010275980c5b6dc93",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-noop-equal.trace.json.gz",
+    "bytes": 3126,
+    "sha256": "3211742a1cb580fec8e89fd3cc0565c3967536a15c2ff3b1dbb13d7e2f6a8abc",
+    "rawBytes": 3126,
+    "rawSha256": "3211742a1cb580fec8e89fd3cc0565c3967536a15c2ff3b1dbb13d7e2f6a8abc",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-public.allocation.json.gz",
+    "bytes": 19500,
+    "sha256": "668cf02d38d7d6d86c55ab762836d0691d16b2876b9299f2903dba712fc928c9",
+    "rawBytes": 19500,
+    "rawSha256": "668cf02d38d7d6d86c55ab762836d0691d16b2876b9299f2903dba712fc928c9",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-large-public.trace.json.gz",
+    "bytes": 19432,
+    "sha256": "8a83a63799a4f433ac8fdcfc00be6809ebe211b6365787ee9632d51f2d115a5a",
+    "rawBytes": 19432,
+    "rawSha256": "8a83a63799a4f433ac8fdcfc00be6809ebe211b6365787ee9632d51f2d115a5a",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-large-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-native.allocation.json.gz",
+    "bytes": 8825,
+    "sha256": "cb632908fb87ed6c30ba589775c3b9332723a742a5e26eb26b836bbd47300fd3",
+    "rawBytes": 8825,
+    "rawSha256": "cb632908fb87ed6c30ba589775c3b9332723a742a5e26eb26b836bbd47300fd3",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-native.trace.json.gz",
+    "bytes": 10725,
+    "sha256": "1b7c0e4778343e001240e83f7763e92598879dd65eff68c8d0699e9e9f93c6d8",
+    "rawBytes": 10725,
+    "rawSha256": "1b7c0e4778343e001240e83f7763e92598879dd65eff68c8d0699e9e9f93c6d8",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-noop-empty.allocation.json.gz",
+    "bytes": 2320,
+    "sha256": "3144f2894fb1967b3a2f9729b797166f40db230244468251213aedb7558b4590",
+    "rawBytes": 2320,
+    "rawSha256": "3144f2894fb1967b3a2f9729b797166f40db230244468251213aedb7558b4590",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-noop-empty.trace.json.gz",
+    "bytes": 2314,
+    "sha256": "1e340568173b57bd8821a79c5418f996d1bb07bc2e01e7279c4f23271f77dd50",
+    "rawBytes": 2314,
+    "rawSha256": "1e340568173b57bd8821a79c5418f996d1bb07bc2e01e7279c4f23271f77dd50",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-noop-equal.allocation.json.gz",
+    "bytes": 2450,
+    "sha256": "fe2584646f80f5eb9ced552541638f5001417f8fd91b35cc4d96f4ba070ca921",
+    "rawBytes": 2450,
+    "rawSha256": "fe2584646f80f5eb9ced552541638f5001417f8fd91b35cc4d96f4ba070ca921",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-noop-equal.trace.json.gz",
+    "bytes": 2437,
+    "sha256": "15180850bfe9a244dd3ec7c6fb713364470259d2dad806b6c1cc7e2c48a99977",
+    "rawBytes": 2437,
+    "rawSha256": "15180850bfe9a244dd3ec7c6fb713364470259d2dad806b6c1cc7e2c48a99977",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-public.allocation.json.gz",
+    "bytes": 7708,
+    "sha256": "9a4c3ae4bf5ae78369a8d77fdbf45c8d9618ef91c02444b5cf539d633f50161c",
+    "rawBytes": 7708,
+    "rawSha256": "9a4c3ae4bf5ae78369a8d77fdbf45c8d9618ef91c02444b5cf539d633f50161c",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-columns-small-public.trace.json.gz",
+    "bytes": 9168,
+    "sha256": "325511ffed186b10c63867d2348972c08234c613beea63b8ea161edb073ad389",
+    "rawBytes": 9168,
+    "rawSha256": "325511ffed186b10c63867d2348972c08234c613beea63b8ea161edb073ad389",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-columns-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-native.allocation.json.gz",
+    "bytes": 23968,
+    "sha256": "9e89cd9589f6cf1b9d21630af4ddcc130dbd9d617d8b7285f32f9a40014bde24",
+    "rawBytes": 23968,
+    "rawSha256": "9e89cd9589f6cf1b9d21630af4ddcc130dbd9d617d8b7285f32f9a40014bde24",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-native.trace.json.gz",
+    "bytes": 49609,
+    "sha256": "d313cf4b818374908b4e9e673e31459339ac3210f28982f18108234a3fe0a0a7",
+    "rawBytes": 49609,
+    "rawSha256": "d313cf4b818374908b4e9e673e31459339ac3210f28982f18108234a3fe0a0a7",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-noop-empty.allocation.json.gz",
+    "bytes": 4929,
+    "sha256": "7cb03e1be040d2f8c24e4477143beea352ed8dd34d46be1ecf1fac8c9c19c775",
+    "rawBytes": 4929,
+    "rawSha256": "7cb03e1be040d2f8c24e4477143beea352ed8dd34d46be1ecf1fac8c9c19c775",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-noop-empty.trace.json.gz",
+    "bytes": 11159,
+    "sha256": "334e464e344e6de085361b02898f4dc257441f009076fedaff26c99a4dc3e8af",
+    "rawBytes": 11159,
+    "rawSha256": "334e464e344e6de085361b02898f4dc257441f009076fedaff26c99a4dc3e8af",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-noop-equal.allocation.json.gz",
+    "bytes": 5061,
+    "sha256": "994694d2a27be7a29eb2b332fe6fb6792e7658cc377576642d23fe81823eb99c",
+    "rawBytes": 5061,
+    "rawSha256": "994694d2a27be7a29eb2b332fe6fb6792e7658cc377576642d23fe81823eb99c",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-noop-equal.trace.json.gz",
+    "bytes": 12534,
+    "sha256": "fc37f8d9de6b9dfddbf6258255ece9b165dc24d267136d4f07ed281ef45f8441",
+    "rawBytes": 12534,
+    "rawSha256": "fc37f8d9de6b9dfddbf6258255ece9b165dc24d267136d4f07ed281ef45f8441",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-public.allocation.json.gz",
+    "bytes": 19707,
+    "sha256": "38f44a1e1acb83999588c4f90560b7cdf066e882fcd4f7ea4d96a737115981b5",
+    "rawBytes": 19707,
+    "rawSha256": "38f44a1e1acb83999588c4f90560b7cdf066e882fcd4f7ea4d96a737115981b5",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-large-public.trace.json.gz",
+    "bytes": 51803,
+    "sha256": "a8acb24fbcdd2ce4cbb124dc8e9876da486be6a026424f3dc72e3d20171923c9",
+    "rawBytes": 51803,
+    "rawSha256": "a8acb24fbcdd2ce4cbb124dc8e9876da486be6a026424f3dc72e3d20171923c9",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-large-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-native.allocation.json.gz",
+    "bytes": 10798,
+    "sha256": "523729f507ae788eb7a4271206a552f7a8d9aeacaebfee6873c9f12de3ac1f57",
+    "rawBytes": 10798,
+    "rawSha256": "523729f507ae788eb7a4271206a552f7a8d9aeacaebfee6873c9f12de3ac1f57",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-native.trace.json.gz",
+    "bytes": 10819,
+    "sha256": "86fe6b48b29882dafbc92e787ec21f3b7e71cbaba7fe65296014d78866afd023",
+    "rawBytes": 10819,
+    "rawSha256": "86fe6b48b29882dafbc92e787ec21f3b7e71cbaba7fe65296014d78866afd023",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-noop-empty.allocation.json.gz",
+    "bytes": 2277,
+    "sha256": "4c7c2c87d1aaa73e83cb4561de5183dd54b246fabbe05d380753a8803093e6a6",
+    "rawBytes": 2277,
+    "rawSha256": "4c7c2c87d1aaa73e83cb4561de5183dd54b246fabbe05d380753a8803093e6a6",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-noop-empty.trace.json.gz",
+    "bytes": 2521,
+    "sha256": "d189873eff3b434cf1e6378566fdc96f69cc777077318de06708c1f46031e772",
+    "rawBytes": 2521,
+    "rawSha256": "d189873eff3b434cf1e6378566fdc96f69cc777077318de06708c1f46031e772",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-noop-equal.allocation.json.gz",
+    "bytes": 2356,
+    "sha256": "572b97f7587a2187e456a908d3a09c118736f9f774ab571b55c54d2265e29358",
+    "rawBytes": 2356,
+    "rawSha256": "572b97f7587a2187e456a908d3a09c118736f9f774ab571b55c54d2265e29358",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-noop-equal.trace.json.gz",
+    "bytes": 2656,
+    "sha256": "25860360db236f2bb801553c08df973be960b1908ba8ee0ef93979979a0afcb8",
+    "rawBytes": 2656,
+    "rawSha256": "25860360db236f2bb801553c08df973be960b1908ba8ee0ef93979979a0afcb8",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-public.allocation.json.gz",
+    "bytes": 9340,
+    "sha256": "b5f8fe2e86f91eaa3e4b84aad5c527ae0d7183cbc65fe2d347046c4f6ddb1665",
+    "rawBytes": 9340,
+    "rawSha256": "b5f8fe2e86f91eaa3e4b84aad5c527ae0d7183cbc65fe2d347046c4f6ddb1665",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-gallery-small-public.trace.json.gz",
+    "bytes": 9831,
+    "sha256": "5956f7a5b3fe566e5cde07cf4166f7894b76bae48657230fdd6e401113a16a1b",
+    "rawBytes": 9831,
+    "rawSha256": "5956f7a5b3fe566e5cde07cf4166f7894b76bae48657230fdd6e401113a16a1b",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-gallery-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-native.allocation.json.gz",
+    "bytes": 7251,
+    "sha256": "9ca90e1e2207f52e802e51bd02ccd6d4e5378e86f4580f9bd7f0055bbb34bf2d",
+    "rawBytes": 7251,
+    "rawSha256": "9ca90e1e2207f52e802e51bd02ccd6d4e5378e86f4580f9bd7f0055bbb34bf2d",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-native.trace.json.gz",
+    "bytes": 8689,
+    "sha256": "38515d6185ff21be46c1643922a07a20bafa5efecbfca4aa15fcc54d8a2ecbd6",
+    "rawBytes": 8689,
+    "rawSha256": "38515d6185ff21be46c1643922a07a20bafa5efecbfca4aa15fcc54d8a2ecbd6",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-noop-empty.allocation.json.gz",
+    "bytes": 1778,
+    "sha256": "888106c20d2738ca14316d586acd4ca6b389e70af3c4d395334a9fa3d3959869",
+    "rawBytes": 1778,
+    "rawSha256": "888106c20d2738ca14316d586acd4ca6b389e70af3c4d395334a9fa3d3959869",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-noop-empty.trace.json.gz",
+    "bytes": 2052,
+    "sha256": "c4e952325b15d4a6ad9b1bafdb57020a58f829abeaf86466c472565efd361873",
+    "rawBytes": 2052,
+    "rawSha256": "c4e952325b15d4a6ad9b1bafdb57020a58f829abeaf86466c472565efd361873",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-noop-equal.allocation.json.gz",
+    "bytes": 1691,
+    "sha256": "d823730475327748996def1a6aad58f7f2ceaa451c00a27d4dac6a070e06c7f7",
+    "rawBytes": 1691,
+    "rawSha256": "d823730475327748996def1a6aad58f7f2ceaa451c00a27d4dac6a070e06c7f7",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-noop-equal.trace.json.gz",
+    "bytes": 2183,
+    "sha256": "43a2c33d8d460fd355ac0bf344ab360427a5a853c67e4ac12c721d1081123f9d",
+    "rawBytes": 2183,
+    "rawSha256": "43a2c33d8d460fd355ac0bf344ab360427a5a853c67e4ac12c721d1081123f9d",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-public.allocation.json.gz",
+    "bytes": 5507,
+    "sha256": "7f141b8a2e3485f9c2b04b680967717c53b32872c76f57f6b9deb87eca61478e",
+    "rawBytes": 5507,
+    "rawSha256": "7f141b8a2e3485f9c2b04b680967717c53b32872c76f57f6b9deb87eca61478e",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-paragraph-small-public.trace.json.gz",
+    "bytes": 7243,
+    "sha256": "d9f0191aa9a334da9431d45f8c4a21b06bcd1ae08c83b6ba72512717bd9e8b96",
+    "rawBytes": 7243,
+    "rawSha256": "d9f0191aa9a334da9431d45f8c4a21b06bcd1ae08c83b6ba72512717bd9e8b96",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-paragraph-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-native.allocation.json.gz",
+    "bytes": 64558,
+    "sha256": "f32efdd629dfcb53333ac80bc0607c80d4d1d632d03f4ef91f7f20dea250d454",
+    "rawBytes": 64558,
+    "rawSha256": "f32efdd629dfcb53333ac80bc0607c80d4d1d632d03f4ef91f7f20dea250d454",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-native.trace.json.gz",
+    "bytes": 307995,
+    "sha256": "f014c075d3edc69f8a42aadf074d0e167bb9d10d41c1fd56ff2671da9618a428",
+    "rawBytes": 307995,
+    "rawSha256": "f014c075d3edc69f8a42aadf074d0e167bb9d10d41c1fd56ff2671da9618a428",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-noop-empty.allocation.json.gz",
+    "bytes": 11433,
+    "sha256": "f8b268d7c2a384df9cbbd023c0f5c7bf533eab35e1b2c533b9f9e80d97fece5d",
+    "rawBytes": 11433,
+    "rawSha256": "f8b268d7c2a384df9cbbd023c0f5c7bf533eab35e1b2c533b9f9e80d97fece5d",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-noop-empty.trace.json.gz",
+    "bytes": 72059,
+    "sha256": "08a03fb22dc2464fff99eb141294a2f23160a94db8241cc7f6bf2a623d50ba70",
+    "rawBytes": 72059,
+    "rawSha256": "08a03fb22dc2464fff99eb141294a2f23160a94db8241cc7f6bf2a623d50ba70",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-noop-equal.allocation.json.gz",
+    "bytes": 12395,
+    "sha256": "48004899562fae5e47d356012fad7c92f6f245ff58f6802e6d45f2a41e9b1621",
+    "rawBytes": 12395,
+    "rawSha256": "48004899562fae5e47d356012fad7c92f6f245ff58f6802e6d45f2a41e9b1621",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-noop-equal.trace.json.gz",
+    "bytes": 76045,
+    "sha256": "d8f686afadf85d4fc6f762aa14e3274b0993df6a3f3ac03f9cd7d4647db651b7",
+    "rawBytes": 76045,
+    "rawSha256": "d8f686afadf85d4fc6f762aa14e3274b0993df6a3f3ac03f9cd7d4647db651b7",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-public.allocation.json.gz",
+    "bytes": 52412,
+    "sha256": "dd79f749d280334e5378de9be95aa992b37337f7aa5eb565357fffeb169febab",
+    "rawBytes": 52412,
+    "rawSha256": "dd79f749d280334e5378de9be95aa992b37337f7aa5eb565357fffeb169febab",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-large-public.trace.json.gz",
+    "bytes": 332029,
+    "sha256": "e59d09de03f226325b0a88c10b4445e6f539a3a4161e5580ed0dbeb492e9ff32",
+    "rawBytes": 332029,
+    "rawSha256": "e59d09de03f226325b0a88c10b4445e6f539a3a4161e5580ed0dbeb492e9ff32",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-large-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-native.allocation.json.gz",
+    "bytes": 10988,
+    "sha256": "ebfd57625ba67b736fa36f026470b8464ac3a4e3d9159804f0c51362f0cb55df",
+    "rawBytes": 10988,
+    "rawSha256": "ebfd57625ba67b736fa36f026470b8464ac3a4e3d9159804f0c51362f0cb55df",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-native.trace.json.gz",
+    "bytes": 13376,
+    "sha256": "137b89e930ce5e0ced581eee54a6cc0253f24d84b78dc4b0524aa2ac14f83117",
+    "rawBytes": 13376,
+    "rawSha256": "137b89e930ce5e0ced581eee54a6cc0253f24d84b78dc4b0524aa2ac14f83117",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-noop-empty.allocation.json.gz",
+    "bytes": 3036,
+    "sha256": "2ff37c4c3d2d605481e6c80223e0763bf3ee7d5e47ee040f46e8c6570a6733bf",
+    "rawBytes": 3036,
+    "rawSha256": "2ff37c4c3d2d605481e6c80223e0763bf3ee7d5e47ee040f46e8c6570a6733bf",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-noop-empty.trace.json.gz",
+    "bytes": 2691,
+    "sha256": "c24fcd82a7db274f306df0d344ba0eb5ff890c9926fe1656be58447e441cfdcb",
+    "rawBytes": 2691,
+    "rawSha256": "c24fcd82a7db274f306df0d344ba0eb5ff890c9926fe1656be58447e441cfdcb",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-noop-equal.allocation.json.gz",
+    "bytes": 3244,
+    "sha256": "f6f66f799ee62c23392f7c1404e9853791849dccf0514d0bad659274b5564e4b",
+    "rawBytes": 3244,
+    "rawSha256": "f6f66f799ee62c23392f7c1404e9853791849dccf0514d0bad659274b5564e4b",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-noop-equal.trace.json.gz",
+    "bytes": 3167,
+    "sha256": "09a39a03ef1fed8fb5ab8f635ef925e9e8ee4bd1756fa08557fd3c945a43bae5",
+    "rawBytes": 3167,
+    "rawSha256": "09a39a03ef1fed8fb5ab8f635ef925e9e8ee4bd1756fa08557fd3c945a43bae5",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-public.allocation.json.gz",
+    "bytes": 10331,
+    "sha256": "54ebed8e7caff623f3056974108744fbb302b11839dfd52a4513408f32c3a079",
+    "rawBytes": 10331,
+    "rawSha256": "54ebed8e7caff623f3056974108744fbb302b11839dfd52a4513408f32c3a079",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/baseline-table-small-public.trace.json.gz",
+    "bytes": 11877,
+    "sha256": "fdfe8ad2639e5489cd694fe8a2535b7772ad148ef413512851957c2c4104d2d6",
+    "rawBytes": 11877,
+    "rawSha256": "fdfe8ad2639e5489cd694fe8a2535b7772ad148ef413512851957c2c4104d2d6",
+    "original": "/tmp/rector-structural-comparison-20261030/baseline-table-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-native.allocation.json.gz",
+    "bytes": 22416,
+    "sha256": "e0366f913ebcc4490b2d572986f55c99e2ffb18cd4bbfaefd830eae100ba0972",
+    "rawBytes": 22416,
+    "rawSha256": "e0366f913ebcc4490b2d572986f55c99e2ffb18cd4bbfaefd830eae100ba0972",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-native.trace.json.gz",
+    "bytes": 19276,
+    "sha256": "595ab08760320fb05804235d2163cdaadd61b268b0fb414417e8acd98476ed89",
+    "rawBytes": 19276,
+    "rawSha256": "595ab08760320fb05804235d2163cdaadd61b268b0fb414417e8acd98476ed89",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-noop-empty.allocation.json.gz",
+    "bytes": 4180,
+    "sha256": "ac02201e8dce77484fe4881e050068ecbcd3c941e9db6faaccff5eca0d528bf9",
+    "rawBytes": 4180,
+    "rawSha256": "ac02201e8dce77484fe4881e050068ecbcd3c941e9db6faaccff5eca0d528bf9",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-noop-empty.trace.json.gz",
+    "bytes": 3971,
+    "sha256": "dc0ea91c76342240ca6758ee1d7fe7b36a6859abaca158a24cc5a62335d0c430",
+    "rawBytes": 3971,
+    "rawSha256": "dc0ea91c76342240ca6758ee1d7fe7b36a6859abaca158a24cc5a62335d0c430",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-noop-equal.allocation.json.gz",
+    "bytes": 3632,
+    "sha256": "0545f188443935751aa8a15cdb104342adf217c2106e8aef7ee092be998b6ce5",
+    "rawBytes": 3632,
+    "rawSha256": "0545f188443935751aa8a15cdb104342adf217c2106e8aef7ee092be998b6ce5",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-noop-equal.trace.json.gz",
+    "bytes": 4269,
+    "sha256": "73a0c92dd9688299a8a8a2c5c5dc73cc747e0194d4610ca36256ae1c6a2ef034",
+    "rawBytes": 4269,
+    "rawSha256": "73a0c92dd9688299a8a8a2c5c5dc73cc747e0194d4610ca36256ae1c6a2ef034",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-public.allocation.json.gz",
+    "bytes": 17371,
+    "sha256": "c4ffd7dce1b70e47ad3ba8a9ed391e989d6f175dba047555994d614664eef73a",
+    "rawBytes": 17371,
+    "rawSha256": "c4ffd7dce1b70e47ad3ba8a9ed391e989d6f175dba047555994d614664eef73a",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-large-public.trace.json.gz",
+    "bytes": 17931,
+    "sha256": "fd9d1be5a44d6e670a035c6d0153d812a921a1dabc1325c6e6d40ec066a6ae99",
+    "rawBytes": 17931,
+    "rawSha256": "fd9d1be5a44d6e670a035c6d0153d812a921a1dabc1325c6e6d40ec066a6ae99",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-large-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-native.allocation.json.gz",
+    "bytes": 8201,
+    "sha256": "5162776a324044e96c19942daaae3bd31902ba3d0d178a6b61beb51c5dee7e3f",
+    "rawBytes": 8201,
+    "rawSha256": "5162776a324044e96c19942daaae3bd31902ba3d0d178a6b61beb51c5dee7e3f",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-native.trace.json.gz",
+    "bytes": 10876,
+    "sha256": "5fa398a6a0933019004d0c881a965d8e18dbbfc71ecc2dc3d819401295b95539",
+    "rawBytes": 10876,
+    "rawSha256": "5fa398a6a0933019004d0c881a965d8e18dbbfc71ecc2dc3d819401295b95539",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-noop-empty.allocation.json.gz",
+    "bytes": 2423,
+    "sha256": "57ac5527e9f5fd0aeff7c0979470507cfdd877ae56ed3c464fe9eec7b2361805",
+    "rawBytes": 2423,
+    "rawSha256": "57ac5527e9f5fd0aeff7c0979470507cfdd877ae56ed3c464fe9eec7b2361805",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-noop-empty.trace.json.gz",
+    "bytes": 3275,
+    "sha256": "93b2018f86fcc61e53fc5e2e71aeff0fe5ebf8a56891930289c7a7c2f5fc5aa0",
+    "rawBytes": 3275,
+    "rawSha256": "93b2018f86fcc61e53fc5e2e71aeff0fe5ebf8a56891930289c7a7c2f5fc5aa0",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-noop-equal.allocation.json.gz",
+    "bytes": 2789,
+    "sha256": "4c9c11a1084a968bfc4eff58bc123ce2a564ffd59573b1fac7b073be4ac69a21",
+    "rawBytes": 2789,
+    "rawSha256": "4c9c11a1084a968bfc4eff58bc123ce2a564ffd59573b1fac7b073be4ac69a21",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-noop-equal.trace.json.gz",
+    "bytes": 2515,
+    "sha256": "be368ffa94fbb1bc84a29070ea3757742f63d9182c7a945d58345b1b538b3911",
+    "rawBytes": 2515,
+    "rawSha256": "be368ffa94fbb1bc84a29070ea3757742f63d9182c7a945d58345b1b538b3911",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-public.allocation.json.gz",
+    "bytes": 6439,
+    "sha256": "83559ae8d95f717d97400bc4caf2175abb1db1609175432f447c617a9febd1c1",
+    "rawBytes": 6439,
+    "rawSha256": "83559ae8d95f717d97400bc4caf2175abb1db1609175432f447c617a9febd1c1",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-columns-small-public.trace.json.gz",
+    "bytes": 9085,
+    "sha256": "18bd3ece173ca8261d396c2ede4c7b869c7e6b5be7dccafb9b819dd0424be390",
+    "rawBytes": 9085,
+    "rawSha256": "18bd3ece173ca8261d396c2ede4c7b869c7e6b5be7dccafb9b819dd0424be390",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-columns-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-native.allocation.json.gz",
+    "bytes": 22080,
+    "sha256": "06861b9cdcdeb25e9cdaadacaee0fd670a9cd7378fd6efb9e2140c6216e072f1",
+    "rawBytes": 22080,
+    "rawSha256": "06861b9cdcdeb25e9cdaadacaee0fd670a9cd7378fd6efb9e2140c6216e072f1",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-native.trace.json.gz",
+    "bytes": 49934,
+    "sha256": "02db169d75e3c93b4c4bd91892bd1a8edb1a24e06c4fd59d6ec09098b03c16f9",
+    "rawBytes": 49934,
+    "rawSha256": "02db169d75e3c93b4c4bd91892bd1a8edb1a24e06c4fd59d6ec09098b03c16f9",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-noop-empty.allocation.json.gz",
+    "bytes": 4284,
+    "sha256": "1d93257f5afc1c8838e33b91e2b39b9c61f6c5c5c2cf84dcbcafccada240489e",
+    "rawBytes": 4284,
+    "rawSha256": "1d93257f5afc1c8838e33b91e2b39b9c61f6c5c5c2cf84dcbcafccada240489e",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-noop-empty.trace.json.gz",
+    "bytes": 12964,
+    "sha256": "3be5325626c047d4015a86928f18929f0ee7a5d4c7c10bfbe670d1ae9ceca080",
+    "rawBytes": 12964,
+    "rawSha256": "3be5325626c047d4015a86928f18929f0ee7a5d4c7c10bfbe670d1ae9ceca080",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-noop-equal.allocation.json.gz",
+    "bytes": 5176,
+    "sha256": "a7bec4c5f8cc934498b89128c705e8a53f6c6ac6368c41aabdda9a69f4977f28",
+    "rawBytes": 5176,
+    "rawSha256": "a7bec4c5f8cc934498b89128c705e8a53f6c6ac6368c41aabdda9a69f4977f28",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-noop-equal.trace.json.gz",
+    "bytes": 12621,
+    "sha256": "baa92cf831d7c3c1abcfaba892c2ad77e3ccd7fe3ba42c6ac6ba4d1ad841a37d",
+    "rawBytes": 12621,
+    "rawSha256": "baa92cf831d7c3c1abcfaba892c2ad77e3ccd7fe3ba42c6ac6ba4d1ad841a37d",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-public.allocation.json.gz",
+    "bytes": 17006,
+    "sha256": "55249576b4c8cabc06ff7e73f6cffa8afae7872296392b22523d48f676209f02",
+    "rawBytes": 17006,
+    "rawSha256": "55249576b4c8cabc06ff7e73f6cffa8afae7872296392b22523d48f676209f02",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-large-public.trace.json.gz",
+    "bytes": 50076,
+    "sha256": "1ff16291c0f5ed515f4ab21a178dcd00feba616c4865a1f2d7ff88181797517c",
+    "rawBytes": 50076,
+    "rawSha256": "1ff16291c0f5ed515f4ab21a178dcd00feba616c4865a1f2d7ff88181797517c",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-large-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-native.allocation.json.gz",
+    "bytes": 9711,
+    "sha256": "b2557e9ffcdba86bbf6ac059e82efb8c22d2d56f775eaeb5996199723eb0520d",
+    "rawBytes": 9711,
+    "rawSha256": "b2557e9ffcdba86bbf6ac059e82efb8c22d2d56f775eaeb5996199723eb0520d",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-native.trace.json.gz",
+    "bytes": 11548,
+    "sha256": "d60f333db9f9ad055d5bea5028be3e87f538de30205f6b3349c311bd9300a912",
+    "rawBytes": 11548,
+    "rawSha256": "d60f333db9f9ad055d5bea5028be3e87f538de30205f6b3349c311bd9300a912",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-noop-empty.allocation.json.gz",
+    "bytes": 2647,
+    "sha256": "85fd7424fbe193ea265f1b5ca10fb5951f4ca4d6decf620c71b6b693f8f094fa",
+    "rawBytes": 2647,
+    "rawSha256": "85fd7424fbe193ea265f1b5ca10fb5951f4ca4d6decf620c71b6b693f8f094fa",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-noop-empty.trace.json.gz",
+    "bytes": 2422,
+    "sha256": "e8bcef5a42e1ee3a6c08bb23a615cac1325d83b9732857a7570b62947297c3bf",
+    "rawBytes": 2422,
+    "rawSha256": "e8bcef5a42e1ee3a6c08bb23a615cac1325d83b9732857a7570b62947297c3bf",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-noop-equal.allocation.json.gz",
+    "bytes": 2691,
+    "sha256": "3e96bab602cd630edeed59326ebad018ab8347f3c7ac8cc9ea74522ea9d4042d",
+    "rawBytes": 2691,
+    "rawSha256": "3e96bab602cd630edeed59326ebad018ab8347f3c7ac8cc9ea74522ea9d4042d",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-noop-equal.trace.json.gz",
+    "bytes": 2715,
+    "sha256": "4e331a414ea3e3ea84d47f6034597a231962c3fb8e768c2d6c29576f82a535f7",
+    "rawBytes": 2715,
+    "rawSha256": "4e331a414ea3e3ea84d47f6034597a231962c3fb8e768c2d6c29576f82a535f7",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-public.allocation.json.gz",
+    "bytes": 8078,
+    "sha256": "f4113c073ca1d4369c0b354aa672df137fba33757d8cdf971dd4727c3e9d8711",
+    "rawBytes": 8078,
+    "rawSha256": "f4113c073ca1d4369c0b354aa672df137fba33757d8cdf971dd4727c3e9d8711",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-gallery-small-public.trace.json.gz",
+    "bytes": 10184,
+    "sha256": "86470cbef815f8368cd02d9242e1f251dda9c1c8f40f3de26e27c9b47a9fd737",
+    "rawBytes": 10184,
+    "rawSha256": "86470cbef815f8368cd02d9242e1f251dda9c1c8f40f3de26e27c9b47a9fd737",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-gallery-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-native.allocation.json.gz",
+    "bytes": 6765,
+    "sha256": "e8462418af43cf9654658f865f384d1d682a67be8c0c87707ba099adab995504",
+    "rawBytes": 6765,
+    "rawSha256": "e8462418af43cf9654658f865f384d1d682a67be8c0c87707ba099adab995504",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-native.trace.json.gz",
+    "bytes": 8836,
+    "sha256": "167b988decba0e94c91d6c87e8502804a92f85982600cedb4df585460eb45bea",
+    "rawBytes": 8836,
+    "rawSha256": "167b988decba0e94c91d6c87e8502804a92f85982600cedb4df585460eb45bea",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-noop-empty.allocation.json.gz",
+    "bytes": 1855,
+    "sha256": "3d205ebb20ee1cee8879338051d0a046f4c194715fcd60e7a3c872b4d15b734f",
+    "rawBytes": 1855,
+    "rawSha256": "3d205ebb20ee1cee8879338051d0a046f4c194715fcd60e7a3c872b4d15b734f",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-noop-empty.trace.json.gz",
+    "bytes": 3002,
+    "sha256": "be302a6c3925258c1091f042fd96328b3e5e9b022226ca706dfa895ef9cb19d2",
+    "rawBytes": 3002,
+    "rawSha256": "be302a6c3925258c1091f042fd96328b3e5e9b022226ca706dfa895ef9cb19d2",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-noop-equal.allocation.json.gz",
+    "bytes": 1767,
+    "sha256": "ad101b4b644e29159534185780982ebae14136b3202a1c35285c736b21731418",
+    "rawBytes": 1767,
+    "rawSha256": "ad101b4b644e29159534185780982ebae14136b3202a1c35285c736b21731418",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-noop-equal.trace.json.gz",
+    "bytes": 2185,
+    "sha256": "92b65d9737adaa97623c9bd9391e08cf62c5d8d4c1d7e6b22476b2d6ddaf2703",
+    "rawBytes": 2185,
+    "rawSha256": "92b65d9737adaa97623c9bd9391e08cf62c5d8d4c1d7e6b22476b2d6ddaf2703",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-public.allocation.json.gz",
+    "bytes": 4910,
+    "sha256": "b1436ca9c77753603b047e8784d09df2b2a4cc324464eddb16d5bc72536c63af",
+    "rawBytes": 4910,
+    "rawSha256": "b1436ca9c77753603b047e8784d09df2b2a4cc324464eddb16d5bc72536c63af",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-paragraph-small-public.trace.json.gz",
+    "bytes": 7263,
+    "sha256": "a6655ba9b1152880f524e98c712a776880270399534b5ee0ba1dbfbc88af9481",
+    "rawBytes": 7263,
+    "rawSha256": "a6655ba9b1152880f524e98c712a776880270399534b5ee0ba1dbfbc88af9481",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-paragraph-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-native.allocation.json.gz",
+    "bytes": 59694,
+    "sha256": "bacfe74ede228679c9fca085c48ff443535724e86886f976961556d9ee201889",
+    "rawBytes": 59694,
+    "rawSha256": "bacfe74ede228679c9fca085c48ff443535724e86886f976961556d9ee201889",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-native.trace.json.gz",
+    "bytes": 316329,
+    "sha256": "c519a9d575e2fa164623d476956afd4e25b44c4a6f1dc9177fb0f1d3fed7fa98",
+    "rawBytes": 316329,
+    "rawSha256": "c519a9d575e2fa164623d476956afd4e25b44c4a6f1dc9177fb0f1d3fed7fa98",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-noop-empty.allocation.json.gz",
+    "bytes": 12141,
+    "sha256": "3a26f35482b2eb37416b4e06d731db7f34a4a1aff57a0896a5afc7d66801d79b",
+    "rawBytes": 12141,
+    "rawSha256": "3a26f35482b2eb37416b4e06d731db7f34a4a1aff57a0896a5afc7d66801d79b",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-noop-empty.trace.json.gz",
+    "bytes": 75331,
+    "sha256": "a63e2bc7895c7e557a0fdd57882568891e1bbc117132be589b97d9fd9b3e880d",
+    "rawBytes": 75331,
+    "rawSha256": "a63e2bc7895c7e557a0fdd57882568891e1bbc117132be589b97d9fd9b3e880d",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-noop-equal.allocation.json.gz",
+    "bytes": 12797,
+    "sha256": "fb5821287dcc88128407e219f99e49faad6a9145e1a3b7d2071a907875be34e4",
+    "rawBytes": 12797,
+    "rawSha256": "fb5821287dcc88128407e219f99e49faad6a9145e1a3b7d2071a907875be34e4",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-noop-equal.trace.json.gz",
+    "bytes": 76551,
+    "sha256": "8f386af0d3196e4045b5718830185bd55d2c63eabfe9cb7b7a2737da4de203cf",
+    "rawBytes": 76551,
+    "rawSha256": "8f386af0d3196e4045b5718830185bd55d2c63eabfe9cb7b7a2737da4de203cf",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-public.allocation.json.gz",
+    "bytes": 48366,
+    "sha256": "838057d94dcf068c117b74c63937c488a5396f2e2df5df2075bf26585c426aae",
+    "rawBytes": 48366,
+    "rawSha256": "838057d94dcf068c117b74c63937c488a5396f2e2df5df2075bf26585c426aae",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-large-public.trace.json.gz",
+    "bytes": 345593,
+    "sha256": "6c785eebd79da35fd2fa884dd4c5578ed3a424fac68129ce1dd0dafe337b6114",
+    "rawBytes": 345593,
+    "rawSha256": "6c785eebd79da35fd2fa884dd4c5578ed3a424fac68129ce1dd0dafe337b6114",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-large-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-native.allocation.json.gz",
+    "bytes": 11285,
+    "sha256": "097fabf59ab5348c18ed3f921f9f7650cd5b563579c4b6406eb99b40a18d9e89",
+    "rawBytes": 11285,
+    "rawSha256": "097fabf59ab5348c18ed3f921f9f7650cd5b563579c4b6406eb99b40a18d9e89",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-native.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-native.trace.json.gz",
+    "bytes": 13317,
+    "sha256": "56304d3fd9281494188da99ef20de7bc42355f544baeb8573e33e3f3fb2c981f",
+    "rawBytes": 13317,
+    "rawSha256": "56304d3fd9281494188da99ef20de7bc42355f544baeb8573e33e3f3fb2c981f",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-native.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-noop-empty.allocation.json.gz",
+    "bytes": 2537,
+    "sha256": "bc53f90f88cd6b8de6defc5b3ba3b7e3ff0cf6dcfc6524c61537e98aaf51aa6a",
+    "rawBytes": 2537,
+    "rawSha256": "bc53f90f88cd6b8de6defc5b3ba3b7e3ff0cf6dcfc6524c61537e98aaf51aa6a",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-noop-empty.trace.json.gz",
+    "bytes": 2678,
+    "sha256": "1f2b6c9e2e0b9c4bdad056ead0f7965a8c351074802b7b5276a05de1f49c1a05",
+    "rawBytes": 2678,
+    "rawSha256": "1f2b6c9e2e0b9c4bdad056ead0f7965a8c351074802b7b5276a05de1f49c1a05",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-noop-equal.allocation.json.gz",
+    "bytes": 3054,
+    "sha256": "030954b1ace0d269c4f797f00df2e9c66798dd035823bad14fb054dff01fc843",
+    "rawBytes": 3054,
+    "rawSha256": "030954b1ace0d269c4f797f00df2e9c66798dd035823bad14fb054dff01fc843",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-noop-equal.trace.json.gz",
+    "bytes": 2942,
+    "sha256": "41bb1bd44293f2401b87ec19d7cb0ee943772e4378bc432b753f12ea07ff840f",
+    "rawBytes": 2942,
+    "rawSha256": "41bb1bd44293f2401b87ec19d7cb0ee943772e4378bc432b753f12ea07ff840f",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-public.allocation.json.gz",
+    "bytes": 8796,
+    "sha256": "88a9debbe05086f10f5960ee86be0fda29b11a96e451a412f01b8d7d3678eda2",
+    "rawBytes": 8796,
+    "rawSha256": "88a9debbe05086f10f5960ee86be0fda29b11a96e451a412f01b8d7d3678eda2",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-public.allocation.json.gz"
+  },
+  {
+    "path": "comparison/candidate-table-small-public.trace.json.gz",
+    "bytes": 10849,
+    "sha256": "bc64c8099bea03e4ed122f0d21e11255fd1830a5075834c146d38365a81b2ddd",
+    "rawBytes": 10849,
+    "rawSha256": "bc64c8099bea03e4ed122f0d21e11255fd1830a5075834c146d38365a81b2ddd",
+    "original": "/tmp/rector-structural-comparison-20261030/candidate-table-small-public.trace.json.gz"
+  },
+  {
+    "path": "comparison/results.json.gz",
+    "bytes": 72460,
+    "sha256": "193dbd2b1209ace38d1eae3904ef36f21a7af7b9a6efa78f9c705e05cb7ec289",
+    "rawBytes": 1564853,
+    "rawSha256": "a1da2354403c0bd34c5d950d218431950f1f4bd86ad5c1b9f016fc097b71a744",
+    "original": "/tmp/rector-structural-comparison-20261030/results.json"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-native.allocation.json.gz",
+    "bytes": 7625,
+    "sha256": "ab67ba99a709197464319bbbefeba01021a9b0a95e208801583d819aae20da05",
+    "rawBytes": 7625,
+    "rawSha256": "ab67ba99a709197464319bbbefeba01021a9b0a95e208801583d819aae20da05",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-native.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-native.trace.json.gz",
+    "bytes": 8612,
+    "sha256": "1f1a5346114db869345191ee1e31f794d63b0549a4fea5e9eb091c34c09f3a05",
+    "rawBytes": 8612,
+    "rawSha256": "1f1a5346114db869345191ee1e31f794d63b0549a4fea5e9eb091c34c09f3a05",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-native.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-noop-empty.allocation.json.gz",
+    "bytes": 2269,
+    "sha256": "6c978a8ab6c675c8653b6e16314f083f8c4690a18d2d6366e844e8fa1d744358",
+    "rawBytes": 2269,
+    "rawSha256": "6c978a8ab6c675c8653b6e16314f083f8c4690a18d2d6366e844e8fa1d744358",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-noop-empty.trace.json.gz",
+    "bytes": 2890,
+    "sha256": "1b9d03e61bef5d39a758a2f7f21f7172e6ed567d3e4dba6e646853052b5428a2",
+    "rawBytes": 2890,
+    "rawSha256": "1b9d03e61bef5d39a758a2f7f21f7172e6ed567d3e4dba6e646853052b5428a2",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-noop-equal.allocation.json.gz",
+    "bytes": 2449,
+    "sha256": "82c761f6816de185d458bdba814b0670d11627cbc22b13d31d8f9ed97c85ca5c",
+    "rawBytes": 2449,
+    "rawSha256": "82c761f6816de185d458bdba814b0670d11627cbc22b13d31d8f9ed97c85ca5c",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-noop-equal.trace.json.gz",
+    "bytes": 2218,
+    "sha256": "5e632a29039c9cf16c7a707ac6d7a7fd4d99d5a77e393b1fdb8300faca46cb22",
+    "rawBytes": 2218,
+    "rawSha256": "5e632a29039c9cf16c7a707ac6d7a7fd4d99d5a77e393b1fdb8300faca46cb22",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-public.allocation.json.gz",
+    "bytes": 7803,
+    "sha256": "9ca9d840c728b7ec37a166595fcfca5d64617878490e9bd50dbeb320ff8e5c2c",
+    "rawBytes": 7803,
+    "rawSha256": "9ca9d840c728b7ec37a166595fcfca5d64617878490e9bd50dbeb320ff8e5c2c",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-public.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/baseline-paragraph-small-public.trace.json.gz",
+    "bytes": 7023,
+    "sha256": "b5ea98af4dc4852f6701cb9c9cda79ab192b7866a522bf9737806ef635f44987",
+    "rawBytes": 7023,
+    "rawSha256": "b5ea98af4dc4852f6701cb9c9cda79ab192b7866a522bf9737806ef635f44987",
+    "original": "/tmp/rector-structural-runner-probe-20261030/baseline-paragraph-small-public.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-native.allocation.json.gz",
+    "bytes": 7273,
+    "sha256": "e0cfe68c7936a09ccc79b2cfa91535c8fb2ea210d98213ab74242b42ce6176bf",
+    "rawBytes": 7273,
+    "rawSha256": "e0cfe68c7936a09ccc79b2cfa91535c8fb2ea210d98213ab74242b42ce6176bf",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-native.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-native.trace.json.gz",
+    "bytes": 7414,
+    "sha256": "c81db5a1867f8b283c78b15c08b1dd01bac623958c3082362c976021e66a3ee7",
+    "rawBytes": 7414,
+    "rawSha256": "c81db5a1867f8b283c78b15c08b1dd01bac623958c3082362c976021e66a3ee7",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-native.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-noop-empty.allocation.json.gz",
+    "bytes": 2262,
+    "sha256": "9e3781b741a84400dc2cc4640ba8cdf396715e756756051e7f99920c46ed00a7",
+    "rawBytes": 2262,
+    "rawSha256": "9e3781b741a84400dc2cc4640ba8cdf396715e756756051e7f99920c46ed00a7",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-noop-empty.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-noop-empty.trace.json.gz",
+    "bytes": 1987,
+    "sha256": "7e5ef5534aadfc513e7330578e4c5bac9e3bdafd4535587083c834f521c875c7",
+    "rawBytes": 1987,
+    "rawSha256": "7e5ef5534aadfc513e7330578e4c5bac9e3bdafd4535587083c834f521c875c7",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-noop-empty.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-noop-equal.allocation.json.gz",
+    "bytes": 1648,
+    "sha256": "a184cd0797e3ff6ae41461257774c56d64e428cf18483bf011f8aa2005f4645c",
+    "rawBytes": 1648,
+    "rawSha256": "a184cd0797e3ff6ae41461257774c56d64e428cf18483bf011f8aa2005f4645c",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-noop-equal.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-noop-equal.trace.json.gz",
+    "bytes": 2259,
+    "sha256": "7c4b41e3c48202d16f15c79b3545b3417bf0b03c5893ce7286635e907b9f6cda",
+    "rawBytes": 2259,
+    "rawSha256": "7c4b41e3c48202d16f15c79b3545b3417bf0b03c5893ce7286635e907b9f6cda",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-noop-equal.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-public.allocation.json.gz",
+    "bytes": 6198,
+    "sha256": "c104da3ae7f8ae2e1c17c55c2065e56efede917acac5f36eda5ed312a572686c",
+    "rawBytes": 6198,
+    "rawSha256": "c104da3ae7f8ae2e1c17c55c2065e56efede917acac5f36eda5ed312a572686c",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-public.allocation.json.gz"
+  },
+  {
+    "path": "initial-probe/candidate-paragraph-small-public.trace.json.gz",
+    "bytes": 6934,
+    "sha256": "644443c111d9a7be5894af2de0a37c0fc37280da5c2863750cd2e6d50c373fa4",
+    "rawBytes": 6934,
+    "rawSha256": "644443c111d9a7be5894af2de0a37c0fc37280da5c2863750cd2e6d50c373fa4",
+    "original": "/tmp/rector-structural-runner-probe-20261030/candidate-paragraph-small-public.trace.json.gz"
+  },
+  {
+    "path": "initial-probe/results.json.gz",
+    "bytes": 14605,
+    "sha256": "990163919d28022db37be1dd2e54e520930389b3bc5a04c601d0d0648bc69e8e",
+    "rawBytes": 79499,
+    "rawSha256": "ee8ef41a21559432129ea4f8623289b87a55a7dc78edfbee8c37176425965e00",
+    "original": "/tmp/rector-structural-runner-probe-20261030/results.json"
+  },
+  {
+    "path": "sources/run-yf5axQ-tracked.patch.gz",
+    "bytes": 235,
+    "sha256": "7a9981a4157a205e60469cb694faf80d628cb1f472e1a4725ec836eaf7eab7d2",
+    "rawBytes": 471,
+    "rawSha256": "e4b055be25a5a338df3eeb1ea186ee97b32482ff3f79d47f164e06d9cc4e5a65",
+    "original": null
+  },
+  {
+    "path": "sources/run-U0XLGE-tracked.patch.gz",
+    "bytes": 957,
+    "sha256": "70294b5e605582a4160f0aaedf1cb6d24eb9bde4567d72c5d772f01c10320957",
+    "rawBytes": 2505,
+    "rawSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+    "original": null
+  },
+  {
+    "path": "sources/run-Nd8cy9-tracked.patch.gz",
+    "bytes": 889,
+    "sha256": "9cbfc7384aa75925e3cece4874397c3ce48e5c053ca6da8a41dae7164d6c7e71",
+    "rawBytes": 2063,
+    "rawSha256": "f481b8d1a44f86266d5d5b339f59ad0680f1518892f00337eaad3877503c6862",
+    "original": null
+  },
+  {
+    "path": "sources/run-rfW2mz-tracked.patch.gz",
+    "bytes": 2024,
+    "sha256": "ab7559b36e690b747c336de6a10275418e685f24d71c80e8bf6db24aaaf6f209",
+    "rawBytes": 6090,
+    "rawSha256": "565774a279244acdd5ab44394af7b46340be6bf744238f245f41a40b8bec3300",
+    "original": null
+  },
+  {
+    "path": "sources/run-2sDW2V-tracked.patch.gz",
+    "bytes": 3143,
+    "sha256": "a6db8869a39d8da636bcf7e6bd02023c009eaf1d077a937f8f2adf1eb1d902ee",
+    "rawBytes": 9770,
+    "rawSha256": "a1815e87c1e8b1fad9c0eda6ebc3c87514c0572a49046b958552b823d8370dd7",
+    "original": null
+  },
+  {
+    "path": "sources/committed-event-ownership.js.gz",
+    "bytes": 1695,
+    "sha256": "88488ff97b36d87d5f849eeedc6d74909a54f0de56b80eceefb26bffff892171",
+    "rawBytes": 4962,
+    "rawSha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279",
+    "original": null
+  },
+  {
+    "path": "sources/structural-red-fixture.js.gz",
+    "bytes": 5302,
+    "sha256": "1e8c5614733843bf2c51e2bcc1429b85d32f6a1a28f660504f409cd2a7a9030d",
+    "rawBytes": 15959,
+    "rawSha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1",
+    "original": null
+  },
+  {
+    "path": "sources/structural-green-fixture.js.gz",
+    "bytes": 5533,
+    "sha256": "1808a6d9be64e88d90180846f1e5dc06d059a5e67c12eea809b2a3429e158fb5",
+    "rawBytes": 16912,
+    "rawSha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14",
+    "original": null
+  },
+  {
+    "path": "sources/initial-runner.mjs.gz",
+    "bytes": 5683,
+    "sha256": "4db2503e680f791ddac49730062a73388b9aed7915f42bac63125ebc9b8a7f81",
+    "rawBytes": 16667,
+    "rawSha256": "079525f8b8c986b5f1404f956377cea69f7b47ad6baded2bd2e69124a2129048",
+    "original": null
+  },
+  {
+    "path": "sources/partial-green-runner.mjs.gz",
+    "bytes": 5673,
+    "sha256": "39e8dcd8173fa67393f7eab2aab614857e0757bceb366dfd2e40ae30a038dfad",
+    "rawBytes": 16640,
+    "rawSha256": "6e0399c8d858ff518220aedeb94bfd420abfd716ebaa6d5779065fb93e5764c1",
+    "original": null
+  },
+  {
+    "path": "sources/structural-sources.bundle",
+    "bytes": 18889,
+    "sha256": "fba61bd6e2a3bf17444716878f36d6680326ce7185c4e6265fa34c8a348aa9d4",
+    "rawBytes": 18889,
+    "rawSha256": "fba61bd6e2a3bf17444716878f36d6680326ce7185c4e6265fa34c8a348aa9d4",
+    "original": "/tmp/rector-structural-sources.bundle"
+  },
+  {
+    "path": "summary.json",
+    "bytes": 72723,
+    "sha256": "d1bffa1620c9132a0fa925a9711538ef3a246aa9476808805dde40a71d00d34f",
+    "rawBytes": 72723,
+    "rawSha256": "d1bffa1620c9132a0fa925a9711538ef3a246aa9476808805dde40a71d00d34f",
+    "original": null
+  },
+  {
+    "path": "comparison-command.json",
+    "bytes": 878,
+    "sha256": "074d8eabed06570ae274f0672bc22938f553a5aa5333ce5056ff66789c2074af",
+    "rawBytes": 878,
+    "rawSha256": "074d8eabed06570ae274f0672bc22938f553a5aa5333ce5056ff66789c2074af",
+    "original": null
+  },
+  {
+    "path": "detached-runner.py",
+    "bytes": 884,
+    "sha256": "5cfe9c40d7db557c55e4952423122bda51f8ef9b1a0530bcc0f634c00e75dd5d",
+    "rawBytes": 884,
+    "rawSha256": "5cfe9c40d7db557c55e4952423122bda51f8ef9b1a0530bcc0f634c00e75dd5d",
+    "original": null
+  },
+  {
+    "path": "README.md",
+    "bytes": 7447,
+    "sha256": "a925e4ed0be464ec482d2d315d0d4f1ea1abb30921492a62b084f02267206417",
+    "rawBytes": 7447,
+    "rawSha256": "a925e4ed0be464ec482d2d315d0d4f1ea1abb30921492a62b084f02267206417",
+    "original": null
+  }
+]

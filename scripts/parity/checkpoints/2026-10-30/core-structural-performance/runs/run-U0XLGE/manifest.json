@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-structural-performance-20261030",
+  "startedAt": "2026-10-30T00:49:36.309Z",
+  "finishedAt": "2026-10-30T00:49:53.539Z",
+  "outcome": "passed",
+  "source": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/committed-event-ownership.js",
+        "mode": 33188,
+        "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+      }
+    ],
+    "dirty": true,
+    "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "runtime-contracts.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "events-green": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T00:49:36.780Z",
+      "finishedAt": "2026-10-30T00:49:39.516Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-structural-performance-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "runtime-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "elapsedMs": 2731.7976489999996,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "sourceUnchanged": true
+    },
+    "history": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T00:49:39.921Z",
+      "finishedAt": "2026-10-30T00:49:42.611Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-structural-performance-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "history.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "elapsedMs": 2687.539925,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "sourceUnchanged": true
+    },
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T00:49:43.002Z",
+      "finishedAt": "2026-10-30T00:49:53.235Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/tmp/rector-structural-performance-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "history.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "elapsedMs": 10229.600954,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/committed-event-ownership.js",
+        "mode": 33188,
+        "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+      }
+    ],
+    "dirty": true,
+    "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+  },
+  "sourceUnchanged": true
+}

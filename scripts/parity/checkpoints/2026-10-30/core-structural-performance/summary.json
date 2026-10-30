@@ -1,0 +1,2683 @@
+{
+  "runs": [
+    {
+      "run": "run-yf5axQ",
+      "meaning": "real event-copy traversal RED",
+      "outcome": "failed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "e4b055be25a5a338df3eeb1ea186ee97b32482ff3f79d47f164e06d9cc4e5a65",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "a1fdbb77bb0b3630451f5f6425ec5fea78b9f556bdd6f1714d249aaa11890481"
+      },
+      "gates": {
+        "events-red": "failed"
+      }
+    },
+    {
+      "run": "run-U0XLGE",
+      "meaning": "event-copy GREEN, history and both type configurations",
+      "outcome": "passed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "d7d04f640772c925f990554c8e8fa47f71ae172c5f6fbe0c2ea383ea3ba26c40",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "86fcac790a82bae4be3d1d389866dab808ee25c600bac07d54dd28277f9c6079"
+      },
+      "gates": {
+        "events-green": "passed",
+        "history": "passed",
+        "typecheck": "passed"
+      }
+    },
+    {
+      "run": "run-4Q1cYc",
+      "meaning": "fixture setup failure: Vite prebundled ColorPicker stylesheet",
+      "outcome": "failed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "f481b8d1a44f86266d5d5b339f59ad0680f1518892f00337eaad3877503c6862",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "94ba6b382e633fe4addf771b230e42174670746dbb94da2629064d4ecb71a436"
+          }
+        ],
+        "dirty": true,
+        "identity": "85638de4092442b65db441aeb489d719b706b77f091ab6f0820b0f70e4af1c14"
+      },
+      "gates": {
+        "structural-controls": "failed"
+      }
+    },
+    {
+      "run": "run-colWqh",
+      "meaning": "fixture iteration: wrong Gallery selector; Table/Columns lifetime failures",
+      "outcome": "failed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "f481b8d1a44f86266d5d5b339f59ad0680f1518892f00337eaad3877503c6862",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "47f589bf6d5ba67875c9ac18b65916ad4102130205638c6597d6930a3b5c0851"
+          }
+        ],
+        "dirty": true,
+        "identity": "d80f24eed1573750d768b6be7ef3940e261c832bb8d3243738b29b472b247dbb"
+      },
+      "gates": {
+        "structural-controls": "failed"
+      }
+    },
+    {
+      "run": "run-Nd8cy9",
+      "meaning": "fixed-oracle structural lifetime RED on all three plugin types",
+      "outcome": "failed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "f481b8d1a44f86266d5d5b339f59ad0680f1518892f00337eaad3877503c6862",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1"
+          }
+        ],
+        "dirty": true,
+        "identity": "1391b162ec94ccb6f34ba3c1ffbee9ef31241b66654c99068159dd4c9dd5afa8"
+      },
+      "gates": {
+        "structural-controls": "failed"
+      }
+    },
+    {
+      "run": "run-rfW2mz",
+      "meaning": "partial GREEN: Table/Columns repaired; Gallery remains RED",
+      "outcome": "failed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "565774a279244acdd5ab44394af7b46340be6bf744238f245f41a40b8bec3300",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "benchmarks/structural-authoring.mjs",
+            "mode": 33188,
+            "sha256": "6e0399c8d858ff518220aedeb94bfd420abfd716ebaa6d5779065fb93e5764c1"
+          },
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14"
+          }
+        ],
+        "dirty": true,
+        "identity": "1d068315c95586eba7d3c313eddb95cff372a4e5849a240de386c281426db150"
+      },
+      "gates": {
+        "structural-controls": "failed"
+      }
+    },
+    {
+      "run": "run-2sDW2V",
+      "meaning": "all nine registered structural controls GREEN",
+      "outcome": "passed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "a1815e87c1e8b1fad9c0eda6ebc3c87514c0572a49046b958552b823d8370dd7",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "benchmarks/structural-authoring.mjs",
+            "mode": 33188,
+            "sha256": "079525f8b8c986b5f1404f956377cea69f7b47ad6baded2bd2e69124a2129048"
+          },
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14"
+          }
+        ],
+        "dirty": true,
+        "identity": "2fbba040c206743382744c9523718542daaa33ece81443f0c8f643a7d00b203c"
+      },
+      "gates": {
+        "structural-controls": "passed"
+      }
+    },
+    {
+      "run": "run-pGvLBV",
+      "meaning": "initial Paragraph runner smoke; superseded timing/memory boundaries",
+      "outcome": "passed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "a26f1ab9693b3cd0f7847e7c0cd392f7adcab476",
+        "tree": "3ca5c9d1019ea3bee8da9068620f27b206bde6a2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6943a288f3b0613cc8fa3dd96496d2a0c9ae907d3ec66122be9c6a6d000fd09d"
+      },
+      "gates": {
+        "runner-controls": "passed"
+      }
+    },
+    {
+      "run": "run-2yA8Wz",
+      "meaning": "final seven-shape immutable paired comparison",
+      "outcome": "passed",
+      "sourceUnchanged": true,
+      "source": {
+        "head": "ea4afc7c6cca93a8d52e3c052896e79c994f511f",
+        "tree": "7b8ba439f5ed44359ba71f870c5a75cc19290563",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "d3cea8b3279ec3e5d10f72b35c4225205787a49531518adc618e0170dd22e339"
+      },
+      "gates": {
+        "structural-comparison": "passed"
+      }
+    }
+  ],
+  "finalOutcome": "passed",
+  "finalSourceUnchanged": true,
+  "fixture": {
+    "paragraph-small": {
+      "shape": {
+        "id": "paragraph-small",
+        "type": "paragraph",
+        "size": 1
+      },
+      "documentUtf8Bytes": 629,
+      "fields": 1,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    },
+    "table-small": {
+      "shape": {
+        "id": "table-small",
+        "type": "table",
+        "size": 2
+      },
+      "documentUtf8Bytes": 858,
+      "fields": 4,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    },
+    "table-large": {
+      "shape": {
+        "id": "table-large",
+        "type": "table",
+        "size": 20
+      },
+      "documentUtf8Bytes": 21124,
+      "fields": 400,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    },
+    "gallery-small": {
+      "shape": {
+        "id": "gallery-small",
+        "type": "gallery",
+        "size": 3
+      },
+      "documentUtf8Bytes": 1262,
+      "fields": 3,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    },
+    "gallery-large": {
+      "shape": {
+        "id": "gallery-large",
+        "type": "gallery",
+        "size": 48
+      },
+      "documentUtf8Bytes": 9257,
+      "fields": 48,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    },
+    "columns-small": {
+      "shape": {
+        "id": "columns-small",
+        "type": "columns",
+        "size": 2,
+        "words": 2
+      },
+      "documentUtf8Bytes": 797,
+      "fields": 2,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    },
+    "columns-large": {
+      "shape": {
+        "id": "columns-large",
+        "type": "columns",
+        "size": 3,
+        "words": 256
+      },
+      "documentUtf8Bytes": 10025,
+      "fields": 3,
+      "widgets": 3,
+      "opaqueSidecars": 1,
+      "configuredHistoryMaxStack": 1,
+      "configuredChangeDebounceMs": 0,
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "shape": "paragraph-small",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 1.8000000044703484,
+            "p95": 2.600000001490116,
+            "min": 1.3999999985098839,
+            "max": 2.899999998509884
+          },
+          "candidate": {
+            "p50": 1.6000000014901161,
+            "p95": 2.3000000044703484,
+            "min": 1.2999999970197678,
+            "max": 2.7999999970197678
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 2.399999998509884,
+            "p95": 3.399999998509884,
+            "min": 1.8999999985098839,
+            "max": 9.199999995529652
+          },
+          "candidate": {
+            "p50": 2.399999998509884,
+            "p95": 2.899999998509884,
+            "min": 1.8999999985098839,
+            "max": 3.6999999955296516
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 33.399999998509884,
+            "p95": 34.5,
+            "min": 32.600000001490116,
+            "max": 57.100000001490116
+          },
+          "candidate": {
+            "p50": 33.29999999701977,
+            "p95": 33.5,
+            "min": 32.69999999552965,
+            "max": 33.899999998509884
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 282,
+        "candidate": 232
+      },
+      "sampledAllocationBytes": {
+        "baseline": 723616,
+        "candidate": 813000
+      }
+    },
+    {
+      "shape": "paragraph-small",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 2.5,
+            "p95": 2.899999998509884,
+            "min": 1.8999999985098839,
+            "max": 3.399999998509884
+          },
+          "candidate": {
+            "p50": 2.100000001490116,
+            "p95": 2.5999999940395355,
+            "min": 1.6999999955296516,
+            "max": 3.399999998509884
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 15,
+            "p95": 15.600000001490116,
+            "min": 10.800000004470348,
+            "max": 15.899999998509884
+          },
+          "candidate": {
+            "p50": 15.300000004470348,
+            "p95": 15.899999998509884,
+            "min": 10.100000001490116,
+            "max": 16.099999994039536
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 47.5,
+            "p95": 47.79999999701977,
+            "min": 43.5,
+            "max": 47.899999998509884
+          },
+          "candidate": {
+            "p50": 47.70000000298023,
+            "p95": 48.600000001490116,
+            "min": 42.600000001490116,
+            "max": 73.60000000149012
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 324,
+        "candidate": 274
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1034864,
+        "candidate": 1093332
+      }
+    },
+    {
+      "shape": "table-small",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 3.100000001490116,
+            "p95": 4.100000001490116,
+            "min": 2.0999999940395355,
+            "max": 4.299999997019768
+          },
+          "candidate": {
+            "p50": 2.6999999955296516,
+            "p95": 4.799999997019768,
+            "min": 2.0999999940395355,
+            "max": 8.200000002980232
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 3.899999998509884,
+            "p95": 5,
+            "min": 2.5999999940395355,
+            "max": 6.100000001490116
+          },
+          "candidate": {
+            "p50": 3.399999998509884,
+            "p95": 5.799999997019768,
+            "min": 2.5999999940395355,
+            "max": 8.899999998509884
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 33.29999999701977,
+            "p95": 33.600000001490116,
+            "min": 32.30000000447035,
+            "max": 33.80000000447035
+          },
+          "candidate": {
+            "p50": 33.29999999701977,
+            "p95": 33.5,
+            "min": 32.69999999552965,
+            "max": 34.20000000298023
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 564,
+        "candidate": 490
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1841532,
+        "candidate": 1536820
+      }
+    },
+    {
+      "shape": "table-small",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 3.3000000044703484,
+            "p95": 6.100000001490116,
+            "min": 2.6999999955296516,
+            "max": 9.5
+          },
+          "candidate": {
+            "p50": 3.3000000044703484,
+            "p95": 4.399999998509884,
+            "min": 2.6999999955296516,
+            "max": 4.799999997019768
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 15.200000002980232,
+            "p95": 16.19999999552965,
+            "min": 13.900000005960464,
+            "max": 16.399999998509884
+          },
+          "candidate": {
+            "p50": 15.299999997019768,
+            "p95": 16.5,
+            "min": 9.600000001490116,
+            "max": 17.5
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 47.30000000447035,
+            "p95": 48.5,
+            "min": 46.30000000447035,
+            "max": 48.5
+          },
+          "candidate": {
+            "p50": 47.600000001490116,
+            "p95": 48.19999999552965,
+            "min": 41.5,
+            "max": 48.19999999552965
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 804,
+        "candidate": 730
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1790828,
+        "candidate": 1978648
+      }
+    },
+    {
+      "shape": "table-large",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 58.29999999701977,
+            "p95": 64.39999999850988,
+            "min": 53.399999998509884,
+            "max": 67.79999999701977
+          },
+          "candidate": {
+            "p50": 61.5,
+            "p95": 74.19999999552965,
+            "min": 50.599999994039536,
+            "max": 77.19999999552965
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 61.100000001490116,
+            "p95": 69.09999999403954,
+            "min": 55.399999998509884,
+            "max": 70.29999999701977
+          },
+          "candidate": {
+            "p50": 63.899999998509884,
+            "p95": 76.69999999552965,
+            "min": 52.599999994039536,
+            "max": 79.5
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 70.30000000447035,
+            "p95": 83.39999999850988,
+            "min": 65.89999999850988,
+            "max": 83.79999999701977
+          },
+          "candidate": {
+            "p50": 70.69999999552965,
+            "p95": 100.09999999403954,
+            "min": 66,
+            "max": 100.20000000298023
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 20022,
+        "candidate": 18292
+      },
+      "sampledAllocationBytes": {
+        "baseline": 53425724,
+        "candidate": 49170060
+      }
+    },
+    {
+      "shape": "table-large",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 89.69999999552965,
+            "p95": 100.30000000447035,
+            "min": 78.10000000149012,
+            "max": 102.10000000149012
+          },
+          "candidate": {
+            "p50": 90.39999999850988,
+            "p95": 102.79999999701977,
+            "min": 81.69999999552965,
+            "max": 112.80000000447035
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 95.29999999701977,
+            "p95": 106.89999999850988,
+            "min": 83.29999999701977,
+            "max": 107.5
+          },
+          "candidate": {
+            "p50": 95.10000000149012,
+            "p95": 109.59999999403954,
+            "min": 87.69999999552965,
+            "max": 119.60000000149012
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 120.19999999552965,
+            "p95": 125,
+            "min": 106.09999999403954,
+            "max": 125.29999999701977
+          },
+          "candidate": {
+            "p50": 121.30000000447035,
+            "p95": 123.59999999403954,
+            "min": 103.09999999403954,
+            "max": 136.80000000447035
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 32682,
+        "candidate": 30952
+      },
+      "sampledAllocationBytes": {
+        "baseline": 64269460,
+        "candidate": 60686300
+      }
+    },
+    {
+      "shape": "gallery-small",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 2.7000000029802322,
+            "p95": 3.399999998509884,
+            "min": 2.2000000029802322,
+            "max": 3.7999999970197678
+          },
+          "candidate": {
+            "p50": 2.600000001490116,
+            "p95": 3.2000000029802322,
+            "min": 2.1999999955296516,
+            "max": 3.5
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 3.2999999970197678,
+            "p95": 3.9000000059604645,
+            "min": 2.7000000029802322,
+            "max": 4.399999998509884
+          },
+          "candidate": {
+            "p50": 3.2000000029802322,
+            "p95": 4.299999997019768,
+            "min": 2.6999999955296516,
+            "max": 5
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 33.29999999701977,
+            "p95": 33.600000001490116,
+            "min": 33.100000001490116,
+            "max": 34.400000005960464
+          },
+          "candidate": {
+            "p50": 33.29999999701977,
+            "p95": 33.600000001490116,
+            "min": 31.799999997019768,
+            "max": 35.29999999701977
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 517,
+        "candidate": 447
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1610800,
+        "candidate": 1424492
+      }
+    },
+    {
+      "shape": "gallery-small",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 3.399999998509884,
+            "p95": 4.700000002980232,
+            "min": 2.5999999940395355,
+            "max": 6
+          },
+          "candidate": {
+            "p50": 3.5,
+            "p95": 4.300000004470348,
+            "min": 2.600000001490116,
+            "max": 4.5
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 15.399999998509884,
+            "p95": 15.799999997019768,
+            "min": 14.300000004470348,
+            "max": 17.5
+          },
+          "candidate": {
+            "p50": 15.399999998509884,
+            "p95": 16.099999994039536,
+            "min": 13.700000002980232,
+            "max": 16.400000005960464
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 47.599999994039536,
+            "p95": 48,
+            "min": 46.600000001490116,
+            "max": 48.30000000447035
+          },
+          "candidate": {
+            "p50": 47.5,
+            "p95": 48.20000000298023,
+            "min": 46.20000000298023,
+            "max": 48.20000000298023
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 753,
+        "candidate": 683
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1947268,
+        "candidate": 1866924
+      }
+    },
+    {
+      "shape": "gallery-large",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 13.200000002980232,
+            "p95": 20.899999998509884,
+            "min": 10.600000001490116,
+            "max": 24.19999999552965
+          },
+          "candidate": {
+            "p50": 11.700000002980232,
+            "p95": 17.5,
+            "min": 9.900000005960464,
+            "max": 22.099999994039536
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 14.899999998509884,
+            "p95": 23,
+            "min": 11.900000005960464,
+            "max": 28.099999994039536
+          },
+          "candidate": {
+            "p50": 13.100000001490116,
+            "p95": 20.100000001490116,
+            "min": 11.100000001490116,
+            "max": 23.799999997019768
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 33.19999999552965,
+            "p95": 33.599999994039536,
+            "min": 22.5,
+            "max": 34
+          },
+          "candidate": {
+            "p50": 33.20000000298023,
+            "p95": 33.79999999701977,
+            "min": 32.400000005960464,
+            "max": 37.900000005960464
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 2632,
+        "candidate": 2382
+      },
+      "sampledAllocationBytes": {
+        "baseline": 8627660,
+        "candidate": 8305624
+      }
+    },
+    {
+      "shape": "gallery-large",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 19.399999998509884,
+            "p95": 29,
+            "min": 16.700000002980232,
+            "max": 35.5
+          },
+          "candidate": {
+            "p50": 19.30000000447035,
+            "p95": 31.900000005960464,
+            "min": 15.899999998509884,
+            "max": 47.100000001490116
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 23.299999997019768,
+            "p95": 33.100000001490116,
+            "min": 19.100000001490116,
+            "max": 38.69999999552965
+          },
+          "candidate": {
+            "p50": 23.900000005960464,
+            "p95": 34.5,
+            "min": 18.600000001490116,
+            "max": 52.399999998509884
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 45.79999999701977,
+            "p95": 60.29999999701977,
+            "min": 42.70000000298023,
+            "max": 63.100000001490116
+          },
+          "candidate": {
+            "p50": 46.30000000447035,
+            "p95": 59.20000000298023,
+            "min": 42.5,
+            "max": 79.19999999552965
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 4488,
+        "candidate": 4238
+      },
+      "sampledAllocationBytes": {
+        "baseline": 10746808,
+        "candidate": 10033264
+      }
+    },
+    {
+      "shape": "columns-small",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 3.100000001490116,
+            "p95": 3.600000001490116,
+            "min": 2.399999998509884,
+            "max": 3.6999999955296516
+          },
+          "candidate": {
+            "p50": 3,
+            "p95": 3.7000000029802322,
+            "min": 2.5,
+            "max": 4
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 3.600000001490116,
+            "p95": 4.100000001490116,
+            "min": 2.899999998509884,
+            "max": 4.5
+          },
+          "candidate": {
+            "p50": 3.600000001490116,
+            "p95": 4.399999998509884,
+            "min": 3.0999999940395355,
+            "max": 4.9000000059604645
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 33.30000000447035,
+            "p95": 33.600000001490116,
+            "min": 32.5,
+            "max": 35.30000000447035
+          },
+          "candidate": {
+            "p50": 33.29999999701977,
+            "p95": 33.5,
+            "min": 32.899999998509884,
+            "max": 33.899999998509884
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 376,
+        "candidate": 318
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1380832,
+        "candidate": 1124544
+      }
+    },
+    {
+      "shape": "columns-small",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 3,
+            "p95": 4.300000004470348,
+            "min": 2.2999999970197678,
+            "max": 5
+          },
+          "candidate": {
+            "p50": 3,
+            "p95": 4.100000001490116,
+            "min": 2.2000000029802322,
+            "max": 4.199999995529652
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 15.200000002980232,
+            "p95": 15.699999995529652,
+            "min": 10.399999998509884,
+            "max": 15.699999995529652
+          },
+          "candidate": {
+            "p50": 15.5,
+            "p95": 17.200000002980232,
+            "min": 14.200000002980232,
+            "max": 18.5
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 47.69999999552965,
+            "p95": 48.5,
+            "min": 43.099999994039536,
+            "max": 49.20000000298023
+          },
+          "candidate": {
+            "p50": 47.599999994039536,
+            "p95": 48,
+            "min": 45.399999998509884,
+            "max": 48
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 496,
+        "candidate": 438
+      },
+      "sampledAllocationBytes": {
+        "baseline": 1511612,
+        "candidate": 1346924
+      }
+    },
+    {
+      "shape": "columns-large",
+      "kind": "public",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 32.70000000298023,
+            "p95": 40.399999998509884,
+            "min": 28.100000001490116,
+            "max": 48.19999999552965
+          },
+          "candidate": {
+            "p50": 32.600000001490116,
+            "p95": 44.399999998509884,
+            "min": 29.600000001490116,
+            "max": 61.29999999701977
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 35.899999998509884,
+            "p95": 43.600000001490116,
+            "min": 30.399999998509884,
+            "max": 52.100000001490116
+          },
+          "candidate": {
+            "p50": 35.5,
+            "p95": 48.399999998509884,
+            "min": 31.899999998509884,
+            "max": 63.899999998509884
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 49.80000000447035,
+            "p95": 67,
+            "min": 32.79999999701977,
+            "max": 67.60000000149012
+          },
+          "candidate": {
+            "p50": 50.099999994039536,
+            "p95": 66.60000000149012,
+            "min": 33.30000000447035,
+            "max": 71.5
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 423,
+        "candidate": 361
+      },
+      "sampledAllocationBytes": {
+        "baseline": 13421000,
+        "candidate": 12696060
+      }
+    },
+    {
+      "shape": "columns-large",
+      "kind": "native",
+      "metrics": {
+        "synchronousMs": {
+          "baseline": {
+            "p50": 39.70000000298023,
+            "p95": 45,
+            "min": 33.899999998509884,
+            "max": 142.29999999701977
+          },
+          "candidate": {
+            "p50": 40.399999998509884,
+            "p95": 44.100000001490116,
+            "min": 34.399999998509884,
+            "max": 49
+          }
+        },
+        "notificationMs": {
+          "baseline": {
+            "p50": 43.599999994039536,
+            "p95": 48.69999999552965,
+            "min": 36.70000000298023,
+            "max": 156
+          },
+          "candidate": {
+            "p50": 43.69999999552965,
+            "p95": 48.70000000298023,
+            "min": 37.70000000298023,
+            "max": 53.5
+          }
+        },
+        "settledRenderOpportunityMs": {
+          "baseline": {
+            "p50": 59.599999994039536,
+            "p95": 79,
+            "min": 44.399999998509884,
+            "max": 173.89999999850988
+          },
+          "candidate": {
+            "p50": 58.29999999701977,
+            "p95": 78.80000000447035,
+            "min": 44.599999994039536,
+            "max": 79.39999999850988
+          }
+        }
+      },
+      "jsonRecordVisits": {
+        "baseline": 573,
+        "candidate": 511
+      },
+      "sampledAllocationBytes": {
+        "baseline": 16509724,
+        "candidate": 16762972
+      }
+    }
+  ],
+  "retention": [
+    {
+      "variant": "baseline",
+      "shape": "paragraph-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 3633332,
+        "totalSize": 4194304,
+        "embedderHeapUsedSize": 1738832,
+        "backingStorageSize": 1755780
+      },
+      "after": {
+        "usedSize": 3776116,
+        "totalSize": 4456448,
+        "embedderHeapUsedSize": 1924224,
+        "backingStorageSize": 1755780
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 1,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "paragraph-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 3622992,
+        "totalSize": 4194304,
+        "embedderHeapUsedSize": 1723560,
+        "backingStorageSize": 1756375
+      },
+      "after": {
+        "usedSize": 3768976,
+        "totalSize": 4456448,
+        "embedderHeapUsedSize": 1896592,
+        "backingStorageSize": 1756375
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 1,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "baseline",
+      "shape": "table-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4006732,
+        "totalSize": 4718592,
+        "embedderHeapUsedSize": 2000040,
+        "backingStorageSize": 1756940
+      },
+      "after": {
+        "usedSize": 4115396,
+        "totalSize": 4980736,
+        "embedderHeapUsedSize": 2121992,
+        "backingStorageSize": 1756940
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 4,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "table-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 3999252,
+        "totalSize": 4456448,
+        "embedderHeapUsedSize": 2005088,
+        "backingStorageSize": 1757535
+      },
+      "after": {
+        "usedSize": 4108252,
+        "totalSize": 4980736,
+        "embedderHeapUsedSize": 2090120,
+        "backingStorageSize": 1757535
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 4,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "baseline",
+      "shape": "table-large",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4651432,
+        "totalSize": 5242880,
+        "embedderHeapUsedSize": 4607976,
+        "backingStorageSize": 1793987
+      },
+      "after": {
+        "usedSize": 4775064,
+        "totalSize": 5505024,
+        "embedderHeapUsedSize": 4997872,
+        "backingStorageSize": 1793987
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 400,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "table-large",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4642112,
+        "totalSize": 5505024,
+        "embedderHeapUsedSize": 4605880,
+        "backingStorageSize": 1794582
+      },
+      "after": {
+        "usedSize": 4766684,
+        "totalSize": 5767168,
+        "embedderHeapUsedSize": 4926904,
+        "backingStorageSize": 1794582
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 400,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "baseline",
+      "shape": "gallery-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4477624,
+        "totalSize": 4980736,
+        "embedderHeapUsedSize": 2884096,
+        "backingStorageSize": 1769160
+      },
+      "after": {
+        "usedSize": 4611808,
+        "totalSize": 5505024,
+        "embedderHeapUsedSize": 2998320,
+        "backingStorageSize": 1769160
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 3,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "gallery-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4473176,
+        "totalSize": 5242880,
+        "embedderHeapUsedSize": 2882240,
+        "backingStorageSize": 1769755
+      },
+      "after": {
+        "usedSize": 4607244,
+        "totalSize": 5505024,
+        "embedderHeapUsedSize": 2996504,
+        "backingStorageSize": 1769755
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 3,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "baseline",
+      "shape": "gallery-large",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4753484,
+        "totalSize": 5242880,
+        "embedderHeapUsedSize": 4160264,
+        "backingStorageSize": 1772241
+      },
+      "after": {
+        "usedSize": 4945056,
+        "totalSize": 5767168,
+        "embedderHeapUsedSize": 4372448,
+        "backingStorageSize": 1772241
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 48,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "gallery-large",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4749524,
+        "totalSize": 5505024,
+        "embedderHeapUsedSize": 4158408,
+        "backingStorageSize": 1772836
+      },
+      "after": {
+        "usedSize": 4941472,
+        "totalSize": 5767168,
+        "embedderHeapUsedSize": 4412928,
+        "backingStorageSize": 1772836
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 48,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "baseline",
+      "shape": "columns-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4803964,
+        "totalSize": 5242880,
+        "embedderHeapUsedSize": 3097464,
+        "backingStorageSize": 1770904
+      },
+      "after": {
+        "usedSize": 4923552,
+        "totalSize": 5767168,
+        "embedderHeapUsedSize": 3252792,
+        "backingStorageSize": 1770904
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 2,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "columns-small",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4798572,
+        "totalSize": 5505024,
+        "embedderHeapUsedSize": 2961480,
+        "backingStorageSize": 1771499
+      },
+      "after": {
+        "usedSize": 4918140,
+        "totalSize": 6029312,
+        "embedderHeapUsedSize": 3114360,
+        "backingStorageSize": 1771499
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 2,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "baseline",
+      "shape": "columns-large",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4986324,
+        "totalSize": 5767168,
+        "embedderHeapUsedSize": 4319640,
+        "backingStorageSize": 1789344
+      },
+      "after": {
+        "usedSize": 5077248,
+        "totalSize": 6029312,
+        "embedderHeapUsedSize": 4673232,
+        "backingStorageSize": 1789344
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 3,
+        "canUndo": false,
+        "canRedo": true
+      }
+    },
+    {
+      "variant": "candidate",
+      "shape": "columns-large",
+      "iterations": 12,
+      "before": {
+        "usedSize": 4991892,
+        "totalSize": 5767168,
+        "embedderHeapUsedSize": 4289400,
+        "backingStorageSize": 1789939
+      },
+      "after": {
+        "usedSize": 5090704,
+        "totalSize": 6029312,
+        "embedderHeapUsedSize": 4560152,
+        "backingStorageSize": 1789939
+      },
+      "observation": {
+        "observedReleasedObjects": 1008,
+        "retainedReleasedObjects": 0,
+        "categories": {
+          "snapshot:envelope": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:blocks": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:data": {
+            "observed": 60,
+            "retained": 0
+          },
+          "snapshot:inline": {
+            "observed": 60,
+            "retained": 0
+          },
+          "transaction:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "transaction:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:changes": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:before:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "document:after:inline": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:envelope": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:blocks": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:data": {
+            "observed": 48,
+            "retained": 0
+          },
+          "onChange:inline": {
+            "observed": 48,
+            "retained": 0
+          }
+        },
+        "livePositiveControl": true,
+        "liveFieldControls": 3,
+        "canUndo": false,
+        "canRedo": true
+      }
+    }
+  ],
+  "claim": "Owned event copies and structural lifetime defects repaired. Full C09/T15 performance acceptance remains open: lower visits/allocation estimates do not establish consistent native or render-settled latency gains, and large Table public timings regressed in this recorded sample.",
+  "runCounts": {
+    "controls": 74,
+    "timings": 56,
+    "attribution": 56,
+    "memory": 14
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "v8": "13.6.233.17-node.58",
+    "platform": "linux",
+    "architecture": "x64",
+    "osRelease": "6.18.55",
+    "cpuModel": "AMD EPYC 7763 64-Core Processor",
+    "cpuCount": 9,
+    "memoryBytes": 10451439616,
+    "loadBefore": [
+      0.3,
+      0.25,
+      0.27
+    ],
+    "viewport": {
+      "width": 1100,
+      "height": 900
+    },
+    "browserArguments": [
+      "--no-sandbox",
+      "--disable-dev-shm-usage"
+    ],
+    "chromePath": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "browser": "156.0.8078.47",
+    "browserProtocol": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/156.0.8078.47",
+      "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "jsVersion": "15.6.75.19"
+    },
+    "loadAfter": [
+      1.95,
+      1.35,
+      0.72
+    ]
+  },
+  "boundaries": {
+    "synchronousMs": "Public command return, or trusted beforeinput through completed input event; includes schema, projection, history and event observers. No paint is inferred.",
+    "notificationMs": "Command/input start through scheduled onChange delivery, configured changeDebounceMs=0.",
+    "settledRenderOpportunityMs": "Start through notification then two animation frames, scheduled independently of native driver return; a render opportunity, not proof of a paint. No-ops include an explicit 50ms notification quiescence window.",
+    "trace": "Separate Chrome trace: actual Layout/Paint/UpdateLayoutTree records within marked command+notification+frame windows.",
+    "allocation": "Separate V8 statistical allocation profiles; sampled byte estimates include the full edit/undo/redo/reset sequence and oracle checks. Not retained heap size.",
+    "retention": "Separate forced-GC observations of released event envelopes, changes arrays, before/after data and inline roots, snapshot blocks/data/inline roots, with live positive controls. Counts are WeakRef observations, not distinct objects or proof about every nested descendant. Heap usage is an observation, not an allocation count."
+  }
+}
