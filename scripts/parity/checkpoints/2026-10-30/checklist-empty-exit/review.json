@@ -23,8 +23,12 @@
   "negativeControlsRejected": [
     "candidate",
     "candidate-unchanged-status",
+    "candidate-case-position",
+    "candidate-case-text",
+    "candidate-case-guard",
     "v1",
-    "spec-baseline"
+    "spec-baseline",
+    "spec-baseline-consistent-author-change"
   ],
   "candidateExemptions": 0
 }
