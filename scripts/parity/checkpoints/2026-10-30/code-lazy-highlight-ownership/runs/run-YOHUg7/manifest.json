@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/code-highlight-ownership",
+  "startedAt": "2026-10-30T18:58:44.629Z",
+  "finishedAt": "2026-10-30T19:00:52.771Z",
+  "outcome": "not-run",
+  "source": {
+    "head": "c6ae46135ba23562e1423abdf36868d3d9992ead",
+    "tree": "af927b42cfbe402043375c04bd10127ed4c1bc80",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "1baa08e8e2ba4656c17c63bef019ebf102360d11d6067d0616c319afb66fdc2b"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "sync-projection-control": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:58:44.910Z",
+      "finishedAt": "2026-10-30T18:58:45.184Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "plugins/code/lifecycle.test.js",
+        "shared/highlightRuntime.test.js"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/code-highlight-ownership",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "c6ae46135ba23562e1423abdf36868d3d9992ead",
+        "tree": "af927b42cfbe402043375c04bd10127ed4c1bc80",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "1baa08e8e2ba4656c17c63bef019ebf102360d11d6067d0616c319afb66fdc2b"
+      },
+      "elapsedMs": 271.029672,
+      "sourceAfter": {
+        "head": "c6ae46135ba23562e1423abdf36868d3d9992ead",
+        "tree": "af927b42cfbe402043375c04bd10127ed4c1bc80",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "1baa08e8e2ba4656c17c63bef019ebf102360d11d6067d0616c319afb66fdc2b"
+      },
+      "sourceUnchanged": true
+    },
+    "lazy-owner-red": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null
+    }
+  },
+  "sourceAfter": {
+    "head": "c6ae46135ba23562e1423abdf36868d3d9992ead",
+    "tree": "af927b42cfbe402043375c04bd10127ed4c1bc80",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "1baa08e8e2ba4656c17c63bef019ebf102360d11d6067d0616c319afb66fdc2b"
+  },
+  "sourceUnchanged": true
+}

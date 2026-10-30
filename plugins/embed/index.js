@@ -26,7 +26,7 @@ const PLACEHOLDER = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="
  * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile] Upload an image used as a custom video cover.
  * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{ url: string } | null> }>} [actions] Additional cover-source actions shown by the block.
  * @property {false | ((request: { service: 'vimeo', videoId: string, url: string, signal: AbortSignal }) => Promise<{ thumbnailUrl: string, title?: string } | null>)} [resolvePreview] Resolve Vimeo preview metadata, or disable preview resolution with false.
- * @property {number} [previewTimeoutMs] Timeout for the built-in Vimeo preview request.
+ * @property {number} [previewTimeoutMs] Timeout for custom and built-in Vimeo preview resolution.
  * @property {boolean} [injectStyles=true] Whether to acquire the built-in Embed stylesheet.
  * @property {string} [css] Additional stylesheet URL acquired with the definition.
  */
@@ -293,7 +293,23 @@ export function createEmbedPlugin(config = {}) {
           const resolvePreview = async player => {
             if (data.service !== 'vimeo' || data.cover || !data.videoId || snapshot.resolvePreview === false) return
             const controller = beginPreview()
+            const timerHost = document.defaultView ?? globalThis
+            let timer
+            const clearTimer = () => {
+              if (timer === undefined) return
+              const pending = timer
+              timer = undefined
+              try { timerHost.clearTimeout(pending) } catch {
+                // Preview cleanup must also remain a presentation-only failure.
+              }
+            }
             try {
+              const timeout = Number.isFinite(snapshot.previewTimeoutMs)
+                ? Math.max(0, Number(snapshot.previewTimeoutMs))
+                : 5000
+              const DOMExceptionCtor = document.defaultView?.DOMException ?? DOMException
+              timer = timerHost.setTimeout(() => controller.abort(new DOMExceptionCtor('Embed preview timed out', 'TimeoutError')), timeout)
+              controller.signal.addEventListener('abort', clearTimer, { once: true })
               const request = {
                 service: /** @type {'vimeo'} */ ('vimeo'),
                 videoId: data.videoId,
@@ -305,29 +321,27 @@ export function createEmbedPlugin(config = {}) {
                 result = await snapshot.resolvePreview(request)
               } else {
                 const fetchFn = document.defaultView?.fetch ?? globalThis.fetch
-                const timeout = Number.isFinite(snapshot.previewTimeoutMs)
-                  ? Math.max(0, Number(snapshot.previewTimeoutMs))
-                  : 5000
-                const timer = (document.defaultView ?? globalThis).setTimeout(() => controller.abort(), timeout)
-                try {
-                  const response = await fetchFn('https://vimeo.com/api/oembed.json?url=' + encodeURIComponent(request.url), { signal: controller.signal })
-                  if (response.ok) {
-                    const json = await response.json()
-                    result = {
-                      thumbnailUrl: typeof json.thumbnail_url === 'string' ? json.thumbnail_url : '',
-                      title: typeof json.title === 'string' ? json.title : '',
-                    }
+                const response = await fetchFn('https://vimeo.com/api/oembed.json?url=' + encodeURIComponent(request.url), { signal: controller.signal })
+                if (response.ok) {
+                  const json = await response.json()
+                  result = {
+                    thumbnailUrl: typeof json.thumbnail_url === 'string' ? json.thumbnail_url : '',
+                    title: typeof json.title === 'string' ? json.title : '',
                   }
-                } finally {
-                  ;(document.defaultView ?? globalThis).clearTimeout(timer)
                 }
               }
               if (controller.signal.aborted || dead || !result?.thumbnailUrl) return
               const safe = sanitizeMediaUrl(result.thumbnailUrl)
               if (!safe) return
-              player.setPreview(safe, result.title)
+              const title = result.title
+              context.getData()
+              if (controller.signal.aborted || dead || player.player.parentNode !== view || view.parentNode !== wrapper) return
+              player.setPreview(safe, title)
             } catch {
               // Preview is presentation-only; failures leave canonical data unchanged.
+            } finally {
+              clearTimer()
+              controller.signal.removeEventListener('abort', clearTimer)
             }
           }
 

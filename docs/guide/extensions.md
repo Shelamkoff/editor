@@ -45,7 +45,7 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `ownerDocument` | Create DOM and browser objects in the editor's realm. |
 | `signal` | Abort signal for this block occurrence. |
 | `restoring` | Captured at creation: `true` when reconstructing history or recovering failed projection. Later updates of that instance do not change the flag. Do not repeat automatic author-side metadata requests for restored snapshots; resources needed to display accepted content may still be acquired. Explicit user actions retain their current scoped authority. |
-| `getData()` | Read current canonical block data. |
+| `getData()` | Read current canonical block data while the original block occurrence still owns its root and shell. |
 | `getFieldText(fieldKey)` | Read plain text of a canonical rich field declared by `schema.mapRichText()`, including an unmounted field. |
 | `updateData(producer)` | Commit a synchronous model-first block-data transaction. |
 | `beginTask()` | Create revocable authority for one asynchronous persisted result. |
@@ -55,6 +55,8 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `isReadOnly()` | Current mutation eligibility. |
 
 The inherited `createId(prefix)` allocator creates nested stable identities.
+
+`getData()` validates that original block owner before reading and after capturing its immutable snapshot. Construction and update candidates may read their prospective data, and read-only blocks retain ordinary read access. A retained context cannot authorize a fresh asynchronous view update after its root or shell is adopted elsewhere. Report that failed read without retrying the same view write from the error handler.
 
 ### Canonical text for unmounted fields
 

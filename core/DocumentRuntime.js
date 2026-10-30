@@ -1227,7 +1227,7 @@ export class DocumentRuntime {
       selectionBefore: snapshot.selectionBefore,
       preserveSourceProjection: true,
       nativeInlineCandidate: () => candidateInline,
-      finalizeNativeInline: next => snapshot.finalizeChanges?.(capturedChanges,next.inline),
+      finalizeNativeProjection: next => snapshot.finalizeChanges?.(capturedChanges,next.inline),
     })
     const status = this.revision === beforeRevision ? 'unchanged' : 'committed'
     snapshot.settle?.(capturedChanges,status)
@@ -1278,10 +1278,12 @@ export class DocumentRuntime {
         const next = this.#recordFromData(
           current.id, current.type, definition, readData, current.tunes, inlineSource,
         )
-        if (metadata.finalizeNativeInline) completedSourceFieldKey=metadata.finalizeNativeInline(next)
         // Native projection reads may preserve meaning with a different
-        // JSON key order. Only an actual semantic change creates history.
-        if (!canonicalRecordsEqual(current, next)) updates.push([id, next])
+        // JSON key order. Completion may still be needed for settled native
+        // author DOM, but only an actual semantic change creates history.
+        const changed = !canonicalRecordsEqual(current, next)
+        if (metadata.finalizeNativeProjection) completedSourceFieldKey=metadata.finalizeNativeProjection(next, changed)
+        if (changed) updates.push([id, next])
       }
 
       if (updates.length) {
@@ -1671,7 +1673,10 @@ export class DocumentRuntime {
 
     const authority = scope.createAuthority({
       prepareValue: operation => this.prepareExtensionValue(operation),
-      readData: () => currentRecord().data,
+      readData: () => {
+        assertReadOwner()
+        return currentRecord().data
+      },
       updateData: (producer, options) => {
         this.update(id, current => ({
           data: producer(current.data),
@@ -1726,6 +1731,11 @@ export class DocumentRuntime {
     let context
     context = Object.freeze({
       ...authority,
+      getData: () => {
+        const data = authority.getData()
+        assertReadOwner()
+        return data
+      },
       getFieldText,
       ownerDocument: this.#ownerDocument,
       signal,

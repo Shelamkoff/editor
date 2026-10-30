@@ -1,0 +1,18 @@
+{
+  "source": "6c2a48d1ea4ebd0014bd2fb4573738db2c3593e6",
+  "startedAt": "2026-10-30T19:52:19.448249+00:00",
+  "outcome": "passed",
+  "gates": {
+    "native": 0,
+    "heap": 0
+  },
+  "directory": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final3/test-results/run-MKgB9Y",
+  "current": "heap",
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-30T20:10:44.624064+00:00",
+  "completeResultsVerified": true,
+  "nativeGroupCount": 43,
+  "nativeCases": 2481,
+  "heapSentinels": 23,
+  "heapRetained": 0
+}

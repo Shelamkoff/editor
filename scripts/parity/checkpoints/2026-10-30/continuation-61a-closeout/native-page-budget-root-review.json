@@ -1,0 +1,20 @@
+{
+  "source": "6c2a48d1ea4ebd0014bd2fb4573738db2c3593e6",
+  "archive": "/workspace/scratch/61a2ad7355f4/worktrees/native-code-copy-page/scripts/parity/checkpoints/2026-10-30/native-page-budget-61a",
+  "verifiedArtifacts": 22,
+  "verifiedOriginals": 20,
+  "originalCases": 376,
+  "observedCases": 376,
+  "exactMultisetPreserved": true,
+  "assertionsHarnessAndWholeDeadlineFunctionUnchanged": true,
+  "deadlineMs": 120000,
+  "recordedDeadlineDigestScope": "Body after function signature through closing brace/newlines before the next function declaration; checked separately from whole-function byte equality.",
+  "stylesheetLinksPerNewPage": 24,
+  "caseCounts": [
+    10,
+    33,
+    333
+  ],
+  "nativeArrayGroups": 43,
+  "topLevelSummaryKeys": 46
+}

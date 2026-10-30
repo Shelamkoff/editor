@@ -1577,6 +1577,61 @@ test('block instance DataTask inherits plugin authoring provenance through Docum
   runtime.destroy()
 })
 
+for (const boundary of ['before', 'record', 'snapshot']) {
+  test(`block getData validates its existing projection owner across ${boundary} capture`, () => {
+    let contextFactory, reads = 0, owned = boundary !== 'before'
+    const fault = new Error('Controlled block owner loss')
+    const runtime = new DocumentRuntime({
+      registry: registry([paragraphDefinition()]),
+      data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
+      projectorFactory({ contextFactory: createContext }) {
+        contextFactory = createContext
+        return { mount() {}, destroy() {} }
+      },
+    })
+    const controller = new AbortController(), scope = new InstanceScope({ generation: runtime.generation })
+    const context = contextFactory('a', 'paragraph', controller.signal, () => {
+      reads++
+      if (boundary === 'record') owned = false
+      const data = boundary === 'snapshot' ? { get text() { owned = false; return 'Alpha' } } : { text: 'Alpha' }
+      return { ...runtime.get('a'), data }
+    }, scope, () => { if (!owned) throw fault })
+    try {
+      assert.throws(() => context.getData(), error => error === fault)
+      assert.equal(reads, boundary === 'before' ? 0 : 1)
+      assert.deepEqual(runtime.get('a').data, { text: 'Alpha' })
+      assert.equal(runtime.canUndo, false)
+    } finally { controller.abort(); runtime.destroy() }
+  })
+}
+
+test('block getData keeps prospective, active and read-only snapshots while rejecting revoked contexts', () => {
+  let contextFactory
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
+    projectorFactory({ contextFactory: createContext }) {
+      contextFactory = createContext
+      return { mount() {}, destroy() {} }
+    },
+  })
+  const controller = new AbortController(), scope = new InstanceScope({ staged: true, generation: runtime.generation })
+  let candidate = { ...runtime.get('a'), data: { text: 'Prospective' } }
+  const context = contextFactory('a', 'paragraph', controller.signal, () => candidate, scope, () => {})
+  try {
+    const staged = context.getData()
+    assert.deepEqual(staged, { text: 'Prospective' })
+    assert.equal(Object.isFrozen(staged), true)
+    assert.notEqual(staged, candidate.data)
+    candidate = runtime.get('a'); scope.activate(runtime.generation)
+    assert.deepEqual(context.getData(), { text: 'Alpha' })
+    scope.setReadOnly(true)
+    assert.deepEqual(context.getData(), { text: 'Alpha' })
+    controller.abort()
+    assert.throws(() => context.getData(), error => error?.name === 'AbortError')
+  } finally { controller.abort(); runtime.destroy() }
+})
+
 test('shortcut capability receives the owning editor document rather than ambient document', () => {
   const ownerDocument = Object.freeze({ kind: 'owning-editor-realm' })
   let received = null

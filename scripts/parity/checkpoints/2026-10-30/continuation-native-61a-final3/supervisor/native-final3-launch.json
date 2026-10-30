@@ -1,0 +1,7 @@
+{
+  "pid": 282944,
+  "source": "6c2a48d1ea4ebd0014bd2fb4573738db2c3593e6",
+  "supervisor": "/workspace/scratch/61a2ad7355f4/tools/verify-native-continuation-final3.py",
+  "status": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final3/status.json",
+  "log": "/workspace/scratch/61a2ad7355f4/tools/native-final3-launch.log"
+}

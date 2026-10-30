@@ -405,6 +405,11 @@ export function createCarouselPlugin(config={}){
             if(dead||data.slides.length<2||!data.options.autoplay)return
             const delay=Math.max(250,Number(data.options.autoplayDelay)||3000)
             autoplayTimer=(document.defaultView??globalThis).setTimeout(()=>{
+              autoplayTimer=null
+              if(dead||context.signal.aborted)return
+              // A delayed view update must still belong to the original
+              // block owner before project() replaces any author DOM.
+              try{context.getData()}catch{return}
               activate(activeIndex+1)
               scheduleAutoplay()
             },delay)

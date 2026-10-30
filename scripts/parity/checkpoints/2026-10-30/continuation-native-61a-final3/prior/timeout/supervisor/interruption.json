@@ -1,0 +1,74 @@
+{
+  "observedAt": "2026-10-30T19:31:17.756284+00:00",
+  "previousRun": "run-2n1RIx",
+  "classification": "interrupted-incomplete",
+  "reason": "No supervisor, recorder or physical-history Node process remained; only positively identified orphan test resources remained. Original native gate has no exit code or final result; heap never started.",
+  "nativeProgressLines": 10,
+  "completeNativeResultAvailable": false,
+  "productFailureInferred": false,
+  "originalPayloads": [
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-2n1RIx/manifest.json",
+      "bytes": 2428,
+      "sha256": "e9d024ad28bac845e5bcb17c0e624dced06fbe4199f9117cfdde640165a01dd0"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-2n1RIx/native.log",
+      "bytes": 482,
+      "sha256": "a175c9fa5904864b51bcead11df1dd2e749451283575d078960b266df1966eb5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-2n1RIx/native.wrapper.log",
+      "bytes": 482,
+      "sha256": "a175c9fa5904864b51bcead11df1dd2e749451283575d078960b266df1966eb5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/documentation-successor.json",
+      "bytes": 14364,
+      "sha256": "980ed3efec4e17283bef4b7128c66b5d437e3c8e2d1b41260f9a97a75ffbefb8"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/init.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/init.stdout.log",
+      "bytes": 93,
+      "sha256": "c777820d9be6664af8648a6565901a39d7a7876ceec09172ccd80ac435fd0fff"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/preflight.json",
+      "bytes": 10135,
+      "sha256": "7eac6a547f3f4c8b1419892eb804caa03edd20041127c0bc131d07dfab99486f"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/setup.log",
+      "bytes": 154,
+      "sha256": "eb17e6d3f109a6233a4d179024886ecce4022e723ac5bbe9a0161034bcc9960c"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/status.json",
+      "bytes": 283,
+      "sha256": "506567932eebae859310812c8075e5d63af8ed2f1f4a61402babdbc784827cd5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/supervisor.log",
+      "bytes": 316,
+      "sha256": "01bcad07c6808961b8ea26792fdce49a8a7279f4616fdd55740fd9beeb3c6ff7"
+    }
+  ],
+  "terminatedOwnedOrphans": [
+    {
+      "pid": 214387,
+      "matchedCommand": "214387       1     838 /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/node_modules/vite/bin/vite.js --host 127.0.0.1 --port 36855 --strictPort",
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 214407,
+      "matchedCommand": "214407       1     838 /workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage --window-size=1400,1000 --remote-debugging-port=39733 --user-data-dir=/tmp/ophire-editor-physical-history-PCld0d http://127.0.0.1:36855/tests/browser/physical-history.html",
+      "signal": "SIGTERM"
+    }
+  ],
+  "unrelatedChromePid25669Touched": false
+}

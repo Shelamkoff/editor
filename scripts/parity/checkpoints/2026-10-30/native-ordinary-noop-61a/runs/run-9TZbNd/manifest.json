@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+  "startedAt": "2026-10-30T18:23:29.822Z",
+  "finishedAt": "2026-10-30T18:23:38.214Z",
+  "outcome": "passed",
+  "source": {
+    "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+    "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "7b79da5af337d1036d824bca2920c67e11980f5ec9b55ede684b9f0f10d67b1d"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "affected-node": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:23:30.094Z",
+      "finishedAt": "2026-10-30T18:23:30.350Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "core/NativeInputController.test.js",
+        "core/DocumentRuntime.test.js",
+        "core/BlockReconciler.test.js",
+        "core/InlineWidgetInputController.test.js",
+        "core/TransactionEngine.test.js"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+        "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "7b79da5af337d1036d824bca2920c67e11980f5ec9b55ede684b9f0f10d67b1d"
+      },
+      "elapsedMs": 253.90794100000002,
+      "sourceAfter": {
+        "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+        "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "7b79da5af337d1036d824bca2920c67e11980f5ec9b55ede684b9f0f10d67b1d"
+      },
+      "sourceUnchanged": true
+    },
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:23:30.524Z",
+      "finishedAt": "2026-10-30T18:23:38.115Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+        "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "7b79da5af337d1036d824bca2920c67e11980f5ec9b55ede684b9f0f10d67b1d"
+      },
+      "elapsedMs": 7587.848566000001,
+      "sourceAfter": {
+        "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+        "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "7b79da5af337d1036d824bca2920c67e11980f5ec9b55ede684b9f0f10d67b1d"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "11e91a50ca2f9e44139d768018d547fc00016162",
+    "tree": "d2599e4fb5c301b5028d69da78b5a4037ad7daff",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "7b79da5af337d1036d824bca2920c67e11980f5ec9b55ede684b9f0f10d67b1d"
+  },
+  "sourceUnchanged": true
+}

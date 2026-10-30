@@ -4,7 +4,7 @@ import { snapshotConfigMethods } from '../shared/configRecords.js'
 import { synchronousResult } from '../../shared/synchronousResult.js'
 import { pollDataSchema } from '../../shared/blockSchemas/poll.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
-import { setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
+import { sanitizeHtml, setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import {
@@ -151,7 +151,7 @@ export function createPollPlugin(config={}){
           const ViewAbortController=document.defaultView?.AbortController??AbortController
           let authorViewController=null
           let runtimeViewController=null
-          /** @type {Map<string,{field:HTMLElement,row:HTMLElement,list:HTMLElement,completed:boolean}>} */
+          /** @type {Map<string,{field:HTMLElement,row:HTMLElement,list:HTMLElement,completedHtml:string|null}>} */
           const optionViews=new Map()
           /** @type {Map<string,{label:HTMLElement,row:HTMLElement,results:HTMLElement}>} */
           const resultViews=new Map()
@@ -161,38 +161,24 @@ export function createPollPlugin(config={}){
             &&view.label.parentNode===view.row&&view.row.parentNode===view.results&&view.results.parentNode===wrapper
           const completeResult=id=>{
             const source=optionViews.get(id),target=resultViews.get(id)
-            if(!source?.completed||!ownsOption(source)||!ownsResult(target))return
-            const container=document.createElement('div')
-            const append=(parent,destination)=>{
-              for(const node of parent.childNodes){
-                if(node.nodeType===3){destination.appendChild(document.createTextNode(node.textContent??''));continue}
-                if(node.nodeType!==1)continue
-                const element=/** @type {Element} */(node)
-                // Auxiliary labels retain author marks, but never acquire a
-                // second widget occurrence or interpret its private payload.
-                if(element.hasAttribute('data-inline-plugin')){
-                  destination.appendChild(document.createTextNode(element.textContent??''))
-                  continue
-                }
-                if(element.matches('button,input,textarea,select,[contenteditable],[data-oe-caret-padding]'))continue
-                const copy=element.cloneNode(false)
-                append(element,copy)
-                destination.appendChild(copy)
-              }
-            }
-            append(source.field,container)
-            const html=container.innerHTML||'—'
-            if(optionViews.get(id)===source&&resultViews.get(id)===target&&ownsOption(source)&&ownsResult(target)){
-              setSanitizedHtml(target.label,html)
-            }
+            if(!source||source.completedHtml===null||!ownsOption(source)||!ownsResult(target))return
+            setSanitizedHtml(target.label,source.completedHtml)
           }
           context.signal.addEventListener('abort',()=>{
             authorViewController?.abort()
             runtimeViewController?.abort()
           },{once:true})
 
-          const report=error=>{
-            if(!dead){failed=true;projectRuntime()}
+          const report=(error,repaint=true)=>{
+            if(!dead){
+              failed=true
+              if(repaint){
+                try{projectRuntime()}
+                catch(presentationError){
+                  error=new AggregateError([error,presentationError],'Poll failure presentation failed',{cause:error})
+                }
+              }
+            }
             if(snapshot.onError){
               try{
                 const observed=snapshot.onError(error)
@@ -291,7 +277,7 @@ export function createPollPlugin(config={}){
 
 
                 list.appendChild(row)
-                optionViews.set(option.id,{field:text,row,list,completed:false})
+                optionViews.set(option.id,{field:text,row,list,completedHtml:null})
               })
               wrapper.appendChild(list)
 
@@ -412,17 +398,16 @@ export function createPollPlugin(config={}){
             }
           }
 
-          const projectRuntime=()=>retainControlFocus(wrapper,()=>{
+          const projectRuntime=()=>{
             // Native source projections may commit without calling update().
-            // Read authoring data from the current canonical owner, not an old cache.
-            data=cloneData(context.getData())
-            project(true)
-          })
+            // Admit the current canonical owner before touching its view.
+            const next=cloneData(context.getData())
+            retainControlFocus(wrapper,()=>{data=next;project(true)})
+          }
 
-          const syncAuthoring=()=>{
-            if(readOnly||dead)return
-            // Core serializes owned inline occurrences into canonical references.
-            context.commitDomMutation(()=>{})
+          const refreshRuntime=()=>{
+            try{projectRuntime();return true}
+            catch(error){report(error,false);return false}
           }
 
           const disposeSubscription=()=>{
@@ -459,7 +444,7 @@ export function createPollPlugin(config={}){
                     if(dead||connectionController.signal.aborted||version!==connectionVersion)return
                     loadVersion++
                     loading=false
-                    try{if(acceptResults(results))projectRuntime()}
+                    try{if(acceptResults(results))refreshRuntime()}
                     catch(error){report(error)}
                   },
                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
@@ -475,18 +460,20 @@ export function createPollPlugin(config={}){
                 if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)
               }
             }
+            let loadFailure
             void Promise.resolve().then(()=>{
               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return undefined
               return snapshot.dataSource.load({pollId:data.pollId,signal:connectionController.signal})
             }).then(results=>{
               if(results===undefined||dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
-              if(acceptResults(results))projectRuntime()
+              acceptResults(results)
             }).catch(error=>{
-              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)report(error)
+              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)loadFailure={error}
             }).finally(()=>{
               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
               loading=false
-              projectRuntime()
+              if(loadFailure)report(loadFailure.error)
+              else refreshRuntime()
             })
           }
 
@@ -502,7 +489,7 @@ export function createPollPlugin(config={}){
               next.add(optionId)
             }
             selected=next
-            projectRuntime()
+            refreshRuntime()
           }
 
           const submitVote=async ()=>{
@@ -531,7 +518,13 @@ export function createPollPlugin(config={}){
             context.signal.addEventListener('abort',abort,{once:true,signal:pendingVote.signal})
             submitting=true
             failed=false
-            projectRuntime()
+            if(!refreshRuntime()){
+              submitting=false
+              voteController=null
+              pendingVote.abort()
+              return
+            }
+            let voteFailure
             try{
               const results=await snapshot.dataSource.vote({
                 pollId:data.pollId,
@@ -542,23 +535,21 @@ export function createPollPlugin(config={}){
               if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote){
                 hasVoted=true
                 acceptResults(results)
-                projectRuntime()
               }
             }catch(error){
-              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)report(error)
+              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)voteFailure={error}
             }finally{
               if(voteController===pendingVote){
                 voteController=null
                 submitting=false
-                if(!dead)projectRuntime()
+                if(!dead){
+                  if(voteFailure)report(voteFailure.error)
+                  else refreshRuntime()
+                }
               }
               pendingVote.abort()
             }
           }
-
-          wrapper.addEventListener('focusout',event=>{
-            if(!readOnly&&wrapper.contains(/** @type {Node} */(event.target)))queueMicrotask(syncAuthoring)
-          },{signal:context.signal})
 
           project()
           connect()
@@ -617,8 +608,32 @@ export function createPollPlugin(config={}){
               if(field.mode!=='rich-text'||!field.key.startsWith('option:'))return
               const id=field.key.slice('option:'.length),view=optionViews.get(id)
               if(!view||view.field!==field.element||!ownsOption(view))return
-              view.completed=true
-              completeResult(id)
+              const target=resultViews.get(id)
+              const container=document.createElement('div')
+              const append=(parent,destination)=>{
+                for(const node of parent.childNodes){
+                  if(node.nodeType===3){destination.appendChild(document.createTextNode(node.textContent??''));continue}
+                  if(node.nodeType!==1)continue
+                  const element=/** @type {Element} */(node)
+                  // Auxiliary labels retain author marks, but never acquire a
+                  // second widget occurrence or interpret its private payload.
+                  if(element.hasAttribute('data-inline-plugin')){
+                    destination.appendChild(document.createTextNode(element.textContent??''))
+                    continue
+                  }
+                  if(element.matches('button,input,textarea,select,[contenteditable],[data-oe-caret-padding]'))continue
+                  const copy=element.cloneNode(false)
+                  append(element,copy)
+                  destination.appendChild(copy)
+                }
+              }
+              append(view.field,container)
+              const html=sanitizeHtml(container.innerHTML||'—',document)
+              if(optionViews.get(id)!==view||!ownsOption(view))return
+              // Provider-only refreshes reuse this completed value; they do
+              // not admit arbitrary author DOM between core completions.
+              view.completedHtml=html
+              if(resultViews.get(id)===target&&ownsResult(target))completeResult(id)
             },
             setReadOnly(value){
               readOnly=value

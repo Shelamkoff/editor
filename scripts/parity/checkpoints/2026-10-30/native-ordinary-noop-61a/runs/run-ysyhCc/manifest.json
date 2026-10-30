@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+  "startedAt": "2026-10-30T18:15:42.867Z",
+  "finishedAt": "2026-10-30T18:15:45.846Z",
+  "outcome": "failed",
+  "source": {
+    "head": "a6863077ca3c6bdf63e17a49e39de752e6f9fb68",
+    "tree": "92f5cb9cc3acade5c9853fcdea89405163eafa30",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "f1d6e4784978ea9e3c47c4bc1b0119b7df22d4e8c842bc7dff62e6e3120ca356"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-library-boundaries.html",
+      "EDITOR_NATIVE_FILTER": "field source completion trusted same-character",
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "ordinary-noop-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:15:43.124Z",
+      "finishedAt": "2026-10-30T18:15:45.733Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-library-boundaries.html",
+          "EDITOR_NATIVE_FILTER": "field source completion trusted same-character",
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "a6863077ca3c6bdf63e17a49e39de752e6f9fb68",
+        "tree": "92f5cb9cc3acade5c9853fcdea89405163eafa30",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f1d6e4784978ea9e3c47c4bc1b0119b7df22d4e8c842bc7dff62e6e3120ca356"
+      },
+      "elapsedMs": 2606.383236,
+      "sourceAfter": {
+        "head": "a6863077ca3c6bdf63e17a49e39de752e6f9fb68",
+        "tree": "92f5cb9cc3acade5c9853fcdea89405163eafa30",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f1d6e4784978ea9e3c47c4bc1b0119b7df22d4e8c842bc7dff62e6e3120ca356"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "a6863077ca3c6bdf63e17a49e39de752e6f9fb68",
+    "tree": "92f5cb9cc3acade5c9853fcdea89405163eafa30",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "f1d6e4784978ea9e3c47c4bc1b0119b7df22d4e8c842bc7dff62e6e3120ca356"
+  },
+  "sourceUnchanged": true
+}

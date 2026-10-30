@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-30T19:02:10.450013+00:00",
+  "base": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "testedSource": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+  "testedTree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+  "commitObjectBase64": "dHJlZSA2ZjllOWYyNDBmMDRjNTU5OGNhMzI5NTYyYTUzOTdkNzRiYWNkODVkCnBhcmVudCAxMTZkY2I0ZTkyZTQwZWVjMzc0MWUxY2VhZjk2OWVlYWExNjk0ZjRmCmF1dGhvciBDb2RleCA8Y29kZXhAb3BlbmFpLmNvbT4gMTc5MzM4NjgxNiArMDMwMApjb21taXR0ZXIgQ29kZXggPGNvZGV4QG9wZW5haS5jb20+IDE3OTMzODY4MTYgKzAzMDAKCmZpeChjYXJvdXNlbCk6IGFkbWl0IGF1dG9wbGF5IHRocm91Z2ggdGhlIGN1cnJlbnQgYmxvY2sgb3duZXIK",
+  "runs": [
+    {
+      "run": "run-x3gaSD",
+      "source": {
+        "head": "116dcb4e92e40eec3741e1ceaf969eeaa1694f4f",
+        "tree": "99546f6196c9df566e07ef17f5c66ca6e6da8ce1",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "97bd3d9b5aa6be4309ed004d423aaa36f58b953cb77d8c94bac63806d4cc08dc"
+      },
+      "outcome": "failed",
+      "sourceUnchanged": true,
+      "gates": {
+        "projection-red": {
+          "outcome": "failed",
+          "startedAt": "2026-10-30T18:56:48.704Z",
+          "finishedAt": "2026-10-30T18:56:58.761Z",
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership",
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.57",
+            "runner": {},
+            "selection": {
+              "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+              "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+            }
+          },
+          "sourceBefore": {
+            "head": "116dcb4e92e40eec3741e1ceaf969eeaa1694f4f",
+            "tree": "99546f6196c9df566e07ef17f5c66ca6e6da8ce1",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "97bd3d9b5aa6be4309ed004d423aaa36f58b953cb77d8c94bac63806d4cc08dc"
+          },
+          "elapsedMs": 10047.846867,
+          "sourceAfter": {
+            "head": "116dcb4e92e40eec3741e1ceaf969eeaa1694f4f",
+            "tree": "99546f6196c9df566e07ef17f5c66ca6e6da8ce1",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "97bd3d9b5aa6be4309ed004d423aaa36f58b953cb77d8c94bac63806d4cc08dc"
+          },
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-Q12Bgv",
+      "source": {
+        "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+        "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+      },
+      "outcome": "passed",
+      "sourceUnchanged": true,
+      "gates": {
+        "projection-green": {
+          "outcome": "passed",
+          "startedAt": "2026-10-30T19:00:16.338Z",
+          "finishedAt": "2026-10-30T19:00:26.438Z",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership",
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.57",
+            "runner": {},
+            "selection": {
+              "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+              "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+            }
+          },
+          "sourceBefore": {
+            "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+            "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+          },
+          "elapsedMs": 10097.339853,
+          "sourceAfter": {
+            "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+            "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+          },
+          "sourceUnchanged": true
+        },
+        "carousel-units": {
+          "outcome": "passed",
+          "startedAt": "2026-10-30T19:00:26.627Z",
+          "finishedAt": "2026-10-30T19:00:26.751Z",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "node",
+            "--test",
+            "plugins/carousel/settings-lifecycle.test.js"
+          ],
+          "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership",
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.57",
+            "runner": {},
+            "selection": {
+              "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+              "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+            }
+          },
+          "sourceBefore": {
+            "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+            "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+          },
+          "elapsedMs": 118.50462799999997,
+          "sourceAfter": {
+            "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+            "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+          },
+          "sourceUnchanged": true
+        },
+        "typecheck": {
+          "outcome": "passed",
+          "startedAt": "2026-10-30T19:00:26.921Z",
+          "finishedAt": "2026-10-30T19:00:34.119Z",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership",
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.57",
+            "runner": {},
+            "selection": {
+              "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+              "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+            }
+          },
+          "sourceBefore": {
+            "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+            "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+          },
+          "elapsedMs": 7195.644376,
+          "sourceAfter": {
+            "head": "e2b75c59fdf1bc019e35f514ca0dbf7571710c02",
+            "tree": "6f9e9f240f04c5598ca329562a5397d74bacd85d",
+            "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+            "untracked": [],
+            "dirty": false,
+            "identity": "235b9a418f2de486854000b2c6a7ac0348a6efb9936c38576c260159439c46ac"
+          },
+          "sourceUnchanged": true
+        }
+      }
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "plugins/carousel/index.js",
+      "bytes": 44156,
+      "sha256": "723777cc2811a7dd0c163006d7b670aa51a1eb7c799a97e91139a22f896891d7"
+    },
+    {
+      "path": "tests/browser/projection-contracts.js",
+      "bytes": 75520,
+      "sha256": "043022bcf293def7c6ea8d86c21f567f0333a5bc17662a57abd8dd3d83833544"
+    },
+    {
+      "path": "tests/browser/regressions/carousel-autoplay-ownership.js",
+      "bytes": 3156,
+      "sha256": "d152250b8f0a9dc5e3de3455f4ead3004c1dc964462080f973363fe82152014f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "runs/run-x3gaSD/browser-projection-contracts.html.json.gz",
+      "storedBytes": 6765,
+      "storedSha256": "3d4cfc5e9c16f5168388bb0db718018dffe7ee93a25151920e90fa36c2fdf26b",
+      "rawBytes": 51132,
+      "rawSha256": "9d4935bffe8ee77d57a13e2290b215be6d281014da5ce090904af503c07dfd91",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-x3gaSD/browser-projection-contracts.html.json"
+    },
+    {
+      "path": "runs/run-x3gaSD/manifest.json",
+      "storedBytes": 3437,
+      "storedSha256": "c539f686a70d8460b4e61228894f73aca3e4d6b4e061c8ba8d2ce4431c6e1039",
+      "rawBytes": 3437,
+      "rawSha256": "c539f686a70d8460b4e61228894f73aca3e4d6b4e061c8ba8d2ce4431c6e1039",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-x3gaSD/manifest.json"
+    },
+    {
+      "path": "runs/run-x3gaSD/projection-red.log.gz",
+      "storedBytes": 1338,
+      "storedSha256": "39d22d4f207883819ae3bdcee44bda5bfc5b18fa42f9de0895267ecf31dfd923",
+      "rawBytes": 5678,
+      "rawSha256": "df2c91a847c99ce5cbdde8add3fdac60c43172a923e080720f9ead444130e07f",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-x3gaSD/projection-red.log"
+    },
+    {
+      "path": "runs/run-x3gaSD/projection-red.wrapper.log.gz",
+      "storedBytes": 1338,
+      "storedSha256": "39d22d4f207883819ae3bdcee44bda5bfc5b18fa42f9de0895267ecf31dfd923",
+      "rawBytes": 5678,
+      "rawSha256": "df2c91a847c99ce5cbdde8add3fdac60c43172a923e080720f9ead444130e07f",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-x3gaSD/projection-red.wrapper.log"
+    },
+    {
+      "path": "runs/run-Q12Bgv/carousel-units.log.gz",
+      "storedBytes": 212,
+      "storedSha256": "8a970238415852a96b8fedcfea42ba2719f3cfa9bb1e9a3396eebc0d2180bc78",
+      "rawBytes": 304,
+      "rawSha256": "a7d0b58ba2c583674116ead5b310dff88b904dff8e47fb1f3ab8b93468eeaecf",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/carousel-units.log"
+    },
+    {
+      "path": "runs/run-Q12Bgv/carousel-units.wrapper.log.gz",
+      "storedBytes": 212,
+      "storedSha256": "8a970238415852a96b8fedcfea42ba2719f3cfa9bb1e9a3396eebc0d2180bc78",
+      "rawBytes": 304,
+      "rawSha256": "a7d0b58ba2c583674116ead5b310dff88b904dff8e47fb1f3ab8b93468eeaecf",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/carousel-units.wrapper.log"
+    },
+    {
+      "path": "runs/run-Q12Bgv/manifest.json",
+      "storedBytes": 7191,
+      "storedSha256": "85ae6ec1d9fa1c6e82d6bb6200be566ab2f1540f8f9c23df1037f39586e50e34",
+      "rawBytes": 7191,
+      "rawSha256": "85ae6ec1d9fa1c6e82d6bb6200be566ab2f1540f8f9c23df1037f39586e50e34",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/manifest.json"
+    },
+    {
+      "path": "runs/run-Q12Bgv/projection-green.log.gz",
+      "storedBytes": 4660,
+      "storedSha256": "c4268695adab657475895538898babf4da20a30cf016cda7406b35bb86d3eb32",
+      "rawBytes": 26956,
+      "rawSha256": "749c777b668170a4529450ffe26c4c87ff9131bffd8d1399a8f17d4b76570916",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/projection-green.log"
+    },
+    {
+      "path": "runs/run-Q12Bgv/projection-green.wrapper.log.gz",
+      "storedBytes": 4660,
+      "storedSha256": "c4268695adab657475895538898babf4da20a30cf016cda7406b35bb86d3eb32",
+      "rawBytes": 26956,
+      "rawSha256": "749c777b668170a4529450ffe26c4c87ff9131bffd8d1399a8f17d4b76570916",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/projection-green.wrapper.log"
+    },
+    {
+      "path": "runs/run-Q12Bgv/typecheck.log.gz",
+      "storedBytes": 185,
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawBytes": 259,
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/typecheck.log"
+    },
+    {
+      "path": "runs/run-Q12Bgv/typecheck.wrapper.log.gz",
+      "storedBytes": 185,
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawBytes": 259,
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/carousel-autoplay-ownership/test-results/run-Q12Bgv/typecheck.wrapper.log"
+    },
+    {
+      "path": "verify-carousel-autoplay.py",
+      "storedBytes": 2279,
+      "storedSha256": "ad2186658717f2388e8baf23e26704f073a963edbb0aef7b72e7271044012302",
+      "rawBytes": 2279,
+      "rawSha256": "ad2186658717f2388e8baf23e26704f073a963edbb0aef7b72e7271044012302",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/tools/verify-carousel-autoplay.py"
+    },
+    {
+      "path": "runtime-and-tests.patch.gz",
+      "storedBytes": 1768,
+      "storedSha256": "25c155b000053a24fe8c9deca43c7b1fd5c881dc22cbf615fa1b397d41fc8919",
+      "rawBytes": 4915,
+      "rawSha256": "d0c46a84ddeff8b3029a56de719759113af46258356156eb7282151a91b7293c",
+      "encoding": "gzip"
+    }
+  ]
+}

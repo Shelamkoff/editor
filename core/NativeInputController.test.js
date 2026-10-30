@@ -54,6 +54,7 @@ function harness(options = {}) {
     crossSelection: options.crossSelection ?? null,
     projection: options.projection ?? null,
     inlineWidgetInput: options.inlineWidgetInput ?? null,
+    selection: options.selection ?? null,
     coalesceMs: options.coalesceMs ?? 300,
   })
   return {
@@ -61,10 +62,67 @@ function harness(options = {}) {
     field,
     child,
     runtime,
+    reconciler,
     controller,
     advance(ms) { now += ms },
   }
 }
+
+test('a matching trusted field input hands off its captured descriptor only for canonical no-op completion', () => {
+  const state = harness({ selection: { capture: () => null } })
+  Object.assign(state.runtime, { generation: 1, revision: 2, modeEpoch: 3 })
+  const descriptor = Object.freeze({ key: 'text', element: state.field, mode: 'rich-text' })
+  const completed = [], captures = []
+  state.reconciler.getEditableField = (id, key) => { captures.push([id, key]); return descriptor }
+  state.reconciler.completeFieldProjection = (id, field) => completed.push([id, field])
+  const before = { target: state.field, inputType: 'insertText', isTrusted: true, defaultPrevented: false }
+  state.controller.handleBeforeInput(before)
+  state.controller.handleInput({ target: state.field, inputType: 'insertText', isTrusted: true })
+  const metadata = state.calls.at(-1).metadata
+  assert.deepEqual(captures, [['b1', 'text']])
+  state.reconciler.getEditableField = () => { throw new Error('The finalizer must not recapture a later descriptor') }
+  metadata.finalizeNativeProjection({}, true)
+  assert.deepEqual(completed, [], 'Changed source fields retain their later schema/hydration owner')
+  metadata.finalizeNativeProjection({}, false)
+  assert.equal(completed.length, 1)
+  assert.equal(completed[0][0], 'b1')
+  assert.equal(completed[0][1], descriptor)
+})
+
+test('synthetic, cancelled or stale ordinary input cannot acquire semantic no-op completion', () => {
+  const variants = [
+    { name: 'synthetic pair', beforeTrusted: false, inputTrusted: false },
+    { name: 'synthetic beforeinput', beforeTrusted: false },
+    { name: 'synthetic input', inputTrusted: false },
+    { name: 'cancelled', invalidate(before) { before.defaultPrevented = true } },
+    { name: 'stale mode', invalidate(_before, runtime) { runtime.modeEpoch++ } },
+    { name: 'stale revision', invalidate(_before, runtime) { runtime.revision++ } },
+  ]
+  for (const variant of variants) {
+    const state = harness({ selection: { capture: () => null } })
+    Object.assign(state.runtime, { generation: 1, revision: 2, modeEpoch: 3 })
+    const before = { target: state.field, inputType: 'insertText', isTrusted: variant.beforeTrusted ?? true, defaultPrevented: false }
+    const input = { target: state.field, inputType: 'insertText', isTrusted: variant.inputTrusted ?? true }
+    state.reconciler.getEditableField = () => { throw new Error('Invalid input cannot capture a completion descriptor') }
+    state.controller.handleBeforeInput(before)
+    variant.invalidate?.(before, state.runtime)
+    state.controller.handleInput(input)
+    assert.equal(state.calls.at(-1).metadata.finalizeNativeProjection, undefined, variant.name)
+  }
+})
+
+test('nonretained source input does not acquire the ordinary no-op finalizer', () => {
+  for (const inputType of ['insertFromPaste', 'insertFromDrop', 'deleteByCut']) {
+    const state = harness({ selection: { capture: () => null } })
+    const before = { target: state.field, inputType, isTrusted: true, defaultPrevented: false }
+    state.reconciler.getEditableField = () => { throw new Error('Nonretained source must keep canonical completion ownership') }
+    state.controller.handleBeforeInput(before)
+    state.controller.handleInput({ target: state.field, inputType, isTrusted: true })
+    const metadata = state.calls.at(-1).metadata
+    assert.equal(metadata.preserveSourceProjection, false, inputType)
+    assert.equal(metadata.finalizeNativeProjection, undefined, inputType)
+  }
+})
 
 test('beforeinput replaces an active cross-block selection atomically', () => {
   const replacements = []

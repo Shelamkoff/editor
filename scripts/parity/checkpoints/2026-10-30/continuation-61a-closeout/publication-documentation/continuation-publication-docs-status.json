@@ -1,0 +1,11 @@
+{
+  "source": "5180826e406b776168152cef5cec00ecaae8fefa",
+  "directory": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-Qahg4D",
+  "outcome": "passed",
+  "gates": {
+    "docs-contract": 0,
+    "docs-browser": 0
+  },
+  "current": "docs-browser",
+  "sourceUnchanged": true
+}

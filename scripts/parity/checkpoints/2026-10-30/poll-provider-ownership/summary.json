@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "scope": "Poll provider presentation ownership and redundant deferred native blur writes",
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "testedSource": "64f53902c8ace8010716bb2987c50f961f522d5c",
+  "testedTree": "93fa450910a561d037ab1d0f6cf79cb208fe330c",
+  "runtimeApproval": "Parent reviewed complete runtime/spec/EN/RU docs diff before integration. Tests and archive pending final parent review.",
+  "runs": [
+    {
+      "run": "run-lx8rl6",
+      "source": {
+        "head": "c463872aace6ade4bb674e895887cd7723c56254",
+        "tree": "0b69777f332b8d0e4bfedb943379c6c39d653680",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "b03a26da248bb7acba64b7cf2bc6b1cd2a49d4bb25f64f12691693c666f932e8"
+      },
+      "outcome": "failed",
+      "gates": {
+        "provider-owner-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-wOkp3R",
+      "source": {
+        "head": "8796dfe22250fec7149b0c2fc5a88bb9ccd9ab53",
+        "tree": "536d1faa73eb39743dde8e97462d3474e1a7b43d",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "ea31f0c4497275c883a223fc2d6a97d650a7525504f9a38dde13071d0de3ce06"
+      },
+      "outcome": "failed",
+      "gates": {
+        "native-owner-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-ykFOVK",
+      "source": {
+        "head": "9c2da8b67472d51af11448a2210fb0f7e9991652",
+        "tree": "44efb5f8a473d251c495d29952a404df3f243ba2",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "669fbe35bf9bb3f2d5e7b05ee9db4712d48f03d13e38d5531efb8f208eda9893"
+      },
+      "outcome": "failed",
+      "gates": {
+        "data-owner-unit-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-vYFbHY",
+      "source": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "outcome": "failed",
+      "gates": {
+        "data-owner-unit-green": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "native-owner-green": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "provider-report-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-1YgHQE",
+      "source": {
+        "head": "115b9976f104a88734e8f9802f49af7785ad8c74",
+        "tree": "0244fce1078f225e763b1232132fdb501394f4ab",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f733ef998dc4c5a4ff8571a040d2e8234d4f074fd7d84fc035aa16cfc89228cb"
+      },
+      "outcome": "failed",
+      "gates": {
+        "provider-settlement-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-dHKUtw",
+      "source": {
+        "head": "64f53902c8ace8010716bb2987c50f961f522d5c",
+        "tree": "93fa450910a561d037ab1d0f6cf79cb208fe330c",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "9baad40ab37957f033fab50366135a4181e968e9cbd9ddc6c1ae487d9a8cb5fd"
+      },
+      "outcome": "not-run",
+      "gates": {
+        "native-owned-green": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "units": {
+          "outcome": "not-run",
+          "exitCode": null
+        },
+        "types": {
+          "outcome": "not-run",
+          "exitCode": null
+        },
+        "ordinary-projection": {
+          "outcome": "not-run",
+          "exitCode": null
+        },
+        "poll-state": {
+          "outcome": "not-run",
+          "exitCode": null
+        },
+        "docs": {
+          "outcome": "not-run",
+          "exitCode": null
+        },
+        "native-poll-controls": {
+          "outcome": "not-run",
+          "exitCode": null
+        }
+      }
+    },
+    {
+      "run": "run-LwbSNu",
+      "source": {
+        "head": "64f53902c8ace8010716bb2987c50f961f522d5c",
+        "tree": "93fa450910a561d037ab1d0f6cf79cb208fe330c",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "9baad40ab37957f033fab50366135a4181e968e9cbd9ddc6c1ae487d9a8cb5fd"
+      },
+      "outcome": "passed",
+      "gates": {
+        "units": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "ordinary-projection": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "poll-state": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "docs": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "native-poll-controls": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    }
+  ],
+  "counts": {
+    "run-lx8rl6": {
+      "provider-owner-red": {
+        "passed": 1,
+        "failed": 2
+      }
+    },
+    "run-wOkp3R": {
+      "native-owner-red": {
+        "passed": 1,
+        "failed": 2
+      }
+    },
+    "run-ykFOVK": {
+      "data-owner-unit-red": {
+        "passed": 1,
+        "failed": 3
+      }
+    },
+    "run-vYFbHY": {
+      "data-owner-unit-green": {
+        "passed": 4,
+        "failed": 0
+      },
+      "native-owner-green": {
+        "passed": 3,
+        "failed": 0
+      },
+      "provider-report-red": {
+        "passed": 1,
+        "failed": 2
+      }
+    },
+    "run-1YgHQE": {
+      "provider-settlement-red": {
+        "passed": 5,
+        "failed": 6
+      }
+    },
+    "run-dHKUtw": {
+      "native-owned-green": {
+        "passed": 11,
+        "failed": 0
+      }
+    },
+    "run-LwbSNu": {
+      "units": {
+        "passed": 206,
+        "failed": 0
+      },
+      "ordinary-projection": {
+        "passed": 197,
+        "failed": 0
+      },
+      "poll-state": {
+        "passed": 20,
+        "failed": 0
+      },
+      "native-poll-controls": {
+        "passed": 167,
+        "failed": 0
+      },
+      "types": {
+        "exitCode": 0
+      },
+      "docs": {
+        "exitCode": 0
+      }
+    }
+  },
+  "environment": {
+    "chrome": "156.0.8078.47",
+    "chromePath": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+    "node": "v24.22.1",
+    "playwrightPath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "dependencyProvenance": "First browser RED runs lx8rl6 and wOkp3R used copied preexisting npm Carousel 1.0.0 dependencies; Poll fixture does not exercise Carousel. Before 13d53076 GREEN, physical node_modules was refreshed from main after successful npm ci with actual Carousel Git f7f64858 pin. All GREEN and later settlement RED used the refreshed copy."
+  },
+  "recorderIncident": "run-dHKUtw native-owned-green is an unchanged-source PASS (11 cases). Starting the units recorder before the native recorder had finished overwrote units metadata with not-run. The raw units.log reports 206 PASS but is not a completed C11 gate and receives no gate credit here. The original manifest overall outcome is not-run, unchanged. All six follow-up gates were executed sequentially in run-LwbSNu and passed. No manifests were edited or relabeled.",
+  "limitations": [
+    "Focused checkpoint does not claim full library or v1 parity; root runs combined full gates after integration.",
+    "Initial browser RED dependency copy was not the final lockfile installation; the difference is disclosed above.",
+    "Provider-only completeResult still rereads live author DOM on this source; a separately requested completed-value continuation is not part of this checkpoint.",
+    "No lost /tmp tests or logs are credited."
+  ],
+  "sources": [
+    {
+      "path": "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md",
+      "sha256": "3a5419948e1a60c8528009dbe9bb3360dd8408dffbaa5351cd3e52cd1569e7a3",
+      "bytes": 99824
+    },
+    {
+      "path": "core/DocumentRuntime.js",
+      "sha256": "f35d4335c1819b11e6ec00a59ea3b12c2f7922e984c5787dac7903585d914f58",
+      "bytes": 78407
+    },
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "sha256": "b61d722e7be432a80d15bb1c8925344b4e825159ee21bda52de26dae9891f32c",
+      "bytes": 76638
+    },
+    {
+      "path": "docs/guide/extensions.md",
+      "sha256": "1e66e3b07cd3764384bf610a16b4821d195a76cf0723f42de8803f446a77fa89",
+      "bytes": 21441
+    },
+    {
+      "path": "docs/ru/guide/extensions.md",
+      "sha256": "167a9789921191368c17b49940f4f9ab3e825c427cc22281a769b8232f1f8f83",
+      "bytes": 36448
+    },
+    {
+      "path": "plugins/poll/index.js",
+      "sha256": "535159a6533fdbbb6ac2098893d2ba21512b4f23af2be897bbcacefa760df81c",
+      "bytes": 33956
+    },
+    {
+      "path": "tests/browser/native-plugin-controls.js",
+      "sha256": "b124e9e202654a3fe4fc30e019204d40a3bc34daf7e90fd27fd2d1d9ca824aed",
+      "bytes": 45332
+    },
+    {
+      "path": "tests/browser/native-poll-provider-ownership.html",
+      "sha256": "d09a8283fcebb5ecc1e56fa3bbd93b168b4257d9d49861e4a26e2a2260a787eb",
+      "bytes": 484
+    },
+    {
+      "path": "tests/browser/projection-contracts.js",
+      "sha256": "acd4f9ed5d0507dbfa280db857d3df7a727357f3d3ef18b462eb379ad6ec4c47",
+      "bytes": 75417
+    },
+    {
+      "path": "tests/browser/regressions/poll-native-owner-blur.js",
+      "sha256": "3a4dc614344012a34f10155512f5c79d85957537060e6ff4502e7cc849239323",
+      "bytes": 4080
+    },
+    {
+      "path": "tests/browser/regressions/poll-provider-ownership.js",
+      "sha256": "7a4fb6cd3911c5603d223c092207c3fa6290bc48e01d256dd65feb24c47d748a",
+      "bytes": 7142
+    }
+  ],
+  "nodeCoverageClarification": {
+    "executedSuites": [
+      "core/DocumentRuntime.test.js",
+      "core/BlockReconciler.test.js",
+      "core/InstanceScope.test.js"
+    ],
+    "actualPassed": 206,
+    "unmatchedPath": "plugins/poll/reconciliation.test.js",
+    "note": "Node24 ignored the nonexistent path and ran the three core suites. This run is not Poll unit coverage. Real Poll unit files pass 15 tests in the separate completed-result checkpoint."
+  }
+}

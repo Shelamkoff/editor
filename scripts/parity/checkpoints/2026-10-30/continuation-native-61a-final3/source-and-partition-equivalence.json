@@ -1,0 +1,1818 @@
+{
+  "actualFinalSource": "6c2a48d1ea4ebd0014bd2fb4573738db2c3593e6",
+  "originalSource": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+  "documentationSuccessor": "1c933545c6f05701741031997945c64b1ab5ba9d",
+  "productionPathsComparedToDocumentationSuccessor": [
+    "core",
+    "plugins",
+    "inline-plugins",
+    "inline-tools",
+    "shared",
+    "renderer",
+    "plugin-kit",
+    "preset",
+    "locale",
+    "index.js",
+    "index.d.ts",
+    "types.d.ts",
+    "I18n.d.ts",
+    "package.json",
+    "package-lock.json",
+    "jsconfig.json",
+    "jsconfig.runtime.json"
+  ],
+  "productionDiffBytes": 0,
+  "c6ToDocumentationSuccessorOnlyChangedPath": "plugins/embed/README.ru.md",
+  "allChangedPathsFromOriginal": [
+    "RECTOR_V2_PROGRESS_2026-10-29.md",
+    "docs/architecture/rector-v2/PRESERVATION.md",
+    "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "docs/ru/architecture/rector-v2/PRESERVATION.md",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "plugins/embed/README.ru.md",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/README.md",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/audit-upstream-eight-rows.py",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/final-merged-source-equivalence.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/publication-probe.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/run-1xxk7F/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/run-1xxk7F/runner-reporting.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/run-1xxk7F/runner-reporting.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/runner-reporting/adaptation.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/runner-reporting/gate-probes.mjs",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/runner-reporting/green-merged/gate-probes.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/upstream-eight-rows-assessment.md",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/upstream-eight-rows-audit.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-61a-upstream-review/verification.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/README.md",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/final-library-verification-status.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/initial-final-library-verification-status.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-TDNe8l/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-TDNe8l/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-TDNe8l/typecheck.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-TDNe8l/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-TDNe8l/unit.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/build.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/docs-browser.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/docs-browser.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/docs-contract.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/docs-contract.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/ordinary-browser.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/ordinary-browser.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/package.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/package.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/size-report.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/size-report.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/typecheck.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/types.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/types.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runs/run-kAQSyz/unit.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runtime-and-tests.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/runtime-to-general-docs-only.patch",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/verification.json",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/verify-final-library-after-docs.py",
+    "scripts/parity/checkpoints/2026-10-30/continuation-library-61a-final/verify-final-library.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/README.md",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/coverage.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/hash-index.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/reference-review/common-generated-identities.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/reference-review/incoming-text-witness.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/reference-review/presentation-observations.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/INVENTORY.md",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/code-languages.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/code-languages.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/code-languages.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/columns-layout.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/columns-layout.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/columns-layout.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/common-parity.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/common-parity.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/common-parity.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/embed-preview.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/embed-preview.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/embed-preview.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/finish.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/formatting-ownership.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/formatting-ownership.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/formatting-ownership.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-classifier-controls.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-classifier-controls.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-classifier-controls.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-parity.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-parity.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-parity.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-parity.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-viewer.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-viewer.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/gallery-viewer.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/link-ownership.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/link-ownership.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/link-ownership.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/preflight.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/presentation-values.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/presentation-values.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/presentation-values.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/preview-timeout-raw.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/preview-timeout-raw.stderr.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/process-precheck.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/public-focus.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/public-focus.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/public-focus.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/raw-source.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/raw-source.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/raw-source.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/supervisor-config.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/supervisor-summary.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/table-settings.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/table-settings.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/table-settings.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/text-block-settings.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/text-block-settings.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/text-block-settings.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/tool-actions.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/tool-actions.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/tool-actions.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-AYPL00/verify-differential.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/columns-layout.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/columns-layout.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/columns-layout.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/finish.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/preflight.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/raw-source.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/raw-source.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/raw-source.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/supervisor-config.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/supervisor-summary.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/text-block-settings.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/text-block-settings.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/text-block-settings.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/tool-actions.analysis.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/tool-actions.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/tool-actions.wrapper.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/verify-differential-followup.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-a15oUo/verify-differential.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-gXXU3x/INVENTORY.md",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-gXXU3x/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-gXXU3x/preflight.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-gXXU3x/supervisor-config.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/runs/run-gXXU3x/verify-differential.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/INVENTORY.md",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/PREPARATION.md",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/REFERENCE-WITNESSES.json",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/archive-differential.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/reference-review.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/verify-differential-followup.py",
+    "scripts/parity/checkpoints/2026-10-30/final-maintained-differential/supervisor/verify-differential.py",
+    "scripts/parity/checkpoints/2026-10-30/publication/README.md",
+    "scripts/parity/checkpoints/2026-10-30/publication/source-map-sixth-agents.json",
+    "scripts/parity/checkpoints/2026-10-30/publication/source-map-sixth-completion.json",
+    "scripts/parity/checkpoints/2026-10-30/publication/source-map-sixth-root.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/ARCHIVE.md",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/README.md",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/archive-layout.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green-gates/gate-probes.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green-working-gates/gate-probes.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/columns.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/columns.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/raw.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/raw.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/summary.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/text.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/green/text.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/original-artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/columns.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/columns.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/raw.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/raw.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/summary.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/text.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/text.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/tools.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/positive/tools.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/preparation.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red-gates/gate-probes.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/columns.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/columns.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/raw.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/raw.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/summary.json",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/text.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/red/text.stdout.gz",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/reproduce/fix.patch",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/reproduce/gate-probes.mjs",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/reproduce/run-cli.py",
+    "scripts/parity/checkpoints/2026-10-30/runner-reporting/source.json",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/README.md",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/run-97QdlX/build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/run-97QdlX/docs-contracts.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/run-97QdlX/docs-site.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/run-97QdlX/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/run-oIf2Xb/docs-site.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/run-oIf2Xb/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/final-documentation/verification-summary.json",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/fixture-equivalence.json",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/columns-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/heading-list-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/manifest.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/source-indentation-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/source-modes-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/tool-actions-native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/native/run-OXtLxQ/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reproduce/run_sixth_native.py.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/columns.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/columns.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/heading-list.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/heading-list.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/invocation-errors/raw.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/invocation-errors/raw.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/invocation-errors/tools-oracle.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/invocation-errors/tools-oracle.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/invocation-errors/tools.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/invocation-errors/tools.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/raw.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/raw.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/tools-oracle.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/tools-oracle.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/tools.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/reviews/tools.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/source-equivalence.json",
+    "scripts/parity/checkpoints/2026-10-30/sixth-integration/summary.json",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/README.md",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/audit-result.json",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/audit.py",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/early/differential-99157b4d.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/early/differential-99157b4d.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/early/native-unversioned.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/final/differential.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/final/differential.stderr.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/sources/99157b4d.commit.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/sources/99157b4d.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/sources/d483be74.commit.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/sources/d483be74.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/text-block-settings/sources/publication-progress.json.gz",
+    "scripts/parity/columns-layout-parity.mjs",
+    "scripts/parity/raw-source-preview.mjs",
+    "scripts/parity/text-block-settings.mjs",
+    "scripts/parity/tool-actions.mjs",
+    "tests/browser/README.md",
+    "tests/browser/native-code-copy-ownership.html",
+    "tests/browser/native-plugin-parity.js",
+    "tests/browser/native-plugin-settings.html",
+    "tests/browser/physical-history.mjs"
+  ],
+  "unchangedRegressionAndHarnessFiles": [
+    {
+      "path": "tests/browser/regressions/code-copy-ownership-native.js",
+      "sha256": "2d582745a9b62a1c911a86af5975a6ceb1456b53815c7be8a2865e9ebdef83b7"
+    },
+    {
+      "path": "tests/browser/regressions/text-block-settings-native.js",
+      "sha256": "e1234b080cadaac434760531c05802d74af06671ce5841d5bdab8d210df1971c"
+    },
+    {
+      "path": "tests/browser/regressions/columns-layout-native.js",
+      "sha256": "f7e5b19b13fea3f60263ac7cb27745a7d63beea7ee142ea5e37d252069d39b2b"
+    },
+    {
+      "path": "tests/browser/regressions/harness.js",
+      "sha256": "e985fdb92be7dc9e921e5ef5e421fb37031ac0604f29b44a67770a84ddc5a1d8"
+    },
+    {
+      "path": "tests/browser/environment.mjs",
+      "sha256": "536cdb9041fd70d7b9158a8d32bf7758262a4c04234e770c2bd375c3011fcd9e"
+    },
+    {
+      "path": "tests/browser/native-input-driver.js",
+      "sha256": "8be2f4b6123667ddf212ecd6bc6348d1687003bcbd2d45e9d1bc5883f43ac4bc"
+    },
+    {
+      "path": "tests/browser/native-input-helpers.js",
+      "sha256": "be973b1d6b907b9441c272122d8166a9f6eec82c82b15b6c2a4237a0f8b9b2d0"
+    }
+  ],
+  "remainingParityModuleOnlyRemovedThreeImports": true,
+  "originalHistoryWaitFunctionUnchanged": true,
+  "originalPageDeadlineMs": 120000,
+  "partitionCaseCounts": {
+    "nativePluginParity": 333,
+    "nativeCodeCopyOwnership": 10,
+    "nativePluginSettings": 33
+  },
+  "originalAndPartitionedCaseNameMultisetsEqual": true,
+  "partitionedCaseNameMultiset": [
+    [
+      "Attaches Undo and external reversion repaint the last canonical filename",
+      1
+    ],
+    [
+      "Attaches file:first:name: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Attaches keeps the active native filename caret when a sibling name changes",
+      1
+    ],
+    [
+      "Attaches native deletion retains the latest non-empty filename like v1",
+      1
+    ],
+    [
+      "Attaches removing a different file preserves a committed native file name",
+      1
+    ],
+    [
+      "Attaches retired file controls cannot mutate authoring data after a view refresh",
+      1
+    ],
+    [
+      "Attaches: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "Attaches: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Attaches: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Carousel HTML source selects its first added mixed-media slide and retains native history",
+      1
+    ],
+    [
+      "Carousel URL source selects its first added mixed-media slide and retains native history",
+      1
+    ],
+    [
+      "Carousel Undo and external reversion repaint the active caption after native typing",
+      1
+    ],
+    [
+      "Carousel active slide changes still redraw authoring data",
+      1
+    ],
+    [
+      "Carousel inactive slide caption changes preserve active editing and settings",
+      1
+    ],
+    [
+      "Carousel manually selected settings slide survives metadata save",
+      1
+    ],
+    [
+      "Carousel native caption then inactive slide edit keeps the active caret",
+      1
+    ],
+    [
+      "Carousel retains newer selection after moving the previously active slide",
+      1
+    ],
+    [
+      "Carousel retired settings inputs cannot mutate prior slide after picker changes",
+      1
+    ],
+    [
+      "Carousel settings edit the currently active slide after navigation",
+      1
+    ],
+    [
+      "Carousel settings follow active-slide navigation in both directions",
+      1
+    ],
+    [
+      "Carousel slide:first:caption: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Carousel slide:first:caption: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Carousel source activation replaces the previous manual settings target with the added slide",
+      1
+    ],
+    [
+      "Carousel source batch selects its first added mixed-media slide and retains native history",
+      1
+    ],
+    [
+      "Carousel source projection failure remounts original records and preserves canonical history",
+      1
+    ],
+    [
+      "Carousel source selection precedes newer navigation from its committed listener",
+      1
+    ],
+    [
+      "Carousel source task revoked by Remove all cannot select or append after Undo and newer navigation",
+      1
+    ],
+    [
+      "Carousel: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "Carousel: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Carousel: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Checklist Enter on visually empty markup exits to default block and Undo restores it",
+      1
+    ],
+    [
+      "Checklist compound rich field retains native backward range and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Checklist compound rich field retains native caret and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Checklist empty exit: inline widgets remains content when Enter splits the last item",
+      1
+    ],
+    [
+      "Checklist empty exit: last BR-only preserves neighboring widgets and two keyboard history steps",
+      1
+    ],
+    [
+      "Checklist empty exit: last empty preserves neighboring widgets and two keyboard history steps",
+      1
+    ],
+    [
+      "Checklist empty exit: last formatting-only preserves neighboring widgets and two keyboard history steps",
+      1
+    ],
+    [
+      "Checklist empty exit: sole BR-only preserves neighboring widgets and two keyboard history steps",
+      1
+    ],
+    [
+      "Checklist empty exit: sole empty preserves neighboring widgets and two keyboard history steps",
+      1
+    ],
+    [
+      "Checklist empty exit: sole formatting-only preserves neighboring widgets and two keyboard history steps",
+      1
+    ],
+    [
+      "Checklist empty exit: visible formatting remains content when Enter splits the last item",
+      1
+    ],
+    [
+      "Checklist item:first: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Checklist item:first: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Checklist item:second: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Checklist item:second: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Checklist: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Checklist: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Code Copy uses the latest committed native input and pastes into another block",
+      1
+    ],
+    [
+      "Code Ctrl+Enter leaves edit mode and keyboard Undo remains available from its view",
+      1
+    ],
+    [
+      "Code Escape leaves editing mode without changing code or history",
+      1
+    ],
+    [
+      "Code Tab indents a multiline selection without replacing its source text",
+      1
+    ],
+    [
+      "Code Tab inserts four spaces and Shift+Tab removes one indentation unit",
+      1
+    ],
+    [
+      "Code code: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Code copy ownership: a current editable button completes and resets without a document action",
+      1
+    ],
+    [
+      "Code copy ownership: a current read-only button completes and resets without a document action",
+      1
+    ],
+    [
+      "Code copy ownership: a scheduled reset cannot repaint an adopted bar",
+      1
+    ],
+    [
+      "Code copy ownership: a scheduled reset cannot repaint an adopted button",
+      1
+    ],
+    [
+      "Code copy ownership: a scheduled reset cannot repaint an adopted shell",
+      1
+    ],
+    [
+      "Code copy ownership: a scheduled reset cannot repaint an adopted wrapper",
+      1
+    ],
+    [
+      "Code copy ownership: pending success cannot repaint an adopted bar",
+      1
+    ],
+    [
+      "Code copy ownership: pending success cannot repaint an adopted button",
+      1
+    ],
+    [
+      "Code copy ownership: pending success cannot repaint an adopted shell",
+      1
+    ],
+    [
+      "Code copy ownership: pending success cannot repaint an adopted wrapper",
+      1
+    ],
+    [
+      "Code edit control describes and toggles its current mode",
+      1
+    ],
+    [
+      "Code highlighted layer stays visible and follows native input in edit mode",
+      1
+    ],
+    [
+      "Code highlighter keeps an unknown explicit language plain through native input and replay",
+      1
+    ],
+    [
+      "Code highlighter retains auto highlighting through native input and replay",
+      1
+    ],
+    [
+      "Code highlighter retains javascript highlighting through native input and replay",
+      1
+    ],
+    [
+      "Code language menu filters by typed text and commits a keyboard-selected language",
+      1
+    ],
+    [
+      "Code whole conversion to Heading preserves literal text and native history",
+      1
+    ],
+    [
+      "Code: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Code: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Columns column:left: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Columns column:left: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Columns column:right: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Columns column:right: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Columns compound rich field retains native backward range and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Columns compound rich field retains native caret and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/direct/empty-destination",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/direct/empty-removed",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/direct/expand-1-1-1",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/direct/reduce-rich-1-1",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/direct/reduce-rich-1-2",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/direct/reduce-rich-2-1",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/menu/empty-destination",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/menu/empty-removed",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/menu/expand-1-1-1",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/menu/reduce-rich-1-1",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/menu/reduce-rich-1-2",
+      1
+    ],
+    [
+      "Columns layout parity COLUMNS_LAYOUT/menu/reduce-rich-2-1",
+      1
+    ],
+    [
+      "Columns layout-only update preserves active editing node and caret",
+      1
+    ],
+    [
+      "Columns sibling update retains editing caret, typing and atomic history",
+      1
+    ],
+    [
+      "Columns: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Columns: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Delimiter: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Embed URL draft and pending parse survive an unrelated canonical update",
+      1
+    ],
+    [
+      "Embed caption rich field retains native text and widget owners across read-only modes",
+      1
+    ],
+    [
+      "Embed caption rich sibling update preserves a backward range and its replacement",
+      1
+    ],
+    [
+      "Embed caption rich sibling update retains native text nodes and widgets through keyboard history",
+      1
+    ],
+    [
+      "Embed caption: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Embed caption: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Embed changing video URL preserves its native committed caption",
+      1
+    ],
+    [
+      "Embed clearing video removes its obsolete empty caption field",
+      1
+    ],
+    [
+      "Embed native caption survives metadata and source updates without losing caret",
+      1
+    ],
+    [
+      "Embed: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "Embed: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Embed: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Gallery Undo and external reversion repaint the caption after retained native typing",
+      1
+    ],
+    [
+      "Gallery accepts a file drag after a caption update retains its image slots",
+      1
+    ],
+    [
+      "Gallery caption Enter finishes its single-line editing as in v1",
+      1
+    ],
+    [
+      "Gallery caption/order: literal remove",
+      1
+    ],
+    [
+      "Gallery caption/order: literal swap",
+      1
+    ],
+    [
+      "Gallery caption/order: rich remove",
+      1
+    ],
+    [
+      "Gallery caption/order: rich swap",
+      1
+    ],
+    [
+      "Gallery caption/order: widgets remove",
+      1
+    ],
+    [
+      "Gallery caption/order: widgets swap",
+      1
+    ],
+    [
+      "Gallery file drop on the image slot supersedes an interrupted retained image drag",
+      1
+    ],
+    [
+      "Gallery file drop on the wrapper supersedes an interrupted retained image drag",
+      1
+    ],
+    [
+      "Gallery fixed layout projects its slots and keeps extra images in overflow",
+      1
+    ],
+    [
+      "Gallery full view replacement retires its previous image drag listeners",
+      1
+    ],
+    [
+      "Gallery identical and style-removal updates do not replace the focused caption",
+      1
+    ],
+    [
+      "Gallery image:first:caption: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Gallery image:second:caption: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Gallery native caption then style update keeps the same editing host",
+      1
+    ],
+    [
+      "Gallery native image drag retains keyboard Undo and Redo for a preceding caption edit",
+      1
+    ],
+    [
+      "Gallery removing another image preserves a committed native caption edit",
+      1
+    ],
+    [
+      "Gallery retained image drag remains usable across a sibling caption update",
+      1
+    ],
+    [
+      "Gallery retired controls cannot mutate current authoring data after a view refresh",
+      1
+    ],
+    [
+      "Gallery retired settings controls cannot mutate refreshed canonical data",
+      1
+    ],
+    [
+      "Gallery rich captions keep their marks through native editing and history",
+      1
+    ],
+    [
+      "Gallery style-only update preserves native caption caret and history",
+      1
+    ],
+    [
+      "Gallery: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "Gallery: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Gallery: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Heading text: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Heading text: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Heading: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Heading: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Image caption rich field retains native text and widget owners across read-only modes",
+      1
+    ],
+    [
+      "Image caption rich sibling update preserves a backward range and its replacement",
+      1
+    ],
+    [
+      "Image caption rich sibling update retains native text nodes and widgets through keyboard history",
+      1
+    ],
+    [
+      "Image caption: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Image caption: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Image replacing source URL preserves native authored caption and one-step history",
+      1
+    ],
+    [
+      "Image retired settings inputs cannot overwrite canonical styles or toggles",
+      1
+    ],
+    [
+      "Image: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "Image: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Image: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "LinkPreview URL and delayed metadata undo as one action when no edit intervenes",
+      1
+    ],
+    [
+      "LinkPreview accepts a URL typed from an empty draft and resolves metadata after input",
+      1
+    ],
+    [
+      "LinkPreview does not submit partial URL from an active IME composition",
+      1
+    ],
+    [
+      "LinkPreview host URL replacement stays a separate Undo step from explicit metadata refresh",
+      1
+    ],
+    [
+      "LinkPreview initial metadata microtask cannot restart a newer submitted URL",
+      1
+    ],
+    [
+      "LinkPreview late metadata respects newer host edits and cancels an obsolete URL",
+      1
+    ],
+    [
+      "LinkPreview metadata remains an independent Undo action after intervening host edit",
+      1
+    ],
+    [
+      "LinkPreview native URL caret survives template and metadata changes",
+      1
+    ],
+    [
+      "LinkPreview pending URL survives unrelated template update and is eventually applied",
+      1
+    ],
+    [
+      "LinkPreview restoration does not refetch old metadata but explicit submission still does",
+      1
+    ],
+    [
+      "LinkPreview stale fetch cannot overwrite a host description after ABA changes",
+      1
+    ],
+    [
+      "LinkPreview url: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "LinkPreview: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "LinkPreview: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "LinkPreview: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "List Enter on trailing visually empty markup inserts a new paragraph in one history action",
+      1
+    ],
+    [
+      "List compound rich field retains native backward range and widgets through a sibling edit",
+      1
+    ],
+    [
+      "List compound rich field retains native caret and widgets through a sibling edit",
+      1
+    ],
+    [
+      "List item:first: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "List item:first: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "List item:second: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "List item:second: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "List: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "List: sibling data update retains native editing focus and caret",
+      1
+    ],
+    [
+      "List: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Literal source conversion to Checklist keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Columns keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Embed keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Heading keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Image keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to List keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Paragraph keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Person keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Quote keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Spoiler keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Table keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Toggle keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Literal source conversion to Warning keeps markup as text and newlines",
+      1
+    ],
+    [
+      "Paragraph middle input Undo restores the caret before the native mutation",
+      1
+    ],
+    [
+      "Paragraph text: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Paragraph text: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Paragraph: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Person can add a blank link and type its URL without invalid canonical data",
+      1
+    ],
+    [
+      "Person card add and native name role biography and URL edits replay independently without changing hidden widgets",
+      1
+    ],
+    [
+      "Person card hidden URL focus succeeds on its first request after native biography input without a history step",
+      1
+    ],
+    [
+      "Person card native reorder retains its active literal author body and both keyboard history steps",
+      1
+    ],
+    [
+      "Person card native reorder retains its active widget author body and both keyboard history steps",
+      1
+    ],
+    [
+      "Person card removal keeps keyboard history for the active literal profile and its preceding native edit",
+      1
+    ],
+    [
+      "Person card removal keeps keyboard history for the active widget profile and its preceding native edit",
+      1
+    ],
+    [
+      "Person name remains a single line when Enter is pressed",
+      1
+    ],
+    [
+      "Person native URL continues after changing a rich field in the same card",
+      1
+    ],
+    [
+      "Person native URL survives a pending sibling name sidecar-only update and exact history replay",
+      1
+    ],
+    [
+      "Person native link edit then sibling update retains the URL input",
+      1
+    ],
+    [
+      "Person native name continues after changing its own bio",
+      1
+    ],
+    [
+      "Person native name continues after changing its own role",
+      1
+    ],
+    [
+      "Person native name then sibling record update retains author caret",
+      1
+    ],
+    [
+      "Person person:first:bio: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Person person:first:bio: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Person person:first:link:site:url: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Person person:first:name: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Person person:first:role: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Person regenerated tabs reject a drag from the retired tab tree",
+      1
+    ],
+    [
+      "Person reordering tabs does not replace the active author field",
+      1
+    ],
+    [
+      "Person sibling update keeps the author caret and updates the current tab after native input",
+      1
+    ],
+    [
+      "Person: native media author edits survive read-only transitions",
+      1
+    ],
+    [
+      "Person: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Person: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Poll Backspace removes an empty option and focuses the previous text at its end",
+      1
+    ],
+    [
+      "Poll Backspace removes visually empty markup and restores it with Undo",
+      1
+    ],
+    [
+      "Poll Enter in an option inserts a following empty option as one action",
+      1
+    ],
+    [
+      "Poll Enter in the question focuses the first option without changing the document",
+      1
+    ],
+    [
+      "Poll Sort keeps option IDs and sorts author text as one action",
+      1
+    ],
+    [
+      "Poll option:first: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Poll option:first: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Poll option:second: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Poll option:second: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Poll preserves rich question and option formatting through native typing and line breaks",
+      1
+    ],
+    [
+      "Poll question: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Poll question: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Poll successive native input keeps the caret after the inserted text",
+      1
+    ],
+    [
+      "Poll: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Poll: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_CLASS_CODE survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_CLASS_SPAN survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_1 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_2 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_3 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_4 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_5 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_6 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_7 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_8 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Presentation differential: PRESENTATION_VALUES_FONT_9 survives save/render and neighboring native edit/Undo",
+      1
+    ],
+    [
+      "Projection recovery fieldless bookmark keeps a newer foreign focus after its single restoration",
+      1
+    ],
+    [
+      "Projection recovery in an iframe preserves parent-document focus before and during a rejected update",
+      1
+    ],
+    [
+      "Projection recovery keeps native keyboard history after a focused Carousel source fails",
+      1
+    ],
+    [
+      "Projection recovery leaves another editor native focus and history unchanged",
+      1
+    ],
+    [
+      "Projection recovery preserves newer foreign focus selected during the rejected projection",
+      1
+    ],
+    [
+      "Projection recovery preserves newer live neighbor focus from retired-owner cleanup",
+      1
+    ],
+    [
+      "Projection recovery retains existing backward keyed selection and native history restoration",
+      1
+    ],
+    [
+      "Quote caption rich sibling update preserves a backward range and its replacement",
+      1
+    ],
+    [
+      "Quote caption rich sibling update retains native text nodes and widgets through keyboard history",
+      1
+    ],
+    [
+      "Quote caption: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Quote caption: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Quote differential: Backspace at an internal field boundary does not merge entire Quotes",
+      1
+    ],
+    [
+      "Quote differential: Backspace does not consume an incompatible neighboring Paragraph",
+      1
+    ],
+    [
+      "Quote differential: Backspace merges compatible neighbors and replays both rich fields / both captions",
+      1
+    ],
+    [
+      "Quote differential: Backspace merges compatible neighbors and replays both rich fields / source caption only",
+      1
+    ],
+    [
+      "Quote differential: Backspace merges compatible neighbors and replays both rich fields / target caption only",
+      1
+    ],
+    [
+      "Quote differential: Delete at an internal field boundary does not merge entire Quotes",
+      1
+    ],
+    [
+      "Quote differential: Delete does not consume an incompatible neighboring Paragraph",
+      1
+    ],
+    [
+      "Quote differential: Delete merges compatible neighbors and replays both rich fields / both captions",
+      1
+    ],
+    [
+      "Quote differential: Delete merges compatible neighbors and replays both rich fields / source caption only",
+      1
+    ],
+    [
+      "Quote differential: Delete merges compatible neighbors and replays both rich fields / target caption only",
+      1
+    ],
+    [
+      "Quote differential: conversion imports rich Paragraph text without inventing a caption / backward",
+      1
+    ],
+    [
+      "Quote differential: conversion imports rich Paragraph text without inventing a caption / forward",
+      1
+    ],
+    [
+      "Quote differential: native blockquote paste preserves rich attributions and unrelated blocks / backward",
+      1
+    ],
+    [
+      "Quote differential: native blockquote paste preserves rich attributions and unrelated blocks / forward",
+      1
+    ],
+    [
+      "Quote differential: whole conversion exports rich quotation and caption with one replay / backward",
+      1
+    ],
+    [
+      "Quote differential: whole conversion exports rich quotation and caption with one replay / forward",
+      1
+    ],
+    [
+      "Quote text rich sibling update preserves a backward range and its replacement",
+      1
+    ],
+    [
+      "Quote text rich sibling update retains native text nodes and widgets through keyboard history",
+      1
+    ],
+    [
+      "Quote text: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Quote text: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Quote: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Quote: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Raw Tab indents selected HTML lines without replacing the source",
+      1
+    ],
+    [
+      "Raw html: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Raw preview preserves the source and permits native history from its preview state",
+      1
+    ],
+    [
+      "Raw: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Raw: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Spoiler compound rich field retains native backward range and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Spoiler compound rich field retains native caret and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Spoiler content: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Spoiler content: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Spoiler label: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Spoiler label: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Spoiler: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Spoiler: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Table Add column after native first cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Add column after native last cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Add row after native first cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Add row after native last cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Delete column after native first cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Delete column after native last cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Delete row after native first cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Delete row after native last cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Enter inserts a line break in the cell and keeps typing at that boundary",
+      1
+    ],
+    [
+      "Table Enter retains the active mark for trusted input on its new line and two separate history actions",
+      1
+    ],
+    [
+      "Table Shift+Tab focuses the previous cell at its end as in v1",
+      1
+    ],
+    [
+      "Table Toggle header after native first cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table Toggle header after native last cell input preserves rich cells, sidecars and separate history",
+      1
+    ],
+    [
+      "Table cell:row:first: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Table cell:row:first: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Table cell:row:second: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Table cell:row:second: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Table default parity: explicit one-by-one construction remains one-by-one, renderers, modes and one native Undo/Redo",
+      1
+    ],
+    [
+      "Table default parity: explicit three-by-three construction preserves caller cells, renderers, modes and one native Undo/Redo",
+      1
+    ],
+    [
+      "Table default parity: no-data construction restores the v1 three-by-three default, renderers, modes and one native Undo/Redo",
+      1
+    ],
+    [
+      "Table exact focus preserves valid default and keyed editing through a mode round trip",
+      1
+    ],
+    [
+      "Table heading cells follow row reordering through public update and history",
+      1
+    ],
+    [
+      "Table keeps cells with delimiter-containing row and cell identities independent through native editing and history",
+      1
+    ],
+    [
+      "Table real formatting and Enter replace a backward range before row-major navigation and separate history",
+      1
+    ],
+    [
+      "Table real formatting and Shift+Enter replace a backward range before row-major navigation and separate history",
+      1
+    ],
+    [
+      "Table rejected adopted-cell focus preserves the next native input outside the editor",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/body/col-add",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/body/col-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/body/header",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/body/row-add",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/body/row-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/headed/col-add",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/headed/col-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/headed/header",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/headed/row-add",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/headed/row-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/minimum/col-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/minimum/row-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/removed-widgets/col-del",
+      1
+    ],
+    [
+      "Table settings parity TABLE_SETTINGS/removed-widgets/row-del",
+      1
+    ],
+    [
+      "Table: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Table: sibling cell update retains native editing focus and caret",
+      1
+    ],
+    [
+      "Table: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/inline/h2",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/inline/h3",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/inline/h4",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/inline/h5",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/inline/h6",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/inline/no-op",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/settings/h2",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/settings/h3",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/settings/h4",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/settings/h5",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/settings/h6",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/settings/no-op",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/toolbox/h2",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/toolbox/h3",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/toolbox/h4",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/toolbox/h5",
+      1
+    ],
+    [
+      "Text block settings parity HEADING_LEVEL/toolbox/h6",
+      1
+    ],
+    [
+      "Text block settings parity LIST_STYLE/ordered/ordered",
+      1
+    ],
+    [
+      "Text block settings parity LIST_STYLE/ordered/unordered",
+      1
+    ],
+    [
+      "Text block settings parity LIST_STYLE/unordered/ordered",
+      1
+    ],
+    [
+      "Text block settings parity LIST_STYLE/unordered/unordered",
+      1
+    ],
+    [
+      "Toggle body Enter keeps a line break, caret and one history action",
+      1
+    ],
+    [
+      "Toggle compound rich field retains native backward range and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Toggle compound rich field retains native caret and widgets through a sibling edit",
+      1
+    ],
+    [
+      "Toggle content: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Toggle content: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Toggle hidden body focus and native typing survive a sibling title update with canonical open false",
+      1
+    ],
+    [
+      "Toggle hidden body focus rejects unknown fields and readonly requests without disclosure or intermediate focus",
+      1
+    ],
+    [
+      "Toggle hidden body focus reveals its field without authoring open state and retains native history",
+      1
+    ],
+    [
+      "Toggle title: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Toggle title: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Toggle: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Toggle: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "Warning message rich sibling update preserves a backward range and its replacement",
+      1
+    ],
+    [
+      "Warning message rich sibling update retains native text nodes and widgets through keyboard history",
+      1
+    ],
+    [
+      "Warning message: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Warning message: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Warning title rich sibling update preserves a backward range and its replacement",
+      1
+    ],
+    [
+      "Warning title rich sibling update retains native text nodes and widgets through keyboard history",
+      1
+    ],
+    [
+      "Warning title: native Shift+Enter keeps a line break and caret",
+      1
+    ],
+    [
+      "Warning title: native input, local selection, caret and history",
+      1
+    ],
+    [
+      "Warning: read-only authoring preserves canonical data",
+      1
+    ],
+    [
+      "Warning: whole conversion to Paragraph transfers text and one Undo/Redo",
+      1
+    ],
+    [
+      "destroyed block and inline toolbar buttons do not consume late browser events",
+      1
+    ],
+    [
+      "invalid plugin field focus preserves the current native caret and active block",
+      1
+    ],
+    [
+      "selected plain-text Code input converts the whole block rather than slicing its text",
+      1
+    ]
+  ],
+  "diagnosticCaseInventorySha256": "5e3d2496cb055c028c4e19a94b5fee7a177d924e398526c4595a0f3bed889790"
+}

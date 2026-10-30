@@ -1,0 +1,819 @@
+[
+  {
+    "name": "Gallery derived alt after literal entity load",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt after grid widget load",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt after overflow widget load",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt after mode false to true",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt after mode true to false",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt follows actual mention update and one Undo/Redo with the backward range intact",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt follows actual swatch update and one Undo/Redo with the backward range intact",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a descriptor with the wrong key, element or mode",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt cannot update a retired same-key slot after a mode rebuild",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt ignores its image adopted outside the exact view parent",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt ignores its caption adopted outside the exact view parent",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt ignores its slot adopted outside the exact view parent",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt cannot revive a disposed instance through retained input or completion",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt follows a widget after the real Masonry owner wraps its slot",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt allows a transparent layout wrapper under the original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a editable owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a readonly owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a plaintext owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a widget owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a button owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a textbox owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects a block owner substituted between slot and original grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery derived alt rejects an original grid adopted outside the captured Gallery wrapper",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel captions render authored marks while decoding literal entities exactly once",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel captions render actual Mention and Color sidecars inside author formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel auto-height output mounts without ResizeObserver errors",
+    "status": "PASS"
+  },
+  {
+    "name": "Table immutable descriptors retain core ownership checks without an optional focus hook",
+    "status": "PASS"
+  },
+  {
+    "name": "Table default focus preserves foreign selection after adoption of its cell",
+    "status": "PASS"
+  },
+  {
+    "name": "Table keyed focus preserves foreign selection after adoption of its cell",
+    "status": "PASS"
+  },
+  {
+    "name": "Table default focus preserves foreign selection after adoption of its row",
+    "status": "PASS"
+  },
+  {
+    "name": "Table keyed focus preserves foreign selection after adoption of its row",
+    "status": "PASS"
+  },
+  {
+    "name": "Table default focus preserves foreign selection after adoption of its table",
+    "status": "PASS"
+  },
+  {
+    "name": "Table keyed focus preserves foreign selection after adoption of its table",
+    "status": "PASS"
+  },
+  {
+    "name": "Table default focus preserves foreign selection after adoption of its root",
+    "status": "PASS"
+  },
+  {
+    "name": "Table keyed focus preserves foreign selection after adoption of its root",
+    "status": "PASS"
+  },
+  {
+    "name": "Image completion does not update a foreign auxiliary image during a mode transition",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion observes mounted connected-widget labels with an exact frozen descriptor",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion does not run on a prepared candidate that is discarded",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion captures its method getter once and keeps the original receiver",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion settles a sidecar-only edit and each exact history replay before acceptance",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion observes final inline mode and cancellation effects before mode acceptance",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion query failure is field-local and retries only a new explicit descriptor",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion observer failure is field-local and retries only a new explicit descriptor",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion is not delivered for a field whose inline hydration fails",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion follows an unchanged-canonical field rewritten by block update without replaying its untouched sibling",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion getter failure cleans up the captured instance before publication",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion recognizes an identical-HTML nested Text replacement by block update",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion initial Error failure preserves its original failure and accepted boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion initial undefined failure preserves its original failure and accepted boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion initial thenable failure preserves its original failure and accepted boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion canonical Error failure preserves its original failure and accepted boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion canonical undefined failure preserves its original failure and accepted boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion canonical thenable failure preserves its original failure and accepted boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion mode failure restores coherent fields and accepted mode without restoring cancelled tasks",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion observer preserves an undefined body failure without retrying its settled field",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion cannot acquire scoped writes, tasks or public mutation and control authority",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion cannot rewrite its passed author Text through a direct DOM write",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion rejects a canonical callback that changes its sibling widget without moving the field host",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion rejects a canonical callback that changes its sibling text without moving the field host",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion rejects a standalone callback that changes its sibling widget without moving the field host",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion rejects a standalone callback that changes its sibling text without moving the field host",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion does not revive a removed instance when history recreates its serialized id",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion never sees a lease lost in the preceding block-task cancellation callback",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion rejects current field adoption through its callback without reclaiming the foreign host",
+    "status": "PASS"
+  },
+  {
+    "name": "field completion rejects sibling field adoption through its callback without reclaiming the foreign host",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text derives a custom widget without reparsing returned HTML, entities or tokens",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text leaves registered widgets without toText as opaque token text",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text sidecar delivery uses prospective data before acceptance without updating healthy field DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text consumer without update uses existing replacement and history ownership",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text opt-in preserves sidecar-only delivery for blocks that never query text",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text rejects malformed or absent keys before inline callbacks",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text guards schema and formatter against nested writes, control, tasks and recursive reads",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text rejects an adopted root before schema or formatter callbacks",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text rejects an adopted shell before schema or formatter callbacks",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text revalidates its owner after onMap adoption",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text revalidates its owner after onDecode adoption",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text revalidates its owner after onText adoption",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text read preserves Error failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text read preserves undefined failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text read preserves thenable failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text read preserves non-string failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text canonical preserves Error failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text canonical preserves undefined failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text canonical preserves thenable failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text canonical preserves non-string failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text mode preserves Error failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text mode preserves undefined failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text mode preserves thenable failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text mode preserves non-string failure and its existing recovery owner",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text initial Error failure revokes its unpublished candidate",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text initial undefined failure revokes its unpublished candidate",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical field text initial thenable failure revokes its unpublished candidate",
+    "status": "PASS"
+  },
+  {
+    "name": "Person never-opened widget name has its derived tab text without hidden widget or provider lifetimes",
+    "status": "PASS"
+  },
+  {
+    "name": "Person never-opened labels retain configured triggers, literal tokens and one-pass entities in both modes",
+    "status": "PASS"
+  },
+  {
+    "name": "Person inactive sidecar-only label updates and Undo/Redo preserve its active author range and widgets",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived fallback labels interpolate ordinal with no plugin locale",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived fallback labels interpolate ordinal with a locale",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived active tab follows actual widgets through initial projection and both modes",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived active tab follows actual mention payload update and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived active tab follows actual swatch payload update and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived active tab and backward range survive unrelated sibling edit without new field completion",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived active tab and backward range survive unrelated reorder without new field completion",
+    "status": "PASS"
+  },
+  {
+    "name": "Person updating the active role preserves the other rich field and its backward selection",
+    "status": "PASS"
+  },
+  {
+    "name": "Person updating the active bio preserves the other rich field and its backward selection",
+    "status": "PASS"
+  },
+  {
+    "name": "Person external rich values project into retained fields and survive both mode transitions",
+    "status": "PASS"
+  },
+  {
+    "name": "Person external avatar and URL changes still update their actual non-rich controls",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived tab settles a previously hidden widget name when its actual field is focused",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived view retires the old body when removing the active profile selects its existing sibling",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived input from a retired body leaves the current tab and author fields unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived completion cannot write a tab label adopted by another container",
+    "status": "PASS"
+  },
+  {
+    "name": "Person derived input cannot write from a name adopted by another container",
+    "status": "PASS"
+  },
+  {
+    "name": "Person renderer derives literal entity avatar alternatives from one parsed name per owning document",
+    "status": "PASS"
+  },
+  {
+    "name": "Person renderer derives real widget avatar alternatives from one parsed name per owning document",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll derived results retain author marks through load and both modes without a document action",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll derived results follow mention changes and one Undo/Redo without moving a backward range",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll derived results follow swatch changes and one Undo/Redo without moving a backward range",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll runtime-only result replacement reads retained completed option fields",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll completion cannot change a result label adopted by a foreign container",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll detached author boundary cannot refresh derived results after the whole wrapper is adopted elsewhere",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll retired option input cannot replace the current result projection",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: a current subscription refresh preserves author fields and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll completed labels: provider refresh ignores uncommitted author DOM drift",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: a subscription cannot repaint an adopted whole wrapper",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: a subscription cannot repaint an adopted whole shell",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: a deferred load cannot repaint an adopted wrapper or report twice",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: a live provider error keeps its identity and a later update recovers",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: an error observer may throw after adoption without a second callback",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll provider ownership: an error observer may reject after adoption without a second callback",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt after literal load",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt after actual Mention and Color load",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt after mode false to true",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt after mode true to false",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt follows mention data update and exactly one Undo/Redo with selection preserved",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt follows swatch data update and exactly one Undo/Redo with selection preserved",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt queued before editor disposal cannot write after disposal",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt queued before block removal cannot write after its scope aborts",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt ignores image moved outside its exact Image view container",
+    "status": "PASS"
+  },
+  {
+    "name": "Image derived alt ignores caption moved outside its exact Image view container",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview image alternatives retain an empty title across read-only modes",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview image alternatives retain literal title characters across read-only modes",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview image alternatives follow canonical title replacement, clearing and one Undo/Redo per action",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview image alternatives follow real metadata task completion and replay without another provider request",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed preview timeout: public resolver deadline preserves author data and history",
+    "status": "FAIL",
+    "error": "Error: \nexpected [], got [{\"property\":\"timeout.signal\",\"actual\":false,\"expected\":true,\"status\":\"FAIL\"},{\"property\":\"timeout.latePreviewIgnored\",\"actual\":true,\"expected\":false,\"status\":\"FAIL\"}]\n    at equal (http://127.0.0.1:34065/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34065/tests/browser/regressions/embed-preview-contracts.js:7:5\n    at async run (http://127.0.0.1:34065/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34065/tests/browser/projection-contracts.js:1770:1"
+  },
+  {
+    "name": "Embed preview timely: public resolver deadline preserves author data and history",
+    "status": "PASS"
+  },
+  {
+    "name": "normalization cannot duplicate an owned inline reference across fields",
+    "status": "PASS"
+  },
+  {
+    "name": "projection carries the full sidecar until normalization determines references",
+    "status": "PASS"
+  },
+  {
+    "name": "duplicate candidate rich-field keys reject synchronization before values are exchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "marker-free widget has host identity and exactly one field coordinate",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with unchanged data / replaced projection",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with changed data / replaced projection",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with unchanged data / replaced contents",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with changed data / replaced contents",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with unchanged data / replaced host",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with changed data / replaced host",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with unchanged data / replaced container",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline projection retains its owned instance with changed data / replaced container",
+    "status": "PASS"
+  },
+  {
+    "name": "formatted inline update rejects a root adopted by a detached foreign container",
+    "status": "PASS"
+  },
+  {
+    "name": "a detached foreign container cannot acquire an owned formatting subtree and return its widget to projection",
+    "status": "PASS"
+  },
+  {
+    "name": "a detached foreign container cannot acquire an owned field subtree and return its widget to projection",
+    "status": "PASS"
+  },
+  {
+    "name": "a detached foreign container cannot acquire an owned container subtree and return its widget to projection",
+    "status": "PASS"
+  },
+  {
+    "name": "a detached foreign container cannot acquire an owned shell subtree and return its widget to projection",
+    "status": "PASS"
+  },
+  {
+    "name": "inline update cannot publish into a field moved across its block boundary by a callback",
+    "status": "PASS"
+  },
+  {
+    "name": "inline update cannot publish into a shell moved across its block boundary by a callback",
+    "status": "PASS"
+  },
+  {
+    "name": "partial projection preserves hidden values by key, candidate membership and new fields",
+    "status": "PASS"
+  },
+  {
+    "name": "projection rejects committed duplicate without mutating canonical input",
+    "status": "PASS"
+  },
+  {
+    "name": "projection rejects empty key without mutating canonical input",
+    "status": "PASS"
+  },
+  {
+    "name": "projection rejects duplicate across modes without mutating canonical input",
+    "status": "PASS"
+  },
+  {
+    "name": "projection rejects element alias without mutating canonical input",
+    "status": "PASS"
+  },
+  {
+    "name": "projection rejects orphan rich field without mutating canonical input",
+    "status": "PASS"
+  },
+  {
+    "name": "final text-node occurrence interpretation keeps own keys and ignores attributes and literals",
+    "status": "PASS"
+  },
+  {
+    "name": "Person flushes a pending mounted author edit before switching tabs",
+    "status": "PASS"
+  },
+  {
+    "name": "public editor preserves marker-free widget coordinates through updates, moves and history",
+    "status": "PASS"
+  },
+  {
+    "name": "a sibling rich-field update retains the caret in an unchanged List item",
+    "status": "PASS"
+  },
+  {
+    "name": "a sibling rich-field update retains the backward range in an unchanged List item",
+    "status": "PASS"
+  },
+  {
+    "name": "a Columns layout-only update preserves the current rich-field caret",
+    "status": "PASS"
+  },
+  {
+    "name": "canonical-equivalent serialization does not retain undeclared live markup",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widget reentrant destroyBlock only calls a disposer once",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widget retired widget cleanup only calls a disposer once",
+    "status": "PASS"
+  },
+  {
+    "name": "failed first inline projection disposes earlier widget claims before retry",
+    "status": "PASS"
+  },
+  {
+    "name": "inline plugin cannot steal DOM already mounted in another UI",
+    "status": "PASS"
+  },
+  {
+    "name": "inline plugin cannot mount one DOM element for two live widget identities",
+    "status": "PASS"
+  },
+  {
+    "name": "detached but owned inline widget root cannot be borrowed by another projection",
+    "status": "PASS"
+  },
+  {
+    "name": "failed repeat inline reconciliation retires old owners instead of retaining a partial update",
+    "status": "PASS"
+  },
+  {
+    "name": "a failed existing inline widget update revokes its mutated instance before retry",
+    "status": "PASS"
+  },
+  {
+    "name": "inline owner revoked during widget update cannot reattach a disposed root",
+    "status": "PASS"
+  },
+  {
+    "name": "recursive same-block reconciliation is rejected before a nested widget update",
+    "status": "PASS"
+  },
+  {
+    "name": "prepared inline creation denies same-block reentry and survives a declined nested call",
+    "status": "PASS"
+  },
+  {
+    "name": "prepared inline widget owners are released when runtime is destroyed before apply",
+    "status": "PASS"
+  },
+  {
+    "name": "destroying a runtime with applied but unfinalized inline state releases both owners",
+    "status": "PASS"
+  },
+  {
+    "name": "an old prepared inline handle cannot overwrite a newer applied block state",
+    "status": "PASS"
+  },
+  {
+    "name": "stale inline recover keeps its candidate alive for successor recovery",
+    "status": "PASS"
+  },
+  {
+    "name": "stale inline finalize cannot destroy a successor recoverable predecessor",
+    "status": "PASS"
+  },
+  {
+    "name": "destroyBlock revokes a detached prepared inline candidate before apply",
+    "status": "PASS"
+  },
+  {
+    "name": "destroyBlock invoked during prepare create invalidates the in-flight candidate",
+    "status": "PASS"
+  },
+  {
+    "name": "destroyBlock retires both mounted and waiting inline owners once",
+    "status": "PASS"
+  },
+  {
+    "name": "inline custom-element attribute callback cannot reattach a destroyed widget",
+    "status": "PASS"
+  },
+  {
+    "name": "attribute-triggered block teardown during inline preparation does not publish its root",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widget target authority follows its owning rich field, not a retained weak reference",
+    "status": "PASS"
+  },
+  {
+    "name": "native inline edit notification cannot reach a widget moved outside its field",
+    "status": "PASS"
+  },
+  {
+    "name": "native inline update fails if plugin update callback retires its block",
+    "status": "PASS"
+  },
+  {
+    "name": "native inline update fails if plugin moves its root outside the original field",
+    "status": "PASS"
+  },
+  {
+    "name": "inline payload decoder cannot silently discard an adopted sibling occurrence",
+    "status": "PASS"
+  },
+  {
+    "name": "inline identity marker callback cannot silently discard an adopted sibling occurrence",
+    "status": "PASS"
+  },
+  {
+    "name": "inline sidecar release stops acquisition after a disconnected callback revokes its owner",
+    "status": "PASS"
+  }
+]

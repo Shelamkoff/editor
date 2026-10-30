@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-30T20:18:12.108702+00:00",
+  "sourceRequestedForPush": "5ceef35cbf462b4120202c523eb6a674ea81bea6",
+  "sourceTree": "c97386168e119ece2aa25a24f7f9298c7cae21b6",
+  "branch": "refactor/rector-v2-architecture",
+  "destination": "https://github.com/Shelamkoff/editor.git",
+  "requestedCommand": [
+    "git",
+    "push",
+    "origin",
+    "HEAD:refs/heads/refactor/rector-v2-architecture"
+  ],
+  "force": false,
+  "outcome": "blocked-before-execution",
+  "blockingLayer": "automatic approval review for exec_command require_escalated",
+  "gitProcessStarted": false,
+  "gitExitCode": null,
+  "pushed": false,
+  "reasonSummary": "The review rejected transmitting the complete local history to the external GitHub repository and requires explicit approval of the payload and destination.",
+  "visibleReasonExcerpt": "Обычный non-force push может быть обратимым по истории, но он передаёт всю локальную историю и содержимое ветки во внешний GitHub-репозиторий `Shelamkoff/editor.git`; это чувствительный исходный код/а…277 chars truncated…вного одобрения payload и destination.",
+  "reasonWasTruncatedByTool": true,
+  "noMissingReasonTextReconstructed": true,
+  "earlierAttemptDistinction": "Earlier API probe timeout/readback 404 and CLI credential checks are separate historical attempts; this new block occurred before the Git command could execute.",
+  "nextStep": "Prepare and independently verify the final Git bundle, then request explicit approval of that concrete final history and the stated destination. Do not bypass the rejection."
+}

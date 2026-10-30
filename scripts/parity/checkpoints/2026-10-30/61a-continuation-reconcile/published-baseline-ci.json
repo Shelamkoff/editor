@@ -1,0 +1,426 @@
+{
+  "runId": 41094120045,
+  "sha": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "url": "https://github.com/Shelamkoff/editor/actions/runs/41094120045",
+  "jobs": [
+    {
+      "id": 124195567618,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T17:13:07Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build package",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run release gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload release gate results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 124195567898,
+      "name": "node (24)",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T16:56:15Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check types",
+          "conclusion": "success"
+        },
+        {
+          "name": "Unit tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Archive reproducible test inputs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload verification inputs and results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 124195568033,
+      "name": "package",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T16:56:05Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build package",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run release gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload release gate results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 124195568051,
+      "name": "node (20.19.0)",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T16:56:28Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check types",
+          "conclusion": "success"
+        },
+        {
+          "name": "Unit tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Archive reproducible test inputs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload verification inputs and results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 124195568166,
+      "name": "docs",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T16:56:20Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build package",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run release gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload release gate results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 124195568382,
+      "name": "node (22)",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T16:56:03Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check types",
+          "conclusion": "success"
+        },
+        {
+          "name": "Unit tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Archive reproducible test inputs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload verification inputs and results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 124195568630,
+      "name": "size-report",
+      "status": "completed",
+      "conclusion": "success",
+      "started": "2026-10-30T16:55:12Z",
+      "completed": "2026-10-30T16:55:55Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build package",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run release gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Finalize current-run results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload release gate results",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "observedAt": "2026-10-30 18:19:27 UTC"
+}

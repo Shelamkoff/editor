@@ -1,0 +1,627 @@
+{
+  "evidence": {
+    "initial-raw.json.gz": {
+      "source": "/tmp/rector-person-roundtrip-raw.json",
+      "sha256": "b43011a231aca4e610e037453655d2498a0ff5041952df67fad645986592b7e0",
+      "bytes": 137745,
+      "originalSha256": "d49e8d2322328f4eefd1588dd344d87d71b8670fc8170ab6737bb20a7947dde3",
+      "originalBytes": 4985943,
+      "encoding": "gzip"
+    },
+    "lifecycle-corrected-red.json.gz": {
+      "source": "/tmp/rector-person-lifecycle-raw.json",
+      "sha256": "184d16188af38e973eebb46d08c4fca303a904308416f2b2a81c20b7facfeddd",
+      "bytes": 147902,
+      "originalSha256": "0858a444e1d4f49c5507a50b11cf084685bec1e0c68c903ffa474e896a3a04bb",
+      "originalBytes": 5032203,
+      "encoding": "gzip"
+    },
+    "initial-repair-raw.json.gz": {
+      "source": "/tmp/rector-person-repaired-raw.json",
+      "sha256": "4d7b03d8418a47db8e05e93d08999eb73262c3fa981f21f7cd0004a1450118f8",
+      "bytes": 140957,
+      "originalSha256": "53214e42d3a140f5e9515a2272a166e1c7f7c1ff301a3c4663d899c2dde482d2",
+      "originalBytes": 4351363,
+      "encoding": "gzip"
+    },
+    "placeholder-normalized-raw.json.gz": {
+      "source": "/tmp/rector-person-normalized-raw.json",
+      "sha256": "7da04b0e9edf314e68580c8b75e3dc5c37667a9636dfc48fdfd2037cedfd96d1",
+      "bytes": 140838,
+      "originalSha256": "9d14138ad45333d933e2040e66c1390abb6425a4c2d83079ffab30de575ae126",
+      "originalBytes": 4343525,
+      "encoding": "gzip"
+    },
+    "lifecycle-oracle.patch": {
+      "source": "/tmp/rector-person-lifecycle-oracle.patch",
+      "sha256": "76d0ca41aed52986525811bb86916589203e850c68ee168f804fe814b08949bd",
+      "bytes": 7723,
+      "originalSha256": "76d0ca41aed52986525811bb86916589203e850c68ee168f804fe814b08949bd",
+      "originalBytes": 7723,
+      "encoding": "identity"
+    },
+    "placeholder-adapter.patch": {
+      "source": "/tmp/rector-person-placeholder-adapter.patch",
+      "sha256": "650029e78a270a7a0ae08e95ea50cf59660a92d459ae79835fc62ccd3ad668ec",
+      "bytes": 2325,
+      "originalSha256": "650029e78a270a7a0ae08e95ea50cf59660a92d459ae79835fc62ccd3ad668ec",
+      "originalBytes": 2325,
+      "encoding": "identity"
+    },
+    "review.patch": {
+      "source": "/tmp/rector-person-roundtrip-final-review-v2.patch",
+      "sha256": "6a2b1b42fb59c0557293ca916903ec48c197c1d68fcb9b567bbd0e141e062128",
+      "bytes": 49444,
+      "originalSha256": "6a2b1b42fb59c0557293ca916903ec48c197c1d68fcb9b567bbd0e141e062128",
+      "originalBytes": 49444,
+      "encoding": "identity"
+    },
+    "review-manifest.json": {
+      "source": "/tmp/rector-person-roundtrip-review-v2-manifest.json",
+      "sha256": "6c67473163bc81fbd3f2ddd8f9ff3581f5a839128dbb70e8ea4df9ed523fdc7f",
+      "bytes": 6206,
+      "originalSha256": "6c67473163bc81fbd3f2ddd8f9ff3581f5a839128dbb70e8ea4df9ed523fdc7f",
+      "originalBytes": 6206,
+      "encoding": "identity"
+    },
+    "classification-check.mjs": {
+      "source": "/tmp/rector-person-classification-check.mjs",
+      "sha256": "1991d76b35125324ea0603c6f3747d92e9e8d0aad62b85025c451c70cb4b2cb1",
+      "bytes": 4923,
+      "originalSha256": "1991d76b35125324ea0603c6f3747d92e9e8d0aad62b85025c451c70cb4b2cb1",
+      "originalBytes": 4923,
+      "encoding": "identity"
+    },
+    "classification-check.json": {
+      "source": "/tmp/rector-person-classification-check.json",
+      "sha256": "7083bb7d9df4ffce0f2e0e7997fd5683900bbb2e784d3dfe348e788783ce620c",
+      "bytes": 2558,
+      "originalSha256": "7083bb7d9df4ffce0f2e0e7997fd5683900bbb2e784d3dfe348e788783ce620c",
+      "originalBytes": 2558,
+      "encoding": "identity"
+    },
+    "placeholder-check.mjs": {
+      "source": "/tmp/rector-person-placeholder-controls-merged.mjs",
+      "sha256": "9846aecbba747bf8463c3b1ad073acb664ef38ac714025611f78593b76407fdb",
+      "bytes": 3104,
+      "originalSha256": "9846aecbba747bf8463c3b1ad073acb664ef38ac714025611f78593b76407fdb",
+      "originalBytes": 3104,
+      "encoding": "identity"
+    },
+    "placeholder-check.json": {
+      "source": "/tmp/rector-person-merged-placeholder-controls.json",
+      "sha256": "04d6e15b2c70425f97ffdf39f056a1121caf88bad8bdd1c2fdd5e137ad5a025e",
+      "bytes": 598,
+      "originalSha256": "04d6e15b2c70425f97ffdf39f056a1121caf88bad8bdd1c2fdd5e137ad5a025e",
+      "originalBytes": 598,
+      "encoding": "identity"
+    },
+    "final51.json.gz": {
+      "source": "/tmp/rector-person-final-roundtrip-20261029/test-results/run-dbua1S/differential51.log",
+      "sha256": "a24198b729601018f6255a850bc0e072595b60b1110ad1bfad670d37f3561566",
+      "bytes": 770132,
+      "originalSha256": "c1ca74b2eb502caedfd56d888cd477853f24bde6fb4e9c92997694d784e2dd77",
+      "originalBytes": 27194258,
+      "encoding": "gzip"
+    },
+    "initial-fixture.patch": {
+      "source": "/tmp/rector-person-roundtrip-raw-review.patch",
+      "sha256": "34ef6fbac80b89a31da43de729b5ad19301615f66f7c1b5ed51eed0c1235ba25",
+      "bytes": 17297,
+      "originalSha256": "34ef6fbac80b89a31da43de729b5ad19301615f66f7c1b5ed51eed0c1235ba25",
+      "originalBytes": 17297,
+      "encoding": "identity"
+    },
+    "final-native51.log.gz": {
+      "source": "/tmp/rector-person-final-roundtrip-20261029/test-results/run-dbua1S/native51.log",
+      "sha256": "62daa71f3056ee4d1b2a98ae2cbc90c56776b97240a9917f3ec8423b9a21a4b8",
+      "bytes": 458,
+      "originalSha256": "d99cde24f67d235d775aa63eb4fac1a89643c33601da66c8cd254650df146eea",
+      "originalBytes": 4947,
+      "encoding": "gzip"
+    },
+    "final-gates-manifest.json": {
+      "source": "/tmp/rector-person-final-roundtrip-20261029/test-results/run-dbua1S/manifest.json",
+      "sha256": "f3b1e8a2a465055a79a48203bb230a4a58087eb046a7f93d80a10916c2f0303f",
+      "bytes": 6025,
+      "originalSha256": "f3b1e8a2a465055a79a48203bb230a4a58087eb046a7f93d80a10916c2f0303f",
+      "originalBytes": 6025,
+      "encoding": "identity"
+    }
+  },
+  "raws": {
+    "initial-raw.json.gz": {
+      "head": "6af09a108686f2f371c43c04d81935b45a594472",
+      "sourceUnchanged": true,
+      "sources": {
+        "v1": {
+          "observations": 754,
+          "failures": 185,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "observations": 462,
+          "failures": 44,
+          "incomplete": 2
+        },
+        "candidate": {
+          "observations": 802,
+          "failures": 108,
+          "incomplete": 0
+        }
+      }
+    },
+    "lifecycle-corrected-red.json.gz": {
+      "head": "0ef91db7581dd67ff7efd134eba999beb529796c",
+      "sourceUnchanged": true,
+      "sources": {
+        "v1": {
+          "observations": 842,
+          "failures": 155,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "observations": 508,
+          "failures": 24,
+          "incomplete": 2
+        },
+        "candidate": {
+          "observations": 890,
+          "failures": 50,
+          "incomplete": 0
+        }
+      }
+    },
+    "initial-repair-raw.json.gz": {
+      "head": "72a7c40462b55eb0b94d99f80795ed2317a7e3ab",
+      "sourceUnchanged": true,
+      "sources": {
+        "v1": {
+          "observations": 858,
+          "failures": 155,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "observations": 516,
+          "failures": 24,
+          "incomplete": 2
+        },
+        "candidate": {
+          "observations": 906,
+          "failures": 0,
+          "incomplete": 0
+        }
+      }
+    },
+    "placeholder-normalized-raw.json.gz": {
+      "head": "14546d61c89785a6164ca230e553b8dd58215bea",
+      "sourceUnchanged": true,
+      "sources": {
+        "v1": {
+          "observations": 858,
+          "failures": 151,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "observations": 516,
+          "failures": 24,
+          "incomplete": 2
+        },
+        "candidate": {
+          "observations": 906,
+          "failures": 0,
+          "incomplete": 0
+        }
+      }
+    }
+  },
+  "finalDifferential": {
+    "head": "e8ef275d6be39b2b502b2e61c37f480d2bcfa797",
+    "browser": "156.0.8078.47",
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "selectedCases": 51,
+    "sourceSha256": "0c56f464abd549f3abe36a435956115bc86ce341803313f8895544c92a5fba26",
+    "fixtureSha256": "1b43641172acd4c4e21590365926208673374e3256a7721ababdbf9d2344d71d",
+    "sources": {
+      "v1": {
+        "cases": 51,
+        "observations": 8737,
+        "rawFailures": 802,
+        "unsupportedDifferences": 270,
+        "repairedDifferences": 532,
+        "unexpectedFailures": 0,
+        "rawPageErrors": 0,
+        "classifiedPageErrors": 0,
+        "incompleteCases": 0
+      },
+      "spec-baseline": {
+        "cases": 51,
+        "observations": 6502,
+        "rawFailures": 92,
+        "unsupportedDifferences": 0,
+        "repairedDifferences": 92,
+        "unexpectedFailures": 0,
+        "rawPageErrors": 1,
+        "classifiedPageErrors": 1,
+        "incompleteCases": 15
+      },
+      "candidate": {
+        "cases": 51,
+        "observations": 8851,
+        "rawFailures": 0,
+        "unsupportedDifferences": 0,
+        "repairedDifferences": 0,
+        "unexpectedFailures": 0,
+        "rawPageErrors": 0,
+        "classifiedPageErrors": 0,
+        "incompleteCases": 0
+      }
+    },
+    "incompleteCases": [
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_LIST_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      }
+    ],
+    "unsupportedReferenceCases": [
+      {
+        "source": "v1",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+        "supported": false,
+        "feature": "Persistent Image caption widgets",
+        "reason": "Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Image caption widgets",
+        "reason": "Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+        "supported": false,
+        "feature": "Persistent Embed caption widgets",
+        "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Embed caption widgets",
+        "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+        "supported": false,
+        "feature": "Persistent Person name and biography widgets",
+        "reason": "Pinned v1 Person declares inlineTools=false and no mapTextFields hook required by its public inline insertion gate. These are current-capability controls, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Person name and biography widgets",
+        "reason": "Pinned v1 Person declares inlineTools=false and no mapTextFields hook required by its public inline insertion gate. These are current-capability controls, not proof of v1 widget parity."
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "scope": "Person4 merged with unchanged preceding Image47, exact reference classifications and current-format native history. Inactive rich-name tabs remain OPEN.",
+  "gatedSource": "e8ef275d6be39b2b502b2e61c37f480d2bcfa797",
+  "base": "936bf0a77218bbd46e7706744ad3a360ecf6af18",
+  "files": {
+    "scripts/parity/block-roundtrip.md": "0f5638102fb46fc8f65cb79c377367b70b2114ca4c9c38dd18535b85c8ff7464",
+    "scripts/parity/block-roundtrip.mjs": "0c56f464abd549f3abe36a435956115bc86ce341803313f8895544c92a5fba26",
+    "tests/browser/block-roundtrip-fixture.js": "1b43641172acd4c4e21590365926208673374e3256a7721ababdbf9d2344d71d"
+  },
+  "gates": {
+    "differential51": {
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "startedAt": "2026-10-29T22:10:02.079Z",
+      "finishedAt": "2026-10-29T22:11:55.095Z",
+      "elapsedMs": 113012.804627,
+      "exitCode": 0,
+      "outcome": "passed",
+      "sourceUnchanged": true
+    },
+    "native51": {
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "startedAt": "2026-10-29T22:12:28.273Z",
+      "finishedAt": "2026-10-29T22:13:07.693Z",
+      "elapsedMs": 39416.732351,
+      "exitCode": 0,
+      "outcome": "passed",
+      "sourceUnchanged": true
+    }
+  },
+  "nativeCaseCount": 51,
+  "nativeAllPass": true,
+  "sourceAfterMatchesBefore": true,
+  "browserExecutable": {
+    "path": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "version": "156.0.8078.47",
+    "sha256": "230f0db8c5086182f46c59c867c0d461eb525d6552dfad226ea6b4d9ec249db2"
+  },
+  "peerReview": {
+    "agent": "/root/v1_parity_audit",
+    "patchSha256": "6a2b1b42fb59c0557293ca916903ec48c197c1d68fcb9b567bbd0e141e062128",
+    "kind": "read-only; no independent browser or checker execution",
+    "result": "No substantive blockers in exact classification, expected-wire placeholder, renderer readiness or bounded retired-field guards."
+  },
+  "replay": {
+    "differential": [
+      "env",
+      "EDITOR_V1_ROOT=/tmp/rector-v1-5e5c7f8",
+      "EDITOR_SPEC_BASELINE_ROOT=/tmp/rector-e981ff3",
+      "EDITOR_PLAYWRIGHT_PATH=/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "EDITOR_DEPENDENCIES_ROOT=/tmp/rector-image-recovery-20261029/node_modules",
+      "EDITOR_CHROME_PATH=/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "node",
+      "scripts/parity/block-roundtrip.mjs"
+    ],
+    "native": [
+      "env",
+      "EDITOR_NATIVE_PAGE=native-roundtrip-preservation.html",
+      "EDITOR_CHROME_PATH=/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "filters": "EDITOR_ROUNDTRIP_FILTER and EDITOR_NATIVE_FILTER unset for final gates; C11 run-dbua1S records exact source identities."
+  },
+  "limitations": [
+    "Current 51 passes do not accept every detailed behavior row or all 21 built-ins.",
+    "Six v1 widget controls (Embed 2 / Image 2 / Person 2) remain unsupported capability evidence; all raw failures retained.",
+    "Fifteen spec-baseline cases remain incomplete, including both Person widget cases; unexecuted phases are never credited.",
+    "Exactly one known baseline Embed Redo exception is independently captured in two raw channels and narrowly classified; no Person/current error allowance.",
+    "Initial invalid lifecycle/renderer oracle and subsequent raw aggregates remain failed evidence.",
+    "C11 records an unchanged untracked node_modules symlink; no tracked source changed during either final gate.",
+    "Node sandbox rejected an early offline helper child-process spawn before its assertions; the helper was rerun using the already frozen blob, without a browser or product-test claim."
+  ],
+  "delivery": {
+    "sourceCommit": "a3b61da2b7c1174f371fbc2aa37449e919dd3dd9",
+    "base": "936bf0a77218bbd46e7706744ad3a360ecf6af18",
+    "gatedSource": "e8ef275d6be39b2b502b2e61c37f480d2bcfa797",
+    "exactThreeFilesMatch": true,
+    "exactRuntimeSixFilesMatch": true,
+    "reason": "The reviewed two-commit test/docs sequence is delivered as one exact-three-file commit; gated source remains unchanged in its original checkout."
+  },
+  "runtimeSixFiles": {
+    "plugins/person/index.js": "cc9e97768ad60bcf3baf155a48cdcee3ecfd029e6841a10eda948255236ecc87",
+    "renderer/renderers/person/index.js": "b8b0aa407e1809c36c75ccd4839557e16614a22d672abbe19b74c3517ae7f8c9",
+    "plugins/person/reconciliation.test.js": "4dbaaeab234dd3f79effcc81fc93f925b42ec6168474566bedd8224bd2a92309",
+    "tests/browser/projection-contracts.js": "d1227d780b49ad8cb1b1c01de8c366e73f68d8819cfac0902629b4fc2260767d",
+    "tests/browser/regressions/person-derived-presentation.js": "618d82e0efc874d437b689b421488a7a6693b275788de748f01a6b3aafed4c01",
+    "tests/browser/native-plugin-controls.js": "99673d307ca3ccb6fa413d98743053cc582c3f42b4b902f47c7a3afd22b844fa"
+  }
+}

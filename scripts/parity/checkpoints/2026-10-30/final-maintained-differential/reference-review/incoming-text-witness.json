@@ -1,0 +1,853 @@
+{
+  "archived": {
+    "path": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-guards/scripts/parity/checkpoints/2026-10-30/text-block-settings/final/differential.json.gz",
+    "rawSha256": "2f4f5e1e71b9027efff9dd579cf4fd10bb16a830f8a214037614bbefc0792183"
+  },
+  "scope": "This witness arrived only in the later merge. Original run analysis saying no archived witness is retained unchanged.",
+  "comparisons": [
+    {
+      "current": {
+        "path": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification/test-results/run-AYPL00/text-block-settings.log",
+        "rawSha256": "324f43fad2a368f492ccb7336da6c571ffd4bb28af1cd25008dfa72cd570c838"
+      },
+      "headBefore": "1c933545c6f05701741031997945c64b1ab5ba9d",
+      "fixtureBytesMatchArchived": true,
+      "observedFailureCount": 214,
+      "archivedFailureCount": 214,
+      "exactMatchedFailureCount": 212,
+      "exactSignatureEquality": false,
+      "newOrChanged": [
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "sU6TLf",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "4tntWq",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "4tntWq",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "readOnlyUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        },
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "dHeXy2",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "sU6TLf",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "4tntWq",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "4tntWq",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "canonicalUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        }
+      ],
+      "missingOrChanged": [
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "l6PE4t",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "readOnlyUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        },
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "SzRjIb",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "l6PE4t",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "canonicalUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        }
+      ],
+      "fieldDifferences": [
+        {
+          "key": {
+            "case": "HEADING_LEVEL/toolbox/h2",
+            "phase": "retired-control",
+            "property": "readOnlyUnchanged",
+            "source": "v1",
+            "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+            "status": "FAIL"
+          },
+          "changedFields": [
+            {
+              "path": "/actual/1/id",
+              "current": "sU6TLf",
+              "archived": "l6PE4t"
+            },
+            {
+              "path": "/actual/2/id",
+              "current": "4tntWq",
+              "archived": "NdaWqB"
+            },
+            {
+              "path": "/expected/1/id",
+              "current": "4tntWq",
+              "archived": "NdaWqB"
+            }
+          ]
+        },
+        {
+          "key": {
+            "case": "HEADING_LEVEL/toolbox/h2",
+            "phase": "retired-control",
+            "property": "canonicalUnchanged",
+            "source": "v1",
+            "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+            "status": "FAIL"
+          },
+          "changedFields": [
+            {
+              "path": "/actual/1/id",
+              "current": "dHeXy2",
+              "archived": "SzRjIb"
+            },
+            {
+              "path": "/actual/2/id",
+              "current": "sU6TLf",
+              "archived": "l6PE4t"
+            },
+            {
+              "path": "/actual/3/id",
+              "current": "4tntWq",
+              "archived": "NdaWqB"
+            },
+            {
+              "path": "/expected/1/id",
+              "current": "4tntWq",
+              "archived": "NdaWqB"
+            }
+          ]
+        }
+      ],
+      "policy": "Descriptions retain exact source SHAs and raw payloads. They are not classifiers and do not change exit codes, statuses or the acceptance ledger."
+    },
+    {
+      "current": {
+        "path": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-guards/test-results/run-a15oUo/text-block-settings.log",
+        "rawSha256": "2df72876a2ccd9e9dd58e0b141d56721c3477f5310c47118daae867cce37d947"
+      },
+      "headBefore": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+      "fixtureBytesMatchArchived": true,
+      "observedFailureCount": 214,
+      "archivedFailureCount": 214,
+      "exactMatchedFailureCount": 212,
+      "exactSignatureEquality": false,
+      "newOrChanged": [
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "Pcz2N4",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "xnmFIa",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "xnmFIa",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "readOnlyUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        },
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "izLXbY",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "Pcz2N4",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "xnmFIa",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "xnmFIa",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "canonicalUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        }
+      ],
+      "missingOrChanged": [
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "l6PE4t",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "readOnlyUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        },
+        {
+          "actual": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "SzRjIb",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "l6PE4t",
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "case": "HEADING_LEVEL/toolbox/h2",
+          "expected": [
+            {
+              "data": {
+                "level": 3,
+                "text": "<b>Alpha</b> {{mention}} {{swatch}} tailX"
+              },
+              "id": "subject",
+              "inline": {
+                "mention": {
+                  "data": {
+                    "id": "ada",
+                    "name": "Ada"
+                  },
+                  "type": "mention"
+                },
+                "swatch": {
+                  "data": {
+                    "value": "#123456"
+                  },
+                  "type": "color"
+                }
+              },
+              "type": "heading"
+            },
+            {
+              "data": {
+                "level": 2,
+                "text": ""
+              },
+              "id": "NdaWqB",
+              "type": "heading"
+            }
+          ],
+          "phase": "retired-control",
+          "property": "canonicalUnchanged",
+          "source": "v1",
+          "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+          "status": "FAIL"
+        }
+      ],
+      "fieldDifferences": [
+        {
+          "key": {
+            "case": "HEADING_LEVEL/toolbox/h2",
+            "phase": "retired-control",
+            "property": "readOnlyUnchanged",
+            "source": "v1",
+            "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+            "status": "FAIL"
+          },
+          "changedFields": [
+            {
+              "path": "/actual/1/id",
+              "current": "Pcz2N4",
+              "archived": "l6PE4t"
+            },
+            {
+              "path": "/actual/2/id",
+              "current": "xnmFIa",
+              "archived": "NdaWqB"
+            },
+            {
+              "path": "/expected/1/id",
+              "current": "xnmFIa",
+              "archived": "NdaWqB"
+            }
+          ]
+        },
+        {
+          "key": {
+            "case": "HEADING_LEVEL/toolbox/h2",
+            "phase": "retired-control",
+            "property": "canonicalUnchanged",
+            "source": "v1",
+            "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+            "status": "FAIL"
+          },
+          "changedFields": [
+            {
+              "path": "/actual/1/id",
+              "current": "izLXbY",
+              "archived": "SzRjIb"
+            },
+            {
+              "path": "/actual/2/id",
+              "current": "Pcz2N4",
+              "archived": "l6PE4t"
+            },
+            {
+              "path": "/actual/3/id",
+              "current": "xnmFIa",
+              "archived": "NdaWqB"
+            },
+            {
+              "path": "/expected/1/id",
+              "current": "xnmFIa",
+              "archived": "NdaWqB"
+            }
+          ]
+        }
+      ],
+      "policy": "Descriptions retain exact source SHAs and raw payloads. They are not classifiers and do not change exit codes, statuses or the acceptance ledger."
+    }
+  ]
+}

@@ -35,6 +35,8 @@ The CI `size-report` job enforces the Paragraph, default interactive and full pr
 
 `native-plugin-parity.html` checks all 21 plugins and 34 authoring fields through native input, directed replacement, caret and Undo/Redo, plus multiline/single-line behavior, Code and Raw view controls, literal Code-to-rich conversion, whole conversions and read-only projection.
 
+`native-code-copy-ownership.html` checks 10 Code Copy continuations with trusted clicks, a controlled Clipboard API provider and real reset deadlines. Current editable/read-only buttons complete normally; adopted buttons, toolbars, wrappers and shells preserve their new owner's DOM and canonical history. Select this page with `EDITOR_NATIVE_PAGE=native-code-copy-ownership.html`; `EDITOR_NATIVE_FILTER` continues to select its case names.
+
 `native-plugin-controls.html` verifies 156 actual controls: all 21 plugins' Move/Duplicate/Delete commands, Table grid and Columns layouts, Gallery and Person drag, Person crop Apply/Cancel, hidden editing hosts after tab/slide changes, Poll option sorting/results/voting/reset, LinkPreview templates and Attaches variants. The OS file chooser is intercepted only to supply the disposable test file; the crop dialog, canvas, upload and history still execute.
 
 `native-plugin-ranges.html` checks 116 native cross-block conversions across all 29 rich-text fields and both range directions. `native-plugin-local-ranges.html` runs 76 additional partial conversions within single compound fields or across a compound owner's own fields. They verify untouched author fields, asset ownership, stable IDs, exact directed ranges and one keyboard Undo/Redo. The pages are split to retain the bounded page timeout, without dropping cases.

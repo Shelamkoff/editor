@@ -236,6 +236,7 @@ export function createLinkPreviewPlugin(config={}){
             if(filled)setSafeUrlAttribute(card,'href',data.url,'external')
             else card.removeAttribute('href')
             title.textContent=data.title||data.url
+            image.alt=data.title
             description.textContent=data.description
             domainText.textContent=data.domain||host(data.url)
             for(const element of [favicon,largeFavicon,urlFavicon]){

@@ -1,0 +1,6 @@
+{
+  "pid": 237143,
+  "supervisor": "/workspace/scratch/61a2ad7355f4/tools/resume-native-continuation-final2.py",
+  "stdout": "/workspace/scratch/61a2ad7355f4/tools/native-final2-retry-launch.log",
+  "status": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/status.json"
+}

@@ -1,0 +1,100 @@
+diff --git a/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md b/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md
+index c88812b19e9c1a6d051e30a7fae4dfe208b621c9..37f6f92177d1230c9f87a422acc64f8ca4a12d48 100644
+--- a/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md
++++ b/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md
+@@ -433,6 +433,7 @@ For Image, derive alt from the final actual caption text. Core proves the field/
+ | Mode transition | Deliver after block/inline mode hooks and existing scope-cancellation callbacks, while the mode owner can still restore; validate the same leases before and after. Completion failure must use the existing mode reconstruction boundary, not merely reverse block setReadOnly and accept raw tokens. |
+ | Standalone presentation refresh and admitted successful field recovery | Deliver only completed affected fields within the current fallible attempt. Unchanged healthy siblings and pending native siblings are not rehydrated or notified. Healthy repeated queries, a settled failed set and repeated automatic notifications are not callback/retry permission. |
+ | Accepted native author text in a retained source projection | Complete each currently declared rich field whose accepted rich-text value changes, after the source's ordinary inline hydration and before canonical/history acceptance. Retain the native DOM, widgets and caret. An unchanged source notification adds no completion or history. The same existing field owner is revalidated across schema callbacks; ownership transfer cannot authorize hydration or an auxiliary write. |
++| Completed trusted ordinary native replacement with unchanged canonical data | A matching trusted `beforeinput`/`input` pair may settle real retained rich author DOM without changing its canonical value. Capture the already-admitted frozen descriptor inside the existing protected synchronization operation, before its projection read. Descriptor-capture failure uses that operation's recovery. Complete that same field after schema normalization within the existing native finalization and recovery boundary. Do not create a history action. A synthetic notification, cancelled/stale envelope, unchanged query, nonretained source or plain control grants no such completion. Changed source values keep the existing later schema/ownership/hydration path above. |
+ | Native inline finalization, including a canonical semantic no-op | Route the exact native-owned field's actual final DOM/cache completion directly through the same BlockReconciler owner before synchronization returns. Canonical equality may suppress the engine transaction, but must not suppress real completion. No transaction event or afterNativeEdit observer is used as its delivery prerequisite. |
+ | Removal, destruction, failure without completion or supersession | No completion of the old occurrence. Same-ID successors and a later cached-field return cannot revive a retired callback's authority. Ordinary uncommitted DOM changes alone do not authorize notification. |
+ 
+diff --git a/core/DocumentRuntime.js b/core/DocumentRuntime.js
+index d0712fed56624975c830619438c48f94722455da..191847dfbea9e077854e8fd4df45019cba098b57 100644
+--- a/core/DocumentRuntime.js
++++ b/core/DocumentRuntime.js
+@@ -1227,7 +1227,7 @@ export class DocumentRuntime {
+       selectionBefore: snapshot.selectionBefore,
+       preserveSourceProjection: true,
+       nativeInlineCandidate: () => candidateInline,
+-      finalizeNativeInline: next => snapshot.finalizeChanges?.(capturedChanges,next.inline),
++      finalizeNativeProjection: next => snapshot.finalizeChanges?.(capturedChanges,next.inline),
+     })
+     const status = this.revision === beforeRevision ? 'unchanged' : 'committed'
+     snapshot.settle?.(capturedChanges,status)
+@@ -1278,10 +1278,12 @@ export class DocumentRuntime {
+         const next = this.#recordFromData(
+           current.id, current.type, definition, readData, current.tunes, inlineSource,
+         )
+-        if (metadata.finalizeNativeInline) completedSourceFieldKey=metadata.finalizeNativeInline(next)
+         // Native projection reads may preserve meaning with a different
+-        // JSON key order. Only an actual semantic change creates history.
+-        if (!canonicalRecordsEqual(current, next)) updates.push([id, next])
++        // JSON key order. Completion may still be needed for settled native
++        // author DOM, but only an actual semantic change creates history.
++        const changed = !canonicalRecordsEqual(current, next)
++        if (metadata.finalizeNativeProjection) completedSourceFieldKey=metadata.finalizeNativeProjection(next, changed)
++        if (changed) updates.push([id, next])
+       }
+ 
+       if (updates.length) {
+diff --git a/core/NativeInputController.js b/core/NativeInputController.js
+index e86a78d87fee4ac673feab26bde68f55622817a6..fbf25d728af0db0a63afcfea4b856b591b4040c8 100644
+--- a/core/NativeInputController.js
++++ b/core/NativeInputController.js
+@@ -292,6 +292,11 @@ export class NativeInputController {
+     }
+ 
+     const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
++    const completedNativeInput = pending?.kind === 'field' && pending.trusted && event?.isTrusted === true
++      && pending.blockId === owner.blockId && pending.fieldKey === owner.fieldKey && pending.element === owner.element
++      && pending.generation === this.#runtime.generation && pending.revision === this.#runtime.revision
++      && pending.modeEpoch === this.#runtime.modeEpoch && !pending.originalEvent.defaultPrevented
++      && pending.originalEvent.inputType === inputType
+     const selectionBefore = pending?.kind === 'field'
+       && pending.blockId === owner.blockId && pending.fieldKey === owner.fieldKey
+       && pending.generation === this.#runtime.generation && pending.revision === this.#runtime.revision
+@@ -301,6 +306,7 @@ export class NativeInputController {
+     this.#commit(owner, {
+       group: this.#historyGroup(owner),
+       preserveSourceProjection: SOURCE_PROJECTION_INPUTS.has(inputType),
++      completeNativeNoop: completedNativeInput,
+       selectionBefore,
+     })
+     if (isolated) this.#lastGroup = null
+@@ -437,19 +443,32 @@ export class NativeInputController {
+     return editingHostForEvent(this.#root, target) === owner.element ? owner : null
+   }
+ 
+-  #commit(owner, { group, preserveSourceProjection, selectionBefore = undefined }) {
++  #commit(owner, { group, preserveSourceProjection, completeNativeNoop = false, selectionBefore = undefined }) {
+     if (this.#controller.signal.aborted) return
++    // A trusted completed edit can replace author DOM without changing its
++    // canonical value. Retain the existing descriptor across the guarded read.
++    const completeField = completeNativeNoop && preserveSourceProjection && owner.mode === 'rich-text'
++    let field
+     // Paste/cut can rebuild the authoring host after decoding its native edit.
+     // Keep the logical caret without retaining untrusted clipboard markup.
+     const captured = !preserveSourceProjection ? this.#selection?.capture() : null
+     const local = point => point?.blockId === owner.blockId && point?.fieldKey === owner.fieldKey
+     const selectionAfter = captured && local(captured.anchor) && local(captured.focus) ? captured : null
+-    this.#runtime.syncBlockFromProjection(owner.blockId, () => {}, {
++    this.#runtime.syncBlockFromProjection(owner.blockId, () => {
++      if (!completeField) return
++      field = this.#reconciler.getEditableField(owner.blockId, owner.fieldKey)
++      if (!field || field.key !== owner.fieldKey || field.element !== owner.element || field.mode !== owner.mode) {
++        throw new Error('Native completion lost its captured field owner')
++      }
++    }, {
+       origin: 'native-input',
+       name: 'native-input',
+       historyGroup: group,
+       coalesce: true,
+       preserveSourceProjection,
++      ...(completeField ? { finalizeNativeProjection: (_next, changed) => {
++        if (!changed) this.#reconciler.completeFieldProjection?.(owner.blockId, field)
++      } } : {}),
+       ...(selectionBefore === undefined ? {} : { selectionBefore }),
+       ...(selectionAfter ? { selectionAfter: () => selectionAfter } : {}),
+     })
