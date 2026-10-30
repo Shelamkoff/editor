@@ -114,6 +114,7 @@ export async function runTableKeyboardCase(specification, { sourceBase = '../../
     inputType: event.inputType ?? null, trusted: event.isTrusted, target: event.target?.tagName })
   window.addEventListener('error', observeError)
   document.addEventListener('keydown', observeKey, true); document.addEventListener('input', observeKey, true)
+  document.addEventListener('beforeinput', observeKey, true)
   try {
     editor = createEditor({ holder, injectStyles: true, defaultBlock: 'table', inlineTools: [], data: input,
       plugins: [legacy ? new tableModule.Table() : tableModule.createTablePlugin()],
@@ -274,6 +275,8 @@ export async function runTableKeyboardCase(specification, { sourceBase = '../../
     check('completion', 'phaseOrder', completedPhases, plannedPhases)
     check('gestures', 'allNativeEventsTrusted', trusted.length > 0 && trusted.every(event => event.trusted), true)
     check('gestures', 'precedingNativeInput', trusted.some(event => event.phase === 'input' && event.type === 'input' && event.inputType === 'insertText'), true)
+    if (specification.action === 'enter') check('gestures', 'continuationBeforeInput',
+      trusted.some(event => event.phase === 'continuation' && event.type === 'beforeinput' && event.inputType === 'insertText'), true)
     for (const phase of plannedPhases.filter(phase => /^(?:tab|shift-tab|enter$|undo-|redo-|control-enter|control-undo)/.test(phase))) {
       check('gestures', `key:${phase}`, trusted.some(event => event.phase === phase && event.type === 'keydown'), true)
     }
@@ -283,6 +286,7 @@ export async function runTableKeyboardCase(specification, { sourceBase = '../../
   } finally {
     window.removeEventListener('error', observeError)
     document.removeEventListener('keydown', observeKey, true); document.removeEventListener('input', observeKey, true)
+    document.removeEventListener('beforeinput', observeKey, true)
     renderer?.destroy(); editor?.destroy(); beforeButton.remove(); holder.remove(); afterButton.remove(); foreign.remove(); output.remove()
   }
 }

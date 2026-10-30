@@ -1,5 +1,6 @@
 // @ts-check
 import { editingHostForEvent } from '../shared/editableFields.js'
+import { isRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 
 const SOURCE_PROJECTION_INPUTS = new Set([
   'insertText',
@@ -185,6 +186,7 @@ export class NativeInputController {
       })
       return
     }
+    if (this.#insertAfterAuthoredBreak(owner, event, inputType)) return
     if (this.#insertAtWidgetBoundary(owner, event, inputType)) return
     const native = this.#root.ownerDocument.defaultView?.getSelection?.()
     const inline = this.#inlineWidgetInput?.captureNativeDeletion(owner,event,native)
@@ -202,6 +204,40 @@ export class NativeInputController {
       bookmark: this.#selection.capture(),
     } : null
     this.#endingComposition = null
+  }
+
+  #insertAfterAuthoredBreak(owner, event, inputType) {
+    if (owner.mode !== 'rich-text' || inputType !== 'insertText' || typeof event.data !== 'string' || !event.data
+      || event.type !== 'beforeinput' || !event.cancelable || !event.isTrusted || event.isComposing) return false
+    const document = this.#root.ownerDocument, native = document.defaultView?.getSelection?.()
+    if (!native?.isCollapsed || native.rangeCount !== 1 || native.anchorNode?.nodeType !== 1) return false
+    const node = native.anchorNode, offset = native.anchorOffset, br = node.childNodes[offset - 1]
+    if (br?.nodeType !== 1 || br.nodeName !== 'BR' || isRichTextCaretPadding(br)) return false
+    // The terminal padding already gives the browser a stable native typing
+    // position. Keep that existing path and its normal input event intact.
+    if (isRichTextCaretPadding(node.childNodes[offset])) return false
+    const range = native.getRangeAt(0), selectionBefore = this.#selection?.capture()
+    const local = point => point?.blockId === owner.blockId && point?.fieldKey === owner.fieldKey
+    const current = this.#resolve(node)
+    if (!range.collapsed || !selectionBefore || !local(selectionBefore.anchor) || !local(selectionBefore.focus)
+      || current?.element !== owner.element || current.mode !== owner.mode
+      || current.blockId !== owner.blockId || current.fieldKey !== owner.fieldKey
+      || document.activeElement !== owner.element || !owner.element.contains(br)
+      || !native.isCollapsed || native.anchorNode !== node || native.anchorOffset !== offset
+      || native.focusNode !== node || native.focusOffset !== offset
+      || range.startContainer !== node || range.startOffset !== offset) return false
+    // Chromium can move typing after a marked BR into the next visual text
+    // run even when the caret remains inside the break's formatting wrapper.
+    // Keep the authored DOM boundary, then use the existing native commit path.
+    event.preventDefault()
+    event.stopImmediatePropagation?.()
+    const text = document.createTextNode(event.data)
+    range.insertNode(text)
+    native.setBaseAndExtent(text, text.data.length, text, text.data.length)
+    this.#endingComposition = null
+    this.#commit(owner, { group: this.#historyGroup(owner), preserveSourceProjection: true, selectionBefore })
+    this.#onControlledInput?.()
+    return true
   }
 
   #insertAtWidgetBoundary(owner, event, inputType) {

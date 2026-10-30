@@ -1,5 +1,6 @@
 // @ts-check
 import { findNodeAtOffset, getTextLength, getTextOffset } from '../shared/textOffset.js'
+import { isRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 
 function clamp(value,min,max){
   return Math.max(min,Math.min(max,value))
@@ -174,8 +175,15 @@ export class LogicalSelection {
     const selection=document.defaultView?.getSelection()??null
     if(!selection)return false
 
-    const a=findNodeAtOffset(anchor.owner.element,anchor.offset,'start')
-    const f=anchor.owner.element===focus.owner.element&&anchor.offset===focus.offset
+    const collapsed=anchor.owner.element===focus.owner.element&&anchor.offset===focus.offset
+    const preceding=collapsed?findNodeAtOffset(anchor.owner.element,anchor.offset,'end'):null
+    const previousChild=preceding?.node.childNodes?.[preceding.offset-1]
+    // A line break belongs to its authored formatting wrapper. Do not move
+    // its caret into the following sibling's marks. The logical resolver
+    // excludes projection padding, so only an authored BR can own this edge.
+    const a=previousChild?.nodeType===1&&previousChild.nodeName==='BR'&&!isRichTextCaretPadding(previousChild)
+      ? preceding : findNodeAtOffset(anchor.owner.element,anchor.offset,'start')
+    const f=collapsed
       ? a
       : findNodeAtOffset(focus.owner.element,focus.offset,'end')
 

@@ -21,6 +21,7 @@ const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
 const sources = [
   { label: 'v1', sha: '5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340', legacy: true, loaded: {} },
   { label: 'spec-baseline', sha: 'e981ff308000c1d92d7e820df95113c1e19bcee8', legacy: false, loaded: {} },
+  { label: 'pre-fix', sha: '01fb551a9542ddd94e6b5652f637193875b55888', legacy: false, loaded: {} },
   { label: 'candidate', sha: headBefore, legacy: false, loaded: {} },
 ]
 for (const source of sources) source.tree = git('rev-parse', `${source.sha}^{tree}`).toString().trim()
