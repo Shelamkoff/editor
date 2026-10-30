@@ -1,8 +1,9 @@
 import { createLinkTool } from '../../../inline-tools/link.js'
 import { createDefaultInlineTools } from '../../../inline-tools/defaults.js'
 import { createParagraphPlugin } from '../../../plugins/paragraph/index.js'
+import { createColorSwatchPlugin } from '../../../inline-plugins/color.js'
 import { getTextOffset } from '../../../shared/textOffset.js'
-import { clickNative, dispatchKey, dragAcross } from '../native-input-helpers.js'
+import { clickNative, dispatchKey, dragAcross, pointAt } from '../native-input-helpers.js'
 import { test, make, para, editableField, editorRoot, pause, assert, equal } from './harness.js'
 
 function fixture(html) {
@@ -109,6 +110,80 @@ test('Link detects and unlinks selected line-break-only author content', () => {
     equal(h.field.innerHTML, 'alpha<br>beta')
     assert(lineBreak.isConnected, 'Unlink replaced the authored line break')
   } finally { h.dispose() }
+})
+
+test('Link excludes nested editing-host line breaks while unlinking an adjacent authored break', () => {
+  const h = fixture('alpha<span contenteditable="true"><a href="/nested"><br></a></span>beta')
+  try {
+    const nested = h.field.querySelector('[contenteditable="true"]')
+    const nestedAnchor = nested.querySelector('a'), nestedBreak = nested.querySelector('br')
+    const before = h.field.innerHTML
+    equal(h.tool.isActive({ range: h.range }), false, 'Nested editing-host BR activated the outer Link tool')
+    h.tool.toggle({ range: h.range })
+    equal(h.field.innerHTML, before, 'Outer Unlink edited a nested host')
+    const author = document.createElement('a'), authorBreak = document.createElement('br')
+    author.href = '/author'
+    author.append(authorBreak)
+    h.field.append(author)
+    h.range.selectNodeContents(h.field)
+    equal(h.tool.isActive({ range: h.range }), true, 'Adjacent authored BR did not activate Link')
+    h.tool.toggle({ range: h.range })
+    assert(authorBreak.isConnected && !authorBreak.closest('a'), 'Adjacent authored BR was not unlinked')
+    assert(nestedAnchor.isConnected && nestedBreak.parentElement === nestedAnchor, 'Adjacent action changed nested-host ownership')
+    equal(nestedAnchor.getAttribute('href'), '/nested')
+  } finally { h.dispose() }
+})
+
+for (const content of ['atomic-only', 'mixed', 'partial']) test(`Unlink removes an authored wrapper around a complete atomic widget / ${content}`, () => {
+  const h = fixture('alpha<a href="/author">'
+    + (content === 'atomic-only' ? '' : '<b>prefix</b>')
+    + '<span data-inline-plugin="mention" contenteditable="false"></span>'
+    + (content === 'atomic-only' ? '' : ' suffix') + '</a>beta')
+  try {
+    const widget = h.field.querySelector('[data-inline-plugin]')
+    const ownedAnchor = document.createElement('a')
+    ownedAnchor.href = '/widget-owned'
+    ownedAnchor.textContent = 'Widget'
+    widget.append(ownedAnchor)
+    const innerText = ownedAnchor.firstChild
+    if (content === 'partial') {
+      const text = h.field.querySelector('b').firstChild
+      h.range.setStart(text, 1); h.range.setEnd(text, 3)
+    }
+    equal(h.tool.isActive({ range: h.range }), true, 'Complete atomic author content did not activate Link')
+    h.tool.toggle({ range: h.range })
+    assert(!h.field.querySelector('a[href="/author"]'), 'Authored outer link survived Unlink')
+    assert(widget.isConnected && ownedAnchor.parentNode === widget && ownedAnchor.firstChild === innerText,
+      'Unlink changed widget-owned DOM')
+    equal(ownedAnchor.getAttribute('href'), '/widget-owned')
+    equal(h.field.textContent, content === 'atomic-only' ? 'alphaWidgetbeta' : 'alphaprefixWidget suffixbeta')
+  } finally { h.dispose() }
+})
+
+test('native Unlink preserves a real atomic inline occurrence while removing its authored link', async () => {
+  const editor = make([para('a', 'alpha<a href="/author">{{swatch}}</a>beta', {
+    inline: { swatch: { type: 'color', dataVersion: 1, data: { value: '#123456' } } },
+  })], { injectStyles: true, inlinePlugins: [createColorSwatchPlugin()], inlineTools: createDefaultInlineTools({ types: ['link'] }) })
+  const field = editableField(editor, 'a'), root = editorRoot(editor)
+  const widget = field.querySelector('[data-inline-plugin="color"]'), before = editor.save().blocks
+  await pause(60)
+  const from = pointAt(field, 10), to = pointAt(field, 0)
+  await window.__testInput('Input.drag', {
+    from: { x: from.clientX, y: from.clientY }, to: { x: to.clientX, y: to.clientY },
+  })
+  await pause(30)
+  equal(getTextOffset(field, window.getSelection().anchorNode, window.getSelection().anchorOffset), 10)
+  equal(getTextOffset(field, window.getSelection().focusNode, window.getSelection().focusOffset), 0)
+  await clickNative(root.querySelector('[data-tool="link"]'))
+  equal(editor.save().blocks, [{ ...before[0], data: { text: 'alpha{{swatch}}beta' } }])
+  assert(widget.isConnected && field.querySelector('[data-inline-plugin="color"]') === widget,
+    'Unlink replaced the real widget occurrence')
+  const after = editor.save().blocks
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  equal(editor.save().blocks, after)
 })
 
 function paragraphWithControls() {

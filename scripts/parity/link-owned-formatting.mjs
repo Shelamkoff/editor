@@ -81,6 +81,14 @@ try {
           html: '<a href="/shared">alpha<br><span contenteditable="false">Locked</span><br>beta</a>' },
         { id: 'line-break-only', active: true,
           html: 'alpha<a href="/break"><br></a>beta' },
+        { id: 'nested-host-break', active: false, breakTargets: ['/nested'],
+          html: 'alpha<span contenteditable="true"><a href="/nested"><br></a></span>beta' },
+        { id: 'nested-host-and-authored-break', active: true, breakTargets: ['/nested', null],
+          html: 'alpha<span contenteditable="true"><a href="/nested"><br></a></span>beta<a href="/author"><br></a>' },
+        ...['atomic-only', 'atomic-mixed', 'atomic-partial'].map(id => ({ id, active: true, atomic: true,
+          html: 'alpha<a href="/author">' + (id === 'atomic-only' ? '' : '<b>prefix</b>')
+            + '<span data-inline-plugin="mention" contenteditable="false"></span>'
+            + (id === 'atomic-only' ? '' : ' suffix') + '</a>beta' })),
       ]
       for (const spec of specs) {
         const entry = { id: spec.id, observations: [], errors: [], complete: false }
@@ -94,14 +102,23 @@ try {
         // about bookmark implementation, native caret or history acceptance.
         tool.bindSelectionPort?.({ get range() { return range }, capture: () => ({}), restore: () => true })
         try {
-          if (spec.id === 'partial-whole-link') {
+          if (spec.atomic) {
+            // Build the plugin-owned anchor after parsing: an authored outer
+            // link and an independently hydrated widget may both own anchors.
+            const ownedAnchor = document.createElement('a')
+            ownedAnchor.href = '/widget-owned'; ownedAnchor.textContent = 'Widget'
+            field.querySelector('[data-inline-plugin]').append(ownedAnchor)
+          }
+          if (spec.id === 'partial-whole-link' || spec.id === 'atomic-partial') {
             const text = field.querySelector('b').firstChild; range.setStart(text, 1); range.setEnd(text, 3)
           } else if (spec.id === 'line-break-only') range.selectNode(field.querySelector('br'))
-          const controls = [...field.querySelectorAll('[contenteditable="false"], button, [role="button"]')]
+          const controls = [...field.querySelectorAll('[contenteditable], button, [role="button"]')]
           const controlNodes = controls.map(element => element.firstChild)
           const controlMarkup = controls.map(element => element.innerHTML)
           const controlAnchors = controls.map(element => element.querySelector('a'))
-          const controlTargets = controls.map(element => element.closest('a')?.getAttribute('href') ?? null)
+          // A complete inline occurrence may lose its authored outer link;
+          // the plugin-owned inner anchor and node identities remain intact.
+          const controlTargets = controls.map(element => spec.atomic ? null : element.closest('a')?.getAttribute('href') ?? null)
           const breaks = [...field.querySelectorAll('br')], beforeText = field.textContent
           check(entry, 'active', tool.isActive({ range }), spec.active)
           tool.toggle({ range })
@@ -110,13 +127,18 @@ try {
           check(entry, 'controlMarkup', controls.map(element => element.innerHTML), controlMarkup)
           check(entry, 'controlAnchors', controlAnchors.filter(Boolean).map(element => element.isConnected), controlAnchors.filter(Boolean).map(() => true))
           check(entry, 'inheritedTargets', controls.map(element => element.closest('a')?.getAttribute('href') ?? null), controlTargets)
-          check(entry, 'lineBreaks', breaks.map(element => element.isConnected && !element.closest('a')), breaks.map(() => true))
+          check(entry, 'lineBreaks', breaks.map(element => element.isConnected), breaks.map(() => true))
+          check(entry, 'lineBreakTargets', breaks.map(element => element.closest('a')?.getAttribute('href') ?? null), spec.breakTargets ?? breaks.map(() => null))
           if (spec.id === 'controls-only') check(entry, 'html', field.innerHTML, spec.html)
           if (spec.id === 'authored-and-controls' || spec.id === 'shared-wrapper' || spec.id === 'shared-line-breaks') {
             check(entry, 'authoredEdgesUnlinked', [field.firstChild.nodeType, field.lastChild.nodeType], [3, 3])
           }
           if (spec.id === 'partial-whole-link') check(entry, 'html', field.innerHTML, 'before <b>alpha</b> beta after')
           if (spec.id === 'line-break-only') check(entry, 'html', field.innerHTML, 'alpha<br>beta')
+          if (spec.id === 'nested-host-break') check(entry, 'html', field.innerHTML, spec.html)
+          if (spec.id === 'nested-host-and-authored-break') check(entry, 'html', field.innerHTML,
+            'alpha<span contenteditable="true"><a href="/nested"><br></a></span>beta<br>')
+          if (spec.atomic) check(entry, 'authoredWrapperRemoved', field.querySelector('a[href="/author"]') === null, true)
           entry.complete = true
         } catch (error) { entry.errors.push(error.stack ?? String(error)) }
         finally { tool.bindSelectionPort?.(null); root.remove() }
@@ -129,7 +151,7 @@ try {
   assert.equal(git('rev-parse', 'HEAD').toString().trim(), headBefore, 'HEAD changed during comparison')
   assert.deepEqual(await readFile(fileURLToPath(import.meta.url)), runnerBytes, 'Runner changed during comparison')
   console.log(JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), browser: await browser.version(), node: process.version,
-    scope: 'Six direct public-tool real-DOM ownership cases; no native historical editor/caret/history claim. Candidate native editor coverage is a separate gate.',
+    scope: 'Eleven direct public-tool real-DOM ownership cases; no native historical editor/caret/history claim. Candidate native editor coverage is a separate gate.',
     headBefore, runnerSha256: digest(runnerBytes), sourceIdentity: 'Every production module served from its exact Git object without transformation.',
     sources, dependencyFiles, serverErrors, results }, null, 2))
   // Preserve historical contract failures in the raw result. No source receives

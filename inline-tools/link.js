@@ -16,6 +16,7 @@ import {
 
 const ELEMENT_NODE = 1
 const DOCUMENT_POSITION_FOLLOWING = 4
+const NATIVE_CONTROL_SELECTOR = 'button, input, textarea, select, option, [role="button"]'
 
 /** Hyperlinks belonging to controls or another editing host are not authored
  * link formatting, even when a native Range geometrically intersects them.
@@ -27,10 +28,60 @@ function authoredAnchor(node) {
   if (element?.closest('[data-inline-plugin]')) return null
   const field = element?.closest('[contenteditable]')
   if (!field || field.getAttribute('contenteditable') !== 'true') return null
-  const control = element?.closest('button, input, textarea, select, option, [role="button"]')
+  const control = element?.closest(NATIVE_CONTROL_SELECTOR)
   if (control && field.contains(control)) return null
   const anchor = element?.closest('a')
   return anchor && anchor !== field && field.contains(anchor) ? /** @type {HTMLAnchorElement} */ (anchor) : null
+}
+
+/** A widget is one authored atom; only its surrounding link is formatting.
+ * @param {Node} node
+ */
+function contentAnchor(node) {
+  return authoredAnchor(node.nodeType === ELEMENT_NODE
+    && /** @type {Element} */ (node).hasAttribute('data-inline-plugin') ? node.parentElement : node)
+}
+
+/** @param {Range} range @param {Element} element */
+function containsAtom(range, element) {
+  const parent = element.parentNode
+  if (!parent) return false
+  const index = Array.prototype.indexOf.call(parent.childNodes, element)
+  return range.comparePoint(parent, index) === 0 && range.comparePoint(parent, index + 1) === 0
+}
+
+/** Selected author text, line breaks and complete inline occurrences. Keep
+ * atomic traversal within the same field boundaries as text transformations;
+ * a nested editing host or native control owns its own descendants.
+ * @param {Range} range
+ * @returns {Node[]}
+ */
+function linkedContent(range) {
+  const root = getWalkRoot(range)
+  if (!root || root.closest(`${NATIVE_CONTROL_SELECTOR}, [data-inline-plugin]`)) return []
+  /** @type {Node[]} */
+  const nodes = collectTextTargets(root, range).map(({ node }) => node)
+  /** @param {Element} parent @param {boolean} inField */
+  const visitAtoms = (parent, inField) => {
+    for (const element of parent.children) {
+      if (element.hasAttribute('data-inline-plugin')) {
+        if (inField && containsAtom(range, element)) nodes.push(element)
+        continue
+      }
+      if (element.matches(NATIVE_CONTROL_SELECTOR)) continue
+      if (element.hasAttribute('contenteditable')) {
+        // Outside a field, discover explicit fields through plugin shells.
+        // Inside one, every nested host is an independent editing boundary.
+        if (!inField) visitAtoms(element, element.getAttribute('contenteditable') === 'true')
+        continue
+      }
+      if (element.tagName === 'BR') {
+        if (inField && containsAtom(range, element)) nodes.push(element)
+      } else visitAtoms(element, inField)
+    }
+  }
+  visitAtoms(root, root.closest('[contenteditable]')?.getAttribute('contenteditable') === 'true')
+  return nodes
 }
 
 /**
@@ -49,19 +100,11 @@ function getIntersectingLinks(range) {
     const anchor = authoredAnchor(range.startContainer)
     return anchor ? [anchor] : []
   }
-  const walkRoot = getWalkRoot(range)
-  if (!walkRoot) return []
-
   /** @type {Set<HTMLAnchorElement>} */
   const links = new Set()
-  for (const { node } of collectTextTargets(walkRoot, range)) {
-    const anchor = authoredAnchor(node)
+  for (const node of linkedContent(range)) {
+    const anchor = contentAnchor(node)
     if (anchor) links.add(anchor)
-  }
-  // A linked line break is authored content too; it has no Text leaf.
-  for (const lineBreak of walkRoot.querySelectorAll('br')) {
-    const anchor = authoredAnchor(lineBreak)
-    if (anchor && range.intersectsNode(lineBreak)) links.add(anchor)
   }
   return [...links]
 }
@@ -77,12 +120,10 @@ function unlinkAuthoredAnchor(anchor) {
   }
   const range = anchor.ownerDocument.createRange()
   range.selectNodeContents(anchor)
-  /** @type {Node[]} */
-  const nodes = collectTextTargets(anchor, range).map(({ node }) => node)
-  nodes.push(...[...anchor.querySelectorAll('br')].filter(node => authoredAnchor(node) === anchor))
+  const nodes = linkedContent(range).filter(node => contentAnchor(node) === anchor)
   nodes.sort((left, right) => left.compareDocumentPosition(right) & DOCUMENT_POSITION_FOLLOWING ? 1 : -1)
   for (const node of nodes) {
-    const current = authoredAnchor(node)
+    const current = contentAnchor(node)
     if (!current) continue
     isolateAncestor(node, current)
     current.replaceWith(...current.childNodes)
