@@ -23,7 +23,7 @@ const MAX_VISIBLE = 6
 /** @typedef {'L' | 'P' | 'S'} Orientation */
 
 /**
- * Create the gallery renderer and own every opened Expose instance.
+ * Create the gallery renderer and own image notifications and opened viewers.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').GalleryBlock>}
@@ -74,6 +74,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         let loadedCount = 0
 
         const onAllLoaded = () => {
+          if (activeInstances.get(container) !== instances) return
           // Remove all eg-- classes
           const classes = Array.from(container.classList)
           for (const cls of classes) {
@@ -87,13 +88,22 @@ export function createGalleryRenderer(classPrefix, locale) {
           const img = item.querySelector('img')
           if (img) {
             let settled = false
+            const imageLease = {
+              destroy() {
+                img.removeEventListener('load', onImgReady)
+                img.removeEventListener('error', onImgReady)
+                instances.delete(imageLease)
+              },
+            }
             const onImgReady = () => {
-              if (settled) return
+              if (settled || activeInstances.get(container) !== instances) return
               settled = true
+              imageLease.destroy()
               orientations[i] = img.naturalWidth ? detectOrientation(img) : 'S'
               loadedCount++
               if (loadedCount >= visibleImages.length) onAllLoaded()
             }
+            instances.add(imageLease)
             img.addEventListener('load', onImgReady, { once: true })
             img.addEventListener('error', onImgReady, { once: true })
             // A cached image can become complete between assigning `src` in
@@ -218,7 +228,7 @@ export function createGalleryRenderer(classPrefix, locale) {
     },
 
     /**
-     * Dispose lightboxes that are still open when rendered content is replaced.
+     * Revoke pending image notifications and dispose open viewers/layouts.
      * @param {HTMLElement} element
      */
     destroy(element) {
@@ -228,8 +238,8 @@ export function createGalleryRenderer(classPrefix, locale) {
       masonryMounts.get(element)?.destroy()
       masonryMounts.delete(element)
       if (instances) {
-        for (const expose of instances) {
-          expose.destroy()
+        for (const resource of instances) {
+          resource.destroy()
         }
         instances.clear()
       }
