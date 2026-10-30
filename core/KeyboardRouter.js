@@ -197,16 +197,16 @@ export class KeyboardRouter {
       event.preventDefault?.()
       return
     }
-    const range = sameEditableRange(this.#selection.capture(), owner)
+    const authorSelection = this.#selection.capture()
+    const range = sameEditableRange(authorSelection, owner)
     if (!range) return
 
     const record = this.#runtime.get(owner.blockId)
     if(this.#handleShortcut(owner,event,range,keys))return
     if (!stillOwnKey()) return
 
-    // V1 recognized a typed inline pattern on Space/Enter before allowing
-    // native space insertion or a structural Enter split. The word replacement
-    // and trailing space are one canonical history action.
+    // Recognized typed patterns take priority over native delimiters in v2.
+    // The word replacement and trailing space are one canonical history action.
     if ((key === ' ' || key === 'Enter')
       && owner.mode === 'rich-text' && range.start === range.end
       && this.#inlineCommands?.commitTypedPattern) {
@@ -228,6 +228,15 @@ export class KeyboardRouter {
       // changing the document. Neither can consume or continue the old key.
       if (!this.#canPresent() || this.#runtime.modeEpoch !== modeEpoch) return
       if (converted) {
+        event.preventDefault?.()
+        return
+      }
+      // A matcher can choose a newer caret even when declining conversion.
+      // Neither the former structural range nor native delimiter insertion may
+      // then edit that superseding selection on this key's behalf.
+      const currentSelection = this.#selection.capture()
+      if (!stillOwnKey()) return
+      if (!sameLogicalSelection(authorSelection, currentSelection)) {
         event.preventDefault?.()
         return
       }

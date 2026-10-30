@@ -667,3 +667,25 @@ test('inline paste matcher cannot convert text after a newer caret is selected',
   assert.deepEqual(h.calls, [])
   assert.deepEqual(h.carets, [])
 })
+
+test('typed inline matcher cannot convert the former word after it moves the author caret', () => {
+  const h = harness()
+  let current = {
+    anchor: { blockId: 'a', fieldKey: 'text', offset: 4 },
+    focus: { blockId: 'a', fieldKey: 'text', offset: 4 },
+  }
+  h.selection.capture = () => current
+  h.definition.paste.fromMatch = () => {
+    current = {
+      anchor: { blockId: 'elsewhere', fieldKey: 'text', offset: 1 },
+      focus: { blockId: 'elsewhere', fieldKey: 'text', offset: 1 },
+    }
+    return { value: '#fff' }
+  }
+
+  assert.equal(h.controller.commitTypedPattern('#fff', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 4 },
+  }, 'Enter'), false, 'typed conversion authored into the former logical field')
+  assert.deepEqual(h.calls, [], 'the obsolete typed word changed canonical content')
+  assert.deepEqual(h.carets, [], 'typed conversion reclaimed the newer author caret')
+})
