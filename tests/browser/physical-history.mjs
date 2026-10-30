@@ -508,6 +508,7 @@ try {
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
   const nativePluginParity = await runNativePage(client, pageUrl, 'native-plugin-parity.html')
+  const nativeBlockSettings = await runNativePage(client, pageUrl, 'native-block-settings.html')
   const nativeCodeSourceLanguage = await runNativePage(client, pageUrl, 'native-code-source-language.html')
   const nativePersonModes = await runNativePage(client, pageUrl, 'native-person-modes.html')
   const nativeTableKeyboard = await runNativePage(client, pageUrl, 'native-table-keyboard.html')
@@ -566,6 +567,7 @@ try {
     nativeCrossSelection,
     nativeCoreBehavior,
     nativePluginParity,
+    nativeBlockSettings,
     nativeCodeSourceLanguage,
     nativePersonModes,
     nativeTableKeyboard,
