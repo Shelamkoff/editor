@@ -328,6 +328,71 @@ test('Embed contains a preview scheduler failure without an author edit or unhan
   } finally { h.destroy() }
 })
 
+for (const [label, configured, deadline] of [
+  ['omitted', undefined, 5000],
+  ['non-finite', Infinity, 5000],
+  ['negative', -25, 0],
+]) test(`Embed custom preview uses the documented ${label} deadline`, () => {
+  let signal
+  const h = mount({
+    config: { previewTimeoutMs: configured, resolvePreview(request) {
+      signal = request.signal
+      return new Promise(() => {})
+    } },
+    initial: { service: 'vimeo', videoId: '12345' },
+  })
+  try {
+    if (deadline) h.advance(deadline - 1)
+    assert.equal(signal.aborted, false)
+    h.advance(deadline ? 1 : 0)
+    assert.equal(signal.aborted, true)
+    assert.equal(signal.reason?.name, 'TimeoutError')
+    assert.equal(h.pendingTimers(), 0)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed disabled preview acquires neither a fetch request nor a deadline', () => {
+  let fetches = 0
+  const h = mount({
+    config: { resolvePreview: false, previewTimeoutMs: 0 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    async fetch() { fetches++; return { ok: false } },
+  })
+  try {
+    h.advance(5000)
+    assert.equal(fetches, 0)
+    assert.equal(h.pendingTimers(), 0)
+    assert.equal(h.writes(), 0)
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+  } finally { h.destroy() }
+})
+
+test('Embed default preview completes before its deadline without retaining a timer', async () => {
+  const pending = deferred()
+  let signal
+  const h = mount({
+    config: { resolvePreview: undefined, previewTimeoutMs: 25 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    fetch(_url, options) { signal = options.signal; return pending.promise },
+  })
+  try {
+    const before = structuredClone(h.model())
+    h.advance(24)
+    pending.resolve({ ok: true, async json() { return { thumbnail_url: 'https://example.test/current.jpg', title: 'Current preview' } } })
+    await pending.promise
+    await Promise.resolve()
+    const preview = h.instance.element.querySelector('.oe-embed__preview')
+    assert.equal(preview?.getAttribute('src'), 'https://example.test/current.jpg')
+    assert.equal(preview?.alt, 'Current preview')
+    assert.equal(h.pendingTimers(), 0)
+    h.advance(100)
+    assert.equal(signal.aborted, false)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
+
 function caption(instance) {
   return instance.editableFields().find(field => field.key === 'caption')?.element
 }
