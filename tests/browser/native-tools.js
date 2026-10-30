@@ -20,6 +20,7 @@ import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
 import './regressions/link-owned-formatting.js'
 import './regressions/tool-host-ownership.js'
 import './regressions/tool-actions.js'
+import './regressions/basic-mark-tools.js'
 
 const types = ['bold', 'italic', 'strikethrough', 'link', 'code', 'marker', 'bgcolor', 'fontSize', 'script', 'align', 'caseTransform', 'clearFormatting']
 const tags = { bold: 'b', italic: 'i', strikethrough: 's', code: 'code', marker: 'mark', script: 'sup' }
