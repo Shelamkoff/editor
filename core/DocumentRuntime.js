@@ -637,7 +637,9 @@ export class DocumentRuntime {
       name: 'block.update',
       ...(continuation ? { continuation } : {}),
     }, tx => {
-      const current = tx.get(id)
+      // This private read only locates the active draft record. Ownership
+      // transfers once below, when the producer receives its mutable snapshot.
+      const current = tx.peek(id)
       if (!current) throw new Error(`Unknown block id: ${id}`)
       if (!this.#registry.hasBlock(current.type)) {
         throw new Error(`Unregistered block cannot be updated: ${id}`)
@@ -656,9 +658,11 @@ export class DocumentRuntime {
           throw new TypeError('Block update cannot change id, type, or inline payload')
         }
 
-        const latest = tx.get(id)
+        const latest = tx.peek(id)
         if (!latest || latest.type !== current.type) throw new Error('Block update target changed during its producer')
-        const nextData = Object.hasOwn(patch, 'data') ? patch.data : latest.data
+        // A partial update must still give schema code detached mutable data;
+        // metadata/tunes/inline reads do not require another whole-record copy.
+        const nextData = Object.hasOwn(patch, 'data') ? patch.data : cloneEditorData(latest.data)
         const requestedTunes = Object.hasOwn(patch, 'tunes') ? patch.tunes : latest.tunes
         const nextTunes = requestedTunes === null ? undefined : requestedTunes
         const next = this.#recordFromData(
@@ -1242,8 +1246,7 @@ export class DocumentRuntime {
       const id = ids[index]
       if (typeof id !== 'string' || !id) throw new TypeError('Projection block id must be a non-empty string')
       if (seen.has(id)) continue
-      const current = this.#store.get(id)
-      if (!current) throw new Error(`Unknown block id: ${id}`)
+      if (!this.#store.has(id)) throw new Error(`Unknown block id: ${id}`)
       if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be synchronized: ${id}`)
       seen.add(id)
       ordered.push(id)
@@ -1261,7 +1264,7 @@ export class DocumentRuntime {
       const updates = []
       let completedSourceFieldKey
       for (const id of ordered) {
-        const current = this.#store.get(id)
+        const current = this.#store.peek(id)
         const definition = this.#registry.getBlockDefinition(current.type)
         const projection = this.#projector?.readBlock?.(id)
         if (!projection) throw new Error('Projection reader is unavailable')

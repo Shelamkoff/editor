@@ -11,7 +11,7 @@ const makeData = label => ({
   rows: [{ cells: [{ text: '<em>First cell</em>', metadata: { alignment: 'left' } }] }],
 })
 
-function fixture({ inline = true } = {}) {
+function fixture({ inline = true, projector = undefined } = {}) {
   const schema = createVersionedDataSchema({
     currentVersion: 1,
     createDefault: () => makeData('default'),
@@ -38,6 +38,7 @@ function fixture({ inline = true } = {}) {
       tunes: { textAlign: 'left' },
       ...(inline ? { inline: { opaque: { type: 'future-widget', dataVersion: 7, data: { label: id, nested: { value: 1 } } } } } : {}),
     })) },
+    projector,
     onCommit: event => events.push(event),
   })
   const view = new EditorViewModel({
@@ -127,8 +128,48 @@ test('the public update producer reuses its detached runtime input without anoth
     assert.deepEqual(events, [])
     retained.data.text = 'retained caller mutation'
     assert.equal(api.get('a').data.text, '<strong>Rich text</strong> &amp; plain text')
+    assert.equal(runtimeInputTraversals, 1,
+      'the runtime must detach the canonical producer payload once, without copying its own detached read again')
     assert.equal(publicInputTraversals, runtimeInputTraversals,
       'the public adapter must not recapture the detached producer input')
+  } finally { runtime.destroy() }
+})
+
+test('projection synchronization checks membership without copying canonical payloads before the author operation', t => {
+  const projected = makeData('a')
+  let payloadCount = () => 0, beforeRead
+  const projector = {
+    readBlock: () => { beforeRead = payloadCount(); return { data: projected } },
+    prepare: () => ({ apply() {}, recover() {}, finalize() {}, discard() {} }),
+    restore() {},
+  }
+  const { runtime, api, events } = fixture({ inline: false, projector })
+  try {
+    const before = runtime.save().blocks, sibling = runtime.peek('b')
+    let beforeOperation
+    const observed = observePayloadTraversals(t, count => {
+      payloadCount = count
+      return runtime.syncBlockFromProjection('a', () => {
+        beforeOperation = count()
+        projected.rows[0].cells[0].metadata.alignment = 'right'
+        return 'authored'
+      })
+    })
+    assert.equal(observed.result, 'authored')
+    assert.equal(api.get('a').data.rows[0].cells[0].metadata.alignment, 'right')
+    assert.equal(runtime.peek('b'), sibling, 'sync replaced an unrelated canonical record')
+    const after = runtime.save().blocks
+    projected.rows[0].cells[0].metadata.alignment = 'retained mutation'
+    assert.deepEqual(runtime.save().blocks, after, 'projection read escaped into canonical data')
+    assert.equal(events.length, 1)
+    assert.equal(runtime.undo(), true)
+    assert.deepEqual(runtime.save().blocks, before)
+    assert.equal(runtime.redo(), true)
+    assert.deepEqual(runtime.save().blocks, after)
+    assert.equal(beforeOperation, 0,
+      'checking an existing projection target must not clone its canonical payload')
+    assert.equal(beforeRead, 0,
+      'locating the projection reader must not copy unchanged canonical payloads')
   } finally { runtime.destroy() }
 })
 
