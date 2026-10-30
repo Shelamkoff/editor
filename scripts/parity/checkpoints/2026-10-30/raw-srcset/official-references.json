@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/cure53/DOMPurify/3.4.17/README.md",
+    "local": "dompurify-3.4.17-README.md",
+    "sha256": "565e6a29192b5dbb94b172ef5e4b90759994eb34874da22bb8e9be5c3e894969",
+    "retrievedAt": "2026-10-30T18:23:54.153572+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/cure53/DOMPurify/3.4.17/src/purify.ts",
+    "local": "dompurify-3.4.17-purify.ts",
+    "sha256": "204ff31c5c71ac9da67bb3bfda85fb3bc27c070144efbe74f2f014c937cc2082",
+    "retrievedAt": "2026-10-30T18:23:54.426031+00:00"
+  },
+  {
+    "url": "https://html.spec.whatwg.org/multipage/images.html#parse-a-srcset-attribute",
+    "local": "../html-srcset-standard.html",
+    "sha256": "c24769f000e6a784bd1cef421b3af02187d995effee03e56d6d9a16308d09048",
+    "retrievedAt": "2026-10-30"
+  }
+]

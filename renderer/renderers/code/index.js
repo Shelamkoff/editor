@@ -118,6 +118,8 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
                 void loadHighlightRuntime().then(() => {
                     if (!liveElements.has(wrapper)) return
                     const loaded = highlightCode(code, language)
+                    // A highlighter callback may dispose this exact output.
+                    if (!liveElements.has(wrapper)) return
                     langLabel.textContent = (loaded.language && loaded.language !== 'plaintext') ? loaded.language : ''
                     codeElement.className = classPrefix + '-code__content hljs language-' + loaded.language
                     setTrustedHtml(codeElement, loaded.value)

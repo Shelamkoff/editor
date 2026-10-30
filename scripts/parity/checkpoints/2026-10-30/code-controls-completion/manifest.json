@@ -1,0 +1,251 @@
+{
+  "createdAt": "2026-10-30T18:32:23.515583+00:00",
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "sources": {
+    "initialFixture": {
+      "commit": "4b8971fcfd413134bd0b791a6853208a32ce1dde",
+      "tree": "29fc21d6ac9601ee255a12623daa98c547dc098d",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/initialFixture.patch.gz",
+      "patchSha256": "28cbfd2d162984910dafe81e8c3bd74118e8a08e7f2c0556d0a0ab4da550852a"
+    },
+    "correctedFixture": {
+      "commit": "597f23cb5f6935e0882a35ea3d843752064e16ce",
+      "tree": "4d5862ec19548e28acf1c89e5e6505fa3b4919bc",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/correctedFixture.patch.gz",
+      "patchSha256": "3cf7e460ed70b6db22f8625422a5c163292c4d1ae6b67f39efe8849e4e2821b6"
+    },
+    "nativeRed": {
+      "commit": "bc62b28664b1bd2f357b19ff87fa5f86717d4f41",
+      "tree": "57fd742a5b87218eafe3e0f930c1d504a1a62952",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/nativeRed.patch.gz",
+      "patchSha256": "6bc636af78c01f10883680b92122c85b998e484979cb1fd115501d80feef69f5"
+    },
+    "nativeGreen": {
+      "commit": "6e679939f57ba538c8a2ee4302bf81aa2955e380",
+      "tree": "aa492652e20a86eb3cc7e98ba1793ec24a4dc1f2",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/nativeGreen.patch.gz",
+      "patchSha256": "d206903d5b0611fe8c7465621ad60212d80825d2c663847fce0f0300f2b42c74"
+    },
+    "editorFinalSource": {
+      "commit": "2ffa4bc83e131e8828cfa7f3637774f70777dd75",
+      "tree": "5c6d30bcbbf9e3849d7fdb6b22f61d2242600106",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/finalSource.patch.gz",
+      "patchSha256": "f9b8fbcc2bf0265800a5a64aa76966165e3584c1a6a658a46418bd5283b86d58"
+    },
+    "rendererFixture": {
+      "commit": "93da70a41bfd87a4e20d59ea79efc96324954c00",
+      "tree": "4131a8588b7854b67f4a82393bb68e23b5759554",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/rendererFixture.patch.gz",
+      "patchSha256": "b63ccc04e84cffe6a515144f4c315913c48a76d9ff1a04de0348984aba3eb1f8"
+    },
+    "rendererRed": {
+      "commit": "6e707b979a2066e47dc8980053ed87900a89984d",
+      "tree": "9e81dc4b20431bf51e9dd0c81c967b694236cd6e",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/rendererRed.patch.gz",
+      "patchSha256": "784b313da4bb9c3179beca676eea158fa0907f49a69dd1cb75dace3c26b40fe7"
+    },
+    "rendererPolicy": {
+      "commit": "b9edfd72e94a7e3808e66b6980fdb1de7901e47c",
+      "tree": "1939413f751634c61434f8ec0aa913da420160be",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/rendererPolicy.patch.gz",
+      "patchSha256": "3fa4495bcbf579407874173b27c0525b5d4e76000be4cfa0054f5d16b3a87ef1"
+    },
+    "rendererFirstFix": {
+      "commit": "11e06d6f65e30a68a0861a812135f1397c210b25",
+      "tree": "6ca057450072b9bdb7f0cdca3c7f175a454263c1",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/rendererFirstFix.patch.gz",
+      "patchSha256": "121a8d8feea999c66e5d27463532985f59df05c2368dd1f61b448ea85c8e248e"
+    },
+    "runtimeAndNativeSource": {
+      "commit": "33659119322c865833f3d6722981fc632f46026d",
+      "tree": "295c476bf9b58747c44034099795ca16538fc3a5",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/finalCombinedSource.patch.gz",
+      "patchSha256": "2df9b27f6607c012a33a105f809bce20e8c617e38afba1c014e0a992eccc4680"
+    },
+    "finalSource": {
+      "commit": "df18bbcadf525685d505beeba6b0d58419c2ee28",
+      "tree": "fe1a93640a27ae79e7da7be7e1e4bbf41a68da6f",
+      "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "patch": "sources/reviewedFinalSource.patch.gz",
+      "patchSha256": "4da1e19a5c767cb67fe2ea16afa5d4d183a9a84fb2586bc5a6186b5d98216c94"
+    }
+  },
+  "earlierEditorStage": "editor-stage-manifest.json",
+  "finalSource": {
+    "commit": "df18bbcadf525685d505beeba6b0d58419c2ee28",
+    "tree": "fe1a93640a27ae79e7da7be7e1e4bbf41a68da6f",
+    "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+    "patch": "sources/reviewedFinalSource.patch.gz",
+    "patchSha256": "4da1e19a5c767cb67fe2ea16afa5d4d183a9a84fb2586bc5a6186b5d98216c94"
+  },
+  "comparisons": [
+    {
+      "name": "candidate-initial",
+      "evidence": "candidate-initial.json.gz",
+      "exitCode": 1,
+      "classification": "Two fixture ownership mistakes: editor hidden before history; public canUndo intentionally false in read-only mode.",
+      "acceptedForParity": false
+    },
+    {
+      "name": "differential-initial",
+      "evidence": "differential-initial.json.gz",
+      "exitCode": 1,
+      "classification": "Corrected 14 editor cases; historical source failures remain raw.",
+      "acceptedForParity": false
+    },
+    {
+      "name": "differential-final",
+      "evidence": "differential-final.json.gz",
+      "exitCode": 1,
+      "classification": "First complete editor stage: 15 cases including provider retirement.",
+      "acceptedForParity": false
+    },
+    {
+      "name": "renderer-red",
+      "evidence": "renderer-red.json.gz",
+      "exitCode": 1,
+      "classification": "Renderer provider retirement is a product failure; initial CDP override did not deny clipboard and its four copy assertions are fixture failures.",
+      "acceptedForParity": false
+    },
+    {
+      "name": "complete-candidate",
+      "evidence": "complete-candidate.json.gz",
+      "exitCode": 1,
+      "classification": "Both product fixes pass. Real native copy rejects under Permissions-Policy; two fixture assertions wrongly expected the separate Permissions API grant state to become denied.",
+      "acceptedForParity": false
+    },
+    {
+      "name": "complete-final",
+      "evidence": "complete-final.json.gz",
+      "exitCode": 1,
+      "candidatePass": true,
+      "classification": "Retained defective evidence. Independent review found one mutable prior observation in v1 pending copy (stored PASS, recalculated FAIL) and a spec-baseline provider retirement control that was not exercised. This run is excluded from acceptance; raw statuses and objects are unchanged.",
+      "acceptedForParity": false,
+      "expectedVerdictMismatches": 1
+    },
+    {
+      "name": "reviewed-final",
+      "evidence": "reviewed-final.json.gz",
+      "exitCode": 1,
+      "candidatePass": true,
+      "acceptedForParity": true,
+      "classification": "All observations snapshot actual/expected values. Provider plugin is registered before Rector selects its runtime; callback entry and successful disposal are observed in every source. Complete frozen four-source proof."
+    }
+  ],
+  "checks": [
+    {
+      "name": "renderer-native-red",
+      "source": "6e707b979a2066e47dc8980053ed87900a89984d",
+      "command": "EDITOR_BROWSER_PAGE=code-lazy-contracts.html node tests/browser/run.mjs",
+      "exitCode": 1,
+      "productFailures": 1,
+      "evidence": "renderer-native-red.log.gz"
+    },
+    {
+      "name": "renderer-first-after-fix",
+      "source": "11e06d6f65e30a68a0861a812135f1397c210b25",
+      "command": "EDITOR_BROWSER_PAGE=code-lazy-contracts.html node tests/browser/run.mjs",
+      "exitCode": 1,
+      "evidence": "renderer-native-green.log.gz",
+      "classification": "Fixture setup race: provider hook had not registered before the lazy completion. No retirement occurred, so this is not accepted as GREEN."
+    },
+    {
+      "name": "renderer-final",
+      "source": "33659119322c865833f3d6722981fc632f46026d",
+      "command": "EDITOR_BROWSER_PAGE=code-lazy-contracts.html node tests/browser/run.mjs",
+      "exitCode": 0,
+      "cases": 1,
+      "passed": 1,
+      "evidence": "renderer-native-final.log.gz"
+    },
+    {
+      "name": "native-final",
+      "source": "33659119322c865833f3d6722981fc632f46026d",
+      "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER='Code ' node tests/browser/physical-history.mjs",
+      "exitCode": 0,
+      "cases": 16,
+      "passed": 16,
+      "evidence": "native-code-complete-final.log.gz"
+    },
+    {
+      "name": "units-final",
+      "source": "33659119322c865833f3d6722981fc632f46026d",
+      "command": "node --test plugins/code/*.test.js shared/highlightRuntime.test.js",
+      "exitCode": 0,
+      "cases": 13,
+      "passed": 13,
+      "evidence": "unit-complete-final.log.gz"
+    },
+    {
+      "name": "typecheck-final",
+      "source": "33659119322c865833f3d6722981fc632f46026d",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidence": "typecheck-complete-final.log.gz"
+    }
+  ],
+  "environment": {
+    "chrome": "156.0.8078.79",
+    "node": "v24.22.1",
+    "platform": "linux x64",
+    "dependencyRoot": "/workspace/scratch/40cb45010ec4/editor/node_modules",
+    "dependencyProvenance": "npm ci --ignore-scripts --no-audit --no-fund by integration owner from matching base lockfile; actual served and bundled input hashes recorded in raw comparison"
+  },
+  "sourceIdentityPolicy": "Each comparison serves production files from immutable Git objects, checks committed fixtures and unchanged tracked source/HEAD, and hashes actual dependency files plus all real highlight.js bundle inputs. Earlier symlink presence is not treated as a source module. Native commands ran after the stated source commit and before any further tracked edit.",
+  "scopeRecommendation": {
+    "BLOCK_CODE_LANGUAGE": "Complete scoped proof, subject to combined integration.",
+    "BLOCK_CODE_HIGHLIGHT_COPY": "Complete editor and renderer scoped proof, subject to combined integration."
+  },
+  "limitations": [
+    "Chromium/Linux desktop proof; Firefox/WebKit, other OS, iframe/CSP-wide capability and whole-library gates remain separate.",
+    "Injected rejection/unavailability/pending-copy cases are controlled host API boundaries, separate from actual successful native copy/paste and actual denied native write under Permissions-Policy.",
+    "Renderer shared automatic-detection semantics are unchanged; explicit unknown-language plain fallback applies to the editor selector contract.",
+    "Isolated source verification is not the integration/release gate."
+  ],
+  "finalCounts": {
+    "v1": {
+      "cases": 28,
+      "observations": 567,
+      "rawFailures": 21,
+      "errors": 0
+    },
+    "spec-baseline": {
+      "cases": 28,
+      "observations": 567,
+      "rawFailures": 4,
+      "errors": 0
+    },
+    "pre-fix": {
+      "cases": 28,
+      "observations": 567,
+      "rawFailures": 2,
+      "errors": 0
+    },
+    "candidate": {
+      "cases": 28,
+      "observations": 567,
+      "rawFailures": 0,
+      "errors": 0
+    }
+  },
+  "runtimeAndNativeEquivalence": {
+    "testedSource": "33659119322c865833f3d6722981fc632f46026d",
+    "comparisonSource": "df18bbcadf525685d505beeba6b0d58419c2ee28",
+    "changedPaths": [
+      "scripts/parity/code-controls.mjs",
+      "tests/browser/code-controls-parity-fixture.js",
+      "tests/browser/code-renderer-parity-fixture.js"
+    ],
+    "statement": "Only the standalone parity runner/fixtures changed after runtime/native/unit/typecheck gates; production, registered native/ordinary tests, lock and configuration are unchanged."
+  }
+}
