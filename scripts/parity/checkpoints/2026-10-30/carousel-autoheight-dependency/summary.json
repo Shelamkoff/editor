@@ -1,0 +1,189 @@
+{
+  "runs": [
+    {
+      "run": "run-uymu1L",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T00:46:12.637Z",
+      "finishedAt": "2026-10-30T00:46:20.949Z",
+      "gates": {
+        "projection": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-xTJ926",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T00:49:44.948Z",
+      "finishedAt": "2026-10-30T00:49:49.930Z",
+      "gates": {
+        "layout": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-6njTID",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T00:56:28.608Z",
+      "finishedAt": "2026-10-30T00:56:33.388Z",
+      "gates": {
+        "upstream-autoheight-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-nPimwT",
+      "outcome": "passed",
+      "startedAt": "2026-10-30T00:57:13.347Z",
+      "finishedAt": "2026-10-30T00:57:16.764Z",
+      "gates": {
+        "upstream-autoheight-green": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-vWgZHT",
+      "outcome": "passed",
+      "startedAt": "2026-10-30T00:58:29.668Z",
+      "finishedAt": "2026-10-30T00:58:37.094Z",
+      "gates": {
+        "upstream-controls": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "upstream-units": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "upstream-types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-8Sbuic",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:07:07.109Z",
+      "finishedAt": "2026-10-30T01:07:38.828Z",
+      "gates": {
+        "backport-autoheight-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        },
+        "backport-observed-units-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-hj6rhU",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:08:04.656Z",
+      "finishedAt": "2026-10-30T01:08:16.421Z",
+      "gates": {
+        "backport-autoheight-red2": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        },
+        "backport-observed-units-red2": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-M4bR1n",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:08:39.069Z",
+      "finishedAt": "2026-10-30T01:08:42.412Z",
+      "gates": {
+        "backport-autoheight-red3": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        },
+        "backport-observed-units-red3": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-exCBSm",
+      "outcome": "passed",
+      "startedAt": "2026-10-30T01:09:03.889Z",
+      "finishedAt": "2026-10-30T01:09:07.553Z",
+      "gates": {
+        "backport-autoheight-green": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "backport-all-units-green": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-xreAeU",
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:10:17.800Z",
+      "finishedAt": "2026-10-30T01:10:19.130Z",
+      "gates": {
+        "backport-published-array-guard-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-J3NFvs",
+      "outcome": "passed",
+      "startedAt": "2026-10-30T01:10:56.744Z",
+      "finishedAt": "2026-10-30T01:11:03.119Z",
+      "gates": {
+        "backport-final-browser156": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "backport-final-browser142": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "backport-final-units": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    }
+  ],
+  "acceptedRoundtripRows": [],
+  "dependencyPublication": "pending parent review; prepare-only Git SHA does not support current clean --ignore-scripts CI install"
+}

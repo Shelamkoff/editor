@@ -1,0 +1,243 @@
+diff --git a/src/TrackRenderer.js b/src/TrackRenderer.js
+index 45b3d9a..a339457 100644
+--- a/src/TrackRenderer.js
++++ b/src/TrackRenderer.js
+@@ -23,6 +23,8 @@ export class TrackRenderer {
+   /** @type {ResizeObserver | null} */
+   #slideResizeObserver = null
+   /** @type {number} */
++  #observedLayoutFrame = 0
++  /** @type {number} */
+   #slidesPerView = 1
+   /** @type {number} */
+   #gap = 0
+@@ -151,13 +153,9 @@ export class TrackRenderer {
+     if (!this.#viewport) return
+     this.#lastViewportWidth = this.#viewport.offsetWidth
+     this.#resizeObserver = new ResizeObserver(() => {
+-      if (!this.#viewport) return
+-      const w = this.#viewport.offsetWidth
+-      if (w === this.#lastViewportWidth) return // skip if size unchanged
+-      this.#lastViewportWidth = w
+-      const previousSlideWidth = this.#slideWidth
+-      this.#recalcSlideWidth()
+-      this.#onResize?.(previousSlideWidth)
++      if (this.#viewport && this.#viewport.offsetWidth !== this.#lastViewportWidth) {
++        this.#scheduleObservedLayout()
++      }
+     })
+     this.#resizeObserver.observe(this.#viewport)
+   }
+@@ -166,10 +164,34 @@ export class TrackRenderer {
+     this.#slideResizeObserver?.disconnect()
+     this.#slideResizeObserver = null
+     if (!this.#isLoop) return
+-    this.#slideResizeObserver = new ResizeObserver(() => this.#updateTrackHeight())
++    this.#slideResizeObserver = new ResizeObserver(() => this.#scheduleObservedLayout())
+     for (const slide of this.#slideElements) this.#slideResizeObserver.observe(slide)
+   }
+ 
++  #scheduleObservedLayout() {
++    if (this.#observedLayoutFrame) return
++    // Slide widths can change intrinsic media height and hence the observed
++    // viewport. Apply layout outside ResizeObserver delivery to avoid a loop.
++    this.#observedLayoutFrame = requestAnimationFrame(() => {
++      this.#observedLayoutFrame = 0
++      if (!this.#viewport) return
++      const width = this.#viewport.offsetWidth
++      if (width !== this.#lastViewportWidth) {
++        this.#lastViewportWidth = width
++        const previousSlideWidth = this.#slideWidth
++        this.#recalcSlideWidth()
++        this.#onResize?.(previousSlideWidth)
++      } else {
++        this.#updateTrackHeight()
++      }
++    })
++  }
++
++  #cancelObservedLayout() {
++    if (this.#observedLayoutFrame) cancelAnimationFrame(this.#observedLayoutFrame)
++    this.#observedLayoutFrame = 0
++  }
++
+   /** @param {(previousSlideWidth: number) => void} cb */
+   onResize(cb) { this.#onResize = cb }
+ 
+@@ -226,6 +248,7 @@ export class TrackRenderer {
+   #recalcSlideWidth() {
+     if (!this.#viewport) return
+     const vw = this.#viewport.offsetWidth
++    this.#lastViewportWidth = vw
+     const totalGap = this.#gap * (this.#slidesPerView - 1)
+     this.#slideWidth = Math.max(0, (vw - totalGap) / this.#slidesPerView)
+ 
+@@ -296,6 +319,7 @@ export class TrackRenderer {
+   /** @param {import('./types').SlideData[]} slides @param {{ slidesPerView: number, gap: number, loop?: boolean, ariaLabel?: string }} layout */
+   rebuild(slides, layout, refreshContent = false) {
+     if (!this.#track) return
++    this.#cancelObservedLayout()
+     this.#slideResizeObserver?.disconnect()
+     this.#slideResizeObserver = null
+     this.#configureCopies(0) // discard old visual copies
+@@ -361,6 +385,7 @@ export class TrackRenderer {
+   getSlideElement(index) { return this.#slideElements[index] ?? null }
+ 
+   destroy() {
++    this.#cancelObservedLayout()
+     this.stopAnimation()
+     this.#resizeObserver?.disconnect()
+     this.#resizeObserver = null
+diff --git a/test/navigation-regressions.test.js b/test/navigation-regressions.test.js
+index 04ee315..185f12c 100644
+--- a/test/navigation-regressions.test.js
++++ b/test/navigation-regressions.test.js
+@@ -322,11 +322,64 @@ test('hidden containers retain startIndex until their width becomes measurable',
+     assert.equal(carousel.getIndex(), 3)
+     host.width = 300
+     ResizeObserver.flush()
++    frame(16)
+     assert.equal(carousel.getIndex(), 3)
+     carousel.destroy()
+   }
+ })
+ 
++test('destroy releases a pending observed resize without mutating the retired view', () => {
++  const { host, carousel, track } = mount(100, 3, { transitionDuration: 0 })
++  const slide = track.children[0]
++  const beforeFrames = clock.frames.size
++  let resized = 0
++  carousel.on('resize', () => resized++)
++  host.width = 320
++  ResizeObserver.flush()
++  carousel.destroy()
++  const widthAfterDestroy = slide.style.width
++  const notificationsAfterDestroy = resized
++  assert.equal(clock.frames.size, beforeFrames)
++  frame(16)
++  assert.equal(slide.style.width, widthAfterDestroy)
++  assert.equal(resized, notificationsAfterDestroy)
++  assert.equal(host.children.length, 0)
++})
++
++test('rebuild releases an old pending observed resize and keeps the new layout', () => {
++  const { host, carousel, track } = mount(100, 3, { startIndex: 1, transitionDuration: 0 })
++  const beforeFrames = clock.frames.size
++  host.width = 320
++  ResizeObserver.flush()
++  carousel.update({ slidesPerView: 2 })
++  const indexAfterUpdate = carousel.getIndex()
++  const widthsAfterUpdate = track.children.map(slide => slide.style.width)
++  assert.equal(clock.frames.size, beforeFrames)
++  frame(16)
++  assert.equal(carousel.getIndex(), indexAfterUpdate)
++  assert.deepEqual(widthsAfterUpdate, ['160px', '160px', '160px'])
++  assert.deepEqual(track.children.map(slide => slide.style.width), widthsAfterUpdate)
++  carousel.destroy()
++})
++
++test('rebuild before an observed resize frame keeps the most visible loop originals interactive', () => {
++  const probe = { name: 'position-probe', install(ctx) { this.context = ctx } }
++  const { host, carousel, track } = mount(640, 2, {
++    loop: true, slidesPerView: 2, transitionDuration: 0, plugins: [probe],
++  })
++  host.width = 320
++  ResizeObserver.flush()
++  carousel.update({ gap: 0 })
++  probe.context.setPositionDrag(200)
++  // At 160px per slide, original #1 at -40 exposes 120px while its inert
++  // replica at 280 exposes only 40px. The original must keep that wider slot.
++  assert.equal(track.children[1].style.transform, 'translate3d(-40px, 0, 0)')
++  assert.equal(track.children[3].style.transform, 'translate3d(280px, 0, 0)')
++  frame(16)
++  assert.equal(track.children[1].style.transform, 'translate3d(-40px, 0, 0)')
++  carousel.destroy()
++})
++
+ test('loop replicas never replace the interactive original in view', () => {
+   const probe = { name: 'position-probe', install(ctx) { this.context = ctx } }
+   const { carousel, track } = mount(300, 3, {
+diff --git a/tests/browser/auto-height.spec.mjs b/tests/browser/auto-height.spec.mjs
+new file mode 100644
+index 0000000..16928d1
+--- /dev/null
++++ b/tests/browser/auto-height.spec.mjs
+@@ -0,0 +1,78 @@
++import { test, expect } from '@playwright/test'
++
++for (const loop of [false, true]) for (const mounted of [false, true]) {
++  test(`auto-height media resizes without browser errors (${mounted ? 'mounted' : 'detached'} construction, loop ${loop})`, async ({ page }) => {
++    const pageErrors = []
++    page.on('pageerror', error => pageErrors.push(error.message))
++    await page.addInitScript(() => {
++      window.resizeErrors = []
++      window.addEventListener('error', event => window.resizeErrors.push(event.message))
++      window.addEventListener('unhandledrejection', event => window.resizeErrors.push(String(event.reason)))
++    })
++    await page.route('**/__auto_height__', route => route.fulfill({
++      contentType: 'text/html',
++      body: `<!doctype html><html><head>
++        <link rel="stylesheet" href="/styles/carousel.css">
++        <script type="importmap">{"imports":{"@shelamkoff/event-bus":"/node_modules/@shelamkoff/event-bus/dist/index.js"}}</script>
++        </head><body></body></html>`,
++    }))
++    await page.goto('/__auto_height__')
++    const result = await page.evaluate(async ({ mounted, loop }) => {
++      const { Carousel } = await import('/src/index.js')
++      const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
++      const host = document.createElement('section')
++      host.style.width = '640px'
++      const figures = await Promise.all(['Alpha', 'Bravo'].map(async caption => {
++        const figure = document.createElement('figure')
++        figure.style.margin = '0'
++        const image = document.createElement('img')
++        image.src = pixel
++        image.style.cssText = 'display:block;width:100%;height:auto'
++        await image.decode()
++        const label = document.createElement('figcaption')
++        label.textContent = caption
++        label.style.height = '23px'
++        figure.append(image, label)
++        return figure
++      }))
++      if (mounted) document.body.append(host)
++      const carousel = new Carousel(host, figures.map(content => ({ content: () => content })), { loop, transitionDuration: 0 })
++      if (!mounted) document.body.append(host)
++      const settle = async () => {
++        for (let count = 0; count < 6; count++) await new Promise(requestAnimationFrame)
++      }
++      const snapshot = () => ({
++        viewportWidth: host.querySelector('.carousel__viewport').offsetWidth,
++        viewportHeight: host.querySelector('.carousel__viewport').offsetHeight,
++        slideWidths: [...host.querySelectorAll('.carousel__slide')].map(slide => slide.offsetWidth),
++        slideHeights: [...host.querySelectorAll('.carousel__slide')].map(slide => slide.offsetHeight),
++        index: carousel.getIndex(),
++      })
++      await settle()
++      const attached = snapshot()
++      carousel.goTo(1)
++      host.style.width = '320px'
++      await settle()
++      const resized = snapshot()
++      figures[1].querySelector('figcaption').style.height = '47px'
++      await settle()
++      const grown = snapshot()
++      carousel.destroy()
++      await settle()
++      return { attached, resized, grown, childrenAfterDestroy: host.childElementCount, errors: window.resizeErrors }
++    }, { mounted, loop })
++    expect(result.attached.viewportWidth).toBe(640)
++    expect(result.attached.slideWidths).toEqual([640, 640])
++    expect(result.resized.viewportWidth).toBe(320)
++    expect(result.resized.slideWidths).toEqual([320, 320])
++    expect(result.attached.viewportHeight - result.resized.viewportHeight).toBe(320)
++    expect(result.resized.viewportHeight).toBe(Math.max(...result.resized.slideHeights))
++    expect(result.resized.index).toBe(1)
++    expect(result.grown.viewportHeight - result.resized.viewportHeight).toBe(24)
++    expect(result.grown.viewportHeight).toBe(Math.max(...result.grown.slideHeights))
++    expect(result.grown.index).toBe(1)
++    expect(result.childrenAfterDestroy).toBe(0)
++    expect(result.errors).toEqual([])
++    expect(pageErrors).toEqual([])
++  })
++}

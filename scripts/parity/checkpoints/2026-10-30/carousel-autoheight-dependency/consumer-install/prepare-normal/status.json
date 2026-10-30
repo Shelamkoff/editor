@@ -1,0 +1,17 @@
+{
+  "state": "finished",
+  "startedAt": "2026-10-30T01:11:29.731485+00:00",
+  "finishedAt": "2026-10-30T01:11:31.410962+00:00",
+  "command": [
+    "npm",
+    "install",
+    "--offline",
+    "--ignore-scripts=false",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "installExitCode": 0,
+  "verifyExitCode": 0,
+  "distPresent": true,
+  "packageLockSha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+}

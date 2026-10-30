@@ -1,0 +1,301 @@
+diff --git a/package.json b/package.json
+index 21e7ae5..3e5e052 100644
+--- a/package.json
++++ b/package.json
+@@ -17,6 +17,7 @@
+     "build": "node scripts/build-package.mjs",
+     "test": "node --test",
+     "prepublishOnly": "npm test",
++    "prepare": "npm run build",
+     "prepack": "npm run build"
+   },
+   "dependencies": { "@shelamkoff/event-bus": "^1.0.0" },
+diff --git a/src/Carousel.js b/src/Carousel.js
+index 9699eb3..7714184 100644
+--- a/src/Carousel.js
++++ b/src/Carousel.js
+@@ -735,7 +735,9 @@ export class Carousel {
+ 
+   update(options) {
+     if (this.#destroyed) return
+-    if (!options || typeof options !== 'object') throw new TypeError('Carousel: options must be an object')
++    if (!options || typeof options !== 'object' || Array.isArray(options)) {
++      throw new TypeError('Carousel: options must be an object')
++    }
+     if (options.breakpoints !== undefined
+       && (!options.breakpoints || typeof options.breakpoints !== 'object' || Array.isArray(options.breakpoints))) {
+       throw new TypeError('Carousel: breakpoints must be an object')
+diff --git a/src/TrackRenderer.js b/src/TrackRenderer.js
+index 0d7ced2..babb39f 100644
+--- a/src/TrackRenderer.js
++++ b/src/TrackRenderer.js
+@@ -17,6 +17,8 @@ export class TrackRenderer {
+   /** @type {ResizeObserver | null} */
+   #slideResizeObserver = null
+   /** @type {number} */
++  #observedLayoutFrame = 0
++  /** @type {number} */
+   #slidesPerView = 1
+   /** @type {number} */
+   #gap = 0
+@@ -88,13 +90,9 @@ export class TrackRenderer {
+     if (!this.#viewport) return
+     this.#lastViewportWidth = this.#viewport.offsetWidth
+     this.#resizeObserver = new ResizeObserver(() => {
+-      if (!this.#viewport) return
+-      const w = this.#viewport.offsetWidth
+-      if (w === this.#lastViewportWidth) return // skip if size unchanged
+-      this.#lastViewportWidth = w
+-      const previousSlideWidth = this.#slideWidth
+-      this.#recalcSlideWidth()
+-      this.#onResize?.(previousSlideWidth)
++      if (this.#viewport && this.#viewport.offsetWidth !== this.#lastViewportWidth) {
++        this.#scheduleObservedLayout()
++      }
+     })
+     this.#resizeObserver.observe(this.#viewport)
+   }
+@@ -103,10 +101,34 @@ export class TrackRenderer {
+     this.#slideResizeObserver?.disconnect()
+     this.#slideResizeObserver = null
+     if (!this.#isLoop) return
+-    this.#slideResizeObserver = new ResizeObserver(() => this.#updateTrackHeight())
++    this.#slideResizeObserver = new ResizeObserver(() => this.#scheduleObservedLayout())
+     for (const slide of this.#slideElements) this.#slideResizeObserver.observe(slide)
+   }
+ 
++  #scheduleObservedLayout() {
++    if (this.#observedLayoutFrame) return
++    // Slide widths can change intrinsic media height and hence the observed
++    // viewport. Apply layout outside ResizeObserver delivery to avoid a loop.
++    this.#observedLayoutFrame = requestAnimationFrame(() => {
++      this.#observedLayoutFrame = 0
++      if (!this.#viewport) return
++      const width = this.#viewport.offsetWidth
++      if (width !== this.#lastViewportWidth) {
++        this.#lastViewportWidth = width
++        const previousSlideWidth = this.#slideWidth
++        this.#recalcSlideWidth()
++        this.#onResize?.(previousSlideWidth)
++      } else {
++        this.#updateTrackHeight()
++      }
++    })
++  }
++
++  #cancelObservedLayout() {
++    if (this.#observedLayoutFrame) cancelAnimationFrame(this.#observedLayoutFrame)
++    this.#observedLayoutFrame = 0
++  }
++
+   /** @param {(previousSlideWidth: number) => void} cb */
+   onResize(cb) { this.#onResize = cb }
+ 
+@@ -156,6 +178,7 @@ export class TrackRenderer {
+   #recalcSlideWidth() {
+     if (!this.#viewport) return
+     const vw = this.#viewport.offsetWidth
++    this.#lastViewportWidth = vw
+     const totalGap = this.#gap * (this.#slidesPerView - 1)
+     this.#slideWidth = Math.max(0, (vw - totalGap) / this.#slidesPerView)
+ 
+@@ -250,6 +273,7 @@ export class TrackRenderer {
+   /** @param {import('./types').SlideData[]} slides @param {{ slidesPerView: number, gap: number, loop?: boolean }} layout */
+   rebuild(slides, layout) {
+     if (!this.#track) return
++    this.#cancelObservedLayout()
+     this.#slideResizeObserver?.disconnect()
+     this.#slideResizeObserver = null
+     this.#isLoop = layout.loop ?? false
+@@ -286,6 +310,7 @@ export class TrackRenderer {
+   getSlideElement(index) { return this.#slideElements[index] ?? null }
+ 
+   destroy() {
++    this.#cancelObservedLayout()
+     this.stopAnimation()
+     this.#resizeObserver?.disconnect()
+     this.#resizeObserver = null
+diff --git a/test/observed-layout.test.js b/test/observed-layout.test.js
+new file mode 100644
+index 0000000..d1d2ed0
+--- /dev/null
++++ b/test/observed-layout.test.js
+@@ -0,0 +1,91 @@
++import test, { after } from 'node:test'
++import assert from 'node:assert/strict'
++import { TrackRenderer } from '../src/TrackRenderer.js'
++
++const originals = new Map(['document', 'HTMLElement', 'ResizeObserver', 'requestAnimationFrame', 'cancelAnimationFrame']
++  .map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]))
++after(() => {
++  for (const [key, descriptor] of originals) {
++    if (descriptor) Object.defineProperty(globalThis, key, descriptor)
++    else delete globalThis[key]
++  }
++})
++
++class Element {
++  style = {}
++  dataset = {}
++  children = []
++  parentNode = null
++  width = null
++  classList = { add() {}, remove() {}, toggle() {} }
++  setAttribute() {}
++  appendChild(child) { this.children.push(child); child.parentNode = this; return child }
++  remove() {
++    if (this.parentNode) this.parentNode.children.splice(this.parentNode.children.indexOf(this), 1)
++    this.parentNode = null
++  }
++  set innerHTML(value) { this.children.forEach(child => { child.parentNode = null }); this.children = []; this.markup = value }
++  get offsetWidth() { return this.width ?? this.parentNode?.offsetWidth ?? 0 }
++  get offsetHeight() { return 20 }
++  get scrollHeight() { return 20 }
++}
++const observers = new Set(), frames = new Map()
++let sequence = 0
++globalThis.HTMLElement = Element
++globalThis.document = { createElement: () => new Element() }
++globalThis.ResizeObserver = class {
++  constructor(callback) { this.callback = callback; observers.add(this) }
++  observe() {}
++  disconnect() { observers.delete(this) }
++}
++globalThis.requestAnimationFrame = callback => { const id = ++sequence; frames.set(id, callback); return id }
++globalThis.cancelAnimationFrame = id => frames.delete(id)
++const observe = () => { for (const observer of observers) observer.callback([]) }
++const frame = () => { const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach(callback => callback()) }
++const slides = [{ content: 'Alpha' }, { content: 'Bravo' }]
++function mount() {
++  const host = new Element(); host.width = 640
++  const renderer = new TrackRenderer()
++  renderer.build(host, slides, { slidesPerView: 1, gap: 0 })
++  return { host, renderer }
++}
++
++test('observed width changes retain the previous width and settle to the latest size', t => {
++  const { host, renderer } = mount(), previous = []
++  t.after(() => renderer.destroy())
++  renderer.onResize(width => previous.push(width))
++  host.width = 480; observe()
++  host.width = 320; observe()
++  frame()
++  assert.equal(renderer.slideWidth, 320)
++  assert.deepEqual(renderer.getSlideElements().map(slide => slide.style.width), ['320px', '320px'])
++  assert.deepEqual(previous, [640])
++  renderer.destroy()
++})
++
++test('destroy cancels pending observed work and leaves retired slide styles unchanged', t => {
++  const { host, renderer } = mount(), retired = renderer.getSlideElements()
++  t.after(() => renderer.destroy())
++  host.width = 320; observe()
++  renderer.destroy()
++  const styles = retired.map(slide => ({ ...slide.style }))
++  assert.equal(frames.size, 0)
++  assert.equal(observers.size, 0)
++  frame()
++  assert.deepEqual(retired.map(slide => ({ ...slide.style })), styles)
++  assert.equal(host.children.length, 0)
++})
++
++test('rebuild supersedes pending resize and records its synchronously measured width', t => {
++  const { host, renderer } = mount(), previous = []
++  t.after(() => renderer.destroy())
++  renderer.onResize(width => previous.push(width))
++  host.width = 320; observe()
++  renderer.rebuild(slides, { slidesPerView: 2, gap: 0 })
++  assert.equal(frames.size, 0)
++  assert.equal(renderer.slideWidth, 160)
++  observe(); frame()
++  assert.deepEqual(previous, [])
++  assert.deepEqual(renderer.getSlideElements().map(slide => slide.style.width), ['160px', '160px'])
++  renderer.destroy()
++})
+diff --git a/tests/browser/auto-height.html b/tests/browser/auto-height.html
+new file mode 100644
+index 0000000..a633eaf
+--- /dev/null
++++ b/tests/browser/auto-height.html
+@@ -0,0 +1,13 @@
++<!doctype html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8">
++  <title>Carousel auto-height regressions</title>
++  <link rel="stylesheet" href="../../dist/styles/carousel.css">
++  <script type="importmap">{"imports":{"@shelamkoff/event-bus":"../../node_modules/@shelamkoff/event-bus/dist/index.js"}}</script>
++</head>
++<body data-status="running">
++  <pre id="result">running</pre>
++  <script type="module" src="./auto-height.js"></script>
++</body>
++</html>
+diff --git a/tests/browser/auto-height.js b/tests/browser/auto-height.js
+new file mode 100644
+index 0000000..5a4bc2d
+--- /dev/null
++++ b/tests/browser/auto-height.js
+@@ -0,0 +1,62 @@
++import { Carousel } from '../../dist/src/index.js'
++
++const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
++const cases = [], errors = []
++let phase = 'setup'
++window.addEventListener('error', event => errors.push({ phase, message: event.message }))
++window.addEventListener('unhandledrejection', event => errors.push({ phase, message: String(event.reason) }))
++const assert = (condition, message) => { if (!condition) throw new Error(message) }
++const settle = async () => { for (let count = 0; count < 6; count++) await new Promise(requestAnimationFrame) }
++
++async function autoHeight(mounted, loop) {
++  phase = `${mounted ? 'mounted' : 'detached'}-loop-${loop}`
++  const host = document.createElement('section'); host.style.width = '640px'
++  const figures = await Promise.all(['Alpha', 'Bravo'].map(async caption => {
++    const figure = document.createElement('figure'); figure.style.margin = '0'
++    const image = document.createElement('img'); image.src = pixel
++    image.style.cssText = 'display:block;width:100%;height:auto'
++    await image.decode()
++    const label = document.createElement('figcaption'); label.textContent = caption; label.style.height = '23px'
++    figure.append(image, label)
++    return figure
++  }))
++  if (mounted) document.body.append(host)
++  const carousel = new Carousel(host, figures.map(content => ({ content: () => content })), { loop, transitionDuration: 0 })
++  try {
++    let invalidOptionsRejected = false
++    try { carousel.update([]) } catch (error) { invalidOptionsRejected = error instanceof TypeError }
++    assert(invalidOptionsRejected, phase + ': array options must remain rejected as in the published package')
++    if (!mounted) document.body.append(host)
++    const snapshot = () => ({
++      width: host.querySelector('.carousel__viewport').offsetWidth,
++      height: host.querySelector('.carousel__viewport').offsetHeight,
++      widths: [...host.querySelectorAll('.carousel__slide')].map(slide => slide.offsetWidth),
++      heights: [...host.querySelectorAll('.carousel__slide')].map(slide => slide.offsetHeight),
++      index: carousel.getIndex(),
++    })
++    await settle(); const attached = snapshot()
++    carousel.goTo(1); host.style.width = '320px'
++    await settle(); const resized = snapshot()
++    figures[1].querySelector('figcaption').style.height = '47px'
++    await settle(); const grown = snapshot()
++    assert(attached.width === 640 && attached.widths.every(width => width === 640), phase + ': attached widths')
++    assert(resized.width === 320 && resized.widths.every(width => width === 320), phase + ': resized widths')
++    assert(attached.height - resized.height === 320, phase + ': intrinsic media height did not shrink')
++    assert(resized.height === Math.max(...resized.heights), phase + ': resized track height')
++    assert(grown.height - resized.height === 24 && grown.height === Math.max(...grown.heights), phase + ': dynamic content height')
++    assert(resized.index === 1 && grown.index === 1, phase + ': logical index changed')
++    carousel.destroy(); await settle()
++    assert(host.childElementCount === 0, phase + ': owned DOM not removed')
++    cases.push({ id: phase, attached, resized, grown, invalidOptionsRejected, disposed: true })
++  } finally { carousel.destroy(); host.remove() }
++}
++
++try {
++  for (const loop of [false, true]) for (const mounted of [false, true]) await autoHeight(mounted, loop)
++  phase = 'complete'; await settle()
++  document.querySelector('#result').textContent = JSON.stringify({ cases, errors }, null, 2)
++  document.body.dataset.status = errors.length ? 'fail' : 'pass'
++} catch (error) {
++  document.querySelector('#result').textContent = JSON.stringify({ cases, errors, failure: String(error.stack ?? error) }, null, 2)
++  document.body.dataset.status = 'fail'
++}

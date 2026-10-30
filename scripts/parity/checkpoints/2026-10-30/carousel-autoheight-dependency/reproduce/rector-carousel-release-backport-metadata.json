@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/Shelamkoff/carousel.git",
+  "parent": "93274ff295212e23ff4761f860b701d446113d61",
+  "commit": "5ce243ca7d32f70786b2bab93ff606ea2ffb0c96",
+  "tree": "0f86a8dd69746748fb67409f4c3cafa2443258d4",
+  "version": "1.0.0",
+  "actualRuntimeDeltaVsInstalled": {
+    "src/TrackRenderer.js": {
+      "installed": "814adf9ea1a48de9b89cdad0655248f1fd7bebe48f4684ea9ffafa03ea3e881e",
+      "backport": "637086ae6119d8fed554acc9e5d47465ab79179137761f68c8bf1c7d1ce40fee"
+    }
+  },
+  "files": {
+    "package.json": "0c8a77116957f083fc08483e69fbdf806e56fd71b34853cbddf86a540e85eff6",
+    "src/Carousel.js": "9d233e9126bc64ef7053f86e0838e0dcd63da99d9c3b940d47e133b754c12778",
+    "src/TrackRenderer.js": "637086ae6119d8fed554acc9e5d47465ab79179137761f68c8bf1c7d1ce40fee",
+    "test/observed-layout.test.js": "b9b211aadf9b9a06255d3ca799f27835c7976b259622cfcfb468cfad9b1b2683",
+    "tests/browser/auto-height.html": "038fc1eb2612816414e33a7b0e1a251710de703bccf28b303ec335130920705e",
+    "tests/browser/auto-height.js": "b9f50daf6d6156de4c3088fd92659ca82ca35dcc29d8049b77f5cab214c0ceaf"
+  },
+  "patchSha256": "1c30163401dd80036fb754f1a8ad71d80150c633754e3d9a275e613c7d6121d6"
+}

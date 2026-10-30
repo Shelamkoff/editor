@@ -1,0 +1,15 @@
+{
+  "state": "finished",
+  "startedAt": "2026-10-30T01:00:40.582751+00:00",
+  "finishedAt": "2026-10-30T01:00:41.498065+00:00",
+  "command": [
+    "npm",
+    "install",
+    "--offline",
+    "--ignore-scripts=false",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "exitCode": 0,
+  "distPresent": false
+}

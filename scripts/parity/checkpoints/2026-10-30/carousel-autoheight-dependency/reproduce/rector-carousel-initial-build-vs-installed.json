@@ -1,0 +1,11 @@
+{
+  "installedFiles": 47,
+  "initialBuildFiles": 47,
+  "differentFiles": [
+    {
+      "path": "src/Carousel.js",
+      "installed": "a3969ff43b5ff8d326e297fff122c11ffeb7747ff7f68f0bfd38fa6a32cdef1f",
+      "initialBuild": "bd5a15dea8f43cd771a382c7447c9808a3c3ba3bc56085e89a66955ae8d1f829"
+    }
+  ]
+}

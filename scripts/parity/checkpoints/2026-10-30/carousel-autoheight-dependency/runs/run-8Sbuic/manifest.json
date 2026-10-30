@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+  "startedAt": "2026-10-30T01:07:07.109Z",
+  "finishedAt": "2026-10-30T01:07:38.828Z",
+  "outcome": "failed",
+  "source": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/carousel-roundtrip-16x16.webm",
+        "mode": 33188,
+        "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+      },
+      {
+        "path": "tests/browser/regressions/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      }
+    ],
+    "dirty": true,
+    "identity": "78155a279053b2bd01b2e7122d24b6f33b665035cc429ca970e60ce6ceef361d"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "backport-autoheight-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:07:07.415Z",
+      "finishedAt": "2026-10-30T01:07:38.296Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "python3",
+        "/tmp/rector-carousel-backport-proof.py",
+        "red",
+        "node",
+        "/tmp/rector-carousel-backport-browser.mjs",
+        "/tmp/rector-carousel-release-backport-20261030"
+      ],
+      "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "78155a279053b2bd01b2e7122d24b6f33b665035cc429ca970e60ce6ceef361d"
+      },
+      "elapsedMs": 30877.723102000004,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "78155a279053b2bd01b2e7122d24b6f33b665035cc429ca970e60ce6ceef361d"
+      },
+      "sourceUnchanged": true
+    },
+    "backport-observed-units-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:07:38.531Z",
+      "finishedAt": "2026-10-30T01:07:38.708Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "python3",
+        "/tmp/rector-carousel-backport-proof.py",
+        "units-red",
+        "node",
+        "--test",
+        "--test-isolation=none",
+        "test/observed-layout.test.js"
+      ],
+      "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "78155a279053b2bd01b2e7122d24b6f33b665035cc429ca970e60ce6ceef361d"
+      },
+      "elapsedMs": 172.66417499999997,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "78155a279053b2bd01b2e7122d24b6f33b665035cc429ca970e60ce6ceef361d"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/carousel-roundtrip-16x16.webm",
+        "mode": 33188,
+        "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+      },
+      {
+        "path": "tests/browser/regressions/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      }
+    ],
+    "dirty": true,
+    "identity": "78155a279053b2bd01b2e7122d24b6f33b665035cc429ca970e60ce6ceef361d"
+  },
+  "sourceUnchanged": true
+}
