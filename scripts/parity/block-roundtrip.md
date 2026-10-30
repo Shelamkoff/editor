@@ -320,9 +320,11 @@ Retired authoring fields must lose mutation authority, while mode changes
 preserve an independent host control's focus.
 
 The first profile contains the real widgets; the second contains literal rich
-text. A widget in a never-opened second profile's name is not covered by these
-passing cases and remains an explicit open presentation gap. Preserving an
-already completed first-name tab across a view switch does not resolve it.
+text. A widget in a never-opened second profile's name is outside these common
+cases. That separate presentation defect is resolved by the
+[canonical field-text repair](../../docs/architecture/rector-v2/PUBLICATION_REVIEW.md#person-canonical-tab-labels-2026-10-30),
+with its own exact-source RED/GREEN evidence. The common cases still prove
+preservation of an already completed first-name tab across a view switch.
 Profile operations, programmatic hidden-field focus, the complete reader-tab
 matrix, uploads/cropping and social resolver behavior remain separate rows.
 Separate registered native tests check readable detached cards, responsive
@@ -354,14 +356,19 @@ positive/negative classifier controls and all eight unchanged-source C11 gates.
 
 The shared fixture now contains 65 distinct cases across all 21 registered
 built-in blocks; its type inventory exactly matches `plugins/index.js`.
-The parent `differential65` gate in `run-2Zb0Ur` passes on immutable `9ccae358`:
-65 cases and 11,458 passing candidate observations, with no unexpected failure
-in any source. **Full parent native/browser proof is still awaiting.** This
-interim differential does not mark the whole C11 run passed. The earlier
-Gallery, Person and Carousel 57-case checkpoints overlap the preceding 53 cases
-and their totals are not added. Only after the remaining parent gate passes is
-the prepared common Carousel acceptance promoted; detailed behavior and
-whole-library parity remain separate.
+The earlier parent `differential65` gate in `run-2Zb0Ur` passed on immutable
+`9ccae358`: 65 cases and 11,458 candidate observations, with no unexpected
+failure in any source. That preliminary run's browser failure remains a failure.
+The later [completed combined validation](../../docs/architecture/rector-v2/PUBLICATION_REVIEW.md#final-combined-continuation-2026-10-30)
+records all ten gates in `run-M5oL2Z` passing on the source published as
+`fc669f91`, including the complete browser command and 65 common cases /
+11,434 candidate observations. The 24 fewer observations are conditional
+retired-field checks that no longer execute when Person's healthy sibling
+fields remain live; the shared fixture did not lose cases or assertions.
+The earlier Gallery, Person and Carousel 57-case checkpoints overlap the
+preceding 53 cases and their totals are not added. Common Carousel acceptance
+is complete within that recorded scope; detailed behavior and whole-library
+parity remain separate.
 
 ## Source identities and test-only adapters
 
@@ -428,14 +435,14 @@ author data from an initial `save()` result.
 | Embed / 1 | Empty service/video/caption/metadata | Fixed Vimeo/local cover; literal and current widget captions | Implemented: actual empty default, native caption history, actual widgets and retired-host controls. v1 persistent caption widgets are unsupported reference evidence. |
 | Raw / 1 | Empty HTML source | Literal multiline authored HTML/entities; edit `html` source | Implemented: exact textarea source, benign rendered markup, existing preview disclosure and native history. HTML confinement/navigation remain separate rows. |
 | Gallery / 2 | No images, auto layout, declared viewer defaults | Two local images, literal and wrapped/unwrapped widget captions, fixed layout/options; edit first caption | Implemented: fixed historical plain-caption strings, current IDs/sidecars, readable renderer labels, modes and exact native history. Empty authoring is N/A; v1 persistent rich-caption widgets are unsupported. |
-| Carousel / 1 | No slides, autoplay off; no fabricated caption/history field | Fixed image/local video/HTML, literal and wrapped/unwrapped real caption widgets; edit first caption | Implemented: IDs/options, actual automatic height, three renderer contexts, trusted media navigation and native history. Empty authoring is N/A; v1 persistent rich-caption widgets are unsupported. Parent 65-case differential passes; native/browser proof awaits. |
+| Carousel / 1 | No slides, autoplay off; no fabricated caption/history field | Fixed image/local video/HTML, literal and wrapped/unwrapped real caption widgets; edit first caption | Implemented: IDs/options, actual automatic height, three renderer contexts, trusted media navigation and native history. Empty authoring is N/A; v1 persistent rich-caption widgets are unsupported. The common 65-case comparison and complete browser command passed in `run-M5oL2Z`. |
 | Attaches / 2 | No files, variant `f` | Two controlled file URLs, literal names, size/extension; edit first filename | Implemented: v1 file IDs absent; plain text, current keyed focus, retired mode controls, native history and renderer anchors are checked. |
 | LinkPreview / 1 | Empty metadata, `notion` template | Controlled URL and populated literal metadata; edit declared URL | Implemented: real native input, metadata clearing, visible card, plain metadata, URL caret and exact Undo/Redo; no provider request. |
 | Toggle / 1 | Empty title/content, closed | Rich title/Mention and content/Color, explicit open/closed state; edit title | Implemented: both fields, hidden populated content, open state, accessibility relationship and renderer structure survive mode/history. |
 | Columns / 2 | Two empty columns, `1-1` layout | Fixed `1-2` rich columns with independent widgets; edit first column | Implemented: v1 column IDs absent; current IDs, both fields/order, grid/layout controls and renderer columns are checked. |
 | Spoiler / 1 | Empty label/content | Rich label/Mention and content/Color; edit label | Implemented: both fields and transient open/hidden presentation survive mode/history; renderer keeps an empty label and omits an empty body. |
 | Poll / 1 | Single choice, two empty options, always-visible results | Identified rich choices/question, literal and widget controls, fixed local results; edit question | Implemented: fixed results/IDs/marks, readable derived labels, native history and retired-host controls; v1 persistent widgets are explicitly unsupported. |
-| Person / 2 | One empty profile and no links | Two fixed profiles, literal and wrapped/unwrapped widgets, local avatar and identified links; edit first name | Implemented: current IDs/data, rendered profiles, actual tab-switch body, modes and native history. v1 IDs/draft filtering are explicit; never-opened widget-name tabs and detailed hidden-field focus remain open. |
+| Person / 2 | One empty profile and no links | Two fixed profiles, literal and wrapped/unwrapped widgets, local avatar and identified links; edit first name | Implemented: current IDs/data, rendered profiles, actual tab-switch body, modes and native history. v1 IDs/draft filtering are explicit; never-opened widget-name labels have a separate canonical field-text proof. Detailed hidden-field focus and other profile actions retain separate obligations. |
 
 The existing `tests/browser/roundtrip.js` is a useful current-format smoke
 and save/reload check. It does not replace this template's native history,
