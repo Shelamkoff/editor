@@ -746,7 +746,7 @@ try {
     unsupportedReferenceCases: results.flatMap(source => source.cases.filter(entry => entry.referenceCapability?.supported === false)
       .map(entry => ({ source: source.source, id: entry.id, ...entry.referenceCapability }))),
     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
-    sourceSha256, classifierSha256, galleryClassifierSha256, personClassifierSha256, carouselClassifierSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
+    sourceSha256, classifierSha256, galleryClassifierSha256, personClassifierSha256, carouselClassifierSha256, fixtureSha256, carouselMediaSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,
     sources, dependencyVersions, dependencyFiles, serverErrors, results,
   }, null, 2))
