@@ -790,7 +790,7 @@ export class BlockReconciler {
     const item = updates.find(({ id, entry }) => this.#isCurrentMountedEntry(id, entry)
       && entry.scope?.active && entry.fields?.length > 0 && entry.element.contains(element)
       && !entry.fields?.some(field => field.element.contains(element)))
-    if (!item) return null
+    if (!item || !document.hasFocus() || document.activeElement !== element) return null
     const { id, entry: previous } = item
     const parents = element === previous.element ? [] : this.#fieldParents(element, previous.element)
     if (element !== previous.element && parents.at(-1) !== previous.element) return null
@@ -817,7 +817,7 @@ export class BlockReconciler {
       release,
       restore: (entries, restored) => {
         const entry = restored.get(id)
-        const owned = () => !released && !superseded && entry
+        const owned = () => entry
           && !element.isConnected && element.ownerDocument === document && retired()
           && this.#container.isConnected && entry.element.parentNode === this.#container
           && entry.instance.element.parentNode === entry.element
@@ -827,6 +827,7 @@ export class BlockReconciler {
           && this.#store === store && store.generation === generation && store.revision === revision
           && store.peek(id) === record && entry.record === record && this.#readOnly === readOnly
           && previous.scope.revoked && entry.scope?.active && !entry.controller?.signal.aborted
+          && document.hasFocus() && !released && !superseded
         try {
           if (!owned()) return
           entry.element.tabIndex = -1

@@ -3,6 +3,7 @@ import { createParagraphPlugin } from '../../../plugins/paragraph/index.js'
 import { test, make, para, blockElement, editorRoot, editorHolder, pause, equal, assert } from './harness.js'
 import { clickNative, dispatchKey, printable } from '../native-input-helpers.js'
 import { getTextOffset } from '../../../shared/textOffset.js'
+import { createEditor } from '../../../core/index.js'
 
 test('Projection recovery keeps native keyboard history after a focused Carousel source fails', async () => {
   const added = { id: 'delta', type: 'html', html: '<p>Delta</p>', caption: 'Delta' }
@@ -261,5 +262,75 @@ test('Projection recovery fieldless bookmark keeps a newer foreign focus after i
   } finally {
     document.removeEventListener('focusin', redirect, true)
     foreign.remove()
+  }
+})
+
+test('Projection recovery in an iframe preserves parent-document focus before and during a rejected update', async () => {
+  for (const phase of ['before', 'during']) {
+    const frame = document.createElement('iframe')
+    const foreign = document.createElement('input')
+    foreign.value = 'Parent input'
+    const loaded = new Promise(resolve => { frame.onload = resolve })
+    frame.srcdoc = '<!doctype html><html><body><section id="holder"></section></body></html>'
+    document.body.append(frame, foreign)
+    let editor
+    try {
+      await loaded
+      const ownerDocument = frame.contentDocument
+      const failure = new Error('controlled iframe projection failure')
+      let projected = false
+      const chooseParent = () => { foreign.focus(); foreign.setSelectionRange(3, 3) }
+      const base = createCarouselPlugin({ injectStyles: false })
+      const definition = { ...base, setup(runtimeContext) {
+        const runtime = base.setup(runtimeContext)
+        return { ...runtime, create(initial, context) {
+          const instance = runtime.create(initial, context)
+          return { ...instance, update(next, previous) {
+            instance.update(next, previous)
+            if (!projected && next.slides.some(slide => slide.id === 'delta')) {
+              projected = true
+              if (phase === 'during') chooseParent()
+              throw failure
+            }
+          } }
+        } }
+      } }
+      editor = createEditor({ holder: ownerDocument.getElementById('holder'), injectStyles: false,
+        plugins: [definition], defaultBlock: 'carousel', inlinePlugins: [], inlineTools: [],
+        data: { version: '2.0.0', blocks: [{ id: 'carousel', type: 'carousel', dataVersion: 1, data: {
+          slides: [{ id: 'alpha', type: 'html', html: '<p>Alpha</p>', caption: 'Alpha' }],
+          options: { loop: false, autoplay: false, autoplayDelay: 3000, navigation: true, pagination: true, thumbnails: false },
+        } }] },
+      })
+      const before = editor.save().blocks
+      const oldRoot = ownerDocument.querySelector('.oe-block')
+      const button = [...oldRoot.querySelectorAll('button')].find(element => element.textContent.trim() === 'Add')
+      button.focus()
+      assert(document.activeElement === frame && ownerDocument.activeElement === button && ownerDocument.hasFocus())
+      if (phase === 'before') {
+        chooseParent()
+        assert(document.activeElement === foreign && !ownerDocument.hasFocus(),
+          'The parent input did not acquire native focus: ' + JSON.stringify({
+            parentActive: document.activeElement.tagName, frameActive: ownerDocument.activeElement.tagName,
+            oldButtonStillActive: ownerDocument.activeElement === button, frameHasFocus: ownerDocument.hasFocus(),
+          }))
+      }
+      let caught
+      try { editor.blocks.update('carousel', current => ({ data: { ...current.data,
+        slides: [...current.data.slides, { id: 'delta', type: 'html', html: '<p>Delta</p>', caption: 'Delta' }],
+      } })) } catch (error) { caught = error }
+      assert(projected && caught === failure && !oldRoot.isConnected)
+      equal(editor.save().blocks, before)
+      equal([editor.canUndo, editor.canRedo], [false, false])
+      assert(document.activeElement === foreign && !ownerDocument.hasFocus(),
+        'Iframe recovery stole parent focus (' + phase + '): ' + JSON.stringify({
+          parentActive: document.activeElement.tagName, frameActive: ownerDocument.activeElement.className,
+          frameHasFocus: ownerDocument.hasFocus(),
+        }))
+      equal([foreign.selectionStart, foreign.selectionEnd], [3, 3])
+    } finally {
+      editor?.destroy()
+      frame.remove(); foreign.remove()
+    }
   }
 })
