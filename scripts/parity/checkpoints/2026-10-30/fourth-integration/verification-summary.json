@@ -1,0 +1,561 @@
+{
+  "source": {
+    "head": "6f5f4ff5205a25adfd00cef6d5b2279c068db633",
+    "tree": "cb4e9b2dd903177c946e93de97a95e5d41d9ec6a",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "04e8560149eb6db000e6c0f7032dfb7b7ec8ebc27ef9c9c07e8d4f1a508e2d38"
+  },
+  "run": "run-Jd9HAT",
+  "startedAt": "2026-10-30T15:09:39.977Z",
+  "finishedAt": "2026-10-30T15:32:34.280Z",
+  "outcome": "passed",
+  "sourceUnchanged": true,
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-chrome/opt/google/chrome/chrome"
+    }
+  },
+  "gates": {
+    "unit": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "elapsedMs": 19277.705832
+    },
+    "typecheck": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "elapsedMs": 7149.531634
+    },
+    "build": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "elapsedMs": 5107.474674
+    },
+    "docs-contracts": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:docs"
+      ],
+      "elapsedMs": 3360.85178
+    },
+    "types": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ],
+      "elapsedMs": 8438.37437
+    },
+    "package": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "elapsedMs": 26106.35349
+    },
+    "ordinary-browser": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "elapsedMs": 37580.111408
+    },
+    "native-browser": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "elapsedMs": 1030582.541942
+    },
+    "heap": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "tests/browser/heap-gate.mjs"
+      ],
+      "elapsedMs": 13096.820826000001
+    },
+    "common-parity": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "elapsedMs": 151300.710488
+    },
+    "gallery-parity": {
+      "outcome": "passed",
+      "command": [
+        "node",
+        "scripts/parity/gallery-caption-order.mjs"
+      ],
+      "elapsedMs": 15319.361244999998
+    },
+    "docs-site": {
+      "outcome": "passed",
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "elapsedMs": 54257.948769
+    }
+  },
+  "unit": {
+    "tests": 2031,
+    "pass": 2031,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "build": {
+    "runtimeDeclarations": 285,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "declarationContracts": 7,
+  "ordinaryBrowser": {
+    "pages": 38,
+    "labels": [
+      "harness-contract.html",
+      "mode-recovery.html",
+      "scoped-authority.html",
+      "formatting-correspondence.html",
+      "script-panel.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html",
+      "projection-contracts.html",
+      "optional-inline-update.html",
+      "inline-pattern-transfer.html",
+      "toolbar-keyboard.html",
+      "public-extension-contracts.html",
+      "poll-state-contracts.html",
+      "presentation-recovery.html",
+      "inline-style-grammar.html",
+      "inline-style-grammar-trusted-types.html"
+    ]
+  },
+  "nativeBrowser": {
+    "groups": 41,
+    "cases": 2339,
+    "byGroup": {
+      "nativeTextInput": 52,
+      "nativeTools": 107,
+      "nativeClipboard": 25,
+      "nativeIme": 16,
+      "nativeConversion": 7,
+      "nativeBlockMenus": 110,
+      "nativeConversionGrouping": 88,
+      "nativeConversionPreservation": 53,
+      "nativeInteractionSequences": 39,
+      "nativeRetainedTools": 64,
+      "nativeConversionContinuations": 65,
+      "nativeFontCancel": 58,
+      "nativeBackgroundCancel": 36,
+      "nativeLinkCancel": 36,
+      "nativePanelKeyboard": 36,
+      "nativeSourceIndentation": 54,
+      "nativeSourceModes": 61,
+      "nativeConfigSnapshot": 30,
+      "nativePollRuntime": 26,
+      "nativeLibraryBoundaries": 42,
+      "nativeInstanceMethods": 8,
+      "nativeColorPopup": 8,
+      "nativeColorPopupTrusted": 8,
+      "nativeMentionPopup": 64,
+      "nativeAuditEdges": 21,
+      "nativeAuditPoll": 4,
+      "nativeAuditHiddenFields": 4,
+      "nativeAuditRecheck": 49,
+      "nativeStructural": 21,
+      "nativeCrossSelection": 42,
+      "nativeCoreBehavior": 67,
+      "nativePluginParity": 316,
+      "nativeRoundtripPreservation": 65,
+      "nativePresentationRecovery": 14,
+      "nativePluginControls": 156,
+      "nativePluginRanges": 116,
+      "nativePluginLocalRanges": 76,
+      "nativePluginClipboard": 48,
+      "nativePluginFieldClipboard": 68,
+      "nativePluginMedia": 95,
+      "nativePluginDesign": 84
+    },
+    "counting": "Final JSON array groups counted once; enter/toolbox/historyMatrix objects remain in the raw log, scoped runs are not added."
+  },
+  "heap": {
+    "sentinels": 23,
+    "retained": 0,
+    "usedHeapMiB": 15.1,
+    "embedderHeapMiB": 1.24,
+    "historyEviction": {
+      "payloadBytes": 32768,
+      "authoredActions": 12,
+      "historyMaxBytes": 1,
+      "historyMaxStack": 100,
+      "retainedControlReleased": true,
+      "replay": {
+        "currentCase": 12,
+        "undoCase": 11,
+        "editorAlive": true
+      },
+      "phases": [
+        {
+          "phase": "before-eviction",
+          "counts": [
+            0,
+            1,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "usedHeapMiB": 15.1,
+          "snapshotMiB": 27.85
+        },
+        {
+          "phase": "after-eviction-with-retained-control",
+          "counts": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 15.2,
+          "snapshotMiB": 27.91
+        },
+        {
+          "phase": "after-releasing-control",
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "usedHeapMiB": 15.17,
+          "snapshotMiB": 27.91
+        }
+      ]
+    }
+  },
+  "differentialCorpora": {
+    "common-parity": [
+      {
+        "source": "v1",
+        "cases": 65,
+        "observations": 11258,
+        "rawFailures": 1156,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "caseErrors": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 65,
+        "observations": 8043,
+        "rawFailures": 183,
+        "unexpectedFailures": 0,
+        "incompleteCases": 21,
+        "errors": 1,
+        "pageErrors": 1,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "caseErrors": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 65,
+        "observations": 11446,
+        "rawFailures": 0,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "caseErrors": 0
+      }
+    ],
+    "gallery-parity": [
+      {
+        "source": "v1",
+        "cases": 6,
+        "observations": 336,
+        "rawFailures": 123,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "caseErrors": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 6,
+        "observations": 378,
+        "rawFailures": 101,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errors": 4,
+        "pageErrors": 4,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "caseErrors": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 6,
+        "observations": 378,
+        "rawFailures": 0,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "caseErrors": 0
+      }
+    ]
+  },
+  "scopedComparisons": {
+    "link-owned-formatting": {
+      "rawExitCode": 1,
+      "sources": [
+        {
+          "source": "v1",
+          "cases": 13,
+          "observations": 113,
+          "rawFailures": 33,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0,
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0,
+          "caseErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 13,
+          "observations": 113,
+          "rawFailures": 27,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0,
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0,
+          "caseErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 13,
+          "observations": 113,
+          "rawFailures": 0,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0,
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0,
+          "caseErrors": 0
+        }
+      ]
+    },
+    "gallery-viewer-captions": {
+      "rawExitCode": 1,
+      "sources": [
+        {
+          "source": "v1",
+          "realm": "main",
+          "observations": 13,
+          "rawFailures": 3,
+          "incomplete": false,
+          "error": null,
+          "pageErrors": 0
+        },
+        {
+          "source": "v1",
+          "realm": "iframe",
+          "observations": 1,
+          "rawFailures": 1,
+          "incomplete": true,
+          "error": null,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "realm": "main",
+          "observations": 13,
+          "rawFailures": 4,
+          "incomplete": false,
+          "error": null,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "realm": "iframe",
+          "observations": 13,
+          "rawFailures": 4,
+          "incomplete": false,
+          "error": null,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "realm": "main",
+          "observations": 13,
+          "rawFailures": 0,
+          "incomplete": false,
+          "error": null,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "realm": "iframe",
+          "observations": 13,
+          "rawFailures": 0,
+          "incomplete": false,
+          "error": null,
+          "pageErrors": 0
+        }
+      ]
+    },
+    "compound-rich-fields": {
+      "rawExitCode": 1,
+      "sources": [
+        {
+          "source": "v1",
+          "cases": 2,
+          "observations": 120,
+          "rawFailures": 2,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0,
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0,
+          "caseErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 2,
+          "observations": 120,
+          "rawFailures": 16,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0,
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0,
+          "caseErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 2,
+          "observations": 120,
+          "rawFailures": 0,
+          "unexpectedFailures": 0,
+          "incompleteCases": 0,
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0,
+          "caseErrors": 0
+        }
+      ]
+    }
+  },
+  "preservationRegister": {
+    "rows": 209,
+    "uniqueIds": 209,
+    "accepted": 37,
+    "open": 172
+  },
+  "isolatedReconstruction": {
+    "sources": 7,
+    "index": "isolated-sources/manifest.json"
+  },
+  "publication": "Local source only; remote push was blocked by automatic approval review. No published counterpart is asserted."
+}

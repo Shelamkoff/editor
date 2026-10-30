@@ -642,3 +642,61 @@ The [third integration checkpoint](https://github.com/Shelamkoff/editor/tree/ref
 | Source identity and immutability | All nine gates pass with unchanged source; the published tree is identical to the tested tree |
 
 This continuation adds no performance measurement or broader acceptance claim. Full Carousel structure, the remaining detailed Person/Table/Checklist actions, `B-HTML`, `B-STYLE`, structural `C09`/`T15`, wider platform coverage and whole-library parity retain their separate obligations. Later documentation and archive verification must identify its own source and run.
+
+
+## Fourth continuation: compound fields, Link and Gallery — 2026-10-30
+
+The frozen implementation source for this continuation is `6f5f4ff5205a25adfd00cef6d5b2279c068db633`, tree `cb4e9b2dd903177c946e93de97a95e5d41d9ec6a`. The scoped comparisons below ran on that unchanged source in Chrome `156.0.8078.79`, Node `v24.22.1`, Linux. They are separate from the final combined gate table.
+
+### Live rich fields and Toggle focus
+
+Eight blocks now preserve unchanged canonical rich fields during sibling or presentation updates: List, Checklist, Toggle, Spoiler, Quote, Warning, Image and Embed. Comparing hydrated markup with stored widget tokens, or consulting a stale captured caption, previously replaced live author DOM. Saved strings could remain correct while Text nodes, widget ownership, caret or backward selection were lost. The repair uses the existing `update(next, previousCanonical)` argument: native input can commit canonical data without invoking the instance update hook, so a captured earlier record is insufficient. Actual field changes still use existing sanitation and inline ownership.
+
+Native regressions cover real Mention/Color occurrences, retained Text/widget identity, directed selections, continued typing and separate keyboard Undo/Redo actions. Image and Embed also have controls for native input before a read-only round trip. These tests use fixed author records, verify caller-input immutability and require provider silence. The corresponding checkpoints retain the original RED/GREEN results and their actual source identities.
+
+A keyed focus request for closed Toggle content now reveals its live field and lets the existing logical-focus path complete. That presentation change preserves canonical `open: false` and creates no history action. Unrelated updates and replay retain the temporary disclosure; an actual canonical open-state change remains authoritative. Invalid field keys and read-only requests cannot disclose the body.
+
+### Link ownership and Gallery output
+
+Link detection, Apply and Unlink share author-content boundaries. Native controls, locked descendants and nested editing hosts retain their markup and nodes. Authored line breaks and complete inline widgets participate in unlinking; a widget's outer authored link can be removed while its own DOM remains live. Partial selections retain established whole-link unlink behavior. Cross-block text traversal discovers author fields without entering nested hosts.
+
+The committed Link regression fixture contains **12 direct real-DOM cases and three native editor cases**. The native cases cover cross-block Apply/Unlink and a real atomic occurrence, with selection and history controls. The separate historical runner executes **13 direct public-tool cases**; its observations do not establish native historical caret or keyboard-history parity.
+
+Gallery image notifications now belong to the existing output resource lifetime. Settlement, disposal and replacement retire listeners; queued cached-image work checks its live owner before reading geometry or changing layout. Viewer captions and image alternatives share resolved plain caption text with the grid, including overflow images and the iframe viewer. Caption resolution completes before Gallery resources are acquired, preserves input records and renders the resolved label as text. Lifecycle notifications in the controlled fixture are not claimed as trusted browser input.
+
+### Scoped comparison and reconstruction
+
+| Comparison on the frozen candidate | Executed candidate result | Historical limits retained in raw evidence |
+| --- | --- | --- |
+| Link | 13 cases, **113/113 observations** | v1: 33 failures; specification baseline: 27; direct calls only |
+| Gallery viewer | **26/26 observations**, 13 per realm | v1 main: 3 failures; iframe: 1 failure and **12 unexecuted observations**; baseline: 4 failures per realm |
+| Toggle/Checklist rich-field controls | 2 cases, **120/120 observations** | v1: 2 failures; baseline: 16; bounded disclosure/checked-state actions |
+
+The references remain v1 `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340` and specification baseline `e981ff308000c1d92d7e820df95113c1e19bcee8`, using shared installed dependencies. Unsupported v1 rich Gallery captions and incomplete iframe work remain explicit. All three raw commands exit **1** for historical failures/incompleteness; the candidate has no exception, failure or incomplete phase. Independent audit matched all **765** observation statuses to actual/expected values, **623** production-module hash records and **70** dependency-file hashes. Page/server/runtime errors were absent.
+
+Seven deterministic gzip, binary-capable patches reconstruct isolated validation sources from `355577fce341e77bead7d69705744db724f1b79f`. Each passed independent temporary-index application and exact original-tree comparison. Their manifest records compressed/decoded hashes and integration mappings without asserting equality of full integration trees or recreating original commit metadata.
+
+The preservation register remains **209 unique IDs: 37 accepted / 172 open**. No additional complete row is accepted here. Wider platform coverage, detailed action matrices, `B-HTML`, `B-STYLE`, structural `C09`/`T15` and whole-library parity retain their separate proof obligations.
+
+### Completed combined verification
+
+The [fourth integration checkpoint](https://github.com/Shelamkoff/editor/tree/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-30/fourth-integration) retains the complete `run-Jd9HAT` manifest and raw logs. **All 12 gates pass on unchanged `6f5f4ff5205a25adfd00cef6d5b2279c068db633`**, tree `cb4e9b2dd903177c946e93de97a95e5d41d9ec6a`; completion: `2026-10-30T15:32:34.280Z`. This records a local checked source. Remote publication was blocked by automatic approval review; this record asserts no published counterpart.
+
+| Combined check | Recorded result |
+| --- | --- |
+| Unit tests | 2,031/2,031; zero failures, cancellations or skips |
+| Checked JavaScript | Both source configurations pass |
+| Build and external declarations | 285 declarations, zero source diagnostics; 7 declaration contracts pass |
+| Installed package | Bundler, NodeNext, Vite and browser consumers pass; 22 CSS assets verified |
+| Documentation contracts | README, source, localization and documentation audits pass |
+| Ordinary browser pages | 38 pages pass |
+| Native result matrix | 41 array groups / 2,339 cases pass; plugin parity 316, tools 107, core behavior 67 |
+| Disposal and history eviction | 23 sentinels, 0 retained; all three eviction phases and live Undo control pass |
+| Common differential corpus | 65 cases across 21 block types / 11,446 candidate observations; zero candidate failures or incomplete cases |
+| Gallery caption/order differential | 6 cases / 378 candidate observations; zero candidate failures or incomplete cases |
+| Documentation site | Build and both static/browser smoke checks pass |
+| Source identity | All 12 gates and the complete run retain unchanged source |
+
+The common corpus has 12 more candidate observations than the third integration: four existing retired-caption checks now execute in each of the three populated Embed cases after Undo. All pass; the fixture and runner hashes, 65 case IDs and completed phases are unchanged. The earlier 11,434 total remains a result for its own source.
+
+The final native aggregate is counted once, including its initial JSON groups; overlapping scoped results are not added. Three newer raw comparisons remain separate from the twelve passing gates and retain their historical exit code 1. No new performance measurement or broader platform acceptance is inferred. The interrupted earlier run `run-NKp1Lt` remains interrupted: six gates completed, the browser gate was stopped for Link review, and later gates were not run. Subsequent evidence/report edits and their documentation validation have separate source identities in the checkpoint.

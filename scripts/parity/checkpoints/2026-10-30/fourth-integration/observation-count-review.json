@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "method": "Read-only comparison of archived raw JSON; no browser rerun.",
+  "old": {
+    "sourceCommit": "d9e935dec7eae3bb3b983d1a3c5b544316a5eefb",
+    "sourceTree": "f90fa22af6b4149e43972b204da9261502c1f48f",
+    "run": "run-a4BfOk",
+    "rawArchive": "scripts/parity/checkpoints/2026-10-30/third-integration/run-a4BfOk/differential.log.gz",
+    "decodedRawSha256": "ca9775604761c72f6b51f775902139fd113844ada0ed35ea9313b0617304a970",
+    "runnerSha256": "2bd7f2477ff511f1d029a64dede43734f08a0f5eb925a396b1cf0c8046a8f662",
+    "fixtureSha256": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e"
+  },
+  "new": {
+    "sourceCommit": "6f5f4ff5205a25adfd00cef6d5b2279c068db633",
+    "sourceTree": "cb4e9b2dd903177c946e93de97a95e5d41d9ec6a",
+    "run": "run-Jd9HAT",
+    "rawArchive": "scripts/parity/checkpoints/2026-10-30/fourth-integration/run-Jd9HAT/common-parity.log.gz",
+    "decodedRawSha256": "8b4ed8e1f82754feae41bb6d0b7712e805807145004ed2cc09cf9794b261d14f",
+    "runnerSha256": "2bd7f2477ff511f1d029a64dede43734f08a0f5eb925a396b1cf0c8046a8f662",
+    "fixtureSha256": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e"
+  },
+  "caseIdsUnchanged": true,
+  "caseCount": 65,
+  "completedPhasesUnchanged": true,
+  "runnerBytesUnchanged": true,
+  "fixtureBytesUnchanged": true,
+  "oldCandidateObservations": 11434,
+  "newCandidateObservations": 11446,
+  "unchangedCaseObservationCounts": 62,
+  "caseDeltas": [
+    {
+      "caseId": "BLOCK_EMBED_ROUNDTRIP/populated",
+      "oldObservations": 200,
+      "newObservations": 204,
+      "delta": 4,
+      "completedPhasesUnchanged": true,
+      "addedObservations": [
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesCanonical",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesHistory",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesField",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesSelection",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        }
+      ],
+      "removedObservations": []
+    },
+    {
+      "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+      "oldObservations": 200,
+      "newObservations": 204,
+      "delta": 4,
+      "completedPhasesUnchanged": true,
+      "addedObservations": [
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesCanonical",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesHistory",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesField",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesSelection",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        }
+      ],
+      "removedObservations": []
+    },
+    {
+      "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-literal",
+      "oldObservations": 200,
+      "newObservations": 204,
+      "delta": 4,
+      "completedPhasesUnchanged": true,
+      "addedObservations": [
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesCanonical",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesHistory",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesField",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        },
+        {
+          "phase": "undo",
+          "property": "embedRetiredCaptionLeavesSelection",
+          "status": "PASS",
+          "actualMatchesExpected": true
+        }
+      ],
+      "removedObservations": []
+    }
+  ],
+  "interpretation": {
+    "fixture": "tests/browser/block-roundtrip-fixture.js",
+    "condition": "previousCaption !== currentCaption",
+    "phase": "undo",
+    "conditionalControls": "Four existing stale-caption controls execute in each of three populated Embed cases after the repaired projection retires the previous caption host.",
+    "aggregation": "The +12 total consists of existing executed conditional assertions; no case, fixture assertion, runner byte or Toggle observation count was added."
+  }
+}
