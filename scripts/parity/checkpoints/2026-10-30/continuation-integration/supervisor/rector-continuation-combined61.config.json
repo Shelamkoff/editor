@@ -1,0 +1,72 @@
+{
+  "cwd": "/tmp/rector-continuation-20261030",
+  "status": "/tmp/rector-continuation-combined61.status.json",
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+    "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+    "EDITOR_CANDIDATE_ROOT": "/tmp/rector-continuation-20261030",
+    "EDITOR_CANDIDATE_SHA": "061471080da7438f0f73d09bba8a444e8d9d5bda",
+    "EDITOR_DEPENDENCIES_ROOT": "/tmp/rector-continuation-20261030/node_modules",
+    "EDITOR_ROUNDTRIP_FILTER": ""
+  },
+  "gates": [
+    {
+      "name": "unit",
+      "command": [
+        "npm",
+        "test"
+      ]
+    },
+    {
+      "name": "differential61",
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ]
+    },
+    {
+      "name": "native61",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+        "EDITOR_NATIVE_FILTER": ""
+      }
+    },
+    {
+      "name": "native-core",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+        "EDITOR_NATIVE_FILTER": ""
+      }
+    },
+    {
+      "name": "runtime-contracts",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "environment": {
+        "EDITOR_BROWSER_PAGE": "runtime-contracts.html"
+      }
+    },
+    {
+      "name": "projection-contracts",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "environment": {
+        "EDITOR_BROWSER_PAGE": "projection-contracts.html"
+      }
+    }
+  ]
+}

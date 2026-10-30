@@ -1,0 +1,40 @@
+{
+  "cwd": "/tmp/rector-continuation-20261030",
+  "status": "/tmp/rector-continuation-fast.status.json",
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+  },
+  "gates": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ]
+    },
+    {
+      "name": "unit",
+      "command": [
+        "npm",
+        "test"
+      ]
+    },
+    {
+      "name": "types",
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ]
+    },
+    {
+      "name": "package",
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ]
+    }
+  ]
+}

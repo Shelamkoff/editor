@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "isolatedObservations": 703,
+  "mergedObservations": 685,
+  "difference": 18,
+  "formula": "3 populated cases × Undo/Redo × 3 conditional retired-field checks = 18",
+  "cases": [
+    {
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "isolatedObservations": 82,
+      "mergedObservations": 82,
+      "removedObservations": [],
+      "addedObservations": [],
+      "otherObservationIdentitiesLost": false,
+      "phaseNamesUnchanged": true,
+      "completedPhasesUnchanged": true,
+      "trustedEventTypeSequenceUnchanged": true,
+      "failuresBefore": 0,
+      "failuresAfter": 0
+    },
+    {
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated",
+      "isolatedObservations": 207,
+      "mergedObservations": 201,
+      "removedObservations": [
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveCanonical",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveFields",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveHistory",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveCanonical",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveFields",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveHistory",
+          "status": "PASS",
+          "count": 1
+        }
+      ],
+      "addedObservations": [],
+      "otherObservationIdentitiesLost": false,
+      "phaseNamesUnchanged": true,
+      "completedPhasesUnchanged": true,
+      "trustedEventTypeSequenceUnchanged": true,
+      "failuresBefore": 0,
+      "failuresAfter": 0
+    },
+    {
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+      "isolatedObservations": 207,
+      "mergedObservations": 201,
+      "removedObservations": [
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveCanonical",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveFields",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveHistory",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveCanonical",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveFields",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveHistory",
+          "status": "PASS",
+          "count": 1
+        }
+      ],
+      "addedObservations": [],
+      "otherObservationIdentitiesLost": false,
+      "phaseNamesUnchanged": true,
+      "completedPhasesUnchanged": true,
+      "trustedEventTypeSequenceUnchanged": true,
+      "failuresBefore": 0,
+      "failuresAfter": 0
+    },
+    {
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "isolatedObservations": 207,
+      "mergedObservations": 201,
+      "removedObservations": [
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveCanonical",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveFields",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "redo",
+          "property": "galleryRetiredActionsLeaveHistory",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveCanonical",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveFields",
+          "status": "PASS",
+          "count": 1
+        },
+        {
+          "phase": "undo",
+          "property": "galleryRetiredActionsLeaveHistory",
+          "status": "PASS",
+          "count": 1
+        }
+      ],
+      "addedObservations": [],
+      "otherObservationIdentitiesLost": false,
+      "phaseNamesUnchanged": true,
+      "completedPhasesUnchanged": true,
+      "trustedEventTypeSequenceUnchanged": true,
+      "failuresBefore": 0,
+      "failuresAfter": 0
+    }
+  ],
+  "mergedExtractExactlyMatchesCombinedCandidate": true,
+  "fixtureCommit": "061471080da7438f0f73d09bba8a444e8d9d5bda",
+  "fixtureSha256": "863479f9616f436d6d3081e6fa814ee537dfee36f5f2252900a3fceaeb951277",
+  "explanation": "The fixture emits the three retired-action observations only when previous Gallery fields have actually been retired. The host-retention fix preserves those fields across Undo/Redo, so the condition is false for the three populated cases. The conditional code remains present. No other observation identity, completed phase or trusted-event type is lost. Raw value payloads retain their run-specific identifiers and are not rewritten."
+}

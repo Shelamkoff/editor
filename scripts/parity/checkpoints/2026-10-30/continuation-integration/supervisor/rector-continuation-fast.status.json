@@ -1,0 +1,1 @@
+{"run": "/tmp/rector-continuation-20261030/test-results/run-AapPg2", "gates": [{"name": "typecheck", "exitCode": 0}, {"name": "unit", "exitCode": 1}, {"name": "types", "exitCode": 0}, {"name": "package", "exitCode": 1}], "finish": 1}
