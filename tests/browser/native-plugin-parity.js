@@ -1,3 +1,4 @@
+import './regressions/carousel-structure-native.js'
 import './quote-paste-merge.js'
 import './presentation-values.js'
 import './regressions/table-default.js'
