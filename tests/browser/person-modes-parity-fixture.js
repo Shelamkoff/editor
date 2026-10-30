@@ -17,6 +17,10 @@ export const personModeCases = [
     id: `PERSON_HIDDEN_FOCUS/${widgets ? 'widgets' : 'literal'}/${start}/${field}`,
     kind: 'focus', widgets, start, target: start ? 0 : 1, field, backward: start === 1 && field !== 'url',
   })))),
+  ...[0, 1].map(start => ({ id: `PERSON_HIDDEN_FOCUS/widgets/${start}/after-widget`, kind: 'focus', widgets: true,
+    start, target: start ? 0 : 1, field: start ? 'role' : 'bio', backward: start === 1, afterWidget: true })),
+  ...[0, 1].map(start => ({ id: `PERSON_HIDDEN_FOCUS/literal/${start}/numeric-url`, kind: 'focus', widgets: false,
+    start, target: start ? 0 : 1, field: 'url', backward: false, numericUrl: true })),
   ...[false, true].flatMap(widgets => [false, true].map(initialReadOnly => ({
     id: `PERSON_READONLY_TABS/${widgets ? 'widgets' : 'literal'}/${initialReadOnly ? 'constructed-readonly' : 'mode-transition'}`,
     kind: 'readonly', widgets, initialReadOnly, keyboard: false,
@@ -152,7 +156,9 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
   }
   const targetEdit = (records, index, kind, backward) => {
     const next = clone(records), person = next[1].data.persons[index]
-    if (kind === 'url') person.links[0].url += 'X'
+    if (kind === 'url') person.links[0].url = spec.numericUrl
+      ? person.links[0].url.slice(0, 2) + 'X' + person.links[0].url.slice(2) : person.links[0].url + 'X'
+    else if (spec.afterWidget) person[kind] = person[kind].replace(' tail', backward ? ' tXil' : ' taXil')
     else {
       const text = people[index][kind], opening = kind === 'name' ? '<b>' : kind === 'role' ? '<i>' : '<mark>'
       const edited = backward ? text.slice(0, 1) + 'X' + text.slice(2) : text.slice(0, 2) + 'X' + text.slice(2)
@@ -210,7 +216,8 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
     capture('load', original, 0, [false, false], 0)
 
     if (spec.kind !== 'readonly') {
-      plannedPhases.push('prepared', 'preceding-input', 'focus', 'target-range', 'target-input', 'undo-target', 'undo-first', 'redo-first', 'redo-target', 'invalid-key')
+      plannedPhases.push('prepared', 'preceding-input', 'focus', 'target-range', 'target-input', 'undo-target', 'undo-first', 'redo-first', 'redo-target')
+      if (!legacy) plannedPhases.push('invalid-key')
       phase = 'prepared'
       if (spec.start) await clickTab(spec.start)
       capture('prepared', original, spec.start, [false, false], 0)
@@ -220,9 +227,11 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       const bioEnd = logicalText(original[1].data.persons[spec.start].bio).length
       capture('preceding-input', preceding, spec.start, [true, false], 1, { kind: 'bio', anchor: bioEnd + 1 })
       phase = 'focus'; currentEvents = []
-      let offset = spec.field === 'url' ? original[1].data.persons[spec.target].links[0].url.length : 2
+      const offset = spec.afterWidget ? logicalText(original[1].data.persons[spec.target][spec.field]).length - 2
+        : spec.field === 'url' && !spec.numericUrl ? original[1].data.persons[spec.target].links[0].url.length : 2
       if (spec.kind === 'focus') {
-        const accepted = editor.blocks.focus('profiles', { fieldKey: requestKey(spec.target, spec.field), offset: spec.field === 'url' ? 'end' : 2 })
+        const accepted = editor.blocks.focus('profiles', { fieldKey: requestKey(spec.target, spec.field),
+          offset: spec.field === 'url' && !spec.numericUrl ? 'end' : offset })
         check('firstRequestAccepted', accepted, true)
       } else {
         await clickTab(spec.target)
@@ -249,12 +258,10 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       capture('redo-first', preceding, spec.start, [true, true], 5, { kind: 'bio', anchor: bioEnd + 1 })
       phase = 'redo-target'; await native('key', 'Control+Shift+z'); await pause()
       capture('redo-target', final, spec.target, [true, false], 6, { kind: spec.field, anchor: finalOffset })
-      phase = 'invalid-key'
       if (!legacy) {
+        phase = 'invalid-key'
         check('invalidHiddenKeyRejected', editor.blocks.focus('profiles', { fieldKey: 'person:missing:bio', offset: 2 }), false)
         capture('invalid-key', final, spec.target, [true, false], 6, { kind: spec.field, anchor: finalOffset })
-      } else {
-        capture('invalid-key', final, spec.target, [true, false], 6)
       }
     } else {
       const browse = async (prefix, expected, history, count) => {
@@ -265,8 +272,15 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
           check('readonlyUrl', field('url').readOnly, true)
           check('authorControlsAbsent', root().querySelectorAll('.oe-person__tab-add,.oe-person__tab-remove,.oe-person__link-add,.oe-person__link-remove,.oe-person__avatar-upload').length, 0)
           check('tabsNotDraggable', tabs().map(tab => tab.draggable), [false, false, false])
-          await nativeClick(field('name')); await native('type', 'Z')
-          await nativeClick(field('url')); await native('type', 'Z'); await pause()
+          for (const kind of ['name', 'url']) {
+            await nativeClick(field(kind))
+            const attempts = [], observe = event => attempts.push({ key: event.key, trusted: event.isTrusted })
+            document.addEventListener('keydown', observe, true)
+            try { await native('type', 'Z') } finally { document.removeEventListener('keydown', observe, true) }
+            check('readonlyKeyAttempt:' + kind, attempts, [{ key: 'Z', trusted: true }])
+          }
+          await pause()
+          check('readonlyInputEvents', trusted.filter(event => event.kind === 'input' && event.phase === name), [])
           capture(name, expected, index, history, count)
         }
       }
@@ -280,11 +294,12 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       await nativeClick(field('bio')); await native('key', 'End'); await native('type', 'A'); await pause()
       const preceding = appendBio(original, 1, 'A'), bioEnd = logicalText(original[1].data.persons[1].bio).length
       capture('preceding-input', preceding, 1, [true, false], 1, { kind: 'bio', anchor: bioEnd + 1 })
-      const retired = [...root().querySelectorAll('.oe-person__tab--add,.oe-person__tab-remove,.oe-person__link-add,.oe-person__link-remove')]
+      const retired = [...root().querySelectorAll('.oe-person__tab-add,.oe-person__tab--add,.oe-person__tab-remove,.oe-person__link-add,.oe-person__link-remove')]
       check('decisiveRetiredControlsPresent', retired.length, legacy ? 5 : 6)
       phase = 'read-only'; editor.setReadOnly(true); await pause()
       capture('read-only', preceding, 1, [true, false], 1)
-      phase = 'retired-readonly'; retired.forEach(button => button.click()); await pause()
+      phase = 'retired-readonly'; check('retiredControlsDetached', retired.map(button => button.isConnected), retired.map(() => false))
+      retired.forEach(button => button.click()); await pause()
       capture('retired-readonly', preceding, 1, [true, false], 1)
       await browse('readonly', preceding, [true, false], 1)
       plannedPhases.push('editable-return', 'retired-editable', 'continued-input', 'undo-continuation', 'undo-first', 'redo-first', 'redo-continuation')
@@ -292,7 +307,8 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       capture('editable-return', preceding, 0, [true, false], 1)
       check('editableRichFields', ['name', 'role', 'bio'].map(kind => field(kind).isContentEditable), [true, true, true])
       check('editableUrl', field('url').readOnly, false)
-      phase = 'retired-editable'; retired.forEach(button => button.click()); await pause()
+      phase = 'retired-editable'; check('retiredControlsDetached', retired.map(button => button.isConnected), retired.map(() => false))
+      retired.forEach(button => button.click()); await pause()
       capture('retired-editable', preceding, 0, [true, false], 1)
       phase = 'continued-input'; await nativeClick(field('bio')); await native('key', 'End'); await native('type', 'X'); await pause()
       const final = appendBio(preceding, 0, 'X'), finalBioEnd = logicalText(original[1].data.persons[0].bio).length
