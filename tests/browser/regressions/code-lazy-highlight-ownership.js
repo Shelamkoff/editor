@@ -85,3 +85,22 @@ for (const adopted of ['code', 'pre', 'surface', 'wrapper', 'shell']) {
     } finally { h.dispose(); foreign.remove() }
   })
 }
+
+test('Code lazy highlight ownership: an adopted source textarea cannot supply a current view', async () => {
+  const h = lazyCodeFixture(), foreign = document.createElement('aside')
+  document.body.append(foreign)
+  try {
+    const before = h.editor.save().blocks, html = h.code.innerHTML, children = [...h.code.childNodes]
+    equal(h.code.children.length, 0, 'The fixture did not enter the pending lazy-load path')
+    foreign.append(h.textarea)
+    h.textarea.value = 'Foreign text'
+    await h.loaded()
+    highlighted(h.healthy)
+    unchangedDocument(h, before)
+    assert(h.textarea.parentNode === foreign)
+    equal(h.textarea.value, 'Foreign text')
+    assert(h.code.parentNode === h.pre && h.pre.parentNode === h.surface && h.surface.parentNode === h.wrapper)
+    equal(h.code.innerHTML, html, 'Lazy highlighting borrowed the adopted textarea\'s source')
+    equal([...h.code.childNodes], children, 'An adopted source replaced the current code view')
+  } finally { h.dispose(); foreign.remove() }
+})
