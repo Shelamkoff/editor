@@ -30,3 +30,9 @@ documentation bytes were compared against the published continuation. The only
 additional files are the historical Person evidence, this reconciliation note
 and the five preserved publication mappings. Original local commits remain in
 the merge ancestry and in the explicit local checkpoint reference.
+
+The published baseline also completed GitHub Actions run `41094120045`
+successfully. `published-baseline-ci.json` preserves the retrieved run identity
+and all seven successful jobs: browser, Node 20.19.0/22/24, package,
+documentation and size report. This is the remote result for `69c8425e`,
+not verification of subsequent local repairs.
