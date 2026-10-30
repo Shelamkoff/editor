@@ -32,7 +32,7 @@ the published history.
 node --input-type=module <<'JS'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
-const names = ['first-batch', 'second-batch', 'docs-repair']
+const names = ['first-batch', 'second-batch', 'docs-repair', 'reports']
 for (const name of names) {
  const map = JSON.parse(readFileSync(`scripts/parity/checkpoints/2026-10-30/publication/source-map-${name}.json`, 'utf8'))
  for (const entry of map.commits) {
@@ -70,3 +70,14 @@ update from `132b5992` to `ae79a89c`. A fresh fetch verified every tree, origina
 object hash, message and mapped parent before the local branch moved to the
 identical published tree. The previous local chain remains on a preservation
 branch. Final report and documentation validation records follow separately.
+
+## Final reports
+
+`source-map-reports.json` retains the documentation/evidence commit verified in
+`run-CgSk72`: original `ab81ae7983e1fd22e1fc7b5ce96b5643d089172f`, published
+`6986b4db2804af6f02eaacd1dbd71d1a133e7dec`, identical tree
+`a82fadf7df2eebfdb8993de8671d5d4abad570d7`. Its three documentation/build gates pass on
+unchanged source; their original records are archived in the
+[integration checkpoint](../fifth-integration/README.md#final-documentation-verification).
+The subsequent archival commit only retains these completed results and this
+source map; it does not claim another test run.

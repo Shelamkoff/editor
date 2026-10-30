@@ -147,3 +147,32 @@ and wider browser/platform acceptance remain open. `B-PRESENTATION` retains its
 settled and implemented status. This checkpoint makes no whole-library parity
 or new performance claim. Final documentation verification is recorded below
 when completed on its own immutable source.
+
+## Final documentation verification
+
+The updated English/Russian review, preservation register, progress report and
+archived evidence were committed as `ab81ae7983e1fd22e1fc7b5ce96b5643d089172f`, tree
+`a82fadf7df2eebfdb8993de8671d5d4abad570d7`. Run `run-CgSk72` completed with **3/3 gates PASS**
+(`build`, `docs-contracts`, `docs-site`) and unchanged source. Its exact published
+counterpart is `6986b4db2804af6f02eaacd1dbd71d1a133e7dec`. The original manifest and
+complete logs are retained in `final-documentation/run-CgSk72/`; the summary and
+[publication mapping](../publication/source-map-reports.json) retain both source
+identities. This documentation run is separate from the original full run and
+its generated-output repair, and does not relabel either result.
+
+The subsequent archive commit changes only checkpoint evidence and publication
+metadata. It is not counted as an additional browser run or as acceptance of any
+additional preservation requirement.
+
+## Independent continuation-publication review
+
+`publication-second-review/` retains the independently checked ten-commit
+runtime/evidence batch and the one-line documentation-output repair, ending at
+`ae79a89c`. All 11 original/published tree diffs are empty; ordered parents and
+messages match. The review checks 43 explicitly uploaded blobs, 30 inline
+content records and all 87 planned changes across 84 paths, reconstructing all
+11 trees. In a fresh object store containing only the published history, all
+11 original commit IDs were initially absent and were recovered exactly from
+the retained raw objects; connectivity verification passed. The review records
+the branch observation at that publication and does not claim to cover later
+documentation commits.
