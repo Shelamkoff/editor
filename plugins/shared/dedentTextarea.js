@@ -1,6 +1,6 @@
 /**
- * Remove one space indentation unit from every line touched by a textarea
- * selection. A caret inside the indentation still targets the whole line;
+ * Remove one leading tab or up to `width` spaces from every selected line.
+ * A caret inside the indentation still targets the whole line;
  * a nonempty selection ending at the next line start excludes that line.
  *
  * @param {HTMLTextAreaElement} textarea
@@ -19,12 +19,12 @@ export function dedentTextarea(textarea, width) {
   let removedBeforeStart = 0
   let removedBeforeEnd = 0
   const selected = value.slice(firstLine, limit)
-  const dedented = selected.replace(/^ +/gm, (spaces, offset) => {
-    const count = Math.min(width, spaces.length)
+  const dedented = selected.replace(/^(?:\t| +)/gm, (indentation, offset) => {
+    const count = indentation === '\t' ? 1 : Math.min(width, indentation.length)
     const position = firstLine + offset
     removedBeforeStart += Math.min(count, Math.max(0, start - position))
     removedBeforeEnd += Math.min(count, Math.max(0, end - position))
-    return spaces.slice(count)
+    return indentation.slice(count)
   })
   if (dedented === selected) return false
   textarea.value = value.slice(0, firstLine) + dedented + value.slice(limit)
