@@ -89,6 +89,13 @@ try {
   for (const source of sources) {
     const context = await browser.newContext({ viewport: { width: 1100, height: 800 }, deviceScaleFactor: 1 })
     try {
+      const foreignRequests = []
+      await context.route('**/*', route => {
+        const url = route.request().url()
+        if (url.startsWith(origin + '/')) return route.continue()
+        foreignRequests.push(url)
+        return route.abort()
+      })
       const page = await context.newPage()
       const errors = []
       page.on('pageerror', error => errors.push(error.stack ?? String(error)))
@@ -97,11 +104,15 @@ try {
       for (const name of names) {
         const beforeRequests = mediaRequests.length
         const beforeErrors = errors.length
+        const beforeForeign = foreignRequests.length
         const result = await page.evaluate(async ({ label, name }) => {
           const { observeSrcset } = await import('/fixture.js')
           const sanitizer = await import(`/${label}/shared/sanitize/sanitizeRawHtml.js`)
           return observeSrcset({ name, sanitizer })
         }, { label: source.label, name })
+        const unexpectedRequests = foreignRequests.slice(beforeForeign)
+        result.observations.push({ property: 'network.foreignRequests', actual: unexpectedRequests,
+          expected: [], status: unexpectedRequests.length === 0 ? 'PASS' : 'FAIL' })
         results.push({ source: source.label, ...result,
           failures: result.observations.filter(value => value.status !== 'PASS'),
           errors: errors.slice(beforeErrors), mediaRequests: mediaRequests.slice(beforeRequests),
