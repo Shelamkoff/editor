@@ -557,9 +557,12 @@ export function createPersonPlugin(config={}){
               const previousActive=previous.persons.find(person=>person.id===previousId)
               data=cloneData(next)
               const nextActive=data.persons.find(person=>person.id===previousId)
-              // Reordering tabs or changing another person must not detach
-              // the current editing host and collapse its native caret.
-              if(activeNameView?.personId===previousId&&nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
+              // Core projects rich fields independently. Changing one rich
+              // value must not detach healthy sibling hosts or native inputs;
+              // only changes to the card's non-rich structure need a new body.
+              if(activeNameView?.personId===previousId&&nextActive&&previousActive
+                &&nextActive.avatar===previousActive.avatar
+                &&JSON.stringify(nextActive.links)===JSON.stringify(previousActive.links)){
                 renderTabs()
               }else render()
             },

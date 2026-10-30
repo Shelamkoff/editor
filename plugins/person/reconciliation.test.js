@@ -146,6 +146,24 @@ test('Person retains active editing host after tabs are reordered', () => {
   assert.deepEqual(instance.read().persons.map(item => item.id), ['b', 'a'])
   instance.destroy()
 })
+
+for (const key of ['role', 'bio']) test(`Person leaves the active name mounted when its ${key} changes`, () => {
+  const initial = input()
+  initial.persons[0].name = 'Alpha'
+  const { instance, ownerDocument } = mount(initial)
+  const field = nameField(instance, 'a')
+  const originalFields = instance.editableFields().map(descriptor => descriptor.element)
+  field.focus()
+  const next = structuredClone(initial)
+  next.persons[0][key] = 'Changed sibling'
+  instance.update(next, initial)
+  assert.equal(nameField(instance, 'a'), field, 'same-profile sibling update replaced the active name')
+  assert.equal(ownerDocument.activeElement, field)
+  assert.deepEqual(instance.editableFields().map(descriptor => descriptor.element), originalFields,
+    'core must receive the existing rich hosts for selective projection')
+  assert.deepEqual(instance.read(), next)
+  instance.destroy()
+})
 test('Person replaces active author fields when the active person is removed', () => {
   const { instance } = mount()
   const before = nameField(instance, 'a')
@@ -380,7 +398,7 @@ test('Person keeps natively edited active fields when another record changes', (
   }
 })
 
-test('Person still reprojects an externally changed active field', () => {
+test('Person exposes external rich changes to core without replacing the field host', () => {
   const { instance, setCanonicalData } = mount()
   const original = nameField(instance, 'a')
   original.innerHTML = 'Local pending name'
@@ -388,9 +406,10 @@ test('Person still reprojects an externally changed active field', () => {
   next.persons[0].name = 'Remote author name'
   setCanonicalData(next)
   instance.update(next, input())
-  assert.notEqual(nameField(instance, 'a'), original,
-    'remote active-person data change did not update its editing field')
-  assert.equal(nameField(instance, 'a').textContent, 'Remote author name')
+  assert.equal(nameField(instance, 'a'), original,
+    'rich field projection belongs to core and must retain this declared host')
+  assert.equal(original.textContent, 'Local pending name',
+    'the block adapter must not overwrite author DOM before core projection')
   assert.equal(instance.read().persons[0].name, 'Remote author name')
   instance.destroy()
 })

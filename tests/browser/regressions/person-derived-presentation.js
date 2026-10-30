@@ -148,6 +148,82 @@ for (const action of ['sibling edit', 'reorder']) test(`Person derived active ta
   } finally { h.dispose() }
 })
 
+for (const key of ['role', 'bio']) test(`Person updating the active ${key} preserves the other rich field and its backward selection`, async () => {
+  const h = await fixture()
+  try {
+    const before = h.editor.save().blocks, after = structuredClone(before), range = backwardTail(h)
+    const oldWidgets = [h.widget('mention'), h.widget('swatch')]
+    after[0].data.persons[0][key] = '<b>Changed sibling</b>'
+    h.completions.length = 0
+    h.editor.blocks.update('person', current => ({ data: { ...current.data,
+      persons: current.data.persons.map(item => item.id === 'active'
+        ? { ...item, [key]: '<b>Changed sibling</b>' } : item),
+    } }))
+    equal(h.editor.save().blocks, after)
+    equal(retainedRange(h, range), expectedRange(range.text), 'A different rich field discarded the active name or its native selection')
+    equal(h.label('active').textContent, visibleName)
+    equal(oldWidgets.map(widget => h.widget(widget.id) === widget), [true, true], 'A sibling field edit remounted healthy name widgets')
+    equal(h.completions.map(field => field.key), ['person:active:' + key], 'Only the changed rich field needs projection completion')
+    equal(h.current().element.querySelector('.oe-person__' + key).innerHTML, '<b>Changed sibling</b>')
+    equal(h.transactions.length, 1)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
+    equal(retainedRange(h, range), expectedRange(range.text))
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
+    equal(retainedRange(h, range), expectedRange(range.text))
+    equal(h.transactions.length, 3, 'Derived presentation must not create another history action')
+  } finally { h.dispose() }
+})
+
+test('Person external rich values project into retained fields and survive both mode transitions', async () => {
+  const h = await fixture({ widgets: false, profiles: [person('active', 'Original'), person('other', 'Grace')] })
+  try {
+    const before = h.editor.save().blocks, after = structuredClone(before)
+    const fields = [...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')]
+    after[0].data.persons[0].name = '<b>New name</b>'
+    after[0].data.persons[0].role = '<i>New role</i>'
+    after[0].data.persons[0].bio = '<mark>New bio</mark>'
+    h.editor.blocks.update('person', current => ({ data: { ...current.data, persons: after[0].data.persons } }))
+    equal([...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')], fields,
+      'Selective projection must reuse the declared rich field hosts')
+    equal(fields.map(element => element.innerHTML), ['<b>New name</b>', '<i>New role</i>', '<mark>New bio</mark>'])
+    for (const readOnly of [true, false]) {
+      h.editor.setReadOnly(readOnly)
+      equal(h.editor.save().blocks, after)
+      equal(h.label('active').textContent, 'New name')
+      equal([...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')].map(element => element.isContentEditable),
+        [!readOnly, !readOnly, !readOnly])
+    }
+    equal(h.transactions.length, 1, 'Mode presentation must not add author history')
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
+  } finally { h.dispose() }
+})
+
+test('Person external avatar and URL changes still update their actual non-rich controls', async () => {
+  const h = await fixture({ widgets: false, profiles: [{ ...person('active', 'Alpha'),
+    links: [{ id: 'site', type: 'website', url: 'https://example.com/alpha' }] }, person('other', 'Grace')] })
+  try {
+    const before = h.editor.save().blocks
+    const oldInput = h.current().element.querySelector('.oe-person__link-url')
+    const oldIcon = oldInput.parentNode.querySelector('.oe-person__link-icon').innerHTML
+    h.editor.blocks.update('person', current => ({ data: { persons: current.data.persons.map(item => item.id === 'active'
+      ? { ...item, avatar: pixel, links: [{ id: 'site', type: 'github', url: 'https://github.com/example' }] } : item) } }))
+    const after = h.editor.save().blocks, current = h.current().element
+    equal(current.querySelector('.oe-person__avatar-img').getAttribute('src'), pixel)
+    const input = current.querySelector('.oe-person__link-url'), icon = input.parentNode.querySelector('.oe-person__link-icon')
+    equal(input.value, 'https://github.com/example')
+    assert(icon.innerHTML !== oldIcon && icon.querySelector('svg'), 'A changed URL must update its resolved social icon')
+    equal(current.querySelector('.oe-person__name').textContent, 'Alpha')
+    oldInput.value = 'https://example.com/retired'
+    oldInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+    await pause()
+    equal(h.editor.save().blocks, after, 'A retired non-rich control must not author the new card')
+    equal(h.transactions.length, 1)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
+  } finally { h.dispose() }
+})
+
 test('Person derived tab settles a previously hidden widget name when its actual field is focused', async () => {
   const h = await fixture({ profiles: [person('active', 'Grace'), person('other', richName)] })
   try {
