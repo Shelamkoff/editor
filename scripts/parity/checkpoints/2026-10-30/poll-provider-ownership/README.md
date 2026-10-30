@@ -18,9 +18,13 @@ The owner tests use the actual Poll dataSource subscription/load/vote callbacks.
 | run-vYFbHY | 13d53076 | Core 4/4 and native blur 3/3 pass; provider reporting remains RED 1/3 |
 | run-1YgHQE | 115b9976 | Settlement/observer RED: 5 pass, 6 intended reporting/rejection failures |
 | run-dHKUtw | 64f53902 | Valid native gate 11/11; original aggregate remains not-run after recorder overlap |
-| run-LwbSNu | 64f53902 | Sequential final: 206 Node, 197 projection, 20 Poll state, 167 native controls pass; types/docs exit 0 |
+| run-LwbSNu | 64f53902 | Sequential final: 206 core Node, 197 projection, 20 Poll state, 167 native controls pass; types/docs exit 0 |
 
 Each executed, credited gate reports `sourceUnchanged: true`. Exact commands, times, process outcomes and source identities remain in the copied original manifests.
+
+## Node coverage clarification
+
+The 206 Node tests are the three real core suites: `core/DocumentRuntime.test.js`, `core/BlockReconciler.test.js`, and `core/InstanceScope.test.js`. The archived command also supplied nonexistent `plugins/poll/reconciliation.test.js`; Node 24 ignored that unmatched path while running the other suites and returned exit 0. This checkpoint therefore claims no Poll unit suite from that command. The subsequent `poll-completed-result` checkpoint runs the real `plugins/poll/shortcut-empty.test.js` and `shared/pollData.test.js` files on its own frozen source and records 15 passing tests. The original command, supervisor and manifests remain unchanged.
 
 ## Recorder incident
 

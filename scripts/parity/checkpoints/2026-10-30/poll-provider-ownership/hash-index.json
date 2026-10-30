@@ -300,18 +300,18 @@
     },
     {
       "path": "summary.json",
-      "storedBytes": 11500,
-      "storedSha256": "2af38949025b1443da250659f51487af4b2c65b2e7d213bba291e77ca36c33b6",
-      "uncompressedBytes": 11500,
-      "uncompressedSha256": "2af38949025b1443da250659f51487af4b2c65b2e7d213bba291e77ca36c33b6",
+      "storedBytes": 11962,
+      "storedSha256": "8508cc55855dfd4dd15044aa9a194a01a996e695e77f99deed04f33cfa2e49bf",
+      "uncompressedBytes": 11962,
+      "uncompressedSha256": "8508cc55855dfd4dd15044aa9a194a01a996e695e77f99deed04f33cfa2e49bf",
       "encoding": "identity"
     },
     {
       "path": "README.md",
-      "storedBytes": 4150,
-      "storedSha256": "a63ef37b7ff928d3ca75172faa8b3c7d18f103c4bcd0d555086ead906db3f514",
-      "uncompressedBytes": 4150,
-      "uncompressedSha256": "a63ef37b7ff928d3ca75172faa8b3c7d18f103c4bcd0d555086ead906db3f514",
+      "storedBytes": 4840,
+      "storedSha256": "7a003947f3174bb922ff8832388a7ad3be13558fc65cb129d34c7579584c1e93",
+      "uncompressedBytes": 4840,
+      "uncompressedSha256": "7a003947f3174bb922ff8832388a7ad3be13558fc65cb129d34c7579584c1e93",
       "encoding": "identity"
     }
   ]

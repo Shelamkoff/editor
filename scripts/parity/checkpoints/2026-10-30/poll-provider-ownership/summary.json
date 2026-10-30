@@ -346,5 +346,15 @@
       "sha256": "7a4fb6cd3911c5603d223c092207c3fa6290bc48e01d256dd65feb24c47d748a",
       "bytes": 7142
     }
-  ]
+  ],
+  "nodeCoverageClarification": {
+    "executedSuites": [
+      "core/DocumentRuntime.test.js",
+      "core/BlockReconciler.test.js",
+      "core/InstanceScope.test.js"
+    ],
+    "actualPassed": 206,
+    "unmatchedPath": "plugins/poll/reconciliation.test.js",
+    "note": "Node24 ignored the nonexistent path and ran the three core suites. This run is not Poll unit coverage. Real Poll unit files pass 15 tests in the separate completed-result checkpoint."
+  }
 }
