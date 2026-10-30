@@ -46,7 +46,8 @@ export async function runRawSourceCase(specification, { sourceBase = '../../', l
   ])
   const raw = legacy ? new rawModule.Raw() : rawModule.createRawPlugin()
   const paragraph = legacy ? new paragraphModule.Paragraph() : paragraphModule.createParagraphPlugin()
-  const record = (id, type, data) => ({ id, type, ...(!legacy ? { dataVersion: 1 } : {}), data })
+  const record = (id, type, data) => ({ id, type,
+    ...(!legacy ? { dataVersion: (type === 'raw' ? raw : paragraph).schema.currentVersion } : {}), data })
   const input = { version: legacy ? '1.0.5' : '2.0.0', blocks: [
     record('before', 'paragraph', { text: 'Before <b>raw</b>' }),
     record('raw', 'raw', { html: specification.source }),
