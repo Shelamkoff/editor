@@ -333,7 +333,10 @@ export function createEmbedPlugin(config = {}) {
               if (controller.signal.aborted || dead || !result?.thumbnailUrl) return
               const safe = sanitizeMediaUrl(result.thumbnailUrl)
               if (!safe) return
-              player.setPreview(safe, result.title)
+              const title = result.title
+              context.getData()
+              if (controller.signal.aborted || dead || player.player.parentNode !== view || view.parentNode !== wrapper) return
+              player.setPreview(safe, title)
             } catch {
               // Preview is presentation-only; failures leave canonical data unchanged.
             } finally {
