@@ -15,6 +15,41 @@ function placeSourceCaret(h) {
   return { field, tail }
 }
 
+test('field source completion trusted same-character replacement completes once without a canonical action', async () => {
+  const h = createCompletionFixture({ publicEditor: true })
+  try {
+    h.mount(); await pause(20)
+    const panel = h.panels.get('a'), field = panel.note, tail = field.lastChild
+    assert(tail.nodeType === Node.TEXT_NODE && tail.data === ' tail')
+    const descriptor = h.state.completions.find(item => item.name === 'a' && item.key === 'note').field
+    const before = h.editor.save().blocks, widget = h.latest('a-note'), sibling = h.latest('a-front')
+    const inputs = [], notices = []
+    field.addEventListener('input', event => inputs.push({ trusted: event.isTrusted, type: event.inputType, data: event.data }), { once: true })
+    h.state.completions.length = 0
+    h.state.onCompletion = notice => notices.push({ canonical: h.editor.save().blocks, commits: h.state.transactions.length })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length - 1, tail, tail.length)
+    await printable('l')
+    equal(inputs, [{ trusted: true, type: 'insertText', data: 'l' }], 'A genuine browser replacement is required')
+    equal(h.editor.save().blocks, before)
+    equal(completions(h), [['a', 'note', 'Note a-note tail']])
+    const completed = h.state.completions[0]
+    assert(completed.field === descriptor && completed.element === field && completed.frozen && completed.receiver)
+    equal(notices, [{ canonical: before, commits: 0 }])
+    equal(h.state.transactions, []); assert(!h.editor.canUndo && !h.editor.canRedo)
+    assert(h.panels.get('a').note === field && h.latest('a-note') === widget && h.latest('a-front') === sibling)
+    equal(h.state.nativeEdits, [], 'Ordinary author text must not use inline-label reconciliation')
+    const native = getSelection()
+    assert(native.isCollapsed && field.contains(native.focusNode))
+    equal(native.focusOffset, native.focusNode.textContent.length)
+
+    h.state.completions.length = 0; notices.length = 0
+    field.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: '' }))
+    h.editor.blocks.focus('a', { fieldKey: 'note', offset: 'end' })
+    equal(h.state.completions, [], 'A later unchanged notification and healthy query cannot replay completion')
+    equal(notices, []); equal(h.state.transactions, [])
+  } finally { h.dispose() }
+})
+
 const observedWidgetTag = 'rector-source-completion-widget'
 if (!customElements.get(observedWidgetTag)) customElements.define(observedWidgetTag, class extends HTMLElement {
   static get observedAttributes() { return ['data-inline-plugin', 'data-id'] }
