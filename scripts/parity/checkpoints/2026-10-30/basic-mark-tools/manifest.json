@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "scope": [
+    "TOOL_BOLD_ACTION",
+    "TOOL_ITALIC_ACTION",
+    "TOOL_STRIKETHROUGH_ACTION"
+  ],
+  "base": "d67229c08f5fae7101cb2a252f2d56385224da08",
+  "source": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+  "tree": "2cdce22451ed4a109988c1e053cb1e847ae52f7c",
+  "productionChangedPaths": [],
+  "preservedSources": [
+    {
+      "sha": "e696882e613d0592720c898f64d40ae41c9b8082",
+      "tree": "b256830ea1f2845235b3c4c2498c69d050d24344",
+      "patch": "sources/e696882e.patch.gz",
+      "patchSha256": "5ec083137ebef0e745694b4eb900742d6deb9d5fb2a78759e58ff3c577db1b3c",
+      "rawCommit": "tree b256830ea1f2845235b3c4c2498c69d050d24344\nparent d67229c08f5fae7101cb2a252f2d56385224da08\nauthor Codex <codex@openai.com> 1793387579 +0300\ncommitter Codex <codex@openai.com> 1793387579 +0300\n\ntest(inline-tools): compare native basic mark actions on pinned sources\n"
+    },
+    {
+      "sha": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "tree": "2cdce22451ed4a109988c1e053cb1e847ae52f7c",
+      "patch": "sources/0b8541da.patch.gz",
+      "patchSha256": "7a26258a24f7ce3959998514616fe256aa17dbdd7530357f58b8bb20befcdd74",
+      "rawCommit": "tree 2cdce22451ed4a109988c1e053cb1e847ae52f7c\nparent e696882e613d0592720c898f64d40ae41c9b8082\nauthor Codex <codex@openai.com> 1793387859 +0300\ncommitter Codex <codex@openai.com> 1793387859 +0300\n\ntest(inline-tools): scope widget mode checks to each mark action\n"
+    }
+  ],
+  "node": "v24.22.1",
+  "browser": "156.0.8078.79",
+  "platform": "linux x64",
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78",
+      "loadedFiles": 109
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc",
+      "loadedFiles": 118
+    },
+    {
+      "label": "candidate",
+      "sha": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "tree": "2cdce22451ed4a109988c1e053cb1e847ae52f7c",
+      "loadedFiles": 118
+    }
+  ],
+  "results": [
+    {
+      "source": "v1",
+      "cases": 96,
+      "complete": 90,
+      "observations": 3951,
+      "rawFails": 408,
+      "caseErrors": 6,
+      "pageErrors": 0,
+      "inputErrors": 0,
+      "diagnostics": 0,
+      "failuresByProperty": {
+        "selection": 252,
+        "visibleWidgets": 45,
+        "liveWidgetIdentity": 36,
+        "liveWidgetPayloadAndMarkup": 36,
+        "intendedTextAndMarks": 12,
+        "visibleTextAndMarks": 21,
+        "retainedButtonCannotMoveSelection": 3,
+        "liveCapabilityStillWorks": 3
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 96,
+      "complete": 96,
+      "observations": 4494,
+      "rawFails": 504,
+      "caseErrors": 0,
+      "pageErrors": 0,
+      "inputErrors": 0,
+      "diagnostics": 0,
+      "failuresByProperty": {
+        "intendedTextAndMarks": 84,
+        "visibleTextAndMarks": 126,
+        "completedActions": 42,
+        "exactCanonicalDocument": 42,
+        "selection": 84,
+        "history": 84,
+        "exactCompletedActions": 42
+      }
+    },
+    {
+      "source": "candidate",
+      "cases": 96,
+      "complete": 96,
+      "observations": 4494,
+      "rawFails": 0,
+      "caseErrors": 0,
+      "pageErrors": 0,
+      "inputErrors": 0,
+      "diagnostics": 0,
+      "failuresByProperty": {}
+    }
+  ],
+  "finalRawSha256": "0abec93c00f444dc6118e6b1226c65f2d9605754be7fdc96f38a3028954c8917",
+  "candidate": {
+    "cases": 96,
+    "positive": 84,
+    "noops": 6,
+    "lifetime": 6,
+    "observations": 4494,
+    "rawFails": 0,
+    "complete": 96,
+    "byTool": {
+      "bold": {
+        "cases": 32,
+        "positive": 28,
+        "noops": 2,
+        "lifetime": 2,
+        "observations": 1498
+      },
+      "italic": {
+        "cases": 32,
+        "positive": 28,
+        "noops": 2,
+        "lifetime": 2,
+        "observations": 1498
+      },
+      "strikethrough": {
+        "cases": 32,
+        "positive": 28,
+        "noops": 2,
+        "lifetime": 2,
+        "observations": 1498
+      }
+    }
+  },
+  "gates": {
+    "native": {
+      "source": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "exitCode": 0,
+      "cases": 96,
+      "artifact": "native-final.log.gz"
+    },
+    "differential": {
+      "source": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "rawExitCode": 1,
+      "candidatePass": true,
+      "artifact": "final-differential.json.gz",
+      "stderr": "final-differential.stderr.gz"
+    },
+    "typecheck": {
+      "source": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "exitCode": 0,
+      "artifact": "typecheck.log.gz"
+    }
+  },
+  "historicalLimits": {
+    "v1TransactionObservationAPI": "unsupported; exact canonical Undo/Redo and live projection execute without the v2 event/producer contract",
+    "v1AtomicOnlyToolbar": "Six valid atomic-only ranges have no visible named action. They retain errors/unsupported status and incomplete phases; no effect/replay equivalence is inferred."
+  },
+  "developmentAttempts": {
+    "e696882e": "First complete differential, superseded: compared Mention contenteditable mode with modern implementation. 633 v1 inventory FAIL observations include 588 irrelevant mode-only mismatches and 45 genuine lost Color dot failures. No production change or production RED.",
+    "firstNative": "One bounded uncommitted diagnostic smoke, no frozen-source claim.",
+    "final": "Same source-independent semantic/visible data oracles, Mention label editing mode excluded. Each action additionally must preserve every widget root attribute against its own pre-action state; no source-specific expected exemption."
+  },
+  "unsupportedClaims": [
+    "physical mouse-drag selection creation",
+    "other browsers",
+    "other inline-tool actions",
+    "full Color or Mention UI lifecycle",
+    "whole-library functional parity",
+    "new production defect or behavior change"
+  ],
+  "independentPeerReview": {
+    "status": "not yet performed; parent to arrange"
+  },
+  "authorRecheck": {
+    "script": "recheck.py",
+    "expectedVerdicts": 12939,
+    "expectedManualOracleChecks": 2610,
+    "sourceHashes": 345,
+    "dependencyFiles": 7,
+    "dependencyVersions": 8,
+    "note": "Separate manual model written by the author, not a separate-agent peer review."
+  }
+}

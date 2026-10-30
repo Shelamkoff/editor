@@ -1,0 +1,32 @@
+{
+  "node": "v24.22.1",
+  "browser": "156.0.8078.79",
+  "platform": "linux x64",
+  "playwright": "1.62.1",
+  "files": [
+    {
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "resolved": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "bytes": 126939688,
+      "sha256": "61ab14cd750fc24d5db53490ec5fc40f756e4b6e136b78cf7004265471d9bd1d"
+    },
+    {
+      "path": "/tmp/rector-chrome/opt/google/chrome/chrome",
+      "resolved": "/tmp/rector-chrome/opt/google/chrome/chrome",
+      "bytes": 302792008,
+      "sha256": "da143614d917f346b02c1b29587cc13bf891d4b73faf2bea7b20cbd8fa61510f"
+    },
+    {
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "resolved": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "bytes": 704,
+      "sha256": "a0f5715ea22354f922791a9c53dc012d5d5c067ff9cc4cd35ffb7cd272071a9f"
+    },
+    {
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/package.json",
+      "resolved": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/package.json",
+      "bytes": 1416,
+      "sha256": "ca170ec143a88ed3043ac953eb3b2377b2b97304104f4e1e23316684ce2c35af"
+    }
+  ]
+}
