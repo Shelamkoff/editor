@@ -1,0 +1,34 @@
+{
+  "artifactSha256": "dcebe1d4a000821300c60413634a26d84c65b3851e0cfd475643241fd822a281",
+  "sources": {
+    "v1": {
+      "cases": 8,
+      "observations": 217,
+      "reviewedHistoricalDifferences": 5,
+      "unexpectedDifferences": 0
+    },
+    "spec-baseline": {
+      "cases": 8,
+      "observations": 222,
+      "reviewedHistoricalDifferences": 35,
+      "unexpectedDifferences": 0
+    },
+    "candidate": {
+      "cases": 8,
+      "observations": 222,
+      "reviewedHistoricalDifferences": 0,
+      "unexpectedDifferences": 0
+    }
+  },
+  "negativeControlsRejected": [
+    "candidate",
+    "candidate-unchanged-status",
+    "candidate-case-position",
+    "candidate-case-text",
+    "candidate-case-guard",
+    "v1",
+    "spec-baseline",
+    "spec-baseline-consistent-author-change"
+  ],
+  "candidateExemptions": 0
+}

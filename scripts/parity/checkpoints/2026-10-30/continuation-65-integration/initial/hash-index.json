@@ -1,0 +1,74 @@
+[
+  {
+    "path": "initial/browser.log.gz",
+    "source": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur/browser.log",
+    "storedBytes": 19285,
+    "storedSha256": "90ec378e27a5055a13c2f0465937791fbacc7ced527c4b22de15cb76e2b85cb3",
+    "rawBytes": 131991,
+    "rawSha256": "c09618fdbe13371b52b43711ec6428a4472ad4296422381fd4242306300372ab",
+    "compression": "gzip mtime=0"
+  },
+  {
+    "path": "initial/declarations.log.gz",
+    "source": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur/declarations.log",
+    "storedBytes": 554,
+    "storedSha256": "bf315e1b73c15979d8bd04a3a5def2bb3eb6f2e5052827ade46ba1eb2cd992e6",
+    "rawBytes": 915,
+    "rawSha256": "dc3fd458747510c0a88f2c5b9eac6060bb6fff077fafb10774672b211b60f6d0",
+    "compression": "gzip mtime=0"
+  },
+  {
+    "path": "initial/differential65.log.gz",
+    "source": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur/differential65.log",
+    "storedBytes": 1100280,
+    "storedSha256": "08f43eaa9db5f35ed7a7b96b85fb4dc788799e5e83a61efd71993a9b9da68daf",
+    "rawBytes": 37832523,
+    "rawSha256": "108b3016256b3898dda64da35fd425b56fb3cd114c616329ee3d6bd3dc8a0d9f",
+    "compression": "gzip mtime=0"
+  },
+  {
+    "path": "initial/manifest.json",
+    "source": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur/manifest.json",
+    "storedBytes": 10127,
+    "storedSha256": "17a00718a3bb8a119b27394d39981c68ec3fd41dc71795be610b927bcb8e2756",
+    "rawBytes": 10127,
+    "rawSha256": "17a00718a3bb8a119b27394d39981c68ec3fd41dc71795be610b927bcb8e2756",
+    "compression": null
+  },
+  {
+    "path": "initial/typecheck.log.gz",
+    "source": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur/typecheck.log",
+    "storedBytes": 185,
+    "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+    "rawBytes": 259,
+    "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+    "compression": "gzip mtime=0"
+  },
+  {
+    "path": "initial/unit.log.gz",
+    "source": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur/unit.log",
+    "storedBytes": 53758,
+    "storedSha256": "372e814b8d10f5fb89cba0ba1779cc20d300d6dc5b4ff09873e80d380fb6d460",
+    "rawBytes": 193726,
+    "rawSha256": "1bb766ddf099386b89245f1effa20b6d695164be2f371f8ae1b0b7779ff356a6",
+    "compression": "gzip mtime=0"
+  },
+  {
+    "path": "initial/supervisor-config.json",
+    "source": "/tmp/rector-continuation-final65.config.json",
+    "storedBytes": 1318,
+    "storedSha256": "3e4a63b3866e10d53c5fc205d11b8191224029d41e4431d2b44361fafcf78817",
+    "rawBytes": 1318,
+    "rawSha256": "3e4a63b3866e10d53c5fc205d11b8191224029d41e4431d2b44361fafcf78817",
+    "compression": null
+  },
+  {
+    "path": "initial/supervisor-status.json",
+    "source": "/tmp/rector-continuation-final65.status.json",
+    "storedBytes": 283,
+    "storedSha256": "301976df899130a8f3373875dd765427c00fee117e56b1de5b2bbe90660113a5",
+    "rawBytes": 283,
+    "rawSha256": "301976df899130a8f3373875dd765427c00fee117e56b1de5b2bbe90660113a5",
+    "compression": null
+  }
+]

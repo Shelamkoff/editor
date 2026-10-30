@@ -1,0 +1,38 @@
+0 verbose cli /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm
+1 info using npm@11.9.0
+2 info using node@v24.22.1
+3 silly config load:file:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/npm/npmrc
+4 warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+5 silly config load:file:/tmp/rector-package-git-gate-20261030/.npmrc
+6 silly config load:file:/root/.npmrc
+7 silly config load:file:/opt/codex/runtimes/codex-primary-runtime/dependencies/node/etc/npmrc
+8 verbose title npm cache add git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499
+9 verbose argv "cache" "add" "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499" "--ignore-scripts" "--cache" "/tmp/rector-package-git-cache-probe-approved-20261030" "--fetch-retries" "0"
+10 verbose logfile logs-max:10 dir:/tmp/rector-package-git-cache-probe-approved-20261030/_logs/2026-10-30T01_38_24_999Z-
+11 verbose logfile /tmp/rector-package-git-cache-probe-approved-20261030/_logs/2026-10-30T01_38_24_999Z-debug-0.log
+12 silly logfile done cleaning log files
+13 silly cache add args [
+13 silly cache add   'git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499'
+13 silly cache add ]
+14 silly cache add spec git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499
+15 http fetch GET 200 https://registry.npmjs.org/npm 142ms
+16 http fetch GET 200 https://codeload.github.com/Shelamkoff/carousel/tar.gz/f7f6485886a1d77f9213d9079eb70000efeff499 324ms (cache miss)
+17 verbose stack Error: GitFetcher requires an Arborist constructor to pack a tarball
+17 verbose stack     at /opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/npm/node_modules/pacote/lib/git.js:202:17
+17 verbose stack     at new Promise (<anonymous>)
+17 verbose stack     at /opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/npm/node_modules/pacote/lib/git.js:200:19
+17 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+17 verbose stack     at async withTempDir (/opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/npm/node_modules/@npmcli/fs/lib/with-temp-dir.js:21:14)
+18 error GitFetcher requires an Arborist constructor to pack a tarball
+19 verbose cwd /tmp/rector-package-git-gate-20261030
+20 verbose os Linux 6.18.55
+21 verbose node v24.22.1
+22 verbose npm  v11.9.0
+23 notice
+23 notice New major version of npm available! 11.9.0 -> 12.2.1
+23 notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+23 notice To update run: npm install -g npm@12.2.1
+23 notice  { force: true, Symbol(proc-log.meta): true }
+24 verbose exit 1
+25 verbose code 1
+26 error A complete log of this run can be found in: /tmp/rector-package-git-cache-probe-approved-20261030/_logs/2026-10-30T01_38_24_999Z-debug-0.log

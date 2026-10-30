@@ -1,0 +1,22 @@
+✔ theme CSS exports support explicit extensions without breaking extensionless imports (1.508964ms)
+✔ default inline tools live behind the explicit preset entry (1.290726ms)
+✔ default inline tools are exposed only through preset (1.55566ms)
+✔ async renderer factories have one canonical published entry (0.265495ms)
+✔ package gate stages only full Git commits present in the published manifest and project lock (3.279796ms)
+✔ package gate rejects mutable or abbreviated Git pins before fetching (2.291081ms)
+✔ package gate rejects a published Git declaration absent from the project lock (0.487308ms)
+✔ package gate rejects a lock resolved at another Git commit (0.371051ms)
+✔ consumer provenance accepts the unchanged transitive Git edge and locked artifact (0.666313ms)
+✔ consumer provenance rejects rewriting the installed package Git declaration to a file (0.448937ms)
+✔ consumer provenance rejects rewriting the package lock Git edge to a file (0.350413ms)
+✔ consumer provenance rejects a same-name direct tarball override (0.42328ms)
+✔ consumer provenance rejects a file substitute, another repository or another commit (0.59557ms)
+✔ consumer provenance rejects a wrong version or a linked dependency (0.564592ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.947924

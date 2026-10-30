@@ -61,6 +61,14 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 carouselContainer.className = `${p}__carousel`
                 wrapper.appendChild(carouselContainer)
 
+                // Detached render output must already contain every profile.
+                // Measurement only upgrades this readable list to a carousel.
+                const list = ownerDocument.createElement('div')
+                list.className = `${p}__list`
+                const cards = persons.map(person => renderCard(person, parseInline, p, t, ownerDocument))
+                list.append(...cards)
+                carouselContainer.appendChild(list)
+
                 // @shelamkoff/carousel 1.x is not safe to initialize in a
                 // foreign realm and writes plain strings to HTML sinks. Under
                 // require-trusted-types-for that third-party runtime would
@@ -68,17 +76,16 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 // fallback in either environment; the ordinary same-realm
                 // non-enforced path keeps the responsive interactive carousel.
                 if (ownerDocument !== globalThis.document || requiresTrustedHtml(ownerDocument)) {
-                    const list = ownerDocument.createElement('div')
-                    list.className = `${p}__list`
-                    for (const person of persons) {
-                        list.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
-                    }
-                    carouselContainer.appendChild(list)
                     return wrapper
                 }
 
-                const slides = persons.map(person => ({
-                    content: () => renderCard(person, parseInline, p, t, ownerDocument),
+                const slides = cards.map(card => ({
+                    content: () => {
+                        if (mounted.get(wrapper) !== resources || list.parentNode !== carouselContainer || card.parentNode !== list) {
+                            throw new Error('Person card left its renderer before carousel mounting')
+                        }
+                        return card
+                    },
                 }))
 
                 const CARD_W = 300
@@ -87,18 +94,13 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 if (!ResizeObserverCtor) return wrapper
                 const ro = new ResizeObserverCtor(() => {
                     if (mounted.get(wrapper) !== resources) return
+                    if (carouselContainer.parentNode !== wrapper || list.parentNode !== carouselContainer || cards.some(card => card.parentNode !== list)) return
                     if (!carouselContainer.offsetWidth) return
                     ro.disconnect()
 
                     const totalW = persons.length * CARD_W + (persons.length - 1) * GAP
 
                     if (totalW <= carouselContainer.offsetWidth) {
-                        const list = ownerDocument.createElement('div')
-                        list.className = `${p}__list`
-                        for (const person of persons) {
-                            list.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
-                        }
-                        carouselContainer.appendChild(list)
                         return
                     }
 
@@ -109,7 +111,12 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                         loop: persons.length > slidesPerView,
                         plugins: [createSwipe()],
                     })
+                    if (mounted.get(wrapper) !== resources || carouselContainer.parentNode !== wrapper || list.parentNode !== carouselContainer) {
+                        carousel.destroy()
+                        return
+                    }
                     resources.carousel = carousel
+                    list.remove()
 
                     const nav = ownerDocument.createElement('div')
                     nav.className = `${p}__nav`

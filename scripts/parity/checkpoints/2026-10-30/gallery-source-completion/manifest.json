@@ -1,0 +1,126 @@
+{
+  "baseCommit": "1547de28ee66498d649555d69e212b58be7fcf31",
+  "implementationPatch": "implementation.patch.gz",
+  "implementationPatchSha256": "ec5240c307753163c6c43c68431e77ff6e3d133626710a06b4a5297f7dea96f1",
+  "sourceFiles": {
+    "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md": "674ff805926eef122d65671b353eb6d36bdb82e130802af21a5ec8e207035500",
+    "core/BlockReconciler.js": "f369c9f7cc63578264aa98085fb3a9682b5768bd4506a43f3b363b2a4e94dd79",
+    "core/DocumentRuntime.js": "27e7a7ec3b4a3799e00d4073a6589409298c783c186e5af52cefd963bd5e8d10",
+    "core/InlineWidgetInputController.js": "f217ebf76d71ad806fc154270824ced1d329d23bddf86396bb6e395cdacc924f",
+    "core/TransactionEngine.js": "8e878e36342d9ec031b17d144fc87644042d6149ef8ad6a3557cd671ca5b7796",
+    "core/TransactionEngine.test.js": "43e1dbe39c2a002dd21e13281a352a23f78140e72001c8308c32c826783ad466",
+    "docs/guide/extensions.md": "c45abb77c44aa4f44c2238ef0a566f2610d55a679093a1c105064e8f6eb8fb1e",
+    "docs/ru/guide/extensions.md": "e750c86f5a98191e54a9670b8f571d3ce6d7f167e20bd770202d567e08c6e382",
+    "plugins/gallery/index.js": "d95db49d8c75c83168997e72ab78697ed7eaa46d86e068d4e52e50748526e643",
+    "tests/browser/native-library-boundaries.js": "254f1ce65cebf90a7d96abcc842704461a753565fbdd1cedd6ff6f8c2ac77969",
+    "tests/browser/native-plugin-media.js": "8ba98f409e9898889b55045bba3ab0df80bc55d067cf5973a103edf8996a7107",
+    "tests/browser/projection-contracts.js": "f91b78f9cce7806378fe4dd9e38cc5c496dcb733204ce12deae05f9aa713c204",
+    "tests/browser/regressions/field-source-completion-native.js": "3df9d4f437523d6c0bc8eb6a841132b130ca1371d908caf20440b7c2f65b7365",
+    "tests/browser/regressions/gallery-derived-alt-fixture.js": "28edf11b44003c29650ebad6cedc62e956b417f04d36d2ff76c492a6791afc5a",
+    "tests/browser/regressions/gallery-derived-alt-native.js": "f0cb2e8aaccddaa5ff60309f73b9afccd0480bf9748ea4c3b18b3045e4f145b3",
+    "tests/browser/regressions/gallery-derived-alt.js": "333faa62b11b72a7fb255ceb578ed450d0e8c37dca39f6b228ad975907a9021c"
+  },
+  "node": "v24.22.1",
+  "browser": "Google Chrome for Testing 156.0.8078.47",
+  "finalCounts": {
+    "projectionContracts": 137,
+    "galleryNative": 6,
+    "sourceNative": 6,
+    "existingNativeCompletion": 6,
+    "focusedUnit": 373
+  },
+  "evidence": [
+    {
+      "file": "gallery-baseline-native-red.log.gz",
+      "sha256": "c6253fa8646c9f890e022b77919f9e9d06565a51e4a1be0f9baac199145a6111",
+      "rawSha256": "3330416fba208538a95bf305015f429dc08c7e5a4513104af58790bd2f337d43",
+      "note": "development RED: base1547, initial four native cases; 1 pass / 3 failures"
+    },
+    {
+      "file": "gallery-baseline-projection-red.log.gz",
+      "sha256": "48a02d519380fcb2ac3e7a7d61349000f6c02444ecd5862191fc83756f024fac",
+      "rawSha256": "02ffd065a17f8ff8985e6404e95d4bdc4971540d5b9ae0a614bcd822b8caaa43",
+      "note": "development RED: base1547, initial projection fixture; 120 pass / 8 failures"
+    },
+    {
+      "file": "gallery-whole-owner-red.log.gz",
+      "sha256": "05064f2f5e4b5ae517bd2a70af6f52ce3201a8a1f7ec7f39a96ba2c0cebcad1b",
+      "rawSha256": "dcd8f6434a871afdc9c2a61416a65da74c1fa1429af7a6813c9150aaaa161a1d",
+      "note": "development RED: guarded direct listener still writes foreign whole-instance auxiliary alt"
+    },
+    {
+      "file": "source-completion-red.log.gz",
+      "sha256": "b0e1b8c1a2f94a13de8cdeb6dbf540fe068e7172d4c3491230c083074d4b959f",
+      "rawSha256": "45fd50961e0939505c759e4d4ce2e3f96e4ed4953da7f9d7d37080abee20bb2f",
+      "note": "development RED: two ordinary native source completion/rollback cases"
+    },
+    {
+      "file": "duplicate-inline-completion-red.log.gz",
+      "sha256": "bfef13f190f130fd50d7d558e8145afe5c8fc6ec5896b30bc3a213ee420b45a2",
+      "rawSha256": "2208171b64688035da46151b6b781685a2b686c9dea6a5d516d15482aa07cfde",
+      "note": "development RED: source forced field delivery duplicates native inline removal completion"
+    },
+    {
+      "file": "schema-adoption-red.log.gz",
+      "sha256": "f6b468e058b7b7e8b9e9ec9ad1ec5e8cb228769fa40cc1b34ca9dffb23b5a6f6",
+      "rawSha256": "05fc64739166696f1bf260b1fdadbb46eb1167d1238f0f93f0ea4c0069c2eab1",
+      "note": "development RED: normal-return schema adoption guard fails to preserve foreign shell during cleanup"
+    },
+    {
+      "file": "source-boundaries-red.log.gz",
+      "sha256": "456cec963b99acef67757874da97737f53aceb0864992b30cec2b8db8fcd3330",
+      "rawSha256": "707f95c41289f28c871987d305c19199f15a1bcf67004a5c8dc85183b7ed77e9",
+      "note": "development RED: three passes, same-key successor omitted and schema author mutation accepted"
+    },
+    {
+      "file": "schema-throw-red.log.gz",
+      "sha256": "09932e430216c090121f5b9e2709c473bb38f9ec74e27269fe06b5cb4613ef2b",
+      "rawSha256": "10f78a79cd5b64a76011f5d1fdb01833a49138ae415d3562f715b17566b8bf2d",
+      "note": "development RED: throwing mapper bypasses post-callback ownership validation"
+    },
+    {
+      "file": "native-recovery-count-diagnostic.log.gz",
+      "sha256": "4408041f91ff9a93188054c23cd2239ed86433e8471eb43611a24d8ed417e966",
+      "rawSha256": "95e1245d4233ce3d27876d048affdfb3b5ad29ee4147d0c2f2256a5b2b8a9224",
+      "note": "diagnostic only: total-two recovery notice oracle rejected; final contract checks exact distinct occurrences"
+    },
+    {
+      "file": "final-projection-green.log.gz",
+      "sha256": "df77878fc0c5c02bddd0336c56d0303a84efaade3984e90a230469feaf05ffaf",
+      "rawSha256": "27474159fe64b8d80f39ffbab07f34f113660d75f084d2b6271ac4e62d458c48",
+      "note": "final frozen implementation: 137/137 browser projection contracts"
+    },
+    {
+      "file": "final-gallery-native-green.log.gz",
+      "sha256": "c5e5c29e601e23b9f5fdf0a7d74dc44df47a748ce9c1e3ae24012e194c1157d4",
+      "rawSha256": "c6c649030373767a1dbcb33fa1eb54da0028f7a2ca2fae42c10fae610fba603b",
+      "note": "final frozen implementation: 6/6 genuine Gallery native controls"
+    },
+    {
+      "file": "final-source-native-green.log.gz",
+      "sha256": "2e3eafa5fcaf607551ac668fe21d64f061313d5c1c231e8fc70e187bccc9a459",
+      "rawSha256": "13781f21f33c49eb2eaa55c957956621c129b90f47648d1226f3ed4ea926a6aa",
+      "note": "final frozen implementation: 6/6 genuine native source controls"
+    },
+    {
+      "file": "final-existing-native-green.log.gz",
+      "sha256": "d8f99bca6f686fa2311d22b632b54f01a4a8e49ddceb404217e88b763e928aca",
+      "rawSha256": "ab33f0061d49fd88166c99ec4bb3f55350658bb5e6c9235cbc64008ae51a32c6",
+      "note": "final frozen implementation: 6/6 existing native completion controls"
+    },
+    {
+      "file": "final-unit-green.log.gz",
+      "sha256": "53de732d3d8d61f6f46db2bdca674d82401d98c6760b22d844e807058391fd2a",
+      "rawSha256": "6003de2a7daf7b86a601800d34119e09c13075280cc856f436ba63ef2be65d30",
+      "note": "final frozen implementation: 373/373 focused Node tests"
+    },
+    {
+      "file": "final-typecheck-green.log.gz",
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "note": "final frozen implementation: both TypeScript source configurations pass"
+    }
+  ],
+  "scope": "Gallery editor derived alt and existing native source field completion; not full Gallery/v1/renderer/all-browser parity acceptance",
+  "sourceIdentityQualification": "Final logs ran on the frozen production bytes represented by implementation.patch.gz. The final source test file received a trailing-blank-line removal after its last native run. Development RED logs describe incremental stages; they are not claimed as full immutable intermediate-source acceptance manifests."
+}

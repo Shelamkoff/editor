@@ -1,0 +1,16 @@
+file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll derived result completes after trusted native option input and exact one Undo/Redo",
+    "status": "FAIL",
+    "error": "Error: Result label must contain completed option text\nexpected \"Answer @Ada #123456 tailX\", got \"Answer {{mention}} {{swatch}} tail\"\n    at equal (http://127.0.0.1:44109/tests/browser/regressions/harness.js:22:43)\n    at checkPollDerivedLabel (http://127.0.0.1:44109/tests/browser/poll-derived-fixture.js:42:3)\n    at http://127.0.0.1:44109/tests/browser/native-poll-derived.js:14:5\n    at async run (http://127.0.0.1:44109/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:44109/tests/browser/native-plugin-controls.js:718:1"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "node",
+    "/tmp/rector-next-core-perf-integrated-20261030/benchmarks/structural-authoring.mjs",
+    "/tmp/rector-next-core-perf-baseline-20261030",
+    "/tmp/rector-next-core-perf-integrated-20261030",
+    "/tmp/rector-next-core-ab-20261030/structural"
+  ],
+  "env": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_DEPENDENCIES_ROOT": "/workspace/scratch/2e2d45a6049b/editor/node_modules",
+    "EDITOR_STRUCTURAL_FILTER": "table-large",
+    "EDITOR_STRUCTURAL_WARMUP": "5",
+    "EDITOR_STRUCTURAL_SAMPLES": "21",
+    "EDITOR_STRUCTURAL_STAGES": "controls,timing,attribution,memory"
+  },
+  "unsetEnv": [
+    "EDITOR_VITE_PATH"
+  ],
+  "startedAt": "2026-10-30T08:05:34.861402+00:00",
+  "finishedAt": "2026-10-30T08:06:48.809569+00:00",
+  "exitCode": 0
+}

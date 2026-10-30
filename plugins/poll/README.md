@@ -84,6 +84,8 @@ const poll = createPollPlugin({
 
 Question and option editing; result visibility; option ordering; local voting; cancellable load/vote; live subscriptions; revision ordering; voter summaries; duplicate-submission protection and deterministic cleanup.
 
+Question and option fields support persistent inline widgets. Result labels retain the option's allowed author formatting and show each widget's current readable label. Native option edits, widget updates and Undo/Redo refresh that presentation without adding duplicate widget instances or a separate document action. Replacing runtime results keeps the authored fields and their active selection.
+
 Deleting a visually empty Poll option with Backspace treats markup-only content (such as `<br>` or an empty formatting mark) as empty, while retaining the required minimum of two options.
 
 ## Undo, lifecycle, and styles

@@ -1,0 +1,10 @@
+{
+  "head": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+  "files": {
+    "plugins/carousel/index.js": "de79be275c1f8311accdb3b4e11a410fd7dbc84a4d3f4159e26cb34fce610a2e",
+    "tests/browser/regressions/carousel-structure-native.js": "80ab18b8dc023136fe8a1f63fe7f50ef88740ec4768b0a98f58ebc4fd227cd69",
+    "tests/browser/native-plugin-parity.js": "565a5471a4e7fae42b9d50ce0c4a0934358a72f0fde4bb41f2d8014560c27476",
+    "tests/browser/physical-history.mjs": "f8e6b2eafe1cd66e7e9f2d69d8a7fb565903fcc87d780244006652376f4556ab",
+    "/tmp/rector-carousel-add-probe.mjs": "f50836210e7e34b63929e0a785e24562747f95f5efbed1cbce6803c6372567b3"
+  }
+}

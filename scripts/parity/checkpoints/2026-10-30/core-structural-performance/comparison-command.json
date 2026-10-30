@@ -1,0 +1,25 @@
+{
+  "cwd": "/tmp/rector-structural-performance-20261030",
+  "status": "/tmp/rector-structural-comparison.status.json",
+  "stopOnFailure": true,
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_STRUCTURAL_FILTER": "",
+    "EDITOR_STRUCTURAL_STAGES": "controls,timing,attribution,memory",
+    "EDITOR_STRUCTURAL_WARMUP": "5",
+    "EDITOR_STRUCTURAL_SAMPLES": "21"
+  },
+  "gates": [
+    {
+      "name": "structural-comparison",
+      "command": [
+        "node",
+        "benchmarks/structural-authoring.mjs",
+        "/tmp/rector-structural-events-baseline-20261030",
+        "/tmp/rector-structural-performance-20261030",
+        "/tmp/rector-structural-comparison-20261030"
+      ]
+    }
+  ]
+}

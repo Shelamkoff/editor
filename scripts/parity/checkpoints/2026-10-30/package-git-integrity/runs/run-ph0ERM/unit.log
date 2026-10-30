@@ -1,0 +1,28 @@
+✔ theme CSS exports support explicit extensions without breaking extensionless imports (1.596346ms)
+✔ default inline tools live behind the explicit preset entry (1.35666ms)
+✔ default inline tools are exposed only through preset (1.422442ms)
+✔ async renderer factories have one canonical published entry (0.288078ms)
+✔ package gate stages only full Git commits present in the published manifest and project lock (2.92772ms)
+✔ package gate rejects mutable or abbreviated Git pins before fetching (0.839755ms)
+✔ package gate rejects a published Git declaration absent from the project lock (1.861691ms)
+✔ package gate rejects a lock resolved at another Git commit (4.212755ms)
+✔ package gate rejects missing, malformed or non-sha512 locked integrity (0.865133ms)
+✔ packed Git archive must match the locked sha512 in both metadata and actual bytes (1.024641ms)
+✔ packed Git archive rejects missing or mismatched npm integrity metadata (0.40259ms)
+✔ packed Git archive rejects tampered tgz bytes even when npm reports the expected integrity (0.365271ms)
+✔ changing only the lock SRI cannot accept the original artifact or consumer (3.57673ms)
+✔ consumer provenance accepts the unchanged transitive Git edge and locked artifact (0.612572ms)
+✔ consumer provenance rejects rewriting the installed package Git declaration to a file (0.32193ms)
+✔ consumer provenance rejects rewriting the package lock Git edge to a file (0.270434ms)
+✔ consumer provenance rejects a same-name direct tarball override (0.245057ms)
+✔ consumer provenance rejects a file substitute, another repository or another commit (0.415114ms)
+✔ consumer provenance rejects a wrong version or a linked dependency (0.30552ms)
+✔ consumer provenance rejects missing or mismatched installed Git integrity (0.500995ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 187.417908

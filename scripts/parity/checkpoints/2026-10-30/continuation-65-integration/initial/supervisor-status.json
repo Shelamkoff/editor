@@ -1,0 +1,1 @@
+{"run": "/tmp/rector-continuation-20261030/test-results/run-2Zb0Ur", "gates": [{"name": "typecheck", "exitCode": 0}, {"name": "unit", "exitCode": 0}, {"name": "declarations", "exitCode": 0}, {"name": "differential65", "exitCode": 0}, {"name": "browser", "exitCode": 1}], "finish": 1}

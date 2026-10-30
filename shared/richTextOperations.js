@@ -96,6 +96,26 @@ function collapseReferences(root,ownerDocument){
   }
 }
 
+/** Derive plain canonical text with the same reference/literal grammar used
+ * by logical rich-text operations. Widget text is inserted only once, as text.
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {Document} ownerDocument
+ * @param {(id:string)=>string} referenceText
+ * @returns {string}
+ */
+export function getRichTextPlainText(html,inline,ownerDocument,referenceText){
+  const template=ownerDocument.createElement('template')
+  template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(html,ownerDocument),ownerDocument))
+  expandReferences(template.content,ownInline(inline),ownerDocument)
+  for(const marker of template.content.querySelectorAll('['+MARKER_ATTR+']')){
+    const text=referenceText(marker.getAttribute(MARKER_ATTR))
+    if(typeof text!=='string')throw new TypeError('Inline canonical text must be a string')
+    marker.replaceWith(ownerDocument.createTextNode(text))
+  }
+  return template.content.textContent??''
+}
+
 /** Finish one logical DOM edit before exposing canonical HTML.
  * A new text insertion can complete a "{{id}}" literal against pre-existing
  * author text, including across formatting wrappers that canonicalization

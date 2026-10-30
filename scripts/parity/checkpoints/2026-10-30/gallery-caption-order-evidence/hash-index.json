@@ -1,0 +1,138 @@
+{
+  "algorithm": "SHA-256",
+  "gzipTimestamp": 0,
+  "pathBase": "This directory",
+  "files": [
+    {
+      "path": "native-drag-red.log.gz",
+      "bytes": 4193,
+      "sha256": "6368c7c634f5ef15f7370f85cd44ce409a65c88f0de90d2b613b962d836fbe88",
+      "decodedBytes": 29722,
+      "decodedSha256": "a54393af53574670458b435f59c68bc236a5049b999dcf8c3e936a36c17af893",
+      "originalPath": "/tmp/rector-gallery-native-drag-red.log"
+    },
+    {
+      "path": "native-drag-focused-green.log.gz",
+      "bytes": 158,
+      "sha256": "bd72bea670459786339071057e4a2652dc160b3953ca275036f10094841d5516",
+      "decodedBytes": 188,
+      "decodedSha256": "dfd68a887df7a79c5008b3cc871ad1e1be23fca4c1d31d20590eaf6a6d0621fb",
+      "originalPath": "/tmp/rector-gallery-native-drag-green.log"
+    },
+    {
+      "path": "native-drag-full-green.log.gz",
+      "bytes": 3806,
+      "sha256": "322e5045aa66ee08faadb3a62dbb1a30de7657b915e33fda8ffae0c47afa4ee7",
+      "decodedBytes": 24451,
+      "decodedSha256": "6f58def7aca92c3b3c95120382dbe9eef5ef8c59d022dda2abfe6335109e9077",
+      "originalPath": "/tmp/rector-gallery-native-drag-full-green.log"
+    },
+    {
+      "path": "final-three-source.json.gz",
+      "bytes": 84647,
+      "sha256": "2b273bc5d4443bc706a97bf4f4cf5cfdaf943933521deb05e23c0eacb17b8845",
+      "decodedBytes": 3512497,
+      "decodedSha256": "965c243c15ad2627f727b8e9c910e741edf424a4f4ee10da2673ba66bfd3fffa",
+      "originalPath": "/tmp/rector-gallery-caption-order-final.json"
+    },
+    {
+      "path": "native-caption-order-green.log.gz",
+      "bytes": 160,
+      "sha256": "41d11ba568b89ee73b60803a42265a3d4f329288c9ef81a55bda228894816a06",
+      "decodedBytes": 453,
+      "decodedSha256": "970a0b93eab962475429f63052657ad112b18b6b8b222693bb22349e85d4a3ee",
+      "originalPath": "/tmp/rector-gallery-caption-order-native-final.log"
+    },
+    {
+      "path": "classifier-controls.json.gz",
+      "bytes": 135,
+      "sha256": "5470e4f27671f1cc6175c97fa7a3bdfce292a51dee753380f31d2e153261bb55",
+      "decodedBytes": 168,
+      "decodedSha256": "7f3c6607d6ccf93528d73074599c563d8f6b81bbd99b0afdce9f63af40dc5b00",
+      "originalPath": "/tmp/rector-gallery-caption-order-classifier-controls.json"
+    },
+    {
+      "path": "gallery-unit-green.log.gz",
+      "bytes": 703,
+      "sha256": "11f1a0bc17d657ffe87be5d9bab6e3b6d0592bf46d2693b7a23ff65c8501aa76",
+      "decodedBytes": 1560,
+      "decodedSha256": "1d39c22f62d7c66ea5daff5a5d40c32d38073fa058fd05a6ba46361b85753fb8",
+      "originalPath": "/tmp/rector-gallery-unit-final.log"
+    },
+    {
+      "path": "literal-drag-red.json.gz",
+      "bytes": 23635,
+      "sha256": "8ce3712b961ef1aa535ae1533e3793f76aa343a98de7fb9cb9cc3ec44561cf82",
+      "decodedBytes": 438141,
+      "decodedSha256": "b08bcd071ae5049742ec361de990a946a9b9c7059e84750e7e4d00af9437abcb",
+      "originalPath": "/tmp/rector-gallery-caption-order-literal-swap-raw.json"
+    },
+    {
+      "path": "unsupported-underline-oracle.json.gz",
+      "bytes": 83845,
+      "sha256": "20915831c8c39926e3c23c76609cc83b15313de73de13c94f3ee525908fec0d3",
+      "decodedBytes": 3552810,
+      "decodedSha256": "1cdfa1389b479b957720349cf22afc016883330ff21ae2e4301c6a3738d550c5",
+      "originalPath": "/tmp/rector-gallery-caption-order-all-raw.json"
+    },
+    {
+      "path": "supported-unclassified.json.gz",
+      "bytes": 76137,
+      "sha256": "2715de9ba21968e4927be9a8f956839220f27def542bd8e9c1ca84235425734c",
+      "decodedBytes": 3012494,
+      "decodedSha256": "a55afd637f5fc54ae8818acac05a6af6c3774526b176e07e6bcc0886ad484f4e",
+      "originalPath": "/tmp/rector-gallery-caption-order-supported-raw.json"
+    },
+    {
+      "path": "executed-fix-and-proof.patch.gz",
+      "bytes": 21289,
+      "sha256": "09fddceb16dbc9424f5d8018a41300dc3eb75cd909c9b8a0fc251cebda5979b3",
+      "decodedBytes": 78127,
+      "decodedSha256": "ac22612e2d9529a2203e4dfc459eff2f78458bf45f1b116fc84589a243a235ce",
+      "baseCommit": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+      "tipCommit": "f795edf098fe733146e2cf34de77977bdcb01819"
+    },
+    {
+      "path": "fixture-initial.js.gz",
+      "bytes": 4446,
+      "sha256": "3a8ab0e183c3b5c06279637ba1dc5a26a6762e09ed5f6838f053996252f100e7",
+      "decodedBytes": 13046,
+      "decodedSha256": "13c394e019f075846a328ef29b7ee954a27654114480b9d85da1dbe1bc8f144c",
+      "role": "Exact hash-verified exploratory fixture bytes reconstructed from the committed final fixture"
+    },
+    {
+      "path": "fixture-underline-oracle.js.gz",
+      "bytes": 4448,
+      "sha256": "61e2f591a29d47591b458d9f5dcf6f93e5acac36ecaa0990936b4bd74cb1ff79",
+      "decodedBytes": 13046,
+      "decodedSha256": "49a96bdad9de385268e37eeebfcef1215bb536ac657640442380a2c458132df8",
+      "role": "Exact hash-verified exploratory fixture bytes reconstructed from the committed final fixture"
+    },
+    {
+      "path": "fixture-supported-unclassified.js.gz",
+      "bytes": 4450,
+      "sha256": "4b4b7e6761872a549aaa33b793f799a443b0580ecfc6ad8a82478d302f329087",
+      "decodedBytes": 13052,
+      "decodedSha256": "8d5071795f3d43ae8308b09312e4d7c1051e938ecf7e0c3a7d345eee204f8ac4",
+      "role": "Exact hash-verified exploratory fixture bytes reconstructed from the committed final fixture"
+    },
+    {
+      "path": "runner-unclassified.mjs.gz",
+      "bytes": 3207,
+      "sha256": "db8ca957951b23dfe84ecae871af961977e0948e23d042e1c3714460423d04a0",
+      "decodedBytes": 8576,
+      "decodedSha256": "0ca317d01d7e50a9faae5e05a80571208bfacb581ffd52a65b82eb2c383fe7a0",
+      "role": "Exact hash-verified runner used by all three pre-classification exploratory runs"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5385,
+      "sha256": "38a55c7a504e84748c9f89e5d403352f844901f9cdab0af94a8732c928508805"
+    },
+    {
+      "path": "source-facts.json",
+      "bytes": 4293,
+      "sha256": "7dd89c4123cf4666baa49638b3d0a0e786d1d121041166cfbf2ac595091a9664"
+    }
+  ]
+}

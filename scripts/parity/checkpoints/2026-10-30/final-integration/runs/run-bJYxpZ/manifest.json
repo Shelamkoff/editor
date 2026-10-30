@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-integration-20261030",
+  "startedAt": "2026-10-29T23:38:09.450Z",
+  "finishedAt": "2026-10-29T23:56:05.753Z",
+  "outcome": "failed",
+  "source": {
+    "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+    "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "docs": {
+      "outcome": "failed",
+      "startedAt": "2026-10-29T23:38:18.550Z",
+      "finishedAt": "2026-10-29T23:38:44.796Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "bash",
+        "-c",
+        "npm run test:docs && npm run docs:check"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+        "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+      },
+      "elapsedMs": 26243.167063999997,
+      "sourceAfter": {
+        "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+        "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+      },
+      "sourceUnchanged": true
+    },
+    "browser": {
+      "outcome": "interrupted",
+      "startedAt": "2026-10-29T23:38:45.025Z",
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "test:browser"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+        "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+      },
+      "reason": "The command started without a recorded completion"
+    }
+  },
+  "sourceAfter": {
+    "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+    "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+  },
+  "sourceUnchanged": true
+}

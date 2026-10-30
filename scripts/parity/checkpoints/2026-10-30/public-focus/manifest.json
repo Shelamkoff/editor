@@ -1,0 +1,140 @@
+{
+  "scope": "Seven specified new/current focus API obligations with explicit v1 capability limits.",
+  "latestCandidate": "a7dc4172198dea9c641f5de41d4331e5a94a17b4",
+  "latestTree": "500d124440261953986dac14afa51d444f35ac5c",
+  "acceptanceRecommendation": [
+    "FOCUS_VALUES_OFFSET_1",
+    "FOCUS_VALUES_OFFSET_2",
+    "FOCUS_VALUES_OFFSET_3",
+    "FOCUS_VALUES_OFFSET_4",
+    "FOCUS_VALUES_OFFSET_5",
+    "FOCUS_VALUES_OFFSET_6",
+    "DEFECT_FIRST_FOCUS"
+  ],
+  "productionChangedByThisProof": false,
+  "runner": {
+    "path": "scripts/parity/public-focus.mjs",
+    "publicationCommit": "132b59923de9bc6b1f3b3f73ba48c6d1f040826a",
+    "archive": "runner.mjs.gz",
+    "sha256": "c8e5936367c8e1fe9b548857c9418595de718076958ad37d48a73e82a50dda96",
+    "sameBytesForBothRuns": true
+  },
+  "runs": [
+    {
+      "name": "initial",
+      "raw": "initial/result.json.gz",
+      "stderr": "initial/stderr.log.gz",
+      "review": "initial/review.json",
+      "startedAt": "2026-10-30T16:02:09.229Z",
+      "finishedAt": "2026-10-30T16:02:12.913Z",
+      "candidate": {
+        "label": "candidate",
+        "sha": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+        "legacy": false,
+        "tree": "baf06b081131d14f80501fd930f0a55ff02293df"
+      },
+      "rawSha256": "2ce841177d44800264a5fe73135915cea9faa8ae5749c815b8d46a208fcdaceb",
+      "runnerSha256": "c8e5936367c8e1fe9b548857c9418595de718076958ad37d48a73e82a50dda96",
+      "rawExitCode": 1,
+      "summary": [
+        {
+          "source": "v1",
+          "cases": 1,
+          "unsupported": 7,
+          "observations": 20,
+          "rawFailures": 1,
+          "incomplete": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 7,
+          "unsupported": 0,
+          "observations": 147,
+          "rawFailures": 8,
+          "incomplete": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 7,
+          "unsupported": 0,
+          "observations": 147,
+          "rawFailures": 0,
+          "incomplete": 0,
+          "pageErrors": 0
+        }
+      ],
+      "candidatePass": true,
+      "serverErrors": []
+    },
+    {
+      "name": "integrated",
+      "raw": "integrated/result.json.gz",
+      "stderr": "integrated/stderr.log.gz",
+      "review": "integrated/review.json",
+      "startedAt": "2026-10-30T16:14:42.585Z",
+      "finishedAt": "2026-10-30T16:14:45.886Z",
+      "candidate": {
+        "label": "candidate",
+        "sha": "a7dc4172198dea9c641f5de41d4331e5a94a17b4",
+        "legacy": false,
+        "tree": "500d124440261953986dac14afa51d444f35ac5c"
+      },
+      "rawSha256": "4501548d681fac146abb89d74915d7fa7636f6430a3fafb866b14e2a83642abf",
+      "runnerSha256": "c8e5936367c8e1fe9b548857c9418595de718076958ad37d48a73e82a50dda96",
+      "rawExitCode": 1,
+      "summary": [
+        {
+          "source": "v1",
+          "cases": 1,
+          "unsupported": 7,
+          "observations": 20,
+          "rawFailures": 1,
+          "incomplete": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 7,
+          "unsupported": 0,
+          "observations": 147,
+          "rawFailures": 8,
+          "incomplete": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 7,
+          "unsupported": 0,
+          "observations": 147,
+          "rawFailures": 0,
+          "incomplete": 0,
+          "pageErrors": 0
+        }
+      ],
+      "candidatePass": true,
+      "serverErrors": []
+    }
+  ],
+  "independentReview": {
+    "script": "review.py",
+    "perRunVerdictsRecomputed": 314,
+    "perRunFixedExpectedValues": 314,
+    "perRunProductionModuleHashes": 271,
+    "perRunDependencyFiles": 14,
+    "perRunDependencyVersions": 8,
+    "verdictMismatches": 0,
+    "reports": [
+      "initial/review.json",
+      "integrated/review.json"
+    ]
+  },
+  "limitations": [
+    "v1 keyed/numeric public API is absent: seven UNSUPPORTED entries are not passes.",
+    "v1 native counterpart is a separate real public-focus/navigation control.",
+    "Only the exact listed Paragraph focus contracts are proposed for acceptance; PUBLIC_SELECTION remains open.",
+    "Original and integrated observations overlap; their counts are never added.",
+    "Combined integration validation is owned by the parent continuation checkpoint."
+  ]
+}

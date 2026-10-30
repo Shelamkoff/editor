@@ -1084,3 +1084,60 @@ test('Undo cannot advance history before an asynchronous replay projection settl
   assert.equal(engine.phase, 'idle')
   assert.deepEqual(events.slice(-3), ['apply', 'recover', 'discard'])
 })
+
+test('completed source field is a transient one-read projection handoff, never history or replay metadata', () => {
+  const prepared = [], emitted = []
+  const { engine, store, history } = harness({
+    onCommit: event => emitted.push(event),
+    projector: { prepare(input) {
+      prepared.push(input)
+      return { apply() {}, recover() {}, finalize() {}, discard() {} }
+    } },
+  })
+  let reads = 0, denial = null, nestedWrites = 0
+  engine.execute({ origin: 'native-input', name: 'native-input', sourceBlockId: 'a',
+    get completedSourceFieldKey() {
+      reads++
+      try {
+        engine.execute({ origin: 'external', name: 'injected-completion' }, tx => {
+          nestedWrites++; tx.update('a', block('a', 'Injected'))
+        })
+      } catch (error) { denial = error }
+      return reads === 1 ? 'text' : 'unowned-successor'
+    },
+  }, tx => tx.update('a', block('a', 'Accepted')))
+  assert.equal(reads, 1)
+  assert.equal(nestedWrites, 0)
+  assert.match(String(denial?.message), /preparing-metadata/)
+  assert.equal(prepared[0].completedSourceFieldKey, 'text')
+  assert.equal(prepared[0].sourceBlockId, 'a')
+  assert.equal(store.get('a').data.text, 'Accepted')
+  assert.equal(Object.hasOwn(store.get('a'), 'completedSourceFieldKey'), false)
+  assert.equal(Object.hasOwn(history.peekUndo(), 'completedSourceFieldKey'), false)
+  assert.equal(emitted.some(event => Object.hasOwn(event, 'completedSourceFieldKey')), false)
+  assert.equal(engine.undo(), true)
+  assert.equal(engine.redo(), true)
+  assert.equal(prepared[1].completedSourceFieldKey, undefined)
+  assert.equal(prepared[2].completedSourceFieldKey, undefined)
+  assert.equal(Object.hasOwn(history.peekUndo(), 'completedSourceFieldKey'), false)
+})
+
+test('completed source field requires a nonempty exact key and a source block before executing a producer', () => {
+  for (const metadata of [
+    { sourceBlockId: 'a', completedSourceFieldKey: '' },
+    { sourceBlockId: 'a', completedSourceFieldKey: null },
+    { sourceBlockId: 'a', completedSourceFieldKey: 1 },
+    { sourceBlockId: 'a', completedSourceFieldKey: [] },
+    { completedSourceFieldKey: 'text' },
+  ]) {
+    const { engine, store, history, projections } = harness()
+    let writes = 0
+    assert.throws(() => engine.execute({ origin: 'native-input', name: 'native-input', ...metadata }, tx => {
+      writes++; tx.update('a', block('a', 'Unexpected'))
+    }), /completedSourceFieldKey/)
+    assert.equal(writes, 0)
+    assert.equal(store.revision, 0)
+    assert.equal(history.canUndo, false)
+    assert.deepEqual(projections, [])
+  }
+})

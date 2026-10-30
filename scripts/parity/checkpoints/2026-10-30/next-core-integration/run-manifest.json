@@ -1,0 +1,29 @@
+{
+  "quietStartedAt": "2026-10-30T08:04:53.016373+00:00",
+  "baseline": {
+    "root": "/tmp/rector-next-core-perf-baseline-20261030",
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56"
+  },
+  "candidate": {
+    "root": "/tmp/rector-next-core-perf-integrated-20261030",
+    "head": "8d2e37d0c0f7989b5abc6aea03ba722f5dd960e5",
+    "tree": "e004d9901c3a33e992bfdf27391ded765a3b3229"
+  },
+  "hashes": {
+    "benchmarks/structural-authoring.mjs": "bd0b1a9908796041ea0006c422beb0c94e7e3c69da9be5e2d11b4b888a8298b9",
+    "tests/browser/structural-authoring-fixture.js": "d56a5c54c78ea0cb55878a1375f17cfb048ae4f3ba83f7959844ad335d7b146b",
+    "package-lock.json": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382"
+  },
+  "deterministicRunnerSha256": "95123e082e4f6bd42956336919019e2d1486c0ba2e689ed4f9d8809381777ff7",
+  "outputRoot": "/tmp/rector-next-core-ab-20261030",
+  "runnerStages": [
+    "controls",
+    "timing",
+    "attribution",
+    "memory"
+  ],
+  "filter": "table-large",
+  "warmup": 5,
+  "samples": 21
+}

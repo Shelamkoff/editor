@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-person-tabs-current",
+  "startedAt": "2026-10-30T02:19:22.918Z",
+  "finishedAt": "2026-10-30T02:19:24.997Z",
+  "outcome": "failed",
+  "source": {
+    "head": "4a672decc413c17e895c129c095d14ba48c7c315",
+    "tree": "e041818a527836477a84816fb19803e23e293067",
+    "patchSha256": "0a4748718ac1611057ac49c4333bf08a6f96d573993727ed7280a99c6de2f2b9",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.html",
+        "mode": 33188,
+        "sha256": "0cc7e3f0ec12de0677a60722f3bf47ac94e8995e08e8883a8ae90dcb480c9a04"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.js",
+        "mode": 33188,
+        "sha256": "ef32ec79d1ec411443916fca8aff899905f22a9e3809e894e21040356f4a2f09"
+      }
+    ],
+    "dirty": true,
+    "identity": "416496caa3ba278fa10756923b84855433c3138bf09ee0da2894d2251e4b76c8"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+    }
+  },
+  "context": {},
+  "gates": {
+    "inactive-label-open": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T02:19:23.288Z",
+      "finishedAt": "2026-10-30T02:19:24.902Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-person-tabs-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "4a672decc413c17e895c129c095d14ba48c7c315",
+        "tree": "e041818a527836477a84816fb19803e23e293067",
+        "patchSha256": "0a4748718ac1611057ac49c4333bf08a6f96d573993727ed7280a99c6de2f2b9",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.html",
+            "mode": 33188,
+            "sha256": "0cc7e3f0ec12de0677a60722f3bf47ac94e8995e08e8883a8ae90dcb480c9a04"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.js",
+            "mode": 33188,
+            "sha256": "ef32ec79d1ec411443916fca8aff899905f22a9e3809e894e21040356f4a2f09"
+          }
+        ],
+        "dirty": true,
+        "identity": "416496caa3ba278fa10756923b84855433c3138bf09ee0da2894d2251e4b76c8"
+      },
+      "elapsedMs": 1610.5449250000001,
+      "sourceAfter": {
+        "head": "4a672decc413c17e895c129c095d14ba48c7c315",
+        "tree": "e041818a527836477a84816fb19803e23e293067",
+        "patchSha256": "0a4748718ac1611057ac49c4333bf08a6f96d573993727ed7280a99c6de2f2b9",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.html",
+            "mode": 33188,
+            "sha256": "0cc7e3f0ec12de0677a60722f3bf47ac94e8995e08e8883a8ae90dcb480c9a04"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.js",
+            "mode": 33188,
+            "sha256": "ef32ec79d1ec411443916fca8aff899905f22a9e3809e894e21040356f4a2f09"
+          }
+        ],
+        "dirty": true,
+        "identity": "416496caa3ba278fa10756923b84855433c3138bf09ee0da2894d2251e4b76c8"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4a672decc413c17e895c129c095d14ba48c7c315",
+    "tree": "e041818a527836477a84816fb19803e23e293067",
+    "patchSha256": "0a4748718ac1611057ac49c4333bf08a6f96d573993727ed7280a99c6de2f2b9",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.html",
+        "mode": 33188,
+        "sha256": "0cc7e3f0ec12de0677a60722f3bf47ac94e8995e08e8883a8ae90dcb480c9a04"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/person-rich-field-preservation/inactive-label-probe.js",
+        "mode": 33188,
+        "sha256": "ef32ec79d1ec411443916fca8aff899905f22a9e3809e894e21040356f4a2f09"
+      }
+    ],
+    "dirty": true,
+    "identity": "416496caa3ba278fa10756923b84855433c3138bf09ee0da2894d2251e4b76c8"
+  },
+  "sourceUnchanged": true
+}

@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-person-tabs-current",
+  "startedAt": "2026-10-30T02:17:47.153Z",
+  "finishedAt": "2026-10-30T02:18:16.078Z",
+  "outcome": "passed",
+  "source": {
+    "head": "103250966d4ca09723e10449e7640541674ddd24",
+    "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+    "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+      },
+      {
+        "path": "tests/browser/regressions/person-rich-siblings-native.js",
+        "mode": 33188,
+        "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+      }
+    ],
+    "dirty": true,
+    "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+    }
+  },
+  "context": {},
+  "gates": {
+    "unit": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T02:17:47.532Z",
+      "finishedAt": "2026-10-30T02:17:47.747Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "plugins/person/reconciliation.test.js",
+        "plugins/person/socialResolver.test.js",
+        "renderer/renderers/person/lifecycle.test.js"
+      ],
+      "cwd": "/tmp/rector-person-tabs-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "elapsedMs": 212.233724,
+      "sourceAfter": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "sourceUnchanged": true
+    },
+    "projection": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T02:17:48.024Z",
+      "finishedAt": "2026-10-30T02:17:54.781Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "bash",
+        "-c",
+        "EDITOR_BROWSER_PAGE=projection-contracts.html node tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-person-tabs-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "elapsedMs": 6753.834535,
+      "sourceAfter": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "sourceUnchanged": true
+    },
+    "native": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T02:17:55.082Z",
+      "finishedAt": "2026-10-30T02:18:06.737Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "bash",
+        "-c",
+        "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=Person node tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-person-tabs-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "elapsedMs": 11651.458254000001,
+      "sourceAfter": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "sourceUnchanged": true
+    },
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T02:18:06.950Z",
+      "finishedAt": "2026-10-30T02:18:15.970Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/tmp/rector-person-tabs-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-person-tabs-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "elapsedMs": 9016.442007000001,
+      "sourceAfter": {
+        "head": "103250966d4ca09723e10449e7640541674ddd24",
+        "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+        "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "node_modules",
+            "mode": 41471,
+            "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+          },
+          {
+            "path": "tests/browser/regressions/person-rich-siblings-native.js",
+            "mode": 33188,
+            "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+          }
+        ],
+        "dirty": true,
+        "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "103250966d4ca09723e10449e7640541674ddd24",
+    "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+    "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+      },
+      {
+        "path": "tests/browser/regressions/person-rich-siblings-native.js",
+        "mode": 33188,
+        "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+      }
+    ],
+    "dirty": true,
+    "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+  },
+  "sourceUnchanged": true
+}

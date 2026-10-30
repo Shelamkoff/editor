@@ -1,0 +1,61 @@
+{
+  "runtimeAndTestsCommit": "4a672decc413c17e895c129c095d14ba48c7c315",
+  "checkedSource": {
+    "head": "103250966d4ca09723e10449e7640541674ddd24",
+    "tree": "fc9151b59a05d3a584999a9c45f8b832e226d772",
+    "patchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "node_modules",
+        "mode": 41471,
+        "sha256": "0ab62000e7a966b0c5c71aebc020d4446fab8e7c9c97bf241070c689a4f16d88"
+      },
+      {
+        "path": "tests/browser/regressions/person-rich-siblings-native.js",
+        "mode": 33188,
+        "sha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4"
+      }
+    ],
+    "dirty": true,
+    "identity": "c1a811755bdf25969073cb84c80f319816692618577d0b867f0e681d9c9fbb02"
+  },
+  "equivalence": {
+    "trackedPatchSha256": "c06c0dd9e7a33bdcba815879c03fd65121932f6e427475c06895196e532a5bc1",
+    "newNativeFixtureSha256": "afb6f96743a8f68df7082a7585bad5d75722eeba275aca53a08ff5dae777c8c4",
+    "verified": true
+  },
+  "green": {
+    "unit": {
+      "passed": 18,
+      "failed": 0
+    },
+    "projection": {
+      "passed": 151,
+      "failed": 0
+    },
+    "nativePersonSubset": {
+      "passed": 19,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "sourceUnchanged": true
+  },
+  "redNative": {
+    "passed": 2,
+    "failed": 3,
+    "productionHead": "103250966d4ca09723e10449e7640541674ddd24",
+    "fixture": "red-native/fixture.js",
+    "command": "EDITOR_NATIVE_PAGE=native-plugin-parity.html EDITOR_NATIVE_FILTER=\"Person native\" node tests/browser/physical-history.mjs",
+    "qualification": "Initial execution used the source.json recorded fixture bytes. Later changes only add more descriptive assertion messages."
+  },
+  "openInactiveLabel": {
+    "outcome": "failed",
+    "expected": "Alpha @Ada #123456 tail",
+    "actual": "Alpha {{mention}} {{swatch}} tail",
+    "afterActualFieldFocus": "passed with expected fully hydrated text",
+    "canonicalAndHistoryPreserved": true,
+    "productionCommit": "4a672decc413c17e895c129c095d14ba48c7c315"
+  },
+  "qualification": "No full-library or new preservation-ledger row is accepted. Exact final integration belongs to the parent branch. The known inactive-label failure stays open and separate from the green regression suite."
+}

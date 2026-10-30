@@ -1,0 +1,23 @@
+✔ Table selection spanning disjoint columns exports the minimal rectangle and leaves unselected source cells intact (3.584573ms)
+✔ Table selection starting below header does not make the copied first row a heading (0.583468ms)
+✔ Table settings append columns and rows with unique stable identities and preserve preexisting cells (0.761159ms)
+✔ Table Enter admits the addressed rich-text cell to its native line-break owner without changing data (3.088779ms)
+✔ Table Tab traverses the selected 2×2 grid in row-major order, including escaped identities (0.599057ms)
+✔ Table Enter with a stale or unregistered field gracefully declines the shortcut (0.365391ms)
+✔ Table HTML import uses the first populated row for header detection (2.47292ms)
+✔ Table HTML import does not promote a later row when first populated row is data (1.236984ms)
+✔ Table HTML import retains direct first-row heading semantics (0.519909ms)
+✔ Table moves heading semantics with the first row when author rows are reordered (5.193083ms)
+✔ Table promotes the surviving row when the former first row is removed (0.651354ms)
+✔ Table insert-before and no-heading reorder maintain positional semantics (0.662135ms)
+✔ Table keeps unchanged mounted row and editable cell stable on sibling text updates (1.245101ms)
+✔ Table maintains headings and row order through 600 deterministic structural edits (26.627178ms)
+✔ Table field snapshots follow current row and column hosts without rewriting retained snapshots (1.213833ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.281901

@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-next-inline-style-20261030",
+  "startedAt": "2026-10-30T08:02:03.931Z",
+  "finishedAt": "2026-10-30T08:02:05.863Z",
+  "outcome": "passed",
+  "source": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "d61c36033e6e7a3920a220a6dda55e138eeeceed9cf9b0f56eea4f9891c94d4a",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/inline-style-grammar-trusted-types.html",
+        "mode": 33188,
+        "sha256": "cae65e6a29233a8470b46d3e351dc2a02edd2cbc8b08fde0f61834c0b23f71d6"
+      },
+      {
+        "path": "tests/browser/inline-style-grammar.html",
+        "mode": 33188,
+        "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+      },
+      {
+        "path": "tests/browser/inline-style-grammar.js",
+        "mode": 33188,
+        "sha256": "bcd43fcd787da8fca3cbabcd35367df5c39ab4f75b8b50daddaabe2383dc7740"
+      },
+      {
+        "path": "tests/browser/regressions/inline-style-native-history.js",
+        "mode": 33188,
+        "sha256": "996c58d7efbb99a3fe4f97ca58bc328569c8a25a609419fabb211aee458fbe81"
+      }
+    ],
+    "dirty": true,
+    "identity": "140e0119b415d47303d7a6d8900bf06e04ea71bf23062a92d9a65b2d16069b4a"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "inline-style-grammar-trusted-types.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+    }
+  },
+  "context": {},
+  "gates": {
+    "style-trusted-types": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T08:02:04.259Z",
+      "finishedAt": "2026-10-30T08:02:05.754Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-next-inline-style-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "inline-style-grammar-trusted-types.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "d61c36033e6e7a3920a220a6dda55e138eeeceed9cf9b0f56eea4f9891c94d4a",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/inline-style-grammar-trusted-types.html",
+            "mode": 33188,
+            "sha256": "cae65e6a29233a8470b46d3e351dc2a02edd2cbc8b08fde0f61834c0b23f71d6"
+          },
+          {
+            "path": "tests/browser/inline-style-grammar.html",
+            "mode": 33188,
+            "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+          },
+          {
+            "path": "tests/browser/inline-style-grammar.js",
+            "mode": 33188,
+            "sha256": "bcd43fcd787da8fca3cbabcd35367df5c39ab4f75b8b50daddaabe2383dc7740"
+          },
+          {
+            "path": "tests/browser/regressions/inline-style-native-history.js",
+            "mode": 33188,
+            "sha256": "996c58d7efbb99a3fe4f97ca58bc328569c8a25a609419fabb211aee458fbe81"
+          }
+        ],
+        "dirty": true,
+        "identity": "140e0119b415d47303d7a6d8900bf06e04ea71bf23062a92d9a65b2d16069b4a"
+      },
+      "elapsedMs": 1489.056572,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "d61c36033e6e7a3920a220a6dda55e138eeeceed9cf9b0f56eea4f9891c94d4a",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/inline-style-grammar-trusted-types.html",
+            "mode": 33188,
+            "sha256": "cae65e6a29233a8470b46d3e351dc2a02edd2cbc8b08fde0f61834c0b23f71d6"
+          },
+          {
+            "path": "tests/browser/inline-style-grammar.html",
+            "mode": 33188,
+            "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+          },
+          {
+            "path": "tests/browser/inline-style-grammar.js",
+            "mode": 33188,
+            "sha256": "bcd43fcd787da8fca3cbabcd35367df5c39ab4f75b8b50daddaabe2383dc7740"
+          },
+          {
+            "path": "tests/browser/regressions/inline-style-native-history.js",
+            "mode": 33188,
+            "sha256": "996c58d7efbb99a3fe4f97ca58bc328569c8a25a609419fabb211aee458fbe81"
+          }
+        ],
+        "dirty": true,
+        "identity": "140e0119b415d47303d7a6d8900bf06e04ea71bf23062a92d9a65b2d16069b4a"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "d61c36033e6e7a3920a220a6dda55e138eeeceed9cf9b0f56eea4f9891c94d4a",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/inline-style-grammar-trusted-types.html",
+        "mode": 33188,
+        "sha256": "cae65e6a29233a8470b46d3e351dc2a02edd2cbc8b08fde0f61834c0b23f71d6"
+      },
+      {
+        "path": "tests/browser/inline-style-grammar.html",
+        "mode": 33188,
+        "sha256": "b6fdb8ccd898f7857ac7dd08784e8eb39b7df687deaaab9db972ed2db0951da8"
+      },
+      {
+        "path": "tests/browser/inline-style-grammar.js",
+        "mode": 33188,
+        "sha256": "bcd43fcd787da8fca3cbabcd35367df5c39ab4f75b8b50daddaabe2383dc7740"
+      },
+      {
+        "path": "tests/browser/regressions/inline-style-native-history.js",
+        "mode": 33188,
+        "sha256": "996c58d7efbb99a3fe4f97ca58bc328569c8a25a609419fabb211aee458fbe81"
+      }
+    ],
+    "dirty": true,
+    "identity": "140e0119b415d47303d7a6d8900bf06e04ea71bf23062a92d9a65b2d16069b4a"
+  },
+  "sourceUnchanged": true
+}

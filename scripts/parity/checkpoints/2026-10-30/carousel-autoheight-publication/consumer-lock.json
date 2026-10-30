@@ -1,0 +1,34 @@
+{
+  "name": "rector-carousel-dist-consumer",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "rector-carousel-dist-consumer",
+      "dependencies": {
+        "@shelamkoff/carousel": "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499"
+      }
+    },
+    "node_modules/@shelamkoff/carousel": {
+      "version": "1.0.0",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+      "license": "MIT",
+      "dependencies": {
+        "@shelamkoff/event-bus": "^1.0.0"
+      },
+      "engines": {
+        "node": ">=20"
+      }
+    },
+    "node_modules/@shelamkoff/event-bus": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/@shelamkoff/event-bus/-/event-bus-1.0.0.tgz",
+      "integrity": "sha512-TQgJbdKFs4Qp8uGjalxR5+9LYJ23ILpxDvuaoOOO55JP2MgdMYxoFxsWFjodG5M6Rcafw2BblFru9ZjsQr8idA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=20"
+      }
+    }
+  }
+}

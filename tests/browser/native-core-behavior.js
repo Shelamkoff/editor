@@ -6,6 +6,28 @@ import { CLIPBOARD_FRAGMENT_MIME } from '../../core/ClipboardFragment.js'
 import { createParagraphPlugin, createHeadingPlugin, createCodePlugin, createQuotePlugin } from '../../plugins/index.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
+import { createStructuralFixture, structuralShapes } from './structural-authoring-fixture.js'
+import './regressions/inline-style-native-history.js'
+
+for (const shape of structuralShapes) test(`Structural authoring ${shape.id} preserves complete native/public paths`, async () => {
+  const fixture = await createStructuralFixture(shape, { native: async (action, value) => {
+    if (action === 'type') return printable(value)
+    if (action === 'compose') return window.__testInput('Input.imeSetComposition', value)
+    if (action === 'insert') return window.__testInput('Input.insertText', { text: value })
+    throw new Error('Unknown structural native action')
+  } })
+  try {
+    for (const kind of ['noop-empty', 'noop-equal', 'public', 'native', 'composition']) await fixture.sample(kind)
+  } finally { fixture.destroy() }
+})
+
+for (const sensitivity of ['sibling-data', 'missing-notification']) test(`Structural authoring oracle rejects ${sensitivity}`, async () => {
+  const fixture = await createStructuralFixture(structuralShapes.find(shape => shape.id === 'table-small'), { sensitivity })
+  let error
+  try { await fixture.sample('public') } catch (cause) { error = cause } finally { fixture.destroy() }
+  assert(error, 'Deliberately broken structural observation passed')
+  assert((sensitivity === 'sibling-data' ? /Structural DOM differs/ : /Missing scheduled onChange/).test(error.message), String(error))
+})
 
 function caret(editor, id, offset, selector) {
   const field = editableField(editor, id, selector)

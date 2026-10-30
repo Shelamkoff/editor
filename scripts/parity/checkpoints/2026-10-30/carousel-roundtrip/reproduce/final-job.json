@@ -1,0 +1,94 @@
+{
+  "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+  "status": "/tmp/rector-carousel-final57-status.json",
+  "env": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+    "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+    "EDITOR_CANDIDATE_ROOT": "/tmp/rector-carousel-roundtrip-20261030",
+    "EDITOR_CANDIDATE_SHA": "942467e2669064433e2b50a14dbdd0df4df01d2b",
+    "EDITOR_DEPENDENCIES_ROOT": "/tmp/rector-carousel-roundtrip-20261030/node_modules",
+    "EDITOR_ROUNDTRIP_FILTER": ""
+  },
+  "gates": [
+    {
+      "name": "differential",
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ]
+    },
+    {
+      "name": "native-carousel-156",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "env": {
+        "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+        "EDITOR_NATIVE_FILTER": "BLOCK_CAROUSEL_ROUNDTRIP"
+      }
+    },
+    {
+      "name": "native-carousel-142",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "env": {
+        "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+        "EDITOR_NATIVE_FILTER": "BLOCK_CAROUSEL_ROUNDTRIP",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+      }
+    },
+    {
+      "name": "projection-156",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "env": {
+        "EDITOR_BROWSER_PAGE": "projection-contracts.html"
+      }
+    },
+    {
+      "name": "projection-142",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "env": {
+        "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+      }
+    },
+    {
+      "name": "native-carousel-media",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "env": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-media.html",
+        "EDITOR_NATIVE_FILTER": "Carousel"
+      }
+    },
+    {
+      "name": "classifier-sensitivity",
+      "command": [
+        "node",
+        "scripts/parity/checkpoints/2026-10-30/carousel-roundtrip/classifier-sensitivity.mjs",
+        "{results}/differential.log"
+      ]
+    },
+    {
+      "name": "readme-contracts",
+      "command": [
+        "npm",
+        "run",
+        "docs:validate-readmes"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,271 @@
+[
+  {
+    "id": "@shelamkoff/carousel@1.0.0",
+    "name": "@shelamkoff/carousel",
+    "version": "1.0.0",
+    "size": 29123,
+    "unpackedSize": 114285,
+    "shasum": "3f0930430bb2bd264534dd7da0a9e2102710bbf2",
+    "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA==",
+    "filename": "shelamkoff-carousel-1.0.0.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1067,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 4816,
+        "mode": 420
+      },
+      {
+        "path": "README.ru.md",
+        "size": 4209,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/BreakpointManager.d.ts",
+        "size": 354,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/BreakpointManager.js",
+        "size": 3100,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/Carousel.d.ts",
+        "size": 1072,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/Carousel.js",
+        "size": 28725,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/index.d.ts",
+        "size": 814,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/index.js",
+        "size": 576,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/LoopEngine.d.ts",
+        "size": 378,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/LoopEngine.js",
+        "size": 3232,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/arrows.d.ts",
+        "size": 174,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/arrows.js",
+        "size": 3060,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/arrows/README.md",
+        "size": 539,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/arrows/README.ru.md",
+        "size": 548,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/autoplay.d.ts",
+        "size": 319,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/autoplay.js",
+        "size": 3676,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/autoplay/README.md",
+        "size": 707,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/autoplay/README.ru.md",
+        "size": 618,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/dots.d.ts",
+        "size": 131,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/dots.js",
+        "size": 2989,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/dots/README.md",
+        "size": 404,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/dots/README.ru.md",
+        "size": 408,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/index.js",
+        "size": 362,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/keyboard.d.ts",
+        "size": 148,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/keyboard.js",
+        "size": 2278,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/keyboard/README.md",
+        "size": 462,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/keyboard/README.ru.md",
+        "size": 415,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/lazyload.d.ts",
+        "size": 175,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/lazyload.js",
+        "size": 4094,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/lazyload/README.md",
+        "size": 682,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/lazyload/README.ru.md",
+        "size": 479,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/parallax.d.ts",
+        "size": 131,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/parallax.js",
+        "size": 5971,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/parallax/README.md",
+        "size": 389,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/parallax/README.ru.md",
+        "size": 467,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/swipe.d.ts",
+        "size": 171,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/swipe.js",
+        "size": 7519,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/swipe/README.md",
+        "size": 578,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/swipe/README.ru.md",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/thumbnails.d.ts",
+        "size": 191,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/thumbnails.js",
+        "size": 2948,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/thumbnails/README.md",
+        "size": 510,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/plugins/thumbnails/README.ru.md",
+        "size": 423,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/SlideManager.d.ts",
+        "size": 309,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/SlideManager.js",
+        "size": 1280,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/TrackRenderer.d.ts",
+        "size": 1063,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/TrackRenderer.js",
+        "size": 10988,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/types.d.ts",
+        "size": 2937,
+        "mode": 420
+      },
+      {
+        "path": "dist/styles/carousel.css",
+        "size": 5742,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1199,
+        "mode": 420
+      }
+    ],
+    "entryCount": 51,
+    "bundled": []
+  }
+]

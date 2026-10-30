@@ -1,0 +1,99 @@
+{
+  "baseLocal": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+  "basePublished": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+  "parent": "accfd5726e9435b497874bfad36cdcf5e09a6341",
+  "tree": "ff76ccf5ff6b06538baa4d3f96dfa119d1bda100",
+  "branchHead": "accfd5726e9435b497874bfad36cdcf5e09a6341",
+  "mappings": [
+    {
+      "local": "479cbf5a96a6efbaedba7d3ed0bfcb03a5a2698f",
+      "published": "836fed7db5af30240b8156f811cb2a10b4fa0511",
+      "tree": "d89699d6d88de4a32d970ce75baa179ac65ed8d4",
+      "message": "fix(gallery): retain keyboard history after native image drag"
+    },
+    {
+      "local": "5aa9b1dbb524cbedc9bf22c3e2df171afce56879",
+      "published": "54a655d707ddc51de6ce9cbd7c4459164f5211c8",
+      "tree": "9126a39d4fc5c25a5f48b9709a710e4a5e5d7096",
+      "message": "perf(runtime): avoid copying canonical records for internal reads"
+    },
+    {
+      "local": "69f98e05dd14e544545f26b14c2b1dee97894b31",
+      "published": "37ed30083ee97629eecf284944f99b7b330d65ad",
+      "tree": "2143db0a364cb50f677766ed2d7b9acc28b4eb5c",
+      "message": "fix(person): derive unopened tab labels without hidden widgets"
+    },
+    {
+      "local": "2e0b80e63cf0e460296108056b099606034f7d56",
+      "published": "24c012015542e0f955164a47d52fa4c4c7db75ae",
+      "tree": "5dfb00c40829208936c1672b6330bd18ff546369",
+      "message": "test(gallery): prove native caption order and replay parity"
+    },
+    {
+      "local": "8d2e37d0c0f7989b5abc6aea03ba722f5dd960e5",
+      "published": "5eb0abec1df5be70ff42576f78bf2d2e1ce5ff03",
+      "tree": "e004d9901c3a33e992bfdf27391ded765a3b3229",
+      "message": "fix(rich-text): preserve browser-parsed inline CSS grammar"
+    },
+    {
+      "local": "b2d9e46fc1a856aadb4aff072425fb09a7aff721",
+      "published": "9925c80584e17214013791a4e8ed1791c7e02080",
+      "tree": "ab58ba3cc14e05982a365f83e5a6f0305c086058",
+      "message": "docs: retain CSS grammar red green and negative-control evidence"
+    },
+    {
+      "local": "8ace156604c5413893d51d7b7c0827a5bf1c9d54",
+      "published": "ae2535bc2f8359b04387f66a5279f8d018289f47",
+      "tree": "5842453a3807ecc8ced4d66988be64d7454cf4be",
+      "message": "docs(person): record canonical field text contract and proof"
+    },
+    {
+      "local": "75a2514d13504e99bd3d9f3465f869b782ebe0cd",
+      "published": "7a8b8f950704a7efec51e5c68321a9a796024c65",
+      "tree": "2f29c2a5771852967fd11ae6956df196bd6dedb5",
+      "message": "docs(gallery): accept caption order scope and archive exact evidence"
+    },
+    {
+      "local": "7182dc79e7536ea1eba5138856e04f1c511ea1db",
+      "published": "37995b6b0b765e2af916f0eaad8d02694b776698",
+      "tree": "9397dd397d1decaa0fbbd0a9105a50e0a8b9ad2b",
+      "message": "docs(perf): record integrated large Table comparison"
+    },
+    {
+      "local": "cfb1557c32f0fdef618cd669526777232d1900eb",
+      "published": "4858b4a01ee8100a76248af9ca19aec9f56fc90c",
+      "tree": "dc739bf7eb72e2a7c20b931b3cec9714f5e5ff51",
+      "message": "docs(perf): archive exact structural benchmark results"
+    },
+    {
+      "local": "7402e93b38aa3bf09744b312030df783a52ba074",
+      "published": "42b35472f69af8f959f2f844408c0d8eb8f63c17",
+      "tree": "cebfb8bbcc8371fd6625f9269a982c2ed4e70237",
+      "message": "docs: record completed Person Gallery CSS and runtime integration"
+    },
+    {
+      "local": "e0233d28852afab7e741e5f8c0175b5b0dff422a",
+      "published": "0216b625f1d2a2a87c8a8618c63e4111789f2b53",
+      "tree": "fe907df01a54b4c6a17b4afa79e7e7d1aa351da6",
+      "message": "docs(person): translate widget label prose and retain failed validation"
+    },
+    {
+      "local": "2b4fbd45df3399d499bc1433045de38b7bcd4efa",
+      "published": "2997968e3cf50a2d38af5ee530d5c0a7b0b39288",
+      "tree": "d72e75a962ffad8025381e561c1b1d049be411ce",
+      "message": "docs(inline): translate formatter prose and retain validation follow-up"
+    },
+    {
+      "local": "7fe6f26a3fc035d79cf41495a0ffd4d019929853",
+      "published": "82b2cd3d38b600c21d881e6fa94f3e5be8a240d5",
+      "tree": "3751bcbe3df8399e1e07da1dc6bb300661c95394",
+      "message": "docs(gallery): translate Russian parity review and retain site validation"
+    },
+    {
+      "local": "d38d84f1fad9a0242c3af4bac59cc55539592b7b",
+      "published": "accfd5726e9435b497874bfad36cdcf5e09a6341",
+      "tree": "ff76ccf5ff6b06538baa4d3f96dfa119d1bda100",
+      "message": "docs: use canonical guide routes for field text cross-links"
+    }
+  ]
+}

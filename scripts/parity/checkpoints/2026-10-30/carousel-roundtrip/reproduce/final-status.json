@@ -1,0 +1,115 @@
+{
+  "startedAt": "2026-10-30T01:37:21.331728+00:00",
+  "state": "finished",
+  "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+  "gates": [
+    {
+      "name": "differential",
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "selectedEnvironment": {},
+      "startedAt": "2026-10-30T01:37:21.534298+00:00",
+      "finishedAt": "2026-10-30T01:39:32.600260+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "native-carousel-156",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "selectedEnvironment": {
+        "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+        "EDITOR_NATIVE_FILTER": "BLOCK_CAROUSEL_ROUNDTRIP"
+      },
+      "startedAt": "2026-10-30T01:39:32.600564+00:00",
+      "finishedAt": "2026-10-30T01:39:43.491129+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "native-carousel-142",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "selectedEnvironment": {
+        "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+        "EDITOR_NATIVE_FILTER": "BLOCK_CAROUSEL_ROUNDTRIP",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+      },
+      "startedAt": "2026-10-30T01:39:43.491567+00:00",
+      "finishedAt": "2026-10-30T01:39:54.295755+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "projection-156",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "selectedEnvironment": {
+        "EDITOR_BROWSER_PAGE": "projection-contracts.html"
+      },
+      "startedAt": "2026-10-30T01:39:54.296220+00:00",
+      "finishedAt": "2026-10-30T01:40:01.195622+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "projection-142",
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "selectedEnvironment": {
+        "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+      },
+      "startedAt": "2026-10-30T01:40:01.196139+00:00",
+      "finishedAt": "2026-10-30T01:40:07.774186+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "native-carousel-media",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "selectedEnvironment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-media.html",
+        "EDITOR_NATIVE_FILTER": "Carousel"
+      },
+      "startedAt": "2026-10-30T01:40:07.774518+00:00",
+      "finishedAt": "2026-10-30T01:40:20.722509+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "classifier-sensitivity",
+      "command": [
+        "node",
+        "scripts/parity/checkpoints/2026-10-30/carousel-roundtrip/classifier-sensitivity.mjs",
+        "/tmp/rector-carousel-roundtrip-20261030/test-results/run-64mauO/differential.log"
+      ],
+      "selectedEnvironment": {},
+      "startedAt": "2026-10-30T01:40:20.722951+00:00",
+      "finishedAt": "2026-10-30T01:40:23.434200+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "readme-contracts",
+      "command": [
+        "npm",
+        "run",
+        "docs:validate-readmes"
+      ],
+      "selectedEnvironment": {},
+      "startedAt": "2026-10-30T01:40:23.434815+00:00",
+      "finishedAt": "2026-10-30T01:40:25.187445+00:00",
+      "exitCode": 0
+    }
+  ],
+  "resultsDirectory": "/tmp/rector-carousel-roundtrip-20261030/test-results/run-64mauO",
+  "finishedAt": "2026-10-30T01:40:25.304545+00:00",
+  "exitCode": 0
+}

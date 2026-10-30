@@ -1,0 +1,16 @@
+file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "LinkPreview same-URL resubmission cannot fetch a URL superseded by metadata cancellation",
+    "status": "FAIL",
+    "error": "Error: The metadata snapshot must still belong to the submitted URL\nexpected [\"https://old.example/start\"], got [\"https://old.example/start\",\"https://old.example/start\"]\n    at equal (http://127.0.0.1:34691/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34691/tests/browser/native-link-preview-derived.js:94:5\n    at async run (http://127.0.0.1:34691/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34691/tests/browser/native-plugin-controls.js:719:1\nError: Editor is destroyed\n    at #assertLive (http://127.0.0.1:34691/core/PublicEditorApi.js:176:36)\n    at get blocks (http://127.0.0.1:34691/core/PublicEditorApi.js:179:34)\n    at signal.addEventListener.once (http://127.0.0.1:34691/tests/browser/native-link-preview-derived.js:78:14)\n    at #cancelTasks (http://127.0.0.1:34691/core/InstanceScope.js:442:29)\n    at InstanceScope.revoke (http://127.0.0.1:34691/core/InstanceScope.js:122:22)\n    at #destroyEntry (http://127.0.0.1:34691/core/BlockReconciler.js:1484:32)\n    at BlockReconciler.destroy (http://127.0.0.1:34691/core/BlockReconciler.js:817:50)\n    at DocumentRuntime.destroy (http://127.0.0.1:34691/core/DocumentRuntime.js:1391:31)\n    at #dispose (http://127.0.0.1:34691/core/LifecycleScope.js:55:34)\n    at LifecycleScope.destroy (http://127.0.0.1:34691/core/LifecycleScope.js:48:20)"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-roundtrip-link-poll-1547/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

@@ -1,0 +1,663 @@
+{
+  "schemaVersion": 1,
+  "status": "bounded-performance-evidence; C09/T15 open",
+  "conclusion": "The descriptor cache removes repeated descriptor identities and lowers sampled allocations for large Table sequences. Timing remains mixed: large public synchronous p95 worsens, native synchronous p95 is essentially unchanged, and small native p50 worsens. This run does not establish a general latency or memory win.",
+  "provenance": {
+    "inputResults": "/tmp/rector-table-performance-current-20261030/results.json",
+    "inputResultsIdentity": {
+      "bytes": 477812,
+      "sha256": "2e464ecfa797d78429386a1487720b880004b2a739b1b864bfe668f25a7246be"
+    },
+    "startedAt": "2026-10-30T02:39:07.324Z",
+    "finishedAt": "2026-10-30T02:41:00.531Z",
+    "outcome": "passed",
+    "sourceUnchangedAtRunEnd": true,
+    "servedSourceAndDependencyHashesRecheckedOffline": true,
+    "sourceManifestDigestEncoding": "SHA-256 of UTF-8 JSON with sorted keys, no whitespace, ensure_ascii=false; full file maps remain in inputResults.",
+    "sources": {
+      "baseline": {
+        "commit": "14cc4fd2c611d171c9542fba776160eea23d91b5",
+        "tree": "6456486998625f1521816ef0cb1d5013047039ee",
+        "sourceRootAtRun": "/tmp/rector-perf-before-cache-current",
+        "servedFiles": 177,
+        "servedFilesManifestSha256": "b49602393597aa22fe82c4e797a603ffa14178b654f4a4c4a35414bf5b7d1dfb"
+      },
+      "candidate": {
+        "commit": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+        "tree": "0d65a81e4678088fa07d59b7c1539793b0ab47c9",
+        "sourceRootAtRun": "/workspace/scratch/2e2d45a6049b/editor",
+        "servedFiles": 177,
+        "servedFilesManifestSha256": "9205acd4fc561f6e3d4d77b3f2836c7be30179a4d7717aa5243628920ee77674"
+      }
+    },
+    "changedServedSourceFiles": {
+      "core/BlockReconciler.js": {
+        "baseline": "bd2ba7c972a8f03ebcf18b474eb18b6bb99118d3db3c3a93d21ed18ba5922054",
+        "candidate": "e2e76f48e7123f70ac9307e21476fd0773fd32d591568aad488067af99655cc6"
+      },
+      "plugins/table/index.js": {
+        "baseline": "cb1af7c823d15b74adc7f99eafe762c848f20b4c56730d73880dd95835bde5a9",
+        "candidate": "2f7291556a118835d514548875f01e4d819e8fc5008af109851fad4d84e35bd8"
+      }
+    },
+    "commonServedSourceFiles": {
+      "count": 175,
+      "manifestSha256": "f6df956b4a768559ba4319c478cbbeee3cd359c0094d14c799e9f29b2e0cf3d8"
+    },
+    "productionDelta": ["Table immutable editableFields descriptor reuse", "Table owning-path and BlockReconciler root focus guards"],
+    "comparisonScope": "The timing candidate includes both the descriptor cache and correctness focus guards; this is not a cache-only timing ablation.",
+    "publishedEquivalentReportedByIntegrationAgent": {
+      "commit": "fc669f9178a6ea9d8d566380e450fb47fa7c595f",
+      "tree": "0d65a81e4678088fa07d59b7c1539793b0ab47c9",
+      "treeMatchesMeasuredCandidate": true
+    },
+    "runner": {
+      "path": "benchmarks/structural-authoring.mjs",
+      "sha256": "bd0b1a9908796041ea0006c422beb0c94e7e3c69da9be5e2d11b4b888a8298b9"
+    },
+    "fixture": {
+      "path": "tests/browser/structural-authoring-fixture.js",
+      "sha256": "d56a5c54c78ea0cb55878a1375f17cfb048ae4f3ba83f7959844ad335d7b146b"
+    },
+    "lock": {
+      "path": "package-lock.json",
+      "sha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382"
+    },
+    "dependencies": {
+      "versions": {
+        "dompurify": "3.4.17",
+        "@shelamkoff/carousel": "1.0.0",
+        "@shelamkoff/color-picker": "1.0.0",
+        "@shelamkoff/cropper": "1.0.0",
+        "@shelamkoff/event-bus": "1.0.0",
+        "@shelamkoff/expose": "1.0.0",
+        "@shelamkoff/masonry": "1.0.0",
+        "@shelamkoff/infinite-scroll": "1.0.1"
+      },
+      "servedFiles": 25,
+      "servedFilesManifestSha256": "b787f88eb1a31a00dba3d1b929d61f4cec6726ba7a3772057b252ab0843018b1"
+    },
+    "rawArtifactRootAtRun": "/tmp/rector-table-performance-current-20261030",
+    "rawArtifactHashScope": "SHA-256 of exact stored bytes, including compressed bytes for .gz files. No traces or allocation trees are embedded in this summary.",
+    "rawArtifactColumns": ["filename", "bytes", "sha256"],
+    "rawArtifacts": [
+      ["baseline-table-large-native.allocation.json.gz", 60001, "2a379d7c9207d35e9a7ce591e189933d329e32d5a700901485aca040f43ee6a8"],
+      ["baseline-table-large-native.trace.json.gz", 304846, "47e863ff6fe445aebdc8cfe7aeb06d8081545a915acdfe169f236706c8eb1899"],
+      ["baseline-table-large-noop-empty.allocation.json.gz", 11587, "e5b082511a7e3835390556dcba8a1958514c70474f4fc85336073955f6a0c610"],
+      ["baseline-table-large-noop-empty.trace.json.gz", 70555, "d12c41682c2e624d10b2396a5fc7cf8e9b0f9671461508cdcff0ef002d3ae30b"],
+      ["baseline-table-large-noop-equal.allocation.json.gz", 12355, "260371cf077a333003353185153fd87b81dc25b7613d86cbc245c2fe37acfc10"],
+      ["baseline-table-large-noop-equal.trace.json.gz", 75560, "b56d75d8db5beee75d48792d9914cc463d28f31303d0b89b6f7175710fd68de4"],
+      ["baseline-table-large-public.allocation.json.gz", 48703, "a41124b3f9cd29131fcbaa6f5982e61474f0c931fa6400b3b659de9cf81b4b33"],
+      ["baseline-table-large-public.trace.json.gz", 331516, "8a3f804872a45b8e98b2ce302cf61d3ac6e9a60b67eee91e6dda12712e67ca67"],
+      ["baseline-table-small-native.allocation.json.gz", 11227, "44fe483d6e15b20a99c080fe74cee42e737fd940abfbe4a69e80ab3e98f9b6d8"],
+      ["baseline-table-small-native.trace.json.gz", 13291, "e5cee8f46b12cf7dcf81ee3747028464f9a5915b0246f47986a49a17e6d9e570"],
+      ["baseline-table-small-noop-empty.allocation.json.gz", 2824, "7c5343c71a99b3b1346f119356961787486cb85988960cde782694480b6571c7"],
+      ["baseline-table-small-noop-empty.trace.json.gz", 2763, "9c6170e3bd8b91c9f3848302358523b6a944d19cab53b68e82995fc7393dfed6"],
+      ["baseline-table-small-noop-equal.allocation.json.gz", 2967, "efe00c87cdaee01d32c1ba93d88a3a79f368cc11987a5bf2e090e76e20242a2b"],
+      ["baseline-table-small-noop-equal.trace.json.gz", 2894, "5d49e201e9d26daf89a7e27b49b8a901de7a106d5937985dfe0549ac4d3c7086"],
+      ["baseline-table-small-public.allocation.json.gz", 8664, "aa6996a9b10bba0fb8cc695e3fe349e98e61e1a47d007261f309659d6d1b4aaf"],
+      ["baseline-table-small-public.trace.json.gz", 11799, "cb591382f9fe7b02ba918083fdd963f5fb153d84877e8092ee92f4d247666f2b"],
+      ["candidate-table-large-native.allocation.json.gz", 46513, "2b76feecf0b13b23fee6af58fd3139a0f3f8f8c2a2d791a549effd328ee4ef81"],
+      ["candidate-table-large-native.trace.json.gz", 304327, "57d374c92c99274efb8e8d39d3afba1bec7cf400437e5f12de939b9c7da0bd2f"],
+      ["candidate-table-large-noop-empty.allocation.json.gz", 11203, "5e9a396e2becbfbc55c2ac89f6244f2ff2716bcce1772fce4c49f83c31d6d055"],
+      ["candidate-table-large-noop-empty.trace.json.gz", 75427, "cf7448fb6dbaeb1898b264d37f164d0a8f921dfad2203a1a52c7cbbe1cf5dc9b"],
+      ["candidate-table-large-noop-equal.allocation.json.gz", 11093, "6e0d93a5f7ac6fd1c59d82bf409ce49fd37017a330bc2a3c0500e9891ee4cbc1"],
+      ["candidate-table-large-noop-equal.trace.json.gz", 76075, "b5aff0361efe59963b6ce526bd384d121865298fb04055fbbff519c7b2e00b33"],
+      ["candidate-table-large-public.allocation.json.gz", 37189, "4ad4a62af4e0bd40d3c9c9b0bbd4ea26d768c198cb54dca95fa4415352bba85e"],
+      ["candidate-table-large-public.trace.json.gz", 333176, "e50c92aeb3ea9d27203ef43b1d55290f7795b0290f904903d271d5e0d3e11027"],
+      ["candidate-table-small-native.allocation.json.gz", 10198, "b1e5e7eae91a7ac59cca567602546bf485f684b4dfe43407a8df134897673ce3"],
+      ["candidate-table-small-native.trace.json.gz", 13257, "69adf61dd562694c073cf7ac665cec4eb88bfcad6aba20e68c01838ea2583a38"],
+      ["candidate-table-small-noop-empty.allocation.json.gz", 2555, "608e9b983994792cbc4525ab3add611df0a4d96eec9bf62bf2cacbe9b84b611c"],
+      ["candidate-table-small-noop-empty.trace.json.gz", 2628, "5494d8cf81a89d9eab15ac1ce436c4b189661bb43396540480f83d992a0c26ef"],
+      ["candidate-table-small-noop-equal.allocation.json.gz", 2848, "6501eb9c4136ccd735e3c057c0bc141b5773df368b10e32ea0d9b4939d0a0f18"],
+      ["candidate-table-small-noop-equal.trace.json.gz", 2969, "355660db9dca3aa23edf2c4ddd3ce6629b05582bbb6605389aeb58d51663f56c"],
+      ["candidate-table-small-public.allocation.json.gz", 8283, "d8dda31bbf1c40ae74826dfaf822abfe8a81d8d69359e0868469462bc0cbe2ff"],
+      ["candidate-table-small-public.trace.json.gz", 12233, "ed1c09fb0728c9f5966686760e816f83a3a720d1e4cd6f83ec4eecb28b5b292b"],
+      ["results.json", 477812, "2e464ecfa797d78429386a1487720b880004b2a739b1b864bfe668f25a7246be"]
+    ]
+  },
+  "method": {
+    "environment": {
+      "node": "v24.22.1",
+      "v8": "13.6.233.17-node.58",
+      "platform": "linux",
+      "architecture": "x64",
+      "osRelease": "6.18.55",
+      "cpuModel": "AMD EPYC 7763 64-Core Processor",
+      "cpuCount": 9,
+      "memoryBytes": 10451439616,
+      "loadBefore": [2.6, 1.33, 1.02],
+      "loadAfter": [1, 1.1, 0.98],
+      "browser": "156.0.8078.47",
+      "viewport": {
+        "width": 1100,
+        "height": 900
+      },
+      "browserArguments": ["--no-sandbox", "--disable-dev-shm-usage"]
+    },
+    "stages": ["controls", "timing", "attribution", "memory"],
+    "warmupsPerVariantShapeCommand": 5,
+    "pairedSamplesPerShapeCommand": 21,
+    "order": "Paired variants alternate first/second by sample; no overlapping benchmark samples.",
+    "percentileRule": "Sorted samples at floor(n * quantile), zero-based; with n=21 p50 is item 11 and p95 item 20. No interpolation or confidence interval.",
+    "timingSummaryRounding": "Milliseconds and derived percentages rounded to 3 decimals; exact raw values remain in inputResults.",
+    "boundaries": {
+      "synchronousMs": "Public command return, or trusted beforeinput through completed input event; includes schema, projection, history and event observers. No paint is inferred.",
+      "notificationMs": "Command/input start through scheduled onChange delivery, configured changeDebounceMs=0.",
+      "settledRenderOpportunityMs": "Start through notification then two animation frames, scheduled independently of native driver return; a render opportunity, not proof of a paint. No-ops include an explicit 50ms notification quiescence window.",
+      "trace": "Separate Chrome trace: actual Layout/Paint/UpdateLayoutTree records within marked command+notification+frame windows.",
+      "allocation": "Separate V8 statistical allocation profiles; sampled byte estimates include the full edit/undo/redo/reset sequence and oracle checks. Not retained heap size.",
+      "retention": "Separate forced-GC observations of released event envelopes, changes arrays, before/after data and inline roots, snapshot blocks/data/inline roots, with live positive controls. Counts are WeakRef observations, not distinct objects or proof about every nested descendant. Heap usage is an observation, not an allocation count."
+    },
+    "fixtures": {
+      "table-small": {
+        "shape": {
+          "id": "table-small",
+          "type": "table",
+          "size": 2
+        },
+        "documentUtf8Bytes": 858,
+        "fields": 4,
+        "widgets": 3,
+        "opaqueSidecars": 1,
+        "configuredHistoryMaxStack": 1,
+        "configuredChangeDebounceMs": 0,
+        "viewport": {
+          "width": 1100,
+          "height": 900
+        }
+      },
+      "table-large": {
+        "shape": {
+          "id": "table-large",
+          "type": "table",
+          "size": 20
+        },
+        "documentUtf8Bytes": 21124,
+        "fields": 400,
+        "widgets": 3,
+        "opaqueSidecars": 1,
+        "configuredHistoryMaxStack": 1,
+        "configuredChangeDebounceMs": 0,
+        "viewport": {
+          "width": 1100,
+          "height": 900
+        }
+      }
+    },
+    "pageErrors": 0,
+    "serverErrors": 0
+  },
+  "controls": {
+    "total": 24,
+    "functionalPassed": 20,
+    "deliberateFailuresDetected": 4,
+    "functionalMatrix": {
+      "variants": ["baseline", "candidate"],
+      "shapes": ["table-small", "table-large"],
+      "commands": ["noop-empty", "noop-equal", "public", "native", "composition"]
+    },
+    "expectedCountsVerifiedForEveryFunctionalObservation": {
+      "noop": {
+        "transactions": 0,
+        "documents": 0,
+        "notifications": 0
+      },
+      "editUndoRedoEach": {
+        "transactions": 1,
+        "documents": 1,
+        "notifications": 1
+      }
+    },
+    "trustedNativeInputVerifiedForAllFourNativeControls": true,
+    "sensitivity": [
+      {
+        "variant": "baseline",
+        "sensitivity": "sibling-data",
+        "outcome": "deliberate-failure-detected"
+      },
+      {
+        "variant": "baseline",
+        "sensitivity": "missing-notification",
+        "outcome": "deliberate-failure-detected"
+      },
+      {
+        "variant": "candidate",
+        "sensitivity": "sibling-data",
+        "outcome": "deliberate-failure-detected"
+      },
+      {
+        "variant": "candidate",
+        "sensitivity": "missing-notification",
+        "outcome": "deliberate-failure-detected"
+      }
+    ]
+  },
+  "timingMetricColumns": ["baselineP50Ms", "candidateP50Ms", "p50DeltaPercent", "baselineP95Ms", "candidateP95Ms", "p95DeltaPercent"],
+  "deltaSign": "Positive means candidate is larger/slower; negative means smaller/faster. These are descriptive changes, not statistical significance claims.",
+  "timings": [
+    {
+      "shape": "table-small",
+      "command": "noop-empty",
+      "phase": "noop-empty",
+      "synchronousMs": [1, 0.9, -10.0, 1.7, 1.1, -35.294],
+      "notificationMs": null,
+      "settledRenderOpportunityMs": [66.7, 66.7, 0.0, 66.9, 83.3, 24.514]
+    },
+    {
+      "shape": "table-small",
+      "command": "noop-equal",
+      "phase": "noop-equal",
+      "synchronousMs": [0.9, 1.1, 22.222, 1.4, 1.6, 14.286],
+      "notificationMs": null,
+      "settledRenderOpportunityMs": [66.9, 66.6, -0.448, 83.7, 67.3, -19.594]
+    },
+    {
+      "shape": "table-small",
+      "command": "public",
+      "phase": "public",
+      "synchronousMs": [3.5, 3.2, -8.571, 5.9, 5.2, -11.864],
+      "notificationMs": [4.5, 3.9, -13.333, 7, 5.9, -15.714],
+      "settledRenderOpportunityMs": [33.2, 33.3, 0.301, 33.9, 33.5, -1.18]
+    },
+    {
+      "shape": "table-small",
+      "command": "public",
+      "phase": "undo",
+      "synchronousMs": [2.8, 2.7, -3.571, 4.8, 4, -16.667],
+      "notificationMs": [4.1, 4.2, 2.439, 5.9, 5.6, -5.085],
+      "settledRenderOpportunityMs": [32.9, 32.8, -0.304, 33.2, 33, -0.602]
+    },
+    {
+      "shape": "table-small",
+      "command": "public",
+      "phase": "redo",
+      "synchronousMs": [2.7, 2.4, -11.111, 4.2, 3.8, -9.524],
+      "notificationMs": [4.1, 3.7, -9.756, 5.8, 5.7, -1.724],
+      "settledRenderOpportunityMs": [32.8, 32.9, 0.305, 33.3, 33.2, -0.3]
+    },
+    {
+      "shape": "table-small",
+      "command": "native",
+      "phase": "native",
+      "synchronousMs": [3.7, 4, 8.108, 5.3, 4.6, -13.208],
+      "notificationMs": [14.9, 14.9, 0.0, 16.1, 16.4, 1.863],
+      "settledRenderOpportunityMs": [46.8, 47.2, 0.855, 47.9, 48, 0.209]
+    },
+    {
+      "shape": "table-small",
+      "command": "native",
+      "phase": "undo",
+      "synchronousMs": [2.2, 2.5, 13.636, 3.7, 3.3, -10.811],
+      "notificationMs": [3.4, 3.5, 2.941, 5.9, 4.6, -22.034],
+      "settledRenderOpportunityMs": [32.8, 32.8, 0.0, 33.1, 33.1, 0.0]
+    },
+    {
+      "shape": "table-small",
+      "command": "native",
+      "phase": "redo",
+      "synchronousMs": [2.3, 2.5, 8.696, 4.2, 3.7, -11.905],
+      "notificationMs": [3.5, 3.8, 8.571, 6.1, 5.2, -14.754],
+      "settledRenderOpportunityMs": [32.8, 32.8, -0.0, 33.1, 32.9, -0.604]
+    },
+    {
+      "shape": "table-large",
+      "command": "noop-empty",
+      "phase": "noop-empty",
+      "synchronousMs": [27.6, 26.2, -5.072, 32.7, 32, -2.141],
+      "notificationMs": null,
+      "settledRenderOpportunityMs": [83.3, 83.3, 0.0, 100.2, 100.2, -0.0]
+    },
+    {
+      "shape": "table-large",
+      "command": "noop-equal",
+      "phase": "noop-equal",
+      "synchronousMs": [29.6, 29.3, -1.014, 35, 34.5, -1.429],
+      "notificationMs": null,
+      "settledRenderOpportunityMs": [83.2, 83.3, 0.12, 100.1, 100.4, 0.3]
+    },
+    {
+      "shape": "table-large",
+      "command": "public",
+      "phase": "public",
+      "synchronousMs": [62.4, 59.9, -4.006, 74.2, 88.6, 19.407],
+      "notificationMs": [66.6, 61.9, -7.057, 81.4, 90.7, 11.425],
+      "settledRenderOpportunityMs": [83.9, 83.2, -0.834, 99.9, 100.4, 0.501]
+    },
+    {
+      "shape": "table-large",
+      "command": "public",
+      "phase": "undo",
+      "synchronousMs": [40.9, 33.5, -18.093, 58.1, 39.5, -32.014],
+      "notificationMs": [56.6, 38.8, -31.449, 74.4, 45.6, -38.71],
+      "settledRenderOpportunityMs": [77.8, 61.8, -20.566, 95.5, 75.1, -21.361]
+    },
+    {
+      "shape": "table-large",
+      "command": "public",
+      "phase": "redo",
+      "synchronousMs": [41.4, 33.8, -18.357, 48.7, 38.2, -21.561],
+      "notificationMs": [54.5, 39.1, -28.257, 60.7, 48.7, -19.769],
+      "settledRenderOpportunityMs": [78.9, 62, -21.42, 79.6, 77.1, -3.141]
+    },
+    {
+      "shape": "table-large",
+      "command": "native",
+      "phase": "native",
+      "synchronousMs": [89.2, 82.4, -7.623, 100.5, 100.7, 0.199],
+      "notificationMs": [94.1, 85.6, -9.033, 106.2, 104.5, -1.601],
+      "settledRenderOpportunityMs": [120.5, 108.6, -9.876, 136.8, 125, -8.626]
+    },
+    {
+      "shape": "table-large",
+      "command": "native",
+      "phase": "undo",
+      "synchronousMs": [36.7, 31.3, -14.714, 41.8, 35.2, -15.789],
+      "notificationMs": [48.5, 36.2, -25.361, 57.6, 41.4, -28.125],
+      "settledRenderOpportunityMs": [76.8, 61.4, -20.052, 78.2, 62.6, -19.949]
+    },
+    {
+      "shape": "table-large",
+      "command": "native",
+      "phase": "redo",
+      "synchronousMs": [38, 31.3, -17.632, 44.9, 35.3, -21.381],
+      "notificationMs": [50.8, 36.5, -28.15, 57.8, 43.2, -25.26],
+      "settledRenderOpportunityMs": [78.6, 62, -21.12, 79.5, 62.8, -21.006]
+    }
+  ],
+  "pairedSynchronousEditObservations": {
+    "note": "Within-round differences; equal tolerance only suppresses floating-point noise. No significance test.",
+    "rows": [
+      {
+        "shape": "table-small",
+        "command": "public",
+        "candidateFasterPairs": 15,
+        "candidateSlowerPairs": 5,
+        "equalWithin0_00001MsPairs": 1,
+        "medianCandidateMinusBaselineMs": -0.5
+      },
+      {
+        "shape": "table-small",
+        "command": "native",
+        "candidateFasterPairs": 8,
+        "candidateSlowerPairs": 11,
+        "equalWithin0_00001MsPairs": 2,
+        "medianCandidateMinusBaselineMs": 0.1
+      },
+      {
+        "shape": "table-large",
+        "command": "public",
+        "candidateFasterPairs": 10,
+        "candidateSlowerPairs": 11,
+        "equalWithin0_00001MsPairs": 0,
+        "medianCandidateMinusBaselineMs": 0.2
+      },
+      {
+        "shape": "table-large",
+        "command": "native",
+        "candidateFasterPairs": 15,
+        "candidateSlowerPairs": 6,
+        "equalWithin0_00001MsPairs": 0,
+        "medianCandidateMinusBaselineMs": -9.3
+      }
+    ]
+  },
+  "allocation": {
+    "samplingIntervalBytes": 8192,
+    "includesCollectedObjects": true,
+    "scope": "Separate sampled V8 profiles of each full edit/Undo/Redo/reset/oracle sequence, or the full no-op/reset/oracle sequence; one profile per variant/shape/command.",
+    "tableSourceSelfBytesDefinition": "Sum of profile node selfSize whose URL ends in /plugins/table/index.js. Zero means no matching allocation was sampled, not proof of zero allocation.",
+    "notEstablished": ["process RAM or RSS reduction", "retained heap reduction", "bytes allocated per single edit", "absence of leaks", "confidence interval from repeated allocation profiles"],
+    "sampledByteColumns": ["baseline", "candidate", "deltaPercent"],
+    "pairedValueColumns": ["baseline", "candidate"],
+    "rows": [
+      {
+        "shape": "table-small",
+        "command": "noop-empty",
+        "sampledBytes": [279312, 246124, -11.882],
+        "sampleCounts": [34, 30],
+        "tableSourceSelfBytes": [8240, 0]
+      },
+      {
+        "shape": "table-small",
+        "command": "noop-equal",
+        "sampledBytes": [366192, 263080, -28.158],
+        "sampleCounts": [44, 32],
+        "tableSourceSelfBytes": [8208, 0]
+      },
+      {
+        "shape": "table-small",
+        "command": "public",
+        "sampledBytes": [1387564, 1387768, 0.015],
+        "sampleCounts": [169, 169],
+        "tableSourceSelfBytes": [57436, 24608]
+      },
+      {
+        "shape": "table-small",
+        "command": "native",
+        "sampledBytes": [1815560, 1528100, -15.833],
+        "sampleCounts": [221, 186],
+        "tableSourceSelfBytes": [123224, 0]
+      },
+      {
+        "shape": "table-large",
+        "command": "noop-empty",
+        "sampledBytes": [10114660, 9214924, -8.895],
+        "sampleCounts": [1212, 1103],
+        "tableSourceSelfBytes": [1806728, 0]
+      },
+      {
+        "shape": "table-large",
+        "command": "noop-equal",
+        "sampledBytes": [11245520, 9478160, -15.716],
+        "sampleCounts": [1351, 1134],
+        "tableSourceSelfBytes": [1371452, 0]
+      },
+      {
+        "shape": "table-large",
+        "command": "public",
+        "sampledBytes": [50333476, 33413128, -33.616],
+        "sampleCounts": [6004, 3962],
+        "tableSourceSelfBytes": [12967056, 377476]
+      },
+      {
+        "shape": "table-large",
+        "command": "native",
+        "sampledBytes": [61033108, 42273660, -30.737],
+        "sampleCounts": [7295, 5015],
+        "tableSourceSelfBytes": [15463848, 311852]
+      }
+    ]
+  },
+  "instrumentedCounters": {
+    "allMatchedBetweenVariantsForEveryEditUndoRedoOrNoopPhase": true,
+    "note": "Separate instrumented observations; not the timing samples. Primary command counters shown; Undo/Redo counters also matched in the raw results.",
+    "primaryCommandColumns": ["shape", "command", "jsonRecordVisits", "structuredPayloadVisits", "childListsRead", "nodeClones", "elementsCreated"],
+    "primaryCommandRows": [
+      ["table-small", "noop-empty", 209, 24, 68, 0, 20],
+      ["table-small", "noop-equal", 209, 24, 68, 0, 20],
+      ["table-small", "public", 490, 43, 170, 2, 48],
+      ["table-small", "native", 730, 73, 366, 4, 59],
+      ["table-large", "noop-empty", 10145, 24, 6404, 0, 2000],
+      ["table-large", "noop-equal", 10145, 24, 6404, 0, 2000],
+      ["table-large", "public", 18292, 43, 13634, 2, 4008],
+      ["table-large", "native", 30952, 73, 22938, 400, 5603]
+    ]
+  },
+  "traceLargeEditWindows": {
+    "columns": ["baselineCount", "baselineDurationMs", "candidateCount", "candidateDurationMs"],
+    "note": "Separate single trace observations. Actual Layout/Paint/UpdateLayoutTree events are recorded; the two-rAF timing endpoint alone proves no paint. Other shapes/commands and Undo/Redo trace windows remain in raw results.",
+    "rows": [
+      {
+        "shape": "table-large",
+        "command": "public",
+        "Layout": [1, 0.565, 1, 0.566],
+        "Paint": [2, 1.44, 2, 1.192],
+        "UpdateLayoutTree": [2, 2.581, 2, 1.971]
+      },
+      {
+        "shape": "table-large",
+        "command": "native",
+        "Layout": [1, 0.806, 1, 0.564],
+        "Paint": [2, 1.608, 2, 1.477],
+        "UpdateLayoutTree": [0, 0, 0, 0]
+      }
+    ]
+  },
+  "boundedMemory": {
+    "sequence": "12 alternating public/native edit-Undo-Redo-reset sequences per variant/shape; one GC before and three GC requests separated by event-loop turns after.",
+    "heapByteColumns": ["before", "after", "afterMinusBefore"],
+    "weakRefCategoryColumns": ["observed", "retained"],
+    "weakRefCategoriesPerCase": {
+      "snapshot:envelope": [60, 0],
+      "snapshot:blocks": [60, 0],
+      "snapshot:data": [60, 0],
+      "snapshot:inline": [60, 0],
+      "transaction:envelope": [48, 0],
+      "transaction:changes": [48, 0],
+      "transaction:before:data": [48, 0],
+      "transaction:before:inline": [48, 0],
+      "transaction:after:data": [48, 0],
+      "transaction:after:inline": [48, 0],
+      "document:envelope": [48, 0],
+      "document:changes": [48, 0],
+      "document:before:data": [48, 0],
+      "document:before:inline": [48, 0],
+      "document:after:data": [48, 0],
+      "document:after:inline": [48, 0],
+      "onChange:envelope": [48, 0],
+      "onChange:blocks": [48, 0],
+      "onChange:data": [48, 0],
+      "onChange:inline": [48, 0]
+    },
+    "rows": [
+      {
+        "variant": "baseline",
+        "shape": "table-small",
+        "iterations": 12,
+        "heapBytes": {
+          "usedSize": [3861844, 4010384, 148540],
+          "totalSize": [4194304, 4980736, 786432],
+          "embedderHeapUsedSize": [1835072, 1999528, 164456],
+          "backingStorageSize": [1758875, 1758875, 0]
+        },
+        "releasedWeakRefObservations": 1008,
+        "retainedReleasedWeakRefObservations": 0,
+        "livePositiveControl": true,
+        "liveFieldControls": 4,
+        "canUndo": false,
+        "canRedo": true
+      },
+      {
+        "variant": "candidate",
+        "shape": "table-small",
+        "iterations": 12,
+        "heapBytes": {
+          "usedSize": [3873000, 4022312, 149312],
+          "totalSize": [4194304, 4980736, 786432],
+          "embedderHeapUsedSize": [1830808, 2023816, 193008],
+          "backingStorageSize": [1760412, 1760412, 0]
+        },
+        "releasedWeakRefObservations": 1008,
+        "retainedReleasedWeakRefObservations": 0,
+        "livePositiveControl": true,
+        "liveFieldControls": 4,
+        "canUndo": false,
+        "canRedo": true
+      },
+      {
+        "variant": "baseline",
+        "shape": "table-large",
+        "iterations": 12,
+        "heapBytes": {
+          "usedSize": [4478148, 4663496, 185348],
+          "totalSize": [5242880, 5505024, 262144],
+          "embedderHeapUsedSize": [4497936, 4874496, 376560],
+          "backingStorageSize": [1796547, 1796547, 0]
+        },
+        "releasedWeakRefObservations": 1008,
+        "retainedReleasedWeakRefObservations": 0,
+        "livePositiveControl": true,
+        "liveFieldControls": 400,
+        "canUndo": false,
+        "canRedo": true
+      },
+      {
+        "variant": "candidate",
+        "shape": "table-large",
+        "iterations": 12,
+        "heapBytes": {
+          "usedSize": [4512752, 4697140, 184388],
+          "totalSize": [5242880, 5767168, 524288],
+          "embedderHeapUsedSize": [4454584, 4830696, 376112],
+          "backingStorageSize": [1798084, 1798084, 0]
+        },
+        "releasedWeakRefObservations": 1008,
+        "retainedReleasedWeakRefObservations": 0,
+        "livePositiveControl": true,
+        "liveFieldControls": 400,
+        "canUndo": false,
+        "canRedo": true
+      }
+    ],
+    "limits": "1008 are WeakRef observations, potentially repeated references, not 1008 distinct objects. Only the listed envelope/changes/data/inline/snapshot roots were observed; not every descendant, long-running lifetime or process RAM. Small positive heap deltas do not prove leaks or establish a memory reduction."
+  },
+  "descriptorReuseProof": {
+    "scope": "Separate real-DOM identity/allocation lower-bound proof at earlier source commits; not latency, heap, RAM or leak evidence for the timing candidate.",
+    "baseline": {
+      "input": "/tmp/rector-table-descriptors-baseline-final.json",
+      "bytes": 720,
+      "sha256": "449878ec50c62fe1803464f2415c7021ff7a8589de65f7f63181a780c5155c47",
+      "kind": "Distinct immutable descriptor return identities; allocation lower bound, no latency or heap claim",
+      "head": "103250966d4ca09723e10449e7640541674ddd24",
+      "sourceSha256": "cb1af7c823d15b74adc7f99eafe762c848f20b4c56730d73880dd95835bde5a9",
+      "runnerSha256": "dc2792a44c865bf82ce0f179f6c3130ad55d6f7a4c9fc5b0518b90bdb801da55",
+      "node": "v24.22.1",
+      "browser": "156.0.8078.47",
+      "observations": [
+        {
+          "rows": 2,
+          "columns": 2,
+          "queries": 100,
+          "distinctReturnedArrays": 100,
+          "distinctReturnedDescriptors": 400
+        },
+        {
+          "rows": 20,
+          "columns": 20,
+          "queries": 100,
+          "distinctReturnedArrays": 100,
+          "distinctReturnedDescriptors": 40000
+        }
+      ]
+    },
+    "candidate": {
+      "input": "/tmp/rector-table-descriptors-candidate-final.json",
+      "bytes": 712,
+      "sha256": "1930c3aef8f34034480ccec394134866d3313467a6f3420c5ad7d240b1ab9341",
+      "kind": "Distinct immutable descriptor return identities; allocation lower bound, no latency or heap claim",
+      "head": "2b88e3c10294db49bdd6af8e75854879dc4a901d",
+      "sourceSha256": "dfd29d71143131aade0648d5d5d3b805bf607080174ad629b923c96de5b87a79",
+      "runnerSha256": "dc2792a44c865bf82ce0f179f6c3130ad55d6f7a4c9fc5b0518b90bdb801da55",
+      "node": "v24.22.1",
+      "browser": "156.0.8078.47",
+      "observations": [
+        {
+          "rows": 2,
+          "columns": 2,
+          "queries": 100,
+          "distinctReturnedArrays": 1,
+          "distinctReturnedDescriptors": 4
+        },
+        {
+          "rows": 20,
+          "columns": 20,
+          "queries": 100,
+          "distinctReturnedArrays": 1,
+          "distinctReturnedDescriptors": 400
+        }
+      ]
+    }
+  },
+  "remaining": ["C09/T15 stays open.", "Large public synchronous p95 rises from 74.2 to 88.6 ms (+19.407%); notification p95 also rises from 81.4 to 90.7 ms.", "Large native synchronous p95 is 100.5 to 100.7 ms; small native synchronous p50 is 3.7 to 4.0 ms.", "Large native render-opportunity p50/p95 improve in this run, but two animation frames do not prove completed paint.", "Do not generalize this one paired session, these two shapes, sampled allocations or bounded retention controls into full performance/parity closure."]
+}

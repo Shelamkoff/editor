@@ -68,6 +68,11 @@ export interface BlockInstanceContext<
    */
   readonly restoring?: boolean
   getData(): Readonly<D>
+  /** Plain text of a canonical schema.mapRichText field, including an unmounted
+   * field. Uses pure inline definition toText callbacks; never mounts widgets.
+   * Successful use also opts this instance into update on sidecar-only changes.
+   */
+  getFieldText(fieldKey: string): string
   updateData(producer: (current: Readonly<D>) => D): void
   commitDomMutation(operation: () => void): void
   beginTask(): DataTask<D>
@@ -83,6 +88,9 @@ export interface BlockInstance<
   readonly element: HTMLElement
   /** Detached candidate membership/order and controls; core owns rich DOM synchronization. */
   read(): D
+  /** Sidecar-only changes also call update for a getFieldText consumer, even
+   * when next and previous data are equal. Absence retains replacement semantics.
+   */
   update?(next: Readonly<D>, previous: Readonly<D>): void
   editableFields?(): readonly EditableField[]
   /** Synchronous derived presentation for one completed, still-owned rich field.
@@ -424,6 +432,11 @@ export interface InlinePluginDefinition<
   readonly styles?: readonly string[]
   readonly trigger?: string
   readonly schema: InlineWidgetSchema<D>
+  /** Pure canonical text without acquiring a widget/provider/DOM lifetime.
+   * Receives an owned, deeply frozen decoded payload and must return a string
+   * synchronously. Its result is neither parsed as HTML nor scanned for tokens.
+   */
+  toText?(data: Readonly<D>): string
   readonly paste?: InlineWidgetPasteCapability<D>
   readonly editing?: InlineWidgetEditCapability<D>
   readonly insertion?: Readonly<{

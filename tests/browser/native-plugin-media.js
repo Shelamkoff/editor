@@ -1,3 +1,8 @@
+import './regressions/person-url-owner-native.js'
+import './regressions/person-roundtrip-renderer-native.js'
+import './regressions/gallery-derived-alt-native.js'
+import './regressions/carousel-caption-native.js'
+import './regressions/native-derived-owner.js'
 import { test, make, editorRoot, blockElement, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, waitForStyles } from './native-input-helpers.js'
 import { createParagraphPlugin, createEmbedPlugin, createImagePlugin, createGalleryPlugin, createCarouselPlugin, createAttachesPlugin, createTogglePlugin, createSpoilerPlugin } from '../../plugins/index.js'

@@ -1,0 +1,353 @@
+{
+  "schemaVersion": 1,
+  "scope": "Gallery stable media view retains rich-field hosts during caption-only public/native/history updates",
+  "base": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+  "productionParent": "4bfb39426744bc0a96725258c06dc9192b58098b",
+  "codePatch": {
+    "path": "gallery.patch.gz",
+    "sha256": "785c60dd4145467534c59a016e42d0b73e226c50582d3e1e26f0bb3c6b50fffa",
+    "changedPaths": [
+      "plugins/gallery/index.js",
+      "plugins/gallery/settings-lifecycle.test.js"
+    ],
+    "decodedSha256": "ef50cfe5cca12509824b74b9b1443659e66b8eb0fa04e91fad04812539e77ce5"
+  },
+  "runs": [
+    {
+      "label": "red",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-ddcoEt",
+      "manifest": "red-manifest.json",
+      "log": "red-native.log.gz",
+      "outcome": "failed",
+      "sourceIdentity": "1391b162ec94ccb6f34ba3c1ffbee9ef31241b66654c99068159dd4c9dd5afa8",
+      "patchSha256": "f481b8d1a44f86266d5d5b339f59ad0680f1518892f00337eaad3877503c6862",
+      "counts": {
+        "cases": 2,
+        "PASS": 0,
+        "FAIL": 2
+      },
+      "gates": {
+        "native": {
+          "outcome": "failed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 1,
+          "signal": null,
+          "startedAt": "2026-10-30T01:07:51.254Z",
+          "finishedAt": "2026-10-30T01:07:54.364Z",
+          "elapsedMs": 3106.609272,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+              "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "green156",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-lJtdCh",
+      "manifest": "green156-manifest.json",
+      "log": "green156-native.log.gz",
+      "outcome": "passed",
+      "sourceIdentity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d",
+      "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+      "counts": {
+        "cases": 2,
+        "PASS": 2,
+        "FAIL": 0
+      },
+      "gates": {
+        "native": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-10-30T01:08:57.755Z",
+          "finishedAt": "2026-10-30T01:09:06.559Z",
+          "elapsedMs": 8801.02597,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+              "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "green142",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-d2OkGb",
+      "manifest": "green142-manifest.json",
+      "log": "green142-native.log.gz",
+      "outcome": "passed",
+      "sourceIdentity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d",
+      "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+      "counts": {
+        "cases": 2,
+        "PASS": 2,
+        "FAIL": 0
+      },
+      "gates": {
+        "native": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-10-30T01:11:41.553Z",
+          "finishedAt": "2026-10-30T01:11:50.755Z",
+          "elapsedMs": 9198.848221999999,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+              "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "unit",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-lV9LDW",
+      "manifest": "unit-manifest.json",
+      "log": "unit-unit.log.gz",
+      "outcome": "passed",
+      "sourceIdentity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d",
+      "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+      "counts": {
+        "tests": 16,
+        "PASS": 16,
+        "FAIL": 0
+      },
+      "gates": {
+        "unit": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "--test",
+            "plugins/gallery/settings-lifecycle.test.js",
+            "plugins/gallery/uploader.failures.test.js",
+            "plugins/gallery/uploader.realm.test.js"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-10-30T01:08:57.766Z",
+          "finishedAt": "2026-10-30T01:08:57.964Z",
+          "elapsedMs": 193.554223,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+              "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "types",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-iodNLP",
+      "manifest": "types-manifest.json",
+      "log": "types-typecheck.log.gz",
+      "outcome": "passed",
+      "sourceIdentity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d",
+      "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+      "counts": {
+        "projects": [
+          "jsconfig.json",
+          "jsconfig.runtime.json"
+        ],
+        "PASS": 2,
+        "FAIL": 0
+      },
+      "gates": {
+        "typecheck": {
+          "outcome": "passed",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-10-30T01:08:57.811Z",
+          "finishedAt": "2026-10-30T01:09:07.498Z",
+          "elapsedMs": 9684.920398,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+              "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "projection",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-RJPVle",
+      "manifest": "projection-manifest.json",
+      "log": "projection-browser.log.gz",
+      "outcome": "passed",
+      "sourceIdentity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d",
+      "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+      "counts": {
+        "cases": 146,
+        "PASS": 146,
+        "FAIL": 0
+      },
+      "gates": {
+        "browser": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-10-30T01:10:09.442Z",
+          "finishedAt": "2026-10-30T01:10:15.705Z",
+          "elapsedMs": 6260.217907,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+              "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+              "EDITOR_NATIVE_FILTER": "Structural authoring gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "media",
+      "originalRun": "/tmp/rector-gallery-field-preservation-20261030/test-results/run-KbdxxW",
+      "manifest": "media-manifest.json",
+      "log": "media-native.log.gz",
+      "outcome": "passed",
+      "sourceIdentity": "f1115f7c1a5f2c4901ce46337e3f26cd603c0c751b40700cf581a47df7cb087d",
+      "patchSha256": "f118476711219393a40e1dd321819438868152c1774825f9bf00bcb900062eb0",
+      "counts": {
+        "cases": 35,
+        "PASS": 35,
+        "FAIL": 0
+      },
+      "gates": {
+        "native": {
+          "outcome": "passed",
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-10-30T01:10:28.455Z",
+          "finishedAt": "2026-10-30T01:10:46.978Z",
+          "elapsedMs": 18519.123828,
+          "environment": {
+            "node": "v24.22.1",
+            "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+            "npm": "11.9.0",
+            "platform": "linux",
+            "architecture": "x64",
+            "release": "6.18.55",
+            "runner": {},
+            "selection": {
+              "EDITOR_NATIVE_PAGE": "native-plugin-media.html",
+              "EDITOR_NATIVE_FILTER": "Gallery",
+              "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "plugins/gallery/index.js",
+      "sha256": "b5d7ef458d6c8367a7a1f7e522b64d4df8d321cd440cc97848af9aaf9985ddf0"
+    },
+    {
+      "path": "plugins/gallery/settings-lifecycle.test.js",
+      "sha256": "ecff111d467d46539da5fe5d9fa84b056850939881e0ec05a2605abf935ac987"
+    },
+    {
+      "path": "tests/browser/native-core-behavior.js",
+      "sha256": "639af09bd82d4ddeb4c7a582638030994d93286d010b6efef64977ea34d9f9e2"
+    },
+    {
+      "path": "tests/browser/structural-authoring-fixture.js",
+      "sha256": "3df5e9baeb0b9c71ad65fcb5dbabac94898f1de29f32fccf47ba70c2d27438f1"
+    },
+    {
+      "path": "core/InlineProjectionRuntime.js",
+      "sha256": "f701071da117a783cb3e1a8cf649d37ba8e875c9d3704dfe25401ce949b8ab05"
+    },
+    {
+      "path": "core/BlockReconciler.js",
+      "sha256": "bd2ba7c972a8f03ebcf18b474eb18b6bb99118d3db3c3a93d21ed18ba5922054"
+    }
+  ],
+  "notes": [
+    "The parent-owned structural fixture and native registration are copied exactly; their archived source makes both stages replayable. They are not duplicated in the scoped production patch.",
+    "The RED is an actual Gallery field replacement on both small and large public caption changes. No candidate exception or classifier is used.",
+    "Each structural PASS executes empty/equal no-op, public update, trusted native input and trusted IME composition, with a single Undo/Redo cycle for each change.",
+    "All GREEN gates share one source identity. Gate elapsed times are verification metadata, not comparative C09 performance evidence.",
+    "Stable-view retention excludes open Gallery dropdowns and structural media/layout/options changes, which keep the existing full-view projection path.",
+    "The earlier Gallery ROUNDTRIP handoff remains unchanged. No general ledger or acceptance row is changed."
+  ]
+}

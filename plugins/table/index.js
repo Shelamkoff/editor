@@ -40,16 +40,12 @@ export function createTablePlugin(config = {}) {
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data,context){
         if(input.key==='Enter'&&!input.shiftKey){
-          const parts=context.splitField(input.fieldKey,input.selection)
           // The nullable shortcut contract rejects a stale/foreign field.
-          // Do not dereference a missing DOM-owned rich-text selection.
-          if(!parts)return null
-          return {
-            kind:'update',
-            data:{...data,rows:data.rows.map(row=>({...row,cells:row.cells.map(cell=>
-              tableFieldKey(row.id,cell.id)===input.fieldKey?{...cell,text:parts.before+'<br>'+parts.after}:cell)}))},
-            focus:{fieldKey:input.fieldKey,offset:input.selection.start+1},
-          }
+          if(!context.splitField(input.fieldKey,input.selection))return null
+          // The existing native line-break owner replaces the logical range
+          // inside its formatting wrappers and preserves atomic inline refs.
+          // Joining split HTML here would move the caret outside those marks.
+          return {kind:'native'}
         }
         if(input.key==='Enter')return {kind:'native'}
         if(input.key!=='Tab')return null
@@ -204,6 +200,9 @@ export function createTablePlugin(config = {}) {
           const rows=new Map()
           const cells=new Map()
           const cellKey=tableFieldKey
+          const emptyFields=Object.freeze([])
+          /** @type {ReadonlyArray<import('../../plugin-kit/types').EditableField>} */
+          let fields=emptyFields
 
           const createRow=rowData=>{
             const row=document.createElement('tr')
@@ -240,30 +239,50 @@ export function createTablePlugin(config = {}) {
             return cell
           }
 
-          const reconcile=next=>{
+          const reconcile=(next,previousCanonical)=>{
+            const previousText=new Map((previousCanonical?.rows??[]).flatMap(row=>
+              row.cells.map(cell=>[cellKey(row.id,cell.id),cell.text])))
             data=cloneData(next)
             wrapper.dataset.headings=String(data.withHeadings)
             const liveRows=new Set()
             const liveCells=new Set()
+            let fieldIndex=0
+            /** @type {Array<import('../../plugin-kit/types').EditableField> | null} */
+            let nextFields=null
             data.rows.forEach((rowData,rowIndex)=>{
               liveRows.add(rowData.id)
               const row=rows.get(rowData.id)??createRow(rowData)
               // Keep existing rows connected when their order is unchanged.
               if(table.children[rowIndex]!==row)table.insertBefore(row,table.children[rowIndex]??null)
               rowData.cells.forEach((cellData,columnIndex)=>{
-                liveCells.add(cellKey(rowData.id,cellData.id))
-                let cell=cells.get(cellKey(rowData.id,cellData.id))??createCell(rowData,cellData,rowIndex)
+                const key=cellKey(rowData.id,cellData.id)
+                liveCells.add(key)
+                let cell=cells.get(key)??createCell(rowData,cellData,rowIndex)
                 // Header cells are positional, not owned by a row identity.
                 // Reconcile tags on every update: insertion, deletion and
                 // reordering can change the first row without toggling the flag.
                 cell=ensureCellTag(rowData,cellData,rowIndex)??cell
                 cell.contentEditable=readOnly?'false':'true'
-                if(cell.innerHTML!==cellData.text){
+                // Hydrated inline roots spell authored placeholders differently.
+                // A sibling with unchanged canonical text already owns its live
+                // children; rewriting it would retire its widgets and range.
+                if(previousText.get(key)!==cellData.text
+                  &&cell.innerHTML!==cellData.text){
                   if(cellData.text)setSanitizedHtml(cell,cellData.text)
                   else cell.textContent=''
                 }
                 // Reparenting an unchanged focused TD/TH collapses the caret.
                 if(row.children[columnIndex]!==cell)row.insertBefore(cell,row.children[columnIndex]??null)
+                // Descriptors depend only on ordered keys and exact hosts.
+                // Reuse this immutable list between updates; core still checks
+                // every returned host's current ownership on each discovery.
+                const previous=fields[fieldIndex]
+                const same=previous?.key===key&&previous.element===cell
+                if(!same)nextFields??=fields.slice(0,fieldIndex)
+                if(nextFields)nextFields.push(same?previous:Object.freeze({
+                  key,element:cell,mode:/** @type {'rich-text'} */('rich-text'),
+                }))
+                fieldIndex++
               })
             })
             for(const [id,cell] of cells){
@@ -276,6 +295,8 @@ export function createTablePlugin(config = {}) {
               row.remove()
               rows.delete(id)
             }
+            if(nextFields)fields=Object.freeze(nextFields)
+            else if(fields.length!==fieldIndex)fields=Object.freeze(fields.slice(0,fieldIndex))
           }
 
           reconcile(data)
@@ -291,31 +312,31 @@ export function createTablePlugin(config = {}) {
                 })),
               })),
             }),
-            update(next){if(!instanceDestroyed)reconcile(next)},
-            editableFields:()=>Object.freeze(data.rows.flatMap(row=>row.cells.flatMap(cell=>{
-              const element=cells.get(cellKey(row.id,cell.id))
-              return element?[Object.freeze({
-                key:tableFieldKey(row.id,cell.id),
-                element,
-                mode:/** @type {'rich-text'} */('rich-text'),
-              })]:[]
-            }))),
+            update(next,previousCanonical){if(!instanceDestroyed)reconcile(next,previousCanonical)},
+            editableFields:()=>fields,
             setReadOnly(value){
               readOnly=value
               for(const cell of cells.values())cell.contentEditable=value?'false':'true'
             },
             focus(target){
               if(instanceDestroyed||readOnly)return
-              const key=target?.fieldKey
-              if(key?.startsWith('cell:')){
-                cells.get(key)?.focus()
-                return
-              }
               const firstRow=data.rows[0]
-              const first=firstRow?.cells[0]?.id
-              if(firstRow&&first)cells.get(cellKey(firstRow.id,first))?.focus()
+              const first=firstRow?.cells[0]
+              const key=target?.fieldKey!==undefined?target.fieldKey:
+                firstRow&&first?cellKey(firstRow.id,first.id):undefined
+              const cell=cells.get(key)
+              if(!cell)return
+              const {rowId,cellId}=cell.dataset
+              // Attributes are lookup hints, never new ownership. A retained
+              // host must still follow its original row/table/instance path.
+              if(typeof rowId!=='string'||typeof cellId!=='string'
+                ||cellKey(rowId,cellId)!==key)return
+              const row=rows.get(rowId)
+              if(!row||cell.parentNode!==row||row.parentNode!==table
+                ||table.parentNode!==wrapper)return
+              cell.focus()
             },
-            destroy(){instanceDestroyed=true;rows.clear();cells.clear()},
+            destroy(){instanceDestroyed=true;rows.clear();cells.clear();fields=emptyFields},
           }
         },
         destroy(){destroyed=true},

@@ -136,10 +136,12 @@ export function createQuotePlugin(config = {}) {
           return {
             element:wrapper,
             read:()=>({text:text.innerHTML.trim(),caption:caption.innerHTML.trim()}),
-            update(next){
+            update(next,previous){
               if(instanceDestroyed) return
-              if(text.innerHTML!==next.text) setSanitizedHtml(text,next.text)
-              if(caption.innerHTML!==next.caption) setSanitizedHtml(caption,next.caption)
+              // Native input can advance the canonical field without calling
+              // update. Hydrated widget HTML is not its persisted token text.
+              if(previous?.text!==next.text&&text.innerHTML!==next.text) setSanitizedHtml(text,next.text)
+              if(previous?.caption!==next.caption&&caption.innerHTML!==next.caption) setSanitizedHtml(caption,next.caption)
             },
             editableFields:()=>Object.freeze([
               Object.freeze({key:'text',element:text,mode:/** @type {'rich-text'} */('rich-text')}),

@@ -1,0 +1,55 @@
+{
+  "cwd": "/tmp/rector-continuation-20261030",
+  "status": "/tmp/rector-continuation-final65.status.json",
+  "stopOnFailure": false,
+  "environment": {
+    "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_V1_ROOT": "/tmp/rector-v1-5e5c7f8",
+    "EDITOR_SPEC_BASELINE_ROOT": "/tmp/rector-e981ff3",
+    "EDITOR_CANDIDATE_ROOT": "/tmp/rector-continuation-20261030",
+    "EDITOR_CANDIDATE_SHA": "9ccae3589fed3cc9f601fdf847654efbdcb1d584",
+    "EDITOR_DEPENDENCIES_ROOT": "/tmp/rector-continuation-20261030/node_modules",
+    "EDITOR_ROUNDTRIP_FILTER": ""
+  },
+  "gates": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ]
+    },
+    {
+      "name": "unit",
+      "command": [
+        "npm",
+        "test"
+      ]
+    },
+    {
+      "name": "declarations",
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ]
+    },
+    {
+      "name": "differential65",
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ]
+    },
+    {
+      "name": "browser",
+      "command": [
+        "npm",
+        "run",
+        "test:browser"
+      ]
+    }
+  ]
+}

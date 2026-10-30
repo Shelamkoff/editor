@@ -1,0 +1,10 @@
+{
+  "testedBase": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+  "standaloneCandidate": "f8f34775cc76964cc3630cce7aeb3d7650859c48",
+  "integratedCandidate": "8d2e37d0c0f7989b5abc6aea03ba722f5dd960e5",
+  "publishedIntegratedCandidate": "5eb0abec1df5be70ff42576f78bf2d2e1ce5ff03",
+  "greenManifest": "run-I0FvVz/manifest.json",
+  "greenTrackedPatchVerified": true,
+  "greenUntrackedFilesVerified": true,
+  "originalControlPatchVerified": true
+}

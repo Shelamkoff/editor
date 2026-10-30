@@ -228,7 +228,8 @@ export function createEditorRuntime(input){
   holder.replaceChildren(root)
 
   const events=new EventBus()
-  const emit=(type,payload)=>emitSafe(events,type,immutableEventPayload(payload),error=>reportDiagnostic('command.failed',`event:${type}`,error))
+  const publishOwned=(type,payload)=>emitSafe(events,type,payload,error=>reportDiagnostic('command.failed',`event:${type}`,error))
+  const emit=(type,payload)=>publishOwned(type,immutableEventPayload(payload))
   const i18n=initI18n(config)
   const configuredInlineTools=config.inlineTools??[]
   let runtime
@@ -311,13 +312,17 @@ export function createEditorRuntime(input){
       complete(()=>interaction?.reconcile(),'interaction')
       complete(()=>toolbar?.refresh(),'toolbar')
       complete(()=>notifier?.schedule(),'change-notifier')
-      complete(()=>emit('transaction:committed',event),'transaction-event')
-      complete(()=>emit('document:changed',{
+      // This callback receives the engine's captured, deeply frozen change
+      // graph and the runtime's frozen history envelope. Share that owned
+      // graph across these notifications; other event sources still capture
+      // through emit(), including shallow-frozen external values.
+      complete(()=>publishOwned('transaction:committed',event),'transaction-event')
+      complete(()=>publishOwned('document:changed',Object.freeze({
         origin:event.origin,
         action:event.action,
         changes:event.changes,
-      }),'document-event')
-      complete(()=>emit('history:changed',event.history),'history-event')
+      })),'document-event')
+      complete(()=>publishOwned('history:changed',event.history),'history-event')
     },
     projectorFactory:({activationResolver,contextFactory,projectPresentation,reportPresentationFailure})=>{
       reconciler=new BlockReconciler({

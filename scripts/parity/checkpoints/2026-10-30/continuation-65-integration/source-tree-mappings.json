@@ -1,0 +1,144 @@
+{
+  "repository": "Shelamkoff/editor",
+  "base": "4bfb39426744bc0a96725258c06dc9192b58098b",
+  "mappings": [
+    {
+      "local": "0a6497733e6efdfe2f919e8e4c3d3f4bd6cf6ba5",
+      "published": "ac3b86ca20c8ccf656734c06a5775dee0a71f2d6",
+      "tree": "0c416dfaebb71784ab4d60de68a7f2ff26f34266",
+      "message": "test(gallery): verify complete preserved roundtrip against both baselines"
+    },
+    {
+      "local": "e9b7410abd93dc2f807b426b3581a00be0e802d6",
+      "published": "a31b7f0f7daaed112119da7455639b9e745e11a2",
+      "tree": "be287d8f0446ec39b3d34e28a8d137b870517173",
+      "message": "fix(person): render detached profile lists before measurement"
+    },
+    {
+      "local": "62b3035a75797301a6b6e16d2ae40dab70057261",
+      "published": "979aa9a92a515a6bc98cdf9a23df836291561085",
+      "tree": "f32dd9dae3c2b59137088660037c7669f62b7e26",
+      "message": "fix(person): retain rendered cards when enabling responsive carousel"
+    },
+    {
+      "local": "37a11d62a6227a4d09d1dd5ee908c71a81d71347",
+      "published": "8e4559c7e527cf0b35e2987798c9a8ad6e8df7fb",
+      "tree": "61d8ebf80c48f681d49c7c4d18466016f69bd0b5",
+      "message": "fix(person): preserve derived tab labels when switching the active card"
+    },
+    {
+      "local": "3d7b71091bfbda4947753b34003b2d3be72ef499",
+      "published": "0041e83ddb5a5fcba85d8cf74838476925509f56",
+      "tree": "a0da1ebf897750cf23e6db53a5f8514572865091",
+      "message": "test(person): verify complete three-source native roundtrip and responsive output"
+    },
+    {
+      "local": "8e126319565101adbdf2058c7c1f4ff6b6d71263",
+      "published": "fa645a3bab60adc3c17ece999057c3146328d001",
+      "tree": "5a271c36bde88445c2d613616e7f9e7a7ecffd5c",
+      "message": "test(person): archive native roundtrip and renderer evidence"
+    },
+    {
+      "local": "87387f85c63e00390854a90f7d761f7a27e684e2",
+      "published": "04e045c48edfd168b64c57d41657c96fb3561896",
+      "tree": "d8d83567d119504de12926b7febe2bbf124b1a53",
+      "message": "perf(events): preserve owned immutable changes through publication"
+    },
+    {
+      "local": "9ecdf10322ced1766d8a6110c99d189a8d5335a7",
+      "published": "44b3fbcbd174d61e91b86e4731ee8a07ad67f1e7",
+      "tree": "14016fe1281355905cfadd9bdcd5d2c582a65021",
+      "message": "fix(structural): retain untouched rich fields during sibling updates"
+    },
+    {
+      "local": "7e213f2183e0598f60d395b47e92a6564bb111d6",
+      "published": "fc433a18c9f033334b44754183d5e2dad7192c0d",
+      "tree": "9ed40d91f4be7e21a1dd3a5047629fb0ab18919a",
+      "message": "test(performance): measure complete structural authoring paths"
+    },
+    {
+      "local": "177efc6e7c2d9d00c33791dd61672d5b8c54500b",
+      "published": "60e8f481e4812f3df321de7a05952ec71cb617e6",
+      "tree": "b08283c299ac7044523e3db3f6acd893e78da4a1",
+      "message": "test(performance): isolate rendering settlement and observe payload collection"
+    },
+    {
+      "local": "525b34a0ac7b228ce34e9aa45ba4ad7e6d922fe6",
+      "published": "56b65b2fad367f7c939489429c7499a19a6cec8a",
+      "tree": "aa1015395d8d3454c5fd039c34fc579f20b83f85",
+      "message": "test(gallery): retain field lifetime regression evidence"
+    },
+    {
+      "local": "9a60deb51a6f1906a9ad4a17080deedc52b2426a",
+      "published": "dc341f3ae036d21753c236f0ede3d53ba5e2397d",
+      "tree": "7cd592398b0e628e192cc38c96b11c542cffc5a3",
+      "message": "fix(carousel): pin verified automatic-height dependency backport"
+    },
+    {
+      "local": "061471080da7438f0f73d09bba8a444e8d9d5bda",
+      "published": "61dad713678bab0c08779f6ad9c1a6f27bf31842",
+      "tree": "2a27d289c52e99e2027294398ea18105db5cc80e",
+      "message": "test(person): verify retired resize work preserves initial profile output"
+    },
+    {
+      "local": "aa14f1884bbd2a3f999feef9ccc30a6c939088de",
+      "published": "fb69ca3c1371d6321f9cc235a928a0ee606fdfce",
+      "tree": "cda92a098943f34e6ec8c6670c894582dff79fcc",
+      "message": "docs: accept bounded Gallery and Person roundtrip preservation"
+    },
+    {
+      "local": "b759016ac33f96f2bde8a2f5e43002083dda8715",
+      "published": "59c3352fe68b1bb058a655ba78d84e5dcb145a48",
+      "tree": "d0f6c330c8bd79eaf3eaf1d6b0ee94a36cf16da7",
+      "message": "test(performance): archive structural traversal timing and memory observations"
+    },
+    {
+      "local": "ff8c1b4ebf11ce637c90d980c94d4ee0f8f9b5a0",
+      "published": "50eccd0d90811cb7692b380eb4e5acb5df4efda9",
+      "tree": "863e4493ad034089db5648209b257e2470bdb0ca",
+      "message": "test(carousel): retain upstream publication and script-free install proof"
+    },
+    {
+      "local": "a34dc793b963f1e0c9698fbf08cfda4f784c66a4",
+      "published": "a245ffedb2183e3853b9111db694e5d60c479620",
+      "tree": "312f9e7cb1fd475a5303a33493ad26ed4a0ceee8",
+      "message": "test(carousel): verify complete mixed-media and rich-caption roundtrip"
+    },
+    {
+      "local": "5d47b50c41203608910c909d02d96c61edf0d3f1",
+      "published": "8c4a23d0bed4367cf29c54babde16c5cfe1831e4",
+      "tree": "196a0c206a7b033db0d20d4256fed4d5744f6f47",
+      "message": "fix(test): stage immutable Git dependencies for offline package consumer"
+    },
+    {
+      "local": "dda3bab6afe710a6c6f656de00886518e0ef8be2",
+      "published": "6b73e5dbc8890d74f59388b6742da3a53db625ef",
+      "tree": "6bf98c2ef0fc4489175304795408805f886b6595",
+      "message": "test(parity): preserve Git package consumer RED and GREEN evidence"
+    },
+    {
+      "local": "6a35ff3b8584bcdf35172eba41482e8dbbdf1a69",
+      "published": "3b4ab0914c86a9ca98afadf2c9fb4b2ab9befc05",
+      "tree": "91c8b2af51f5f42b27e914226e90a1e956361ecf",
+      "message": "test(carousel): preserve auto-height dependency regression evidence"
+    },
+    {
+      "local": "eb710940e7380fb4a425c00cb0118c349be427c1",
+      "published": "63ce5af889de22b6d745b28211e4ea03c293c830",
+      "tree": "785fd71ef34eed7430ef370b9c1eb7bd3135628a",
+      "message": "test(carousel): archive complete roundtrip comparison and native controls"
+    },
+    {
+      "local": "b0daff7a58c5fab13d5fe5c86c20b588c211e96b",
+      "published": "f96f39874afdf18f2024bcad8bccdd821e271a52",
+      "tree": "482e3ab11baa33d7beb9071c742cc72e3f596c67",
+      "message": "test(carousel): retain successful upstream native CI proof"
+    },
+    {
+      "local": "9ccae3589fed3cc9f601fdf847654efbdcb1d584",
+      "published": "92d71b74d34662eb959c7737a4662a9c61aee152",
+      "tree": "49caefb7386d24612c36a86e603cfa634da9c178",
+      "message": "test(parity): identify the local Carousel media in combined proof"
+    }
+  ]
+}

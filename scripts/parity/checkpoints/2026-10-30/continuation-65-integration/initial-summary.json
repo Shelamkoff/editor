@@ -1,0 +1,256 @@
+{
+  "source": {
+    "head": "9ccae3589fed3cc9f601fdf847654efbdcb1d584",
+    "tree": "49caefb7386d24612c36a86e603cfa634da9c178",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "d523370eca81c9d7f28310a031e3e32f0cc5d7b499733d1e8f62949cf4b0a333"
+  },
+  "outcome": "failed",
+  "sourceUnchanged": true,
+  "gates": {
+    "typecheck": {
+      "outcome": "passed",
+      "exitCode": 0,
+      "elapsedMs": 9666.097397000001,
+      "sourceUnchanged": true
+    },
+    "unit": {
+      "outcome": "passed",
+      "exitCode": 0,
+      "elapsedMs": 21344.239776000002,
+      "sourceUnchanged": true
+    },
+    "declarations": {
+      "outcome": "passed",
+      "exitCode": 0,
+      "elapsedMs": 9562.138751,
+      "sourceUnchanged": true
+    },
+    "differential65": {
+      "outcome": "passed",
+      "exitCode": 0,
+      "elapsedMs": 151228.21036199998,
+      "sourceUnchanged": true
+    },
+    "browser": {
+      "outcome": "failed",
+      "exitCode": 1,
+      "elapsedMs": 740482.362574,
+      "sourceUnchanged": true
+    }
+  },
+  "differential": {
+    "selectedCases": 65,
+    "mediaSha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75",
+    "sources": {
+      "v1": {
+        "cases": 65,
+        "observations": 11258,
+        "failures": 1156,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errorCounts": {
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0
+        }
+      },
+      "spec-baseline": {
+        "cases": 65,
+        "observations": 8043,
+        "failures": 183,
+        "unexpectedFailures": 0,
+        "incompleteCases": 21,
+        "errorCounts": {
+          "errors": 1,
+          "pageErrors": 1,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0
+        }
+      },
+      "candidate": {
+        "cases": 65,
+        "observations": 11458,
+        "failures": 0,
+        "unexpectedFailures": 0,
+        "incompleteCases": 0,
+        "errorCounts": {
+          "errors": 0,
+          "pageErrors": 0,
+          "unexpectedErrors": 0,
+          "unexpectedPageErrors": 0
+        }
+      }
+    }
+  },
+  "browser": {
+    "ordinaryPages": [
+      "harness-contract.html",
+      "mode-recovery.html",
+      "scoped-authority.html",
+      "formatting-correspondence.html",
+      "script-panel.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html",
+      "projection-contracts.html",
+      "optional-inline-update.html",
+      "inline-pattern-transfer.html",
+      "toolbar-keyboard.html",
+      "public-extension-contracts.html",
+      "poll-state-contracts.html",
+      "presentation-recovery.html"
+    ],
+    "completedNamedNativePages": [
+      {
+        "page": "native-conversion-grouping.html",
+        "passed": 88
+      },
+      {
+        "page": "native-conversion-preservation.html",
+        "passed": 53
+      },
+      {
+        "page": "native-interaction-sequences.html",
+        "passed": 39
+      },
+      {
+        "page": "native-retained-tools.html",
+        "passed": 64
+      },
+      {
+        "page": "native-conversion-continuations.html",
+        "passed": 65
+      },
+      {
+        "page": "native-font-cancel.html",
+        "passed": 58
+      },
+      {
+        "page": "native-background-cancel.html",
+        "passed": 36
+      },
+      {
+        "page": "native-link-cancel.html",
+        "passed": 36
+      },
+      {
+        "page": "native-panel-keyboard.html",
+        "passed": 36
+      },
+      {
+        "page": "native-source-indentation.html",
+        "passed": 50
+      },
+      {
+        "page": "native-source-modes.html",
+        "passed": 61
+      },
+      {
+        "page": "native-config-snapshot.html",
+        "passed": 30
+      },
+      {
+        "page": "native-poll-runtime.html",
+        "passed": 26
+      },
+      {
+        "page": "native-library-boundaries.html",
+        "passed": 42
+      },
+      {
+        "page": "native-instance-methods.html",
+        "passed": 8
+      },
+      {
+        "page": "native-color-popup.html",
+        "passed": 8
+      },
+      {
+        "page": "native-color-popup-trusted.html",
+        "passed": 8
+      },
+      {
+        "page": "native-mention-popup.html",
+        "passed": 64
+      },
+      {
+        "page": "native-audit-edges.html",
+        "passed": 21
+      },
+      {
+        "page": "native-audit-poll.html",
+        "passed": 4
+      },
+      {
+        "page": "native-audit-hidden-fields.html",
+        "passed": 4
+      },
+      {
+        "page": "native-audit-recheck.html",
+        "passed": 49
+      },
+      {
+        "page": "native-structural.html",
+        "passed": 21
+      },
+      {
+        "page": "native-cross-selection.html",
+        "passed": 42
+      },
+      {
+        "page": "native-core-behavior.html",
+        "passed": 66
+      }
+    ],
+    "completedNamedNativeCases": 979,
+    "failedPage": "native-plugin-parity.html",
+    "failedPageCases": 231,
+    "failedPagePassed": 228,
+    "failedPageFailures": [
+      {
+        "name": "Gallery retired controls cannot mutate current authoring data after a view refresh",
+        "status": "FAIL",
+        "error": "Error: Gallery did not retire the former view\n    at assert (http://127.0.0.1:33843/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:33843/tests/browser/native-plugin-parity.js:1250:3\n    at async run (http://127.0.0.1:33843/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33843/tests/browser/native-plugin-parity.js:2200:1"
+      },
+      {
+        "name": "Gallery regenerated view clears an interrupted image drag",
+        "status": "FAIL",
+        "error": "Error: old image drag prevented a fresh file drop after Gallery projection\n    at assert (http://127.0.0.1:33843/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:33843/tests/browser/native-plugin-parity.js:1562:3\n    at async run (http://127.0.0.1:33843/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33843/tests/browser/native-plugin-parity.js:2200:1"
+      },
+      {
+        "name": "Gallery retired settings controls cannot mutate refreshed canonical data",
+        "status": "FAIL",
+        "error": "Error: Gallery full projection did not retire its previous settings\n    at assert (http://127.0.0.1:33843/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:33843/tests/browser/native-plugin-parity.js:2109:3\n    at async run (http://127.0.0.1:33843/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:33843/tests/browser/native-plugin-parity.js:2200:1"
+      }
+    ],
+    "heap": "not run",
+    "uncompletedIncludingFailedNamedNativePages": 10,
+    "notRunNamedNativePages": 9
+  }
+}

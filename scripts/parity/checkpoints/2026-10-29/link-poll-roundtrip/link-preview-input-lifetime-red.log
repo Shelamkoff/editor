@@ -1,0 +1,42 @@
+✔ LinkPreview preserves an unfinished URL and its original debounce across template updates (8.315646ms)
+✔ LinkPreview preserves a native-committed URL when later metadata is updated (0.910567ms)
+✔ LinkPreview rejects stale URL drafts when host replaces the canonical source (0.658298ms)
+✔ LinkPreview read-only transition revokes a pending URL draft (0.572317ms)
+✔ LinkPreview late metadata cannot overwrite a newer host title for the same URL (1.35757ms)
+✔ LinkPreview cancels an obsolete metadata request after host replaces its URL (1.739343ms)
+✖ LinkPreview retires a task if authority is revoked during metadata snapshot (1.028257ms)
+✔ LinkPreview initial metadata microtask does not restart an already-submitted new URL (0.961793ms)
+✔ LinkPreview initial metadata loads once when the original URL is unchanged (4.28428ms)
+✔ LinkPreview initial enrichment is skipped after the host supplies metadata (1.357121ms)
+✔ LinkPreview restored history projection never restarts initial metadata enrichment (1.028257ms)
+✔ LinkPreview does not submit transient IME text on Enter, change, or the debounce timer (0.589279ms)
+✔ LinkPreview cancels an old URL timer when IME composition begins (1.248368ms)
+✔ LinkPreview ignores composing input even when compositionstart was not observed (0.698282ms)
+✔ LinkPreview late metadata cannot overwrite a host field after an ABA host edit (0.699714ms)
+✔ LinkPreview late metadata cannot overwrite a title restored to its request baseline (1.702685ms)
+✔ LinkPreview explicit URL submission requests one guarded history continuation (0.800382ms)
+✔ LinkPreview automatic initial metadata is not attached to unrelated history (0.687472ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 17
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40.537919
+
+✖ failing tests:
+
+test at plugins/link-preview/input-lifetime.test.js:319:1
+✖ LinkPreview retires a task if authority is revoked during metadata snapshot (1.028257ms)
+  Error: revoked during task acquisition
+      at Object.getData (file:///tmp/rector-roundtrip-link-poll-1547/plugins/link-preview/input-lifetime.test.js:145:15)
+      at commitUrl (file:///tmp/rector-roundtrip-link-poll-1547/plugins/link-preview/index.js:297:36)
+      at input.addEventListener.signal (file:///tmp/rector-roundtrip-link-poll-1547/plugins/link-preview/index.js:342:15)
+      at FakeElement.dispatch (file:///tmp/rector-roundtrip-link-poll-1547/plugins/link-preview/input-lifetime.test.js:89:67)
+      at TestContext.<anonymous> (file:///tmp/rector-roundtrip-link-poll-1547/plugins/link-preview/input-lifetime.test.js:324:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)

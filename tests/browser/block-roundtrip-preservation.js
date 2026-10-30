@@ -6,7 +6,7 @@ for (const specification of blockRoundtripCases) test(`Block roundtrip different
   const result = await runBlockRoundtripCase(specification, {
     sourceBase: new URL('../../', import.meta.url).href,
     focusField: clickNative,
-    typeText: printable,
+    typeText: async text => { for (const character of text) await printable(character) },
     shortcut: action => dispatchKey('z', 'KeyZ', 90, action === 'redo' ? 10 : 2),
   })
   equal(result.failures, [], 'Public block roundtrip changed content, presentation, history or ownership')

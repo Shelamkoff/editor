@@ -1,0 +1,145 @@
+{
+  "scope": "Bounded Person structural controls and first hidden URL focus; no new production repair or preservation-row acceptance.",
+  "base": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+  "baseTree": "2eef70961d69c1721cd04f73c8d2f3e9c8a4a53f",
+  "testCommit": "34db74cace859d7c89af59448baaa6e21ffac45f",
+  "testTree": "463153be0f93aa285b6b640d14bd77eceeb38773",
+  "testSourcePatchSha256": "3295b45a483b667abd25a387034489e0ceedc4a548cc239c343ae9cff62cbf5c",
+  "productionChanged": false,
+  "native": {
+    "run": "run-5VyFsq",
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "cleanSource": true,
+    "passed": 26,
+    "newCases": 6,
+    "failures": 0
+  },
+  "reference": {
+    "run": "run-FghSUs",
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "candidatePassed": true,
+    "runnerSha256": "007c6733430b82c0585142490338f09dc63c31db29529532d728d3c0ea395fd2",
+    "fixtureSha256": "857c739d961f2482f46c1dff9e9520893145e16de663a861daafe40b2ae8eba3",
+    "browser": "156.0.8078.47",
+    "node": "v24.22.1",
+    "dependencyFiles": 22,
+    "sources": [
+      {
+        "source": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "loadedFiles": 108,
+        "cases": 3,
+        "observations": 85,
+        "rawFailures": 14,
+        "pageErrors": 0,
+        "failuresByCase": {
+          "PERSON_CARDS/literal-remove": [
+            {
+              "phase": "remove",
+              "property": "keyboardOwnerAfterAction"
+            },
+            {
+              "phase": "undo-action",
+              "property": "canonicalRecords"
+            },
+            {
+              "phase": "undo-action",
+              "property": "history"
+            },
+            {
+              "phase": "undo-edit",
+              "property": "canonicalRecords"
+            },
+            {
+              "phase": "undo-edit",
+              "property": "history"
+            },
+            {
+              "phase": "redo-edit",
+              "property": "canonicalRecords"
+            },
+            {
+              "phase": "redo-edit",
+              "property": "history"
+            }
+          ],
+          "PERSON_CARDS/literal-reorder": [],
+          "PERSON_CARDS/literal-add": [
+            {
+              "phase": "add",
+              "property": "keyboardOwnerAfterAction"
+            },
+            {
+              "phase": "undo-action",
+              "property": "canonicalRecords"
+            },
+            {
+              "phase": "undo-action",
+              "property": "history"
+            },
+            {
+              "phase": "undo-edit",
+              "property": "canonicalRecords"
+            },
+            {
+              "phase": "undo-edit",
+              "property": "history"
+            },
+            {
+              "phase": "redo-edit",
+              "property": "canonicalRecords"
+            },
+            {
+              "phase": "redo-edit",
+              "property": "history"
+            }
+          ]
+        }
+      },
+      {
+        "source": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "loadedFiles": 99,
+        "cases": 3,
+        "observations": 86,
+        "rawFailures": 0,
+        "pageErrors": 0,
+        "failuresByCase": {
+          "PERSON_CARDS/literal-remove": [],
+          "PERSON_CARDS/literal-reorder": [],
+          "PERSON_CARDS/literal-add": []
+        }
+      },
+      {
+        "source": "candidate",
+        "sha": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+        "loadedFiles": 99,
+        "cases": 3,
+        "observations": 86,
+        "rawFailures": 0,
+        "pageErrors": 0,
+        "failuresByCase": {
+          "PERSON_CARDS/literal-remove": [],
+          "PERSON_CARDS/literal-reorder": [],
+          "PERSON_CARDS/literal-add": []
+        }
+      }
+    ],
+    "serverErrors": [],
+    "historicalClassification": "Raw differences retained, no automated classifiers; success status applies to candidate controls and source-byte verification only."
+  },
+  "limits": [
+    "Chrome156/Linux only.",
+    "Three fixed profiles; active middle removal and first-to-last reorder.",
+    "No comprehensive avatar, URL-provider, last-profile, overflow, keyboard activation, mode or renderer action matrix.",
+    "Literal actions only in this three-source comparison; current widgets have separate native controls.",
+    "Full BLOCK_PERSON_CARDS/BLOCK_PERSON_HIDDEN_FOCUS acceptance and whole-library parity remain open."
+  ],
+  "exploratory": {
+    "run": "run-lOS0vr",
+    "outcome": "failed",
+    "reason": "Wrong installed Playwright path before browser launch; corrected environment, unchanged runner/fixture; not a product RED."
+  }
+}

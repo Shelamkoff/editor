@@ -1,0 +1,25 @@
+{
+  "purpose": "Identical runtime/test assertions with the exact allowed CDN EventBus response supplied by a test-only network route. TLS remains enabled; production sources and original tests are unchanged. Native CDN smoke is separately recorded as environment-blocked.",
+  "cdn": "https://cdn.jsdelivr.net/npm/@shelamkoff/event-bus@1.0.0/+esm",
+  "cachedResponse": "/tmp/rector-carousel-cdn-event-bus-1.0.0.mjs",
+  "cachedResponseSha256": "191adc7ff085945a0f70c2fb2e802e822fed8c842903146f51637147398d98d7",
+  "cachedResponseBytes": 1583,
+  "files": {
+    "auto-height.spec.mjs": {
+      "original": "/tmp/rector-carousel-master-autoheight-20261030/tests/browser/auto-height.spec.mjs",
+      "originalSha256": "6e79ea813956d78089346d5aebfe34fb072c4b4410670f05b6b0ae90ccef8c06",
+      "transportCopy": "/tmp/rector-carousel-master-cdn-fixture-20261030/tests/auto-height.spec.mjs",
+      "transportCopySha256": "8e005c08d443ad51a74a8b38c8eebc8f6e217032a9111ccd87c01b31c700f2a5"
+    },
+    "smoke.spec.mjs": {
+      "original": "/tmp/rector-carousel-master-autoheight-20261030/tests/browser/smoke.spec.mjs",
+      "originalSha256": "caa67e8fd13947e85be260ca0af27155bcc2039581247ebe1f4f209171d2699e",
+      "transportCopy": "/tmp/rector-carousel-master-cdn-fixture-20261030/tests/smoke.spec.mjs",
+      "transportCopySha256": "b8fd728baabaf03f628ae3334e66338860b19f1ba076948b442f0bd56144cca0"
+    }
+  },
+  "prefix": "import { readFileSync } from 'node:fs'\nconst cachedEventBus = readFileSync('/tmp/rector-carousel-cdn-event-bus-1.0.0.mjs')\ntest.beforeEach(async ({ page }) => {\n  await page.route('https://cdn.jsdelivr.net/npm/@shelamkoff/event-bus@1.0.0/+esm', route => route.fulfill({\n    status: 200, contentType: 'application/javascript; charset=utf-8',\n    headers: { 'access-control-allow-origin': '*' }, body: cachedEventBus,\n  }))\n})\n",
+  "prefixSha256": "90a28cd4e4999e2abaa155c7ec9643a58fa104c06c7aa7895ad1198b40607067",
+  "config": "/tmp/rector-carousel-master-autoheight-cached-test.config.mjs",
+  "configSha256": "def4eecb27a4e4f4a46992aa059ede0205629ad5f631b70b50323deba8164744"
+}

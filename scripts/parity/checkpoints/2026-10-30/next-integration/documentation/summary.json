@@ -1,0 +1,245 @@
+{
+  "run": "run-OjMZrE",
+  "outcome": "passed",
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-30T08:45:01.108Z",
+  "source": {
+    "head": "d38d84f1fad9a0242c3af4bac59cc55539592b7b",
+    "tree": "ff76ccf5ff6b06538baa4d3f96dfa119d1bda100",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "816bd59887c2e3312b26ccc2e2aa003929b54a7420bd7bd341b55a06e0dafb5b"
+  },
+  "publishedSource": {
+    "local": "d38d84f1fad9a0242c3af4bac59cc55539592b7b",
+    "published": "accfd5726e9435b497874bfad36cdcf5e09a6341",
+    "tree": "ff76ccf5ff6b06538baa4d3f96dfa119d1bda100",
+    "message": "docs: use canonical guide routes for field text cross-links"
+  },
+  "gates": {
+    "package-docs-build": "passed",
+    "docs": "passed",
+    "docs-build": "passed"
+  },
+  "productionUnchangedSinceCodeVerification": true,
+  "laterChangedFiles": [
+    "RECTOR_V2_IMPLEMENTATION_PROGRESS.md",
+    "RECTOR_V2_PROGRESS_2026-10-29.md",
+    "docs/architecture/rector-v2/PRESERVATION.md",
+    "docs/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "docs/guide/extensions.md",
+    "docs/guide/inline-extensions.md",
+    "docs/ru/architecture/rector-v2/PRESERVATION.md",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "docs/ru/guide/extensions.md",
+    "docs/ru/guide/inline-extensions.md",
+    "inline-plugins/README.md",
+    "inline-plugins/README.ru.md",
+    "plugins/person/README.md",
+    "plugins/person/README.ru.md",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/README.md",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/classifier-controls.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/documentation-checks.json",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/executed-fix-and-proof.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/final-three-source.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/fixture-initial.js.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/fixture-supported-unclassified.js.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/fixture-underline-oracle.js.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/gallery-unit-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/hash-index.json",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/literal-drag-red.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-caption-order-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-drag-focused-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-drag-full-green.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/native-drag-red.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/runner-unclassified.mjs.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/source-facts.json",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/supported-unclassified.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order-evidence/unsupported-underline-oracle.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/gallery-caption-order.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/README.md",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/canonical-read-work-isolated.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/canonical-read-work-negative-control.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/canonical-read-work.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/invocation.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/paired-samples.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/performance-summary.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/raw-results-archive.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/run-manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/structural-results.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-core-integration/structural.log",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/README.md",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/artifact-hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-SfXrAc/README.md",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-SfXrAc/docs.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-SfXrAc/hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-SfXrAc/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-SfXrAc/package-docs-build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-UvzzqM/README.md",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-UvzzqM/docs-build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-UvzzqM/docs.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-UvzzqM/hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-UvzzqM/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-UvzzqM/package-docs-build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-Ykk6Lb/README.md",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-Ykk6Lb/docs-build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-Ykk6Lb/docs.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-Ykk6Lb/hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-Ykk6Lb/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-Ykk6Lb/package-docs-build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-oTlMzN/README.md",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-oTlMzN/docs.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-oTlMzN/hashes.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-oTlMzN/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/documentation/failed-run-oTlMzN/package-docs-build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/browser.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/build.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/differential.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/gallery-differential.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/package.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/types.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/run-sWvJG9/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/source-tree-mappings.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/verification-summary.json",
+    "scripts/parity/checkpoints/2026-10-30/next-integration/verification-supervisor.py",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/README.md",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/environment/vite-launcher.mjs",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/environment/vite.config.mjs",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/canonical-field-text.js",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/native.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/projection.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/source.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/typecheck.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/types.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/green/unit.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/hash-index.json",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/red/browser-projection-contracts.html.json.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/red/fixture.js",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/red/manifest.json",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/red/projection.log.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/red/source.patch.gz",
+    "scripts/parity/checkpoints/2026-10-30/person-field-text/summary.json",
+    "scripts/parity/gallery-caption-order.md"
+  ],
+  "productionDocumentationResults": [
+    {
+      "localizedReadmePairs": 47
+    },
+    {
+      "readmes": 47,
+      "htmlPages": 127,
+      "brokenLinks": 0,
+      "npmSiteLeak": false
+    },
+    {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  ],
+  "retainedFailedRuns": [
+    "run-oTlMzN",
+    "run-SfXrAc",
+    "run-UvzzqM",
+    "run-Ykk6Lb"
+  ]
+}

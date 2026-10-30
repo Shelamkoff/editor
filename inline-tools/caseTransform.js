@@ -1,9 +1,7 @@
 import { closestBlock } from '../shared/editorDom.js'
-import { editableAtBoundary, isAuthoredEditableText } from '../shared/editableFields.js'
-import { createSelectionPortBinding } from './utils.js'
-import { editableTextWalker, getTextOffset } from '../shared/textOffset.js'
-
-const ELEMENT_NODE = 1
+import { editableAtBoundary } from '../shared/editableFields.js'
+import { createSelectionPortBinding, collectTextTargets, getWalkRoot } from './utils.js'
+import { getTextOffset } from '../shared/textOffset.js'
 
 // Tabler: letter-case-toggle
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 15.5v-7a2.5 2.5 0 0 1 5 0v7"/><path d="M6.5 12h5"/><path d="M15 15.5v-3.5a2 2 0 1 1 4 0v3.5"/></svg>'
@@ -92,27 +90,11 @@ export function createCaseTransformTool(label) {
         ? editableAtBoundary(endBlock, range.endContainer, range.endOffset)?.element : null
       let endDelta = 0
 
-      // Collect only text nodes clipped to range boundaries
-      const ancestor = range.commonAncestorContainer
-      const walkParent = ancestor.nodeType === ELEMENT_NODE
-        ? /** @type {HTMLElement} */ (ancestor)
-        : ancestor.parentElement
+      // Use the same authored host boundaries as other text-formatting tools.
+      const walkParent = getWalkRoot(range)
       if (!walkParent) return
-
-      const walker = editableTextWalker(walkParent)
-      /** @type {{ node: Text, start: number, end: number }[]} */
-      const targets = []
-
-      while (walker.nextNode()) {
-        const node = /** @type {Text} */ (walker.currentNode)
-        if (!range.intersectsNode(node) || !isAuthoredEditableText(node)) continue
-        let start = 0
-        let end = node.length
-        if (node === range.startContainer) start = range.startOffset
-        if (node === range.endContainer) end = range.endOffset
-        if (start >= end) continue
-        targets.push({ node, start, end })
-      }
+      const targets = collectTextTargets(walkParent, range)
+        .map(({ node, startOffset, endOffset }) => ({ node, start: startOffset, end: endOffset }))
 
       // Decide using exactly the editable fragments we will transform. Widget
       // labels participate in Range.toString(), but are not authored text.

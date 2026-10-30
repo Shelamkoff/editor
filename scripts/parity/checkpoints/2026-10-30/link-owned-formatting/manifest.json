@@ -1,0 +1,56 @@
+{
+  "sourceCommit": "bd9fa8a5f3457e7fa8d318ea920927bb11d45e96",
+  "files": {
+    "red.log.gz": {
+      "sha256": "05560f35ddc795e1e699af0996fdd59203ccd5dd3731eea60bf293742e767ba9",
+      "decodedSha256": "68d36e447c29e8d71448e3a4aa0e134e7ba432f1cc8939d27d96b9910941b1c3",
+      "decodedBytes": 2441
+    },
+    "expanded-red.log.gz": {
+      "sha256": "29a107bfcb3ab80339eb3ba3d482b59039d85864e290c20486d6ef0ea7e04f27",
+      "decodedSha256": "98e3ad4c50ba86c874ece8bfe93af9bc4af402d67487c1e14828f17f81c96a9d",
+      "decodedBytes": 4287
+    },
+    "expanded-green.log.gz": {
+      "sha256": "e52ca9ee0672e73649f56565fc10ffd216028d01923c3d1444e4d67566cd469b",
+      "decodedSha256": "af853af21abaccca2e69ae53214ed1d1b22f1efd6d1bbe49342fae99620ac714",
+      "decodedBytes": 895
+    },
+    "final-green.log.gz": {
+      "sha256": "e52ca9ee0672e73649f56565fc10ffd216028d01923c3d1444e4d67566cd469b",
+      "decodedSha256": "af853af21abaccca2e69ae53214ed1d1b22f1efd6d1bbe49342fae99620ac714",
+      "decodedBytes": 895
+    },
+    "unit.log.gz": {
+      "sha256": "501bc91edf4faaa76c3fd0d2570392a2028187a46035f29d57977cf41824097c",
+      "decodedSha256": "0ec321ff084022eb0c067e2a64f36eeffec09ba6789ac93ee26f106f861f7d73",
+      "decodedBytes": 1808
+    },
+    "typecheck.log.gz": {
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "decodedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "decodedBytes": 259
+    },
+    "three-source.json.gz": {
+      "sha256": "4df768c76a9f57d7c19f0ab7dd8b20d41a04c7282407f3045b31342344a61ad1",
+      "decodedSha256": "26b03185021032fad078e443e24e695cb9f49e9da3185b1f2f36d7de716c3cac",
+      "decodedBytes": 41264
+    },
+    "three-source.stderr.gz": {
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "native-tools-final.log.gz": {
+      "sha256": "5e95209836cba9470558010460ded688e5785ffe742c1c60d51fd8c87dbd5e7f",
+      "decodedSha256": "d560ccc8e6386b3920049bb9f38901b1da79afe83b2199b51dddeba07a2e4d00",
+      "decodedBytes": 10470
+    },
+    "native-tools-final-manifest.json.gz": {
+      "sha256": "e9ef32e29376a7475c6dc30d3798656e7f06fa6ba54396184a9a3a59a32974ba",
+      "decodedSha256": "44245dd9912431648ccd37efe6c8aee859897191bf4e974ebf1fca9fbe36d3c5",
+      "decodedBytes": 484
+    }
+  },
+  "sourceTree": "0aecc3f777e08349531741816ff056f6f92407f9"
+}

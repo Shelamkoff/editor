@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-third-person-20261030",
+  "startedAt": "2026-10-30T09:07:12.999Z",
+  "finishedAt": "2026-10-30T09:07:28.480Z",
+  "outcome": "passed",
+  "source": {
+    "head": "34db74cace859d7c89af59448baaa6e21ffac45f",
+    "tree": "463153be0f93aa285b6b640d14bd77eceeb38773",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "89e5ba4ace5652b03956954ebc5cfdba293b618bda18b872aafd82a564d60248"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+      "EDITOR_NATIVE_FILTER": "Person",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+    }
+  },
+  "context": {},
+  "gates": {
+    "person-native": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T09:07:13.310Z",
+      "finishedAt": "2026-10-30T09:07:28.363Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-third-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+          "EDITOR_NATIVE_FILTER": "Person",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "34db74cace859d7c89af59448baaa6e21ffac45f",
+        "tree": "463153be0f93aa285b6b640d14bd77eceeb38773",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "89e5ba4ace5652b03956954ebc5cfdba293b618bda18b872aafd82a564d60248"
+      },
+      "elapsedMs": 15050.681368,
+      "sourceAfter": {
+        "head": "34db74cace859d7c89af59448baaa6e21ffac45f",
+        "tree": "463153be0f93aa285b6b640d14bd77eceeb38773",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "89e5ba4ace5652b03956954ebc5cfdba293b618bda18b872aafd82a564d60248"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "34db74cace859d7c89af59448baaa6e21ffac45f",
+    "tree": "463153be0f93aa285b6b640d14bd77eceeb38773",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "89e5ba4ace5652b03956954ebc5cfdba293b618bda18b872aafd82a564d60248"
+  },
+  "sourceUnchanged": true
+}

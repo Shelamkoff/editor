@@ -250,11 +250,12 @@ test('Gallery settings listeners are revoked with the block owner', () => {
   assert.equal(h.changes.length, 0)
 })
 
-test('Gallery reprojects an undone caption even when it equals stale local text', () => {
+test('Gallery retains declared caption hosts when history changes their canonical text', () => {
   const h = setup()
   try {
     const caption = () => h.instance.element.querySelector('.oe-gallery__slot-caption')
     const retained = caption()
+    const fields = h.instance.editableFields()
     assert.ok(retained, 'Gallery fixture has no mounted caption')
     retained.innerHTML = 'Native authored text'
     const beforeUndo = {
@@ -264,10 +265,12 @@ test('Gallery reprojects an undone caption even when it equals stale local text'
     }
     const restored = structuredClone(h.model())
     h.instance.update(restored, beforeUndo)
-    assert.notEqual(caption(), retained,
-      'Gallery treated Undo as an unchanged caption by using stale plugin-local data')
-    assert.equal(caption()?.innerHTML, '',
-      'Gallery model restored empty caption but DOM still displayed native text')
+    assert.equal(caption(), retained,
+      'Canonical caption projection must retain the declared author host')
+    assert.deepEqual(h.instance.editableFields().map(field => field.element), fields.map(field => field.element),
+      'A caption history change detached an unaffected sibling field')
+    // The real structural native/public fixture verifies the restored text,
+    // widgets and history after core completes these mounted rich fields.
   } finally { h.destroy() }
 })
 

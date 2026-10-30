@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-third-person-20261030",
+  "startedAt": "2026-10-30T09:05:24.837Z",
+  "finishedAt": "2026-10-30T09:05:26.350Z",
+  "outcome": "failed",
+  "source": {
+    "head": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+    "tree": "2eef70961d69c1721cd04f73c8d2f3e9c8a4a53f",
+    "patchSha256": "f9c5b1d653feacec0ccdcbf0d83baa2fa824aa8f552ececbb87747a15f8425f7",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/person-cards-native.js",
+        "mode": 33188,
+        "sha256": "2cc045dd37bb2cf8a8f9cccd3586a96915886d073683185cc8168547afc22704"
+      }
+    ],
+    "dirty": true,
+    "identity": "98f0a8be99382ba41a204c1afed0b0d6cb9a205e11e21490872a48a2a9efe801"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "reference": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T09:05:25.709Z",
+      "finishedAt": "2026-10-30T09:05:25.824Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "/tmp/rector-person-cards-reference.mjs"
+      ],
+      "cwd": "/tmp/rector-third-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+        "tree": "2eef70961d69c1721cd04f73c8d2f3e9c8a4a53f",
+        "patchSha256": "f9c5b1d653feacec0ccdcbf0d83baa2fa824aa8f552ececbb87747a15f8425f7",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/person-cards-native.js",
+            "mode": 33188,
+            "sha256": "2cc045dd37bb2cf8a8f9cccd3586a96915886d073683185cc8168547afc22704"
+          }
+        ],
+        "dirty": true,
+        "identity": "98f0a8be99382ba41a204c1afed0b0d6cb9a205e11e21490872a48a2a9efe801"
+      },
+      "elapsedMs": 110.59358299999997,
+      "sourceAfter": {
+        "head": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+        "tree": "2eef70961d69c1721cd04f73c8d2f3e9c8a4a53f",
+        "patchSha256": "f9c5b1d653feacec0ccdcbf0d83baa2fa824aa8f552ececbb87747a15f8425f7",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/person-cards-native.js",
+            "mode": 33188,
+            "sha256": "2cc045dd37bb2cf8a8f9cccd3586a96915886d073683185cc8168547afc22704"
+          }
+        ],
+        "dirty": true,
+        "identity": "98f0a8be99382ba41a204c1afed0b0d6cb9a205e11e21490872a48a2a9efe801"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+    "tree": "2eef70961d69c1721cd04f73c8d2f3e9c8a4a53f",
+    "patchSha256": "f9c5b1d653feacec0ccdcbf0d83baa2fa824aa8f552ececbb87747a15f8425f7",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/person-cards-native.js",
+        "mode": 33188,
+        "sha256": "2cc045dd37bb2cf8a8f9cccd3586a96915886d073683185cc8168547afc22704"
+      }
+    ],
+    "dirty": true,
+    "identity": "98f0a8be99382ba41a204c1afed0b0d6cb9a205e11e21490872a48a2a9efe801"
+  },
+  "sourceUnchanged": true
+}

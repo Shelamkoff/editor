@@ -1,0 +1,16 @@
+{
+  "job.log.gz": {
+    "sha256": "3dfd94bee7963c58eb3deb154e2ee138a8ceda0e3f0b099553766508f807f796",
+    "rawSha256": "4a610f65e218a82473cb636b88eab83491e4822cc4d721c2927561980e2b3672",
+    "bytes": 11657,
+    "rawBytes": 55034
+  },
+  "ci-result.json": {
+    "sha256": "69f4a494134d2fdedef37a402b07b331a55bdff44c01e83804cbf961f7466556",
+    "bytes": 3153
+  },
+  "README.md": {
+    "sha256": "09688195241e96856150701aa2fbd197730c2cf499559720e653f146699cc53b",
+    "bytes": 1144
+  }
+}

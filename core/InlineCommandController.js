@@ -95,6 +95,11 @@ export class InlineCommandController {
       || (delimiter !== ' ' && delimiter !== 'Enter')) return false
 
     const caretLease = this.#caretLease()
+    // The initiating caret is collapsed after the word; the replacement range
+    // covers the word itself. Preserve the former so extension matching cannot
+    // author into an obsolete range after selecting a newer caret.
+    const selected = this.#currentRange()
+    if (!selected || !this.#canRestoreCaret(caretLease)) return false
     const prepared = this.#runtime.prepareExtensionValue(() => {
       for (const type of this.#registry.inlineTypes) {
         const definition = this.#registry.getInlineDefinition(type)
@@ -121,7 +126,8 @@ export class InlineCommandController {
       }
       return null
     })
-    if (!prepared || !this.#canRestoreCaret(caretLease)) return false
+    if (!prepared || !this.#canRestoreCaret(caretLease)
+      || !this.#stillSelected(selected)) return false
 
     const segments = [
       { kind: 'widget', type: prepared.type, data: prepared.data },

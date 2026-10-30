@@ -1,0 +1,70 @@
+{
+  "scope": "Initial isolated Gallery ROUNDTRIP expansion on unchanged production 4bfb3942. The raw differential is expected to exit 1 before historical classification; candidate observations and native cases pass. No current production defect was reproduced.",
+  "files": [
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-r71Tt1/manifest.json",
+      "file": "literal-initial-unclassified-manifest.json",
+      "originalBytes": 3467,
+      "originalSha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315",
+      "storedBytes": 3467,
+      "storedSha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-r71Tt1/differential.log",
+      "file": "literal-initial-unclassified.log.gz",
+      "originalBytes": 999731,
+      "originalSha256": "c7bfab19a7ed3391b194189bf2b229262b8086c8326622c8e49c048227dfd3af",
+      "storedBytes": 44886,
+      "storedSha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-HkfrzP/manifest.json",
+      "file": "literal-native-manifest.json",
+      "originalBytes": 3461,
+      "originalSha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21",
+      "storedBytes": 3461,
+      "storedSha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-HkfrzP/native.log",
+      "file": "literal-native.log.gz",
+      "originalBytes": 273,
+      "originalSha256": "6ad58a9492b35e0bd04c67e7c6f8cde6c09bab95c721954a7fffe3b4066614d2",
+      "storedBytes": 169,
+      "storedSha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-s5L2PB/manifest.json",
+      "file": "gallery-initial-unclassified-manifest.json",
+      "originalBytes": 3468,
+      "originalSha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20",
+      "storedBytes": 3468,
+      "storedSha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-s5L2PB/differential.log",
+      "file": "gallery-initial-unclassified.log.gz",
+      "originalBytes": 2725184,
+      "originalSha256": "29f92de108e8be9f3a2908d5411d5382a97909c61f0040e240a8b03a44c1afa6",
+      "storedBytes": 94749,
+      "storedSha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-awoVi1/manifest.json",
+      "file": "gallery-native156-manifest.json",
+      "originalBytes": 3462,
+      "originalSha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2",
+      "storedBytes": 3462,
+      "storedSha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-awoVi1/native.log",
+      "file": "gallery-native156.log.gz",
+      "originalBytes": 489,
+      "originalSha256": "ffa0c25c3d958dfe930fdd92db4419a484f60497fafd6afe6fb4ad854e592ca6",
+      "storedBytes": 193,
+      "storedSha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+    }
+  ],
+  "fixturePatchRawSha256": "29519a2eec213c7e2f1ee55beb41d073645b221a592720eb376704e40c53a2e8"
+}

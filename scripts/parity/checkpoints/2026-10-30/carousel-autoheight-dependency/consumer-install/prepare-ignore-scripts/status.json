@@ -1,0 +1,18 @@
+{
+  "state": "finished",
+  "startedAt": "2026-10-30T01:14:06.595615+00:00",
+  "finishedAt": "2026-10-30T01:14:07.748468+00:00",
+  "command": [
+    "npm",
+    "ci",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--cache",
+    "/tmp/rector-carousel-git-ignore-scripts-fresh-cache-20261030"
+  ],
+  "installExitCode": 0,
+  "verifyExitCode": 1,
+  "distPresent": false,
+  "packageLockSha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+}

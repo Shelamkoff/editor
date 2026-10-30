@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-structural-performance-20261030",
+  "startedAt": "2026-10-30T00:48:57.930Z",
+  "finishedAt": "2026-10-30T00:49:02.211Z",
+  "outcome": "failed",
+  "source": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "e4b055be25a5a338df3eeb1ea186ee97b32482ff3f79d47f164e06d9cc4e5a65",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/committed-event-ownership.js",
+        "mode": 33188,
+        "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+      }
+    ],
+    "dirty": true,
+    "identity": "a1fdbb77bb0b3630451f5f6425ec5fea78b9f556bdd6f1714d249aaa11890481"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "runtime-contracts.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "events-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T00:48:58.480Z",
+      "finishedAt": "2026-10-30T00:49:01.952Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-structural-performance-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "runtime-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "e4b055be25a5a338df3eeb1ea186ee97b32482ff3f79d47f164e06d9cc4e5a65",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "a1fdbb77bb0b3630451f5f6425ec5fea78b9f556bdd6f1714d249aaa11890481"
+      },
+      "elapsedMs": 3468.664988,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "e4b055be25a5a338df3eeb1ea186ee97b32482ff3f79d47f164e06d9cc4e5a65",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/committed-event-ownership.js",
+            "mode": 33188,
+            "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+          }
+        ],
+        "dirty": true,
+        "identity": "a1fdbb77bb0b3630451f5f6425ec5fea78b9f556bdd6f1714d249aaa11890481"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "e4b055be25a5a338df3eeb1ea186ee97b32482ff3f79d47f164e06d9cc4e5a65",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/committed-event-ownership.js",
+        "mode": 33188,
+        "sha256": "b6322fab2f4847f2039918ecd2efd423e00be31046f24db0d255acee8ccde279"
+      }
+    ],
+    "dirty": true,
+    "identity": "a1fdbb77bb0b3630451f5f6425ec5fea78b9f556bdd6f1714d249aaa11890481"
+  },
+  "sourceUnchanged": true
+}

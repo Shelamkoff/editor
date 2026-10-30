@@ -176,3 +176,42 @@ test('Table maintains headings and row order through 600 deterministic structura
   }
   instance.destroy()
 })
+
+test('Table field snapshots follow current row and column hosts without rewriting retained snapshots', () => {
+  const instance = mount(['a', 'b'], false)
+  const initialFields = instance.editableFields()
+  const initialHosts = initialFields.map(field => field.element)
+  const state = (rowIds, cellIds, headings = false) => ({
+    withHeadings: headings,
+    rows: rowIds.map(id => ({ id, cells: cellIds.map(id => ({ id, text: '' })) })),
+  })
+  const states = [
+    state(['a', 'b'], ['cell', 'new']),
+    state(['b', 'a'], ['new', 'cell']),
+    state(['b', 'a'], ['new', 'cell'], true),
+    state(['new-row', 'a'], ['cell'], true),
+    state(['a'], ['cell']),
+  ]
+  for (const next of states) {
+    instance.update(next)
+    const fields = instance.editableFields()
+    const liveHosts = instance.element.children[0].children.flatMap(row => row.children)
+    assert.deepEqual(fields.map(field => field.key), next.rows.flatMap(row =>
+      row.cells.map(cell => `cell:${row.id}:${cell.id}`)))
+    assert.deepEqual(fields.map(field => field.element), liveHosts, 'a retired/reordered host remained discoverable')
+    assert.ok(Object.isFrozen(fields) && fields.every(Object.isFrozen))
+    instance.setReadOnly(true)
+    assert.ok(instance.editableFields().every(field => field.element.contentEditable === 'false'))
+    instance.setReadOnly(false)
+    assert.ok(instance.editableFields().every(field => field.element.contentEditable === 'true'))
+    assert.deepEqual(initialFields.map(field => field.element), initialHosts, 'a retained immutable snapshot was rewritten')
+  }
+  const foreign = new FakeElement('section', ownerDocument)
+  const adopted = instance.editableFields()[0].element
+  foreign.appendChild(adopted)
+  assert.equal(instance.editableFields()[0].element, adopted, 'descriptor discovery hid a moved host from core ownership validation')
+  assert.equal(adopted.parentNode, foreign, 'descriptor discovery reparented an adopted host')
+  instance.destroy()
+  assert.deepEqual(instance.editableFields(), [], 'a destroyed instance retained current fields')
+  assert.deepEqual(initialFields.map(field => field.element), initialHosts)
+})

@@ -1,0 +1,259 @@
+{
+  "kind": "Deterministic JSON-boundary work with input detachment, no-op, canonical data and history controls",
+  "limits": "Headless Table schema/runtime/public path. Counts exclude setup, assertions and Undo/Redo; no latency, native DOM, RAM, retained heap or leak claim.",
+  "node": "v24.22.1",
+  "runnerSha256": "95123e082e4f6bd42956336919019e2d1486c0ba2e689ed4f9d8809381777ff7",
+  "sources": [
+    {
+      "label": "baseline",
+      "root": "/tmp/rector-next-core-perf-baseline-20261030",
+      "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+      "hashes": {
+        "core/DocumentRuntime.js": "27e7a7ec3b4a3799e00d4073a6589409298c783c186e5af52cefd963bd5e8d10",
+        "core/DocumentStore.js": "0e47f47389eb85bc6a4b3a1c6e87125201411b73c9889b2bb7706ce1048fa5ef",
+        "core/TransactionEngine.js": "8e878e36342d9ec031b17d144fc87644042d6149ef8ad6a3557cd671ca5b7796",
+        "core/HistoryStore.js": "1147251103bdfe75a2cacb0a0a02b909f28522cc855cfe0457be45a557dd2123",
+        "core/PublicEditorApi.js": "cbe7c8ce6300e15ada396714565dc191343c91d64520ee1238bcc2119c572730",
+        "core/CanonicalTransforms.js": "099e4a7c9e66ec98459301469ed39f49ad869fb5713a971cd1e35bcc56531e40",
+        "shared/jsonData.js": "d19f7f958732b4d602f33a63fcbc865bf4e2438816ccff39a564132a2fc744c5",
+        "shared/cloneEditorData.js": "529f335cc5c583434375043f96041fb072e481ef74500e3c6fe7db838b171fb2",
+        "shared/snapshotDataSchema.js": "9f352791fcb65983403c0c147bfbedc79dab2f84531bde0cb3ddc31cdf0025f0",
+        "shared/versionedDataSchema.js": "90fff142e3600ce5031b217b5dc5cce2a37bcb61da7ad85871780f45e049f2c2",
+        "shared/blockSchemas/table.js": "7041ddf16e903454beb514d62b61363422182f78fa651b293e1af91fc91ea706",
+        "package-lock.json": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382"
+      }
+    },
+    {
+      "label": "candidate",
+      "root": "/tmp/rector-next-core-perf-20261030",
+      "head": "4dcbffebfbd960cee73f0a044f0a32d5c218347d",
+      "hashes": {
+        "core/DocumentRuntime.js": "8ff5f620385ef9c9c089e299c0bdcfd275211543d4c9378ed5ac3b4a6c84f603",
+        "core/DocumentStore.js": "0e47f47389eb85bc6a4b3a1c6e87125201411b73c9889b2bb7706ce1048fa5ef",
+        "core/TransactionEngine.js": "8e878e36342d9ec031b17d144fc87644042d6149ef8ad6a3557cd671ca5b7796",
+        "core/HistoryStore.js": "1147251103bdfe75a2cacb0a0a02b909f28522cc855cfe0457be45a557dd2123",
+        "core/PublicEditorApi.js": "cbe7c8ce6300e15ada396714565dc191343c91d64520ee1238bcc2119c572730",
+        "core/CanonicalTransforms.js": "099e4a7c9e66ec98459301469ed39f49ad869fb5713a971cd1e35bcc56531e40",
+        "shared/jsonData.js": "d19f7f958732b4d602f33a63fcbc865bf4e2438816ccff39a564132a2fc744c5",
+        "shared/cloneEditorData.js": "529f335cc5c583434375043f96041fb072e481ef74500e3c6fe7db838b171fb2",
+        "shared/snapshotDataSchema.js": "9f352791fcb65983403c0c147bfbedc79dab2f84531bde0cb3ddc31cdf0025f0",
+        "shared/versionedDataSchema.js": "90fff142e3600ce5031b217b5dc5cce2a37bcb61da7ad85871780f45e049f2c2",
+        "shared/blockSchemas/table.js": "7041ddf16e903454beb514d62b61363422182f78fa651b293e1af91fc91ea706",
+        "package-lock.json": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382"
+      }
+    }
+  ],
+  "sourceUnchanged": true,
+  "rows": [
+    {
+      "size": 2,
+      "fields": 4,
+      "command": "public-change",
+      "baseline": {
+        "size": 2,
+        "fields": 4,
+        "command": "public-change",
+        "jsonRecordVisits": 266,
+        "tablePayloadVisits": 35
+      },
+      "candidate": {
+        "size": 2,
+        "fields": 4,
+        "command": "public-change",
+        "jsonRecordVisits": 250,
+        "tablePayloadVisits": 33
+      },
+      "avoidedJsonRecordVisits": 16,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 2,
+      "fields": 4,
+      "command": "public-noop-empty",
+      "baseline": {
+        "size": 2,
+        "fields": 4,
+        "command": "public-noop-empty",
+        "jsonRecordVisits": 171,
+        "tablePayloadVisits": 24
+      },
+      "candidate": {
+        "size": 2,
+        "fields": 4,
+        "command": "public-noop-empty",
+        "jsonRecordVisits": 162,
+        "tablePayloadVisits": 23
+      },
+      "avoidedJsonRecordVisits": 9,
+      "avoidedTablePayloadVisits": 1
+    },
+    {
+      "size": 2,
+      "fields": 4,
+      "command": "public-noop-equal",
+      "baseline": {
+        "size": 2,
+        "fields": 4,
+        "command": "public-noop-equal",
+        "jsonRecordVisits": 171,
+        "tablePayloadVisits": 24
+      },
+      "candidate": {
+        "size": 2,
+        "fields": 4,
+        "command": "public-noop-equal",
+        "jsonRecordVisits": 155,
+        "tablePayloadVisits": 22
+      },
+      "avoidedJsonRecordVisits": 16,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 2,
+      "fields": 4,
+      "command": "projection-change",
+      "baseline": {
+        "size": 2,
+        "fields": 4,
+        "command": "projection-change",
+        "jsonRecordVisits": 258,
+        "tablePayloadVisits": 34
+      },
+      "candidate": {
+        "size": 2,
+        "fields": 4,
+        "command": "projection-change",
+        "jsonRecordVisits": 242,
+        "tablePayloadVisits": 32
+      },
+      "avoidedJsonRecordVisits": 16,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 2,
+      "fields": 4,
+      "command": "projection-noop",
+      "baseline": {
+        "size": 2,
+        "fields": 4,
+        "command": "projection-noop",
+        "jsonRecordVisits": 163,
+        "tablePayloadVisits": 23
+      },
+      "candidate": {
+        "size": 2,
+        "fields": 4,
+        "command": "projection-noop",
+        "jsonRecordVisits": 147,
+        "tablePayloadVisits": 21
+      },
+      "avoidedJsonRecordVisits": 16,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 20,
+      "fields": 400,
+      "command": "public-change",
+      "baseline": {
+        "size": 20,
+        "fields": 400,
+        "command": "public-change",
+        "jsonRecordVisits": 14756,
+        "tablePayloadVisits": 35
+      },
+      "candidate": {
+        "size": 20,
+        "fields": 400,
+        "command": "public-change",
+        "jsonRecordVisits": 13912,
+        "tablePayloadVisits": 33
+      },
+      "avoidedJsonRecordVisits": 844,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 20,
+      "fields": 400,
+      "command": "public-noop-empty",
+      "baseline": {
+        "size": 20,
+        "fields": 400,
+        "command": "public-noop-empty",
+        "jsonRecordVisits": 10107,
+        "tablePayloadVisits": 24
+      },
+      "candidate": {
+        "size": 20,
+        "fields": 400,
+        "command": "public-noop-empty",
+        "jsonRecordVisits": 9684,
+        "tablePayloadVisits": 23
+      },
+      "avoidedJsonRecordVisits": 423,
+      "avoidedTablePayloadVisits": 1
+    },
+    {
+      "size": 20,
+      "fields": 400,
+      "command": "public-noop-equal",
+      "baseline": {
+        "size": 20,
+        "fields": 400,
+        "command": "public-noop-equal",
+        "jsonRecordVisits": 10107,
+        "tablePayloadVisits": 24
+      },
+      "candidate": {
+        "size": 20,
+        "fields": 400,
+        "command": "public-noop-equal",
+        "jsonRecordVisits": 9263,
+        "tablePayloadVisits": 22
+      },
+      "avoidedJsonRecordVisits": 844,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 20,
+      "fields": 400,
+      "command": "projection-change",
+      "baseline": {
+        "size": 20,
+        "fields": 400,
+        "command": "projection-change",
+        "jsonRecordVisits": 14334,
+        "tablePayloadVisits": 34
+      },
+      "candidate": {
+        "size": 20,
+        "fields": 400,
+        "command": "projection-change",
+        "jsonRecordVisits": 13490,
+        "tablePayloadVisits": 32
+      },
+      "avoidedJsonRecordVisits": 844,
+      "avoidedTablePayloadVisits": 2
+    },
+    {
+      "size": 20,
+      "fields": 400,
+      "command": "projection-noop",
+      "baseline": {
+        "size": 20,
+        "fields": 400,
+        "command": "projection-noop",
+        "jsonRecordVisits": 9685,
+        "tablePayloadVisits": 23
+      },
+      "candidate": {
+        "size": 20,
+        "fields": 400,
+        "command": "projection-noop",
+        "jsonRecordVisits": 8841,
+        "tablePayloadVisits": 21
+      },
+      "avoidedJsonRecordVisits": 844,
+      "avoidedTablePayloadVisits": 2
+    }
+  ]
+}

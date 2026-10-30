@@ -1,0 +1,407 @@
+{
+  "scope": "Four bounded BLOCK_PERSON_ROUNDTRIP cases and immediate/responsive Person renderer repair; inactive never-opened widget-name labels remain OPEN. No ledger acceptance is changed here.",
+  "recordedAtUtc": "2026-10-30T01:08:37.394718+00:00",
+  "base": "4bfb39426744bc0a96725258c06dc9192b58098b",
+  "frozenHead": "b1bf7bc9bf16802d690165e67adfe231eac3e6e4",
+  "frozenTree": "b26955c95b6f2d6848ba750cdcc6e06d6953bf4f",
+  "patchSha256": "fa118891bf4e0ac19887935896e07ad3a6ad53b05a92d7a2f353923af9a5b96d",
+  "node": "v24.22.1",
+  "differentialBrowser": "156.0.8078.47",
+  "secondBrowser": "142.0.7444.175",
+  "sourceUnchanged": true,
+  "sourceIdentityVerified": true,
+  "nodeModules": "Actual isolated directory copied from the locked main dependency installation; .vite and .cache omitted, no shared Vite dependency cache. The raw C11 record contains dependency versions and loaded file hashes.",
+  "sources": [
+    {
+      "source": "v1",
+      "all57": {
+        "cases": 57,
+        "observations": 9888,
+        "rawFailures": 962,
+        "classifiedDifferences": 962,
+        "unexpectedFailures": 0
+      },
+      "person": {
+        "cases": 4,
+        "observations": 848,
+        "rawFailures": 181,
+        "classifiedDifferences": 181,
+        "unexpectedFailures": 0
+      },
+      "errors": [],
+      "pageErrors": [],
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": []
+    },
+    {
+      "source": "spec-baseline",
+      "all57": {
+        "cases": 57,
+        "observations": 7342,
+        "rawFailures": 115,
+        "classifiedDifferences": 115,
+        "unexpectedFailures": 0
+      },
+      "person": {
+        "cases": 4,
+        "observations": 518,
+        "rawFailures": 36,
+        "classifiedDifferences": 36,
+        "unexpectedFailures": 0
+      },
+      "errors": [
+        "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:45519/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:45519/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:45519/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:45519/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:45519/spec-baseline/core/DocumentRuntime.js:768:25)"
+      ],
+      "pageErrors": [
+        {
+          "source": "spec-baseline",
+          "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+          "phase": "redo",
+          "name": "Error",
+          "message": "Inline widget root left its projection boundary before hydration",
+          "stack": "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:45519/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:45519/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:45519/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:45519/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:45519/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:45519/spec-baseline/core/DocumentRuntime.js:768:25)"
+        }
+      ],
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": []
+    },
+    {
+      "source": "candidate",
+      "all57": {
+        "cases": 57,
+        "observations": 10055,
+        "rawFailures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0
+      },
+      "person": {
+        "cases": 4,
+        "observations": 926,
+        "rawFailures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0
+      },
+      "errors": [],
+      "pageErrors": [],
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": []
+    }
+  ],
+  "historicalBoundary": {
+    "personRawFailures": 217,
+    "v1PersistentPersonWidgetSupport": false,
+    "specBaselinePersonWidgetCasesComplete": false,
+    "specBaselineIncompletePersonCases": [
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "view-second",
+          "view-return",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "view-second",
+          "view-return",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      }
+    ],
+    "candidateExceptions": 0
+  },
+  "verification": {
+    "shared57ExitCode": 0,
+    "personNative142": {
+      "tests": 4,
+      "pass": 4,
+      "exitCode": 0
+    },
+    "rendererNative142": {
+      "tests": 2,
+      "pass": 2,
+      "exitCode": 0
+    },
+    "relatedUnits": {
+      "files": 11,
+      "tests": 135,
+      "pass": 135,
+      "fail": 0,
+      "exitCode": 0,
+      "isolation": "separate Node process per existing test file"
+    },
+    "libraryTypes": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "jsconfig.json"
+      ],
+      "exitCode": 0,
+      "log": "types-library.log"
+    },
+    "runtimeTypes": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "jsconfig.runtime.json"
+      ],
+      "exitCode": 0,
+      "log": "types-runtime.log"
+    }
+  },
+  "peerReview": {
+    "runtimeFilesOnly": [
+      "plugins/person/index.js",
+      "renderer/renderers/person/index.js"
+    ],
+    "reviewer": "gallery_parity",
+    "result": "ACK; no blocking findings in the normal existing contract path; hidden inactive widget-name gap remains open. No additional test execution claimed."
+  },
+  "stageCaveats": [
+    "Pre-classifier differential probes intentionally exit 1 even when candidate is GREEN, because raw historical differences were not yet classified. Do not present their process status as an all-source pass.",
+    "Initial detached RED/GREEN share fixture cd207f... and runner 48bf7394...; final native view RED/GREEN share the exact final fixture 19277b9a... . Their runtime commits and loaded file hashes are recorded in each raw C11 payload.",
+    "The first two fixture snapshots were not committed during execution; raw byte fingerprints and complete observations are retained. The final fixture and classifiers are committed at frozenHead. The reconstructed pre-tabs fixture is byte-identical to the 03 run, verified by its recorded SHA-256.",
+    "Initial legacy extra empty link input and per-index removed draft-control expectations were refined before the full four-case probe. These are compatibility/lifetime oracle corrections, not production REDs.",
+    "The single initial shared-process unit failure is a fake-HTMLElement cross-file global collision from --test-isolation=none, not a product defect. No oracle/runtime change was made; identical 11 files in separate Node processes pass all 135 tests."
+  ],
+  "artifacts": [
+    {
+      "file": "detached-output-red.json.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/01-literal-red.json",
+      "rawSha256": "ff6b0958a29a2e2e71a2c65e35796a7e5731187368ef9ed9425690b88a81e021",
+      "storedSha256": "839a2d56debdb2a422ff234b36e132cee182cbd860567d19eea70c493e645eb9",
+      "rawBytes": 1632233,
+      "storedBytes": 61937,
+      "gzip": true
+    },
+    {
+      "file": "detached-output-green.json.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/02-literal-render-green.json",
+      "rawSha256": "a3e46468434a5d6ec4e2cd223fb5a262625f10cc7df387896165549c0a2649a0",
+      "storedSha256": "5715de9636fe8f2075156a8fec325c27c69cdc8a92ad472ae666ef274e2cc9e2",
+      "rawBytes": 1561513,
+      "storedBytes": 61442,
+      "gzip": true
+    },
+    {
+      "file": "before-view-switch-raw.json.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/03-person-initial-raw.json",
+      "rawSha256": "0c57890098322c8da4833f311140ca3519ea11862e522a4953a65d0f72789446",
+      "storedSha256": "f9c7eafa7ab028c9c2485c90c9bd170e85346ecbf766d73dda8274d05c112273",
+      "rawBytes": 4264610,
+      "storedBytes": 141468,
+      "gzip": true
+    },
+    {
+      "file": "view-tabs-red.json.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/06-person-tabs-raw.json",
+      "rawSha256": "056a5c83b8d5174dc72ae6533da2dd7c73ad06ad558cc0d466c5d1117180f89a",
+      "storedSha256": "4c360fc82b883144c5c1e85ff9dcda6d84defd610ed317c48fcb516c1bf1556f",
+      "rawBytes": 4625261,
+      "storedBytes": 151470,
+      "gzip": true
+    },
+    {
+      "file": "view-tabs-green.json.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/07-person-tabs-green.json",
+      "rawSha256": "9d2c5712e56706cc1eeb579ffb51874e5df2a18ad371ad911c4e63f1176de65c",
+      "storedSha256": "fb4aabf924a721c252f111efe1936f7ad6bf56c893ec4b585c273f6692c3b2a8",
+      "rawBytes": 4623719,
+      "storedBytes": 151286,
+      "gzip": true
+    },
+    {
+      "file": "final-shared57.json.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/10-final57.json",
+      "rawSha256": "6c304cb2dc6dd814a03076bc5d9c2188f5d6d4c9de4ffd0f4586bb326b597933",
+      "storedSha256": "979b4dddc6bb6bba801f0c436a993f207c850d43bcb09127b9f05bd2d697e023",
+      "rawBytes": 31194961,
+      "storedBytes": 890955,
+      "gzip": true
+    },
+    {
+      "file": "renderer-reuse-red.log.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/04-renderer-reuse-red.stderr.log",
+      "rawSha256": "bdda9fe05898c0b4ed729435fe04d8a4d4fc4b03bb4aeb0dff746c42d9d708c7",
+      "storedSha256": "2fe067f178705584ac9d07508612f1ee5d7786224352dffe7b9130773181b67f",
+      "rawBytes": 1338,
+      "storedBytes": 529,
+      "gzip": true
+    },
+    {
+      "file": "renderer-reuse-green.log.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/05-renderer-reuse-green.json",
+      "rawSha256": "8b5452c5ca689eea00efbde09e5d150c642740d036fb6cb658c394142b43b2de",
+      "storedSha256": "92934257bbdb71903bccb40ed9801aff30eeb8fd912c761d168d1d5b1de73091",
+      "rawBytes": 289,
+      "storedBytes": 164,
+      "gzip": true
+    },
+    {
+      "file": "shared-process-unit-diagnostic.log.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/09-related-units.log",
+      "rawSha256": "0fa3ac34b6a0b85bb9f13cf0d67ae6423071361ef9289008f1c3273ec27d7de4",
+      "storedSha256": "81af7f89033395db5901983cdf4cae7c800a749a0890b7f373b7e89535519ad6",
+      "rawBytes": 14033,
+      "storedBytes": 4229,
+      "gzip": true
+    },
+    {
+      "file": "related-units-green.log.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/10-related-units-isolated.log",
+      "rawSha256": "ddbe688820df7d7ad187eb5b4a644ee79bc4198decda1aabaf006378848e072d",
+      "storedSha256": "f0318e84c597127e215f0858944956470462298e603f8223f063087fd167b617",
+      "rawBytes": 16977,
+      "storedBytes": 4451,
+      "gzip": true
+    },
+    {
+      "file": "native-person-chrome142.log",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/11-person-native142.json",
+      "rawSha256": "8dd1f3705d2fb267919fbce8892591a154804d0048f064566a9806ad884a0353",
+      "storedSha256": "8dd1f3705d2fb267919fbce8892591a154804d0048f064566a9806ad884a0353",
+      "rawBytes": 477,
+      "storedBytes": 477,
+      "gzip": false
+    },
+    {
+      "file": "native-renderer-chrome142.log",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/12-renderer-native142.json",
+      "rawSha256": "8b5452c5ca689eea00efbde09e5d150c642740d036fb6cb658c394142b43b2de",
+      "storedSha256": "8b5452c5ca689eea00efbde09e5d150c642740d036fb6cb658c394142b43b2de",
+      "rawBytes": 289,
+      "storedBytes": 289,
+      "gzip": false
+    },
+    {
+      "file": "types-library.log",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/09-library-types.log",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "storedBytes": 0,
+      "gzip": false
+    },
+    {
+      "file": "types-runtime.log",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/09-runtime-types.log",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "storedBytes": 0,
+      "gzip": false
+    },
+    {
+      "file": "candidate-red-rejection.json",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/09-reject-candidate-red.json",
+      "rawSha256": "186af7e05b065b887a3b8ca121fd8d511a3a20981d4850299e5dfd172cde25f8",
+      "storedSha256": "186af7e05b065b887a3b8ca121fd8d511a3a20981d4850299e5dfd172cde25f8",
+      "rawBytes": 2180,
+      "storedBytes": 2180,
+      "gzip": false
+    },
+    {
+      "file": "final-classifier-sensitivity.json",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/13-final-classifier-sensitivity.json",
+      "rawSha256": "bf07b7267190faf35e9f4b1428a5c804e47af4c9647e225267345752aa041c73",
+      "storedSha256": "bf07b7267190faf35e9f4b1428a5c804e47af4c9647e225267345752aa041c73",
+      "rawBytes": 2139,
+      "storedBytes": 2139,
+      "gzip": false
+    },
+    {
+      "file": "related-unit-files.json",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/10-related-units-isolated-status.json",
+      "rawSha256": "e35e5a9c8879b7883f8bd1aa2e775e227be54b852a538ace80c74de771fcd474",
+      "storedSha256": "e35e5a9c8879b7883f8bd1aa2e775e227be54b852a538ace80c74de771fcd474",
+      "rawBytes": 1033,
+      "storedBytes": 1033,
+      "gzip": false
+    },
+    {
+      "file": "source-fingerprints.json",
+      "source": "/tmp/rector-person-roundtrip-code-final-source-20261030.json",
+      "rawSha256": "dd0dff015ca2e88c1766c7f0e70853da58821a5ffacecc158f9cada042b6bd22",
+      "storedSha256": "dd0dff015ca2e88c1766c7f0e70853da58821a5ffacecc158f9cada042b6bd22",
+      "rawBytes": 2446,
+      "storedBytes": 2446,
+      "gzip": false
+    },
+    {
+      "file": "pre-tabs-fixture.js.gz",
+      "source": "/tmp/rector-person-roundtrip-evidence-20261030/pre-tabs-fixture.js",
+      "rawSha256": "db9900f36796b5e5a9f840670ec483b119082cc1ea1dd5ed97f88e9882c4de40",
+      "storedSha256": "3f3421799f00b8ba8fec81a8d9bfea05b183f55a3c65a5eac858799d4b03c13d",
+      "rawBytes": 86591,
+      "storedBytes": 18694,
+      "gzip": true
+    },
+    {
+      "file": "historical-probe-runner.mjs.gz",
+      "source": "git:4bfb3942:scripts/parity/block-roundtrip.mjs",
+      "rawSha256": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "storedSha256": "1ccd29cf8ea0536ee5b233bf5f337c04099feb4d8509c788337aa13edeeb72c1",
+      "gzip": true
+    },
+    {
+      "file": "source-history.mbox.gz",
+      "source": "git format-patch --stdout 4bfb3942..b1bf7bc9",
+      "rawSha256": "f4c1e041e852e2b4fc55b6bdc9a1840fe35fa38063525b21ce6350be897bfe6f",
+      "storedSha256": "405a5764c77745a21c89b416a6788e9b906ba57d4a7999de6c64d4f89131c3a8",
+      "gzip": true
+    },
+    {
+      "file": "README.md",
+      "rawSha256": "7dbfe542a6da6c4d0395b4e394d98c6d4012ef9a119aa76bc547c51a64358bd5",
+      "storedSha256": "7dbfe542a6da6c4d0395b4e394d98c6d4012ef9a119aa76bc547c51a64358bd5",
+      "rawBytes": 11136,
+      "storedBytes": 11136,
+      "gzip": false
+    },
+    {
+      "file": "archived-input-sensitivity.json",
+      "rawSha256": "70ba7932f6b32c5c254a389fd3b060feded4343e7fd409b4de50ec4224e36ed8",
+      "storedSha256": "70ba7932f6b32c5c254a389fd3b060feded4343e7fd409b4de50ec4224e36ed8",
+      "rawBytes": 2199,
+      "storedBytes": 2199,
+      "gzip": false
+    },
+    {
+      "file": "classifier-sensitivity.mjs",
+      "rawSha256": "3c44e20009f7f06e821770abebac06f0e64f10f7965a74116eff6676149f294e",
+      "storedSha256": "3c44e20009f7f06e821770abebac06f0e64f10f7965a74116eff6676149f294e",
+      "rawBytes": 5840,
+      "storedBytes": 5840,
+      "gzip": false
+    },
+    {
+      "file": "runs.json",
+      "rawSha256": "de8edbb2f0439e0cca8dbf7417af230aa1a2a906a29fa70c54f6f3b54f924cc7",
+      "storedSha256": "de8edbb2f0439e0cca8dbf7417af230aa1a2a906a29fa70c54f6f3b54f924cc7",
+      "rawBytes": 16490,
+      "storedBytes": 16490,
+      "gzip": false
+    }
+  ]
+}

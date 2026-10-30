@@ -1,0 +1,77 @@
+{
+  "previousDependencyRoot": "/workspace/scratch/40cb45010ec4/editor/node_modules",
+  "isolatedDependencyRoot": "/tmp/rector-integration-deps-20261030",
+  "failedModuleUrl": "http://127.0.0.1:39691/node_modules/.vite/deps/highlight__js.js?v=92c92882",
+  "currentSharedViteMetadata": {
+    "hash": "250151eb",
+    "configHash": "a4b21f67",
+    "lockfileHash": "47b1e41d",
+    "browserHash": "40dd2dad",
+    "optimized": {
+      "@shelamkoff/carousel": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/@shelamkoff/carousel/dist/src/index.js",
+        "file": "@shelamkoff_carousel.js",
+        "fileHash": "2d191f35",
+        "needsInterop": false
+      },
+      "@shelamkoff/color-picker": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/@shelamkoff/color-picker/dist/index.js",
+        "file": "@shelamkoff_color-picker.js",
+        "fileHash": "02dd2e71",
+        "needsInterop": false
+      },
+      "@shelamkoff/cropper": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/@shelamkoff/cropper/dist/src/index.js",
+        "file": "@shelamkoff_cropper.js",
+        "fileHash": "7001ea30",
+        "needsInterop": false
+      },
+      "@shelamkoff/event-bus": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/@shelamkoff/event-bus/dist/index.js",
+        "file": "@shelamkoff_event-bus.js",
+        "fileHash": "dd4697f9",
+        "needsInterop": false
+      },
+      "@shelamkoff/expose": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/@shelamkoff/expose/dist/src/index.js",
+        "file": "@shelamkoff_expose.js",
+        "fileHash": "f26b9ac7",
+        "needsInterop": false
+      },
+      "@shelamkoff/masonry": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/@shelamkoff/masonry/dist/src/index.js",
+        "file": "@shelamkoff_masonry.js",
+        "fileHash": "18b01dd1",
+        "needsInterop": false
+      },
+      "dompurify": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/dompurify/dist/purify.es.mjs",
+        "file": "dompurify.js",
+        "fileHash": "1d39bafb",
+        "needsInterop": false
+      },
+      "highlight.js": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/highlight.js/es/index.js",
+        "file": "highlight__js.js",
+        "fileHash": "451a4169",
+        "needsInterop": false
+      },
+      "jszip": {
+        "src": "../../../../../workspace/scratch/40cb45010ec4/editor/node_modules/jszip/dist/jszip.min.js",
+        "file": "jszip.js",
+        "fileHash": "7f404880",
+        "needsInterop": true
+      }
+    },
+    "chunks": {
+      "chunk-NMTPLROT": {
+        "file": "chunk-NMTPLROT.js"
+      },
+      "chunk-BJ7B4R26": {
+        "file": "chunk-BJ7B4R26.js"
+      }
+    }
+  },
+  "finalDependencyRoot": "/tmp/rector-integration-20261030/node_modules",
+  "stagingCorrection": "Node resolves transitive ESM packages from a node_modules ancestry. The copied directory was moved from its temporary name to the actual worktree node_modules before the final retry; package bytes were unchanged."
+}

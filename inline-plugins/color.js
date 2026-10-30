@@ -45,6 +45,7 @@ export function createColorSwatchPlugin(){
     icon:ICON,
     styles:Object.freeze([colorPickerStylesUrl]),
     schema:colorWidgetSchema,
+    toText:data=>data.value,
     paste:Object.freeze({
       patterns:PATTERNS,
       fromMatch(match){

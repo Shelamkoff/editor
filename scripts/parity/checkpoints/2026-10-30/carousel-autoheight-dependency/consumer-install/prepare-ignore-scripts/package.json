@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@shelamkoff/carousel": "git+file:///tmp/rector-carousel-upstream-20261030#5ce243ca7d32f70786b2bab93ff606ea2ffb0c96"
+  }
+}

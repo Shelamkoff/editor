@@ -23,7 +23,7 @@ const MAX_VISIBLE = 6
 /** @typedef {'L' | 'P' | 'S'} Orientation */
 
 /**
- * Create the gallery renderer and own every opened Expose instance.
+ * Create the gallery renderer and own image notifications and opened viewers.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').GalleryBlock>}
@@ -45,7 +45,15 @@ export function createGalleryRenderer(classPrefix, locale) {
      * @returns {HTMLElement}
      */
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
-      const { images, styles, options } = block.data
+      const { styles, options } = block.data
+      // Grid labels and both viewer implementations consume plain text.
+      // Resolve the canonical rich field once through its owning parser so
+      // entities, literal tokens and registered inline widgets have the same
+      // readable meaning on visible and overflow images.
+      const images = block.data.images.map(image => ({
+        ...image,
+        caption: image.caption ? parseInline(image.caption).textContent || '' : '',
+      }))
       const ownerDocument = context.ownerDocument
       const layout = block.data.layout
 
@@ -74,6 +82,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         let loadedCount = 0
 
         const onAllLoaded = () => {
+          if (activeInstances.get(container) !== instances) return
           // Remove all eg-- classes
           const classes = Array.from(container.classList)
           for (const cls of classes) {
@@ -83,17 +92,26 @@ export function createGalleryRenderer(classPrefix, locale) {
         }
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           const img = item.querySelector('img')
           if (img) {
             let settled = false
+            const imageLease = {
+              destroy() {
+                img.removeEventListener('load', onImgReady)
+                img.removeEventListener('error', onImgReady)
+                instances.delete(imageLease)
+              },
+            }
             const onImgReady = () => {
-              if (settled) return
+              if (settled || activeInstances.get(container) !== instances) return
               settled = true
+              imageLease.destroy()
               orientations[i] = img.naturalWidth ? detectOrientation(img) : 'S'
               loadedCount++
               if (loadedCount >= visibleImages.length) onAllLoaded()
             }
+            instances.add(imageLease)
             img.addEventListener('load', onImgReady, { once: true })
             img.addEventListener('error', onImgReady, { once: true })
             // A cached image can become complete between assigning `src` in
@@ -111,7 +129,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         masonryItems = []
 
         images.forEach((image) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           const img = item.querySelector('img')
           if (img) img.loading = 'eager'
           masonryItems?.push(item)
@@ -122,7 +140,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         container.classList.add(`eg--${layout}`)
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel, ownerDocument, parseInline)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           if (overflowCount > 0 && i === visibleImages.length - 1) {
             item.appendChild(createOverflow(overflowCount, classPrefix, ownerDocument))
           }
@@ -218,7 +236,7 @@ export function createGalleryRenderer(classPrefix, locale) {
     },
 
     /**
-     * Dispose lightboxes that are still open when rendered content is replaced.
+     * Revoke pending image notifications and dispose open viewers/layouts.
      * @param {HTMLElement} element
      */
     destroy(element) {
@@ -228,8 +246,8 @@ export function createGalleryRenderer(classPrefix, locale) {
       masonryMounts.get(element)?.destroy()
       masonryMounts.delete(element)
       if (instances) {
-        for (const expose of instances) {
-          expose.destroy()
+        for (const resource of instances) {
+          resource.destroy()
         }
         instances.clear()
       }
@@ -325,11 +343,10 @@ function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, 
  * @param {string} classPrefix
  * @param {string} openLabel
  * @param {Document} ownerDocument
- * @param {import('../../types').InlineParser} parseInline
  * @returns {HTMLElement}
  */
-function createItem(image, classPrefix, openLabel, ownerDocument, parseInline) {
-  const caption = image.caption ? parseInline(image.caption).textContent || '' : ''
+function createItem(image, classPrefix, openLabel, ownerDocument) {
+  const caption = image.caption || ''
   const figure = ownerDocument.createElement('figure')
   figure.className = `${classPrefix}-gallery__item`
   figure.tabIndex = 0

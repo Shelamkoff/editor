@@ -124,4 +124,48 @@ for(const variant of variants) {
     selection(editor,2+variant.width,2+variant.width,false)
   })
 }
+for (const variant of variants) {
+  test(`${variant.name} Shift+Tab removes one leading tab with one native Undo/Redo action`, async () => {
+    const editor = mount(variant, '\tAlpha\n\tBravo\nTail')
+    const before = editor.save().blocks
+    editor.blocks.focus('a', { fieldKey: variant.fieldKey, offset: 1 })
+    selection(editor, 1, 1, false)
+
+    await dispatchKey('Tab', 'Tab', 9, 8)
+
+    const after = replaceSource(before, variant, 'Alpha\n\tBravo\nTail')
+    equal(editor.save().blocks, after, 'Dedent did not remove only the selected line tab')
+    selection(editor, 0, 0, false)
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, before, 'Undo did not restore the tab and unchanged siblings')
+    selection(editor, 1, 1, false)
+    equal(editor.canUndo, false, 'One dedent created extra history')
+    await dispatchKey('z', 'KeyZ', 90, 10)
+    equal(editor.save().blocks, after, 'Redo did not restore the accepted dedent')
+    selection(editor, 0, 0, false)
+    equal(editor.canRedo, false)
+  })
+
+  test(`${variant.name} Shift+Tab preserves a backward range across mixed tab and space prefixes`, async () => {
+    const value = variant.name === 'Code' ? '\tA<&>\n    B\n\tTail' : '\tA<&>\n  B\n\tTail'
+    const range = { start: 1, end: variant.name === 'Code' ? 12 : 10 }
+    const editor = mount(variant, value)
+    const before = editor.save().blocks
+    await selectNative(editor, variant, range, true)
+
+    await dispatchKey('Tab', 'Tab', 9, 8)
+
+    const after = replaceSource(before, variant, 'A<&>\nB\n\tTail')
+    equal(editor.save().blocks, after, 'Dedent changed literal source or the unselected next line tab')
+    selection(editor, 0, 7, true)
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, before, 'Undo changed source or sibling identities')
+    selection(editor, range.start, range.end, true)
+    equal(editor.canUndo, false, 'Mixed indentation created extra history')
+    await dispatchKey('z', 'KeyZ', 90, 10)
+    equal(editor.save().blocks, after)
+    selection(editor, 0, 7, true)
+    equal(editor.canRedo, false)
+  })
+}
 await run()

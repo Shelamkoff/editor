@@ -1,0 +1,10 @@
+{
+  "head": "103250966d4ca09723e10449e7640541674ddd24",
+  "kind": "native-red",
+  "startedAt": "2026-10-30T02:17:00.365284+00:00",
+  "runtimeSha256": "50c4a416fe3361f06c9b4c7c841d3939d4097f4617145d1148ca84e2f46c88bc",
+  "nativeFixtureSha256": "5bf97e493a6340af5763ac1ac917ceda604afaee3cc57e9aecddfb5ec838fa9a",
+  "exitCode": 1,
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-30T02:17:02.709070+00:00"
+}

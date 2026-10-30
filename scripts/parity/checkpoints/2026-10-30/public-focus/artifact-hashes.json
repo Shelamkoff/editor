@@ -1,0 +1,73 @@
+{
+  "algorithm": "sha256",
+  "gzipMtime": 0,
+  "artifacts": [
+    {
+      "path": "README.md",
+      "sha256": "e9c611a16fa00e5513bb7bc03b4ee34f461f33089d8f3b9590d4792cc6ea1fb7",
+      "bytes": 6778
+    },
+    {
+      "path": "initial/result.json.gz",
+      "sha256": "c2691bf85b2c3a451450e6c82096da0c832a60ecef90f2b4b560aa604693de08",
+      "bytes": 15412,
+      "decodedSha256": "2ce841177d44800264a5fe73135915cea9faa8ae5749c815b8d46a208fcdaceb",
+      "decodedBytes": 253170
+    },
+    {
+      "path": "initial/review.json",
+      "sha256": "5eea7c60ae602518480fa04303b28205b29308d7cdf7f01f9a470b9315b4c55f",
+      "bytes": 2922
+    },
+    {
+      "path": "initial/stderr.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    {
+      "path": "integrated/result.json.gz",
+      "sha256": "3b52dde000cb6a652815a272845c257f0f1328c644009d61119d6cf0ba2b6d1d",
+      "bytes": 15428,
+      "decodedSha256": "4501548d681fac146abb89d74915d7fa7636f6430a3fafb866b14e2a83642abf",
+      "decodedBytes": 253170
+    },
+    {
+      "path": "integrated/review.json",
+      "sha256": "c42d4003cdba37055da30ca41c2df19c0aab05fdbaf6539bc6c8794dafc3afa1",
+      "bytes": 2922
+    },
+    {
+      "path": "integrated/scoped-manifest.json.gz",
+      "sha256": "b5ff4a7228419fe13b27536c398f6101032308557cf60a90491dce5a2963b362",
+      "bytes": 1279,
+      "decodedSha256": "25717c54c26924272b7a9ee5cc43bef62f46d1419cb9c345f4bb26bf72a33a4b",
+      "decodedBytes": 6520
+    },
+    {
+      "path": "integrated/stderr.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "bc6276aa946f3d23b4509dd0bd6440e02b0f4f4126b5988e397fefc1381ea3e5",
+      "bytes": 4406
+    },
+    {
+      "path": "review.py",
+      "sha256": "d64dcc6692038fbc0cd59d09c4b36103595b1fec5b4d0d78ba023ce4f7506a7a",
+      "bytes": 8793
+    },
+    {
+      "path": "runner.mjs.gz",
+      "sha256": "0260109e2caf5a3ff157a750ab7b53fc05a529619f700302eff22cd728bc60fd",
+      "bytes": 4583,
+      "decodedSha256": "c8e5936367c8e1fe9b548857c9418595de718076958ad37d48a73e82a50dda96",
+      "decodedBytes": 13803
+    }
+  ]
+}

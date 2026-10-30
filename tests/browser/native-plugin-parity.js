@@ -1,6 +1,18 @@
+import './regressions/carousel-structure-native.js'
+import './regressions/compound-rich-siblings-native.js'
+import './regressions/compound-rich-field-native.js'
+import './regressions/toggle-focus-native.js'
+import './regressions/code-highlighter-native.js'
 import './quote-paste-merge.js'
 import './presentation-values.js'
 import './regressions/table-default.js'
+import './regressions/checklist-empty-exit-native.js'
+import './regressions/table-authoring-native.js'
+import './regressions/projection-recovery-focus-native.js'
+import './regressions/person-rich-siblings-native.js'
+import './regressions/person-cards-native.js'
+import './regressions/gallery-native-drag-history.js'
+import './gallery-caption-order-native.js'
 import { test, make, para, editorRoot, blockElement, editableField, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createChecklistPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
@@ -280,6 +292,65 @@ test('Table Shift+Tab focuses the previous cell at its end as in v1', async () =
   equal(editor.canUndo, false)
   await dispatchKey('Tab', 'Tab', 9)
   caret(blockElement(editor, 'a').querySelector('[data-cell-id="second"]'), 0)
+})
+
+test('Table rejected adopted-cell focus preserves the next native input outside the editor', async () => {
+  const definition = createTablePlugin()
+  const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false,
+    rows: [{ id: 'row', cells: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }] }],
+  } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  const cell = blockElement(editor, 'a').querySelector('[data-cell-id="first"]')
+  const foreign = document.createElement('section')
+  const sentinel = document.createElement('textarea')
+  sentinel.value = 'Outside'
+  foreign.append(sentinel); document.body.append(foreign)
+  try {
+    assert(editor.blocks.focus('a', { fieldKey: 'cell:row:first', offset: 2 }))
+    caret(cell, 2)
+    foreign.append(cell)
+    await clickNative(sentinel)
+    sentinel.setSelectionRange(2, 4, 'backward')
+    let accepted = false
+    try { accepted = editor.blocks.focus('a', { fieldKey: 'cell:row:first', offset: 1 }) }
+    catch (error) { assert(/ownership|boundary|mounted|field/i.test(String(error)), String(error)) }
+    assert(accepted !== true, 'Adopted cell focus was accepted')
+    assert(document.activeElement === sentinel, 'Rejected Table focus stole the foreign input')
+    equal([sentinel.selectionStart, sentinel.selectionEnd, sentinel.selectionDirection], [2, 4, 'backward'])
+    await printable('X')
+    equal(sentinel.value, 'OuXide', 'Next native input did not reach the retained foreign selection')
+    equal(cell.textContent, 'Alpha', 'Next native input mutated the adopted Table cell')
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  } finally { editor.destroy(); foreign.remove() }
+})
+
+test('Table exact focus preserves valid default and keyed editing through a mode round trip', async () => {
+  const definition = createTablePlugin()
+  const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false,
+    rows: [{ id: 'row', cells: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }] }],
+  } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  const cell = id => blockElement(editor, 'a').querySelector(`[data-cell-id="${id}"]`)
+  assert(editor.blocks.focus('a'))
+  caret(cell('first'), 0)
+  assert(editor.blocks.focus('a', { fieldKey: 'cell:row:second', offset: 2.9 }))
+  caret(cell('second'), 2)
+  equal(editor.blocks.focus('a', { fieldKey: 'retired-cell', offset: 1 }), false)
+  caret(cell('second'), 2)
+  editor.setReadOnly(true)
+  equal(cell('first').contentEditable, 'false')
+  equal(cell('second').contentEditable, 'false')
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  editor.setReadOnly(false)
+  assert(editor.blocks.focus('a', { fieldKey: 'cell:row:second', offset: 'end' }))
+  caret(cell('second'), 5)
+  await printable('X')
+  equal(editor.save().blocks[0].data.rows[0].cells.map(field => field.text), ['Alpha', 'BravoX'])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
 })
 
 test('Table Enter inserts a line break in the cell and keeps typing at that boundary', async () => {
@@ -1243,8 +1314,7 @@ test('Gallery retired controls cannot mutate current authoring data after a view
     .find(button => button.textContent?.includes('Delete all'))
   assert(oldRemove && oldClear, 'Gallery is missing its authoring controls')
   editor.blocks.update('a', current => ({
-    data: { ...current.data, images: current.data.images.map(image => image.id === 'second'
-      ? { ...image, caption: 'Updated image' } : image) },
+    data: { ...current.data, layout: '2' },
   }))
   const after = editor.save().blocks
   assert(!oldRemove.isConnected && !oldClear.isConnected, 'Gallery did not retire the former view')
@@ -1540,27 +1610,127 @@ for (const name of ['Image', 'Gallery', 'Carousel', 'Person', 'Attaches', 'Embed
 }
 
 
-test('Gallery regenerated view clears an interrupted image drag', async () => {
+test('Gallery accepts a file drag after a caption update retains its image slots', async () => {
   const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
   const editor = pluginEditor(fixture)
   const root = blockElement(editor, 'a').querySelector('.oe-gallery')
   const source = root.querySelector('.oe-gallery__slot[data-image-id="first"]')
   assert(source, 'Gallery source slot is missing')
-  const dragstart = new Event('dragstart', { bubbles: true, cancelable: true })
-  Object.defineProperty(dragstart, 'dataTransfer', {
-    value: { setData() {}, effectAllowed: '' },
-  })
-  source.dispatchEvent(dragstart)
+  const internal = new DataTransfer()
+  source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: internal }))
+  const target = root.querySelector('.oe-gallery__slot[data-image-id="second"]')
+  target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: internal }))
+  assert(source.classList.contains('oe-gallery__item--dragging'))
+  assert(target.classList.contains('oe-gallery__slot--over')
+    || target.classList.contains('oe-gallery__overflow-item--over'))
   editor.blocks.update('a', current => ({
     data: { ...current.data, images: current.data.images.map(image =>
       image.id === 'second' ? { ...image, caption: 'Updated second' } : image) },
   }))
-  const over = new Event('dragover', { bubbles: true, cancelable: true })
+  equal(root.querySelector('.oe-gallery__slot[data-image-id="first"]'), source,
+    'caption-only projection replaced the drag source')
+  // A constructed DataTransfer ignores dropEffect writes in Chromium. Record
+  // the dragover protocol explicitly; the drop cases below use real files.
   const transfer = { types: ['Files'], dropEffect: 'none' }
+  const over = new Event('dragover', { bubbles: true, cancelable: true })
   Object.defineProperty(over, 'dataTransfer', { value: transfer })
-  root.dispatchEvent(over)
+  target.dispatchEvent(over)
   assert(over.defaultPrevented, 'old image drag prevented a fresh file drop after Gallery projection')
   equal(transfer.dropEffect, 'copy')
+  assert(!root.querySelector('.oe-gallery__item--dragging,.oe-gallery__slot--over,.oe-gallery__overflow-item--over'),
+    'foreign file drag retained the preceding image-reorder decorations')
+  equal(editor.save().blocks[0].data.images.map(image => image.id), ['first', 'second'])
+})
+
+for (const destination of ['wrapper', 'image slot']) {
+  test(`Gallery file drop on the ${destination} supersedes an interrupted retained image drag`, async () => {
+    const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
+    const uploads = []
+    const editor = pluginEditor({ ...fixture, factory: () => fixture.factory({
+      uploadFile: async file => {
+        uploads.push(file.name)
+        return { url: pixel, alt: 'Dropped external image' }
+      },
+    }) })
+    const root = blockElement(editor, 'a').querySelector('.oe-gallery')
+    const source = root.querySelector('.oe-gallery__slot[data-image-id="first"]')
+    source.dispatchEvent(new DragEvent('dragstart', {
+      bubbles: true, cancelable: true, dataTransfer: new DataTransfer(),
+    }))
+    editor.blocks.update('a', current => ({ data: {
+      ...current.data,
+      images: current.data.images.map(image => image.id === 'second'
+        ? { ...image, caption: 'Updated second' } : image),
+    } }))
+    const beforeDrop = editor.save().blocks
+    equal(root.querySelector('.oe-gallery__slot[data-image-id="first"]'), source)
+    const transfer = new DataTransfer()
+    transfer.items.add(new File(['image'], 'external.png', { type: 'image/png' }))
+    const drop = new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer })
+    const target = destination === 'wrapper' ? root
+      : root.querySelector('.oe-gallery__slot[data-image-id="second"]')
+    // No intervening dragover: drop must independently identify file delivery.
+    target.dispatchEvent(drop)
+    assert(drop.defaultPrevented, 'file drop was rejected because the previous reorder lacked dragend')
+    await pause()
+    equal(uploads, ['external.png'], 'file delivery did not invoke its upload provider exactly once')
+    const afterDrop = editor.save().blocks
+    equal(afterDrop[0].data.images.slice(0, 2), beforeDrop[0].data.images,
+      'external file delivery reordered or replaced existing images')
+    equal(afterDrop[0].data.images.length, 3)
+    equal(afterDrop[0].data.images[2].caption, 'Dropped external image')
+    equal(afterDrop[0].data.images[2].url, pixel)
+    assert(!root.querySelector('.oe-gallery__item--dragging,.oe-gallery__slot--over,.oe-gallery__overflow-item--over'))
+    equal(editor.undo(), true)
+    equal(editor.save().blocks, beforeDrop, 'one Undo did not revert only the external file insertion')
+    equal(editor.redo(), true)
+    equal(editor.save().blocks, afterDrop)
+    equal(uploads, ['external.png'], 'history replay repeated the file provider effect')
+  })
+}
+
+test('Gallery retained image drag remains usable across a sibling caption update', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const root = blockElement(editor, 'a').querySelector('.oe-gallery')
+  const source = root.querySelector('.oe-gallery__slot[data-image-id="first"]')
+  const target = root.querySelector('.oe-gallery__slot[data-image-id="second"]')
+  const transfer = new DataTransfer()
+  source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: transfer }))
+  editor.blocks.update('a', current => ({ data: {
+    ...current.data,
+    images: current.data.images.map(image => image.id === 'second'
+      ? { ...image, caption: 'Updated second' } : image),
+  } }))
+  const beforeDrop = editor.save().blocks
+  equal(root.querySelector('.oe-gallery__slot[data-image-id="first"]'), source)
+  equal(root.querySelector('.oe-gallery__slot[data-image-id="second"]'), target)
+  const over = new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer })
+  target.dispatchEvent(over)
+  assert(over.defaultPrevented, 'caption-only projection interrupted a still-live image drag')
+  const drop = new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer })
+  target.dispatchEvent(drop)
+  assert(drop.defaultPrevented)
+  equal(editor.save().blocks[0].data.images, [...beforeDrop[0].data.images].reverse())
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, beforeDrop)
+})
+
+test('Gallery full view replacement retires its previous image drag listeners', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const root = blockElement(editor, 'a').querySelector('.oe-gallery')
+  const source = root.querySelector('.oe-gallery__slot[data-image-id="first"]')
+  const transfer = new DataTransfer()
+  source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: transfer }))
+  editor.blocks.update('a', current => ({ data: { ...current.data, layout: '2' } }))
+  assert(!source.isConnected, 'layout update did not retire the original drag source')
+  source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: transfer }))
+  const target = root.querySelector('.oe-gallery__slot[data-image-id="second"]')
+  const over = new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer })
+  target.dispatchEvent(over)
+  assert(!over.defaultPrevented, 'a retired image listener acquired a new drag session')
+  equal(editor.save().blocks[0].data.images.map(image => image.id), ['first', 'second'])
 })
 
 test('Person regenerated tabs reject a drag from the retired tab tree', async () => {
@@ -2100,6 +2270,7 @@ test('Gallery retired settings controls cannot mutate refreshed canonical data',
 
   editor.blocks.update('a', current => ({ data: {
     ...current.data,
+    layout: 'auto',
     images: current.data.images.map(image => image.id === 'second'
       ? { ...image, caption: 'Updated sibling' } : image),
     styles: { ...current.data.styles, gap: '12px' },

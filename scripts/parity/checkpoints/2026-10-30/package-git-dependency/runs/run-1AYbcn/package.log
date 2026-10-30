@@ -1,0 +1,41 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @shelamkoff/rector@2.0.0 test:package
+> node scripts/package-consumer-gate.mjs && node scripts/check-package-assets.mjs
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @shelamkoff/rector@2.0.0 build
+> npm run docs:validate-readmes && node scripts/build-package.mjs
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @shelamkoff/rector@2.0.0 docs:validate-readmes
+> node scripts/validate-extension-readmes.mjs
+
+{"localizedReadmePairs":47}
+{"runtimeDeclarations":285,"sourceDiagnostics":0,"sourceDiagnosticDetails":[],"dist":"dist"}
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm error code ENOTCACHED
+npm error request to https://codeload.github.com/Shelamkoff/carousel/tar.gz/f7f6485886a1d77f9213d9079eb70000efeff499 failed: cache mode is 'only-if-cached' but no cached response is available.
+npm error A complete log of this run can be found in: /tmp/ophire-editor-package-Kgb1ZK/npm-cache/_logs/2026-10-30T01_37_58_436Z-debug-0.log
+node:internal/errors:986
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/npm/bin/npm-cli.js install --offline --ignore-scripts --no-audit --no-fund --cache /tmp/ophire-editor-package-Kgb1ZK/npm-cache /tmp/ophire-editor-package-Kgb1ZK/pack/shelamkoff-rector-2.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-event-bus-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-color-picker-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-cropper-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-carousel-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-expose-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-infinite-scroll-1.0.1.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/shelamkoff-masonry-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/dompurify-3.4.17.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/highlight.js-11.11.1.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/jszip-3.10.1.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/lie-3.3.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/immediate-3.0.6.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/pako-1.0.11.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/setimmediate-1.0.5.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/readable-stream-2.3.8.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/safe-buffer-5.1.2.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/core-util-is-1.0.3.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/inherits-2.0.4.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/isarray-1.0.0.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/process-nextick-args-2.0.1.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/string_decoder-1.1.1.tgz /tmp/ophire-editor-package-Kgb1ZK/dependencies/util-deprecate-1.0.2.tgz
+    at genericNodeError (node:internal/errors:986:15)
+    at wrappedFn (node:internal/errors:540:14)
+    at checkExecSyncError (node:child_process:943:11)
+    at execFileSync (node:child_process:979:15)
+    at run (file:///tmp/rector-package-git-gate-20261030/scripts/package-consumer-gate.mjs:16:10)
+    at file:///tmp/rector-package-git-gate-20261030/scripts/package-consumer-gate.mjs:176:3 {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 409649,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.22.1

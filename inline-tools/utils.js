@@ -1,5 +1,5 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
-import { removeEmptyInlineTags, normalizeAuthoredText, hasProtectedDomContent } from './inlineContent.js'
+import { removeEmptyInlineTags, normalizeAuthoredText, hasProtectedDomContent, authoredEditingHosts } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { closestBlock, el } from '../shared/editorDom.js'
 import { isAuthoredEditableText } from '../shared/editableFields.js'
@@ -141,9 +141,9 @@ function haveSameAttributes(left, right) {
   return true
 }
 
-/** Split ordinary wrappers to isolate a selected text leaf without cloning
+/** Split ordinary wrappers to isolate an authored leaf without cloning
  * protected descendants, native controls, or inline-widget DOM ownership.
- * @param {Text} text
+ * @param {Node} text
  * @param {HTMLElement} ancestor
  * @returns {void}
  */
@@ -449,18 +449,20 @@ export function getWalkRoot(range) {
  * @returns {{ node: Text, startOffset: number, endOffset: number }[]}
  */
 export function collectTextTargets(walkRoot, range) {
-  const walker = editableTextWalker(walkRoot)
   /** @type {{ node: Text, startOffset: number, endOffset: number }[]} */
   const targets = []
-  while (walker.nextNode()) {
-    const textNode = /** @type {Text} */ (walker.currentNode)
-    if (!range.intersectsNode(textNode) || !isAuthoredEditableText(textNode)) continue
-    let startOffset = 0
-    let endOffset = textNode.length
-    if (textNode === range.startContainer) startOffset = range.startOffset
-    if (textNode === range.endContainer) endOffset = range.endOffset
-    if (startOffset >= endOffset) continue
-    targets.push({ node: textNode, startOffset, endOffset })
+  for (const host of authoredEditingHosts(walkRoot)) {
+    const walker = editableTextWalker(host)
+    while (walker.nextNode()) {
+      const textNode = /** @type {Text} */ (walker.currentNode)
+      if (!walkRoot.contains(textNode) || !range.intersectsNode(textNode) || !isAuthoredEditableText(textNode)) continue
+      let startOffset = 0
+      let endOffset = textNode.length
+      if (textNode === range.startContainer) startOffset = range.startOffset
+      if (textNode === range.endContainer) endOffset = range.endOffset
+      if (startOffset >= endOffset) continue
+      targets.push({ node: textNode, startOffset, endOffset })
+    }
   }
   return targets
 }

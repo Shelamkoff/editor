@@ -1,0 +1,93 @@
+{
+  "baseLocal": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+  "basePublished": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+  "parent": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
+  "tree": "8151183661b9d0128840d7196c8f11664a0f6d11",
+  "branchHead": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
+  "mappings": [
+    {
+      "local": "91ce2eae48785a81f16cd70e77d547bf78c1a5b3",
+      "published": "47a0c1f5af0d978731435a4a5f92718c99d70437",
+      "tree": "7c5f943c49d979d05c6c5105ad78b2a72c47b77d",
+      "message": "test(checklist): cover empty exit with native history and widgets"
+    },
+    {
+      "local": "9d2ebc328bf0b27631e83b654d9e542a65c82216",
+      "published": "7e95d6989c0fca142a8fa17e185394ba26bba207",
+      "tree": "9066cc00dd4a0a6f6ec5f0005bccecaefc412f43",
+      "message": "test(checklist): preserve three-source empty exit evidence"
+    },
+    {
+      "local": "a0c105d8307ba1c9f01fc3fff580e46be21d98fc",
+      "published": "ca68f78f18b3c4269e2ed9f7b2d9a8cc06450804",
+      "tree": "0e81ea79b9b2eba4ef8c227b75b86e8829351a2f",
+      "message": "test(person): cover native card actions and hidden URL focus"
+    },
+    {
+      "local": "c217a3bcd1173b2ea68a99d8c7555ae51b434f3c",
+      "published": "f8cd872c13d278eb86025f2b60e950e3e32701df",
+      "tree": "354a715aa049e410b55366c806f01789f130ab43",
+      "message": "docs(person): retain bounded native card and reference evidence"
+    },
+    {
+      "local": "fc1ba8233b059d139216bf3431431d9482e9411c",
+      "published": "4687bde92d58f0621bbf33d4b73f7b055ef5868f",
+      "tree": "18868bfa4e9c49dc61cdda31859cf0ca5d88a407",
+      "message": "test(checklist): independently verify archived observation verdicts"
+    },
+    {
+      "local": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "published": "103aa48b92feddab077820b32a10ef089b19e63b",
+      "tree": "16717c1e69d3632c195c63242bfe61bb33391134",
+      "message": "fix(table): preserve active formatting through native Enter"
+    },
+    {
+      "local": "5629ec5edbf1b6656bb5b00067fe8e1bb6c5ced7",
+      "published": "9be27be085d5d68fe0e2ef47527c2dcfc7f9c944",
+      "tree": "b7a633515924ca96f21e1b7696a428bc5e91c69a",
+      "message": "test(checklist): bind historical review to fixed author inputs"
+    },
+    {
+      "local": "b7257e4a07df6dab48c5f374eb5b41eaee5134c6",
+      "published": "aaeb15a4a0fc86cbc2029b99cfc2e47d2bcf1e07",
+      "tree": "4fe04d58a92772eec3620f102bf8270a5dd4bbf7",
+      "message": "docs(checklist): record bounded empty-exit parity acceptance"
+    },
+    {
+      "local": "2427d67b41ead03a519aab16e62a903427b9c2cd",
+      "published": "3c8aa68eb171d8eac099d04eaa6968281995efdf",
+      "tree": "6be8353fd25b6adc56eebef91bc5475e2a88cf4f",
+      "message": "fix(carousel): activate newly appended source slides"
+    },
+    {
+      "local": "f1492afcd7b6acdf52a84cd3bd4411f93fe5ee08",
+      "published": "1bdf3cf6a067880cbbfa1164c3ed6d5c6e5e391d",
+      "tree": "d6a8f7ca1e895ac72c4485485d335dc17705b865",
+      "message": "test(carousel): archive immutable source selection parity evidence"
+    },
+    {
+      "local": "460d27a774af2a3833b90089c1983bdb81988dc7",
+      "published": "832c25c72a535f8c1b470c01a4bb0047b7b27ad4",
+      "tree": "92fb23e6e15422e4861e51627bc7ad627898723c",
+      "message": "fix(core): retain keyboard focus after projection recovery"
+    },
+    {
+      "local": "d9e935dec7eae3bb3b983d1a3c5b544316a5eefb",
+      "published": "82cf56f1793c454191b2ff2fef40c4929bf352e7",
+      "tree": "f90fa22af6b4149e43972b204da9261502c1f48f",
+      "message": "fix(core): respect owning document focus during recovery"
+    },
+    {
+      "local": "e0199e94d812e93c51a0c26f35cc4657cabaa0a8",
+      "published": "8181a0e1f1b8e587ece8fd25deb415bac565287b",
+      "tree": "aac1ca877f85f18eda722e35951ae01c0eb586a6",
+      "message": "test(core): archive projection recovery focus evidence"
+    },
+    {
+      "local": "1142d8deb418a88693618d9b5a7841cdbd8c1d7e",
+      "published": "e1eac3529e6d111a9582ab777654f7c322ee31f9",
+      "tree": "8151183661b9d0128840d7196c8f11664a0f6d11",
+      "message": "docs(rector): record verified third parity integration"
+    }
+  ]
+}

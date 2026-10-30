@@ -137,7 +137,7 @@ export function createPersonPlugin(config={}){
           const AbortControllerCtor=document.defaultView?.AbortController??AbortController
           let tabsController=null
           let bodyController=null
-          /** @type {{personId:string,name:HTMLElement,info:HTMLElement,card:HTMLElement}|null} */
+          /** @type {{personId:string,name:HTMLElement,info:HTMLElement,card:HTMLElement,links:HTMLElement,controls:Array<{id:string,input:HTMLInputElement,icon:HTMLElement,row:HTMLElement}>}|null} */
           let activeNameView=null
           /** @type {{personId:string,label:HTMLElement,select:HTMLElement,tab:HTMLElement}|null} */
           let activeTabView=null
@@ -157,15 +157,33 @@ export function createPersonPlugin(config={}){
             if(ownsNameView(source)&&ownsTabView(target))target.label.textContent=text
           }
 
-          const syncControls=()=>{
-            const person=activePerson()
-            if(!person)return
-            for(const input of body.querySelectorAll('input[data-link-id]')){
-              const link=person.links.find(item=>item.id===input.dataset.linkId)
+          const syncControls=(projectIcons=false)=>{
+            const person=activePerson(),view=activeNameView
+            if(!person||!view)return
+            for(const control of view.controls){
+              const link=person.links.find(item=>item.id===control.id)
               if(!link)continue
-              const safe=sanitizeUrl(input.value,{policy:'link',fallback:''})
+              const ownsSource=()=>!dead&&!context.signal.aborted&&activeNameView===view&&view.personId===activeId
+                &&control.input.parentNode===control.row&&control.row.parentNode===view.links
+                &&view.links.parentNode===view.info&&view.info.parentNode===view.card
+                &&view.card.parentNode===body&&body.parentNode===wrapper
+              if(!ownsSource())continue
+              // Core admits the original plugin root before read/mode work.
+              // This local snapshot only revalidates that same path across a
+              // custom social resolver; it cannot grant a new owner lease.
+              const parents=[]
+              for(let node=/** @type {Node|null} */(wrapper);node;node=node.parentNode)parents.push({node,parent:node.parentNode})
+              const safe=sanitizeUrl(control.input.value,{policy:'link',fallback:''})
+              const resolved=resolveSocialIcon(safe,snapshot.socialResolvers)
+              const markup=resolved.icon||SOCIAL_ICONS.website||''
+              if(!ownsSource()||parents.some(({node,parent})=>node.parentNode!==parent)){
+                throw new Error('Person link control left its accepted owner')
+              }
               link.url=safe
-              link.type=resolveSocialIcon(safe,snapshot.socialResolvers).type
+              link.type=resolved.type
+              if(projectIcons&&control.icon.parentNode===control.row&&control.icon.innerHTML!==markup){
+                setTrustedHtml(control.icon,markup)
+              }
             }
           }
 
@@ -301,15 +319,25 @@ export function createPersonPlugin(config={}){
               }
               const label=document.createElement('span')
               label.className='oe-person__tab-label'
-              setSanitizedHtml(label,person.name)
-              label.textContent=label.textContent.trim()||fallbackName(index)
+              label.textContent=context.getFieldText('person:'+person.id+':name').trim()||fallbackName(index)
               select.appendChild(label)
               if(person.id===activeId)activeTabView={personId:person.id,label,select,tab}
               select.addEventListener('click',()=>{
-                if(activeId===person.id)return
+                const ownsTarget=()=>!dead&&!context.signal.aborted&&label.parentNode===select
+                  &&select.parentNode===tab&&tab.parentNode===tabs&&tabs.parentNode===wrapper
+                if(activeId===person.id||!ownsTarget())return
                 flushVisible()
+                if(!ownsTarget())return
+                const previous=activeTabView
+                if(ownsTabView(previous)){
+                  previous.tab.classList.remove('oe-person__tab--active')
+                  previous.select.setAttribute('aria-pressed','false')
+                }
                 activeId=person.id
-                render()
+                tab.classList.add('oe-person__tab--active')
+                select.setAttribute('aria-pressed','true')
+                activeTabView={personId:person.id,label,select,tab}
+                renderBody()
                 wrapper.focus({preventScroll:true})
               },{signal:tabsController.signal})
               tab.appendChild(select)
@@ -384,7 +412,7 @@ export function createPersonPlugin(config={}){
             updateActiveLabel()
           }
 
-          const createLinkRow=(person,link)=>{
+          const createLinkRow=(person,link,controls)=>{
             const row=document.createElement('div')
             row.className='oe-person__link-row'
             const icon=document.createElement('span')
@@ -404,11 +432,8 @@ export function createPersonPlugin(config={}){
                 event.stopPropagation()
               }
             },{signal:bodyController.signal})
-            input.addEventListener('input',()=>{
-              const current=resolveSocialIcon(input.value,snapshot.socialResolvers)
-              setTrustedHtml(icon,current.icon||SOCIAL_ICONS.website||'')
-            },{signal:bodyController.signal})
             row.append(icon,input)
+            controls.push({id:link.id,input,icon,row})
             if(!readOnly){
               const remove=document.createElement('button')
               remove.type='button'
@@ -468,9 +493,6 @@ export function createPersonPlugin(config={}){
             name.contentEditable=readOnly?'false':'true'
             name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
             if(person.name)setSanitizedHtml(name,person.name)
-            name.addEventListener('input',()=>{
-              if(activeNameView?.name===name)updateActiveLabel()
-            },{signal:bodyController.signal})
 
             const role=document.createElement('div')
             role.className='oe-person__role'
@@ -486,7 +508,8 @@ export function createPersonPlugin(config={}){
 
             const links=document.createElement('div')
             links.className='oe-person__links'
-            for(const link of person.links)links.appendChild(createLinkRow(person,link))
+            const controls=[]
+            for(const link of person.links)links.appendChild(createLinkRow(person,link,controls))
             if(!readOnly){
               const addLink=document.createElement('button')
               addLink.type='button'
@@ -507,7 +530,7 @@ export function createPersonPlugin(config={}){
 
             card.append(avatarWrap,info)
             body.appendChild(card)
-            activeNameView={personId:person.id,name,info,card}
+            activeNameView={personId:person.id,name,info,card,links,controls}
           }
 
           const render=()=>{
@@ -521,7 +544,7 @@ export function createPersonPlugin(config={}){
           return {
             element:wrapper,
             read(){
-              syncControls()
+              syncControls(true)
               return cloneData(data)
             },
             update(next,previous){
@@ -533,9 +556,12 @@ export function createPersonPlugin(config={}){
               const previousActive=previous.persons.find(person=>person.id===previousId)
               data=cloneData(next)
               const nextActive=data.persons.find(person=>person.id===previousId)
-              // Reordering tabs or changing another person must not detach
-              // the current editing host and collapse its native caret.
-              if(activeNameView?.personId===previousId&&nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
+              // Core projects rich fields independently. Changing one rich
+              // value must not detach healthy sibling hosts or native inputs;
+              // only changes to the card's non-rich structure need a new body.
+              if(activeNameView?.personId===previousId&&nextActive&&previousActive
+                &&nextActive.avatar===previousActive.avatar
+                &&JSON.stringify(nextActive.links)===JSON.stringify(previousActive.links)){
                 renderTabs()
               }else render()
             },
@@ -598,8 +624,6 @@ export function createPersonPlugin(config={}){
               cropperDialog?.destroy()
               for(const task of avatarTasks.values())task.cancel()
               avatarTasks.clear()
-              body.replaceChildren()
-              tabs.replaceChildren()
             },
           }
         },

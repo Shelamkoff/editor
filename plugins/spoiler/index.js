@@ -141,10 +141,10 @@ export function createSpoilerPlugin(config = {}) {
           return {
             element:wrapper,
             read:()=>({label:label.innerHTML.trim(),content:content.innerHTML.trim()}),
-            update(next){
+            update(next,previousCanonical){
               if(instanceDestroyed)return
-              if(label.innerHTML!==next.label)setSanitizedHtml(label,next.label)
-              if(content.innerHTML!==next.content)setSanitizedHtml(content,next.content)
+              if(previousCanonical?.label!==next.label&&label.innerHTML!==next.label)setSanitizedHtml(label,next.label)
+              if(previousCanonical?.content!==next.content&&content.innerHTML!==next.content)setSanitizedHtml(content,next.content)
             },
             editableFields:()=>Object.freeze([
               Object.freeze({key:'label',element:label,mode:/** @type {'rich-text'} */('rich-text')}),

@@ -1,0 +1,1438 @@
+{
+ "scope": "Quiet-window e99 baseline versus the full 8d2e37d0 integration; large Table 20x20 only.",
+ "outcome": "passed",
+ "assessment": "Removed canonical copying is confirmed. This run does not establish a stable latency improvement; public p95 worsens. C09/T15 remain open.",
+ "startedAt": "2026-10-30T08:05:35.335Z",
+ "finishedAt": "2026-10-30T08:06:48.784Z",
+ "sourceUnchanged": true,
+ "sources": [
+  {
+   "root": "/tmp/rector-next-core-perf-baseline-20261030",
+   "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+   "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+   "label": "baseline",
+   "loadedSourceFiles": 177,
+   "sourceFileHashMapSha256": "9205acd4fc561f6e3d4d77b3f2836c7be30179a4d7717aa5243628920ee77674"
+  },
+  {
+   "root": "/tmp/rector-next-core-perf-integrated-20261030",
+   "head": "8d2e37d0c0f7989b5abc6aea03ba722f5dd960e5",
+   "tree": "e004d9901c3a33e992bfdf27391ded765a3b3229",
+   "label": "candidate",
+   "loadedSourceFiles": 177,
+   "sourceFileHashMapSha256": "0bf0ef982fbe05df8adad7752cd42ad7f5b55dad951d5012a10095da4054885c"
+  }
+ ],
+ "runner": {
+  "path": "benchmarks/structural-authoring.mjs",
+  "sha256": "bd0b1a9908796041ea0006c422beb0c94e7e3c69da9be5e2d11b4b888a8298b9",
+  "fixturePath": "tests/browser/structural-authoring-fixture.js",
+  "fixtureSha256": "d56a5c54c78ea0cb55878a1375f17cfb048ae4f3ba83f7959844ad335d7b146b",
+  "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+  "warmupPerVariantPerCommand": 5,
+  "pairedSamplesPerCommand": 21,
+  "order": "Paired variants alternate first/second by sample; no overlapping benchmark samples.",
+  "stages": [
+   "controls",
+   "timing",
+   "attribution",
+   "memory"
+  ],
+  "percentiles": "Sorted index floor(n*q); n=21 gives p50 index 10 and p95 index 19. Display numbers rounded to 4 decimal places; raw JSON retains original doubles."
+ },
+ "environment": {
+  "node": "v24.22.1",
+  "v8": "13.6.233.17-node.58",
+  "platform": "linux",
+  "architecture": "x64",
+  "osRelease": "6.18.55",
+  "cpuModel": "AMD EPYC 7763 64-Core Processor",
+  "cpuCount": 9,
+  "memoryBytes": 10451439616,
+  "loadBefore": [
+   0.08,
+   0.11,
+   0.05
+  ],
+  "viewport": {
+   "width": 1100,
+   "height": 900
+  },
+  "browserArguments": [
+   "--no-sandbox",
+   "--disable-dev-shm-usage"
+  ],
+  "chromePath": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+  "browser": "156.0.8078.47",
+  "browserProtocol": {
+   "protocolVersion": "1.3",
+   "product": "Chrome/156.0.8078.47",
+   "revision": "@1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+   "jsVersion": "15.6.75.19"
+  },
+  "loadAfter": [
+   0.72,
+   0.3,
+   0.12
+  ]
+ },
+ "boundaries": {
+  "synchronousMs": "Public command return, or trusted beforeinput through completed input event; includes schema, projection, history and event observers. No paint is inferred.",
+  "notificationMs": "Command/input start through scheduled onChange delivery, configured changeDebounceMs=0.",
+  "settledRenderOpportunityMs": "Start through notification then two animation frames, scheduled independently of native driver return; a render opportunity, not proof of a paint. No-ops include an explicit 50ms notification quiescence window.",
+  "trace": "Separate Chrome trace: actual Layout/Paint/UpdateLayoutTree records within marked command+notification+frame windows.",
+  "allocation": "Separate V8 statistical allocation profiles; sampled byte estimates include the full edit/undo/redo/reset sequence and oracle checks. Not retained heap size.",
+  "retention": "Separate forced-GC observations of released event envelopes, changes arrays, before/after data and inline roots, snapshot blocks/data/inline roots, with live positive controls. Counts are WeakRef observations, not distinct objects or proof about every nested descendant. Heap usage is an observation, not an allocation count."
+ },
+ "controls": {
+  "functionalPassed": 10,
+  "deliberateFailuresDetected": 4,
+  "total": 14,
+  "pageErrors": 0,
+  "serverErrors": 0,
+  "cases": [
+   {
+    "variant": "baseline",
+    "shape": "table-large",
+    "kind": "noop-empty",
+    "outcome": "passed"
+   },
+   {
+    "variant": "baseline",
+    "shape": "table-large",
+    "kind": "noop-equal",
+    "outcome": "passed"
+   },
+   {
+    "variant": "baseline",
+    "shape": "table-large",
+    "kind": "public",
+    "outcome": "passed"
+   },
+   {
+    "variant": "baseline",
+    "shape": "table-large",
+    "kind": "native",
+    "outcome": "passed"
+   },
+   {
+    "variant": "baseline",
+    "shape": "table-large",
+    "kind": "composition",
+    "outcome": "passed"
+   },
+   {
+    "variant": "candidate",
+    "shape": "table-large",
+    "kind": "noop-empty",
+    "outcome": "passed"
+   },
+   {
+    "variant": "candidate",
+    "shape": "table-large",
+    "kind": "noop-equal",
+    "outcome": "passed"
+   },
+   {
+    "variant": "candidate",
+    "shape": "table-large",
+    "kind": "public",
+    "outcome": "passed"
+   },
+   {
+    "variant": "candidate",
+    "shape": "table-large",
+    "kind": "native",
+    "outcome": "passed"
+   },
+   {
+    "variant": "candidate",
+    "shape": "table-large",
+    "kind": "composition",
+    "outcome": "passed"
+   },
+   {
+    "variant": "baseline",
+    "sensitivity": "sibling-data",
+    "outcome": "deliberate-failure-detected"
+   },
+   {
+    "variant": "baseline",
+    "sensitivity": "missing-notification",
+    "outcome": "deliberate-failure-detected"
+   },
+   {
+    "variant": "candidate",
+    "sensitivity": "sibling-data",
+    "outcome": "deliberate-failure-detected"
+   },
+   {
+    "variant": "candidate",
+    "sensitivity": "missing-notification",
+    "outcome": "deliberate-failure-detected"
+   }
+  ]
+ },
+ "timingColumns": [
+  "synchronousMs:p50",
+  "synchronousMs:p95",
+  "notificationMs:p50",
+  "notificationMs:p95",
+  "settledRenderOpportunityMs:p50",
+  "settledRenderOpportunityMs:p95"
+ ],
+ "timings": [
+  {
+   "command": "noop-empty",
+   "phase": "noop-empty",
+   "baseline": [
+    26.8,
+    32,
+    null,
+    null,
+    83.3,
+    100
+   ],
+   "candidate": [
+    25.7,
+    49.8,
+    null,
+    null,
+    83.4,
+    116.6
+   ],
+   "synchronousChangePercent": {
+    "p50": -4.1045,
+    "p95": 55.625
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": -0.6,
+    "candidateFaster": 12,
+    "equal": 0,
+    "candidateSlower": 9
+   }
+  },
+  {
+   "command": "noop-equal",
+   "phase": "noop-equal",
+   "baseline": [
+    27,
+    32.6,
+    null,
+    null,
+    83.4,
+    100.1
+   ],
+   "candidate": [
+    26.8,
+    30.8,
+    null,
+    null,
+    83.3,
+    100.1
+   ],
+   "synchronousChangePercent": {
+    "p50": -0.7407,
+    "p95": -5.5215
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": -0.9,
+    "candidateFaster": 12,
+    "equal": 0,
+    "candidateSlower": 9
+   }
+  },
+  {
+   "command": "public",
+   "phase": "public",
+   "baseline": [
+    64.6,
+    81.7,
+    66.5,
+    83.4,
+    83.3,
+    100.1
+   ],
+   "candidate": [
+    65.3,
+    93,
+    67.9,
+    94.9,
+    83.4,
+    116.6
+   ],
+   "synchronousChangePercent": {
+    "p50": 1.0836,
+    "p95": 13.8311
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": 0.3,
+    "candidateFaster": 9,
+    "equal": 0,
+    "candidateSlower": 12
+   }
+  },
+  {
+   "command": "public",
+   "phase": "undo",
+   "baseline": [
+    32.9,
+    62.2,
+    39.4,
+    69.1,
+    61.7,
+    94.7
+   ],
+   "candidate": [
+    31.9,
+    51,
+    36.8,
+    56.9,
+    62,
+    78.4
+   ],
+   "synchronousChangePercent": {
+    "p50": -3.0395,
+    "p95": -18.0064
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": -1.9,
+    "candidateFaster": 14,
+    "equal": 0,
+    "candidateSlower": 7
+   }
+  },
+  {
+   "command": "public",
+   "phase": "redo",
+   "baseline": [
+    33.2,
+    41.7,
+    38.3,
+    49.4,
+    62,
+    77.1
+   ],
+   "candidate": [
+    33.2,
+    40.9,
+    38.4,
+    47,
+    62.3,
+    76.2
+   ],
+   "synchronousChangePercent": {
+    "p50": 0.0,
+    "p95": -1.9185
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": -0.5,
+    "candidateFaster": 11,
+    "equal": 0,
+    "candidateSlower": 10
+   }
+  },
+  {
+   "command": "native",
+   "phase": "native",
+   "baseline": [
+    74.4,
+    100.3,
+    77.9,
+    104.4,
+    107.8,
+    125.2
+   ],
+   "candidate": [
+    73.5,
+    88.7,
+    76.8,
+    93.1,
+    107.8,
+    109.8
+   ],
+   "synchronousChangePercent": {
+    "p50": -1.2097,
+    "p95": -11.5653
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": 0.9,
+    "candidateFaster": 10,
+    "equal": 0,
+    "candidateSlower": 11
+   }
+  },
+  {
+   "command": "native",
+   "phase": "undo",
+   "baseline": [
+    31,
+    36.5,
+    35.6,
+    43.6,
+    60.8,
+    62.3
+   ],
+   "candidate": [
+    32,
+    36.2,
+    36.6,
+    42.4,
+    61.4,
+    62.6
+   ],
+   "synchronousChangePercent": {
+    "p50": 3.2258,
+    "p95": -0.8219
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": 0,
+    "candidateFaster": 10,
+    "equal": 1,
+    "candidateSlower": 10
+   }
+  },
+  {
+   "command": "native",
+   "phase": "redo",
+   "baseline": [
+    31.3,
+    34,
+    37.2,
+    40.2,
+    62.6,
+    66.8
+   ],
+   "candidate": [
+    31,
+    38.5,
+    36,
+    44.3,
+    62.4,
+    63.2
+   ],
+   "synchronousChangePercent": {
+    "p50": -0.9585,
+    "p95": 13.2353
+   },
+   "pairedSynchronous": {
+    "medianDeltaMs": -1.0,
+    "candidateFaster": 14,
+    "equal": 0,
+    "candidateSlower": 7
+   }
+  }
+ ],
+ "exactPairedSamples": {
+  "path": "paired-samples.json",
+  "bytes": 27311,
+  "sha256": "687dfe6a872658f45afe3a2d222b5f8dacb62547e2f9b068a2414d847c65f9c5",
+  "rawPrecision": "All four observed time metrics, every pair and phase; no rounding. Pair delta summaries are candidate minus baseline."
+ },
+ "deterministicWork": {
+  "artifact": "canonical-read-work.json",
+  "runnerSha256": "95123e082e4f6bd42956336919019e2d1486c0ba2e689ed4f9d8809381777ff7",
+  "sourceUnchanged": true,
+  "limits": "Headless Table schema/runtime/public path. Counts exclude setup, assertions and Undo/Redo; no latency, native DOM, RAM, retained heap or leak claim.",
+  "integratedRerun": {
+   "baseline": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+   "candidate": "8d2e37d0c0f7989b5abc6aea03ba722f5dd960e5",
+   "meaning": "Confirms the previously isolated mechanism survives integration; not a new isolated ablation."
+  },
+  "isolatedMechanism": {
+   "artifact": "canonical-read-work-isolated.json",
+   "baseline": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+   "candidate": "4dcbffebfbd960cee73f0a044f0a32d5c218347d",
+   "sameRunner": true,
+   "allCountsMatchIntegratedRerun": true
+  },
+  "columns": [
+   "jsonRecordVisits",
+   "tablePayloadVisits"
+  ],
+  "rows": [
+   {
+    "size": 2,
+    "command": "public-change",
+    "baseline": [
+     266,
+     35
+    ],
+    "candidate": [
+     250,
+     33
+    ],
+    "avoided": [
+     16,
+     2
+    ]
+   },
+   {
+    "size": 2,
+    "command": "public-noop-empty",
+    "baseline": [
+     171,
+     24
+    ],
+    "candidate": [
+     162,
+     23
+    ],
+    "avoided": [
+     9,
+     1
+    ]
+   },
+   {
+    "size": 2,
+    "command": "public-noop-equal",
+    "baseline": [
+     171,
+     24
+    ],
+    "candidate": [
+     155,
+     22
+    ],
+    "avoided": [
+     16,
+     2
+    ]
+   },
+   {
+    "size": 2,
+    "command": "projection-change",
+    "baseline": [
+     258,
+     34
+    ],
+    "candidate": [
+     242,
+     32
+    ],
+    "avoided": [
+     16,
+     2
+    ]
+   },
+   {
+    "size": 2,
+    "command": "projection-noop",
+    "baseline": [
+     163,
+     23
+    ],
+    "candidate": [
+     147,
+     21
+    ],
+    "avoided": [
+     16,
+     2
+    ]
+   },
+   {
+    "size": 20,
+    "command": "public-change",
+    "baseline": [
+     14756,
+     35
+    ],
+    "candidate": [
+     13912,
+     33
+    ],
+    "avoided": [
+     844,
+     2
+    ]
+   },
+   {
+    "size": 20,
+    "command": "public-noop-empty",
+    "baseline": [
+     10107,
+     24
+    ],
+    "candidate": [
+     9684,
+     23
+    ],
+    "avoided": [
+     423,
+     1
+    ]
+   },
+   {
+    "size": 20,
+    "command": "public-noop-equal",
+    "baseline": [
+     10107,
+     24
+    ],
+    "candidate": [
+     9263,
+     22
+    ],
+    "avoided": [
+     844,
+     2
+    ]
+   },
+   {
+    "size": 20,
+    "command": "projection-change",
+    "baseline": [
+     14334,
+     34
+    ],
+    "candidate": [
+     13490,
+     32
+    ],
+    "avoided": [
+     844,
+     2
+    ]
+   },
+   {
+    "size": 20,
+    "command": "projection-noop",
+    "baseline": [
+     9685,
+     23
+    ],
+    "candidate": [
+     8841,
+     21
+    ],
+    "avoided": [
+     844,
+     2
+    ]
+   }
+  ],
+  "negativeControlArtifact": "canonical-read-work-negative-control.json",
+  "negativeControlMeaning": "Previously recorded e99-versus-e99 run of the same runner found zero reductions and exited with its expected assertion failure. Not rerun during this window."
+ },
+ "browserCounterColumns": [
+  "jsonRecordVisits",
+  "structuredPayloadVisits",
+  "childListsRead",
+  "nodeClones",
+  "elementsCreated"
+ ],
+ "browserCounters": [
+  {
+   "command": "noop-empty",
+   "phase": "noop-empty",
+   "baseline": [
+    10145,
+    24,
+    6404,
+    0,
+    2000
+   ],
+   "candidate": [
+    9704,
+    23,
+    6404,
+    0,
+    2000
+   ],
+   "candidateMinusBaseline": [
+    -441,
+    -1,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "noop-equal",
+   "phase": "noop-equal",
+   "baseline": [
+    10145,
+    24,
+    6404,
+    0,
+    2000
+   ],
+   "candidate": [
+    9283,
+    22,
+    6404,
+    0,
+    2000
+   ],
+   "candidateMinusBaseline": [
+    -862,
+    -2,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "public",
+   "phase": "public",
+   "baseline": [
+    18292,
+    43,
+    13634,
+    2,
+    4008
+   ],
+   "candidate": [
+    17430,
+    41,
+    13634,
+    2,
+    4008
+   ],
+   "candidateMinusBaseline": [
+    -862,
+    -2,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "public",
+   "phase": "undo",
+   "baseline": [
+    6433,
+    15,
+    7412,
+    2,
+    2008
+   ],
+   "candidate": [
+    6433,
+    15,
+    7412,
+    2,
+    2008
+   ],
+   "candidateMinusBaseline": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "public",
+   "phase": "redo",
+   "baseline": [
+    6434,
+    15,
+    7394,
+    2,
+    2008
+   ],
+   "candidate": [
+    6434,
+    15,
+    7394,
+    2,
+    2008
+   ],
+   "candidateMinusBaseline": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "native",
+   "phase": "native",
+   "baseline": [
+    30952,
+    73,
+    22938,
+    400,
+    5603
+   ],
+   "candidate": [
+    30090,
+    71,
+    22938,
+    400,
+    5603
+   ],
+   "candidateMinusBaseline": [
+    -862,
+    -2,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "native",
+   "phase": "undo",
+   "baseline": [
+    6433,
+    15,
+    7414,
+    2,
+    2008
+   ],
+   "candidate": [
+    6433,
+    15,
+    7414,
+    2,
+    2008
+   ],
+   "candidateMinusBaseline": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "native",
+   "phase": "redo",
+   "baseline": [
+    6434,
+    15,
+    7414,
+    2,
+    2008
+   ],
+   "candidate": [
+    6434,
+    15,
+    7414,
+    2,
+    2008
+   ],
+   "candidateMinusBaseline": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "allocationSampling": {
+  "samplingIntervalBytes": 8192,
+  "visitFrameAttribution": "Sum profile.samples[].size when the sample nodeId points directly to visit in shared/jsonData.js. No inclusive ancestor double counting; distinct from head.selfSize estimates.",
+  "rows": [
+   {
+    "command": "noop-empty",
+    "baseline": {
+     "artifact": "baseline-table-large-noop-empty.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 7698652,
+     "samples": 921,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 3093132,
+     "visitFrameSamples": 377
+    },
+    "candidate": {
+     "artifact": "candidate-table-large-noop-empty.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 9017348,
+     "samples": 1079,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 4626940,
+     "visitFrameSamples": 564
+    },
+    "sampledBytesChangePercent": 17.1289
+   },
+   {
+    "command": "noop-equal",
+    "baseline": {
+     "artifact": "baseline-table-large-noop-equal.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 9471064,
+     "samples": 1134,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 4708976,
+     "visitFrameSamples": 574
+    },
+    "candidate": {
+     "artifact": "candidate-table-large-noop-equal.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 9468188,
+     "samples": 1135,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 4815792,
+     "visitFrameSamples": 587
+    },
+    "sampledBytesChangePercent": -0.0304
+   },
+   {
+    "command": "public",
+    "baseline": {
+     "artifact": "baseline-table-large-public.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 34448988,
+     "samples": 4080,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 13602152,
+     "visitFrameSamples": 1658
+    },
+    "candidate": {
+     "artifact": "candidate-table-large-public.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 31137812,
+     "samples": 3679,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 11199500,
+     "visitFrameSamples": 1365
+    },
+    "sampledBytesChangePercent": -9.6118
+   },
+   {
+    "command": "native",
+    "baseline": {
+     "artifact": "baseline-table-large-native.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 42580024,
+     "samples": 5047,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 17886504,
+     "visitFrameSamples": 2180
+    },
+    "candidate": {
+     "artifact": "candidate-table-large-native.allocation.json.gz",
+     "samplingInterval": 8192,
+     "sampledBytes": 40401956,
+     "samples": 4796,
+     "includesCollectedObjects": true,
+     "includesResetAndOracle": true,
+     "visitFrameSampledBytes": 16687508,
+     "visitFrameSamples": 2034
+    },
+    "sampledBytesChangePercent": -5.1152
+   }
+  ]
+ },
+ "traceColumns": [
+  "Layout:count",
+  "Layout:durationMs",
+  "Paint:count",
+  "Paint:durationMs",
+  "UpdateLayoutTree:count",
+  "UpdateLayoutTree:durationMs"
+ ],
+ "traceWindows": [
+  {
+   "command": "noop-empty",
+   "phase": "noop-empty",
+   "baseline": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "candidate": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "noop-equal",
+   "phase": "noop-equal",
+   "baseline": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "candidate": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "public",
+   "phase": "public",
+   "baseline": [
+    1,
+    0.631,
+    2,
+    1.292,
+    2,
+    2.182
+   ],
+   "candidate": [
+    1,
+    0.723,
+    2,
+    1.859,
+    2,
+    2.044
+   ]
+  },
+  {
+   "command": "public",
+   "phase": "undo",
+   "baseline": [
+    1,
+    0.56,
+    2,
+    1.478,
+    2,
+    2.04
+   ],
+   "candidate": [
+    1,
+    0.608,
+    2,
+    1.301,
+    2,
+    2.151
+   ]
+  },
+  {
+   "command": "public",
+   "phase": "redo",
+   "baseline": [
+    1,
+    0.602,
+    2,
+    1.68,
+    2,
+    2.28
+   ],
+   "candidate": [
+    1,
+    0.662,
+    2,
+    1.535,
+    2,
+    2.071
+   ]
+  },
+  {
+   "command": "native",
+   "phase": "native",
+   "baseline": [
+    1,
+    0.529,
+    2,
+    1.43,
+    0,
+    0
+   ],
+   "candidate": [
+    1,
+    0.635,
+    2,
+    2.109,
+    0,
+    0
+   ]
+  },
+  {
+   "command": "native",
+   "phase": "undo",
+   "baseline": [
+    1,
+    0.591,
+    2,
+    1.365,
+    2,
+    1.871
+   ],
+   "candidate": [
+    1,
+    0.742,
+    2,
+    1.579,
+    2,
+    2.081
+   ]
+  },
+  {
+   "command": "native",
+   "phase": "redo",
+   "baseline": [
+    1,
+    0.538,
+    2,
+    1.179,
+    2,
+    2.166
+   ],
+   "candidate": [
+    1,
+    0.548,
+    2,
+    1.808,
+    2,
+    2.041
+   ]
+  }
+ ],
+ "boundedMemory": [
+  {
+   "variant": "baseline",
+   "shape": "table-large",
+   "iterations": 12,
+   "before": {
+    "usedSize": 4374552,
+    "totalSize": 4980736,
+    "embedderHeapUsedSize": 4216120,
+    "backingStorageSize": 1797861
+   },
+   "after": {
+    "usedSize": 4502524,
+    "totalSize": 5505024,
+    "embedderHeapUsedSize": 4566312,
+    "backingStorageSize": 1797861
+   },
+   "observation": {
+    "observedReleasedObjects": 1008,
+    "retainedReleasedObjects": 0,
+    "livePositiveControl": true,
+    "liveFieldControls": 400,
+    "canUndo": false,
+    "canRedo": true
+   },
+   "usedHeapDeltaBytes": 127972
+  },
+  {
+   "variant": "candidate",
+   "shape": "table-large",
+   "iterations": 12,
+   "before": {
+    "usedSize": 4362924,
+    "totalSize": 5242880,
+    "embedderHeapUsedSize": 4212168,
+    "backingStorageSize": 1803055
+   },
+   "after": {
+    "usedSize": 4497960,
+    "totalSize": 5505024,
+    "embedderHeapUsedSize": 4493000,
+    "backingStorageSize": 1803055
+   },
+   "observation": {
+    "observedReleasedObjects": 1008,
+    "retainedReleasedObjects": 0,
+    "livePositiveControl": true,
+    "liveFieldControls": 400,
+    "canUndo": false,
+    "canRedo": true
+   },
+   "usedHeapDeltaBytes": 135036
+  }
+ ],
+ "boundedMemorySharedCategoryCounts": {
+  "snapshot:envelope": {
+   "observed": 60,
+   "retained": 0
+  },
+  "snapshot:blocks": {
+   "observed": 60,
+   "retained": 0
+  },
+  "snapshot:data": {
+   "observed": 60,
+   "retained": 0
+  },
+  "snapshot:inline": {
+   "observed": 60,
+   "retained": 0
+  },
+  "transaction:envelope": {
+   "observed": 48,
+   "retained": 0
+  },
+  "transaction:changes": {
+   "observed": 48,
+   "retained": 0
+  },
+  "transaction:before:data": {
+   "observed": 48,
+   "retained": 0
+  },
+  "transaction:before:inline": {
+   "observed": 48,
+   "retained": 0
+  },
+  "transaction:after:data": {
+   "observed": 48,
+   "retained": 0
+  },
+  "transaction:after:inline": {
+   "observed": 48,
+   "retained": 0
+  },
+  "document:envelope": {
+   "observed": 48,
+   "retained": 0
+  },
+  "document:changes": {
+   "observed": 48,
+   "retained": 0
+  },
+  "document:before:data": {
+   "observed": 48,
+   "retained": 0
+  },
+  "document:before:inline": {
+   "observed": 48,
+   "retained": 0
+  },
+  "document:after:data": {
+   "observed": 48,
+   "retained": 0
+  },
+  "document:after:inline": {
+   "observed": 48,
+   "retained": 0
+  },
+  "onChange:envelope": {
+   "observed": 48,
+   "retained": 0
+  },
+  "onChange:blocks": {
+   "observed": 48,
+   "retained": 0
+  },
+  "onChange:data": {
+   "observed": 48,
+   "retained": 0
+  },
+  "onChange:inline": {
+   "observed": 48,
+   "retained": 0
+  }
+ },
+ "sourceHashInventory": {
+  "mapDigestConvention": "SHA256 of UTF-8 JSON, sorted keys, compact separators, ensure_ascii=true; full maps remain in raw results.json.",
+  "loadedSourceDifferences": [
+   {
+    "path": "core/BlockReconciler.js",
+    "baseline": "e2e76f48e7123f70ac9307e21476fd0773fd32d591568aad488067af99655cc6",
+    "candidate": "678a802d03c1bb260173916bde779b5b806ef051e40083f12779a32d7f5f7287"
+   },
+   {
+    "path": "core/DocumentRuntime.js",
+    "baseline": "27e7a7ec3b4a3799e00d4073a6589409298c783c186e5af52cefd963bd5e8d10",
+    "candidate": "67533fed897573ea053c2783f2516a7956dd82b0860da88c00e002218d6d026c"
+   },
+   {
+    "path": "core/ExtensionRegistry.js",
+    "baseline": "384271a88d76114fc20826608752d03455e864ad112d11e417f5dc421d4ea824",
+    "candidate": "76c84bbe57257a796357bd678675b0ea612e75687d15de092f1d1c983d77a614"
+   },
+   {
+    "path": "inline-plugins/mention/index.js",
+    "baseline": "8653e94148aaac59d32bc6dfb222213726209ffc932842554881676363506486",
+    "candidate": "c681e5d9cdfe3f073c0ebffd147db979cb1a343088df8ff11289ce05445029d2"
+   },
+   {
+    "path": "plugins/gallery/index.js",
+    "baseline": "caa69be65743d8e96dda14a58871f4aff94d00c6fb3905b577d3697f83346709",
+    "candidate": "59d66238218ab749d71b2839d86c6892d376fc19ca50bd841a3cbf710ab5fe4d"
+   },
+   {
+    "path": "plugins/person/index.js",
+    "baseline": "8ce6076f24de0c229c88f9949798a7cb5a867c2619513620f3de344af7d13a35",
+    "candidate": "6b698d562954cc7f70ef9bcf8f604b4271fa6df3951677c13be46bf2eef2a09e"
+   },
+   {
+    "path": "shared/richTextCodec.js",
+    "baseline": "1d81f8f4a051573ddd68ec8481fcfc28bc009f46645ae8ebbfff40f3e0a94ce5",
+    "candidate": "9bd652660628672252c93add8073f812c4d522bfba80a1c2704d9cf5dcb1ea0f"
+   },
+   {
+    "path": "shared/richTextOperations.js",
+    "baseline": "54c0034dc204b7945c29f127bcfad96307dac558bae62bddd71500bab96ad40b",
+    "candidate": "1d82337568ee7263a022fc376eba8adbfbaedad26a9752057b3da72384097292"
+   },
+   {
+    "path": "shared/sanitize/sanitizeStyle.js",
+    "baseline": "dad51ee9f1e090fb0438817ef2e0ebd5e5a5bcc3ab1b9b584f787bfe0beea721",
+    "candidate": "285dafbee51f7bcef1ad0444957716e398e2fde7e6872742b0688a6985753a2c"
+   },
+   {
+    "path": "shared/sanitize/walker.js",
+    "baseline": "57e8ccf5f4949a285796f189412d446893da56a9ca29aa7c6c80671cfa421fb6",
+    "candidate": "a5d27a9539f05cd88b00b6f33054b230b8d1b3f0aede92fcded83225fe63f1cc"
+   }
+  ],
+  "dependencies": {
+   "fileCount": 25,
+   "fileHashMapSha256": "b787f88eb1a31a00dba3d1b929d61f4cec6726ba7a3772057b252ab0843018b1",
+   "versions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+   }
+  }
+ },
+ "rawArtifacts": [
+  {
+   "path": "structural/baseline-table-large-native.allocation.json.gz",
+   "bytes": 46850,
+   "sha256": "43f19740b6399dbc5991f5fa41e491bc764fee87ee838bb45cfe2466d60c0ec5"
+  },
+  {
+   "path": "structural/baseline-table-large-native.trace.json.gz",
+   "bytes": 302522,
+   "sha256": "bd42b9150b73428cdfc2da70ca4da9fce5c19f0f5937a8450583f4f26ab4c01a"
+  },
+  {
+   "path": "structural/baseline-table-large-noop-empty.allocation.json.gz",
+   "bytes": 10106,
+   "sha256": "2a5a03a9512b20e07b2982098b7ae3d316ad0b4148d8451bdba9d125f4b0443a"
+  },
+  {
+   "path": "structural/baseline-table-large-noop-empty.trace.json.gz",
+   "bytes": 70414,
+   "sha256": "a864b4265a909f72022273e9bea0643ebba024806c5478a46b9f3c352faa5655"
+  },
+  {
+   "path": "structural/baseline-table-large-noop-equal.allocation.json.gz",
+   "bytes": 10869,
+   "sha256": "abfef7bdf5f325675912141f6ab13d662bf58e0c693aec9eb4437744ee6aa95d"
+  },
+  {
+   "path": "structural/baseline-table-large-noop-equal.trace.json.gz",
+   "bytes": 75540,
+   "sha256": "278f57c5ede6d8ed4a26314c96db8511498d766c77febaf9dfc8a3a30068dfed"
+  },
+  {
+   "path": "structural/baseline-table-large-public.allocation.json.gz",
+   "bytes": 37527,
+   "sha256": "8cc3fc621fd03c6aaee598d9ca1d158df93b54bb69e8b1dd1c8db0d23b8d13b4"
+  },
+  {
+   "path": "structural/baseline-table-large-public.trace.json.gz",
+   "bytes": 337291,
+   "sha256": "458a19ccd1bbd52d1ab995e822f4a7e27939ada884c90493f54551017c68e445"
+  },
+  {
+   "path": "structural/candidate-table-large-native.allocation.json.gz",
+   "bytes": 45089,
+   "sha256": "c19c0116fdefed931431e59514f87b2cd57928ec49d4a9c35f99c1d33e17f6f8"
+  },
+  {
+   "path": "structural/candidate-table-large-native.trace.json.gz",
+   "bytes": 301056,
+   "sha256": "3f6884f7a7537c39a4041d3dc227d371edde78a60f24e098a6967cda85f232b9"
+  },
+  {
+   "path": "structural/candidate-table-large-noop-empty.allocation.json.gz",
+   "bytes": 10761,
+   "sha256": "024ae95a089d894f1cd0ca7d23bdfb4864a78f69dc34ec68a87b6362d74549ef"
+  },
+  {
+   "path": "structural/candidate-table-large-noop-empty.trace.json.gz",
+   "bytes": 75779,
+   "sha256": "a77e3c4a8c71b0b0e3592a62dec4fcea7ffbce99ac9967bab5305efa5550bbc9"
+  },
+  {
+   "path": "structural/candidate-table-large-noop-equal.allocation.json.gz",
+   "bytes": 10605,
+   "sha256": "7913445e0dfc55588f1110fcc559198f584b81cd44db14bfad7c1a18f31ded80"
+  },
+  {
+   "path": "structural/candidate-table-large-noop-equal.trace.json.gz",
+   "bytes": 75876,
+   "sha256": "aa944ced91084a1820e2b5eae28182fdcc98c1432d033ae370f2481c84f43403"
+  },
+  {
+   "path": "structural/candidate-table-large-public.allocation.json.gz",
+   "bytes": 35382,
+   "sha256": "8a3c4e75ec267b1a325ba50a3162962ed925ffa841f29f838c97335b01057a86"
+  },
+  {
+   "path": "structural/candidate-table-large-public.trace.json.gz",
+   "bytes": 335490,
+   "sha256": "9ce724b53ac1e04398f37f350dc157b1c628a2a1eb36dec8e8a62841218d5d28"
+  },
+  {
+   "path": "structural/results.json",
+   "bytes": 261936,
+   "sha256": "33f8f8e3a5ed540ac32349ac2dfdbe05294d445693d9774de8f385f2d6d7b95e"
+  }
+ ],
+ "provenanceArtifacts": [
+  {
+   "path": "run-manifest.json",
+   "bytes": 1087,
+   "sha256": "d5014891169ba91ff6fba1371bfe5cc4e2da1201adc7ffad766ca947456ef25e"
+  },
+  {
+   "path": "invocation.json",
+   "bytes": 941,
+   "sha256": "4d205c45def661eababda2d3855349d86fb41008aacaaae1a38a32114c29c7bd"
+  },
+  {
+   "path": "canonical-read-work.json",
+   "bytes": 8459,
+   "sha256": "baf9d9499c8508b483ccfb0ccfda25d7f855bd19ce65f955b32b8caf918e5f81"
+  },
+  {
+   "path": "canonical-read-work-isolated.json",
+   "bytes": 8448,
+   "sha256": "7c643ddbdacc0441e793abe5afd75bca88f041a3a5fa3b5f1f9c263a033b415e"
+  },
+  {
+   "path": "canonical-read-work-negative-control.json",
+   "bytes": 8445,
+   "sha256": "fc876a46d39029bd01b4308e2430b9b9cb18f57940a9e872f57e177c18b3cc72"
+  },
+  {
+   "path": "canonical-read-work.log",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "structural.log",
+   "bytes": 130,
+   "sha256": "deba87a31a5555de705a9f4b38cdd74339a01e3ed29ea22e444b9f9249b4fbb2"
+  }
+ ],
+ "limits": [
+  "No repeat, no small Table timing, and no isolated core-only browser ablation were run. All reported browser numbers belong to the full integrated candidate.",
+  "One 21-pair run does not establish a stable p95 or a generally faster editor. Native p95 improved in this sample, while public and empty-no-op p95 worsened; both public/native median paired deltas are positive.",
+  "Deterministic counters observe avoided JSON boundary work, not elapsed time, allocations, RAM, or leaks. The headless port and browser fixture have different envelopes and counts.",
+  "V8 allocation profiles are statistical full edit/Undo/Redo/reset/oracle-sequence samples. They are not exact per-edit allocation, RAM consumption, or retained heap; no-op-empty sampled bytes increased.",
+  "Two animation frames show a render opportunity, not proof of paint; actual trace records are reported separately and are not a repeated paint benchmark.",
+  "Forced-GC controls cover these 1008 WeakRef observations per variant with 400 live fields. Observations are not necessarily distinct objects and are not a universal leak proof or a memory-win claim.",
+  "Functional controls validate this structural fixture, not full editor parity. C09 and T15 remain open."
+ ]
+}

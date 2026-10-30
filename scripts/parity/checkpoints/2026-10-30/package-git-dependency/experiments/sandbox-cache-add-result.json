@@ -1,0 +1,15 @@
+{
+  "directory": "/tmp/rector-package-git-cache-probe-xjg644ee",
+  "command": [
+    "npm",
+    "cache",
+    "add",
+    "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+    "--ignore-scripts",
+    "--cache",
+    "/tmp/rector-package-git-cache-probe-xjg644ee/npm-cache"
+  ],
+  "exitCode": 1,
+  "seconds": 70.46918034553528,
+  "log": "/tmp/rector-package-git-cache-probe-xjg644ee/cache-add.log"
+}

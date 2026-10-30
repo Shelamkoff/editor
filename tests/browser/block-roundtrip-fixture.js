@@ -129,6 +129,24 @@ const image = {
   },
 }
 
+const gallery = {
+  type: 'gallery', version: 2, className: 'Gallery', literalCaption: true,
+  fieldSelector: '.oe-gallery__slot-caption', fieldTag: 'DIV',
+  defaultData: { images: [], layout: 'auto', styles: {},
+    options: { loop: true, zoom: true, navigation: true, captions: true, fullscreen: true, thumbnails: false } },
+  populatedData: { images: [
+    { id: 'first', url: pixel, caption: 'Alpha &amp; &lt;b&gt;literal&lt;/b&gt; {{literal}} tail' },
+    { id: 'second', url: pixel, caption: 'Second &amp; &lt;i&gt;literal&lt;/i&gt;' },
+  ], layout: '2', styles: { gap: '8px', height: '180px', borderRadius: '6px' },
+  options: { loop: false, zoom: true, navigation: true, captions: true, fullscreen: false, thumbnails: true } },
+}
+// Gallery v1 author captions are plain strings (textContent), not rich HTML.
+// These fixed values translate only the historical wire representation.
+gallery.legacyPopulatedData = { ...gallery.populatedData, images: [
+  { id: 'first', url: pixel, caption: 'Alpha & <b>literal</b> {{literal}} tail' },
+  { id: 'second', url: pixel, caption: 'Second & <i>literal</i>' },
+] }
+
 const embed = {
   type: 'embed', version: 1, className: 'Embed', textKey: 'caption',
   fieldSelector: '.oe-embed__caption', fieldTag: 'DIV',
@@ -138,44 +156,87 @@ const embed = {
     cover: pixel, title: 'Local preview', duration: '1:23' },
 }
 
+const carousel = {
+  type: 'carousel', version: 1, className: 'Carousel', literalCaption: true,
+  fieldSelector: '.oe-carousel-block__caption', fieldTag: 'DIV',
+  defaultData: { slides: [], options: { loop: false, autoplay: false, autoplayDelay: 3000,
+    navigation: true, pagination: true, thumbnails: false } },
+  populatedData: { slides: [
+    { id: 'first', type: 'image', src: pixel, alt: 'First <&> image', caption: 'Alpha &amp; &lt;caption&gt; tail' },
+    { id: 'second', type: 'video', src: '/tests/browser/carousel-roundtrip-16x16.webm', poster: pixel,
+      alt: 'Second & video', caption: 'Second &amp; caption' },
+    { id: 'third', type: 'html', html: '<section><h3>Local &amp; HTML</h3><p><a href="https://example.test/more">More</a></p></section>',
+      caption: 'HTML &amp; caption' },
+  ], options: { loop: false, autoplay: false, autoplayDelay: 3000, navigation: true, pagination: true, thumbnails: true } },
+}
+// v1 Carousel captions are literal text, not rich HTML. These independent wire
+// records preserve the same visible author characters; widget cases below
+// explicitly record that persistent rich-caption widgets were unsupported.
+carousel.legacyPopulatedData = { ...carousel.populatedData, slides: carousel.populatedData.slides.map((slide, index) => ({
+  ...slide, caption: ['Alpha & <caption> tail', 'Second & caption', 'HTML & caption'][index],
+})) }
+
+const linkPreview = {
+  type: 'linkPreview', moduleDirectory: 'link-preview', scenarioName: 'LINK_PREVIEW', version: 1, className: 'LinkPreview',
+  textKey: 'url', fieldMode: 'plain-text', fieldTag: 'INPUT', fieldSelector: '.oe-lp__url-input',
+  defaultData: { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' },
+  populatedData: { url: 'https://example.test/story', title: 'Literal <b>headline</b> & {{literal}}',
+    description: 'Description & <script>literal</script>', image: pixel, favicon: pixel, domain: 'display.example', template: 'horizontal' },
+}
+
+const poll = {
+  type: 'poll', version: 1, className: 'Poll', textKey: 'question',
+  fieldSelector: '.oe-poll__question', fieldTag: 'DIV',
+  defaultData: { question: '', type: 'single', options: [{ id: 'option-0', text: '' }, { id: 'option-1', text: '' }], resultsMode: 'always' },
+  populatedData: { question: '<b>Alpha</b> <i>{{mention}}</i> tail', type: 'multiple',
+    options: [{ id: 'first', text: '<mark>First answer</mark> <s>{{swatch}}</s>' }, { id: 'second', text: '<i>Second &amp; answer</i>' }],
+    resultsMode: 'always', pollId: 'roundtrip-poll',
+    initialResults: { total: 3, options: [{ id: 'first', votes: 2 }, { id: 'second', votes: 1 }], currentUserVote: ['second'] },
+  },
+  unwrappedData: { question: '<b>Alpha</b> {{mention}} tail', type: 'multiple',
+    options: [{ id: 'first', text: '<mark>First answer</mark> {{swatch}}' }, { id: 'second', text: '<i>Second &amp; answer</i>' }],
+    resultsMode: 'always', pollId: 'roundtrip-poll',
+    initialResults: { total: 3, options: [{ id: 'first', votes: 2 }, { id: 'second', votes: 1 }], currentUserVote: ['second'] },
+  },
+}
+
 const person = {
-  type: 'person', version: 2, className: 'Person',
-  fieldSelector: '.oe-person__name', fieldTag: 'DIV',
+  type: 'person', version: 2, className: 'Person', fieldSelector: '.oe-person__name', fieldTag: 'DIV',
   defaultData: { persons: [{ id: 'person-0', avatar: '', name: '', role: '', bio: '', links: [] }] },
   populatedData: { persons: [
-    { id: 'lead', avatar: pixel, name: '<b>Alpha</b> <i>{{mention}}</i> tail',
-      role: '<mark>Engineer</mark>', bio: '<s>{{swatch}}</s> first biography',
-      links: [{ id: 'site', type: 'website', url: 'https://example.test/ada' }] },
-    { id: 'guest', avatar: '', name: '<b>Grace</b>', role: '<i>Reviewer</i>',
-      bio: '<mark>Second biography</mark>', links: [{ id: 'site', type: 'github', url: 'https://example.test/grace' }] },
-  ] },
-  unwrappedData: { persons: [
-    { id: 'lead', avatar: pixel, name: '<b>Alpha</b> {{mention}} tail',
-      role: '<mark>Engineer</mark>', bio: '{{swatch}} first biography',
-      links: [{ id: 'site', type: 'website', url: 'https://example.test/ada' }] },
-    { id: 'guest', avatar: '', name: '<b>Grace</b>', role: '<i>Reviewer</i>',
-      bio: '<mark>Second biography</mark>', links: [{ id: 'site', type: 'github', url: 'https://example.test/grace' }] },
+    { id: 'ada', avatar: pixel, name: '<b>Alpha</b> <i>{{mention}}</i> tail', role: '<mark>Research &amp; team</mark>',
+      bio: '<b>Biography</b> <s>{{swatch}}</s>', links: [{ id: 'site', type: 'website', url: 'https://example.test/ada' }] },
+    { id: 'grace', avatar: '', name: '<i>Grace &amp; Co</i>', role: '<b>Architect</b>', bio: '<mark>Second biography</mark>',
+      links: [{ id: 'code', type: 'github', url: 'https://github.com/grace' }] },
   ] },
 }
+person.unwrappedData = { persons: person.populatedData.persons.map((entry, index) => index ? { ...entry } : {
+  ...entry, name: '<b>Alpha</b> {{mention}} tail', bio: '<b>Biography</b> {{swatch}}',
+}) }
+person.literalData = { persons: person.populatedData.persons.map((entry, index) => index ? { ...entry } : {
+  ...entry, name: '<b>Alpha</b> <i>author &amp; name</i> tail', bio: '<b>Biography</b> <s>literal &amp; text</s>',
+}) }
 
 const delimiter = {
   type: 'delimiter', version: 1, className: 'Delimiter', noEditableField: true,
   defaultData: {}, populatedData: {}, neighborText: '<b>Before</b> tail',
 }
 
-const withEditedText = (block, data, text) => block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
+const withEditedText = (block, data, text) => block.type === 'linkPreview' ? text === data.url ? { ...data } : { ...linkPreview.defaultData, template: data.template, url: text, domain: text ? 'example.test' : '' } : block.noEditableField ? { ...data } : ['list', 'checklist'].includes(block.type)
   ? { ...data, items: data.items.map((item, index) => index ? { ...item } : { ...item, text }) }
   : block.type === 'columns' ? { ...data, columns: data.columns.map((column, index) => index ? { ...column } : { ...column, content: text }) }
   : block.type === 'table' ? { ...data, rows: data.rows.map((row, rowIndex) => ({ ...row,
     cells: row.cells.map((cell, columnIndex) => rowIndex || columnIndex ? { ...cell } : { ...cell, text }),
   })) }
   : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
-  : block.type === 'person' ? { ...data, persons: data.persons.map((profile, index) => index ? { ...profile } : { ...profile, name: text }) }
+  : block.type === 'gallery' ? { ...data, images: data.images.map((image, index) => index ? { ...image } : { ...image, caption: text }) }
+  : block.type === 'person' ? { ...data, persons: data.persons.map((entry, index) => index ? { ...entry } : { ...entry, name: text }) }
+  : block.type === 'carousel' ? { ...data, slides: data.slides.map((slide, index) => index ? { ...slide } : { ...slide, caption: text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, person].flatMap(block => {
-  const prefix = 'BLOCK_' + block.type.toUpperCase() + '_ROUNDTRIP/'
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, poll, linkPreview, gallery, person, carousel].flatMap(block => {
+  const prefix = 'BLOCK_' + (block.scenarioName ?? block.type.toUpperCase()) + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
     { ...block, populated: true, id: prefix + 'populated-neighbor-edit' },
@@ -189,15 +250,33 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
     populatedData: { ...block.populatedData, open: false },
   }] : []).concat(block.type === 'embed' ? [{ ...block, populated: true, literalCaption: true, id: prefix + 'populated-literal',
     populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>caption</i> tail' },
-  }] : []).concat(block.type === 'image' ? [
+  }] : []).concat(block.type === 'poll' ? [{ ...block, populated: true, withoutSidecars: true, id: prefix + 'populated-literal',
+    populatedData: { ...block.populatedData, question: '<b>Alpha</b> <i>question</i> tail',
+      options: [{ id: 'first', text: '<mark>First answer</mark> <s>choice</s>' }, ...block.populatedData.options.slice(1)] },
+  }] : []).concat(block.type === 'person' ? [{ ...block, populated: true, withoutSidecars: true, id: prefix + 'populated-literal', populatedData: block.literalData }] : []).concat(block.type === 'image' ? [
     { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets',
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' } },
     { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets-unwrapped-control',
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> {{mention}} {{swatch}} tail' } },
-  ] : []).concat(block.type === 'person' ? [{ ...block, populated: true, literalFields: true, id: prefix + 'populated-literal',
-    populatedData: { persons: block.populatedData.persons.map((profile, index) => index ? { ...profile }
-      : { ...profile, name: '<b>Alpha</b> <i>Ada</i> tail', bio: '<s>First</s> biography' }) },
-  }] : [])
+  ] : []).concat(block.type === 'gallery' ? [true, false].map(wrapped => ({
+    ...block, populated: true, literalCaption: false,
+    id: prefix + (wrapped ? 'populated-widgets' : 'populated-widgets-unwrapped-control'),
+    populatedData: { ...block.populatedData, images: [
+      { id: 'first', url: pixel, caption: '<b>Alpha &amp;</b> ' + (wrapped ? '<i>{{mention}}</i>' : '{{mention}}') + ' tail' },
+      { id: 'second', url: pixel, caption: '<mark>Second &amp;</mark> ' + (wrapped ? '<s>{{swatch}}</s>' : '{{swatch}}') },
+    ] },
+    legacyPopulatedData: { ...block.populatedData, images: [
+      { id: 'first', url: pixel, caption: 'Alpha & {{mention}} tail' },
+      { id: 'second', url: pixel, caption: 'Second & {{swatch}}' },
+    ] },
+  })) : []).concat(block.type === 'carousel' ? [
+    { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets',
+      populatedData: withEditedText(block, block.populatedData, '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail'),
+      legacyPopulatedData: withEditedText(block, block.legacyPopulatedData, 'Alpha {{mention}} {{swatch}} tail') },
+    { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets-unwrapped-control',
+      populatedData: withEditedText(block, block.populatedData, '<b>Alpha</b> {{mention}} {{swatch}} tail'),
+      legacyPopulatedData: withEditedText(block, block.legacyPopulatedData, 'Alpha {{mention}} {{swatch}} tail') },
+  ] : [])
 })
 
 const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -235,7 +314,7 @@ function logicalLength(html) {
 }
 
 function caretIn(field) {
-  if (field.tagName === 'TEXTAREA') return {
+  if (['TEXTAREA', 'INPUT'].includes(field.tagName)) return {
     focused: document.activeElement === field,
     anchor: field.selectionDirection === 'backward' ? field.selectionEnd : field.selectionStart,
     focus: field.selectionDirection === 'backward' ? field.selectionStart : field.selectionEnd,
@@ -284,29 +363,16 @@ async function settled() {
   await pause(20)
 }
 
-// Expected-wire adjustment for the pinned legacy runner only. The source is
-// the fixed expected fixture, never an initial save. v1 omits its sole wholly
-// empty draft profile; current Person keeps that placeholder's stable ID.
-export function expectedLegacyPersonPlaceholder(records, { legacy, caseId }) {
-  if (!legacy || caseId !== 'BLOCK_PERSON_ROUNDTRIP/default' || records.length !== 1) return records
-  const [block] = records
-  if (block.type !== 'person' || Object.hasOwn(block, 'inline')
-    || Object.keys(block.data).join() !== 'persons' || block.data.persons.length !== 1) return records
-  const [profile] = block.data.persons
-  if (Object.keys(profile).sort().join() !== 'avatar,bio,links,name,role'
-    || ['avatar', 'name', 'role', 'bio'].some(key => profile[key] !== '')
-    || !Array.isArray(profile.links) || profile.links.length !== 0) return records
-  return [{ ...block, data: { persons: [] } }]
-}
-
 export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut, onPhase }) {
   const noEditableField = specification.noEditableField === true
   const emptyImage = specification.type === 'image' && !specification.populated
   const emptyAttaches = specification.type === 'attaches' && !specification.populated
   const emptyEmbed = specification.type === 'embed' && !specification.populated
-  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
-  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption && !specification.literalFields
-  const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
+  const emptyGallery = specification.type === 'gallery' && !specification.populated
+  const emptyCarousel = specification.type === 'carousel' && !specification.populated
+  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed && !emptyGallery && !emptyCarousel
+  const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption && !specification.withoutSidecars
+  const plannedPhases = ['load', 'read-only', 'editable-again', ...(specification.type === 'person' && specification.populated ? ['view-second', 'view-return'] : []), ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
     authoringTarget: specification.populated ? { blockId: 'prefix', type: 'paragraph', relation: 'neighbor' } : null,
     notApplicablePhases: hasAuthoring ? [] : ['edit', 'undo', 'redo'],
@@ -317,11 +383,19 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     reason: 'Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case.',
   } : emptyEmbed ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
     reason: 'Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history.',
+  } : emptyGallery ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+    reason: 'Gallery with no images has no caption field; populated cases exercise declared caption authoring and history.',
+  } : emptyCarousel ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+    reason: 'The actual empty Carousel default has no slide or declared caption. Populated mixed-media cases execute caption authoring/history.',
   } : {}
+  if (legacy && specification.type === 'carousel' && hasSidecars) phaseScope.referenceCapability = {
+    supported: false, capability: 'persistent rich-caption inline widgets',
+    reason: 'v1 Carousel disables inline tools, declares no rich-field mapper and saves captions as literal text. Its observed differences remain explicit.',
+  }
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
     import(new URL('core/index.js', base).href),
-    import(new URL(`plugins/${specification.type}/index.js`, base).href),
+    import(new URL(`plugins/${specification.moduleDirectory ?? specification.type}/index.js`, base).href),
     import(new URL('plugins/paragraph/index.js', base).href),
     import(new URL('renderer/index.js', base).href),
     import(new URL('inline-plugins/mention/index.js', base).href),
@@ -337,14 +411,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
         : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
           : legacy && block.type === 'table' ? { withHeadings: data.withHeadings, content: data.rows.map(row => row.cells.map(cell => cell.text)) }
-          : legacy && block.type === 'person' ? { persons: data.persons.map(({ id, ...profile }) => ({ ...profile,
-            links: profile.links.map(({ id: linkId, ...link }) => link),
-          })) }
-          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
+          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) }
+            : legacy && block.type === 'gallery' ? { ...data, images: data.images.map(({ id, ...image }) => image) }
+          : legacy && block.type === 'person' ? { persons: data.persons.map(({ id, links, ...entry }) => ({ ...entry, links: links.map(({ id, ...link }) => link) })) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
-    blocks: [record('prefix', { text: specification.neighborText ?? '<b>Before</b>' }), record('probe', clone(specification.populatedData), hasSidecars ? clone(inline) : undefined, specification),
+    blocks: [record('prefix', { text: specification.neighborText ?? '<b>Before</b>' }), record('probe', clone(legacy ? specification.legacyPopulatedData ?? specification.populatedData : specification.populatedData), hasSidecars ? clone(inline) : undefined, specification),
       record('suffix', { text: '<i>After</i>' })],
   } : undefined
   const originalInput = input ? JSON.stringify(input) : null
@@ -407,7 +480,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     }
     let previousEmbedParts = specification.type === 'embed' ? embedParts() : []
     let previousEmbedText
-    const plainContenteditable = specification.plainContenteditable === true
+    const carouselParts = () => [shell(id).querySelector('.oe-carousel-block'), field(),
+      shell(id).querySelector('.oe-carousel-block__nav--next')]
+    let previousCarouselParts = specification.type === 'carousel' ? carouselParts() : []
+    const plainContenteditable = specification.plainContenteditable === true || (legacy && specification.type === 'gallery')
     const plainField = specification.fieldMode === 'plain-text' && !plainContenteditable
     let previousPlainFields = plainField ? [field()] : []
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
@@ -430,16 +506,26 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     const tableParts = () => [shell(id).querySelector('.oe-table-wrapper'), shell(id).querySelector('.oe-table'),
       ...tableRows(), ...tableRows().flatMap(row => [...row.cells])]
     let previousTableParts = specification.type === 'table' ? tableParts() : []
-    const personFields = () => ['name', 'role', 'bio'].map(key => shell(id).querySelector('.oe-person__' + key))
-    const personParts = () => [shell(id).querySelector('.oe-person'), ...personFields()]
-    let previousPersonParts = specification.type === 'person' ? personParts() : []
-    let previousPersonText
     const attachmentFields = () => [...shell(id).querySelectorAll('.oe-attaches__name')]
     let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
     const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
-    const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
-    const baseText = noEditableField ? specification.neighborText : specification.type === 'person' ? baseData.persons[0].name : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const galleryFields = () => [...shell(id).querySelectorAll('.oe-gallery__slot-caption')]
+    let previousGalleryWrapper = specification.type === 'gallery' ? shell(id).querySelector('.oe-gallery') : null
+    let previousGalleryFields = specification.type === 'gallery' ? galleryFields() : []
+    let previousGalleryRemoveControls = specification.type === 'gallery' ? [...shell(id).querySelectorAll('.oe-gallery__slot-remove')] : []
+    const personFields = () => [...shell(id).querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio,.oe-person__link-url')]
+    let previousPersonFields = specification.type === 'person' ? personFields() : []
+    const baseData = clone(specification.populated ? legacy ? specification.legacyPopulatedData ?? specification.populatedData : specification.populatedData : specification.defaultData)
+    if (specification.type === 'poll' && !specification.populated && legacy) {
+      const ids = first[0]?.data.options?.map(option => option.id)
+      check('create', 'pollDefaultOptionIds', { count: ids?.length, unique: new Set(ids).size,
+        valid: ids?.every(id => typeof id === 'string' && id.length > 0) }, { count: 2, unique: 2, valid: true })
+      baseData.options = baseData.options.map((option, index) => ({ ...option, id: ids[index] }))
+    }
+    const pollFields = () => [shell(id).querySelector('.oe-poll__question'), ...shell(id).querySelectorAll('.oe-poll__option-text')]
+    let previousPollFields = specification.type === 'poll' ? pollFields() : []
+    const baseText = noEditableField ? specification.neighborText : specification.type === 'carousel' ? baseData.slides[0]?.caption ?? '' : specification.type === 'person' ? baseData.persons[0].name : specification.type === 'gallery' ? baseData.images[0]?.caption ?? '' : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
@@ -449,20 +535,20 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => ['spoiler', 'columns', 'attaches', 'table', 'person'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'linkPreview' ? 'A' : ['spoiler', 'columns', 'attaches', 'table', 'poll', 'gallery', 'person', 'carousel'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
-    const canonical = blocks => blocks.map(block => ({ ...block, data: ['code', 'raw', 'delimiter', 'attaches'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+    const carouselCaptionMeaning = caption => legacy ? caption ? [caption] : [] : markupMeaning(caption)
+    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'carousel' ? { ...block.data, slides: block.data.slides.map(slide => ({ ...slide, caption: carouselCaptionMeaning(slide.caption) })) } : block.type === 'person'
+      ? { persons: block.data.persons.map(entry => ({ ...entry, name: markupMeaning(entry.name), role: markupMeaning(entry.role), bio: markupMeaning(entry.bio) })) } : block.type === 'poll' ? { ...block.data, question: markupMeaning(block.data.question), options: block.data.options.map(option => ({ ...option, text: markupMeaning(option.text) })) } : ['code', 'raw', 'delimiter', 'attaches', 'linkPreview'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : ['image', 'embed'].includes(block.type) ? { ...block.data, caption: markupMeaning(block.data.caption) }
+      : block.type === 'gallery' ? { ...block.data, images: block.data.images.map(image => ({ ...image, caption: legacy ? image.caption : markupMeaning(image.caption) })) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
       : block.type === 'spoiler' ? { ...block.data, label: markupMeaning(block.data.label), content: markupMeaning(block.data.content) }
       : block.type === 'columns' ? { ...block.data, columns: block.data.columns.map(column => ({ ...column, content: markupMeaning(column.content) })) }
-      : block.type === 'person' ? { ...block.data, persons: block.data.persons.map(profile => ({ ...profile,
-        name: markupMeaning(profile.name), role: markupMeaning(profile.role), bio: markupMeaning(profile.bio),
-      })) }
       : block.type === 'table' ? legacy
         ? { ...block.data, content: block.data.content.map(row => row.map(markupMeaning)) }
         : { ...block.data, rows: block.data.rows.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell, text: markupMeaning(cell.text) })) })) }
@@ -478,6 +564,26 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     }
     const imageCaptionText = html => literalText(hasSidecars
       ? html.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : html)
+    const galleryCaptionText = caption => legacy
+      ? hasSidecars ? caption.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : caption
+      : imageCaptionText(caption)
+    const galleryRendererMarkup = root => ({
+      layout: [...root.classList].filter(name => name.startsWith('eg--')),
+      styles: { gap: root.style.gap, height: root.style.height },
+      items: [...root.querySelectorAll('.editor-gallery__item')].map(item => ({
+        tag: item.tagName, role: item.getAttribute('role'), tabIndex: item.tabIndex,
+        label: item.getAttribute('aria-label'), radius: item.style.borderRadius,
+        src: item.querySelector('img').getAttribute('src'), alt: item.querySelector('img').alt,
+      })),
+    })
+    const expectedGalleryRendererMarkup = block => ({
+      layout: [block.data.layout === 'auto' ? 'eg--1' : 'eg--' + block.data.layout],
+      styles: { gap: block.data.styles.gap ?? '', height: block.data.styles.height ?? '' },
+      items: block.data.images.map(image => ({ tag: 'FIGURE', role: 'button', tabIndex: 0,
+        label: 'Open image' + (image.caption ? ': ' + galleryCaptionText(image.caption) : ''),
+        radius: block.data.styles.borderRadius ?? '', src: image.url, alt: galleryCaptionText(image.caption),
+      })),
+    })
     const imageRendererMarkup = figure => {
       const picture = figure.querySelector('.editor-image__picture')
       const caption = figure.querySelector('.editor-image__caption')
@@ -514,6 +620,35 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       caption: block.data.videoId && block.data.caption ? markupMeaning(block.data.caption) : null,
       ...expectedEmbedPreview(block.data),
     })
+    const carouselRendererMarkup = root => ({
+      label: root.getAttribute('aria-label'), aspectRatio: root.style.aspectRatio,
+      fixedRatio: root.classList.contains('editor-carousel-block--fixed-ratio'),
+      slides: [...root.querySelectorAll('.editor-carousel-block__slide')].map(figure => {
+        const media = figure.firstElementChild, caption = figure.querySelector('figcaption')
+        return { tag: figure.tagName, mediaTag: media.tagName,
+          ...(media.tagName === 'IMG' ? { src: media.getAttribute('src'), alt: media.alt, loading: media.loading }
+            : media.tagName === 'VIDEO' ? { src: media.getAttribute('src'), poster: media.getAttribute('poster'),
+              controls: media.controls, preload: media.preload, label: media.getAttribute('aria-label') }
+              : { html: authoredMarkup(media) }),
+          caption: caption ? authoredMarkup(caption) : null }
+      }),
+      navigation: [...root.querySelectorAll('.carousel__arrow')].map(button => ({ label: button.getAttribute('aria-label'), tag: button.tagName })),
+      pagination: [...root.querySelectorAll('.carousel__dot')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current') })),
+      thumbnails: [...root.querySelectorAll('.carousel__thumb')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current'), src: button.querySelector('img')?.getAttribute('src') ?? null })),
+    })
+    const expectedCarouselRendererMarkup = block => ({
+      label: 'Content carousel', aspectRatio: '', fixedRatio: false,
+      slides: block.data.slides.map(slide => ({ tag: 'FIGURE', mediaTag: slide.type === 'image' ? 'IMG' : slide.type === 'video' ? 'VIDEO' : 'DIV',
+        ...(slide.type === 'image' ? { src: slide.src, alt: slide.alt, loading: 'lazy' }
+          : slide.type === 'video' ? { src: slide.src, poster: slide.poster, controls: true, preload: 'metadata', label: slide.alt }
+            : { html: markupMeaning(slide.html) }),
+        caption: slide.caption ? carouselCaptionMeaning(slide.caption) : null })),
+      navigation: block.data.slides.length && block.data.options.navigation
+        ? ['Previous slide', 'Next slide'].map(label => ({ label, tag: 'BUTTON' })) : [],
+      pagination: block.data.options.pagination ? block.data.slides.map((_, index) => ({ label: 'Go to page ' + (index + 1), current: index ? 'false' : 'page' })) : [],
+      thumbnails: block.data.options.thumbnails ? block.data.slides.map((slide, index) => ({ label: 'Go to slide ' + (index + 1),
+        current: index ? 'false' : 'page', src: slide.type === 'image' ? slide.src : slide.type === 'video' ? slide.poster : null })) : [],
+    })
     const spoilerRendererMarkup = element => {
       const header = element.querySelector('.editor-spoiler__header')
       const control = element.querySelector('.editor-spoiler__toggle')
@@ -538,7 +673,64 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }
       }),
     })
-    const rendererMarkup = element => element.dataset.blockType === 'table' ? {
+    const pollRendered = root => ({
+      question: root.querySelector('.editor-poll__question') ? authoredMarkup(root.querySelector('.editor-poll__question')) : null,
+      options: [...root.querySelectorAll('.editor-poll__option')].map(row => ({
+        text: authoredMarkup(row.querySelector('.editor-poll__option-text')),
+        markerType: row.querySelector('.editor-poll__marker').classList.contains('editor-poll__marker--multiple') ? 'multiple' : 'single',
+        selected: row.querySelector('.editor-poll__marker').getAttribute('aria-pressed'),
+        percent: row.querySelector('.editor-poll__pct')?.textContent ?? null,
+      })),
+      submitDisabled: root.querySelector('.editor-poll__submit').disabled,
+    })
+    const expectedPollRendered = block => ({
+      question: block.data.question ? markupMeaning(block.data.question) : null,
+      options: block.data.options.map((option, index) => ({ text: markupMeaning(option.text), markerType: block.data.type,
+        selected: String(Boolean(block.data.initialResults?.currentUserVote?.includes(option.id))),
+        percent: block.data.initialResults ? ['67%', '33%'][index] : '0%',
+      })),
+      submitDisabled: !block.data.initialResults?.currentUserVote?.length,
+    })
+    const linkPreviewMeaning = (card, prefix) => {
+      if (!card || card.hidden) return null
+      const title = card.querySelector('.' + prefix + '__title')
+      const description = card.querySelector('.' + prefix + '__desc')
+      const imageWrapper = card.querySelector('.' + prefix + '__image')
+      const image = imageWrapper && !imageWrapper.hidden ? imageWrapper.querySelector('img') : null
+      const favicon = [...card.querySelectorAll('.' + prefix + '__favicon,.' + prefix + '__favicon-large')].find(element => !element.hidden)
+      return { href: card.getAttribute('href'), target: card.target, rel: card.rel,
+        title: title.textContent, titleElements: title.childElementCount,
+        description: description?.textContent ?? '', descriptionElements: description?.childElementCount ?? 0,
+        domain: card.querySelector('.' + prefix + '__domain span').textContent,
+        image: image?.getAttribute('src') ?? null, favicon: favicon?.getAttribute('src') ?? null,
+      }
+    }
+    const expectedLinkPreviewMeaning = (block, editor = false) => editor && !block.data.url ? null : {
+      href: block.data.url || null, target: '_blank', rel: 'noopener noreferrer',
+      title: block.data.title || block.data.url, titleElements: 0,
+      description: block.data.description, descriptionElements: 0,
+      domain: block.data.domain || block.data.url,
+      image: ['minimal', 'notion'].includes(block.data.template) ? null : block.data.image || null,
+      favicon: block.data.favicon || null,
+    }
+    const personRendered = element => [...element.querySelectorAll('.editor-person__card')].map(card => {
+      const markup = key => { const field = card.querySelector('.editor-person__' + key); return field ? authoredMarkup(field) : null }
+      const avatar = card.querySelector('.editor-person__avatar-img')
+      return { name: markup('name'), role: markup('role'), bio: markup('bio'),
+        avatar: avatar ? { src: avatar.getAttribute('src'), alt: avatar.alt, loading: avatar.loading } : null,
+        links: [...card.querySelectorAll('.editor-person__link')].map(link => ({ href: link.getAttribute('href'), target: link.target,
+          rel: link.rel, title: link.title, text: link.querySelector('.editor-person__link-url').textContent,
+          icon: Boolean(link.querySelector('.editor-person__link-icon svg')) })),
+      }
+    })
+    const expectedPersonRendered = block => block.data.persons.map(entry => ({
+      name: entry.name ? markupMeaning(entry.name) : null, role: entry.role ? markupMeaning(entry.role) : null,
+      bio: entry.bio ? markupMeaning(entry.bio) : null,
+      avatar: entry.avatar ? { src: entry.avatar, alt: imageCaptionText(entry.name), loading: 'lazy' } : null,
+      links: entry.links.filter(link => link.url).map(link => ({ href: link.url, target: '_blank', rel: 'noopener noreferrer',
+        title: link.type || 'Link', text: link.url.replace(/^https?:\/\//, ''), icon: true })),
+    }))
+    const rendererMarkup = element => element.dataset.blockType === 'carousel' ? carouselRendererMarkup(element) : element.dataset.blockType === 'gallery' ? galleryRendererMarkup(element) : element.dataset.blockType === 'person' ? personRendered(element) : element.dataset.blockType === 'linkPreview' ? linkPreviewMeaning(element, 'editor-link-preview') : element.dataset.blockType === 'poll' ? pollRendered(element) : element.dataset.blockType === 'table' ? {
       children: [...element.children].map(child => child.tagName),
       sections: [...element.querySelector('table').children].map(section => ({ tag: section.tagName,
         rows: [...section.children].map(row => ({ tag: row.tagName, cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell) })) })),
@@ -578,34 +770,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
       ] }
     }
-    const personText = html => literalText(html.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456'))
-    const personRendererMarkup = element => ({
-      cards: [...element.querySelectorAll('.editor-person__card')].map(card => {
-        const rich = key => {
-          const field = card.querySelector('.editor-person__' + key)
-          return field ? { tag: field.tagName, markup: authoredMarkup(field) } : null
-        }
-        const avatar = card.querySelector('.editor-person__avatar-img')
-        return { tag: card.tagName, name: rich('name'), role: rich('role'), bio: rich('bio'),
-          avatar: avatar ? { src: avatar.getAttribute('src'), alt: avatar.alt, loading: avatar.loading } : null,
-          links: [...card.querySelectorAll('.editor-person__link')].map(link => ({
-            tag: link.tagName, href: link.getAttribute('href'), title: link.title,
-            target: link.target, rel: link.rel, text: link.querySelector('.editor-person__link-url').textContent,
-          })),
-        }
-      }),
-    })
-    const expectedPersonRendererMarkup = block => ({ cards: block.data.persons.map(profile => {
-      const rich = key => profile[key] ? { tag: 'DIV', markup: markupMeaning(profile[key]) } : null
-      return { tag: 'DIV', name: rich('name'), role: rich('role'), bio: rich('bio'),
-        avatar: profile.avatar ? { src: profile.avatar, alt: personText(profile.name), loading: 'lazy' } : null,
-        links: profile.links.map(link => ({ tag: 'A', href: link.url, title: link.type,
-          target: '_blank', rel: 'noopener noreferrer', text: link.url.replace(/^https?:\/\//, ''),
-        })),
-      }
-    }) })
-    const expectedRendererMarkup = block => block.type === 'person' ? expectedPersonRendererMarkup(block)
-      : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
+    const expectedRendererMarkup = block => block.type === 'carousel' ? expectedCarouselRendererMarkup(block) : block.type === 'person' ? expectedPersonRendered(block) : block.type === 'gallery' ? expectedGalleryRendererMarkup(block) : block.type === 'linkPreview' ? expectedLinkPreviewMeaning(block) : block.type === 'poll' ? expectedPollRendered(block) : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
@@ -651,36 +816,18 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const sourceBefore = JSON.stringify(saved)
       const detached = renderer.render(saved)
       check(phase, 'detachedOutputOwnership', { connected: detached.isConnected, parent: detached.parentNode === null }, { connected: false, parent: true })
-      const pendingPersonLayout = specification.type === 'person' && baseData.persons.length > 1
-      const inspectOutput = (root, name, pendingLayout = false) => {
+      const inspectOutput = (root, name) => {
         const blocks = [...root.querySelectorAll('[data-block-id][data-block-type]')]
         check(phase, name + 'BlockCount', blocks.length, expected.length)
         check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
-        if (pendingLayout) {
-          // Same-realm multi-profile output waits for an attached, measurable
-          // carousel container. This is an unfinished layout shell, not a
-          // completed card/inline-widget projection. Both mounted paths below
-          // must still produce every authored card and actual inline widget.
-          const person = blocks.find(element => element.dataset.blockType === 'person')
-          check(phase, name + 'PersonLayoutPending', {
-            cards: person.querySelectorAll('.editor-person__card').length,
-            containers: person.querySelectorAll('.editor-person__carousel').length,
-            widgets: widgets(root),
-          }, { cards: 0, containers: 1, widgets: [] })
-          check(phase, name + 'NeighborAuthoredMarkup', blocks.filter(element => element.dataset.blockType !== 'person').map(rendererMarkup),
-            expected.filter(block => block.type !== 'person').map(expectedRendererMarkup))
-        } else {
-          check(phase, name + 'AuthoredMarkup', blocks.map(element => element.dataset.blockType === 'person'
-            ? personRendererMarkup(element) : rendererMarkup(element)), expected.map(expectedRendererMarkup))
-          check(phase, name + 'Widgets', widgets(root), expectedWidgets)
-        }
+        check(phase, name + 'AuthoredMarkup', blocks.map(rendererMarkup), expected.map(expectedRendererMarkup))
+        check(phase, name + 'Widgets', widgets(root), specification.type === 'gallery' ? [] : expectedWidgets)
         if (specification.type === 'code' && specification.populated) check(phase, name + 'CodeLanguage',
           blocks.find(element => element.dataset.blockId === id).querySelector('.editor-code__content').classList.contains('language-javascript'), true)
       }
-      inspectOutput(detached, 'detached', pendingPersonLayout)
+      inspectOutput(detached, 'detached')
       detachedMount.append(detached)
-      if (pendingPersonLayout) await settled()
       inspectOutput(detached, 'attachedDetached')
       renderer.renderTo(saved, mounted)
       await settled()
@@ -692,6 +839,15 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, 'mountedImageDecoded', { complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight }, { complete: true, width: 1, height: 1 })
         const computed = getComputedStyle(picture)
         check(phase, 'mountedImageComputedPosition', { fit: computed.objectFit, position: computed.objectPosition }, { fit: 'contain', position: '50% 50%' })
+      }
+      if (specification.type === 'gallery' && specification.populated) {
+        const pictures = [...mounted.querySelectorAll('.editor-gallery__image')]
+        for (const picture of pictures) {
+          picture.scrollIntoView({ block: 'nearest' })
+          await picture.decode()
+        }
+        check(phase, 'mountedGalleryImagesDecoded', pictures.map(picture => ({ complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight })),
+          [{ complete: true, width: 1, height: 1 }, { complete: true, width: 1, height: 1 }])
       }
       if (specification.type === 'embed' && specification.populated) {
         const cover = mounted.querySelector('.editor-embed__preview')
@@ -712,7 +868,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       snapshots[phase] = saved.blocks
       const expected = expectedBlocks(text)
       const target = expected.find(block => block.id === id)
-      check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expectedLegacyPersonPlaceholder(expected, { legacy, caseId: specification.id })))
+      check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
       if (hasAuthoring) {
         check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.type === 'table' ? baseData.withHeadings ? 'TH' : 'TD' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
         if (plainField) {
@@ -720,7 +876,43 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check(phase, 'plainFieldDomIdentity', previousPlainFields.map(element => field() === element), [true])
           if (specification.type === 'code') check(phase, 'editorSourcePreview', shell(id).querySelector('.oe-code-pre code').textContent, text + '\n')
         } else if (plainContenteditable) check(phase, 'editorAuthoredPlainText', { text: field().textContent, elements: field().childElementCount }, { text, elements: 0 })
-        else check(phase, noEditableField ? 'neighborAuthoredMarkup' : 'editorAuthoredMarkup', authoredMarkup(field()), markupMeaning(text))
+        else check(phase, noEditableField ? 'neighborAuthoredMarkup' : 'editorAuthoredMarkup', authoredMarkup(field()),
+          specification.type === 'carousel' ? carouselCaptionMeaning(text) : markupMeaning(text))
+      }
+      if (specification.type === 'person') {
+        const fields = personFields()
+        const currentPerson = target.data.persons[0]
+        check(phase, 'personAuthorFields', fields.slice(0, 3).map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })),
+          ['name', 'role', 'bio'].map(key => ({ tag: 'DIV', markup: markupMeaning(currentPerson[key]), editable: !readOnly })))
+        check(phase, 'personLinks', fields.slice(3).map(input => ({ tag: input.tagName, value: input.value, readOnly: input.readOnly })),
+          [...currentPerson.links.map(link => ({ tag: 'INPUT', value: link.url, readOnly })), ...(legacy && !readOnly ? [{ tag: 'INPUT', value: '', readOnly: false }] : [])])
+        check(phase, 'personTabs', [...shell(id).querySelectorAll('.oe-person__tab-label')].map(element => element.textContent),
+          target.data.persons.map((entry, index) => imageCaptionText(entry.name) || 'Person ' + (index + 1)))
+        if (!legacy) {
+          check(phase, 'personTabIds', [...shell(id).querySelectorAll('[data-person-id]')].map(element => element.dataset.personId), target.data.persons.map(entry => entry.id))
+          check(phase, 'personLinkIds', fields.slice(3).map(input => input.dataset.linkId), currentPerson.links.map(link => link.id))
+          check(phase, 'personActiveTab', [...shell(id).querySelectorAll('.oe-person__tab-select')].map(element => element.getAttribute('aria-pressed')), target.data.persons.map((_, index) => String(index === 0)))
+        }
+        check(phase, 'personAvatar', shell(id).querySelector('.oe-person__card .oe-person__avatar-img')?.getAttribute('src') ?? null, currentPerson.avatar || null)
+        check(phase, 'personFieldLifetime', { currentConnected: fields.every(element => element.isConnected),
+          predecessors: previousPersonFields.map(element => fields.includes(element) || !element.isConnected) },
+          { currentConnected: true, predecessors: previousPersonFields.map(() => true) })
+        if (phase === 'edit') check(phase, 'personNativeFieldIdentity', previousPersonFields.map((element, index) => fields[index] === element), previousPersonFields.map(() => true))
+        const retired = previousPersonFields.filter(element => !fields.includes(element))
+        if (retired.length) {
+          const beforeSelection = nativeSelectionOwner()
+          for (const old of retired) {
+            if (old.tagName === 'INPUT') old.value = 'https://example.test/retired'
+            else old.textContent = 'retired person field'
+            old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+            old.dispatchEvent(new FocusEvent('blur'))
+          }
+          await settled()
+          check(phase, 'personRetiredFieldsLeaveCanonical', editor.save().blocks, saved.blocks)
+          check(phase, 'personRetiredFieldsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
+          check(phase, 'personRetiredFieldsLeaveSelection', nativeSelectionOwner(), beforeSelection)
+        }
+        previousPersonFields = fields
       }
       if (specification.type === 'raw') {
         const preview = shell(id).querySelector('.oe-raw__preview')
@@ -761,6 +953,36 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         } else {
           check(phase, 'emptyImageHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
           check(phase, 'emptyImageHasNoVisibleMedia', [...wrapper.querySelectorAll('img')].filter(picture => picture.getClientRects().length).length, 0)
+        }
+      }
+      if (specification.type === 'gallery') {
+        const wrapper = shell(id).querySelector('.oe-gallery')
+        const fields = galleryFields()
+        const images = withEditedText(specification, baseData, text).images
+        check(phase, 'galleryWrapperIdentity', [wrapper === previousGalleryWrapper], [true])
+        check(phase, 'galleryAuthorFields', fields.map(element => ({
+          tag: element.tagName, caption: legacy ? element.textContent : authoredMarkup(element), editable: element.isContentEditable,
+          src: element.parentElement.querySelector('img').getAttribute('src'), alt: element.parentElement.querySelector('img').alt,
+        })), images.map(image => ({ tag: 'DIV', caption: legacy ? image.caption : markupMeaning(image.caption), editable: !readOnly,
+          src: image.url, alt: galleryCaptionText(image.caption),
+        })))
+        if (!legacy) check(phase, 'galleryImageIds', fields.map(element => element.dataset.imageId), images.map(image => image.id))
+        check(phase, 'galleryFieldLifetime', previousGalleryFields.map((element, index) =>
+          fields[index]?.isConnected && (fields[index] === element || !element.isConnected)), previousGalleryFields.map(() => true))
+        if (phase === 'edit') check(phase, 'galleryNativeFieldIdentity', previousGalleryFields.map((element, index) => fields[index] === element), previousGalleryFields.map(() => true))
+        const retiredFields = previousGalleryFields.filter(element => !fields.includes(element))
+        if (retiredFields.length) {
+          for (const element of retiredFields) {
+            element.textContent = 'Retired Gallery caption'
+            element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+            element.dispatchEvent(new FocusEvent('blur'))
+          }
+          for (const control of previousGalleryRemoveControls) if (!control.isConnected) control.click()
+          await settled()
+          check(phase, 'galleryRetiredActionsLeaveCanonical', editor.save().blocks, saved.blocks)
+          check(phase, 'galleryRetiredActionsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
+          check(phase, 'galleryRetiredActionsLeaveFields', fields.map(element => legacy ? element.textContent : authoredMarkup(element)),
+            images.map(image => legacy ? image.caption : markupMeaning(image.caption)))
         }
       }
       if (specification.type === 'embed') {
@@ -805,6 +1027,80 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           await decodeEmbedCover(cover)
           check(phase, 'editorEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
         } else check(phase, 'emptyEmbedHasNoRichAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
+      }
+      if (specification.type === 'carousel') {
+        const [wrapper, caption, next] = carouselParts()
+        check(phase, 'carouselWrapperIdentity', wrapper === previousCarouselParts[0], true)
+        check(phase, 'carouselEditorView', {
+          captions: wrapper.querySelectorAll('.oe-carousel-block__caption').length,
+          counter: wrapper.querySelector('.oe-carousel-block__counter')?.textContent ?? null,
+          aspectRatio: wrapper.querySelector('.oe-carousel-block__stage')?.style.aspectRatio ?? '',
+          navigation: [...wrapper.querySelectorAll('.oe-carousel-block__nav')].map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled })),
+          pagination: [...wrapper.querySelectorAll('.oe-carousel-block__dot')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current') })),
+          thumbnails: [...wrapper.querySelectorAll('.oe-carousel-block__thumbnail')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current') })),
+        }, {
+          captions: specification.populated ? 1 : 0, counter: specification.populated ? '1 / 3' : null, aspectRatio: '',
+          navigation: specification.populated ? [{ label: 'Previous slide', disabled: true }, { label: 'Next slide', disabled: false }] : [],
+          pagination: specification.populated ? [0, 1, 2].map(index => ({ label: 'Go to slide ' + (index + 1), current: String(index === 0) })) : [],
+          thumbnails: specification.populated ? [0, 1, 2].map(index => ({ label: 'Go to slide ' + (index + 1), current: String(index === 0) })) : [],
+        })
+        if (emptyCarousel) check(phase, 'emptyCarouselHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
+        else {
+          const picture = wrapper.querySelector('.oe-carousel-block__media img')
+          await picture.decode()
+          check(phase, 'carouselEditorMedia', { src: picture.getAttribute('src'), alt: picture.alt, width: picture.naturalWidth, height: picture.naturalHeight },
+            { src: pixel, alt: 'First <&> image', width: 1, height: 1 })
+          if (!legacy) check(phase, 'carouselCaptionAddress', caption.dataset.slideId, 'first')
+          check(phase, 'carouselCaptionLifetime', { connected: caption.isConnected,
+            predecessorCurrentOrDetached: previousCarouselParts[1] === caption || !previousCarouselParts[1].isConnected },
+          { connected: true, predecessorCurrentOrDetached: true })
+          if (caption !== previousCarouselParts[1]) {
+            const beforeSelection = nativeSelectionOwner()
+            previousCarouselParts[1].textContent = 'stale retired caption'
+            previousCarouselParts[1].dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
+            previousCarouselParts[1].dispatchEvent(new FocusEvent('blur'))
+            if (previousCarouselParts[2] && previousCarouselParts[2] !== next) previousCarouselParts[2].click()
+            await settled()
+            check(phase, 'carouselRetiredActionsLeaveCanonical', editor.save().blocks, saved.blocks)
+            check(phase, 'carouselRetiredActionsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
+            check(phase, 'carouselRetiredActionsLeaveField', field() === caption, true)
+            check(phase, 'carouselRetiredActionsLeaveSelection', nativeSelectionOwner(), beforeSelection)
+          }
+        }
+      }
+      if (specification.type === 'linkPreview') {
+        const wrapper = shell(id).querySelector('.oe-lp')
+        check(phase, 'linkPreviewCard', linkPreviewMeaning(wrapper.querySelector('.oe-lp__card'), 'oe-lp'), expectedLinkPreviewMeaning(target, true))
+        check(phase, 'linkPreviewTemplate', wrapper.querySelector('.oe-lp__card')?.classList.contains('oe-lp__card--' + target.data.template) ?? !target.data.url, true)
+        check(phase, 'linkPreviewInputType', field().type, 'text')
+        check(phase, 'linkPreviewFieldOnly', wrapper.querySelectorAll('[contenteditable="true"],input,textarea').length, 1)
+      }
+      if (specification.type === 'poll') {
+        const fields = pollFields()
+        const options = target.data.options
+        check(phase, 'pollAuthorFields', fields.map(element => ({ tag: element.tagName, markup: authoredMarkup(element), editable: element.isContentEditable })),
+          [text, ...options.map(option => option.text)].map(html => ({ tag: 'DIV', markup: markupMeaning(html), editable: !readOnly })))
+        const replaced = fields.some((element, index) => element !== previousPollFields[index])
+        check(phase, 'pollFieldLifetime', previousPollFields.map((element, index) =>
+          fields[index].isConnected && (element === fields[index] || !element.isConnected)), [true, true, true])
+        if (replaced) {
+          const priorHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
+          for (const old of previousPollFields) if (!fields.includes(old)) {
+            old.textContent = 'retired poll text'
+            old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+            old.dispatchEvent(new FocusEvent('blur'))
+          }
+          await settled()
+          check(phase, 'pollRetiredFieldsLeaveCanonical', editor.save().blocks, saved.blocks)
+          check(phase, 'pollRetiredFieldsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, priorHistory)
+        }
+        if (!legacy) check(phase, 'pollOptionDomIds', fields.slice(1).map(element => element.dataset.optionId), options.map(option => option.id))
+        check(phase, 'pollResultsText', [...shell(id).querySelectorAll('.oe-poll__result-label')].map(element => element.textContent),
+          options.map(option => option.text ? imageCaptionText(option.text) : '—'))
+        check(phase, 'pollResultsMarkup', [...shell(id).querySelectorAll('.oe-poll__result-label')].map(element => markupMeaning(element.innerHTML)),
+          options.map(option => markupMeaning(option.text ? option.text.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : '—')))
+        check(phase, 'pollResultPercentages', [...shell(id).querySelectorAll('.oe-poll__result-pct')].map(element => element.textContent), specification.populated ? ['67%', '33%'] : ['0%', '0%'])
+        previousPollFields = fields
       }
       if (specification.type === 'list') {
         const items = [...shell(id).querySelectorAll('.oe-list__item')]
@@ -907,67 +1203,6 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           cells: [...row.cells].map(cell => ({ rowId: cell.dataset.rowId, id: cell.dataset.cellId })),
         })), expectedRows.map(row => ({ id: row.id, cells: row.cells.map(cell => ({ rowId: row.id, id: cell.id })) })))
       }
-      if (specification.type === 'person') {
-        const profiles = withEditedText(specification, baseData, text).persons
-        const parts = personParts()
-        const active = profiles[0]
-        check(phase, 'personWrapperIdentity', [previousPersonParts[0] === parts[0]], [true])
-        const modeChanged = ['read-only', 'editable-again'].includes(phase)
-        const authorChanged = ['undo', 'redo'].includes(phase) && text !== previousPersonText
-        if (modeChanged || authorChanged) {
-          const currentFields = parts.slice(1), previousFields = previousPersonParts.slice(1)
-          check(phase, 'personFieldLifetime', currentFields.map((element, index) => ({
-            currentConnected: element.isConnected,
-            predecessorCurrentOrDetached: previousFields[index] === element || !previousFields[index].isConnected,
-          })), currentFields.map(() => ({ currentConnected: true, predecessorCurrentOrDetached: true })))
-          const retired = previousFields.filter(element => !currentFields.includes(element))
-          if (retired.length) {
-            const beforeHistory = { canUndo: editor.canUndo, canRedo: editor.canRedo }
-            const beforeTabLabels = [...shell(id).querySelectorAll('.oe-person__tab-label')].map(element => element.textContent)
-            const selection = getSelection()
-            const beforeSelection = { active: document.activeElement,
-              anchor: selection.anchorNode, anchorOffset: selection.anchorOffset,
-              focus: selection.focusNode, focusOffset: selection.focusOffset }
-            for (const old of retired) {
-              old.textContent = 'stale retired person field'
-              old.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
-              old.dispatchEvent(new FocusEvent('blur'))
-            }
-            await settled()
-            check(phase, 'personRetiredFieldsLeaveCanonical', editor.save().blocks, saved.blocks)
-            check(phase, 'personRetiredFieldsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, beforeHistory)
-            check(phase, 'personRetiredFieldsLeaveCurrentFields', personFields().map((element, index) => element === currentFields[index]), [true, true, true])
-            check(phase, 'personRetiredFieldsLeaveTabLabels', [...shell(id).querySelectorAll('.oe-person__tab-label')].map(element => element.textContent), beforeTabLabels)
-            check(phase, 'personRetiredFieldsLeaveSelection', {
-              active: document.activeElement === beforeSelection.active,
-              anchor: selection.anchorNode === beforeSelection.anchor, anchorOffset: selection.anchorOffset,
-              focus: selection.focusNode === beforeSelection.focus, focusOffset: selection.focusOffset,
-            }, { active: true, anchor: true, anchorOffset: beforeSelection.anchorOffset,
-              focus: true, focusOffset: beforeSelection.focusOffset })
-          }
-        } else check(phase, 'personFieldDomIdentity', previousPersonParts.slice(1).map((element, index) => element === parts[index + 1]), [true, true, true])
-        check(phase, 'personFields', personFields().map(element => ({ tag: element.tagName,
-          markup: authoredMarkup(element), editable: element.isContentEditable,
-        })), ['name', 'role', 'bio'].map(key => ({ tag: 'DIV', markup: markupMeaning(active[key]), editable: !readOnly })))
-        const tabs = [...shell(id).querySelectorAll('.oe-person__tab:not(.oe-person__tab--add)')]
-        check(phase, 'personTabs', tabs.map(tab => ({ active: tab.classList.contains('oe-person__tab--active'),
-          draggable: tab.draggable, label: tab.querySelector('.oe-person__tab-label').textContent,
-        })), profiles.map((profile, index) => ({ active: index === 0, draggable: !readOnly,
-          label: personText(profile.name) || 'Person ' + (index + 1),
-        })))
-        const links = [...shell(id).querySelectorAll('.oe-person__link-url')]
-        // v1 exposes one unsaved empty link input instead of an Add link button.
-        const expectedLinks = [...active.links.map(link => link.url), ...(legacy && !readOnly ? [''] : [])]
-        check(phase, 'personLinks', links.map(input => ({ value: input.value, readOnly: input.readOnly })),
-          expectedLinks.map(value => ({ value, readOnly })))
-        const avatar = shell(id).querySelector('.oe-person__card .oe-person__avatar-img')
-        check(phase, 'personAvatar', avatar ? { src: avatar.getAttribute('src'), alt: avatar.alt } : null,
-          active.avatar ? { src: active.avatar, alt: '' } : null)
-        if (!legacy) {
-          check(phase, 'personDomIds', tabs.map(tab => tab.dataset.personId), profiles.map(profile => profile.id))
-          check(phase, 'personLinkIds', links.map(input => input.dataset.linkId), active.links.map(link => link.id))
-        }
-      }
       if (specification.type === 'attaches') {
         const wrapper = shell(id).querySelector('.oe-attaches')
         const fields = attachmentFields()
@@ -1004,7 +1239,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
       check(phase, 'blockDomIdentity', previousShells.map(([blockId, element]) => shell(blockId) === element), previousShells.map(() => true))
-      check(phase, 'widgetDomIdentity', previousWidgets.map(([widgetId, element]) => shell(id).querySelector(`[data-id="${widgetId}"]`) === element), previousWidgets.map(() => true))
+      if (['poll', 'gallery', 'person', 'carousel'].includes(specification.type)) check(phase, specification.type + 'WidgetLifetime', previousWidgets.map(([widgetId, element]) => {
+        const current = shell(id).querySelector(`[data-id="${widgetId}"]`)
+        return Boolean(current?.isConnected) && (element === current || !element.isConnected)
+      }), previousWidgets.map(() => true))
+      else check(phase, 'widgetDomIdentity', previousWidgets.map(([widgetId, element]) => shell(id).querySelector(`[data-id="${widgetId}"]`) === element), previousWidgets.map(() => true))
       if (selectionOffset !== undefined) check(phase, 'nativeSelection', caretIn(field()), {
         focused: true, anchor: selectionOffset, focus: selectionOffset, collapsed: true,
       })
@@ -1023,8 +1262,6 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousSpoilerFields = specification.type === 'spoiler' ? spoilerFields() : []
       previousColumnFields = specification.type === 'columns' ? columnFields() : []
       previousTableParts = specification.type === 'table' ? tableParts() : []
-      previousPersonParts = specification.type === 'person' ? personParts() : []
-      previousPersonText = specification.type === 'person' ? text : undefined
       previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
       previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
       previousPlainFields = plainField ? [field()] : []
@@ -1032,6 +1269,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousImageParts = specification.type === 'image' ? imageParts() : []
       previousEmbedParts = specification.type === 'embed' ? embedParts() : []
       previousEmbedText = specification.type === 'embed' ? text : undefined
+      previousGalleryWrapper = specification.type === 'gallery' ? shell(id).querySelector('.oe-gallery') : null
+      previousGalleryFields = specification.type === 'gallery' ? galleryFields() : []
+      previousGalleryRemoveControls = specification.type === 'gallery' ? [...shell(id).querySelectorAll('.oe-gallery__slot-remove')] : []
+      previousCarouselParts = specification.type === 'carousel' ? carouselParts() : []
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
@@ -1044,12 +1285,84 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       check('read-only', 'attachmentFocusRejected', editor.blocks.focus(id, { fieldKey: 'file:first:name', offset: 'end' }), false)
       check('read-only', 'attachmentReadonlyFocusOwner', document.activeElement === outside, true)
     }
+    if (specification.type === 'gallery' && specification.populated && !legacy) {
+      check('read-only', 'galleryFocusRejected', editor.blocks.focus(id, { fieldKey: 'image:first:caption', offset: 'end' }), false)
+      check('read-only', 'galleryReadonlyFocusOwner', document.activeElement === outside, true)
+    }
     await inspect('read-only', baseText, true, { canUndo: false, canRedo: false })
     setPhase('editable-transition')
     editor.setReadOnly(false)
     await settled()
     check('editable-again', 'foreignFocusPreserved', document.activeElement === outside, true)
     await inspect('editable-again', baseText, false, { canUndo: false, canRedo: false })
+    if (specification.type === 'person' && specification.populated) {
+      for (const index of [1, 0]) {
+        const phase = index ? 'view-second' : 'view-return'
+        setPhase(phase)
+        const tabs = [...shell(id).querySelectorAll('.oe-person__tab')].filter(tab => tab.querySelector('.oe-person__tab-label'))
+        const control = legacy ? tabs[index] : tabs[index].querySelector('.oe-person__tab-select')
+        control.scrollIntoView({ block: 'nearest' })
+        await settled()
+        await focusField(control)
+        await settled()
+        const expectedPerson = baseData.persons[index], fields = personFields(), saved = editor.save()
+        check(phase, 'personViewAuthorFields', fields.slice(0, 3).map(authoredMarkup), ['name', 'role', 'bio'].map(key => markupMeaning(expectedPerson[key])))
+        check(phase, 'personViewLinks', fields.slice(3).map(input => input.value), [...expectedPerson.links.map(link => link.url), ...(legacy ? [''] : [])])
+        check(phase, 'personViewTabs', [...shell(id).querySelectorAll('.oe-person__tab-label')].map(element => element.textContent),
+          baseData.persons.map(entry => imageCaptionText(entry.name)))
+        check(phase, 'personViewWidgets', widgets(shell(id)), index ? [] : expectedWidgets)
+        check(phase, 'personViewCanonical', canonical(saved.blocks), canonical(expectedBlocks(baseText)))
+        check(phase, 'personViewHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, { canUndo: false, canRedo: false })
+        check(phase, 'personViewRetiredFields', previousPersonFields.map(element => !element.isConnected), previousPersonFields.map(() => true))
+        if (!legacy) check(phase, 'personViewActiveId', shell(id).querySelector('.oe-person__tab--active').dataset.personId, expectedPerson.id)
+        phases.push({ phase, blocks: saved.blocks, editorHtml: field().innerHTML, mountedHtml: mounted.innerHTML,
+          selection: caretIn(field()), selectionOwner: nativeSelectionOwner(), readOnly: editor.readOnly })
+        previousPersonFields = fields
+        previousWidgets = [...shell(id).querySelectorAll('[data-inline-plugin]')].map(element => [element.dataset.id, element])
+      }
+    }
+    if (specification.type === 'carousel' && specification.populated) {
+      const beforeNavigation = editor.save().blocks
+      for (const index of [1, 2, 0]) {
+        const control = shell(id).querySelectorAll('.oe-carousel-block__dot')[index]
+        control.scrollIntoView({ block: 'nearest' })
+        await settled()
+        const trustedBefore = trusted.filter(event => event.type === 'mousedown' && event.trusted).length
+        await focusField(control)
+        await settled()
+        const wrapper = shell(id).querySelector('.oe-carousel-block')
+        const media = wrapper.querySelector('.oe-carousel-block__media').firstElementChild
+        const slide = baseData.slides[index]
+        let videoSize = null
+        if (slide.type === 'video') {
+          let timer
+          try {
+            if (media.readyState < 1) await Promise.race([
+              new Promise((resolve, reject) => {
+                media.addEventListener('loadedmetadata', resolve, { once: true })
+                media.addEventListener('error', () => reject(new Error('Local Carousel video metadata failed')), { once: true })
+              }),
+              new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Local Carousel video metadata timed out')), 3000) }),
+            ])
+            videoSize = { width: media.videoWidth, height: media.videoHeight, controls: media.controls, preload: media.preload }
+          } finally { clearTimeout(timer) }
+        }
+        check('editable-again', 'carouselViewNavigation:' + slide.type, {
+          trustedClick: trusted.filter(event => event.type === 'mousedown' && event.trusted).length === trustedBefore + 1,
+          counter: wrapper.querySelector('.oe-carousel-block__counter').textContent,
+          tag: media.tagName, caption: authoredMarkup(field()),
+          videoSize, html: slide.type === 'html' ? authoredMarkup(media) : null,
+          dataUnchanged: JSON.stringify(editor.save().blocks) === JSON.stringify(beforeNavigation),
+          history: { canUndo: editor.canUndo, canRedo: editor.canRedo },
+        }, {
+          trustedClick: true, counter: `${index + 1} / 3`, tag: slide.type === 'image' ? 'IMG' : slide.type === 'video' ? 'VIDEO' : 'DIV',
+          caption: carouselCaptionMeaning(slide.caption),
+          videoSize: slide.type === 'video' ? { width: 16, height: 16, controls: true, preload: 'metadata' } : null,
+          html: slide.type === 'html' ? markupMeaning(slide.html) : null,
+          dataUnchanged: true, history: { canUndo: false, canRedo: false },
+        })
+      }
+    }
     if (hasAuthoring) {
       setPhase('edit')
       if (specification.type === 'attaches' && !legacy) {
@@ -1057,6 +1370,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check('edit', 'attachmentAddress:' + file.id, {
             accepted: editor.blocks.focus(id, { fieldKey: 'file:' + file.id + ':name', offset: 'end' }),
             active: document.activeElement === attachmentFields()[index],
+          }, { accepted: true, active: true })
+        }
+      }
+      if (specification.type === 'gallery' && !legacy) {
+        for (const [index, image] of baseData.images.entries()) {
+          check('edit', 'galleryAddress:' + image.id, {
+            accepted: editor.blocks.focus(id, { fieldKey: 'image:' + image.id + ':caption', offset: 'end' }),
+            active: document.activeElement === galleryFields()[index],
           }, { accepted: true, active: true })
         }
       }
@@ -1099,7 +1420,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }, { previewPressed: 'false', frames: 0, hidden: false, visible: true, receivesPointer: true })
       }
       await focusField(author)
-      const offset = plainField || plainContenteditable ? baseText.length : logicalLength(baseText)
+      const offset = plainField || plainContenteditable || legacy && specification.type === 'carousel' ? baseText.length : specification.type === 'gallery' && !hasSidecars ? literalText(baseText).length : logicalLength(baseText)
       if (plainField) author.setSelectionRange(offset, offset)
       else {
         const range = document.createRange()
@@ -1110,9 +1431,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       }
       check('edit', 'fixtureCaret', caretIn(author), { focused: true, anchor: offset, focus: offset, collapsed: true })
       check('edit', 'trustedFieldFocus', trusted.some(event => event.type === 'mousedown' && event.trusted), true)
-      await typeText('X')
+      const appended = specification.type === 'linkPreview' && !specification.populated ? 'https://example.test/roundtrip' : 'X'
+      await typeText(appended)
+      if (specification.type === 'linkPreview') await pause(650)
       await settled()
-      await inspect('edit', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+      await inspect('edit', baseText + appended, false, { canUndo: true, canRedo: false }, offset + appended.length)
       check('edit', 'trustedInput', trusted.some(event => event.type === 'input' && event.inputType === 'insertText' && event.trusted), true)
       setPhase('undo')
       await shortcut('undo')
@@ -1122,7 +1445,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       setPhase('redo')
       await shortcut('redo')
       await settled()
-      await inspect('redo', baseText + 'X', false, { canUndo: true, canRedo: false }, offset + 1)
+      await inspect('redo', baseText + appended, false, { canUndo: true, canRedo: false }, offset + appended.length)
       check('redo', 'exactEditedRecords', snapshots.redo, snapshots.edit)
       check('redo', 'trustedHistory', trusted.filter(event => event.type === 'keydown' && event.key.toLowerCase() === 'z').map(event => event.trusted), [true, true])
       check('redo', 'providerNotInvokedByRoundtrip', providerCalls, 0)

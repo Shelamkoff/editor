@@ -1,0 +1,8 @@
+{
+  "name": "rector-carousel-dist-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@shelamkoff/carousel": "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499"
+  }
+}

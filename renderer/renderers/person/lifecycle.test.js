@@ -9,7 +9,8 @@ class FakeElement {
     this.children = []
     this.offsetWidth = 1000
   }
-  appendChild(child) { this.children.push(child); return child }
+  appendChild(child) { this.children.push(child); child.parentNode = this; return child }
+  append(...children) { children.forEach(child => this.appendChild(child)) }
 }
 
 class FakeResizeObserver {
@@ -37,12 +38,19 @@ test('person renderer ignores a queued resize callback after destroy', () => {
       return span
     })
     const carouselContainer = wrapper.children[0]
+    const list = carouselContainer.children[0]
+    const cards = [...list.children]
+    assert.equal(cards.length, 2, 'Detached output must already contain both profiles')
     const observer = FakeResizeObserver.latest
     assert.ok(observer)
     renderer.destroy(wrapper)
     assert.equal(observer.disconnected, true)
+    Object.defineProperty(carouselContainer, 'offsetWidth', {
+      get() { throw new Error('Retired observer read geometry after renderer destruction') },
+    })
     observer.fire()
-    assert.equal(carouselContainer.children.length, 0)
+    assert.deepEqual(carouselContainer.children, [list])
+    assert.deepEqual(list.children, cards, 'Queued work changed the already rendered profiles')
   } finally {
     globalThis.document = previousDocument
     globalThis.ResizeObserver = previousObserver

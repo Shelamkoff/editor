@@ -925,6 +925,66 @@ test('outer partial update preserves author data changed by a nested update of t
   runtime.destroy()
 })
 
+test('update only captures data crossing producer or schema boundaries and isolates retained mutable schema inputs', t => {
+  let runtime, active = false, fail = false, canonicalVisits = 0, firstEncodeVisits
+  const retained = [], events = []
+  const initial = { label: 'original', rows: [{ cells: [{ text: 'Original' }] }] }
+  const definition = { type: 'snapshot-boundary', schema: {
+    currentVersion: 1,
+    createDefault: () => structuredClone(initial),
+    decode: input => ({ dataVersion: 1, data: structuredClone(input.data) }),
+    encode(data) {
+      if (active) {
+        firstEncodeVisits ??= canonicalVisits
+        const canonical = runtime.peek('entry').data
+        assert.notEqual(data, canonical, 'schema received canonical data')
+        assert.notEqual(data.rows[0].cells[0], canonical.rows[0].cells[0], 'schema received a canonical descendant')
+        retained.push(data)
+        data.rows[0].cells[0].text = data.rows[0].cells[0].text.trim()
+        if (fail) { data.label = 'discarded normalizer mutation'; throw false }
+      }
+      return { dataVersion: 1, data }
+    },
+  } }
+  runtime = new DocumentRuntime({ registry: registry([definition]),
+    data: { version: '2.0.0', blocks: [{ id: 'entry', type: definition.type, dataVersion: 1, data: initial }] },
+    onCommit: event => events.push(event),
+  })
+  try {
+    const before = runtime.save().blocks, canonical = runtime.peek('entry')
+    const symbols = Object.getOwnPropertySymbols
+    const observation = t.mock.method(Object, 'getOwnPropertySymbols', value => {
+      if (value === canonical.data) canonicalVisits++
+      return symbols(value)
+    })
+    active = true
+    try {
+      runtime.update('entry', current => {
+        current.data.rows[0].cells[0].text = ' Authored '
+        return { data: current.data }
+      }, 'host')
+    } finally { observation.mock.restore() }
+    assert.deepEqual(canonical.data, initial)
+    assert.equal(runtime.get('entry').data.rows[0].cells[0].text, 'Authored')
+    // Missing data still crosses a mutable schema boundary. Reusing a private
+    // record must not freeze an extension's input or expose canonical children.
+    runtime.update('entry', () => ({ tunes: { textAlign: 'center' } }), 'host')
+    const after = runtime.save().blocks
+    fail = true
+    assert.throws(() => runtime.update('entry', () => ({}), 'host'), error => error === false)
+    assert.deepEqual(runtime.save().blocks, after)
+    assert.equal(events.length, 2, 'failed normalization published history or an event')
+    for (const value of retained) value.rows[0].cells[0].text = 'late schema mutation'
+    assert.deepEqual(runtime.save().blocks, after)
+    assert.equal(runtime.undo(), true)
+    assert.equal(runtime.undo(), true)
+    assert.deepEqual(runtime.save().blocks, before)
+    assert.equal(runtime.canUndo, false)
+    assert.equal(firstEncodeVisits, 1,
+      'metadata lookup recaptured the original canonical payload after the detached producer input')
+  } finally { runtime.destroy() }
+})
+
 
 test('producer cannot overwrite a target it removed', () => {
   const runtime = new DocumentRuntime({registry:registry([paragraphDefinition()]), data:{version:'2.0.0',blocks:[block('a')]}})

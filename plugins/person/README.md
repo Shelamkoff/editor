@@ -57,6 +57,8 @@ All fields are present in normalized saved data even when their values are empty
 
 The active profile tab is view state, not document data: `save()` persists all profiles in their current order but does not persist which tab was open. Tab switching therefore remains available in read-only mode so a reader can inspect every profile; it does not create a history entry. Adding, removing, reordering, or editing profiles is disabled in read-only mode.
 
+Tab labels include Mention and Color text even before a profile has been opened. They use canonical field text without mounting hidden widgets or starting mention searches. A custom inline definition can provide its pure `toText(data)` value; definitions without that capability keep their token text in an unopened tab. The active tab follows the completed visible name field, including its actual widget labels. Label updates do not create a separate history action.
+
 Callback avatar URLs must pass the shared media URL policy. The editor plugin requires `@shelamkoff/cropper`. The multi-card renderer requires `@shelamkoff/carousel`.
 
 ## Configuration

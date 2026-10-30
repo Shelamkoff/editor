@@ -34,7 +34,7 @@ export function createCarouselRenderer(classPrefix, locale) {
     type: 'carousel',
     schema: carouselDataSchema,
     styles: [styles, carouselStylesUrl],
-    render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const data = block.data
       const root = context.ownerDocument.createElement('div')
       root.className = p
@@ -70,7 +70,7 @@ export function createCarouselRenderer(classPrefix, locale) {
           }
           if (slide.caption) {
             const caption = context.ownerDocument.createElement('figcaption')
-            caption.textContent = slide.caption
+            caption.appendChild(parseInline(slide.caption))
             figure.appendChild(caption)
           }
           return figure

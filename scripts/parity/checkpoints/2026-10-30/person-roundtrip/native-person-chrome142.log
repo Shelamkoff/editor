@@ -1,0 +1,2 @@
+Native native-roundtrip-preservation.html: 4 passed
+{"native-roundtrip-preservation.html":[{"name":"Block roundtrip differential: BLOCK_PERSON_ROUNDTRIP/default","status":"PASS"},{"name":"Block roundtrip differential: BLOCK_PERSON_ROUNDTRIP/populated","status":"PASS"},{"name":"Block roundtrip differential: BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control","status":"PASS"},{"name":"Block roundtrip differential: BLOCK_PERSON_ROUNDTRIP/populated-literal","status":"PASS"}]}

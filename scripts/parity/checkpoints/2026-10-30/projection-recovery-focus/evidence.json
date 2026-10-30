@@ -1,0 +1,771 @@
+{
+  "scope": "Restore canonical keyboard ownership after a rejected update retires a focused button/wrapper in a fielded block. Preserve existing selection/history ownership and newer focus, including parent-document focus.",
+  "createdAt": "2026-10-30T09:52:11.638867+00:00",
+  "sources": {
+    "baseline": {
+      "commit": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "tree": "16717c1e69d3632c195c63242bfe61bb33391134"
+    },
+    "initialRepair": {
+      "commit": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "tree": "ec3f6cdd6de2915d2198cd0d6b1a2046189b03d1"
+    },
+    "finalRepair": {
+      "commit": "adfff7fc1458274c287d16aa596b14777563ba6c",
+      "tree": "8529d49c971b5b72700988c4d0c272f5c0a321c1",
+      "frozenPatchFromInitialSha256": "0542f65234597f9625f7f4f63737ccad162411a97dfef4b98a72302034c10832"
+    }
+  },
+  "sourceBinding": "Initial repair runs equal the baseline plus their recorded tracked patch and untracked regression module; both match 4b16f15a. Final runs equal 4b16f15a plus the exact committed adfff7fc patch, with no untracked files. All run manifests record unchanged before/after source.",
+  "changedFiles": {
+    "core/BlockReconciler.js": {
+      "sha256": "e185ba27035f8d23c60ac74cc4d3480a79e1eaf0047161234470541a21fb495d",
+      "gitBlob": "8c11bab5e9b50b63c12e39d556dd6d839040f356"
+    },
+    "tests/browser/native-plugin-parity.js": {
+      "sha256": "57933783abc7d66469e9912dbe23cda7c351ae99cd2623c789ab52cde57f567c",
+      "gitBlob": "892ed9b505994d369702bc26a8c89ea19270da49"
+    },
+    "tests/browser/regressions/projection-recovery-focus-native.js": {
+      "sha256": "43984951b155ef27b06bd8708822c819e395dde682555a10a6a335c2c9fcf051",
+      "gitBlob": "2cc2f3ce9865dc539d35211f26d2bfad9c90ef3c"
+    }
+  },
+  "contract": {
+    "reference": "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md §11.2 (C07)",
+    "boundary": "Pre-commit failure recovers accepted canonical data/history and valid prior selection. Auxiliary buttons in fielded blocks correctly have no logical text bookmark; the narrow fallback restores only keyboard ownership to the exact accepted recovered shell.",
+    "excluded": "Inputs, textareas, selects, contenteditable hosts, inline widgets and fieldless blocks retain their existing restoration owners. No promise to restore the exact old control, selected slide or other transient plugin UI."
+  },
+  "finalAcceptance": {
+    "nativeFocused": {
+      "run": "run-KNAeTW",
+      "passed": 7
+    },
+    "affectedUnits": {
+      "run": "run-KqrRob",
+      "passed": 324
+    },
+    "typecheck": {
+      "run": "run-xe9STq",
+      "projects": [
+        "jsconfig.json",
+        "jsconfig.runtime.json"
+      ],
+      "passed": true
+    }
+  },
+  "initialRepairAcceptance": {
+    "nativeFocused": {
+      "run": "run-7Fo1Cl",
+      "passed": 6
+    },
+    "nativeCorePage": {
+      "run": "run-opcT1s",
+      "passed": 67
+    },
+    "nativeCarouselFilter": {
+      "run": "run-j0nSVV",
+      "passed": 15
+    },
+    "affectedUnits": {
+      "run": "run-tyXFXa",
+      "passed": 324
+    },
+    "typecheck": {
+      "run": "run-ubO8XY",
+      "passed": true
+    }
+  },
+  "negativeControls": [
+    {
+      "run": "run-Y3MN1G",
+      "base": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "trackedPatch": "sources/native-red.patch.gz",
+      "untrackedFixture": "sources/native-red-fixture.js.gz",
+      "expected": "Original failure/data/history/lifetime controls pass, but real Ctrl+Z targets BODY and leaves AlphaX unchanged."
+    },
+    {
+      "run": "run-CEbFFH",
+      "base": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "trackedPatch": "sources/fieldless-red.patch.gz",
+      "untrackedFixture": "sources/fieldless-red-fixture.js.gz",
+      "expected": "The initial local fallback duplicates the preexisting fieldless bookmark restoration and steals a newer foreign focus."
+    },
+    {
+      "run": "run-eAmIv5",
+      "base": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "trackedPatch": "sources/iframe-red.patch.gz",
+      "expected": "The initial repair restores the iframe shell despite parent input focus selected during the failed projection."
+    }
+  ],
+  "negativeSourceReconstruction": "The two original untracked negative-control fixtures and tracked patches were reconstructed from retained source after the run. Their SHA256 values were checked against the original sourceBefore manifest hashes byte for byte; this is exact reconstruction, not a rerun or a newly captured historical source. The iframe patch also matches its original tracked-patch hash.",
+  "runs": [
+    {
+      "run": "run-wwjPQo",
+      "labels": [
+        "fixture-error"
+      ],
+      "gate": "native-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "026a0328162d34637f4161bc5d0d5f1d988a49f7ed49a53467efd921c6fe3cdc",
+      "startedAt": "2026-10-30T09:23:07.973Z",
+      "finishedAt": "2026-10-30T09:23:10.784Z",
+      "classification": "fixture-setup-failure",
+      "note": "Warning spy was not an error delivery port after task revocation."
+    },
+    {
+      "run": "run-Y3MN1G",
+      "labels": [
+        "native-red"
+      ],
+      "gate": "native-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "f6bd0dd291caa5c893457a65c23cc69f32a661e63a0e5e7809312490cdd63fdc",
+      "startedAt": "2026-10-30T09:23:59.925Z",
+      "finishedAt": "2026-10-30T09:24:02.268Z",
+      "classification": "expected-product-or-local-repair-red",
+      "note": "Baseline defect: native Undo targets BODY after recoverable projection remount."
+    },
+    {
+      "run": "run-KW7yBM",
+      "labels": [
+        "native-green"
+      ],
+      "gate": "native-green",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "233497a8bedd52c174f882e2ba58ab1182b0445590e408293fe71097868fa825",
+      "startedAt": "2026-10-30T09:31:14.732Z",
+      "finishedAt": "2026-10-30T09:31:22.267Z",
+      "native": {
+        "page": "native-plugin-parity.html",
+        "passed": 1
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-aaUDOw",
+      "labels": [
+        "fieldless-fixture-error"
+      ],
+      "gate": "fieldless-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "1aab53f8b5225d459cd177895a03479f4aad1ba84e1cade0dbab00eb72586b44",
+      "startedAt": "2026-10-30T09:34:41.312Z",
+      "finishedAt": "2026-10-30T09:34:43.329Z",
+      "classification": "fixture-setup-failure",
+      "note": "The test-only fieldless definition omitted its required icon."
+    },
+    {
+      "run": "run-lUmsHC",
+      "labels": [
+        "fieldless-label-fixture-error"
+      ],
+      "gate": "fieldless-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "699e5e546cf615aa2eb3f68ac484805fcf4c22e931e4a18f001fc16c42d8d45b",
+      "startedAt": "2026-10-30T09:35:14.107Z",
+      "finishedAt": "2026-10-30T09:35:16.200Z",
+      "classification": "fixture-setup-failure",
+      "note": "The test-only fieldless definition used a string instead of the required label record."
+    },
+    {
+      "run": "run-9qTbJF",
+      "labels": [
+        "fieldless-update-fixture-error"
+      ],
+      "gate": "fieldless-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "c2733a42443f77e5849bea162813bfd4dad133eef240e6056a973f49165a2228",
+      "startedAt": "2026-10-30T09:35:45.603Z",
+      "finishedAt": "2026-10-30T09:35:47.897Z",
+      "classification": "fixture-setup-failure",
+      "note": "The test-only public patch included forbidden id/type keys."
+    },
+    {
+      "run": "run-CEbFFH",
+      "labels": [
+        "fieldless-red"
+      ],
+      "gate": "fieldless-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "6976e5d0e9cd09767fdc400d0dac0dae41337e7294059bc2fe9a709246ab8333",
+      "startedAt": "2026-10-30T09:36:32.660Z",
+      "finishedAt": "2026-10-30T09:36:34.688Z",
+      "classification": "expected-product-or-local-repair-red",
+      "note": "Regression in the first local repair: duplicate fieldless focus restoration overrides a newer foreign input."
+    },
+    {
+      "run": "run-pHckTo",
+      "labels": [
+        "fieldless-green"
+      ],
+      "gate": "fieldless-green",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "46d2c6f7550f6452c59ca60985c69d0548c6dbe850ceb27a0d964c84e46464ab",
+      "startedAt": "2026-10-30T09:37:27.925Z",
+      "finishedAt": "2026-10-30T09:37:35.382Z",
+      "native": {
+        "page": "native-plugin-parity.html",
+        "passed": 2
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-7Fo1Cl",
+      "labels": [
+        "native-controls"
+      ],
+      "gate": "native-controls",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "b4e1dc228082e3b4f69908b31d4a1a3c87e193136bff0706e1d7507afb04d19e",
+      "startedAt": "2026-10-30T09:39:07.604Z",
+      "finishedAt": "2026-10-30T09:39:16.539Z",
+      "native": {
+        "page": "native-plugin-parity.html",
+        "passed": 6
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-ubO8XY",
+      "labels": [
+        "typecheck-before-iframe"
+      ],
+      "gate": "typecheck",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "b4e1dc228082e3b4f69908b31d4a1a3c87e193136bff0706e1d7507afb04d19e",
+      "startedAt": "2026-10-30T09:40:40.920Z",
+      "finishedAt": "2026-10-30T09:40:54.811Z",
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-j0nSVV",
+      "labels": [
+        "native-carousel"
+      ],
+      "gate": "native-carousel",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "b4e1dc228082e3b4f69908b31d4a1a3c87e193136bff0706e1d7507afb04d19e",
+      "startedAt": "2026-10-30T09:40:41.438Z",
+      "finishedAt": "2026-10-30T09:40:53.387Z",
+      "native": {
+        "page": "native-plugin-parity.html",
+        "passed": 15
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-tyXFXa",
+      "labels": [
+        "unit-before-iframe"
+      ],
+      "gate": "unit",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "b4e1dc228082e3b4f69908b31d4a1a3c87e193136bff0706e1d7507afb04d19e",
+      "startedAt": "2026-10-30T09:40:42.251Z",
+      "finishedAt": "2026-10-30T09:40:43.407Z",
+      "unit": {
+        "tests": 324,
+        "passed": 324,
+        "failed": 0
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-opcT1s",
+      "labels": [
+        "native-core"
+      ],
+      "gate": "native-core",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "02bde2e93756bc9fdfe87c66f6f0b8ce9c372c3c",
+      "sourceIdentity": "b4e1dc228082e3b4f69908b31d4a1a3c87e193136bff0706e1d7507afb04d19e",
+      "startedAt": "2026-10-30T09:40:42.458Z",
+      "finishedAt": "2026-10-30T09:41:12.638Z",
+      "native": {
+        "page": "native-core-behavior.html",
+        "passed": 67
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-rdS1WI",
+      "labels": [
+        "iframe-assumption-fixture"
+      ],
+      "gate": "iframe-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "7875efc3a846fec2256c95da2a8d1c96807899ea912dc4a857cf3c974485359d",
+      "startedAt": "2026-10-30T09:44:09.861Z",
+      "finishedAt": "2026-10-30T09:44:11.930Z",
+      "classification": "fixture-setup-failure",
+      "note": "The iframe control assumed Chrome would retain the old activeElement after parent focus; actual behavior was observed and the unsupported assumption removed."
+    },
+    {
+      "run": "run-eAmIv5",
+      "labels": [
+        "iframe-red"
+      ],
+      "gate": "iframe-red",
+      "outcome": "failed",
+      "exitCode": 1,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "0bf6b20983699b31e038dbbccbdea020136f5b350569fe7631e53c33a4d1ffe7",
+      "startedAt": "2026-10-30T09:45:07.684Z",
+      "finishedAt": "2026-10-30T09:45:09.811Z",
+      "classification": "expected-product-or-local-repair-red",
+      "note": "Regression in the first committed repair: fallback steals parent focus chosen during iframe projection."
+    },
+    {
+      "run": "run-21x1qY",
+      "labels": [
+        "iframe-green-before-late-guard"
+      ],
+      "gate": "iframe-green",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "2e702cca0904c9b59bb01c8ba7c0bea6367afd1cc7cbfdf186a62410fa9214aa",
+      "startedAt": "2026-10-30T09:46:14.111Z",
+      "finishedAt": "2026-10-30T09:46:23.208Z",
+      "native": {
+        "page": "native-plugin-parity.html",
+        "passed": 7
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-8ktcoh",
+      "labels": [
+        "typecheck-before-late-guard"
+      ],
+      "gate": "typecheck",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "2e702cca0904c9b59bb01c8ba7c0bea6367afd1cc7cbfdf186a62410fa9214aa",
+      "startedAt": "2026-10-30T09:46:50.067Z",
+      "finishedAt": "2026-10-30T09:47:00.292Z",
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-yE8Vtu",
+      "labels": [
+        "unit-before-late-guard"
+      ],
+      "gate": "unit",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "2e702cca0904c9b59bb01c8ba7c0bea6367afd1cc7cbfdf186a62410fa9214aa",
+      "startedAt": "2026-10-30T09:46:52.646Z",
+      "finishedAt": "2026-10-30T09:46:53.355Z",
+      "unit": {
+        "tests": 324,
+        "passed": 324,
+        "failed": 0
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-KqrRob",
+      "labels": [
+        "unit"
+      ],
+      "gate": "unit",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "dedb459cbf6bed8ed5e43e8c02802c8cb9bf572c6d093d23e83b8d1c0707d4e7",
+      "startedAt": "2026-10-30T09:48:57.383Z",
+      "finishedAt": "2026-10-30T09:48:58.032Z",
+      "unit": {
+        "tests": 324,
+        "passed": 324,
+        "failed": 0
+      },
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-xe9STq",
+      "labels": [
+        "typecheck"
+      ],
+      "gate": "typecheck",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "dedb459cbf6bed8ed5e43e8c02802c8cb9bf572c6d093d23e83b8d1c0707d4e7",
+      "startedAt": "2026-10-30T09:48:58.045Z",
+      "finishedAt": "2026-10-30T09:49:08.650Z",
+      "classification": "passed-control-or-gate"
+    },
+    {
+      "run": "run-KNAeTW",
+      "labels": [
+        "native-final"
+      ],
+      "gate": "native-final",
+      "outcome": "passed",
+      "exitCode": 0,
+      "sourceUnchanged": true,
+      "head": "4b16f15a7936a86c126328470668578cfdaa59bc",
+      "sourceIdentity": "dedb459cbf6bed8ed5e43e8c02802c8cb9bf572c6d093d23e83b8d1c0707d4e7",
+      "startedAt": "2026-10-30T09:48:59.231Z",
+      "finishedAt": "2026-10-30T09:49:08.701Z",
+      "native": {
+        "page": "native-plugin-parity.html",
+        "passed": 7
+      },
+      "classification": "passed-control-or-gate"
+    }
+  ],
+  "limits": [
+    "This is Chromium functional evidence for a narrow recovery boundary, not full-editor parity or a performance/memory claim.",
+    "The 67-case native-core page and 15-case Carousel filter ran on initial repair 4b16f15a. They were not repeated after the owning-document guard; final adfff7fc has its own seven-case native, 324-unit and two-project typecheck acceptance.",
+    "Native Carousel filter includes the primary recovery case. Repeated stages and overlapping filters are not additive case counts.",
+    "Fieldless and iframe REDs are review-found regressions in intermediate repair versions, not two additional baseline defects.",
+    "Chrome did not retain the old frame activeElement when parent focus preceded the command in this execution; that before-control passed. The reproduced iframe failure was the parent focus change during the entered projection.",
+    "Five setup/observation mistakes are retained as failed fixture attempts, not relabeled as product RED or PASS.",
+    "No exact restoration of the prior Carousel slide/control is promised. Other transient plugin UI remains outside this fallback.",
+    "This checkpoint does not rerun or certify the root integration. Broader integration acceptance is recorded separately by its owner."
+  ],
+  "compression": {
+    "format": "gzip",
+    "level": 9,
+    "mtime": 0,
+    "filename": "",
+    "roundtripVerified": true
+  },
+  "artifacts": {
+    "runs/run-wwjPQo/manifest.json.gz": {
+      "bytes": 1055,
+      "sha256": "173535d9aa338af1661c64ee6b286aa31e7334b7723f87009444e0b887a528b6",
+      "rawBytes": 4507,
+      "rawSha256": "7b1a05ebe529670cb379a5dcbe0e5fa66dfa988923ff9ef2d49caeb21392001a"
+    },
+    "runs/run-wwjPQo/native-red.log.gz": {
+      "bytes": 470,
+      "sha256": "23b2243b8135b3d36fb7dc8a42ff5bda6d4282b35c6772b53e7671cc8253905a",
+      "rawBytes": 1168,
+      "rawSha256": "da88ff58cfb0308f004e33fac07df5480bfe4a126c713adfd817ea703714b07d"
+    },
+    "runs/run-Y3MN1G/manifest.json.gz": {
+      "bytes": 1057,
+      "sha256": "4c02d83e84e21ad95f504a5d38cfb6760522173f6bd4c1e9e4ce6137b2ae344d",
+      "rawBytes": 4507,
+      "rawSha256": "2db8ab78e273094f18dcfc0173ab3eccae6939c04b7e991f92ed3847a7be57cd"
+    },
+    "runs/run-Y3MN1G/native-red.log.gz": {
+      "bytes": 758,
+      "sha256": "6aaa4a649938b183f6bf20c219cde87b42c7916a6b687e1ecad557da691975ff",
+      "rawBytes": 2490,
+      "rawSha256": "63c3ce55bc1a5814d24c39614113bb63a45b806ba51929740746975bf055274e"
+    },
+    "runs/run-KW7yBM/manifest.json.gz": {
+      "bytes": 1054,
+      "sha256": "c400483bdee0270e0749e3578d786b54a5dcb81da0e2ceb67ee79f18e708d5df",
+      "rawBytes": 4509,
+      "rawSha256": "56378df84016553d3f2e0536fb8954868cdf61301575e973cac1c4ff211e173e"
+    },
+    "runs/run-KW7yBM/native-green.log.gz": {
+      "bytes": 157,
+      "sha256": "7e4fa0cac9c339e84b8783f659c5b83eca721bb216b87451691f40fa95d2aa86",
+      "rawBytes": 190,
+      "rawSha256": "419122cad3e7df35cafa79ae9b3cc6c2f8e02643db910637371fdfa04cb2e804"
+    },
+    "runs/run-aaUDOw/manifest.json.gz": {
+      "bytes": 1045,
+      "sha256": "728b9d73a881d51e262878d1d886aadddbcd9c8d32d953d1f8491ee8036b12fd",
+      "rawBytes": 4477,
+      "rawSha256": "dabb842a2207b8b245b5781b66fb8d7c4ee17421847f80a6c8ea61fd01e55f1e"
+    },
+    "runs/run-aaUDOw/fieldless-red.log.gz": {
+      "bytes": 586,
+      "sha256": "4b04680adb815be5815e3c49b3c78e3a619666cd8f7231811538baf043ecda9f",
+      "rawBytes": 1543,
+      "rawSha256": "5172659a7a112ae45e695e0aa165003ad65a89437c020b521a9e1ffecaa04d57"
+    },
+    "runs/run-lUmsHC/manifest.json.gz": {
+      "bytes": 1047,
+      "sha256": "5e58be2bb112982ba3893deeb0544a6736aafbcf5139f2a1a79cf6cbe8a2e040",
+      "rawBytes": 4477,
+      "rawSha256": "85fb98944f7f6838d909205497e0e90dcbbfefee1f36182b2a6d7127429116e7"
+    },
+    "runs/run-lUmsHC/fieldless-red.log.gz": {
+      "bytes": 600,
+      "sha256": "42d93303b5a047d5c00a6f6e16a4b34bf35b60713813c7b1944c2707bfc090cf",
+      "rawBytes": 1624,
+      "rawSha256": "9ededdeba10ff92f74e2e28f6025772cb8f1b0cce04c9cc8015cefa643328fe4"
+    },
+    "runs/run-9qTbJF/manifest.json.gz": {
+      "bytes": 1044,
+      "sha256": "a01fe361244d558b10fadc08bb767d62b786e98a2362f9fd1c2985c139de0235",
+      "rawBytes": 4470,
+      "rawSha256": "3762ed28926d039a7657b60768c24a643d2b1fad1d76b97f5ec03f3950fb8e75"
+    },
+    "runs/run-9qTbJF/fieldless-red.log.gz": {
+      "bytes": 462,
+      "sha256": "5e0e3a28aded19e23cb9b301b50f0d1716f1c4d9b611bac5bfeec89d4870c882",
+      "rawBytes": 1152,
+      "rawSha256": "947c890018a3254ef53eac5daf011a2a5d797db69cc64d8c7c0dfadf4ee09407"
+    },
+    "runs/run-CEbFFH/manifest.json.gz": {
+      "bytes": 1047,
+      "sha256": "6a52cfc36bcaaf844a33fb77ccd0ab4d12541da5da07a424ba13c2ecfe79fd19",
+      "rawBytes": 4477,
+      "rawSha256": "da6574877d386c69b30aaa97bd5bbc77729f5522aa8df8553e6afaf85b4f55a2"
+    },
+    "runs/run-CEbFFH/fieldless-red.log.gz": {
+      "bytes": 569,
+      "sha256": "329e816bbb96d9eddbeafc2397e973c53ad67f8f21c3510afef0537bc92e5e6f",
+      "rawBytes": 1374,
+      "rawSha256": "6e2b54f82a6051bff83550ed46f3054c84414c82e4e2ced5c8a6390e5d61d74c"
+    },
+    "runs/run-pHckTo/manifest.json.gz": {
+      "bytes": 1043,
+      "sha256": "f6fa7003a6362413d7fdd69f8219619a1dcb684c9cea2fc5fd2f8ebcc2226e34",
+      "rawBytes": 4452,
+      "rawSha256": "2ee46112f836158d46f65b163b540ec963b81eb8ffa3e3d183757c38c164769d"
+    },
+    "runs/run-pHckTo/fieldless-green.log.gz": {
+      "bytes": 203,
+      "sha256": "578ed23d88b13aa8cd042d995e5b111f1ac40ba6fcf943244981928a039b3e17",
+      "rawBytes": 313,
+      "rawSha256": "dbfe8fc70c6e27a4d66bb1d00fa1d436d03e030b3a5c7d3ed64ba563afaef4df"
+    },
+    "runs/run-7Fo1Cl/manifest.json.gz": {
+      "bytes": 1040,
+      "sha256": "fae7c2efa8cba323d23e02ea87f0c199874619db7c85b7bd68c7c4f4e76a5637",
+      "rawBytes": 4458,
+      "rawSha256": "708b35a07d8b2c324fa26220d77c67690b17d5310486efab104f6cdd4afea7f2"
+    },
+    "runs/run-7Fo1Cl/native-controls.log.gz": {
+      "bytes": 321,
+      "sha256": "0bb6d252b91f99822e7a2e4722adddea6011728796c82b937b24a76b2a074419",
+      "rawBytes": 764,
+      "rawSha256": "725bf9447777e455c992ababa4cd50f3e280a1bf447e8b4c0fdd74af69da7f78"
+    },
+    "runs/run-ubO8XY/manifest.json.gz": {
+      "bytes": 898,
+      "sha256": "9f62b52da694f54564876a2bc4529ad7920c165deff5c61685182849a3e1c3cc",
+      "rawBytes": 3928,
+      "rawSha256": "bbdff6d0160c4b574a4eba8a6edbbb94afca25fe46682a9a765ff6267afc6d6d"
+    },
+    "runs/run-ubO8XY/typecheck.log.gz": {
+      "bytes": 185,
+      "sha256": "12eeba458279cdcf2f07bcdb6775db13c184ee454e62f493f95817de1859e0a0",
+      "rawBytes": 259,
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "runs/run-j0nSVV/manifest.json.gz": {
+      "bytes": 1037,
+      "sha256": "321d656ce7d0c2bd10d6a5b0ee692572267afa37876feac00531af60bce0d301",
+      "rawBytes": 4431,
+      "rawSha256": "38391183e3f912293e448258ee6d0d18fc3bab2cea46cff11835f7dfd8c7a8d7"
+    },
+    "runs/run-j0nSVV/native-carousel.log.gz": {
+      "bytes": 553,
+      "sha256": "b90688904f2966c4c8f857a439139ea1952846f033c38567c8cefce905c6ced0",
+      "rawBytes": 1565,
+      "rawSha256": "761b305be322b2435500b99ec427b717543a894c257db560bfc9c8c7c34abe91"
+    },
+    "runs/run-tyXFXa/manifest.json.gz": {
+      "bytes": 1073,
+      "sha256": "9bbc8f79f47af515e59bef1b9a0e16e1f8c6c48f3f007af6c1a7e27bf4d53134",
+      "rawBytes": 4734,
+      "rawSha256": "e88671e3c4b70b79a967506a5ae70f250030d2618c1de4c3379bc30a2a65291b"
+    },
+    "runs/run-tyXFXa/unit.log.gz": {
+      "bytes": 9319,
+      "sha256": "9564d3c8af7b54e02ae869169cd87ca83b84c957151a27300e20591aaed299a3",
+      "rawBytes": 30315,
+      "rawSha256": "e3b49df469cc4f9b0a78ca4825b7d3c3bc2fac43911de08d1fd87c1f28136940"
+    },
+    "runs/run-opcT1s/manifest.json.gz": {
+      "bytes": 1011,
+      "sha256": "e582c2af7a7445113c72977d04ccf50f9bb3d5f5ee17ee2247ec404e2d165ff9",
+      "rawBytes": 4338,
+      "rawSha256": "c112145492448709984c7a0e80e357c42a40bf14102b2adc0ce87c18f5ea28f5"
+    },
+    "runs/run-opcT1s/native-core.log.gz": {
+      "bytes": 1654,
+      "sha256": "003cb08d083365a6ff5ac850828dab8f92715bda5a5765c7ef58ca8961c963b0",
+      "rawBytes": 7278,
+      "rawSha256": "e18767b72af3ff8e0e89c7fa2b0d2077848d0142cada0d3904b58dafd9bd9a7e"
+    },
+    "runs/run-rdS1WI/manifest.json.gz": {
+      "bytes": 933,
+      "sha256": "69f4f1ea8932c6976fad147fdb702ea4de9a27774da9bf49820bfe896da88cbc",
+      "rawBytes": 3585,
+      "rawSha256": "54fe6f4cb05a0986f9278d4fda8f71f30524a07f1f4d8fba37b6e707fed70810"
+    },
+    "runs/run-rdS1WI/iframe-red.log.gz": {
+      "bytes": 500,
+      "sha256": "c5a5904247423a14aada9500dac4013447c396169483c5a1dc120ff8bee4df2d",
+      "rawBytes": 1224,
+      "rawSha256": "9a24363161068c1717236efe3255abc182b68e7f020043f5fa5c4bfa0b1c9687"
+    },
+    "runs/run-eAmIv5/manifest.json.gz": {
+      "bytes": 930,
+      "sha256": "b4d74b6136fb8641cf77cbc634043722533b5b2a1ddfeadc4a3cf1dd9172fa6b",
+      "rawBytes": 3585,
+      "rawSha256": "023b0bff6a0a31fd17a4681c8e5edd73739b8fb2bbc09a7cce7f207feec6c544"
+    },
+    "runs/run-eAmIv5/iframe-red.log.gz": {
+      "bytes": 529,
+      "sha256": "4b56c844b6e848aeb5bbc6be2ad113ae799abbc2d2f40f1ab5e971b4f7e7c00a",
+      "rawBytes": 1285,
+      "rawSha256": "e1cde3f36f7660e98aecc32614089fd442415f95a3491b7a1a702c7f9999f528"
+    },
+    "runs/run-21x1qY/manifest.json.gz": {
+      "bytes": 926,
+      "sha256": "b5cafdc4ad3d1347eae503a416e4c1483892d27e680916a09a9948c5594b1f75",
+      "rawBytes": 3561,
+      "rawSha256": "e281c6fcd46069d68ccd2c6463e8779863259dfbeb8ef64a7410742ae2d9993f"
+    },
+    "runs/run-21x1qY/iframe-green.log.gz": {
+      "bytes": 357,
+      "sha256": "30539abbf926d769d4e4e43e4a8710477a81e0f58727f3a18a8c2607d0467966",
+      "rawBytes": 892,
+      "rawSha256": "aac2485105afbf8cd9eaae9fb06bcf06ba936bcc477b29c2356af84e56ca4a5f"
+    },
+    "runs/run-8ktcoh/manifest.json.gz": {
+      "bytes": 774,
+      "sha256": "123587d8f137db560ed1ba65c3c2e82dc98c5e5064f83c5a86dd40910b515215",
+      "rawBytes": 3034,
+      "rawSha256": "a63362edcfaae0c267c0ae89a72e56931e2fc7ebce11093c275f0db1b5ecb297"
+    },
+    "runs/run-8ktcoh/typecheck.log.gz": {
+      "bytes": 185,
+      "sha256": "12eeba458279cdcf2f07bcdb6775db13c184ee454e62f493f95817de1859e0a0",
+      "rawBytes": 259,
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "runs/run-yE8Vtu/manifest.json.gz": {
+      "bytes": 945,
+      "sha256": "db4ac8741f590b1419eaf42ece77095bb4f68742fb844f1862b0959d99e3a77d",
+      "rawBytes": 3845,
+      "rawSha256": "c78dddfbe6955cc2d385e151d17dc4112c5024c9058d87e86acbe8ec429641da"
+    },
+    "runs/run-yE8Vtu/unit.log.gz": {
+      "bytes": 9251,
+      "sha256": "1a37b44c4675370f76ecfb501d2c625e92770e9eaa34f549cc2b5b3a63b69ab3",
+      "rawBytes": 30305,
+      "rawSha256": "cfcbee863369475ce2ac6e86718d4496b7eac03aa827bd0f56f2ba8aa4e3236b"
+    },
+    "runs/run-KqrRob/manifest.json.gz": {
+      "bytes": 945,
+      "sha256": "88ba3d289bf7ca517d7ea7448a7b5db88d97130ed0cb821ceb522e61fa76dcd1",
+      "rawBytes": 3845,
+      "rawSha256": "e3b707d1a16f348276737b41c1862183307d03eed9b8d56bb9bde222ed8d7dec"
+    },
+    "runs/run-KqrRob/unit.log.gz": {
+      "bytes": 9253,
+      "sha256": "db49616a325d0fcfd0871837042c2a952af31e875e1baf6d019abb2211f38ece",
+      "rawBytes": 30309,
+      "rawSha256": "5023740bae69b3c0c8a9cb2b8a12936b553f43ebff18a93ba65eb4cd134fb3ba"
+    },
+    "runs/run-xe9STq/manifest.json.gz": {
+      "bytes": 769,
+      "sha256": "2120f8c5a19289fc2d1c233a7cf25f7df9d2d8fc74b042c003fe584d9ff0bd15",
+      "rawBytes": 3034,
+      "rawSha256": "6c80829c1ac946f1ce9cc953fa7d0a5180c117d2c4b0616aaa848f0940f49bcc"
+    },
+    "runs/run-xe9STq/typecheck.log.gz": {
+      "bytes": 185,
+      "sha256": "12eeba458279cdcf2f07bcdb6775db13c184ee454e62f493f95817de1859e0a0",
+      "rawBytes": 259,
+      "rawSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "runs/run-KNAeTW/manifest.json.gz": {
+      "bytes": 921,
+      "sha256": "87832bd00395ee653ca7ea7c5bd11dc96397201471a6e9727c9ea53211244e4e",
+      "rawBytes": 3560,
+      "rawSha256": "920e3ce1a8c611bb2f2c8c074c1c90de63cd38c44f9b3ecb5c3477423737a2c5"
+    },
+    "runs/run-KNAeTW/native-final.log.gz": {
+      "bytes": 357,
+      "sha256": "30539abbf926d769d4e4e43e4a8710477a81e0f58727f3a18a8c2607d0467966",
+      "rawBytes": 892,
+      "rawSha256": "aac2485105afbf8cd9eaae9fb06bcf06ba936bcc477b29c2356af84e56ca4a5f"
+    },
+    "sources/native-red-fixture.js.gz": {
+      "bytes": 1829,
+      "sha256": "d199856f44522a70ff0ef25258f1229a71c775f20f5f21c25b65e2b0009c4b38",
+      "rawBytes": 5029,
+      "rawSha256": "dbb2466d42d1b09f3ff2a2f465ad888007417c391f9ee06b65cb8368f5fb3b06"
+    },
+    "sources/native-red.patch.gz": {
+      "bytes": 259,
+      "sha256": "1b704c73414ef39e329ab3460c79c0b8a9c9a449dbbfa78ec8892eccfcf0d0ed",
+      "rawBytes": 624,
+      "rawSha256": "4263124127c5a6fd669a7b057e06da45f549c5916a34efcd0941c1285d371f15"
+    },
+    "sources/fieldless-red-fixture.js.gz": {
+      "bytes": 2449,
+      "sha256": "37717b1bca3bc9714f41b6dbb3945104aafa12e46f6755340fde446e02fd1e97",
+      "rawBytes": 7291,
+      "rawSha256": "7db886696eea2e2ab1198775831cc66750ad6d12cce37e5186a876321763de39"
+    },
+    "sources/fieldless-red.patch.gz": {
+      "bytes": 2204,
+      "sha256": "34a56be7a1d16a473b9d7c55db813cf72d6493a539cbc42cd1ecda53e1390f71",
+      "rawBytes": 6473,
+      "rawSha256": "273ba793e0a07d5b4db8024a46b5d2f772874974fee5ae44ce001e89467af31b"
+    },
+    "sources/iframe-red.patch.gz": {
+      "bytes": 1731,
+      "sha256": "2d1a5f26860877e2d4e1f86d3e06ca85d9f297e9e90e8b4ad09c7749c59938ee",
+      "rawBytes": 4825,
+      "rawSha256": "a54fb7864c15c6ce3e9d1b88140cf30ec7347f76fe5272eeed57d39fa403d2bb"
+    }
+  }
+}

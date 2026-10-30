@@ -1,0 +1,14 @@
+{
+  "docs.log.gz": {
+    "rawBytes": 1137,
+    "rawSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7",
+    "gzipBytes": 405,
+    "gzipSha256": "60b12331788850d412e5f5573b444ad97addf9989786b85cd97adb948c760a86"
+  },
+  "docs-build.log.gz": {
+    "rawBytes": 2643,
+    "rawSha256": "7f7961aba715799099384b34b9e83f17ad7151d0a5396940deeaafbd3916d437",
+    "gzipBytes": 1003,
+    "gzipSha256": "41cd663e009cca860fd2179bb5e74989d5dec44143406929f14b8b8c1b3dd7e5"
+  }
+}

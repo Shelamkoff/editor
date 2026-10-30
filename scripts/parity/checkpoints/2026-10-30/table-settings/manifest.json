@@ -1,0 +1,163 @@
+{
+  "recordedAt": "2026-10-30T16:09:46.209870+00:00",
+  "implementationBase": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+  "implementationChanged": false,
+  "testedSource": "5e3bdd7cd5b73c8652a819d07c6b51cf2335f8df",
+  "testedTree": "879703e368085f2483d80dd4a9a34045a91b0baa",
+  "fixtureSha256": "52b238f34cea9db8c729577c53811c903002f2272cbcf971cf85a7f3a59ab699",
+  "runnerSha256": "5856e16185f1d13b8ad20ea177ccfa98df7a4c152495a8a24ebb285c42b2699b",
+  "environment": {
+    "node": "v24.22.1",
+    "browser": "156.0.8078.79",
+    "platform": "linux x64"
+  },
+  "differential": {
+    "exitCode": 1,
+    "startedAt": "2026-10-30T16:06:41.371Z",
+    "completedAt": "2026-10-30T16:07:07.494Z",
+    "candidatePass": true,
+    "summary": [
+      {
+        "source": "v1",
+        "cases": 14,
+        "observations": 1210,
+        "failures": 38,
+        "incompleteCases": 0,
+        "pageErrors": 0,
+        "failureProperties": {
+          "settings.focusInsideEditor": 14,
+          "undo-input.nativeCaret": 12,
+          "redo-input.nativeCaret": 12
+        }
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 14,
+        "observations": 1346,
+        "failures": 0,
+        "incompleteCases": 0,
+        "pageErrors": 0,
+        "failureProperties": {}
+      },
+      {
+        "source": "candidate",
+        "cases": 14,
+        "observations": 1346,
+        "failures": 0,
+        "incompleteCases": 0,
+        "pageErrors": 0,
+        "failureProperties": {}
+      }
+    ],
+    "serverErrors": []
+  },
+  "native": {
+    "exitCode": 0,
+    "page": "native-plugin-parity.html",
+    "filter": "Table ",
+    "passed": 41,
+    "newCases": 14,
+    "source": "5e3bdd7cd5b73c8652a819d07c6b51cf2335f8df"
+  },
+  "unit": {
+    "exitCode": 0,
+    "command": "node --test plugins/table/*.test.js",
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "source": "5e3bdd7cd5b73c8652a819d07c6b51cf2335f8df"
+  },
+  "review": {
+    "verdictsRecomputed": 3902,
+    "verdictMismatches": 0,
+    "productionModuleHashesVerified": 485,
+    "dependencyFileHashesVerified": 64,
+    "proposedAcceptance": [
+      "BLOCK_TABLE_ROWS_COLUMNS",
+      "BLOCK_TABLE_HEADINGS"
+    ],
+    "otherRowsAccepted": false,
+    "independent": {
+      "artifact": "independent-review.json.gz",
+      "script": "independent-review.py.gz",
+      "phaseStatesReconstructed": 282,
+      "verdictsRecomputed": 3902,
+      "passed": true,
+      "decodedRawSha256": "0e9b950734b0f24f1eb5cbba496abf3de71e0e92f27a399d6ef238671f6ba04b",
+      "limitations": [
+        "Minimum 1x1 native disabled controls exercised with headings=true; width/height enablement is independent of headings in reviewed source.",
+        "Fixture deliberately restores first-field focus before native Undo. It proves exact history/action count and input caret replay, not exact post-menu or structural-setting caret placement.",
+        "Browser coverage Chrome156 Linux only; unrelated Table cells/keyboard/paste obligations remain separate."
+      ]
+    }
+  },
+  "sourceReconstructions": [
+    {
+      "commit": "5af67632aa362d362595617396ec696af35bd473",
+      "tree": "a76ac718254df97e8f76d383a35ffc9d15a40cc1",
+      "label": "invalid-initial-fixture",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "sources/5af67632.patch.gz",
+      "reconstructedTree": "a76ac718254df97e8f76d383a35ffc9d15a40cc1",
+      "verified": true
+    },
+    {
+      "commit": "b8f58762be4b6a1d8f152d5da270ccbdc758b981",
+      "tree": "b9b86a8d2524b1c371db7e9fcc5d647e22b3dfd4",
+      "label": "history-contaminated-negative",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "sources/b8f58762.patch.gz",
+      "reconstructedTree": "b9b86a8d2524b1c371db7e9fcc5d647e22b3dfd4",
+      "verified": true
+    },
+    {
+      "commit": "2571f76ac6505aafcd5ec53fd57f19407b9df100",
+      "tree": "11a32227c58c0e59ea0a085f5a6ae78180f4a459",
+      "label": "disabled-hit-test-incomplete",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "sources/2571f76a.patch.gz",
+      "reconstructedTree": "11a32227c58c0e59ea0a085f5a6ae78180f4a459",
+      "verified": true
+    },
+    {
+      "commit": "ebc3949af03d33063aa8bbcf4f2c2949ae2601d4",
+      "tree": "5c3149ccdb1445fff1b1e5d11e41d3a0b69b8ccc",
+      "label": "minimum-complete",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "sources/ebc3949a.patch.gz",
+      "reconstructedTree": "5c3149ccdb1445fff1b1e5d11e41d3a0b69b8ccc",
+      "verified": true
+    },
+    {
+      "commit": "5e3bdd7cd5b73c8652a819d07c6b51cf2335f8df",
+      "tree": "879703e368085f2483d80dd4a9a34045a91b0baa",
+      "label": "final-registered-fixture",
+      "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+      "patch": "sources/5e3bdd7c.patch.gz",
+      "reconstructedTree": "879703e368085f2483d80dd4a9a34045a91b0baa",
+      "verified": true
+    }
+  ],
+  "attempts": [
+    {
+      "artifact": "attempts/first-probe.json.gz",
+      "source": "5af67632",
+      "classification": "Invalid fixture: unsupported U tag oracle; click propagation observation missed settings handlers. Not product RED."
+    },
+    {
+      "artifact": "attempts/header-probe.json.gz",
+      "source": "b8f58762",
+      "classification": "Valid current header 99 observations PASS, but immediate retired v1 action contaminated later positive history. Superseded by isolated order; retained raw."
+    },
+    {
+      "artifact": "attempts/settings-differential.json.gz",
+      "source": "2571f76a",
+      "classification": "Ten positive settings cases complete; two candidate/spec minimum cases incomplete because disabled pointer-events intentionally reject direct target. Not product RED."
+    },
+    {
+      "artifact": "attempts/minimum-probe.json.gz",
+      "source": "ebc3949a",
+      "classification": "Correct native disabled hit testing; both candidate/spec minimum cases complete with 148 observations PASS. Subsumed by final run."
+    }
+  ]
+}

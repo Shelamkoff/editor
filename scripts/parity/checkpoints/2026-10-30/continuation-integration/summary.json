@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "scope": "Completed initial continuation integration runs only; historical failures preserved; not the final combined65 acceptance run.",
+  "excludedRun": "run-2Zb0Ur",
+  "runs": {
+    "run-AapPg2": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:31:45.203Z",
+      "finishedAt": "2026-10-30T01:32:44.595Z",
+      "source": {
+        "head": "9a60deb51a6f1906a9ad4a17080deedc52b2426a",
+        "tree": "7cd592398b0e628e192cc38c96b11c542cffc5a3",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "c66f9dfa4676ead0e4cba39f83432548d24ecdc1da153e4d24ae5fc8c52d927a"
+      },
+      "sourceAfter": {
+        "head": "9a60deb51a6f1906a9ad4a17080deedc52b2426a",
+        "tree": "7cd592398b0e628e192cc38c96b11c542cffc5a3",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "c66f9dfa4676ead0e4cba39f83432548d24ecdc1da153e4d24ae5fc8c52d927a"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "typecheck": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "elapsedMs": 9546.806892,
+          "sourceUnchanged": true
+        },
+        "unit": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "command": [
+            "npm",
+            "test"
+          ],
+          "elapsedMs": 22661.287874999998,
+          "sourceUnchanged": true
+        },
+        "types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "npm",
+            "run",
+            "test:types"
+          ],
+          "elapsedMs": 9988.090817999999,
+          "sourceUnchanged": true
+        },
+        "package": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "command": [
+            "npm",
+            "run",
+            "test:package"
+          ],
+          "elapsedMs": 16160.709683,
+          "sourceUnchanged": true
+        }
+      },
+      "unitCounts": {
+        "tests": 1987,
+        "pass": 1986,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "run-r6iBZN": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T01:36:04.544Z",
+      "finishedAt": "2026-10-30T01:40:19.255Z",
+      "source": {
+        "head": "061471080da7438f0f73d09bba8a444e8d9d5bda",
+        "tree": "2a27d289c52e99e2027294398ea18105db5cc80e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "9dd473cb318c89a68e95e922a208e0a5e601a567949fc73aa45c25adf440c66f"
+      },
+      "sourceAfter": {
+        "head": "061471080da7438f0f73d09bba8a444e8d9d5bda",
+        "tree": "2a27d289c52e99e2027294398ea18105db5cc80e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "9dd473cb318c89a68e95e922a208e0a5e601a567949fc73aa45c25adf440c66f"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "unit": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "npm",
+            "test"
+          ],
+          "elapsedMs": 22077.072072,
+          "sourceUnchanged": true
+        },
+        "differential61": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "node",
+            "scripts/parity/block-roundtrip.mjs"
+          ],
+          "elapsedMs": 143608.714417,
+          "sourceUnchanged": true
+        },
+        "native61": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "elapsedMs": 51748.560915,
+          "sourceUnchanged": true
+        },
+        "native-core": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "node",
+            "tests/browser/physical-history.mjs"
+          ],
+          "elapsedMs": 25545.697494,
+          "sourceUnchanged": true
+        },
+        "runtime-contracts": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "elapsedMs": 3041.809543,
+          "sourceUnchanged": true
+        },
+        "projection-contracts": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "command": [
+            "node",
+            "tests/browser/run.mjs"
+          ],
+          "elapsedMs": 7102.520997,
+          "sourceUnchanged": true
+        }
+      },
+      "unitCounts": {
+        "tests": 1987,
+        "pass": 1987,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  },
+  "initialFailures": {
+    "unit": "Person lifecycle FakeElement stub lacks append; TypeError list.append is not a function. Fixed by test-only commit061471080da7438f0f73d09bba8a444e8d9d5bda, which also asserts preserved detached profile output and forbids geometry reads after destruction.",
+    "package": "ENOTCACHED for the immutable Carousel codeload archive f7f6485886a1d77f9213d9079eb70000efeff499 in the disposable offline cache. The original install failed; this checkpoint does not replace that outcome with a later package pass."
+  },
+  "differential": {
+    "selectedCases": 61,
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "root": "/tmp/rector-v1-5e5c7f8",
+        "legacy": true
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "root": "/tmp/rector-e981ff3",
+        "legacy": false
+      },
+      {
+        "label": "candidate",
+        "sha": "061471080da7438f0f73d09bba8a444e8d9d5bda",
+        "root": "/tmp/rector-continuation-20261030",
+        "legacy": false
+      }
+    ],
+    "results": [
+      {
+        "source": "v1",
+        "caseCount": 61,
+        "observationCount": 10558,
+        "observationStatuses": {
+          "PASS": 9493,
+          "FAIL": 1065
+        },
+        "caseFailures": 1065,
+        "classifiedDifferences": 1065,
+        "unexpectedFailures": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0
+      },
+      {
+        "source": "spec-baseline",
+        "caseCount": 61,
+        "observationCount": 7691,
+        "observationStatuses": {
+          "PASS": 7559,
+          "FAIL": 132
+        },
+        "caseFailures": 151,
+        "classifiedDifferences": 151,
+        "unexpectedFailures": 0,
+        "errors": 1,
+        "pageErrors": 1,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0
+      },
+      {
+        "source": "candidate",
+        "caseCount": 61,
+        "observationCount": 10740,
+        "observationStatuses": {
+          "PASS": 10740
+        },
+        "caseFailures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0
+      }
+    ],
+    "incompleteCasesBySource": {
+      "spec-baseline": 19
+    },
+    "notApplicableCasesBySource": {
+      "v1": 5,
+      "spec-baseline": 5,
+      "candidate": 5
+    },
+    "unsupportedReferenceCasesBySource": {
+      "v1": 10
+    }
+  },
+  "browserCounts": {
+    "native61": {
+      "total": 61,
+      "statuses": {
+        "PASS": 61
+      }
+    },
+    "native-core": {
+      "total": 66,
+      "statuses": {
+        "PASS": 66
+      }
+    },
+    "runtime-contracts": {
+      "total": 105,
+      "statuses": {
+        "PASS": 105
+      }
+    },
+    "projection-contracts": {
+      "total": 146,
+      "statuses": {
+        "PASS": 146
+      }
+    }
+  },
+  "galleryAudit": "gallery/observation-count-audit.json"
+}

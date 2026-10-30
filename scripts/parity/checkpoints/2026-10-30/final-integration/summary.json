@@ -1,0 +1,1186 @@
+{
+  "schemaVersion": 1,
+  "scope": "Completed attempts run-T69Tfd, run-aoJ0oS and run-Ea04al only; original outcomes are retained. This record does not assert final publication or full functional parity.",
+  "createdAt": "2026-10-29T23:53:14.794314Z",
+  "archiveBaseHead": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+  "archiveBaseHeadMeaning": "Storage checkout base only; each test result belongs to its own source identity below.",
+  "runs": [
+    {
+      "id": "run-T69Tfd",
+      "originalDirectory": "/tmp/rector-integration-20261030/test-results/run-T69Tfd",
+      "originalManifestArchive": "runs/run-T69Tfd/manifest.json",
+      "cwd": "/tmp/rector-integration-20261030",
+      "startedAt": "2026-10-29T23:30:03.994Z",
+      "finishedAt": "2026-10-29T23:33:58.251Z",
+      "outcome": "failed",
+      "source": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "typecheck": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "startedAt": "2026-10-29T23:30:13.925Z",
+          "finishedAt": "2026-10-29T23:30:24.309Z",
+          "elapsedMs": 10380.857395,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/typecheck.log.gz"
+        },
+        "unit": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "npm",
+            "test"
+          ],
+          "startedAt": "2026-10-29T23:30:24.530Z",
+          "finishedAt": "2026-10-29T23:30:46.079Z",
+          "elapsedMs": 21546.956427999998,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/unit.log.gz"
+        },
+        "package": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "test:package"
+          ],
+          "startedAt": "2026-10-29T23:30:46.293Z",
+          "finishedAt": "2026-10-29T23:31:11.170Z",
+          "elapsedMs": 24874.925608,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/package.log.gz"
+        },
+        "types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "test:types"
+          ],
+          "startedAt": "2026-10-29T23:31:11.361Z",
+          "finishedAt": "2026-10-29T23:31:21.022Z",
+          "elapsedMs": 9658.176745,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/types.log.gz"
+        },
+        "docs": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "bash",
+            "-c",
+            "npm run test:docs && npm run docs:check"
+          ],
+          "startedAt": "2026-10-29T23:31:21.217Z",
+          "finishedAt": "2026-10-29T23:31:46.322Z",
+          "elapsedMs": 25101.840935,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/docs.log.gz"
+        },
+        "size-report": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "node",
+            "benchmarks/bundle-budget.mjs",
+            "--enforce"
+          ],
+          "startedAt": "2026-10-29T23:31:46.536Z",
+          "finishedAt": "2026-10-29T23:31:55.839Z",
+          "elapsedMs": 9300.458575,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/size-report.log.gz"
+        },
+        "differential": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "node",
+            "scripts/parity/block-roundtrip.mjs"
+          ],
+          "startedAt": "2026-10-29T23:31:56.037Z",
+          "finishedAt": "2026-10-29T23:33:57.074Z",
+          "elapsedMs": 121033.05187899999,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/differential.log.gz"
+        },
+        "classifier": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "signal": null,
+          "command": [
+            "node",
+            "scripts/parity/checkpoints/2026-10-29/link-poll-roundtrip/classifier-sensitivity.mjs"
+          ],
+          "startedAt": "2026-10-29T23:33:57.321Z",
+          "finishedAt": "2026-10-29T23:33:58.149Z",
+          "elapsedMs": 824.1379159999999,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-T69Tfd/classifier.log.gz"
+        }
+      }
+    },
+    {
+      "id": "run-aoJ0oS",
+      "originalDirectory": "/tmp/rector-integration-20261030/test-results/run-aoJ0oS",
+      "originalManifestArchive": "runs/run-aoJ0oS/manifest.json",
+      "cwd": "/tmp/rector-integration-20261030",
+      "startedAt": "2026-10-29T23:30:05.410Z",
+      "finishedAt": "2026-10-29T23:35:40.656Z",
+      "outcome": "failed",
+      "source": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "browser": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "test:browser"
+          ],
+          "startedAt": "2026-10-29T23:30:14.667Z",
+          "finishedAt": "2026-10-29T23:30:20.744Z",
+          "elapsedMs": 6072.347657,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "sourceIdentityAfter": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17",
+          "log": "runs/run-aoJ0oS/browser.log.gz"
+        }
+      }
+    },
+    {
+      "id": "run-Ea04al",
+      "originalDirectory": "/tmp/rector-integration-20261030/test-results/run-Ea04al",
+      "originalManifestArchive": "runs/run-Ea04al/manifest.json",
+      "cwd": "/tmp/rector-integration-20261030",
+      "startedAt": "2026-10-29T23:35:44.649Z",
+      "finishedAt": "2026-10-29T23:36:04.120Z",
+      "outcome": "failed",
+      "source": {
+        "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+        "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+      },
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceAfter": {
+        "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+        "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+      },
+      "sourceUnchanged": true,
+      "gates": {
+        "docs": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "bash",
+            "-c",
+            "npm run test:docs && npm run docs:check"
+          ],
+          "startedAt": "2026-10-29T23:35:59.752Z",
+          "finishedAt": "2026-10-29T23:36:03.397Z",
+          "elapsedMs": 3642.0709490000004,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5",
+          "sourceIdentityAfter": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5",
+          "log": "runs/run-Ea04al/docs.log.gz"
+        },
+        "browser": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "signal": null,
+          "command": [
+            "npm",
+            "run",
+            "test:browser"
+          ],
+          "startedAt": "2026-10-29T23:36:03.641Z",
+          "finishedAt": "2026-10-29T23:36:04.014Z",
+          "elapsedMs": 370.00326900000005,
+          "sourceUnchanged": true,
+          "sourceIdentityBefore": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5",
+          "sourceIdentityAfter": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5",
+          "log": "runs/run-Ea04al/browser.log.gz"
+        }
+      }
+    }
+  ],
+  "gateOutcomeCounts": {
+    "passed": 7,
+    "failed": 4
+  },
+  "unit": {
+    "run": "run-T69Tfd",
+    "log": "runs/run-T69Tfd/unit.log.gz",
+    "tests": 1987,
+    "suites": 0,
+    "pass": 1987,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "types": {
+    "run": "run-T69Tfd",
+    "log": "runs/run-T69Tfd/types.log.gz",
+    "tests": 7,
+    "suites": 0,
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "package": {
+    "run": "run-T69Tfd",
+    "log": "runs/run-T69Tfd/package.log.gz",
+    "tarball": "shelamkoff-rector-2.0.0.tgz",
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "import": "passed",
+    "externalBrowser": "passed",
+    "cssAssets": 22,
+    "inlineStylesheets": false
+  },
+  "sizeReport": {
+    "run": "run-T69Tfd",
+    "log": "runs/run-T69Tfd/size-report.log.gz",
+    "gateOutcome": "passed",
+    "presets": [
+      {
+        "preset": "core",
+        "rawKiB": 456.4,
+        "gzipKiB": 124.6,
+        "referenceTargetKiB": 51,
+        "enforced": false
+      },
+      {
+        "preset": "paragraph",
+        "rawKiB": 11.6,
+        "gzipKiB": 4.4,
+        "budgetKiB": 40,
+        "enforced": true
+      },
+      {
+        "preset": "defaultInteractive",
+        "rawKiB": 38.5,
+        "gzipKiB": 12.1,
+        "budgetKiB": 64,
+        "enforced": true
+      },
+      {
+        "preset": "fullPreset",
+        "rawKiB": 376.7,
+        "gzipKiB": 94.8,
+        "budgetKiB": 96,
+        "enforced": true
+      }
+    ],
+    "qualification": "Core is above the informational 51 KiB target; this was not an enforced gate failure."
+  },
+  "differential": {
+    "run": "run-T69Tfd",
+    "log": "runs/run-T69Tfd/differential.log.gz",
+    "scope": "Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.",
+    "requestedFilter": "",
+    "selectedCaseIds": [
+      "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+      "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+      "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_HEADING_ROUNDTRIP/default",
+      "BLOCK_HEADING_ROUNDTRIP/populated",
+      "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_LIST_ROUNDTRIP/default",
+      "BLOCK_LIST_ROUNDTRIP/populated",
+      "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_QUOTE_ROUNDTRIP/default",
+      "BLOCK_QUOTE_ROUNDTRIP/populated",
+      "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_WARNING_ROUNDTRIP/default",
+      "BLOCK_WARNING_ROUNDTRIP/populated",
+      "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_CODE_ROUNDTRIP/default",
+      "BLOCK_CODE_ROUNDTRIP/populated",
+      "BLOCK_CHECKLIST_ROUNDTRIP/default",
+      "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+      "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_DELIMITER_ROUNDTRIP/default",
+      "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+      "BLOCK_IMAGE_ROUNDTRIP/default",
+      "BLOCK_IMAGE_ROUNDTRIP/populated",
+      "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+      "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "BLOCK_TOGGLE_ROUNDTRIP/default",
+      "BLOCK_TOGGLE_ROUNDTRIP/populated",
+      "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+      "BLOCK_SPOILER_ROUNDTRIP/default",
+      "BLOCK_SPOILER_ROUNDTRIP/populated",
+      "BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_COLUMNS_ROUNDTRIP/default",
+      "BLOCK_COLUMNS_ROUNDTRIP/populated",
+      "BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_ATTACHES_ROUNDTRIP/default",
+      "BLOCK_ATTACHES_ROUNDTRIP/populated",
+      "BLOCK_RAW_ROUNDTRIP/default",
+      "BLOCK_RAW_ROUNDTRIP/populated",
+      "BLOCK_EMBED_ROUNDTRIP/default",
+      "BLOCK_EMBED_ROUNDTRIP/populated",
+      "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_EMBED_ROUNDTRIP/populated-literal",
+      "BLOCK_TABLE_ROUNDTRIP/default",
+      "BLOCK_TABLE_ROUNDTRIP/populated",
+      "BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_POLL_ROUNDTRIP/default",
+      "BLOCK_POLL_ROUNDTRIP/populated",
+      "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+      "BLOCK_POLL_ROUNDTRIP/populated-literal",
+      "BLOCK_LINK_PREVIEW_ROUNDTRIP/default",
+      "BLOCK_LINK_PREVIEW_ROUNDTRIP/populated"
+    ],
+    "startedAt": "2026-10-29T23:31:56.561Z",
+    "finishedAt": "2026-10-29T23:33:56.649Z",
+    "node": "v24.22.1",
+    "browser": "156.0.8078.47",
+    "sourceSha256": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+    "classifierSha256": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+    "fixtureSha256": "499386bb8be98d9858f84839ec2cf88e92b1835166dd383ff4523820abd9eb6d",
+    "headBefore": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+    "headAfter": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "dependencyVersions": {
+      "dompurify": "3.4.17",
+      "@shelamkoff/carousel": "1.0.0",
+      "@shelamkoff/color-picker": "1.0.0",
+      "@shelamkoff/cropper": "1.0.0",
+      "@shelamkoff/event-bus": "1.0.0",
+      "@shelamkoff/expose": "1.0.0",
+      "@shelamkoff/masonry": "1.0.0",
+      "@shelamkoff/infinite-scroll": "1.0.1"
+    },
+    "sourceIdentities": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "root": "/tmp/rector-v1-5e5c7f8",
+        "legacy": true,
+        "loadedFileCount": 218
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "root": "/tmp/rector-e981ff3",
+        "legacy": false,
+        "loadedFileCount": 241
+      },
+      {
+        "label": "candidate",
+        "sha": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "root": "/tmp/rector-integration-20261030",
+        "legacy": false,
+        "loadedFileCount": 241
+      }
+    ],
+    "loadedFileHashesLocation": "Decoded differential.log: sources[].loaded; dependencyFiles contains dependency content hashes.",
+    "counts": [
+      {
+        "source": "v1",
+        "cases": 53,
+        "observations": 9040,
+        "observationStatuses": {
+          "PASS": 8259,
+          "FAIL": 781
+        },
+        "failureRecords": 781,
+        "failureStatuses": {
+          "FAIL": 781
+        },
+        "classifiedDifferences": 781,
+        "classificationCounts": {
+          "repaired-v1-code-redo-caret": 2,
+          "repaired-v1-empty-checklist-caret": 1,
+          "repaired-v1-empty-columns-caret": 1,
+          "repaired-v1-empty-embed-mode-focus": 1,
+          "repaired-v1-empty-link-preview-focus-theft": 1,
+          "repaired-v1-empty-list-caret": 1,
+          "repaired-v1-empty-poll-caret": 1,
+          "repaired-v1-empty-quote-caret": 1,
+          "repaired-v1-empty-spoiler-caret": 1,
+          "repaired-v1-empty-table-caret": 1,
+          "repaired-v1-empty-toggle-caret": 1,
+          "repaired-v1-empty-warning-caret": 1,
+          "repaired-v1-first-undo-caret": 26,
+          "repaired-v1-history-remount": 180,
+          "repaired-v1-image-first-undo-caret": 2,
+          "repaired-v1-image-history-remount": 8,
+          "repaired-v1-image-mode-remount": 8,
+          "repaired-v1-link-preview-history-caret": 3,
+          "repaired-v1-link-preview-history-remount": 8,
+          "repaired-v1-link-preview-mode-remount": 8,
+          "repaired-v1-mode-remount": 200,
+          "repaired-v1-poll-first-undo-focus": 3,
+          "repaired-v1-poll-history-remount": 8,
+          "repaired-v1-poll-mode-remount": 8,
+          "repaired-v1-raw-redo-caret": 2,
+          "repaired-v1-table-history-focus": 2,
+          "repaired-v1-table-history-remount": 16,
+          "repaired-v1-table-mode-remount": 16,
+          "unsupported-v1-embed-caption-sidecars": 12,
+          "unsupported-v1-embed-caption-widgets": 48,
+          "unsupported-v1-embed-widget-caret": 6,
+          "unsupported-v1-image-caption-labels": 48,
+          "unsupported-v1-image-caption-sidecars": 12,
+          "unsupported-v1-image-caption-widgets": 48,
+          "unsupported-v1-image-widget-caret": 6,
+          "unsupported-v1-poll-persistent-widget-caret": 6,
+          "unsupported-v1-poll-persistent-widgets": 84
+        },
+        "unexpectedFailures": 0,
+        "errorStrings": 0,
+        "pageErrors": 0,
+        "classifiedPageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0,
+        "notApplicableCases": 4,
+        "unsupportedReferenceCases": 6
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 53,
+        "observations": 6824,
+        "observationStatuses": {
+          "PASS": 6760,
+          "FAIL": 64
+        },
+        "failureRecords": 79,
+        "failureStatuses": {
+          "ERROR": 15,
+          "FAIL": 64
+        },
+        "classifiedDifferences": 79,
+        "classificationCounts": {
+          "repaired-baseline-embed-redo": 11,
+          "repaired-baseline-formatted-widget-mode-failure": 11,
+          "repaired-baseline-image-derived-alt": 6,
+          "repaired-baseline-image-formatted-widget-mode": 1,
+          "repaired-baseline-link-preview-native-card": 2,
+          "repaired-baseline-link-preview-native-undo": 2,
+          "repaired-baseline-link-preview-native-undo-caret": 1,
+          "repaired-baseline-native-focus-acknowledgment": 2,
+          "repaired-baseline-poll-derived-label": 4,
+          "repaired-baseline-poll-widget-mode-failure": 2,
+          "repaired-baseline-table-default-grid": 36,
+          "repaired-baseline-table-formatted-widget-mode": 1
+        },
+        "unexpectedFailures": 0,
+        "errorStrings": 1,
+        "pageErrors": 1,
+        "classifiedPageErrors": 1,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 15,
+        "notApplicableCases": 4,
+        "unsupportedReferenceCases": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 53,
+        "observations": 9129,
+        "observationStatuses": {
+          "PASS": 9129
+        },
+        "failureRecords": 0,
+        "failureStatuses": {},
+        "classifiedDifferences": 0,
+        "classificationCounts": {},
+        "unexpectedFailures": 0,
+        "errorStrings": 0,
+        "pageErrors": 0,
+        "classifiedPageErrors": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0,
+        "notApplicableCases": 4,
+        "unsupportedReferenceCases": 0
+      }
+    ],
+    "serverErrors": [],
+    "incompleteCases": [
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_LIST_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_POLL_ROUNDTRIP/populated",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+        "completed": [
+          "load"
+        ],
+        "incomplete": [
+          "read-only",
+          "editable-again",
+          "edit",
+          "undo",
+          "redo",
+          "dispose"
+        ]
+      }
+    ],
+    "notApplicableCases": [
+      {
+        "source": "v1",
+        "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history."
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case."
+      },
+      {
+        "source": "spec-baseline",
+        "id": "BLOCK_EMBED_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history."
+      },
+      {
+        "source": "candidate",
+        "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+      },
+      {
+        "source": "candidate",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+      },
+      {
+        "source": "candidate",
+        "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case."
+      },
+      {
+        "source": "candidate",
+        "id": "BLOCK_EMBED_ROUNDTRIP/default",
+        "phases": [
+          "edit",
+          "undo",
+          "redo"
+        ],
+        "reason": "Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history."
+      }
+    ],
+    "unsupportedReferenceCases": [
+      {
+        "source": "v1",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+        "supported": false,
+        "feature": "Persistent Image caption widgets",
+        "reason": "Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Image caption widgets",
+        "reason": "Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+        "supported": false,
+        "feature": "Persistent Embed caption widgets",
+        "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Embed caption widgets",
+        "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_POLL_ROUNDTRIP/populated",
+        "supported": false,
+        "feature": "Persistent Poll question and option widgets",
+        "reason": "Pinned v1 Poll declares no mapTextFields hook required by the public persistent inline insertion gate. Its literal question/option data remains compared; the two sidecar cases prove current capability, not v1 widget parity."
+      },
+      {
+        "source": "v1",
+        "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+        "supported": false,
+        "feature": "Persistent Poll question and option widgets",
+        "reason": "Pinned v1 Poll declares no mapTextFields hook required by the public persistent inline insertion gate. Its literal question/option data remains compared; the two sidecar cases prove current capability, not v1 widget parity."
+      }
+    ],
+    "historicalPageErrors": [
+      {
+        "source": "spec-baseline",
+        "pageErrors": [
+          {
+            "source": "spec-baseline",
+            "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+            "phase": "redo",
+            "name": "Error",
+            "message": "Inline widget root left its projection boundary before hydration",
+            "stack": "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:45943/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:45943/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:45943/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:45943/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:45943/spec-baseline/core/DocumentRuntime.js:768:25)"
+          }
+        ],
+        "classifiedPageErrors": [
+          {
+            "source": "spec-baseline",
+            "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+            "phase": "redo",
+            "name": "Error",
+            "message": "Inline widget root left its projection boundary before hydration",
+            "stack": "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:45943/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:45943/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:45943/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:45943/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:45943/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:45943/spec-baseline/core/DocumentRuntime.js:768:25)",
+            "classification": "repaired-baseline-embed-redo-pageerror"
+          }
+        ]
+      }
+    ],
+    "countingRules": {
+      "observations": "Count of cases[].observations, grouped by its original status. No classification converts raw FAIL observations to PASS.",
+      "failureRecords": "Count of cases[].failures, including execution ERROR records that are not observation entries. The baseline has 64 FAIL observations plus 15 execution ERROR records.",
+      "errors": "errorStrings and pageErrors are separately recorded views and must not be added as distinct events; the baseline records one classified browser error in each view.",
+      "incomplete": "Missing phases remain incomplete, not passed or skipped; N/A authoring phases and unsupported historical widget capabilities are listed separately."
+    },
+    "qualification": "Exit 0 means no unexpected failures after the existing historical classifier. Candidate has 9129 PASS observations and no raw failures; historical sources retain their raw failures and incomplete phases. This selected 53-case template does not accept all blocks or every detailed behavior row."
+  },
+  "classifierSensitivity": {
+    "run": "run-T69Tfd",
+    "log": "runs/run-T69Tfd/classifier.log.gz",
+    "classifierSha256": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+    "inputs": [
+      {
+        "file": "poll-roundtrip-green-before-core.json.gz",
+        "storedSha256": "e41e73fac6fc104f059ec99a473293aa6c625d54fefaf7d31513f001abeb37ef",
+        "rawSha256": "6513b569e7ccb1b06449ac54248ae9a2c0508541aa816abd756ca4338509a38a",
+        "head": "5a48a1b6414388ece478f967e67f59ebbbdf3d9c"
+      },
+      {
+        "file": "link-preview-roundtrip-green-before-final.json.gz",
+        "storedSha256": "2854e249d88a204732e6487d2b416726426a7e5f6bfc61f5c4d64fd978acd480",
+        "rawSha256": "5e75798e689d0e4b3cae45459c9dd29905a137100bf2c82e33a11d5699be5a00",
+        "head": "23f52ed6940111adab9394bfbc0adb5402b82129"
+      }
+    ],
+    "classified": 141,
+    "categories": {
+      "repaired-v1-poll-mode-remount": 8,
+      "repaired-v1-poll-history-remount": 8,
+      "repaired-v1-empty-poll-caret": 1,
+      "unsupported-v1-poll-persistent-widgets": 84,
+      "unsupported-v1-poll-persistent-widget-caret": 6,
+      "repaired-v1-poll-first-undo-focus": 3,
+      "repaired-baseline-poll-derived-label": 4,
+      "repaired-baseline-poll-widget-mode-failure": 2,
+      "repaired-v1-link-preview-mode-remount": 8,
+      "repaired-v1-empty-link-preview-focus-theft": 1,
+      "repaired-v1-link-preview-history-remount": 8,
+      "repaired-v1-link-preview-history-caret": 3,
+      "repaired-baseline-link-preview-native-card": 2,
+      "repaired-baseline-link-preview-native-undo": 2,
+      "repaired-baseline-link-preview-native-undo-caret": 1
+    },
+    "negativeControls": {
+      "candidate-source": 141,
+      "unknown-source": 141,
+      "opposite-historical-source": 141,
+      "changed-actual": 141,
+      "changed-expected": 141,
+      "changed-property": 141,
+      "changed-phase": 141,
+      "changed-status": 141,
+      "unknown-case": 141,
+      "completed-phase-mismatch": 141,
+      "incomplete-phase-mismatch": 141,
+      "missing-phase-observation": 141,
+      "extra-phase-observation": 141,
+      "changed-independent-author-record": 141,
+      "changed-block-identity": 141,
+      "unpaired-execution-error": 141,
+      "changed-native-owner": 15
+    },
+    "rejected": 2271,
+    "passingObservationsRejected": 3044,
+    "boundary": "Offline recognizer sensitivity only. It does not execute browser/editor behavior or grant candidate exceptions."
+  },
+  "failedAttempts": [
+    {
+      "run": "run-T69Tfd",
+      "gate": "docs",
+      "outcome": "failed",
+      "log": "runs/run-T69Tfd/docs.log.gz",
+      "message": "ru/architecture/rector-v2/PRESERVATION.md: untranslated prose terms: persistent, widgets",
+      "completedBeforeFailure": [
+        "test:docs",
+        "VitePress client/server build",
+        "VitePress page rendering"
+      ],
+      "failureStage": "vitepress-docs-smoke.mjs",
+      "notCompleted": [
+        "vitepress-browser-smoke.mjs"
+      ]
+    },
+    {
+      "run": "run-aoJ0oS",
+      "gate": "browser",
+      "outcome": "failed",
+      "log": "runs/run-aoJ0oS/browser.log.gz",
+      "rawPageReport": "runs/run-aoJ0oS/browser-runtime-contracts.html.json",
+      "page": "runtime-contracts.html",
+      "testCount": 103,
+      "statusCounts": {
+        "PASS": 102,
+        "FAIL": 1
+      },
+      "failures": [
+        {
+          "name": "deferred code highlighting does not overwrite newer inline text",
+          "status": "FAIL",
+          "error": "TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:39691/node_modules/.vite/deps/highlight__js.js?v=92c92882"
+        }
+      ],
+      "diagnostic": "shared-vite-cache-diagnostic.json",
+      "diagnosis": "Shared Vite dependency-cache failure; the diagnostic records the failed module URL and subsequently observed shared-cache metadata. The original FAIL is retained.",
+      "qualification": "The complete browser gate did not finish; 102 passing tests on its first page do not represent a complete browser run."
+    },
+    {
+      "run": "run-Ea04al",
+      "outcome": "failed",
+      "logs": [
+        "runs/run-Ea04al/docs.log.gz",
+        "runs/run-Ea04al/browser.log.gz"
+      ],
+      "failureStage": "Dependency resolution before docs/browser execution completed",
+      "docsError": "ERR_MODULE_NOT_FOUND: Cannot find package '@shelamkoff/event-bus' imported from /tmp/rector-integration-deps-20261030/@shelamkoff/masonry/dist/src/Masonry.js",
+      "browserError": "ERR_MODULE_NOT_FOUND: Cannot find package 'rollup' imported from /tmp/rector-integration-deps-20261030/vite/dist/node/chunks/config.js",
+      "diagnostic": "shared-vite-cache-diagnostic.json",
+      "diagnosis": "Temporary copied dependency directory had no node_modules ancestry for transitive ESM resolution. The diagnostic records the staging correction; this failed attempt remains failed."
+    }
+  ],
+  "excluded": [
+    {
+      "run": "run-bJYxpZ",
+      "reason": "Running when this archive was assigned; parent owns archival after completion."
+    },
+    {
+      "category": "final docs/browser/heap results",
+      "reason": "Not part of these three completed attempts; parent adds separately."
+    },
+    {
+      "category": "build assets, screenshots, temporary node_modules",
+      "reason": "Excluded intentionally; original manifests, logs and diagnostic reports only."
+    }
+  ],
+  "integrity": {
+    "index": "hash-index.json",
+    "originalArtifacts": 16,
+    "originalBytes": 26891380,
+    "storedArtifactBytes": 863323,
+    "compression": "Logs gzip level 9, empty embedded filename, mtime 0; manifests and JSON diagnostic reports copied byte for byte.",
+    "verification": "Every gzip decoded to exactly the captured original bytes; every original path was reread unchanged after writing."
+  }
+}

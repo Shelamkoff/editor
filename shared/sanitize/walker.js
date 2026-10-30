@@ -61,7 +61,7 @@ export function sanitizeSubtree(node) {
     }
 
     if (el.hasAttribute('style')) {
-      const safeStyle = sanitizeStyle(el.getAttribute('style') || '')
+      const safeStyle = sanitizeStyle(el.style)
       if (safeStyle) {
         el.setAttribute('style', safeStyle)
       } else {

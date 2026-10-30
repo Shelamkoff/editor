@@ -1,0 +1,23 @@
+{
+  "directory": "/tmp/rector-package-git-pack-probe-o7hvu5lk",
+  "command": [
+    "npm",
+    "pack",
+    "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/tmp/rector-package-git-pack-probe-o7hvu5lk",
+    "--cache",
+    "/tmp/rector-package-git-pack-probe-o7hvu5lk/npm-cache"
+  ],
+  "exitCode": 0,
+  "seconds": 3.106470823287964,
+  "artifact": {
+    "name": "@shelamkoff/carousel",
+    "version": "1.0.0",
+    "filename": "shelamkoff-carousel-1.0.0.tgz",
+    "shasum": "3f0930430bb2bd264534dd7da0a9e2102710bbf2",
+    "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA=="
+  }
+}

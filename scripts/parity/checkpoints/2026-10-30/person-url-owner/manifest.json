@@ -1,0 +1,203 @@
+{
+  "recordedAtUtc": "2026-10-29T23:34:36Z",
+  "scope": "Person native URL control auxiliary projection, block root read/mode admission and teardown ownership",
+  "integrationCommit": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+  "patchIdentity": {
+    "reviewedSha256": "4d63e7c447fb378acd1aa5b8bdc28ea05a48d9d54fd766c655bc3dcf1be3c899",
+    "applicableSha256": "f31d00e00ab9b88fd787d0500e888a5233d6e4a3a8ce17840a0ce58faa87ffaf",
+    "correction": "Only new file mode 100644 was added for tests/browser/regressions/person-url-owner-native.js; all six integrated source files match the reviewed afterSha256 values.",
+    "integratedSourceVerified": true
+  },
+  "sourceFiles": [
+    {
+      "path": "core/BlockReconciler.js",
+      "beforeSha256": "f369c9f7cc63578264aa98085fb3a9682b5768bd4506a43f3b363b2a4e94dd79",
+      "afterSha256": "bd2ba7c972a8f03ebcf18b474eb18b6bb99118d3db3c3a93d21ed18ba5922054"
+    },
+    {
+      "path": "core/BlockReconciler.test.js",
+      "beforeSha256": "45313014fbccc045aa3c5a6f2746ee40eb979dca848f82a634413ee0135639af",
+      "afterSha256": "1271f84576f76711cca221e4daee4f4ef79fb3dd7f965805b7e74de2f57dd00b"
+    },
+    {
+      "path": "plugins/person/index.js",
+      "beforeSha256": "38ad00646c1b4afb4bdc890d2e5ed30f4b2fc90ee030d3909c44b8271ae8cc16",
+      "afterSha256": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe"
+    },
+    {
+      "path": "plugins/person/reconciliation.test.js",
+      "beforeSha256": "9805c63d0b10151e956d29973457618e21e4fb0e50a0045173889a1458cf8553",
+      "afterSha256": "1bec0b3d08d15c3a408d16f8dcc367d712e53c07cd7dc6b7a191a1d8afc84e4d"
+    },
+    {
+      "path": "tests/browser/native-plugin-media.js",
+      "beforeSha256": "856d54439c9656076d274a1cfca8b41e7ce1821493fd87aa6ef4585c9c41275b",
+      "afterSha256": "f03b9388d5c8aa01670ec69c3d1503a196cf2e622dc88963107dfce5495b55cc"
+    },
+    {
+      "path": "tests/browser/regressions/person-url-owner-native.js",
+      "beforeSha256": null,
+      "afterSha256": "976114cf2a53958139bbf1d2007000e483fa1775a34bc39d2b54d43b02e6001f"
+    }
+  ],
+  "runtime": {
+    "node": "v24.22.1",
+    "browser": "Chrome for Testing 142.0.7444.175",
+    "browserPath": "/tmp/rector-browsers/chrome-linux64/chrome"
+  },
+  "native": {
+    "testPath": "tests/browser/regressions/person-url-owner-native.js",
+    "testSha256": "976114cf2a53958139bbf1d2007000e483fa1775a34bc39d2b54d43b02e6001f",
+    "baselineAndCandidateTestBytesIdentical": true,
+    "focusedHarness": "native-person-url-owner.html",
+    "focusedHarnessSha256": "a67f15440b64cfe6db8a783b072189b6687f694edb78979e08f0b0a583895c39",
+    "focusedCommand": "EDITOR_CHROME_PATH=/tmp/rector-browsers/chrome-linux64/chrome EDITOR_NATIVE_PAGE=native-person-url-owner.html node tests/browser/physical-history.mjs",
+    "registeredEntry": "tests/browser/native-plugin-media.js",
+    "registeredCommand": "EDITOR_CHROME_PATH=/path/to/chrome EDITOR_NATIVE_PAGE=native-plugin-media.html EDITOR_NATIVE_FILTER='Person URL owner' node tests/browser/physical-history.mjs",
+    "cases": [
+      {
+        "name": "Person URL owner updates its current social icon after trusted provider change",
+        "baseline": "PASS",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner does not update the foreign social icon after whole-wrapper adoption",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner keeps the source URL editable when only its auxiliary icon is adopted",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner preserves an adopted wrapper icon and control during a later flush",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner preserves an adopted wrapper icon and control during a later mode",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner preserves an adopted shell icon and control during a later flush",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner preserves an adopted shell icon and control during a later mode",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner rejects a social resolver that adopts its wrapper before auxiliary assignment",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner rejects a social resolver that adopts its whole shell before auxiliary assignment",
+        "baseline": "FAIL",
+        "candidate": "PASS"
+      },
+      {
+        "name": "Person URL owner keeps a healthy name editable after one URL control is adopted",
+        "baseline": "PASS",
+        "candidate": "PASS"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "name": "final native tests on baseline core and Person",
+      "log": "native-red.log",
+      "exitCode": 1,
+      "passed": 2,
+      "failed": 8
+    },
+    {
+      "name": "final native tests on candidate",
+      "log": "native-green.log",
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "name": "intermediate pre-read throw incorrectly rejected healthy sibling name",
+      "log": "native-sibling-red.log",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "role": "targeted intermediate regression, superseded by final skip-before-resolver implementation"
+    },
+    {
+      "name": "independent core behavioral baseline",
+      "log": "core-units-red.log",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 4,
+      "testSha256": "1271f84576f76711cca221e4daee4f4ef79fb3dd7f965805b7e74de2f57dd00b"
+    },
+    {
+      "name": "independent core candidate",
+      "log": "core-units-green.log",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0,
+      "testSha256": "1271f84576f76711cca221e4daee4f4ef79fb3dd7f965805b7e74de2f57dd00b"
+    },
+    {
+      "name": "complete related unit files",
+      "log": "related-units-green.log",
+      "command": "node --test --test-isolation=none core/BlockReconciler.test.js plugins/person/reconciliation.test.js",
+      "exitCode": 0,
+      "passed": 98,
+      "failed": 0
+    },
+    {
+      "name": "library typecheck",
+      "log": "types-library.log",
+      "command": "node node_modules/typescript/bin/tsc -p jsconfig.json",
+      "exitCode": 0
+    },
+    {
+      "name": "runtime typecheck",
+      "log": "types-runtime.log",
+      "command": "node node_modules/typescript/bin/tsc -p jsconfig.runtime.json",
+      "exitCode": 0
+    }
+  ],
+  "peerReview": {
+    "reviewer": "spec_review",
+    "reviewedPatchSha256": "4d63e7c447fb378acd1aa5b8bdc28ea05a48d9d54fd766c655bc3dcf1be3c899",
+    "result": "ACK; no blocking findings within the bounded owner/read/mode/cleanup scope",
+    "independentBehavioralRedGreen": true,
+    "initialErrorMessageOnlyRedExcluded": true
+  },
+  "limitations": [
+    "This checkpoint establishes the scoped native and unit behavior; it does not accept complete v1 parity.",
+    "The combined integration gate and broader browser/version release gates are recorded separately.",
+    "No synthetic input dispatch is used as proof of native behavior."
+  ],
+  "artifacts": {
+    "README.md": "00d60b1c6c56cc2c23016a00766b5929f7d8e512ab49eab8d7fe43b5a7e3fd86",
+    "core-unit-provenance.json": "735f14509fc17ce0c0c36aa5ea3397afc1ef8170b5bc5e4ee3ee80ade65611df",
+    "core-units-green.log": "d73c62dd0e629dfffd041d7f8d0d95e784bb07248b47a3c35d9256cac1754287",
+    "core-units-red.log": "5f35db3acfbf69a916f3736a22e2ab7215260097d41afeb5c1a22c93d724e1af",
+    "native-green.log": "3d6741eb7cf9bd2315facd1d0580551e04f0b26f964e276d82f50dc7d7efb517",
+    "native-person-url-owner.html": "a67f15440b64cfe6db8a783b072189b6687f694edb78979e08f0b0a583895c39",
+    "native-red.log": "b5374d7d97421861d294c74ad8ffef42fd230aaf2f761944e61f75cd92b892c8",
+    "native-sibling-red.log": "91b52b6a8eb5cfde4213fa016c9d0069a8c64c553293347eb6d30db0400de386",
+    "related-units-green.log": "63762aa31cd4db98d11863b281b4f7e33293b1febb0c38abc7c22d8c69b31c43",
+    "source-fingerprints.json": "dfe62488fa953a282f25462896494637dbbddb17d11f763d5e7a878ba929fd9d",
+    "types-library.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "types-runtime.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "artifactFormatting": {
+    "core-units-red.log": {
+      "rawSha256": "5b28de98dfb97abaf1b58afe7f22d406732e5ba79313115a76e1833d8b38b01b",
+      "archivedSha256": "5f35db3acfbf69a916f3736a22e2ab7215260097d41afeb5c1a22c93d724e1af",
+      "change": "Trailing spaces removed from eight whitespace-only lines; all assertions and output text preserved."
+    }
+  }
+}

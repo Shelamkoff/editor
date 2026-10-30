@@ -3,6 +3,35 @@ import assert from 'node:assert/strict'
 
 import { ExtensionRegistry } from './ExtensionRegistry.js'
 
+test('ExtensionRegistry captures optional inline toText getter and receiver once', () => {
+  let reads = 0, calls = 0
+  const source = { ...inlineDefinition('badge'), prefix: 'Label: ', get toText() {
+    reads++
+    return function (data) { calls++; assert.equal(this, source); return this.prefix + data.value }
+  } }
+  const registry = new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [blockDefinition('paragraph')], inline: [source] })
+  try {
+    const captured = registry.getInlineDefinition('badge')
+    Object.defineProperty(source, 'toText', { value() { throw new Error('Late replacement') } })
+    assert.equal(captured.toText({ value: 'A' }), 'Label: A')
+    assert.equal(captured.toText({ value: 'B' }), 'Label: B')
+    assert.equal(reads, 1)
+    assert.equal(calls, 2)
+    assert.ok(Object.isFrozen(captured))
+  } finally { registry.destroy() }
+})
+
+test('ExtensionRegistry rejects invalid inline toText members and non-string results', () => {
+  for (const toText of [null, 3, 'text']) assert.throws(() => new ExtensionRegistry({
+    ownerDocument: documentStub(), blocks: [blockDefinition('paragraph')], inline: [{ ...inlineDefinition('badge'), toText }],
+  }), /toText must be a function/)
+  const registry = new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [blockDefinition('paragraph')],
+    inline: [{ ...inlineDefinition('badge'), toText: () => 3 }],
+  })
+  try { assert.throws(() => registry.getInlineDefinition('badge').toText({ value: 'A' }), /toText must return a string/) }
+  finally { registry.destroy() }
+})
+
 function documentStub() {
   const links = []
   return {

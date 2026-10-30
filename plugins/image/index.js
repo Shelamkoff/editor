@@ -350,7 +350,7 @@ export function createImagePlugin(config={}){
             if(styles.borderRadius)image.style.borderRadius=styles.borderRadius
             if(data.withBackground&&styles.backgroundColor)container.style.backgroundColor=styles.backgroundColor
           }
-          const project=next=>{
+          const project=(next,previousCanonical)=>{
             settingsController?.abort()
             const SettingsAbortController=document.defaultView?.AbortController??AbortController
             settingsController=new SettingsAbortController()
@@ -369,7 +369,7 @@ export function createImagePlugin(config={}){
             },settingsController.signal))
             if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
             else image.removeAttribute('src')
-            if(caption.innerHTML!==data.caption){
+            if(previousCanonical?.caption!==data.caption&&caption.innerHTML!==data.caption){
               if(data.caption)setSanitizedHtml(caption,data.caption)
               else caption.textContent=''
             }
@@ -466,7 +466,6 @@ export function createImagePlugin(config={}){
           for(const {action,filledButton} of customActionButtons){
             filledButton.addEventListener('click',()=>{void runCustomAction(action);restoreSource()},{signal:context.signal})
           }
-          caption.addEventListener('input',updateAlternativeText,{signal:context.signal})
           wrapper.addEventListener('dragover',event=>{
             if(readOnly||!event.dataTransfer?.types.includes('Files'))return
             event.preventDefault()
@@ -484,7 +483,7 @@ export function createImagePlugin(config={}){
           return {
             element:wrapper,
             read:()=>({...data,file:{...data.file},styles:{...data.styles},caption:caption.innerHTML.trim()}),
-            update(next){if(!dead)project(next)},
+            update(next,previousCanonical){if(!dead)project(next,previousCanonical)},
             editableFields:()=>data.file.url?Object.freeze([Object.freeze({key:'caption',element:caption,mode:/** @type {'rich-text'} */('rich-text')})]):Object.freeze([]),
             afterProjection(field){
               if(field.key!=='caption'||field.element!==caption||field.mode!=='rich-text')return
@@ -494,7 +493,8 @@ export function createImagePlugin(config={}){
               readOnly=value
               // Native source input can commit a newer caption without an
               // instance.update() while the browser caret remains mounted.
-              project(context.getData())
+              const canonical=context.getData()
+              project(canonical,canonical)
             },
             focus(){if(!dead&&!readOnly)(data.file.url?caption:empty.querySelector('button'))?.focus()},
             destroy(){

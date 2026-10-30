@@ -107,7 +107,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@shelamkoff/carousel": "^1.0.0",
+    "@shelamkoff/carousel": "git+https://github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
     "@shelamkoff/color-picker": "^1.0.0",
     "@shelamkoff/cropper": "^1.0.0",
     "@shelamkoff/event-bus": "^1.0.0",

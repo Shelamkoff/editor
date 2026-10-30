@@ -1,0 +1,398 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-integration-20261030",
+  "startedAt": "2026-10-29T23:30:03.994Z",
+  "finishedAt": "2026-10-29T23:33:58.251Z",
+  "outcome": "failed",
+  "source": {
+    "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+    "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:30:13.925Z",
+      "finishedAt": "2026-10-29T23:30:24.309Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 10380.857395,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "unit": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:30:24.530Z",
+      "finishedAt": "2026-10-29T23:30:46.079Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 21546.956427999998,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "package": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:30:46.293Z",
+      "finishedAt": "2026-10-29T23:31:11.170Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 24874.925608,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "types": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:31:11.361Z",
+      "finishedAt": "2026-10-29T23:31:21.022Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 9658.176745,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "docs": {
+      "outcome": "failed",
+      "startedAt": "2026-10-29T23:31:21.217Z",
+      "finishedAt": "2026-10-29T23:31:46.322Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "bash",
+        "-c",
+        "npm run test:docs && npm run docs:check"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 25101.840935,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "size-report": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:31:46.536Z",
+      "finishedAt": "2026-10-29T23:31:55.839Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "benchmarks/bundle-budget.mjs",
+        "--enforce"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 9300.458575,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "differential": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:31:56.037Z",
+      "finishedAt": "2026-10-29T23:33:57.074Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 121033.05187899999,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    },
+    "classifier": {
+      "outcome": "passed",
+      "startedAt": "2026-10-29T23:33:57.321Z",
+      "finishedAt": "2026-10-29T23:33:58.149Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/parity/checkpoints/2026-10-29/link-poll-roundtrip/classifier-sensitivity.mjs"
+      ],
+      "cwd": "/tmp/rector-integration-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "elapsedMs": 824.1379159999999,
+      "sourceAfter": {
+        "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+        "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [],
+        "dirty": false,
+        "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+    "tree": "ff795704ef0602156c07c46e17d664048240ca79",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "85f2ac0f37d405023c9d2644a52fc8dcd4e9b4d4f4929bdde30f034655d37a17"
+  },
+  "sourceUnchanged": true
+}

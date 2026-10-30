@@ -32,14 +32,15 @@ function capture(definition, occurrences, completions) {
   } }
 }
 
-async function fixture({ profiles = [person('active', richName), person('other', 'Grace')], widgets = true, locale } = {}) {
-  const instances = [], inline = [], completions = [], transactions = []
+async function fixture({ profiles = [person('active', richName), person('other', 'Grace')], widgets = true, locale,
+  inlineData = sidecars(), mentionOptions = {} } = {}) {
+  const instances = [], inline = [], completions = [], transactions = [], searches = []
   const input = { id: 'person', type: 'person', dataVersion: 2, data: { persons: profiles },
-    ...(widgets ? { inline: sidecars() } : {}) }
+    ...(widgets ? { inline: inlineData } : {}) }
   const beforeInput = structuredClone(input)
   const editor = make([input], { defaultBlock: 'person', inlineTools: [], ...(locale ? { locale } : {}),
     plugins: [capture(createPersonPlugin({ injectStyles: false }), instances, completions)],
-    inlinePlugins: [capture(createMentionPlugin({ searchFunction: async () => [] }), inline), capture(createColorSwatchPlugin(), inline)],
+    inlinePlugins: [capture(createMentionPlugin({ ...mentionOptions, searchFunction: async query => { searches.push(query); return [] } }), inline), capture(createColorSwatchPlugin(), inline)],
   })
   editor.on('transaction:committed', event => transactions.push(event))
   await pause(20)
@@ -49,7 +50,7 @@ async function fixture({ profiles = [person('active', richName), person('other',
     assert(occurrence, 'The real Person occurrence must remain mounted')
     return occurrence
   }
-  return { editor, current, completions, transactions,
+  return { editor, current, completions, transactions, inline, searches,
     name: () => blockElement(editor, 'person').querySelector('.oe-person__name'),
     label: id => blockElement(editor, 'person').querySelector(`[data-person-id="${id}"] .oe-person__tab-label`),
     widget: id => inline.findLast(item => item.id === id && item.element.isConnected && !item.context.signal.aborted),
@@ -71,6 +72,80 @@ function retainedRange(h, before) {
 }
 const expectedRange = text => ({ field: true, tail: true, active: true, text,
   anchor: true, anchorOffset: 4, focus: true, focusOffset: 1 })
+
+test('Person never-opened widget name has its derived tab text without hidden widget or provider lifetimes', async () => {
+  const h = await fixture({ profiles: [person('active', 'Grace'), person('other', richName)] })
+  try {
+    const before = h.editor.save().blocks
+    const initial = h.label('other').textContent
+    equal(h.inline.length, 0, 'A derived tab must not create hidden widget occurrences')
+    equal(h.searches, [], 'A derived tab must not invoke the mention search provider')
+    assert(h.editor.blocks.focus('person', { fieldKey: 'person:other:name', offset: 'end' }))
+    await pause(20)
+    equal(h.name().textContent, visibleName, 'The actual name field is the positive display control')
+    equal(h.inline.map(item => item.id), ['mention', 'swatch'], 'Only opening the author field creates its widgets')
+    equal(h.editor.save().blocks, before, 'Deriving a label and opening its field must not author data')
+    assert(!h.editor.canUndo && h.transactions.length === 0)
+    equal(initial, visibleName, 'The never-opened tab exposed canonical inline token IDs')
+  } finally { h.dispose() }
+})
+
+test('Person never-opened labels retain configured triggers, literal tokens and one-pass entities in both modes', async () => {
+  const name = '<b>A &lt;b&gt;literal&lt;/b&gt;</b> &amp; &amp;lt;twice&amp;gt; '
+    + '<span class="oe-inline-literal">{{mention}}</span> {{unknown}} {{unmatched}} {{mention}} {{swatch}}'
+  const expected = 'A <b>literal</b> & &lt;twice&gt; {{mention}} {{unknown}} {{unmatched}} #Ada #123456'
+  const h = await fixture({ profiles: [person('active', 'Grace'), person('other', name)], mentionOptions: { trigger: '#' },
+    inlineData: { ...sidecars(), unknown: { type: 'unavailable', dataVersion: 7, data: { label: 'Opaque' } } } })
+  try {
+    const before = h.editor.save().blocks
+    for (const mode of [false, true, false]) {
+      if (h.editor.readOnly !== mode) h.editor.setReadOnly(mode)
+      equal(h.label('other').textContent, expected)
+      equal(h.inline.length, 0, 'A mode transition must not mount an inactive name')
+      equal(h.searches, [])
+      equal(h.editor.save().blocks, before)
+    }
+    assert(!h.editor.canUndo && h.transactions.length === 0)
+    assert(h.editor.blocks.focus('person', { fieldKey: 'person:other:name', offset: 'end' }))
+    await pause(20)
+    equal(h.name().textContent, expected, 'The eventual real widgets must agree with their canonical label')
+  } finally { h.dispose() }
+})
+
+test('Person inactive sidecar-only label updates and Undo/Redo preserve its active author range and widgets', async () => {
+  const h = await fixture({ profiles: [person('active', richName), person('other', '<i>{{secondary}}</i>')],
+    inlineData: { ...sidecars(), secondary: { type: 'mention', dataVersion: 1, data: { id: 'grace', name: 'Grace' } } } })
+  try {
+    const before = h.editor.save().blocks, after = structuredClone(before)
+    after[0].inline.secondary.data.name = 'Lin'
+    equal(h.label('other').textContent, '@Grace')
+    assert(h.editor.blocks.focus('person', { fieldKey: 'person:other:name', offset: 'end' }))
+    await pause(20)
+    const edited = h.widget('secondary')
+    // A programmatic widget edit without a selection must not later request
+    // focus of its now-hidden field through history's separate bookmark owner.
+    getSelection().removeAllRanges()
+    edited.context.updateData(data => ({ ...data, name: 'Lin' }))
+    assert(h.editor.blocks.focus('person', { fieldKey: 'person:active:name', offset: 'end' }))
+    await pause(20)
+    assert(edited.context.signal.aborted, 'The inactive author widget must retire')
+    const activeWidgets = [h.widget('mention'), h.widget('swatch')], range = backwardTail(h)
+    const hiddenCount = h.inline.filter(item => item.id === 'secondary').length
+    const check = (expected, label) => {
+      equal(h.editor.save().blocks, expected)
+      equal(h.label('other').textContent, label)
+      equal(h.label('active').textContent, visibleName)
+      equal(retainedRange(h, range), expectedRange(range.text))
+      equal(activeWidgets.map(widget => h.widget(widget.id) === widget), [true, true])
+      equal(h.inline.filter(item => item.id === 'secondary').length, hiddenCount, 'A hidden sidecar replay acquired a widget occurrence')
+    }
+    check(after, '@Lin')
+    assert(h.editor.undo()); check(before, '@Grace')
+    assert(h.editor.redo()); check(after, '@Lin')
+    equal(h.transactions.length, 3, 'Derived label delivery must not create an additional action')
+    equal(h.searches, [])
+  } finally { h.dispose() }
+})
 
 for (const localized of [false, true]) test(`Person derived fallback labels interpolate ordinal with ${localized ? 'a locale' : 'no plugin locale'}`, async () => {
   const h = await fixture({ widgets: false, profiles: [person('active'), person('other')],
@@ -145,6 +220,82 @@ for (const action of ['sibling edit', 'reorder']) test(`Person derived active ta
     assert(h.editor.undo())
     equal(h.editor.save().blocks, before)
     assert(!h.editor.canUndo && h.editor.canRedo)
+  } finally { h.dispose() }
+})
+
+for (const key of ['role', 'bio']) test(`Person updating the active ${key} preserves the other rich field and its backward selection`, async () => {
+  const h = await fixture()
+  try {
+    const before = h.editor.save().blocks, after = structuredClone(before), range = backwardTail(h)
+    const oldWidgets = [h.widget('mention'), h.widget('swatch')]
+    after[0].data.persons[0][key] = '<b>Changed sibling</b>'
+    h.completions.length = 0
+    h.editor.blocks.update('person', current => ({ data: { ...current.data,
+      persons: current.data.persons.map(item => item.id === 'active'
+        ? { ...item, [key]: '<b>Changed sibling</b>' } : item),
+    } }))
+    equal(h.editor.save().blocks, after)
+    equal(retainedRange(h, range), expectedRange(range.text), 'A different rich field discarded the active name or its native selection')
+    equal(h.label('active').textContent, visibleName)
+    equal(oldWidgets.map(widget => h.widget(widget.id) === widget), [true, true], 'A sibling field edit remounted healthy name widgets')
+    equal(h.completions.map(field => field.key), ['person:active:' + key], 'Only the changed rich field needs projection completion')
+    equal(h.current().element.querySelector('.oe-person__' + key).innerHTML, '<b>Changed sibling</b>')
+    equal(h.transactions.length, 1)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
+    equal(retainedRange(h, range), expectedRange(range.text))
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
+    equal(retainedRange(h, range), expectedRange(range.text))
+    equal(h.transactions.length, 3, 'Derived presentation must not create another history action')
+  } finally { h.dispose() }
+})
+
+test('Person external rich values project into retained fields and survive both mode transitions', async () => {
+  const h = await fixture({ widgets: false, profiles: [person('active', 'Original'), person('other', 'Grace')] })
+  try {
+    const before = h.editor.save().blocks, after = structuredClone(before)
+    const fields = [...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')]
+    after[0].data.persons[0].name = '<b>New name</b>'
+    after[0].data.persons[0].role = '<i>New role</i>'
+    after[0].data.persons[0].bio = '<mark>New bio</mark>'
+    h.editor.blocks.update('person', current => ({ data: { ...current.data, persons: after[0].data.persons } }))
+    equal([...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')], fields,
+      'Selective projection must reuse the declared rich field hosts')
+    equal(fields.map(element => element.innerHTML), ['<b>New name</b>', '<i>New role</i>', '<mark>New bio</mark>'])
+    for (const readOnly of [true, false]) {
+      h.editor.setReadOnly(readOnly)
+      equal(h.editor.save().blocks, after)
+      equal(h.label('active').textContent, 'New name')
+      equal([...h.current().element.querySelectorAll('.oe-person__name,.oe-person__role,.oe-person__bio')].map(element => element.isContentEditable),
+        [!readOnly, !readOnly, !readOnly])
+    }
+    equal(h.transactions.length, 1, 'Mode presentation must not add author history')
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
+  } finally { h.dispose() }
+})
+
+test('Person external avatar and URL changes still update their actual non-rich controls', async () => {
+  const h = await fixture({ widgets: false, profiles: [{ ...person('active', 'Alpha'),
+    links: [{ id: 'site', type: 'website', url: 'https://example.com/alpha' }] }, person('other', 'Grace')] })
+  try {
+    const before = h.editor.save().blocks
+    const oldInput = h.current().element.querySelector('.oe-person__link-url')
+    const oldIcon = oldInput.parentNode.querySelector('.oe-person__link-icon').innerHTML
+    h.editor.blocks.update('person', current => ({ data: { persons: current.data.persons.map(item => item.id === 'active'
+      ? { ...item, avatar: pixel, links: [{ id: 'site', type: 'github', url: 'https://github.com/example' }] } : item) } }))
+    const after = h.editor.save().blocks, current = h.current().element
+    equal(current.querySelector('.oe-person__avatar-img').getAttribute('src'), pixel)
+    const input = current.querySelector('.oe-person__link-url'), icon = input.parentNode.querySelector('.oe-person__link-icon')
+    equal(input.value, 'https://github.com/example')
+    assert(icon.innerHTML !== oldIcon && icon.querySelector('svg'), 'A changed URL must update its resolved social icon')
+    equal(current.querySelector('.oe-person__name').textContent, 'Alpha')
+    oldInput.value = 'https://example.com/retired'
+    oldInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+    await pause()
+    equal(h.editor.save().blocks, after, 'A retired non-rich control must not author the new card')
+    equal(h.transactions.length, 1)
+    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
+    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
   } finally { h.dispose() }
 })
 

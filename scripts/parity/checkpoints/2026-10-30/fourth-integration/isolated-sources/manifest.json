@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+  "baseTree": "e15297e75abf585851410a4b076bce3cfe4d791e",
+  "patchFormat": "git diff --binary --full-index --no-ext-diff --no-textconv --src-prefix=a/ --dst-prefix=b/",
+  "verification": "For each source: fresh temporary GIT_INDEX_FILE; git read-tree base; git apply --cached --binary --whitespace=nowarn decoded patch; git write-tree equals original source tree.",
+  "mappingScope": "Integrated commits identify the corresponding change. Their full trees can include other independently integrated work; no full-tree equivalence is asserted.",
+  "sources": [
+    {
+      "sourceCommit": "58d5fa7b914579e721b3af1e1b07aa4d75dd030e",
+      "sourceTree": "6df9461651d708285ccb6edfcce1cd8de9e33f42",
+      "integratedCommit": "f924737fd541cc551c1930c5ab2ace8ad5aec846",
+      "integratedTree": "e65238faf1848a69cf2710f8a8ece5d203144a42",
+      "patch": "58d5fa7b914579e721b3af1e1b07aa4d75dd030e.patch.gz",
+      "compressedBytes": 3712,
+      "decodedBytes": 13018,
+      "compressedSha256": "d27a22f116468a30bcaf3622e6775eb2e11c918af1bffdb93e688f35e209cdcc",
+      "decodedSha256": "aceb258991f184b9932a110105a389c0c1b9189966e8df1bd43a1c35af080a3b",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "6df9461651d708285ccb6edfcce1cd8de9e33f42",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "plugins/checklist/index.js",
+        "plugins/list/index.js",
+        "plugins/spoiler/index.js",
+        "plugins/toggle/index.js",
+        "tests/browser/native-plugin-parity.js",
+        "tests/browser/regressions/compound-rich-field-native.js"
+      ]
+    },
+    {
+      "sourceCommit": "05305b0cc9db2f4f41055b1e8bfbac8402835ddc",
+      "sourceTree": "be7bb0f3b9f558e25d9711d4e4ba3d9c11532455",
+      "integratedCommit": "0a2a41c708554f90f02af48a55fc2a9e3453170e",
+      "integratedTree": "60bd019f515beacd6bcdce286ccbe80ac4696d43",
+      "patch": "05305b0cc9db2f4f41055b1e8bfbac8402835ddc.patch.gz",
+      "compressedBytes": 4894,
+      "decodedBytes": 19820,
+      "compressedSha256": "9a9ad3cedd4a26bb5c8f06391332a82658cbb5a0049e741a982b65247ac13ec6",
+      "decodedSha256": "7b9d2d1347a0b91da9db5d609ee9d0ab61ab83713628dd1c1fa8fe8673873e30",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "be7bb0f3b9f558e25d9711d4e4ba3d9c11532455",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "plugins/checklist/index.js",
+        "plugins/list/index.js",
+        "plugins/spoiler/index.js",
+        "plugins/toggle/index.js",
+        "tests/browser/native-plugin-parity.js",
+        "tests/browser/regressions/compound-rich-field-native.js",
+        "tests/browser/regressions/toggle-focus-native.js"
+      ]
+    },
+    {
+      "sourceCommit": "bd9fa8a5f3457e7fa8d318ea920927bb11d45e96",
+      "sourceTree": "0aecc3f777e08349531741816ff056f6f92407f9",
+      "integratedCommit": "c1a1f3efb3a8e4802a82555bf9f3539bed87d6e4",
+      "integratedTree": "7989b838fbcddc4b6727e127fc6b9587eac648de",
+      "patch": "bd9fa8a5f3457e7fa8d318ea920927bb11d45e96.patch.gz",
+      "compressedBytes": 8457,
+      "decodedBytes": 27929,
+      "compressedSha256": "b266a058cc6d564c1d8c37ee8a0dc179e8a85712af6b7df3bfe1891a34aaa3ca",
+      "decodedSha256": "88e09053bb71f6876eba22201e4595dc3464af7ba2eea01a06c0c6b13f884925",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "0aecc3f777e08349531741816ff056f6f92407f9",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "inline-tools/link.js",
+        "inline-tools/utils.js",
+        "scripts/parity/link-owned-formatting.mjs",
+        "tests/browser/native-link-owned-formatting.html",
+        "tests/browser/native-tools.js",
+        "tests/browser/regressions/link-owned-formatting.js"
+      ]
+    },
+    {
+      "sourceCommit": "504c8029e06392cae01633f91683de3e5a970d19",
+      "sourceTree": "5e4d70dcc0c53b48d97698755223a680155f823c",
+      "integratedCommit": "a30e08f7a282151c832ca775b71c70384859f465",
+      "integratedTree": "71269b81d1a086d9911d1b4ae7d67c0f018f8054",
+      "patch": "504c8029e06392cae01633f91683de3e5a970d19.patch.gz",
+      "compressedBytes": 3012,
+      "decodedBytes": 9359,
+      "compressedSha256": "b42f749dfccd4f1a31c1edc8aee2be33ed6a2394fb88caf140d82a88ecf38cdc",
+      "decodedSha256": "a73a5feb7ee6526d93be2cc91573716d39a370fa0c686753a3ae3f1fd7d325d1",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "5e4d70dcc0c53b48d97698755223a680155f823c",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "renderer/renderers/gallery/index.js",
+        "tests/browser/gallery-layout-registry.js",
+        "tests/browser/gallery-renderer-lifetimes.js"
+      ]
+    },
+    {
+      "sourceCommit": "0e2c034f84b2505622f63dfd0981dcfdce19dbfd",
+      "sourceTree": "cd1843dcaf2acbb1029757596c538db674be7bdb",
+      "integratedCommit": "5571215a77c204fa8e044e18fc7e5263c40a4074",
+      "integratedTree": "aabaa546155dbfd6d408aa54fc4db5133abfa3e7",
+      "patch": "0e2c034f84b2505622f63dfd0981dcfdce19dbfd.patch.gz",
+      "compressedBytes": 5266,
+      "decodedBytes": 18300,
+      "compressedSha256": "2700cce358709caaf8dced397796dca1aef94dea041a1472be2477da416fa61b",
+      "decodedSha256": "9a347ffa12643273bab57b91b4b094034df387e6f27711fac97af88e56f1e894",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "cd1843dcaf2acbb1029757596c538db674be7bdb",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "renderer/renderers/gallery/index.js",
+        "tests/browser/gallery-layout-registry.js",
+        "tests/browser/gallery-renderer-lifetimes.js",
+        "tests/browser/gallery-viewer-captions.js"
+      ]
+    },
+    {
+      "sourceCommit": "4d1f666962aca917045cca76863b9950de42a222",
+      "sourceTree": "78dd46ad9c9801c867aa2193bd779f3076857475",
+      "integratedCommit": "318531dcfd08ac56c6a2d585208c858f9aef3fa5",
+      "integratedTree": "efcbc01e86b3c41218b26a34bdd4a0e120285149",
+      "patch": "4d1f666962aca917045cca76863b9950de42a222.patch.gz",
+      "compressedBytes": 24551,
+      "decodedBytes": 60932,
+      "compressedSha256": "f2a7ddf8d62895f84daacd8bb04ede821d2cb4b5b7f5e1842a70e96e2b32ec6e",
+      "decodedSha256": "83deca5b0d8fe00f4c93e97ce6a17f5d1f644abcede55a9412a8fa6003b421d9",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "78dd46ad9c9801c867aa2193bd779f3076857475",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "inline-tools/link.js",
+        "inline-tools/utils.js",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/README.md",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/expanded-green.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/expanded-red.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/final-green.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/manifest.json",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/native-tools-final-manifest.json.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/native-tools-final.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/red.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/three-source.json.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/three-source.stderr.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/typecheck.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/unit.log.gz",
+        "scripts/parity/link-owned-formatting.mjs",
+        "tests/browser/native-link-owned-formatting.html",
+        "tests/browser/native-tools.js",
+        "tests/browser/regressions/link-owned-formatting.js"
+      ]
+    },
+    {
+      "sourceCommit": "9fe66c88d1fcf6517e1308550bfb454c392548f8",
+      "sourceTree": "ca2c8c5327d919db872f7e77e298827df8d54a4b",
+      "integratedCommit": "6f5f4ff5205a25adfd00cef6d5b2279c068db633",
+      "integratedTree": "cb4e9b2dd903177c946e93de97a95e5d41d9ec6a",
+      "patch": "9fe66c88d1fcf6517e1308550bfb454c392548f8.patch.gz",
+      "compressedBytes": 26170,
+      "decodedBytes": 69401,
+      "compressedSha256": "b0a92858a1a890dcd3f2c977daa46396ac4f30875c5591a26268e81c5b056853",
+      "decodedSha256": "c370465be5fada351141a1ffb65e9ea7e90c432d1aeb114e7b1a727de9a52638",
+      "verification": {
+        "method": "fresh temporary Git index",
+        "baseCommit": "355577fce341e77bead7d69705744db724f1b79f",
+        "writtenTree": "ca2c8c5327d919db872f7e77e298827df8d54a4b",
+        "matchesOriginalTree": true
+      },
+      "changedFiles": [
+        "inline-tools/link.js",
+        "inline-tools/utils.js",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/README.md",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/expanded-green.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/expanded-red.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/final-green.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/manifest.json",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/native-tools-final-manifest.json.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/native-tools-final.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/red.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/three-source.json.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/three-source.stderr.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/typecheck.log.gz",
+        "scripts/parity/checkpoints/2026-10-30/link-owned-formatting/unit.log.gz",
+        "scripts/parity/link-owned-formatting.mjs",
+        "tests/browser/native-link-owned-formatting.html",
+        "tests/browser/native-tools.js",
+        "tests/browser/regressions/link-owned-formatting.js"
+      ]
+    }
+  ]
+}

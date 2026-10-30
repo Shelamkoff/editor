@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-structural-performance-20261030",
+  "startedAt": "2026-10-30T01:07:57.295Z",
+  "finishedAt": "2026-10-30T01:08:04.924Z",
+  "outcome": "failed",
+  "source": {
+    "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+    "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+    "patchSha256": "565774a279244acdd5ab44394af7b46340be6bf744238f245f41a40b8bec3300",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "benchmarks/structural-authoring.mjs",
+        "mode": 33188,
+        "sha256": "6e0399c8d858ff518220aedeb94bfd420abfd716ebaa6d5779065fb93e5764c1"
+      },
+      {
+        "path": "tests/browser/structural-authoring-fixture.js",
+        "mode": 33188,
+        "sha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14"
+      }
+    ],
+    "dirty": true,
+    "identity": "1d068315c95586eba7d3c313eddb95cff372a4e5849a240de386c281426db150"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+      "EDITOR_NATIVE_FILTER": "Structural authoring",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "structural-controls": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:07:57.607Z",
+      "finishedAt": "2026-10-30T01:08:04.818Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-structural-performance-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-core-behavior.html",
+          "EDITOR_NATIVE_FILTER": "Structural authoring",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "565774a279244acdd5ab44394af7b46340be6bf744238f245f41a40b8bec3300",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "benchmarks/structural-authoring.mjs",
+            "mode": 33188,
+            "sha256": "6e0399c8d858ff518220aedeb94bfd420abfd716ebaa6d5779065fb93e5764c1"
+          },
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14"
+          }
+        ],
+        "dirty": true,
+        "identity": "1d068315c95586eba7d3c313eddb95cff372a4e5849a240de386c281426db150"
+      },
+      "elapsedMs": 7208.312303000001,
+      "sourceAfter": {
+        "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+        "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+        "patchSha256": "565774a279244acdd5ab44394af7b46340be6bf744238f245f41a40b8bec3300",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "benchmarks/structural-authoring.mjs",
+            "mode": 33188,
+            "sha256": "6e0399c8d858ff518220aedeb94bfd420abfd716ebaa6d5779065fb93e5764c1"
+          },
+          {
+            "path": "tests/browser/structural-authoring-fixture.js",
+            "mode": 33188,
+            "sha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14"
+          }
+        ],
+        "dirty": true,
+        "identity": "1d068315c95586eba7d3c313eddb95cff372a4e5849a240de386c281426db150"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "d8181d595fb74ab7f70de5ffc945770436ed8796",
+    "tree": "293c9c8821e6116a47934c6aca23e42906740006",
+    "patchSha256": "565774a279244acdd5ab44394af7b46340be6bf744238f245f41a40b8bec3300",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "benchmarks/structural-authoring.mjs",
+        "mode": 33188,
+        "sha256": "6e0399c8d858ff518220aedeb94bfd420abfd716ebaa6d5779065fb93e5764c1"
+      },
+      {
+        "path": "tests/browser/structural-authoring-fixture.js",
+        "mode": 33188,
+        "sha256": "6ac2685f8f6b6b534c9c4979038c4bcd34430d8a7fdb746ad06c3e551ee96a14"
+      }
+    ],
+    "dirty": true,
+    "identity": "1d068315c95586eba7d3c313eddb95cff372a4e5849a240de386c281426db150"
+  },
+  "sourceUnchanged": true
+}

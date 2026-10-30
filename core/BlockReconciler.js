@@ -261,8 +261,9 @@ export class BlockReconciler {
    */
   completeFieldProjection(id,field) {
     const entry=this.#entries.get(id)
-    if(!entry?.instance.afterProjection)return
+    if(!entry?.instance.afterProjection)return false
     this.#completeFields(entry,[field])
+    return true
   }
 
   get ids() {
@@ -289,7 +290,8 @@ export class BlockReconciler {
 
   focus(id, target) {
     const entry = this.#entries.get(id)
-    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered) return false
+    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered
+      || !entry.element.contains(entry.instance.element)) return false
     try {
       const result=this.#projectPresentation(() => {
         if (typeof entry.instance.focus === 'function') {
@@ -307,7 +309,8 @@ export class BlockReconciler {
         field.element.focus({ preventScroll: true })
         return field.element.ownerDocument.activeElement === field.element
       })
-      return this.#isCurrentMountedEntry(id,entry) ? result : false
+      return this.#isCurrentMountedEntry(id,entry)
+        && entry.element.contains(entry.instance.element) ? result : false
     } catch (error) {
       console.error('Block focus failed', error)
       return false
@@ -360,16 +363,27 @@ export class BlockReconciler {
   readBlock(id) {
     const entry = this.#entries.get(id)
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
-    if(entry.element.parentNode!==this.#container){
-      throw new Error('Projected block is no longer mounted: '+id)
-    }
+    // An unchanged detached shell can still be reattached by its host.
+    if(entry.element.parentNode===null)throw new Error('Projected block is no longer mounted: '+id)
     const assertOwner=()=>{
-      if(!this.#isCurrentMountedEntry(id,entry)){
+      if(!this.#isCurrentMountedEntry(id,entry)||!entry.element.contains(entry.instance.element)){
+        if(this.#entries.get(id)===entry&&!entry.destroyed){
+          if(entry.fields)this.#revalidateSettledFields(id,entry,null,false)
+          if(this.#entries.get(id)===entry)this.#retirePresentationEntry(id,entry)
+        }
         throw new Error('Projected block ownership changed during read: '+id)
       }
     }
-    const data = cloneEditorData(entry.instance.read())
     assertOwner()
+    let data,failed=false,error
+    try{data=cloneEditorData(entry.instance.read())}
+    catch(failure){failed=true;error=failure}
+    try{assertOwner()}
+    catch(failure){
+      if(failed)throw new AggregateError([error,failure],'Projected read and ownership validation failed',{cause:error})
+      throw failure
+    }
+    if(failed)throw error
     const observedFields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     assertOwner()
     const fields=entry.presentationFailure?observedFields.filter(field=>entry.fields.some(accepted=>
@@ -390,7 +404,7 @@ export class BlockReconciler {
   }
 
 
-  prepare({ store, draft, changes, sourceBlockId, generation, origin }) {
+  prepare({ store, draft, changes, sourceBlockId, completedSourceFieldKey, generation, origin }) {
     this.#assertLive()
     this.#store = store
     const structuralChange = hasStructuralChange(changes)
@@ -445,7 +459,8 @@ export class BlockReconciler {
         }
 
         const dataChanged = !sameJson(before.data, after.data)
-        if (dataChanged && typeof current.instance.update !== 'function') {
+        const inlineTextChanged = current.lifetime.readsFieldText && !sameJson(before.inline, after.inline)
+        if ((dataChanged || inlineTextChanged) && typeof current.instance.update !== 'function') {
           const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
@@ -458,7 +473,7 @@ export class BlockReconciler {
           || !sameJson(before.inline, after.inline)
           || before.dataVersion !== after.dataVersion
         ) {
-          updates.push({ id, entry: current, before, after, dataChanged })
+          updates.push({ id, entry: current, before, after, dataChanged, inlineTextChanged })
         }
       }
     } catch (error) {
@@ -491,11 +506,13 @@ export class BlockReconciler {
     let recovered = false
     let finalized = false
     let discarded = false
+    let recoveryFocus = null
     // The reconciler owns detached staged entries and replaced predecessors
     // until the prepared operation has settled. Do not leave a retired
     // candidate behind when the editor is destroyed between these phases.
     const retire = () => {
       if (recovered || finalized || discarded) return
+      recoveryFocus?.release()
       recovered = true
       this.#pendingProjections.delete(retire)
       for (const entry of staged.values()) this.#destroyEntry(entry)
@@ -514,20 +531,59 @@ export class BlockReconciler {
           throw new Error('Prepared block projection owner is stale')
         }
         applied = true
+        recoveryFocus = this.#captureRecoveryFocus(updates)
         const nextEntries = new Map(previousEntries)
 
         for (const item of updates) {
           const failedPresentation=item.entry.presentationFailure
-          const captured=item.dataChanged&&item.id!==sourceBlockId&&item.entry.instance.afterProjection
+          const completedSourceField=item.id===sourceBlockId&&completedSourceFieldKey!==undefined
+            ?item.entry.fields.find(field=>field.key===completedSourceFieldKey):null
+          const updateInstance=(item.dataChanged||item.inlineTextChanged)&&item.id!==sourceBlockId
+          const captured=updateInstance&&item.entry.instance.afterProjection
             ?this.#captureFieldContent(item.entry):null
           item.entry.lifetime.candidate = item.after
-          if (item.dataChanged && item.id !== sourceBlockId) {
+          if (updateInstance) {
             item.entry.instance.update(item.after.data, item.before.data)
           }
           item.entry.record = item.after
           this.#refreshFields(item.id, item.entry)
-          const rewrittenFields=captured?new Set(item.entry.fields.filter(field=>field.mode==='rich-text'
+          let rewrittenFields=captured?new Set(item.entry.fields.filter(field=>field.mode==='rich-text'
             &&(!captured.has(field.element)||!sameFieldContent(field.element,captured.get(field.element)))).map(field=>field.element)):null
+          if(item.dataChanged&&item.id===sourceBlockId&&item.entry.instance.afterProjection){
+            // Native authoring already changed its retained DOM before this
+            // projection began. Complete only its changed declared fields,
+            // after the same ordinary hydration pass as other projections.
+            const {fields,assertOwned}=this.#captureFieldOwners(item.entry)
+            assertOwned()
+            const contents=new Map(fields.map(field=>[field.element,fieldContent(field.element)]))
+            const assertUnchanged=()=>{
+              assertOwned()
+              for(const [element,content] of contents){
+                if(!sameFieldContent(element,content))throw new Error('Rich-text mapping changed author content')
+              }
+              assertOwned()
+            }
+            const readFields=data=>{
+              assertOwned()
+              let result,failed=false,error
+              try{result=richTextFieldMap(item.entry.definition,data)}
+              catch(failure){failed=true;error=failure}
+              try{assertUnchanged()}
+              catch(failure){
+                if(failed)throw new AggregateError([error,failure],'Rich-text mapping and ownership validation failed',{cause:error})
+                throw failure
+              }
+              if(failed)throw error
+              return result
+            }
+            const before=readFields(item.before.data)
+            const after=readFields(item.after.data)
+            rewrittenFields=new Set(fields.filter(field=>{
+              const alreadyCompleted=completedSourceField?.key===field.key
+                &&completedSourceField.element===field.element&&completedSourceField.mode===field.mode
+              return !alreadyCompleted&&before.get(field.key)!==after.get(field.key)
+            }).map(field=>field.element))
+          }
           if (this.#inlineProjection && !item.entry.unregistered) {
             this.#inlineProjection.reconcileBlock(
               item.id,
@@ -583,94 +639,98 @@ export class BlockReconciler {
       },
 
       recover: () => {
-        // Discard and finalize are terminal; late recovery cannot undo a
-        // published document or restore resources already disposed.
-        if (recovered || finalized || discarded) return
-        if (this.#destroyed) { retire(); return }
-        // A newer projection may have claimed some of this one's entries.
-        // The older prepared handle cannot restore DOM or dispose owners
-        // that are now part of the successor's published map.
-        if (applied && this.#entries !== (publishedEntries ?? expectedEntries)) {
-          // A successor can publish while this apply() is still mutating DOM,
-          // before we record publishedEntries. Only the failed operation's
-          // own unpublished resources may be released by its recovery.
-          recovered = true
-          this.#pendingProjections.delete(retire)
-          if (!publishedEntries) {
+        try {
+          // Discard and finalize are terminal; late recovery cannot undo a
+          // published document or restore resources already disposed.
+          if (recovered || finalized || discarded) return
+          if (this.#destroyed) { retire(); return }
+          // A newer projection may have claimed some of this one's entries.
+          // The older prepared handle cannot restore DOM or dispose owners
+          // that are now part of the successor's published map.
+          if (applied && this.#entries !== (publishedEntries ?? expectedEntries)) {
+            // A successor can publish while this apply() is still mutating DOM,
+            // before we record publishedEntries. Only the failed operation's
+            // own unpublished resources may be released by its recovery.
+            recovered = true
+            this.#pendingProjections.delete(retire)
+            if (!publishedEntries) {
+              for (const entry of staged.values()) this.#destroyEntry(entry)
+            }
+            return
+          }
+          if (!applied) {
             for (const entry of staged.values()) this.#destroyEntry(entry)
+            recovered = true
+            this.#pendingProjections.delete(retire)
+            return
           }
-          return
-        }
-        if (!applied) {
-          for (const entry of staged.values()) this.#destroyEntry(entry)
-          recovered = true
-          this.#pendingProjections.delete(retire)
-          return
-        }
 
-        for (const item of replacements) this.#recoverPreparedInline(item.after)
-        for (const item of insertions) this.#recoverPreparedInline(item.entry)
+          for (const item of replacements) this.#recoverPreparedInline(item.after)
+          for (const item of insertions) this.#recoverPreparedInline(item.entry)
 
-        const damagedIds = new Set(updates.map(item => item.id))
-        const restored = new Map()
-        try {
-          for (const id of damagedIds) {
-            const record = store.peek(id)
-            if (!record) continue
-            restored.set(id, this.#createEntry(record, {
-              candidate: false,
-              stageInline: true,
-              generation: store.generation,
-              restoring: true,
+          const damagedIds = new Set(updates.map(item => item.id))
+          const restored = new Map()
+          try {
+            for (const id of damagedIds) {
+              const record = store.peek(id)
+              if (!record) continue
+              restored.set(id, this.#createEntry(record, {
+                candidate: false,
+                stageInline: true,
+                generation: store.generation,
+                restoring: true,
+              }))
+            }
+          } catch (error) {
+            for (const entry of restored.values()) this.#destroyEntry(entry)
+            throw error
+          }
+
+          const nextEntries = new Map(previousEntries)
+          for (const [id, entry] of restored) nextEntries.set(id, entry)
+
+          const currentRecoveryEntries=this.#entries
+          try {
+            this.#container.replaceChildren(...store.ids().map(id => {
+              const entry = nextEntries.get(id)
+              if (!entry) throw new Error(`Recovery is missing block entry: ${id}`)
+              return entry.element
             }))
+            this.#entries = nextEntries
+
+            for (const entry of restored.values()) this.#applyPreparedInline(entry)
+            for (const entry of restored.values()) this.#activateEntry(entry)
+            for (const entry of restored.values()) this.#completeFields(entry)
+            for (const entry of restored.values()) this.#finalizePreparedInline(entry)
+
+            const keep = new Set(nextEntries.values())
+            const candidates = new Set([
+              ...currentRecoveryEntries.values(),
+              ...staged.values(),
+              ...previousEntries.values(),
+            ])
+            for (const entry of candidates) if (!keep.has(entry)) this.#destroyEntry(entry)
+            recovered = true
+            this.#pendingProjections.delete(retire)
+            recoveryFocus?.restore(nextEntries, restored)
+          } catch (error) {
+            // A DOM adapter may change the host and then report failure. The
+            // attempted recovery's newly-created owners are not published and
+            // must be cleaned before the same handle can retry.
+            if(!this.#destroyed&&this.#entries===nextEntries){
+              this.#entries=currentRecoveryEntries
+            }
+            for(const entry of restored.values()){
+              try{this.#recoverPreparedInline(entry)}catch{}
+              this.#destroyEntry(entry)
+            }
+            throw error
           }
-        } catch (error) {
-          for (const entry of restored.values()) this.#destroyEntry(entry)
-          throw error
-        }
-
-        const nextEntries = new Map(previousEntries)
-        for (const [id, entry] of restored) nextEntries.set(id, entry)
-
-        const currentRecoveryEntries=this.#entries
-        try {
-          this.#container.replaceChildren(...store.ids().map(id => {
-            const entry = nextEntries.get(id)
-            if (!entry) throw new Error(`Recovery is missing block entry: ${id}`)
-            return entry.element
-          }))
-          this.#entries = nextEntries
-
-          for (const entry of restored.values()) this.#applyPreparedInline(entry)
-          for (const entry of restored.values()) this.#activateEntry(entry)
-          for (const entry of restored.values()) this.#completeFields(entry)
-          for (const entry of restored.values()) this.#finalizePreparedInline(entry)
-
-          const keep = new Set(nextEntries.values())
-          const candidates = new Set([
-            ...currentRecoveryEntries.values(),
-            ...staged.values(),
-            ...previousEntries.values(),
-          ])
-          for (const entry of candidates) if (!keep.has(entry)) this.#destroyEntry(entry)
-          recovered = true
-          this.#pendingProjections.delete(retire)
-        } catch (error) {
-          // A DOM adapter may change the host and then report failure. The
-          // attempted recovery's newly-created owners are not published and
-          // must be cleaned before the same handle can retry.
-          if(!this.#destroyed&&this.#entries===nextEntries){
-            this.#entries=currentRecoveryEntries
-          }
-          for(const entry of restored.values()){
-            try{this.#recoverPreparedInline(entry)}catch{}
-            this.#destroyEntry(entry)
-          }
-          throw error
-        }
+        } finally { recoveryFocus?.release() }
       },
 
       finalize: () => {
+        recoveryFocus?.release()
         this.#assertLive()
         if (finalized || recovered) return
         if (!applied) throw new Error('Cannot finalize an unapplied block projection')
@@ -717,6 +777,74 @@ export class BlockReconciler {
     }
   }
 
+  /** A failed projection can retire a focused block control without a logical
+   * text bookmark. Return only its keyboard ownership to the recovered shell;
+   * never infer an old field/control or override newer native focus.
+   */
+  #captureRecoveryFocus(updates) {
+    const document = this.#container.ownerDocument
+    const element = document.activeElement
+    if (!element || element.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')) return null
+    // Fieldless blocks already have a fieldKey:'' logical bookmark. Their
+    // existing restoration must remain the only focus continuation.
+    const item = updates.find(({ id, entry }) => this.#isCurrentMountedEntry(id, entry)
+      && entry.scope?.active && entry.fields?.length > 0 && entry.element.contains(element)
+      && !entry.fields?.some(field => field.element.contains(element)))
+    if (!item || !document.hasFocus() || document.activeElement !== element) return null
+    const { id, entry: previous } = item
+    const parents = element === previous.element ? [] : this.#fieldParents(element, previous.element)
+    if (element !== previous.element && parents.at(-1) !== previous.element) return null
+    const store = this.#store, record = store.peek(id)
+    const generation = store.generation, revision = store.revision, readOnly = this.#readOnly
+    let released = false, superseded = false
+    const observe = event => { if (event.target !== element) superseded = true }
+    document.addEventListener('focusin', observe, true)
+    const release = () => {
+      if (released) return
+      released = true
+      document.removeEventListener('focusin', observe, true)
+    }
+    const retired = () => {
+      let node = element
+      for (const parent of parents) {
+        if (node.parentNode === null) return true
+        if (node.parentNode !== parent) return false
+        node = parent
+      }
+      return node === previous.element && node.parentNode === null
+    }
+    return {
+      release,
+      restore: (entries, restored) => {
+        const entry = restored.get(id)
+        const owned = () => entry
+          && !element.isConnected && element.ownerDocument === document && retired()
+          && this.#container.isConnected && entry.element.parentNode === this.#container
+          && entry.instance.element.parentNode === entry.element
+          && liveBlockRoots.get(entry.instance.element) === entry.scope
+          && (document.activeElement === document.body || document.activeElement === document.documentElement)
+          && !this.#destroyed && this.#entries === entries && entries.get(id) === entry
+          && this.#store === store && store.generation === generation && store.revision === revision
+          && store.peek(id) === record && entry.record === record && this.#readOnly === readOnly
+          && previous.scope.revoked && entry.scope?.active && !entry.controller?.signal.aborted
+          && document.hasFocus() && !released && !superseded
+        try {
+          if (!owned()) return
+          entry.element.tabIndex = -1
+          if (!owned()) return
+          // Native focus callbacks may choose a successor. There are no
+          // restoration effects after this one acknowledged focus attempt.
+          release()
+          entry.element.focus({ preventScroll: true })
+        } catch (error) {
+          // This presentation fallback must not replace the original edit
+          // failure or turn a recovered canonical document into a new edit.
+          try { this.#reportPresentationFailure(error) } catch {}
+        }
+      },
+    }
+  }
+
   restore(store) {
     this.#assertLive()
     const previousStore=this.#store
@@ -739,14 +867,33 @@ export class BlockReconciler {
     const modeSnapshots=[]
     const disabledModes=new Map()
     let modeBoundaryFailed=false
+    const assertOwner=entry=>{
+      const id=entry.record.id
+      if(this.#isCurrentMountedEntry(id,entry)&&entry.element.contains(entry.instance.element))return
+      modeBoundaryFailed=true
+      if(this.#entries.get(id)===entry&&!entry.destroyed){
+        if(entry.fields)this.#revalidateSettledFields(id,entry,null,false)
+        if(this.#entries.get(id)===entry)this.#retirePresentationEntry(id,entry)
+      }
+      throw new Error('Read-only block left its accepted ownership boundary')
+    }
     try {
       for (const entry of this.#entries.values()) {
+        assertOwner(entry)
         changed.push(entry)
         const snapshots=this.#captureFieldModes(entry)
         modeSnapshots.push(...snapshots)
         const disabled=this.#captureDisabledFields(entry)
         disabledModes.set(entry,disabled)
-        entry.instance.setReadOnly(next)
+        let failed=false,error
+        try{entry.instance.setReadOnly(next)}
+        catch(failure){failed=true;error=failure}
+        try{assertOwner(entry)}
+        catch(failure){
+          if(failed)throw new AggregateError([error,failure],'Read-only hook and ownership validation failed',{cause:error})
+          throw failure
+        }
+        if(failed)throw error
         this.#applyOwnedFieldModes(entry,snapshots)
         this.#disableFailedFields(entry,disabled)
         this.#refreshFields(entry.record.id, entry, true, true, next)
@@ -787,6 +934,7 @@ export class BlockReconciler {
         }
       }
       for (let index = changed.length - 1; index >= 0; index--) {
+        if(changed[index].destroyed)continue
         try { changed[index].instance.setReadOnly(this.#readOnly) }
         catch (failure) {
           needsRestore = true
@@ -850,7 +998,7 @@ export class BlockReconciler {
 
   #createEntry(record, { candidate = false, stageInline = false, generation = this.#store?.generation ?? 0, restoring = false } = {}) {
     const ownerDocument = this.#container.ownerDocument
-    const lifetime = { candidate: candidate ? record : null }
+    const lifetime = { candidate: candidate ? record : null, readsFieldText: false }
     const scope = new InstanceScope({ staged: true, generation, readOnly: this.#readOnly })
 
     if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
@@ -891,13 +1039,28 @@ export class BlockReconciler {
     let destroySource
     let instance = null
     let element = null
+    let textOwner = null
     let borrowedLiveRoot = false
 
     try {
       const readRecord = () => lifetime.candidate ?? this.#store?.peek(record.id) ?? record
-      const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope) ?? {}
+      const assertReadOwner = () => {
+        if (this.#destroyed || scope.revoked) throw new Error('Canonical field text owner is retired')
+        if (!textOwner) return // The current staged create() has not returned its root yet.
+        if (liveBlockRoots.get(instance.element) !== scope || instance.element.parentNode !== element
+          || (scope.active ? !this.#isCurrentMountedEntry(record.id, textOwner)
+            : element.parentNode && element.parentNode !== this.#container)) {
+          throw new Error('Canonical field text owner left its accepted boundary')
+        }
+      }
+      const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope, assertReadOwner) ?? {}
       const context = Object.freeze({
         ...base,
+        ...(typeof base.getFieldText === 'function' ? { getFieldText: fieldKey => {
+          const text = base.getFieldText(fieldKey)
+          lifetime.readsFieldText = true
+          return text
+        } } : {}),
         // A fresh user block may load metadata once; a replay/recovery
         // projection must not repeat automatic side effects.
         restoring: restoring === true,
@@ -944,6 +1107,7 @@ export class BlockReconciler {
         lifetime,
         scope,
       }
+      textOwner = entry
       this.#blockOwners.set(element, record.id)
       instance.setReadOnly(this.#readOnly)
       this.#refreshFields(record.id, entry)
@@ -975,15 +1139,23 @@ export class BlockReconciler {
     entry?.scope?.activate?.()
   }
 
-  #captureFieldContent(entry) {
+  #captureFieldOwners(entry) {
     const id=entry.record.id,fields=entry.fields.filter(field=>field.mode==='rich-text')
     const owners=new Map(fields.map(field=>[field.element,this.#fieldOwners.get(field.element)]))
     const assertOwned=()=>{
       if(!this.#isCurrentMountedEntry(id,entry)||fields.some(field=>{
         const owner=owners.get(field.element)
         return !owner||this.#fieldOwners.get(field.element)!==owner||!this.#hasFieldAncestry(owner,entry)
-      }))throw new Error('Field rewrite observation lost its accepted owner')
+      })){
+        this.#revalidateSettledFields(id,entry,null,false)
+        throw new Error('Field rewrite observation lost its accepted owner')
+      }
     }
+    return {fields,assertOwned}
+  }
+
+  #captureFieldContent(entry) {
+    const {fields,assertOwned}=this.#captureFieldOwners(entry)
     assertOwned()
     const captured=new Map(fields.map(field=>[field.element,fieldContent(field.element)]))
     assertOwned()
@@ -1479,7 +1651,11 @@ export class BlockReconciler {
   }
 
   #destroyEntry(entry,onlyOwnedRoot=false) {
-    if (!entry) return
+    if (!entry || entry.destroyed) return
+    // Recovery can retain this retired entry in its predecessor snapshot.
+    // Its first teardown owns removal; later cleanup cannot reclaim a shell
+    // that was already left with a foreign owner by shrinking retirement.
+    entry.destroyed = true
     try { this.#discardPreparedInline(entry) } catch {}
     try { entry.scope?.revoke?.() } catch {}
     try { entry.controller?.abort() } catch {}

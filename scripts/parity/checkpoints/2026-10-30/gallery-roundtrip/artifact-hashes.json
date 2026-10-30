@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "scope": "Stored artifacts in this checkpoint before this index; original and decoded-log hashes are in the initial/final source indexes.",
+  "files": [
+    {
+      "file": "README.md",
+      "bytes": 7472,
+      "sha256": "9b0cbadee85ea2316f12cac5d70b1a975b5940a8a1213e106741385d9921f316"
+    },
+    {
+      "file": "classifier-sensitivity.mjs",
+      "bytes": 5203,
+      "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+    },
+    {
+      "file": "detached-runner.py",
+      "bytes": 3097,
+      "sha256": "a9fc636a009b99a8334028c531f09f8a11b3523b4f4e37a4bb405973c011c91f"
+    },
+    {
+      "file": "final-classifier-manifest.json",
+      "bytes": 14980,
+      "sha256": "28db3ca9fd9c029bfff064783707d746529b66dd23cc8c3843bdefb12c2b6539"
+    },
+    {
+      "file": "final-classifier.log.gz",
+      "bytes": 799,
+      "sha256": "c40932945ed3e500aeaf6672823aaede8cece92442ded4a35383487ccda9a97e"
+    },
+    {
+      "file": "final-typecheck-manifest.json",
+      "bytes": 14914,
+      "sha256": "a98dd9f703aa5098bd3348047d90e5254ba68407d52e9847edd5ff1d548572f8"
+    },
+    {
+      "file": "final-typecheck.log.gz",
+      "bytes": 185,
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2"
+    },
+    {
+      "file": "final4-native142-manifest.json",
+      "bytes": 14914,
+      "sha256": "b4e38db165360f9449e5469f1365b09e006611f0cf05d7d22c373ec6b050b74a"
+    },
+    {
+      "file": "final4-native142.log.gz",
+      "bytes": 193,
+      "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+    },
+    {
+      "file": "final57-differential-manifest.json",
+      "bytes": 14883,
+      "sha256": "049181c7ca8b6bda9c692907303b0865983e1b5ca25f9dea9bb9e2cc55226c31"
+    },
+    {
+      "file": "final57-differential.log.gz",
+      "bytes": 833825,
+      "sha256": "2cbff93fa3e0293ab25f777114d6d3b4dbf29b9b7cfcb881754841e23ed06c5b"
+    },
+    {
+      "file": "final57-native156-manifest.json",
+      "bytes": 14876,
+      "sha256": "19a24541af51ff44af2d286c69faa6f5272676bae74228566f77cfb975cff517"
+    },
+    {
+      "file": "final57-native156.log.gz",
+      "bytes": 493,
+      "sha256": "d4625e306a6e1fac8075ff3fb7358b2c3fe14844106630653b9282b7afed1b69"
+    },
+    {
+      "file": "gallery-initial-unclassified-manifest.json",
+      "bytes": 3468,
+      "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+    },
+    {
+      "file": "gallery-initial-unclassified.log.gz",
+      "bytes": 94749,
+      "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+    },
+    {
+      "file": "gallery-native156-manifest.json",
+      "bytes": 3462,
+      "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+    },
+    {
+      "file": "gallery-native156.log.gz",
+      "bytes": 193,
+      "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+    },
+    {
+      "file": "initial-evidence-index.json",
+      "bytes": 3565,
+      "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+    },
+    {
+      "file": "initial-fixture.patch.gz",
+      "bytes": 6458,
+      "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+    },
+    {
+      "file": "literal-initial-unclassified-manifest.json",
+      "bytes": 3467,
+      "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+    },
+    {
+      "file": "literal-initial-unclassified.log.gz",
+      "bytes": 44886,
+      "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+    },
+    {
+      "file": "literal-native-manifest.json",
+      "bytes": 3461,
+      "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+    },
+    {
+      "file": "literal-native.log.gz",
+      "bytes": 169,
+      "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+    },
+    {
+      "file": "source-fingerprints.json",
+      "bytes": 32264,
+      "sha256": "97c7af3ab02bd79393315035f9d7dba8d69967abfbc4d7a8b0c264fa70adeae9"
+    }
+  ]
+}

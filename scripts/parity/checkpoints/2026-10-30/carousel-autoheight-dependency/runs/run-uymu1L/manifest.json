@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+  "startedAt": "2026-10-30T00:46:12.637Z",
+  "finishedAt": "2026-10-30T00:46:20.949Z",
+  "outcome": "failed",
+  "source": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      }
+    ],
+    "dirty": true,
+    "identity": "5e74d4f0fc5b04f8a34bd822b4e59bb731cef2dc5508c1f85cd48fd78894bac2"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "projection": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T00:46:13.283Z",
+      "finishedAt": "2026-10-30T00:46:20.637Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "5e74d4f0fc5b04f8a34bd822b4e59bb731cef2dc5508c1f85cd48fd78894bac2"
+      },
+      "elapsedMs": 7351.92128,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "5e74d4f0fc5b04f8a34bd822b4e59bb731cef2dc5508c1f85cd48fd78894bac2"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      }
+    ],
+    "dirty": true,
+    "identity": "5e74d4f0fc5b04f8a34bd822b4e59bb731cef2dc5508c1f85cd48fd78894bac2"
+  },
+  "sourceUnchanged": true
+}

@@ -428,7 +428,7 @@ test('cancelled shortcut preparation cannot fall through to another structural c
 })
 
 
-function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false, failed = false, retire = null } = {}) {
+function typedPatternHarness({ converted = true, nativeCollapsed = true, word = '#f00', widgetLabel = false, failed = false, retire = null, moveSelection = false } = {}) {
   const commands = []
   const errors = []
   const h = harness({
@@ -436,6 +436,10 @@ function typedPatternHarness({ converted = true, nativeCollapsed = true, word = 
     inlineCommands: {
       commitTypedPattern(value, target, delimiter) {
         commands.push({ value, target, delimiter })
+        if (moveSelection) h.setBookmark({
+          anchor: { blockId: 'c', fieldKey: 'text', offset: 1 },
+          focus: { blockId: 'c', fieldKey: 'text', offset: 1 },
+        })
         if (retire === 'destroy' || retire === 'throw') h.router.destroy()
         if (retire === 'mode') {
           h.runtime.modeEpoch = (h.runtime.modeEpoch ?? 0) + 2
@@ -509,6 +513,20 @@ test('unmatched typed word leaves Space native and Enter with the normal split h
     h.router.destroy()
   }
 })
+
+for (const key of [' ', 'Enter']) {
+  test(`a superseded typed-pattern selection cannot continue an obsolete ${key === ' ' ? 'Space' : key}`, () => {
+    const h = typedPatternHarness({ converted: false, moveSelection: true })
+    const event = h.event(key)
+    h.router.handleKeydown(event)
+
+    assert.equal(h.commands.length, 1)
+    assert.deepEqual(h.calls, [], 'obsolete delimiter changed the field preceding the newer caret')
+    assert.equal(event.prevented, true, 'obsolete delimiter escaped to native editing at the newer caret')
+    assert.deepEqual(h.viewCalls, [], 'obsolete delimiter moved editing focus')
+    h.router.destroy()
+  })
+}
 
 test('typed matcher never receives text from selected ranges or inline widget labels', () => {
   for (const invalid of [{nativeCollapsed:false},{widgetLabel:true}]) {

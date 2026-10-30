@@ -1,0 +1,1 @@
+{"run": "/tmp/rector-continuation-20261030/test-results/run-r6iBZN", "gates": [{"name": "unit", "exitCode": 0}, {"name": "differential61", "exitCode": 0}, {"name": "native61", "exitCode": 0}, {"name": "native-core", "exitCode": 0}, {"name": "runtime-contracts", "exitCode": 0}, {"name": "projection-contracts", "exitCode": 0}], "finish": 0}

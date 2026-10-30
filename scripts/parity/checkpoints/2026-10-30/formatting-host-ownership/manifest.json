@@ -1,0 +1,166 @@
+{
+  "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+  "implementationCommit": "4daa1e6847549504450b1dcd10c18933021337fe",
+  "finalSource": "94304cc1764ce0b18f0227add598f67da5cf7dcd",
+  "finalTree": "9969344bff02e74edcd673e971a2821b15585ce4",
+  "sourceReconstruction": {
+    "base": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+    "artifact": "implementation-and-fixtures.patch.gz",
+    "reconstructedTree": "9969344bff02e74edcd673e971a2821b15585ce4",
+    "matchesOriginal": true
+  },
+  "finalScopedGates": {
+    "source": "94304cc1764ce0b18f0227add598f67da5cf7dcd",
+    "nativeFocused": {
+      "passed": 14,
+      "failed": 0,
+      "artifact": "native-final-focused.log.gz"
+    },
+    "unit": {
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "unit-final.log.gz"
+    },
+    "typecheck": {
+      "projects": 2,
+      "exitCode": 0,
+      "artifact": "typecheck-final.log.gz"
+    }
+  },
+  "comparisons": [
+    {
+      "artifact": "differential-parent.json.gz",
+      "rawExitCode": 1,
+      "runner": "scripts/parity/formatting-host-ownership.mjs",
+      "runnerSha256": "36bc2203be0114b1307904a47fda45aa974c8f05fb633c0590de959b6559a263",
+      "serverErrors": [],
+      "results": [
+        {
+          "source": "v1",
+          "cases": 10,
+          "observations": 70,
+          "failures": 30,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 10,
+          "observations": 70,
+          "failures": 5,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 10,
+          "observations": 70,
+          "failures": 5,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        }
+      ],
+      "loadedModuleHashRecords": 38
+    },
+    {
+      "artifact": "differential-final.json.gz",
+      "rawExitCode": 1,
+      "runner": "scripts/parity/formatting-host-ownership.mjs",
+      "runnerSha256": "36bc2203be0114b1307904a47fda45aa974c8f05fb633c0590de959b6559a263",
+      "serverErrors": [],
+      "results": [
+        {
+          "source": "v1",
+          "cases": 10,
+          "observations": 70,
+          "failures": 30,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 10,
+          "observations": 70,
+          "failures": 5,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 10,
+          "observations": 70,
+          "failures": 0,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        }
+      ],
+      "loadedModuleHashRecords": 38
+    },
+    {
+      "artifact": "link-differential.json.gz",
+      "rawExitCode": 1,
+      "runner": "scripts/parity/link-owned-formatting.mjs",
+      "runnerSha256": "fab3cefc6c1259376335fba560bff46921df475b342fbc43c660d83b9c1197ea",
+      "serverErrors": [],
+      "results": [
+        {
+          "source": "v1",
+          "cases": 13,
+          "observations": 113,
+          "failures": 33,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 13,
+          "observations": 113,
+          "failures": 27,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 13,
+          "observations": 113,
+          "failures": 0,
+          "incomplete": 0,
+          "errors": 0,
+          "pageErrors": 0
+        }
+      ],
+      "loadedModuleHashRecords": 37
+    }
+  ],
+  "preFreezeBroadRuns": [
+    {
+      "artifact": "native-tools-initial.log.gz",
+      "passed": 111,
+      "failed": 0,
+      "note": "Initial 4 ownership cases +107 existing; not an immutable final gate."
+    },
+    {
+      "artifact": "native-tools-final.log.gz",
+      "passed": 121,
+      "failed": 0,
+      "note": "Contains14 new +107 existing. Two test-only positive cases were added during runner startup; treated as pre-freeze corroboration, not immutable final proof."
+    }
+  ],
+  "fixtureOnlyFailure": {
+    "artifact": "native-controls.log.gz",
+    "description": "Eight new native controls stopped at setup assertion because the authored link lacked required rel=noopener noreferrer. Inputs and expected literals were corrected according to shared/sanitize/walker.js; production unchanged."
+  },
+  "historicalOutcomePolicy": "Every raw verdict retained. Historical destructive behavior is a repaired defect, not a behavior to restore. No candidate exemptions or full-row acceptance.",
+  "scopeLimit": "Direct historical public-tool DOM comparison only. Candidate native controls separately prove actual toolbar gesture, range direction, author records, sidecars and two keyboard Undo/Redo actions. Full TOOL_* row and platform parity remain open.",
+  "trackedWorktreeCleanAfterFinalGates": true,
+  "untrackedDependencyLink": "node_modules points at the main checkout installation; it is excluded from source and hashes are recorded by differential runners."
+}

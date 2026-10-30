@@ -1,0 +1,180 @@
+[
+  {
+    "path": "initial-native-red.log.gz",
+    "encoding": "gzip",
+    "bytes": 507,
+    "sha256": "8a72fa9eb6bea55e88f75d12ddff6b28a4afbf69822526a1883bfd49d45aac13",
+    "decodedBytes": 1214,
+    "decodedSha256": "810d10f78d9f7c0c67b4570f577e027726e7a5cf1076ebdfdfafc363111ed222",
+    "originalPath": "/tmp/rector-third-carousel-add-red.log"
+  },
+  {
+    "path": "source-paths-red.log.gz",
+    "encoding": "gzip",
+    "bytes": 556,
+    "sha256": "48aa80aca3f35e67faa50c8a50e48c24956bd68e5a8520b285b0dd1d17139a19",
+    "decodedBytes": 2441,
+    "decodedSha256": "dd9add95e63724d8a0667333bb8bf6fd9ba828fab057b836c98e2c047bdade1f",
+    "originalPath": "/tmp/rector-third-carousel-add-paths-red.log"
+  },
+  {
+    "path": "source-paths-red-fixture.js.gz",
+    "encoding": "gzip",
+    "bytes": 2088,
+    "sha256": "74b7d0467f462784e5f41edb4b43e4bfaf208681c15cae4c8b440eefc4a8075f",
+    "decodedBytes": 5608,
+    "decodedSha256": "80ab18b8dc023136fe8a1f63fe7f50ef88740ec4768b0a98f58ebc4fd227cd69",
+    "originalPath": "/tmp/rector-third-carousel-red-sources/carousel-structure-native.js"
+  },
+  {
+    "path": "source-paths-red-manifest.json",
+    "encoding": "identity",
+    "bytes": 638,
+    "sha256": "3a6a27cd87c74e12d02b0f232b743454416c37a7bc31e04f822253f700eeb467",
+    "decodedBytes": 638,
+    "decodedSha256": "3a6a27cd87c74e12d02b0f232b743454416c37a7bc31e04f822253f700eeb467",
+    "originalPath": "/tmp/rector-third-carousel-red-sources/manifest.json"
+  },
+  {
+    "path": "three-source-red.json.gz",
+    "encoding": "gzip",
+    "bytes": 27036,
+    "sha256": "b505869408af2b87d8fe37d7c3423b6a1f2b3cfc45a796a9bb99af9538ebb398",
+    "decodedBytes": 550015,
+    "decodedSha256": "18570eee5be2476fdc820e53c8ed49398624a5b3f304499d4cb90d05fde87eb1",
+    "originalPath": "/tmp/rector-third-carousel-add-three-source-red.json"
+  },
+  {
+    "path": "three-source-green.json.gz",
+    "encoding": "gzip",
+    "bytes": 27131,
+    "sha256": "affaa9a0b88f785710cd14b6827602ab5ce43cd145a1b467e08c3a4252952a40",
+    "decodedBytes": 548945,
+    "decodedSha256": "2dbb6ee75a687708322f6af506e3a3255126efc7f294617e605772baf1e1960d",
+    "originalPath": "/tmp/rector-third-carousel-add-three-source-green.json"
+  },
+  {
+    "path": "three-source-probe.mjs",
+    "encoding": "identity",
+    "bytes": 14631,
+    "sha256": "f50836210e7e34b63929e0a785e24562747f95f5efbed1cbce6803c6372567b3",
+    "decodedBytes": 14631,
+    "decodedSha256": "f50836210e7e34b63929e0a785e24562747f95f5efbed1cbce6803c6372567b3",
+    "originalPath": "/tmp/rector-carousel-add-probe.mjs"
+  },
+  {
+    "path": "initial-controls-failed.log.gz",
+    "encoding": "gzip",
+    "bytes": 1108,
+    "sha256": "5eacbe1dc30b27808a1603fb892dcedfd822f1ea60a5b0bf6b0f7aa679e2a36a",
+    "decodedBytes": 4150,
+    "decodedSha256": "bed072a73a160f5f3e96c6b2637dacad7e671d94d7556a66d00c932220ea61a9",
+    "originalPath": "/tmp/rector-third-carousel-add-controls.log"
+  },
+  {
+    "path": "initial-controls-fixture.js.gz",
+    "encoding": "gzip",
+    "bytes": 3398,
+    "sha256": "7dc2a42d9a9f5fd55b1d82c3597c2350ce0a81c28c2a8e7722d6bdd8a214454c",
+    "decodedBytes": 11520,
+    "decodedSha256": "7e9e8972e5b067b7c5b8bb225f8aa5fcf0b4c77f569636d9ce5033eecca17b15",
+    "originalPath": "/tmp/rector-third-carousel-controls-initial.js"
+  },
+  {
+    "path": "settings-target-red.log.gz",
+    "encoding": "gzip",
+    "bytes": 685,
+    "sha256": "0ab0169592acd686f8d0292a93e7f5170b8643a6be3bbbde6936380dc6eb14de",
+    "decodedBytes": 1745,
+    "decodedSha256": "e7af36f815b3c4ed69bad882d330aa21e627a5091318c45c3835cabd0b7237ce",
+    "originalPath": "/tmp/rector-third-carousel-add-settings-red.log"
+  },
+  {
+    "path": "runtime-before-settings-fix.js.gz",
+    "encoding": "gzip",
+    "bytes": 10168,
+    "sha256": "8cc92b9740202933d0e96ab904a95504e440737cef529c8e4e022038e665ac51",
+    "decodedBytes": 43811,
+    "decodedSha256": "d8f31d02ee67a9c50aceb7f1e7f15b39ec54de9d9659d198dd6e5e4a2a8df042",
+    "originalPath": "/tmp/rector-third-carousel-before-settings-fix.js"
+  },
+  {
+    "path": "settings-and-controls-green.log.gz",
+    "encoding": "gzip",
+    "bytes": 327,
+    "sha256": "3424bab5e72df3b22bbc307e63a805c4baab6410bde99fbae9db5069488f66c6",
+    "decodedBytes": 666,
+    "decodedSha256": "c6045aded0be337cac673860773ac56f5416a6479745ff8adf294d93d6cf0165",
+    "originalPath": "/tmp/rector-third-carousel-add-settings-green.log"
+  },
+  {
+    "path": "final-native-plugin-parity.log.gz",
+    "encoding": "gzip",
+    "bytes": 4077,
+    "sha256": "f2f41c8671bbb6ba46d9208da7f98f751a0cd356a542d5273f63072c2d67fae7",
+    "decodedBytes": 25775,
+    "decodedSha256": "8944a86cac8e256951852ff6fa725566000f9224b5c856234070d82a2635eb56",
+    "originalPath": "/tmp/rector-third-carousel-add-final-native-plugin-parity-green.log"
+  },
+  {
+    "path": "final-native-plugin-media.log.gz",
+    "encoding": "gzip",
+    "bytes": 1825,
+    "sha256": "abc7f9fd94d1a9909ff1104c8d4302c5cae8ce703f3a425a6fcaef56a391ef41",
+    "decodedBytes": 10251,
+    "decodedSha256": "a3d459f29a7f61ed164b1c2eb26948a530852265905b12cfbdb58853916713cc",
+    "originalPath": "/tmp/rector-third-carousel-add-final-native-plugin-media-green.log"
+  },
+  {
+    "path": "final-typecheck.log.gz",
+    "encoding": "gzip",
+    "bytes": 185,
+    "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+    "decodedBytes": 259,
+    "decodedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+    "originalPath": "/tmp/rector-third-carousel-add-final-typecheck-green.log"
+  },
+  {
+    "path": "final-units.log.gz",
+    "encoding": "gzip",
+    "bytes": 977,
+    "sha256": "48a462bd882001ab22a8e11ce3a804b57ad40a752e2f06331eb28af3a611f978",
+    "decodedBytes": 4259,
+    "decodedSha256": "691250d61a3928994e17f8124946f83b28e57313e3e8f441adbf611cf3109bfb",
+    "originalPath": "/tmp/rector-third-carousel-add-final-units-green.log"
+  },
+  {
+    "path": "final-gates.json.gz",
+    "encoding": "gzip",
+    "bytes": 79049,
+    "sha256": "b96b460141caac1202c1f52b59bad1a0ba43bd606a1de613fa188f3d10a35347",
+    "decodedBytes": 188047,
+    "decodedSha256": "63d5cc9bd93e4c02b71fa6551c8e7613cf39762486906ab132363641291fad06",
+    "originalPath": "/tmp/rector-third-carousel-add-final-gates.json"
+  },
+  {
+    "path": "final-gates.py",
+    "encoding": "identity",
+    "bytes": 2929,
+    "sha256": "fdcdad931630fb1adaaf9b2c70734b8c2c5bb06d4edf9f11bb7d92bea4f4ff1a",
+    "decodedBytes": 2929,
+    "decodedSha256": "fdcdad931630fb1adaaf9b2c70734b8c2c5bb06d4edf9f11bb7d92bea4f4ff1a",
+    "originalPath": "/tmp/rector-third-carousel-add-final-gates.py"
+  },
+  {
+    "path": "summary.json",
+    "encoding": "identity",
+    "bytes": 7049,
+    "sha256": "18a0a6847483847e0744ca9e80e38dbb51016164b8ee224cbf677654b97c4883",
+    "decodedBytes": 7049,
+    "decodedSha256": "18a0a6847483847e0744ca9e80e38dbb51016164b8ee224cbf677654b97c4883"
+  },
+  {
+    "path": "README.md",
+    "encoding": "identity",
+    "bytes": 2753,
+    "sha256": "04a8033c66393da3383a81a7fec350c9861ef15c56f4891d8e5abe1b969cd733",
+    "decodedBytes": 2753,
+    "decodedSha256": "04a8033c66393da3383a81a7fec350c9861ef15c56f4891d8e5abe1b969cd733"
+  }
+]

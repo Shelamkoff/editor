@@ -47,6 +47,7 @@ interface InlinePluginDefinition<Data> {
   readonly styles?: readonly string[]
   readonly trigger?: string
   readonly schema: InlineWidgetSchema<Data>
+  toText?(data: Readonly<Data>): string
   readonly paste?: InlineWidgetPasteCapability<Data>
   readonly editing?: InlineWidgetEditCapability<Data>
   readonly insertion?: { createInitial(): InlineFreshInsertion<Data> }
@@ -61,6 +62,20 @@ When an inline extension is not installed, its canonical `{{id}}` reference and 
 An author may also type the literal characters `{{id}}` where that ID is already owned by a widget. Rector persists this *ordinary text*, without creating a second reference, as `<span class="oe-inline-literal">{{id}}</span>` in canonical rich-text HTML. The class is a reserved internal serialization marker, not an extension API or visual style. Sanitization, selection offsets, ID remapping and rendering preserve the literal text; only the unmarked owned token counts as an inline reference. Extension code must not add or remove this marker to impersonate a widget.
 
 For multi-field blocks, a canonical inline reference may belong to a hidden rich-text field whose DOM is not currently mounted. Rector protects matching author-typed literals in *other* mounted fields without rewriting the hidden field's reference or opaque payload. An inline sidecar entry with **no** canonical reference is not permission to revive that widget through coincidentally matching typed text; its ID is also protected as a literal until canonical assembly can prune the unreferenced entry. Field serialization order must not affect these rules.
+
+### Canonical text without a widget instance
+
+An optional pure synchronous `toText(data)` gives block-level label consumers a widget's canonical plain text. For example, a badge definition can include:
+
+```js
+toText(data) {
+  return data.label
+}
+```
+
+The editor captures this method once with its original definition receiver. Its argument is an owned, deeply frozen payload decoded through the captured schema. Return a string synchronously; promises, callable thenables, other result types and thrown values reject the owning operation through its existing recovery path. The callback receives no runtime or DOM context and must not create widgets, make provider requests, mutate document state or acquire tasks.
+
+Block instances request this text through [`context.getFieldText(fieldKey)`](/guide/extensions#canonical-text-for-unmounted-fields). The common parser handles real references, literal tokens and entities; the block never decodes a particular inline type. The returned string is plain text and is not parsed again. An unknown definition or one without `toText` retains its canonical token characters in this derived text. Mention includes its configured trigger and name; Color returns its canonical color value. Actual mounted presentation, including transient or mode-specific labels, remains owned by widget projection and `afterProjection`.
 
 ## Runtime and widget instance
 

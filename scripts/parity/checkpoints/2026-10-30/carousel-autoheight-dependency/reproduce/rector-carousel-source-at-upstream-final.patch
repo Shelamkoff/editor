@@ -1,0 +1,282 @@
+diff --git a/scripts/parity/block-roundtrip.mjs b/scripts/parity/block-roundtrip.mjs
+index b76c7524..0fef47db 100644
+--- a/scripts/parity/block-roundtrip.mjs
++++ b/scripts/parity/block-roundtrip.mjs
+@@ -375,6 +375,9 @@ const classifierSha256 = digest(await readFile(classifierPath))
+ const fixturePath = join(repo, 'tests/browser/block-roundtrip-fixture.js')
+ const fixtureBytes = await readFile(fixturePath)
+ const fixtureSha256 = digest(fixtureBytes)
++const carouselMediaPath = join(repo, 'tests/browser/carousel-roundtrip-16x16.webm')
++const carouselMediaBytes = await readFile(carouselMediaPath)
++const carouselMediaSha256 = digest(carouselMediaBytes)
+ const headBefore = git('rev-parse', 'HEAD').toString().trim()
+ const requestedFilter = process.env.EDITOR_ROUNDTRIP_FILTER ?? ''
+ const sources = [
+@@ -413,6 +416,11 @@ const server = createServer(async (request, response) => {
+         + '<script type="importmap">' + JSON.stringify({ imports }) + '</script></head><body></body></html>')
+       return
+     }
++    if (pathname === '/tests/browser/carousel-roundtrip-16x16.webm') {
++      response.setHeader('content-type', 'video/webm')
++      response.end(carouselMediaBytes)
++      return
++    }
+     response.setHeader('content-type', extname(pathname) === '.css' ? 'text/css' : 'text/javascript')
+     if (pathname === '/fixture.js') { response.end(fixtureBytes); return }
+     if (!loaded.has(pathname)) {
+@@ -698,6 +706,7 @@ try {
+   }
+   for (const { bytes, path } of loaded.values()) assert.deepEqual(await readFile(path), bytes, 'Source changed during probe: ' + path)
+   assert.deepEqual(await readFile(fixturePath), fixtureBytes, 'The browser fixture changed during its probe')
++  assert.deepEqual(await readFile(carouselMediaPath), carouselMediaBytes, 'The local Carousel video fixture changed during its probe')
+   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')
+   assert.equal(digest(await readFile(classifierPath)), classifierSha256, 'The LinkPreview/Poll classifier changed during its probe')
+   // All source pages are closed before pairing the two independent raw error
+@@ -714,7 +723,7 @@ try {
+     unsupportedReferenceCases: results.flatMap(source => source.cases.filter(entry => entry.referenceCapability?.supported === false)
+       .map(entry => ({ source: source.source, id: entry.id, ...entry.referenceCapability }))),
+     startedAt, finishedAt: new Date().toISOString(), node: process.version, browser: await browser.version(),
+-    sourceSha256, classifierSha256, fixtureSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
++    sourceSha256, classifierSha256, fixtureSha256, carouselMediaSha256, headBefore, headAfter: git('rev-parse', 'HEAD').toString().trim(),
+     sourceUnchanged: true, sourceIdentityVerified: serverErrors.length === 0,
+     sources, dependencyVersions, dependencyFiles, serverErrors, results,
+   }, null, 2))
+diff --git a/tests/browser/block-roundtrip-fixture.js b/tests/browser/block-roundtrip-fixture.js
+index 0fc2444f..f12cb53d 100644
+--- a/tests/browser/block-roundtrip-fixture.js
++++ b/tests/browser/block-roundtrip-fixture.js
+@@ -138,6 +138,20 @@ const embed = {
+     cover: pixel, title: 'Local preview', duration: '1:23' },
+ }
+ 
++const carousel = {
++  type: 'carousel', version: 1, className: 'Carousel', literalCaption: true,
++  fieldSelector: '.oe-carousel-block__caption', fieldTag: 'DIV',
++  defaultData: { slides: [], options: { loop: false, autoplay: false, autoplayDelay: 3000,
++    navigation: true, pagination: true, thumbnails: false } },
++  populatedData: { slides: [
++    { id: 'first', type: 'image', src: pixel, alt: 'First <&> image', caption: 'Alpha &amp; &lt;caption&gt; tail' },
++    { id: 'second', type: 'video', src: '/tests/browser/carousel-roundtrip-16x16.webm', poster: pixel,
++      alt: 'Second & video', caption: 'Second &amp; caption' },
++    { id: 'third', type: 'html', html: '<section><h3>Local &amp; HTML</h3><p><a href="https://example.test/more">More</a></p></section>',
++      caption: 'HTML &amp; caption' },
++  ], options: { loop: false, autoplay: false, autoplayDelay: 3000, navigation: true, pagination: true, thumbnails: true } },
++}
++
+ const linkPreview = {
+   type: 'linkPreview', moduleDirectory: 'link-preview', scenarioName: 'LINK_PREVIEW', version: 1, className: 'LinkPreview',
+   textKey: 'url', fieldMode: 'plain-text', fieldTag: 'INPUT', fieldSelector: '.oe-lp__url-input',
+@@ -174,10 +188,11 @@ const withEditedText = (block, data, text) => block.type === 'linkPreview' ? tex
+     cells: row.cells.map((cell, columnIndex) => rowIndex || columnIndex ? { ...cell } : { ...cell, text }),
+   })) }
+   : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
++  : block.type === 'carousel' ? { ...data, slides: data.slides.map((slide, index) => index ? { ...slide } : { ...slide, caption: text }) }
+   : { ...data, [block.textKey ?? 'text']: text }
+ const listItemText = item => typeof item === 'string' ? item : item.text
+ 
+-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, poll, linkPreview].flatMap(block => {
++export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, poll, linkPreview, carousel].flatMap(block => {
+   const prefix = 'BLOCK_' + (block.scenarioName ?? block.type.toUpperCase()) + '_ROUNDTRIP/'
+   if (block.noEditableField) return [
+     { ...block, populated: false, id: prefix + 'default' },
+@@ -292,7 +307,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+   const emptyImage = specification.type === 'image' && !specification.populated
+   const emptyAttaches = specification.type === 'attaches' && !specification.populated
+   const emptyEmbed = specification.type === 'embed' && !specification.populated
+-  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
++  const emptyCarousel = specification.type === 'carousel' && !specification.populated
++  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed && !emptyCarousel
+   const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption && !specification.withoutSidecars
+   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
+   const phaseScope = noEditableField ? {
+@@ -305,6 +321,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     reason: 'Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case.',
+   } : emptyEmbed ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+     reason: 'Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history.',
++  } : emptyCarousel ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
++    reason: 'The actual empty Carousel default has no slide or declared caption. Populated mixed-media cases execute caption authoring/history.',
+   } : {}
+   const base = new URL(sourceBase, import.meta.url)
+   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
+@@ -320,12 +338,19 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     mention: widget('mention', { id: 'ada', name: 'Ada' }),
+     swatch: widget('color', { value: '#123456' }),
+   }
++  const legacyCarouselText = source => {
++    const template = document.createElement('template')
++    template.innerHTML = source
++    return template.content.textContent
++  }
+   const record = (id, data, sidecars, block = paragraph) => ({ id, type: block.type, ...(!legacy ? { dataVersion: block.version } : {}),
+     data: legacy && block.type === 'list' ? { ...data, items: data.items.map(item => item.text) }
+       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
+         : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
+           : legacy && block.type === 'table' ? { withHeadings: data.withHeadings, content: data.rows.map(row => row.cells.map(cell => cell.text)) }
+-          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
++          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) }
++            : legacy && block.type === 'carousel' && specification.literalCaption
++              ? { ...data, slides: data.slides.map(slide => ({ ...slide, caption: legacyCarouselText(slide.caption) })) } : data,
+     ...(sidecars ? { inline: sidecars } : {}) })
+   const input = specification.populated ? {
+     version: legacy ? '1.0.5' : '2.0.0',
+@@ -392,6 +417,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     }
+     let previousEmbedParts = specification.type === 'embed' ? embedParts() : []
+     let previousEmbedText
++    const carouselParts = () => [shell(id).querySelector('.oe-carousel-block'), field(),
++      shell(id).querySelector('.oe-carousel-block__nav--next')]
++    let previousCarouselParts = specification.type === 'carousel' ? carouselParts() : []
+     const plainContenteditable = specification.plainContenteditable === true
+     const plainField = specification.fieldMode === 'plain-text' && !plainContenteditable
+     let previousPlainFields = plainField ? [field()] : []
+@@ -428,7 +456,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+     }
+     const pollFields = () => [shell(id).querySelector('.oe-poll__question'), ...shell(id).querySelectorAll('.oe-poll__option-text')]
+     let previousPollFields = specification.type === 'poll' ? pollFields() : []
+-    const baseText = noEditableField ? specification.neighborText : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
++    const baseText = noEditableField ? specification.neighborText : specification.type === 'carousel' ? baseData.slides[0]?.caption ?? '' : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+     const expectedBlocks = text => {
+       if (noEditableField) return specification.populated
+         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
+@@ -438,9 +466,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
+         : [record(id, data, undefined, specification)]
+     }
+-    const expectedTag = block => block.type === 'linkPreview' ? 'A' : ['spoiler', 'columns', 'attaches', 'table', 'poll'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
++    const expectedTag = block => block.type === 'linkPreview' ? 'A' : ['spoiler', 'columns', 'attaches', 'table', 'poll', 'carousel'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
+-    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'poll' ? { ...block.data, question: markupMeaning(block.data.question), options: block.data.options.map(option => ({ ...option, text: markupMeaning(option.text) })) } : ['code', 'raw', 'delimiter', 'attaches', 'linkPreview'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
++    const carouselCaptionMeaning = caption => legacy && specification.literalCaption ? caption ? [caption] : [] : markupMeaning(caption)
++    const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'carousel' ? { ...block.data, slides: block.data.slides.map(slide => ({ ...slide, caption: carouselCaptionMeaning(slide.caption) })) } : block.type === 'poll' ? { ...block.data, question: markupMeaning(block.data.question), options: block.data.options.map(option => ({ ...option, text: markupMeaning(option.text) })) } : ['code', 'raw', 'delimiter', 'attaches', 'linkPreview'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
+       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
+         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
+       : ['image', 'embed'].includes(block.type) ? { ...block.data, caption: markupMeaning(block.data.caption) }
+@@ -500,6 +529,35 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       caption: block.data.videoId && block.data.caption ? markupMeaning(block.data.caption) : null,
+       ...expectedEmbedPreview(block.data),
+     })
++    const carouselRendererMarkup = root => ({
++      label: root.getAttribute('aria-label'), aspectRatio: root.style.aspectRatio,
++      fixedRatio: root.classList.contains('editor-carousel-block--fixed-ratio'),
++      slides: [...root.querySelectorAll('.editor-carousel-block__slide')].map(figure => {
++        const media = figure.firstElementChild, caption = figure.querySelector('figcaption')
++        return { tag: figure.tagName, mediaTag: media.tagName,
++          ...(media.tagName === 'IMG' ? { src: media.getAttribute('src'), alt: media.alt, loading: media.loading }
++            : media.tagName === 'VIDEO' ? { src: media.getAttribute('src'), poster: media.getAttribute('poster'),
++              controls: media.controls, preload: media.preload, label: media.getAttribute('aria-label') }
++              : { html: authoredMarkup(media) }),
++          caption: caption ? authoredMarkup(caption) : null }
++      }),
++      navigation: [...root.querySelectorAll('.carousel__arrow')].map(button => ({ label: button.getAttribute('aria-label'), tag: button.tagName })),
++      pagination: [...root.querySelectorAll('.carousel__dot')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current') })),
++      thumbnails: [...root.querySelectorAll('.carousel__thumb')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current'), src: button.querySelector('img')?.getAttribute('src') ?? null })),
++    })
++    const expectedCarouselRendererMarkup = block => ({
++      label: 'Content carousel', aspectRatio: '', fixedRatio: false,
++      slides: block.data.slides.map(slide => ({ tag: 'FIGURE', mediaTag: slide.type === 'image' ? 'IMG' : slide.type === 'video' ? 'VIDEO' : 'DIV',
++        ...(slide.type === 'image' ? { src: slide.src, alt: slide.alt, loading: 'lazy' }
++          : slide.type === 'video' ? { src: slide.src, poster: slide.poster, controls: true, preload: 'metadata', label: slide.alt }
++            : { html: markupMeaning(slide.html) }),
++        caption: slide.caption ? carouselCaptionMeaning(slide.caption) : null })),
++      navigation: block.data.slides.length && block.data.options.navigation
++        ? ['Previous slide', 'Next slide'].map(label => ({ label, tag: 'BUTTON' })) : [],
++      pagination: block.data.options.pagination ? block.data.slides.map((_, index) => ({ label: 'Go to page ' + (index + 1), current: index ? 'false' : 'page' })) : [],
++      thumbnails: block.data.options.thumbnails ? block.data.slides.map((slide, index) => ({ label: 'Go to slide ' + (index + 1),
++        current: index ? 'false' : 'page', src: slide.type === 'image' ? slide.src : slide.type === 'video' ? slide.poster : null })) : [],
++    })
+     const spoilerRendererMarkup = element => {
+       const header = element.querySelector('.editor-spoiler__header')
+       const control = element.querySelector('.editor-spoiler__toggle')
+@@ -564,7 +622,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       image: ['minimal', 'notion'].includes(block.data.template) ? null : block.data.image || null,
+       favicon: block.data.favicon || null,
+     }
+-    const rendererMarkup = element => element.dataset.blockType === 'linkPreview' ? linkPreviewMeaning(element, 'editor-link-preview') : element.dataset.blockType === 'poll' ? pollRendered(element) : element.dataset.blockType === 'table' ? {
++    const rendererMarkup = element => element.dataset.blockType === 'carousel' ? carouselRendererMarkup(element) : element.dataset.blockType === 'linkPreview' ? linkPreviewMeaning(element, 'editor-link-preview') : element.dataset.blockType === 'poll' ? pollRendered(element) : element.dataset.blockType === 'table' ? {
+       children: [...element.children].map(child => child.tagName),
+       sections: [...element.querySelector('table').children].map(section => ({ tag: section.tagName,
+         rows: [...section.children].map(row => ({ tag: row.tagName, cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell) })) })),
+@@ -604,7 +662,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+         ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
+       ] }
+     }
+-    const expectedRendererMarkup = block => block.type === 'linkPreview' ? expectedLinkPreviewMeaning(block) : block.type === 'poll' ? expectedPollRendered(block) : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
++    const expectedRendererMarkup = block => block.type === 'carousel' ? expectedCarouselRendererMarkup(block) : block.type === 'linkPreview' ? expectedLinkPreviewMeaning(block) : block.type === 'poll' ? expectedPollRendered(block) : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
+       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
+         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
+         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
+@@ -787,6 +845,46 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+           check(phase, 'editorEmbedCoverDecoded', { complete: cover.complete, width: cover.naturalWidth, height: cover.naturalHeight }, { complete: true, width: 1, height: 1 })
+         } else check(phase, 'emptyEmbedHasNoRichAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
+       }
++      if (specification.type === 'carousel') {
++        const [wrapper, caption, next] = carouselParts()
++        check(phase, 'carouselWrapperIdentity', wrapper === previousCarouselParts[0], true)
++        check(phase, 'carouselEditorView', {
++          captions: wrapper.querySelectorAll('.oe-carousel-block__caption').length,
++          counter: wrapper.querySelector('.oe-carousel-block__counter')?.textContent ?? null,
++          aspectRatio: wrapper.querySelector('.oe-carousel-block__stage')?.style.aspectRatio ?? '',
++          navigation: [...wrapper.querySelectorAll('.oe-carousel-block__nav')].map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled })),
++          pagination: [...wrapper.querySelectorAll('.oe-carousel-block__dot')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current') })),
++          thumbnails: [...wrapper.querySelectorAll('.oe-carousel-block__thumbnail')].map(button => ({ label: button.getAttribute('aria-label'), current: button.getAttribute('aria-current') })),
++        }, {
++          captions: specification.populated ? 1 : 0, counter: specification.populated ? '1 / 3' : null, aspectRatio: '',
++          navigation: specification.populated ? [{ label: 'Previous slide', disabled: true }, { label: 'Next slide', disabled: false }] : [],
++          pagination: specification.populated ? [0, 1, 2].map(index => ({ label: 'Go to slide ' + (index + 1), current: String(index === 0) })) : [],
++          thumbnails: specification.populated ? [0, 1, 2].map(index => ({ label: 'Go to slide ' + (index + 1), current: String(index === 0) })) : [],
++        })
++        if (emptyCarousel) check(phase, 'emptyCarouselHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
++        else {
++          const picture = wrapper.querySelector('.oe-carousel-block__media img')
++          await picture.decode()
++          check(phase, 'carouselEditorMedia', { src: picture.getAttribute('src'), alt: picture.alt, width: picture.naturalWidth, height: picture.naturalHeight },
++            { src: pixel, alt: 'First <&> image', width: 1, height: 1 })
++          if (!legacy) check(phase, 'carouselCaptionAddress', caption.dataset.slideId, 'first')
++          check(phase, 'carouselCaptionLifetime', { connected: caption.isConnected,
++            predecessorCurrentOrDetached: previousCarouselParts[1] === caption || !previousCarouselParts[1].isConnected },
++          { connected: true, predecessorCurrentOrDetached: true })
++          if (caption !== previousCarouselParts[1]) {
++            const beforeSelection = nativeSelectionOwner()
++            previousCarouselParts[1].textContent = 'stale retired caption'
++            previousCarouselParts[1].dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'stale' }))
++            previousCarouselParts[1].dispatchEvent(new FocusEvent('blur'))
++            if (previousCarouselParts[2] && previousCarouselParts[2] !== next) previousCarouselParts[2].click()
++            await settled()
++            check(phase, 'carouselRetiredActionsLeaveCanonical', editor.save().blocks, saved.blocks)
++            check(phase, 'carouselRetiredActionsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
++            check(phase, 'carouselRetiredActionsLeaveField', field() === caption, true)
++            check(phase, 'carouselRetiredActionsLeaveSelection', nativeSelectionOwner(), beforeSelection)
++          }
++        }
++      }
+       if (specification.type === 'linkPreview') {
+         const wrapper = shell(id).querySelector('.oe-lp')
+         check(phase, 'linkPreviewCard', linkPreviewMeaning(wrapper.querySelector('.oe-lp__card'), 'oe-lp'), expectedLinkPreviewMeaning(target, true))
+@@ -958,7 +1056,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
+       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
+       check(phase, 'blockDomIdentity', previousShells.map(([blockId, element]) => shell(blockId) === element), previousShells.map(() => true))
+-      if (specification.type === 'poll') check(phase, 'pollWidgetLifetime', previousWidgets.map(([widgetId, element]) => {
++      if (['poll', 'carousel'].includes(specification.type)) check(phase, specification.type + 'WidgetLifetime', previousWidgets.map(([widgetId, element]) => {
+         const current = shell(id).querySelector(`[data-id="${widgetId}"]`)
+         return Boolean(current?.isConnected) && (element === current || !element.isConnected)
+       }), previousWidgets.map(() => true))
+@@ -988,6 +1086,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       previousImageParts = specification.type === 'image' ? imageParts() : []
+       previousEmbedParts = specification.type === 'embed' ? embedParts() : []
+       previousEmbedText = specification.type === 'embed' ? text : undefined
++      previousCarouselParts = specification.type === 'carousel' ? carouselParts() : []
+     }
+ 
+     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
+diff --git a/tests/browser/projection-contracts.js b/tests/browser/projection-contracts.js
+index e5e23640..47a5e548 100644
+--- a/tests/browser/projection-contracts.js
++++ b/tests/browser/projection-contracts.js
+@@ -1,5 +1,6 @@
+ import './regressions/gallery-derived-alt.js'
+ import './regressions/carousel-caption-renderer.js'
++import './regressions/carousel-auto-height.js'
+ import './regressions/field-projection-completion.js'
+ import './regressions/person-derived-presentation.js'
+ import './regressions/poll-derived-presentation.js'

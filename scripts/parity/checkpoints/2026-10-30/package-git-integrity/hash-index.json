@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "artifacts": [
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-ph0ERM/manifest.json",
+      "storedPath": "runs/run-ph0ERM/manifest.json",
+      "bytes": 5010,
+      "sha256": "749900fb7c880ff0a1702ee313894106d7d061cdc555941e96d2f59d91e3139b"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-ph0ERM/unit.log",
+      "storedPath": "runs/run-ph0ERM/unit.log",
+      "bytes": 1929,
+      "sha256": "e5adc2b7618b86b93444a3f28a633d7609a682f4fa98df4bed98a479a6866eaf"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-gate-20261030/test-results/run-ph0ERM/package.log",
+      "storedPath": "runs/run-ph0ERM/package.log",
+      "bytes": 20570,
+      "sha256": "cd5d2f41f28e93a3500ddf7a99819f6d93cc393a641afe7d3e0c876f9c4b5237"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/integrity-control.mjs",
+      "storedPath": "controls/integrity-control.mjs",
+      "bytes": 1678,
+      "sha256": "46eaef590d65e0369dbfbd8de544551b7f26402c9dc3d3fce451061128c17271"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/inputs.json",
+      "storedPath": "controls/inputs.json",
+      "bytes": 1520,
+      "sha256": "0bd587733b2eb8bf1a98f4a1230df3bd892448c7f24aedf8703599021680655e"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/old-helper.mjs",
+      "storedPath": "controls/old-helper.mjs",
+      "bytes": 1995,
+      "sha256": "d465dea387d19312b0d1b6d24d137fb537679becc80ae8a69764c3b6cda2bb71"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/new-helper.mjs",
+      "storedPath": "controls/new-helper.mjs",
+      "bytes": 3102,
+      "sha256": "fad9a20d508a551e70e38ea996d67efa3eac81592ee02d2d364190f550e1bd49"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/old.log",
+      "storedPath": "controls/old.log",
+      "bytes": 855,
+      "sha256": "65d5f7938012a7677adb32b1da5f1cfe7a1043e76c73474c7d55b297662b32ea"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/new.log",
+      "storedPath": "controls/new.log",
+      "bytes": 512,
+      "sha256": "c0e9767dfede6ac1e5dafe241a05af8705434d1d96ccda834f8d8c5fe5c86b50"
+    },
+    {
+      "originalPath": "/tmp/rector-package-git-integrity-controls-20261030/result.json",
+      "storedPath": "controls/result.json",
+      "bytes": 1444,
+      "sha256": "01602b31626693e6d8e70ff21367b35102125702c7647e3aa37b2a70f198d7dd"
+    }
+  ]
+}

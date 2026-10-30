@@ -1,0 +1,10 @@
+{
+  "state": "finished",
+  "startedAt": "2026-10-30T01:35:13.283752+00:00",
+  "resultsDirectory": "/tmp/rector-carousel-master-autoheight-20261030/test-results/run-RHrbbb",
+  "config": "/tmp/rector-carousel-master-autoheight-cached-test.config.mjs",
+  "configSha256": "def4eecb27a4e4f4a46992aa059ede0205629ad5f631b70b50323deba8164744",
+  "exitCode": 0,
+  "finish": 0,
+  "finishedAt": "2026-10-30T01:35:21.888229+00:00"
+}

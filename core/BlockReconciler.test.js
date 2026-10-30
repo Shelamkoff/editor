@@ -1916,6 +1916,98 @@ test('displaced block shell cannot focus while detached host retains normal oper
   reconciler.destroy()
 })
 
+test('focus refuses an adopted plugin root before its hook and rejects transfer during the hook', () => {
+  const document = new FakeDocument(), container = document.createElement('main')
+  const foreign = document.createElement('aside')
+  let focused = 0, moveDuringFocus = false, root
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      root = document.createElement('article')
+      return {
+        element: root, read() { return initial },
+        editableFields() { return [] }, setReadOnly() {}, destroy() {},
+        focus() { focused++; if (moveDuringFocus) foreign.appendChild(root) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  reconciler.mount(store)
+  const shell = reconciler.getElement('a'), layout = document.createElement('section')
+  shell.appendChild(layout); layout.appendChild(root)
+  assert.equal(reconciler.focus('a'), true, 'a detached editor and harmless layout wrapper remain supported')
+  assert.equal(focused, 1)
+  foreign.appendChild(root)
+  assert.equal(reconciler.focus('a'), false)
+  assert.equal(focused, 1, 'the adopted root received a focus callback')
+  assert.equal(root.parentNode, foreign)
+  layout.appendChild(root)
+  assert.equal(reconciler.focus('a'), true)
+  assert.equal(focused, 2)
+  moveDuringFocus = true
+  assert.equal(reconciler.focus('a'), false, 'focus claimed a root transferred by its own callback')
+  assert.equal(focused, 3)
+  assert.equal(root.parentNode, foreign)
+  assert.equal(store.get('a').data.text, 'a')
+  reconciler.destroy()
+  assert.equal(root.parentNode, foreign, 'disposal recaptured the foreign root')
+})
+
+for (const operation of ['read', 'mode']) for (const transfer of ['plugin root', 'outer shell']) {
+  test(`block ${operation} rejects an adopted ${transfer} before calling its retired instance`, () => {
+    const document = new FakeDocument(), container = document.createElement('main'), foreign = document.createElement('aside')
+    const occurrences = []
+    const registry = {
+      hasBlock: () => true,
+      getBlockDefinition: type => ({ type }),
+      getBlockRuntime: () => ({ create(initial, context) {
+        const element = document.createElement('article'), field = document.createElement('input')
+        element.appendChild(field)
+        const occurrence = { element, field, context, reads: 0, modes: 0, destroyed: 0 }
+        occurrences.push(occurrence)
+        return {
+          element, read() { occurrence.reads++; return initial },
+          editableFields() { return [{ key: 'text', mode: 'plain-text', element: field }] },
+          setReadOnly() { occurrence.modes++ },
+          destroy() { occurrence.destroyed++ },
+        }
+      } }),
+    }
+    const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+    const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+    reconciler.mount(store)
+    const original = occurrences[0], modes = original.modes, moved = transfer === 'outer shell'
+      ? reconciler.getElement('a') : original.element
+    foreign.appendChild(moved)
+    assert.throws(() => operation === 'read' ? reconciler.readBlock('a') : reconciler.setReadOnly(true))
+    assert.equal(original.reads, 0, 'the adopted instance supplied control data')
+    assert.equal(original.modes, modes, 'the adopted instance received a mode hook or rollback callback')
+    assert.equal(original.destroyed, 1)
+    assert.equal(original.context.signal.aborted, true)
+    assert.equal(moved.parentNode, foreign)
+    assert.equal(original.field.parentNode, original.element)
+    assert.equal(store.get('a').data.text, 'a')
+    reconciler.destroy()
+    assert.equal(original.destroyed, 1, 'later cleanup retried the retired instance')
+    assert.equal(moved.parentNode, foreign)
+  })
+}
+
+test('block root read and mode admission retain harmless host layout wrappers', () => {
+  const { document, container, reconciler } = setup(1)
+  const shell = reconciler.getElement('0'), root = shell.firstChild, layout = document.createElement('section')
+  shell.appendChild(layout); layout.appendChild(root)
+  assert.equal(reconciler.readBlock('0').data.text, '0')
+  reconciler.setReadOnly(true)
+  assert.equal(reconciler.getElement('0'), shell)
+  assert.equal(shell.parentNode, container)
+  assert.equal(root.parentNode, layout)
+  assert.equal(root.contentEditable, 'false')
+  reconciler.destroy()
+})
+
 test('readBlock rejects data from a block replaced synchronously by its read callback', () => {
   const doc = new FakeDocument()
   const container = doc.createElement('main')

@@ -387,6 +387,7 @@ export function createCarouselPlugin(config={}){
           let dead=false
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url','html'])}
           let activeIndex=0
+          let pendingAddedSlideId=null
           let settingsSlideId=null
           const tasks=new Set()
           let autoplayTimer=null
@@ -458,11 +459,17 @@ export function createCarouselPlugin(config={}){
                 const normalized=normalizeSlide(slide,current)
                 return normalized?[normalized]:[]
               })
-              return valid.length?{...current,slides:[...current.slides,...valid]}:current
+              if(!valid.length)return current
+              pendingAddedSlideId=valid[0].id
+              return {...current,slides:[...current.slides,...valid]}
             }
-            if(task)return retainControlFocus(wrapper,()=>task.commit(producer))
-            retainControlFocus(wrapper,()=>context.updateData(producer))
-            return true
+            return retainControlFocus(wrapper,()=>{
+              try{
+                if(task)return task.commit(producer)
+                context.updateData(producer)
+                return true
+              }finally{pendingAddedSlideId=null}
+            })
           }
 
 
@@ -887,7 +894,11 @@ export function createCarouselPlugin(config={}){
               options:{...data.options},
             }),
             update(next, previousCanonical){
-              const activeId=data.slides[activeIndex]?.id
+              // Select an added slide in its canonical projection, before
+              // committed listeners can make a newer navigation choice.
+              const activeId=pendingAddedSlideId??data.slides[activeIndex]?.id
+              if(pendingAddedSlideId!==null)settingsSlideId=null
+              pendingAddedSlideId=null
               // The locally projected active caption can be older than the
               // canonical text retained by a native editing transaction.
               // A real Undo/host reversion must not be mistaken for a no-op

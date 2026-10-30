@@ -43,8 +43,8 @@ function compatibleUpdate(left, right) {
  * A one-shot async completion may amend the immediately preceding authoring
  * action only when that action changed the named field of the same block.
  * This is narrower than ordinary typing coalescence: only native or plugin-
- * authored URL edits can be continued. A host's external URL update must remain
- * a separate action, even if the user later submits that same URL for metadata.
+ * authored field edits can be continued. A host's external update must remain
+ * a separate action, even if the user later submits that same value for metadata.
  */
 function compatibleContinuation(previous, next, token) {
   if (!previous || !token || previous.id !== token.baseRevision
@@ -65,8 +65,10 @@ function compatibleContinuation(previous, next, token) {
   if (!before || !after || !metadataBefore || !metadataAfter
     || !Object.hasOwn(before, field) || !Object.hasOwn(after, field)
     || !Object.hasOwn(metadataBefore, field) || !Object.hasOwn(metadataAfter, field)
-    || before[field] === after[field] || after[field] !== metadataBefore[field]
-    || metadataBefore[field] !== metadataAfter[field]) return false
+    // Owned snapshots have distinct object/array identities. Field continuity
+    // follows their canonical JSON values, just like the complete snapshots.
+    || equalJsonValue(before[field], after[field])
+    || !equalJsonValue(metadataBefore[field], metadataAfter[field])) return false
 
   // Do not merge a stale result into a record whose canonical after snapshot
   // differs from the before snapshot of this metadata transaction.

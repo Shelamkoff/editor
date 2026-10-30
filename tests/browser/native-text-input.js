@@ -336,6 +336,45 @@ test('Native unmatched color-like word and selected text retain their normal spa
   }
 })
 
+for (const delimiter of ['Space', 'Enter']) {
+  for (const matched of [true, false]) {
+    test(`Native typed ${delimiter} preserves a newer caret when its matcher returns ${matched ? 'a widget' : 'no match'}`, async () => {
+      const color = createColorSwatchPlugin()
+      let newerField
+      let calls = 0
+      const definition = {
+        ...color,
+        paste: {
+          ...color.paste,
+          fromMatch(word) {
+            calls++
+            select(newerField, 1)
+            return matched ? color.paste.fromMatch(word) : null
+          },
+        },
+      }
+      const editor = make([para('a', '#ff0000'), para('b', 'Bravo')], { inlinePlugins: [definition] })
+      const formerField = editableField(editor, 'a')
+      newerField = editableField(editor, 'b')
+      select(formerField, 7)
+      const before = editor.save().blocks
+      if (delimiter === 'Space') await printable(' ')
+      else await dispatchKey('Enter', 'Enter', 13)
+      equal(calls, 1, 'The typed matcher did not run at the original caret')
+      equal(editor.save().blocks, before, 'An obsolete delimiter authored into the former or newer field')
+      equal(editor.canUndo, false, 'An obsolete delimiter created an author history action')
+      const native = window.getSelection()
+      assert(native?.isCollapsed && newerField.contains(native.anchorNode), 'Typed matching reclaimed the newer native caret')
+      equal(getTextOffset(newerField, native.anchorNode, native.anchorOffset), 1)
+      await window.__testInput('Input.insertText', { text: 'X' })
+      await pause(20)
+      equal(texts(editor), ['#ff0000', 'BXravo'], 'Fresh typing did not continue at the newer caret')
+      editor.undo()
+      equal(editor.save().blocks, before, 'The fresh edit could not be undone independently')
+    })
+  }
+}
+
 
 test('Inline Paste does not convert a color-like fragment inside a URL', async () => {
   const editor = make([para('a', '')], { inlinePlugins: [createColorSwatchPlugin()] })

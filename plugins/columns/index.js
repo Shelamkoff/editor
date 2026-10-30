@@ -158,7 +158,8 @@ export function createColumnsPlugin(config = {}) {
             return element
           }
 
-          const reconcile=next=>{
+          const reconcile=(next,previousCanonical)=>{
+            const previousContent=new Map((previousCanonical?.columns??[]).map(column=>[column.id,column.content]))
             const layout=COLUMN_LAYOUTS[next.layout]??COLUMN_LAYOUTS['1-1']
             grid.style.gridTemplateColumns=layout.grid
             const live=new Set()
@@ -167,7 +168,10 @@ export function createColumnsPlugin(config = {}) {
               const element=nodes.get(column.id)??createColumn(column)
               element.contentEditable=readOnly?'false':'true'
               element.dataset.placeholder=`${runtimeContext.t('colPlaceholder','Column')} ${index+1}`
-              if(element.innerHTML!==column.content){
+              // A completed rich field contains live widgets rather than its
+              // serialized tokens. Preserve untouched authored fields through
+              // sibling edits and let core keep their exact inline ownership.
+              if(previousContent.get(column.id)!==column.content&&element.innerHTML!==column.content){
                 if(column.content)setSanitizedHtml(element,column.content)
                 else element.textContent=''
               }
@@ -200,7 +204,7 @@ export function createColumnsPlugin(config = {}) {
                 content:nodes.get(column.id)?.innerHTML.trim()??column.content,
               })),
             }),
-            update(next){if(!instanceDestroyed)reconcile(next)},
+            update(next,previousCanonical){if(!instanceDestroyed)reconcile(next,previousCanonical)},
             editableFields:()=>Object.freeze(data.columns.flatMap(column=>{
               const element=nodes.get(column.id)
               return element?[Object.freeze({

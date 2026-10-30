@@ -13,7 +13,7 @@ The [publication review](docs/architecture/rector-v2/PUBLICATION_REVIEW.md) reco
 
 ## Readiness
 
-Readiness is per contract and slice. `B-HTML`, `B-STYLE`, and `B-PRESENTATION` remain decision gates for their affected changes. Fresh v1/current/candidate differential proof is required for whole-library acceptance. A ready bug-fix slice does not make the whole library accepted.
+Readiness is per contract and slice. `B-HTML` and `B-STYLE` remain decision gates for their affected changes. `B-PRESENTATION` has the settled field-local recovery contract in specification §16.5; its implementation and dated verification are recorded in the [combined core continuation](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#combined-core-continuation-2026-10-29). Fresh v1/current/candidate differential proof is required for whole-library acceptance. A ready bug-fix slice does not make the whole library accepted.
 
 Do not add a second document store, history engine, selection store, global authority manager, legacy decoder, compatibility shim, or alternate API merely to make a local repair easier. Large modules are split only at a demonstrated responsibility boundary.
 

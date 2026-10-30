@@ -1,0 +1,3842 @@
+{
+  "scope": "Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed/Gallery/Carousel record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept every detailed behavior row or whole-library parity.",
+  "requestedFilter": "",
+  "selectedCaseIds": [
+    "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+    "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+    "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_HEADING_ROUNDTRIP/default",
+    "BLOCK_HEADING_ROUNDTRIP/populated",
+    "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_LIST_ROUNDTRIP/default",
+    "BLOCK_LIST_ROUNDTRIP/populated",
+    "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_QUOTE_ROUNDTRIP/default",
+    "BLOCK_QUOTE_ROUNDTRIP/populated",
+    "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_WARNING_ROUNDTRIP/default",
+    "BLOCK_WARNING_ROUNDTRIP/populated",
+    "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_CODE_ROUNDTRIP/default",
+    "BLOCK_CODE_ROUNDTRIP/populated",
+    "BLOCK_CHECKLIST_ROUNDTRIP/default",
+    "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+    "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_DELIMITER_ROUNDTRIP/default",
+    "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+    "BLOCK_IMAGE_ROUNDTRIP/default",
+    "BLOCK_IMAGE_ROUNDTRIP/populated",
+    "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+    "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+    "BLOCK_TOGGLE_ROUNDTRIP/default",
+    "BLOCK_TOGGLE_ROUNDTRIP/populated",
+    "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+    "BLOCK_SPOILER_ROUNDTRIP/default",
+    "BLOCK_SPOILER_ROUNDTRIP/populated",
+    "BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_COLUMNS_ROUNDTRIP/default",
+    "BLOCK_COLUMNS_ROUNDTRIP/populated",
+    "BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_ATTACHES_ROUNDTRIP/default",
+    "BLOCK_ATTACHES_ROUNDTRIP/populated",
+    "BLOCK_RAW_ROUNDTRIP/default",
+    "BLOCK_RAW_ROUNDTRIP/populated",
+    "BLOCK_EMBED_ROUNDTRIP/default",
+    "BLOCK_EMBED_ROUNDTRIP/populated",
+    "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_EMBED_ROUNDTRIP/populated-literal",
+    "BLOCK_TABLE_ROUNDTRIP/default",
+    "BLOCK_TABLE_ROUNDTRIP/populated",
+    "BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_POLL_ROUNDTRIP/default",
+    "BLOCK_POLL_ROUNDTRIP/populated",
+    "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_POLL_ROUNDTRIP/populated-literal",
+    "BLOCK_LINK_PREVIEW_ROUNDTRIP/default",
+    "BLOCK_LINK_PREVIEW_ROUNDTRIP/populated",
+    "BLOCK_GALLERY_ROUNDTRIP/default",
+    "BLOCK_GALLERY_ROUNDTRIP/populated",
+    "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+    "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+    "BLOCK_PERSON_ROUNDTRIP/default",
+    "BLOCK_PERSON_ROUNDTRIP/populated",
+    "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+    "BLOCK_PERSON_ROUNDTRIP/populated-literal",
+    "BLOCK_CAROUSEL_ROUNDTRIP/default",
+    "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+    "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+    "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control"
+  ],
+  "incompleteCases": [
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_LIST_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_POLL_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "view-second",
+        "view-return",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "view-second",
+        "view-return",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    }
+  ],
+  "notApplicableCases": [
+    {
+      "source": "v1",
+      "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_EMBED_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Gallery with no images has no caption field; populated cases exercise declared caption authoring and history."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "The actual empty Carousel default has no slide or declared caption. Populated mixed-media cases execute caption authoring/history."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_EMBED_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Gallery with no images has no caption field; populated cases exercise declared caption authoring and history."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "The actual empty Carousel default has no slide or declared caption. Populated mixed-media cases execute caption authoring/history."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Delimiter has no editable field; only the populated case edits a real neighboring Paragraph."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Image without a source has no declared editable caption; authoring/history are covered by the populated image case."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_EMBED_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Gallery with no images has no caption field; populated cases exercise declared caption authoring and history."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "The actual empty Carousel default has no slide or declared caption. Populated mixed-media cases execute caption authoring/history."
+    }
+  ],
+  "unsupportedReferenceCases": [
+    {
+      "source": "v1",
+      "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+      "supported": false,
+      "feature": "Persistent Image caption widgets",
+      "reason": "Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Image caption widgets",
+      "reason": "Pinned v1 Image and its abstract base declare no mapTextFields hook; its public inline insertion gate rejects such blocks. These are current-capability controls, not proof of v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+      "supported": false,
+      "feature": "Persistent Embed caption widgets",
+      "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Embed caption widgets",
+      "reason": "Pinned v1 Embed declares no mapTextFields hook required by its block contract and public inline insertion gate. This is a current-capability control, not proof of v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_POLL_ROUNDTRIP/populated",
+      "supported": false,
+      "feature": "Persistent Poll question and option widgets",
+      "reason": "Pinned v1 Poll declares no mapTextFields hook required by the public persistent inline insertion gate. Its literal question/option data remains compared; the two sidecar cases prove current capability, not v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Poll question and option widgets",
+      "reason": "Pinned v1 Poll declares no mapTextFields hook required by the public persistent inline insertion gate. Its literal question/option data remains compared; the two sidecar cases prove current capability, not v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+      "supported": false,
+      "feature": "Persistent Gallery caption widgets and rich marks",
+      "reason": "Pinned v1 Gallery has inlineTools=false, no mapTextFields hook, and plain textContent captions. The fixed historical wire adapter preserves visible plain caption text; rich marks and persistent sidecars are current-capability controls, not proof of v1 support."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Gallery caption widgets and rich marks",
+      "reason": "Pinned v1 Gallery has inlineTools=false, no mapTextFields hook, and plain textContent captions. The fixed historical wire adapter preserves visible plain caption text; rich marks and persistent sidecars are current-capability controls, not proof of v1 support."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+      "supported": false,
+      "feature": "Persistent Person name, role and biography widgets",
+      "reason": "Pinned v1 Person sets inlineTools=false and declares no mapTextFields hook required by its public persistent inline insertion gate. Literal profile data remains compared; these two widget cases establish current capability, not v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Person name, role and biography widgets",
+      "reason": "Pinned v1 Person sets inlineTools=false and declares no mapTextFields hook required by its public persistent inline insertion gate. Literal profile data remains compared; these two widget cases establish current capability, not v1 widget parity."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+      "supported": false,
+      "capability": "persistent rich-caption inline widgets",
+      "reason": "v1 Carousel disables inline tools, declares no rich-field mapper and saves captions as literal text. Its observed differences remain explicit."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "supported": false,
+      "capability": "persistent rich-caption inline widgets",
+      "reason": "v1 Carousel disables inline tools, declares no rich-field mapper and saves captions as literal text. Its observed differences remain explicit."
+    }
+  ],
+  "startedAt": "2026-10-30T02:41:29.789Z",
+  "finishedAt": "2026-10-30T02:43:59.282Z",
+  "node": "v24.22.1",
+  "browser": "156.0.8078.47",
+  "sourceSha256": "2bd7f2477ff511f1d029a64dede43734f08a0f5eb925a396b1cf0c8046a8f662",
+  "classifierSha256": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+  "galleryClassifierSha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85",
+  "personClassifierSha256": "64f3711d1fe0d47d2d3314fefd3a4e38a99716bd0acd0a867b07c5204ccf37c9",
+  "carouselClassifierSha256": "4898a91e389458e8c1ce89fffe1b8454c6ca08030d60e08d9638e418e07960da",
+  "fixtureSha256": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e",
+  "carouselMediaSha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75",
+  "headBefore": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+  "headAfter": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+  "sourceUnchanged": true,
+  "sourceIdentityVerified": true,
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "dependencyFiles": {
+    "@shelamkoff/event-bus/dist/index.js": "44980801a34408be115a36b765b730c6a4fda9f88cc668d2417cde149716de2f",
+    "@shelamkoff/color-picker/dist/index.js": "47d393a3abb3dbd3c10b97f6ef23f11d0c37052744b8034876d624b3ca236cae",
+    "@shelamkoff/event-bus/dist/src/EventBus.js": "6ca95dcaa99e4e7aa57c24666ded5dab71f270c19ca4f0c3667659f4274d2408",
+    "@shelamkoff/color-picker/dist/ColorPicker.js": "dc8a67a5b0ac2c81e1d4087bab79700edc721eb9f10da76cca1ab6817f924a8a",
+    "@shelamkoff/color-picker/dist/colorMath.js": "ae1e9a60ce6ff8267b98bc732d56f7dc4de9e05fd2f8d4290b3171ee8ecf63b7",
+    "@shelamkoff/carousel/dist/src/index.js": "6c73f6583b1b7d3280a1a2aa75885a8ca8b0c0265fce23d3a123fbe99007b1b6",
+    "@shelamkoff/expose/dist/src/index.js": "685180b7a9e6e81fce50c6c1da8905d00828338a4ded0e416ace1453861f97d6",
+    "@shelamkoff/carousel/dist/src/plugins/arrows.js": "91bbe344b1131a8798fca7e652466b2fdd8a494dd10b55669abddb18b3fcc5da",
+    "@shelamkoff/carousel/dist/src/Carousel.js": "a3969ff43b5ff8d326e297fff122c11ffeb7747ff7f68f0bfd38fa6a32cdef1f",
+    "@shelamkoff/carousel/dist/src/plugins/dots.js": "261b11c5de5f9656c95e1dae89cec4f963d30b7252a3a9550b0815b42e0b3228",
+    "@shelamkoff/carousel/dist/src/plugins/thumbnails.js": "f612dc43eaa0d8dafc7090d39b00e64a6b2455a07b7c04fc3c55643b5a0e593d",
+    "@shelamkoff/carousel/dist/src/plugins/swipe.js": "33a8cfe76b99c5be0f6b08cfd5f7c299c29f6d9cc2fa80c46fa6c894055374f7",
+    "@shelamkoff/carousel/dist/src/plugins/keyboard.js": "affb6d74026a59c9758871702bba4cf4f8af22309a6cfa34c67dc6f8dffd94f2",
+    "@shelamkoff/carousel/dist/src/plugins/autoplay.js": "8b502f680cf86862ed8f37260aedb9e1a605c157821661feca9db212053fec46",
+    "@shelamkoff/carousel/dist/src/plugins/lazyload.js": "2425cda1df630f375168e631f27f5f29465ac6013b3fb1e14f616a11af41fcd3",
+    "@shelamkoff/carousel/dist/src/plugins/parallax.js": "d03d759e1fb41efbd7ed12864a1348a6f46e2ccb7acb629f0ad266191efdb22e",
+    "@shelamkoff/expose/dist/src/animations/index.js": "91d79bee48cd97261af0c9264b4e51232ac6f62b39ff9334cb044c2351879415",
+    "@shelamkoff/expose/dist/src/Expose.js": "833a2e7ce423acf52930b8af35df05079129f1e18a568ca75d735155407327ac",
+    "@shelamkoff/expose/dist/src/AnimationManager.js": "bbbdee6a3a03a26941b6cccc5150b9d6dcc977da177b77ba6bc9c4c73c0d57db",
+    "@shelamkoff/expose/dist/src/plugins/index.js": "0bfebd2c97343f3203dae92d8817a164f6aafcef592716bd1d53f2e6559022b5",
+    "@shelamkoff/masonry/dist/src/index.js": "1f1773543f59ed9f9895b489140537e5c4f9d0c16c47a5d691473beabecf4a8f",
+    "@shelamkoff/carousel/dist/src/SlideManager.js": "096bb3d1effe623e9445f92933bc8b34b4030414df212addcac39c3ef214f1af",
+    "@shelamkoff/carousel/dist/src/TrackRenderer.js": "637086ae6119d8fed554acc9e5d47465ab79179137761f68c8bf1c7d1ce40fee",
+    "@shelamkoff/carousel/dist/src/LoopEngine.js": "0efae61567ab966f50161698c5cc02f54792c4791919d11ef3a0e18b661e5ed3",
+    "@shelamkoff/carousel/dist/src/BreakpointManager.js": "3d3cc67866108ef71fd094188c303d7cb499d31f9cd8b44f50cfff582676b2f4",
+    "@shelamkoff/expose/dist/src/animations/fade.js": "42fbd5de2b50df72f69f8848e09ea046793e1b09608a4109b2c0505ec543fb6c",
+    "@shelamkoff/expose/dist/src/animations/slide.js": "cc8b80e676b654ae0f57b6183ffb0bc343e7ed7701f02ed23b2aa4796e152eeb",
+    "@shelamkoff/expose/dist/src/animations/zoom-in.js": "263337d3b4967fc32f1f3f33e7a4d64116935ff2546ca25e3b1701d7a48d8c3c",
+    "@shelamkoff/expose/dist/src/animations/flip.js": "c109c75681cfcbd7f543719c7b89427b713b64c67bd7ebf650b8e04636ab7a6b",
+    "@shelamkoff/expose/dist/src/animations/none.js": "13cf0cb13cd2bfbaf443e031b40175457cb668a5edc430f4434c4b3cc6fa5d19",
+    "@shelamkoff/expose/dist/src/animations/scatter.js": "8dcba281252940ede13674d93d1b421fa75a3f6864637090da057f6b8aeb0e5f",
+    "@shelamkoff/expose/dist/src/animations/cube.js": "2f5883bed04f63bdddeb6e14e97115b80ae656002ff1c8c2746e9cab6c0272df",
+    "@shelamkoff/expose/dist/src/animations/stack.js": "bb4f8ea1c526410a2f147f077c606da44fcfb919e660bd5b2c4bf4a0f33c932c",
+    "@shelamkoff/expose/dist/src/animations/wipe.js": "439387f389cd79c3b6eea652048dc2f7025ebb647321cdb6bb109f0e5c58984d",
+    "@shelamkoff/expose/dist/src/animations/puzzle.js": "a2379caf0f55591c49eb5be113ca14f37d997ebbbc56a79b12677788fcf5fbee",
+    "@shelamkoff/expose/dist/src/animations/iris.js": "547d2aec09aaa3296abc9f9fbe1f006338601c481092a67528eec5f04df80fab",
+    "@shelamkoff/expose/dist/src/animations/blinds.js": "488b09cb51b62df4ac4e79ef4727fa76bf9432b55884a6d97ee3ca148b6ea0c4",
+    "@shelamkoff/expose/dist/src/animations/drop.js": "03421cb276d074feb2d85738c2fb698cd5f4ba4bcdc4b1c34381969d73f65f34",
+    "@shelamkoff/expose/dist/src/animations/blur.js": "d65b6e3038ae74f6731bb07974dfec412ee68219c80c96b483502266c6970326",
+    "@shelamkoff/expose/dist/src/animations/rotate.js": "e161953d709f6dad9497cf2b9973da92633bb4993bb3292eebd07d1d75a3f3f2",
+    "@shelamkoff/expose/dist/src/animations/fold.js": "003566fbecfcd74765f8467df77f983227c6519878d2ced459f2c049f27ce9eb",
+    "@shelamkoff/expose/dist/src/animations/swirl.js": "da0cb92d90acff429df4fef9c0b5083c531c2a79ca8f6f5e81ddb3f53e410ecf",
+    "@shelamkoff/expose/dist/src/animations/glitch.js": "27e3a67e302e7aa113394d514dc09e5e978a1f9fef7ddac26d45c416a9df486b",
+    "@shelamkoff/expose/dist/src/SlideRenderer.js": "0ec4b5254f3d9baa794b5d07bbba4137c62ca8fc083280a99285d1cc71289c82",
+    "@shelamkoff/expose/dist/src/Toolbar.js": "721969b279d63dc18762f45514cebf537fd90efdc6c51d57d73ad9187d8c4951",
+    "@shelamkoff/expose/dist/src/utils.js": "6bf6341c0c5f8b62cf6f22dde664b18c35217f9a809f0c1b4762b0a273020555",
+    "@shelamkoff/expose/dist/src/plugins/captions.js": "cc50c5ab915e13a882bbabbfee6b3622afee49cb4701b5cf6cf67fa557b6cdb6",
+    "@shelamkoff/expose/dist/src/plugins/zoom.js": "fab1a363fc3ac0173b2b8218bd70f01c29c223759380ce9b69e901916f29fe1d",
+    "@shelamkoff/expose/dist/src/plugins/thumbnails.js": "ddb8cf333824c49c79eb49d84f5574572abd68b2527cc2ee54c9cf201410b26e",
+    "@shelamkoff/expose/dist/src/plugins/autoplay.js": "e152aaafca9aed5cb7526e67f6cd59703a3c6a83effdc1a24325d9c072275f0c",
+    "@shelamkoff/expose/dist/src/plugins/transform.js": "4ebc9aaa8bbb66fd7fc497f570490d011cf6e5e59f6222247295a3f1c6405e29",
+    "@shelamkoff/expose/dist/src/plugins/download.js": "5ade20a716e9ab41cc5c01f4de4d6705f89788ab9670582bf597ff902b92d5dd",
+    "@shelamkoff/expose/dist/src/plugins/fullscreen.js": "91f4d68d396528d378ee13cc1eb9b534eadc2a71fbc1f545d2079ba8c3181b55",
+    "@shelamkoff/expose/dist/src/animations/_helpers.js": "6242baccb080f2eab657c1774a9c4beb567e0055a4069214dfc95f060b25ca3a",
+    "@shelamkoff/masonry/dist/src/Masonry.js": "26a1d0ab5994376569b64426d32b1104fa60d5faa2923c7b24ad58d6e34b5fbb",
+    "@shelamkoff/expose/dist/src/Thumbnails.js": "17ab1fe1d38e9e83b865430e7e621240b0a731fea18365c4cb055b2b2df23cfc",
+    "@shelamkoff/expose/dist/src/ZoomManager.js": "96adc566bdea097defb8caa791615baba206a4c76c72339600354c432e17a52e",
+    "@shelamkoff/infinite-scroll/dist/src/index.js": "cd0d91899882f59969334c79a79c3e4242403737de918a87fdf761dbbe5fd2a9",
+    "@shelamkoff/masonry/dist/src/ContentLoader.js": "f1c98ac845285d0b6ee1890b23afa4bc7a5577aa60f39efb6b94a7a8a7f01cbc",
+    "@shelamkoff/masonry/dist/src/LayoutEngine.js": "b62add752343baf8a1aecb8d5c8929f2706c65bac69650b2469d1af7c920de40",
+    "@shelamkoff/masonry/dist/src/utils.js": "2c0babb80ddd986b5ac66c7a37fa0edeb79c49449e5eb172fe57d3e45728d589",
+    "@shelamkoff/infinite-scroll/dist/src/InfiniteScroll.js": "5a1e6388d66779766a79d2605cf783b50e173e1d002c6faabef9ab52f6d7af0d",
+    "@shelamkoff/color-picker/dist/colorPicker.css": "cb168cd4b3be922e07ada401e9d4ceff777f580b8c5a71d6a05da32b4eb8ad8e",
+    "@shelamkoff/expose/dist/styles/expose.css": "b8a2f8f2a30248a61f6a56ac44b7e13e6372b0efb9d340404c1890941766b447",
+    "@shelamkoff/cropper/dist/src/index.js": "2ef7b6005787dc4fb1939bdd0f13164108a9758b7ce6339abd3cc9f4d9297d5e",
+    "@shelamkoff/cropper/dist/src/Cropper.js": "1445437e030b4cc78753b50dd236238927a0770dcdad3ee1ee69ec8697efd00c",
+    "@shelamkoff/cropper/dist/src/ui/CropperDialog.js": "5b290d454b22d5f3ae54e17bf480b4a60e8949372f42ceff6046b03580b45162",
+    "@shelamkoff/cropper/dist/src/TransformState.js": "1a025f1689a919887aaa567a4338b927b1cec869a4bb29f71681388a0680b72c",
+    "@shelamkoff/cropper/dist/src/shapes/CircleShape.js": "4432b330adae811faadc213be772b0a2b5906fc22cc28bb233eaf17758036941",
+    "@shelamkoff/cropper/dist/src/shapes/RectangleShape.js": "e146991cab5e12daee76549202af824162ae3db6934ff46b9d72d330fadbe3ea",
+    "@shelamkoff/cropper/dist/src/shapes/FreeShape.js": "1090db811a91a70786df28a1a323452fd4019cf031747cb85be5f0b6bc769b2f",
+    "@shelamkoff/cropper/dist/src/interactions/DragHandler.js": "84e41a917a58d6952a2df079f07e9395ae05ec3b8e0e8230c17ebba66c961b2d",
+    "@shelamkoff/cropper/dist/src/interactions/WheelZoomHandler.js": "1ba8fb812301b346d5181099181f990ad522ff3b4cff0794e25e3b4850901604",
+    "@shelamkoff/cropper/dist/src/interactions/PinchZoomHandler.js": "29a60a46088053eea8d85d62e5422b7e49760d7fc3cf6fac4bde384f62b9611f",
+    "@shelamkoff/cropper/dist/src/interactions/KeyboardHandler.js": "059296d0214e0a6e08244058c92f005e029810bc7c51419891af43930d299aba",
+    "@shelamkoff/cropper/dist/src/ui/Toolbar.js": "9cac67e70dac8f22a71497b690af15bba465e579e64edc05221097def336b6d6",
+    "@shelamkoff/cropper/dist/src/Renderer.js": "df670847f1b50bc4179f53dc69c76ff5b6633e6258e5e6ab941253690594e678",
+    "@shelamkoff/cropper/dist/src/utils.js": "4cbc0a223e7f8bb3044e8d1f084dc6ba7c76e0f738ed03c557d9ca125c2f0e1b",
+    "@shelamkoff/cropper/dist/src/Viewport.js": "7843946325fdb42e58a6aa3d4412ff15f5f4931da3986c4fab772161afc34da2",
+    "@shelamkoff/cropper/dist/styles/cropper.css": "adeb651ca082910a386f99802d000c738c0572d16c19049c3ff3b3a8c8a278df",
+    "@shelamkoff/carousel/dist/styles/carousel.css": "8aeb1884d1ecacf326b50ab46f1f16b0b6efb1cba9fada533ebb94064b4e6259",
+    "dompurify/dist/purify.es.mjs": "60c5d5ccbb466de3de3ba863461a92bf134f8c156cef7992da43e0f659bc5cbd"
+  },
+  "serverErrors": [],
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "legacy": true,
+      "loadedFiles": 240
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "legacy": false,
+      "loadedFiles": 256
+    },
+    {
+      "label": "candidate",
+      "sha": "6409e2d24585ac69bc0d991f8c096674c3905a27",
+      "legacy": false,
+      "loadedFiles": 256
+    }
+  ],
+  "uniqueCaseCount": 65,
+  "uniqueBlockTemplates": [
+    "BLOCK_ATTACHES_ROUNDTRIP",
+    "BLOCK_CAROUSEL_ROUNDTRIP",
+    "BLOCK_CHECKLIST_ROUNDTRIP",
+    "BLOCK_CODE_ROUNDTRIP",
+    "BLOCK_COLUMNS_ROUNDTRIP",
+    "BLOCK_DELIMITER_ROUNDTRIP",
+    "BLOCK_EMBED_ROUNDTRIP",
+    "BLOCK_GALLERY_ROUNDTRIP",
+    "BLOCK_HEADING_ROUNDTRIP",
+    "BLOCK_IMAGE_ROUNDTRIP",
+    "BLOCK_LINK_PREVIEW_ROUNDTRIP",
+    "BLOCK_LIST_ROUNDTRIP",
+    "BLOCK_PARAGRAPH_ROUNDTRIP",
+    "BLOCK_PERSON_ROUNDTRIP",
+    "BLOCK_POLL_ROUNDTRIP",
+    "BLOCK_QUOTE_ROUNDTRIP",
+    "BLOCK_RAW_ROUNDTRIP",
+    "BLOCK_SPOILER_ROUNDTRIP",
+    "BLOCK_TABLE_ROUNDTRIP",
+    "BLOCK_TOGGLE_ROUNDTRIP",
+    "BLOCK_WARNING_ROUNDTRIP"
+  ],
+  "results": [
+    {
+      "source": "v1",
+      "errors": [],
+      "pageErrors": [],
+      "classifiedPageErrors": [],
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": [],
+      "caseCount": 65,
+      "totals": {
+        "observations": 11258,
+        "failures": 1156,
+        "classifiedDifferences": 1156,
+        "unexpectedFailures": 0
+      },
+      "cases": [
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 154,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 154,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CODE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 167,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CODE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 191,
+          "failures": 10,
+          "classifiedDifferences": 10,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 76,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 8,
+          "classifiedDifferences": 8,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 66,
+          "classifiedDifferences": 66,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 66,
+          "classifiedDifferences": 66,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_ATTACHES_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 190,
+          "failures": 11,
+          "classifiedDifferences": 11,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_RAW_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 169,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_RAW_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 175,
+          "failures": 10,
+          "classifiedDifferences": 10,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 5,
+          "classifiedDifferences": 5,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 44,
+          "classifiedDifferences": 44,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 44,
+          "classifiedDifferences": 44,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 11,
+          "classifiedDifferences": 11,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 13,
+          "classifiedDifferences": 13,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 193,
+          "failures": 5,
+          "classifiedDifferences": 5,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 198,
+          "failures": 50,
+          "classifiedDifferences": 50,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 198,
+          "failures": 50,
+          "classifiedDifferences": 50,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 198,
+          "failures": 5,
+          "classifiedDifferences": 5,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LINK_PREVIEW_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 10,
+          "classifiedDifferences": 10,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LINK_PREVIEW_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 190,
+          "failures": 10,
+          "classifiedDifferences": 10,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 197,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 197,
+          "failures": 45,
+          "classifiedDifferences": 45,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 197,
+          "failures": 45,
+          "classifiedDifferences": 45,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 197,
+          "failures": 15,
+          "classifiedDifferences": 15,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 217,
+          "failures": 67,
+          "classifiedDifferences": 67,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 217,
+          "failures": 67,
+          "classifiedDifferences": 67,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 217,
+          "failures": 32,
+          "classifiedDifferences": 32,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 207,
+          "failures": 9,
+          "classifiedDifferences": 9,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 207,
+          "failures": 39,
+          "classifiedDifferences": 39,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 207,
+          "failures": 39,
+          "classifiedDifferences": 39,
+          "unexpectedFailures": 0
+        }
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "errors": [
+        "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:41941/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:41941/spec-baseline/core/DocumentRuntime.js:768:25)"
+      ],
+      "pageErrors": [
+        {
+          "source": "spec-baseline",
+          "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+          "phase": "redo",
+          "name": "Error",
+          "message": "Inline widget root left its projection boundary before hydration",
+          "stack": "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:41941/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:41941/spec-baseline/core/DocumentRuntime.js:768:25)"
+        }
+      ],
+      "classifiedPageErrors": [
+        {
+          "source": "spec-baseline",
+          "caseId": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+          "phase": "redo",
+          "name": "Error",
+          "message": "Inline widget root left its projection boundary before hydration",
+          "stack": "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:41941/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:41941/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.redo (http://127.0.0.1:41941/spec-baseline/core/TransactionEngine.js:273:31)\n    at DocumentRuntime.redo (http://127.0.0.1:41941/spec-baseline/core/DocumentRuntime.js:768:25)",
+          "classification": "repaired-baseline-embed-redo-pageerror"
+        }
+      ],
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": [],
+      "caseCount": 65,
+      "totals": {
+        "observations": 8043,
+        "failures": 183,
+        "classifiedDifferences": 183,
+        "unexpectedFailures": 0
+      },
+      "cases": [
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 154,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 25,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 154,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 25,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 29,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 27,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 27,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CODE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 167,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CODE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 191,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 28,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 76,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 31,
+          "failures": 2,
+          "classifiedDifferences": 2,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 5,
+          "classifiedDifferences": 5,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 28,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 28,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 28,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 29,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_ATTACHES_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 194,
+          "failures": 2,
+          "classifiedDifferences": 2,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_RAW_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 170,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_RAW_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 176,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 31,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 200,
+          "failures": 11,
+          "classifiedDifferences": 11,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 200,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 36,
+          "classifiedDifferences": 36,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 29,
+          "failures": 1,
+          "classifiedDifferences": 1,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 198,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 31,
+          "failures": 3,
+          "classifiedDifferences": 3,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 31,
+          "failures": 3,
+          "classifiedDifferences": 3,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LINK_PREVIEW_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 3,
+          "classifiedDifferences": 3,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LINK_PREVIEW_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 190,
+          "failures": 2,
+          "classifiedDifferences": 2,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 207,
+          "failures": 26,
+          "classifiedDifferences": 26,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 30,
+          "failures": 5,
+          "classifiedDifferences": 5,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 30,
+          "failures": 5,
+          "classifiedDifferences": 5,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 215,
+          "failures": 4,
+          "classifiedDifferences": 4,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 33,
+          "failures": 7,
+          "classifiedDifferences": 7,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 33,
+          "failures": 7,
+          "classifiedDifferences": 7,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 237,
+          "failures": 18,
+          "classifiedDifferences": 18,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 213,
+          "failures": 18,
+          "classifiedDifferences": 18,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 30,
+          "failures": 7,
+          "classifiedDifferences": 7,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load"
+          ],
+          "observations": 30,
+          "failures": 7,
+          "classifiedDifferences": 7,
+          "unexpectedFailures": 0
+        }
+      ]
+    },
+    {
+      "source": "candidate",
+      "errors": [],
+      "pageErrors": [],
+      "classifiedPageErrors": [],
+      "unexpectedErrors": [],
+      "unexpectedPageErrors": [],
+      "caseCount": 65,
+      "totals": {
+        "observations": 11434,
+        "failures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0
+      },
+      "cases": [
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 154,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 154,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 160,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 166,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CODE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 167,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CODE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 191,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_DELIMITER_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 76,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_DELIMITER_ROUNDTRIP/populated-neighbor-edit",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 196,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 172,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_ATTACHES_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_ATTACHES_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 194,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_RAW_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 170,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_RAW_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 176,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 200,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 200,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 200,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 178,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 198,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 204,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LINK_PREVIEW_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 184,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_LINK_PREVIEW_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 190,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 82,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 201,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 201,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 201,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 209,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 231,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 231,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-literal",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "view-second",
+            "view-return",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 231,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/default",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "dispose"
+          ],
+          "observations": 79,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 213,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 213,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "completedPhases": [
+            "load",
+            "read-only",
+            "editable-again",
+            "edit",
+            "undo",
+            "redo",
+            "dispose"
+          ],
+          "observations": 213,
+          "failures": 0,
+          "classifiedDifferences": 0,
+          "unexpectedFailures": 0
+        }
+      ]
+    }
+  ]
+}

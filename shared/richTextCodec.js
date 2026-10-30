@@ -27,21 +27,19 @@ function requireDocument(ownerDocument) {
  * @returns {void}
  */
 function canonicalizeStyle(element) {
-  const style = element.getAttribute('style')
-  if (!style) return
-
-  const declarations = style
-    .split(';')
-    .map(part => part.trim())
-    .filter(Boolean)
-    .map(part => {
-      const colon = part.indexOf(':')
-      return colon < 0
-        ? null
-        : [part.slice(0, colon).trim().toLowerCase(), part.slice(colon + 1).trim()]
-    })
-    .filter(Boolean)
-    .sort((left, right) => left[0].localeCompare(right[0]))
+  if (!element.hasAttribute('style')) return
+  const style = /** @type {HTMLElement} */ (element).style
+  const declarations = []
+  // Native CSS parsing retains comment/string boundaries, escapes, duplicate
+  // precedence and priorities. Canonicalization only orders parsed properties.
+  for (let index = 0; index < style.length; index++) {
+    const property = style.item(index)
+    const value = style.getPropertyValue(property)
+    if (!value) continue
+    const priority = style.getPropertyPriority(property)
+    declarations.push([property, `${value}${priority ? ` !${priority}` : ''}`])
+  }
+  declarations.sort((left, right) => left[0].localeCompare(right[0]))
 
   if (declarations.length === 0) {
     element.removeAttribute('style')

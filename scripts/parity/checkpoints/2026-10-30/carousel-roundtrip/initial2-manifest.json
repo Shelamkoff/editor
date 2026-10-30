@@ -1,0 +1,1809 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+  "startedAt": "2026-10-30T01:20:53.042Z",
+  "finishedAt": "2026-10-30T01:21:01.451Z",
+  "outcome": "failed",
+  "source": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/README.md",
+        "mode": 33188,
+        "sha256": "a322a2c62148d23c00632df7ddd7ff80e387b14f914c683816f1ef271441f7e7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/import-error.log",
+        "mode": 33188,
+        "sha256": "29f8374e6afce3647c4fb935ae2942b410fe4dd13e7ec75aae9a8320fe8875a0"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/install.log.gz",
+        "mode": 33188,
+        "sha256": "0dc64dbbca73ce27381c436e24b65c723707205e7d78460d07043c375d408be5"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package-lock.json",
+        "mode": 33188,
+        "sha256": "eb77d6ea23aeebedcd38498f94efb0d315ae992263be81da600f1dd72763d54b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package.json",
+        "mode": 33188,
+        "sha256": "1cbc7a124064294fd2a1b3b2e4d5f3255b3589b83ed906af2671e3ebcc6dc077"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/status.json",
+        "mode": 33188,
+        "sha256": "6c8d75c53ff517354327da45a1bab6310b340ab6433f6cef05df7f70aed799b4"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/install.log.gz",
+        "mode": 33188,
+        "sha256": "2d3e5ab051c41da693199d77a447f3ab88e73c15996b492a4a0d503b05714a77"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package-lock.json",
+        "mode": 33188,
+        "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package.json",
+        "mode": 33188,
+        "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/status.json",
+        "mode": 33188,
+        "sha256": "c561f2c1fe53425fdacec24b64248b4bd09561dd0d7b6ac05806d04cda8872d1"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/verify.mjs",
+        "mode": 33188,
+        "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/install.log.gz",
+        "mode": 33188,
+        "sha256": "89b2826384f5f8090d445bfa0c92ecb73ae4c1e8dff78026bb6e5d9b3ac83c3c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package-lock.json",
+        "mode": 33188,
+        "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package.json",
+        "mode": 33188,
+        "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/status.json",
+        "mode": 33188,
+        "sha256": "6346dcdec3771bac7c1c58b6abf6d89931d288c0304bbf516463430ac9f94d67"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/verify.mjs",
+        "mode": 33188,
+        "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/hash-index.json",
+        "mode": 33188,
+        "sha256": "e99abac7f37c19c206be25a43cf23c498c9ef56583f164e82ecb9c6ec342d0a2"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-roundtrip-16x16.webm",
+        "mode": 33188,
+        "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-autoheight-red.patch",
+        "mode": 33188,
+        "sha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-browser.mjs",
+        "mode": 33188,
+        "sha256": "58418156473101662d22e7733c189f1412b380f4b1599ecd2a7f28d344429fe2"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-proof.py",
+        "mode": 33188,
+        "sha256": "6dcda23022b95b0aebb41038b6838d77f7217ea08890a5bc240372b87ce063bb"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-detached-run.py",
+        "mode": 33188,
+        "sha256": "1893050e575132d4ba8ef647f5df9f0383f0695fe8ef99934f1bdb98c49e5e0f"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-initial-build-vs-installed.json",
+        "mode": 33188,
+        "sha256": "bff83d0c1906b604987e67c89893635bf82fee3b2d98f91a2e877b07eda41ae5"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-layout-probe.mjs",
+        "mode": 33188,
+        "sha256": "d8d263204873eafc704c9faa5d07c70ac994994d6e51810a91766b29ff3bdb7d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-final.patch",
+        "mode": 33188,
+        "sha256": "1c30163401dd80036fb754f1a8ad71d80150c633754e3d9a275e613c7d6121d6"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-metadata.json",
+        "mode": 33188,
+        "sha256": "25b561cd0d905acefbb12c39318958fe1c300ac7d9d9d73c36110b347e455e1d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-source-at-upstream-final.patch",
+        "mode": 33188,
+        "sha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-upstream-proof.py",
+        "mode": 33188,
+        "sha256": "7a967c8b0e350dce5b205d01079f6adafc8c01e3d5b98fb77d738996bb663e64"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/upstream-canonical-final.patch",
+        "mode": 33188,
+        "sha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/manifest.json",
+        "mode": 33188,
+        "sha256": "05960d46f85ae20e73d93e3687efad6ded7891f6dbae3b01a0ab232239f6cc93"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/upstream-autoheight-red.log.gz",
+        "mode": 33188,
+        "sha256": "2d7083c942122cfaddf06b15a9a6ea3e2823982532e9159b3f9ef03a3a9eb183"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-autoheight-red.log.gz",
+        "mode": 33188,
+        "sha256": "242b600c367d8c932a0d59b7bbf01e3df888a986b18a18ef0b31c54804c3d12e"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-observed-units-red.log.gz",
+        "mode": 33188,
+        "sha256": "c32f90e146073ce90f5eab5af1d3a48895256fa3b71bf347140e01582cc3a66c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/manifest.json",
+        "mode": 33188,
+        "sha256": "95701564b2b40273a1719b74e391d2a8513c55aa4144497d6ca10260a81df528"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser142.log.gz",
+        "mode": 33188,
+        "sha256": "270235770fd709d89c76142dc8c39f0c2a7f8639ea4886898ff9616a5d92978d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser156.log.gz",
+        "mode": 33188,
+        "sha256": "2288ef2f35c9283bf98e252d14ed5cb54f7493bb73e53bac249066e961c3bdea"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-units.log.gz",
+        "mode": 33188,
+        "sha256": "c8fe8b7b589e39e6c93602bb6aa87341f38d80f511e373a31a42e344192c7919"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/manifest.json",
+        "mode": 33188,
+        "sha256": "574353240511f44e02d5abbef093b96062c46ac6707de91d10554be033d59bc7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-autoheight-red3.log.gz",
+        "mode": 33188,
+        "sha256": "a03b72894c5513c8a7d7c4eca7d926ecedb7f4da052db63c949c740195a12a18"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-observed-units-red3.log.gz",
+        "mode": 33188,
+        "sha256": "59c1069bfd24100ebfe96fcdcd59bfa895b7b17a77b51c4d827c38cd850b6998"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/manifest.json",
+        "mode": 33188,
+        "sha256": "fcbe56a217cdd77ec7fd5b54eabc893b5ca09bea07d76d3c03548a83651872ac"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-all-units-green.log.gz",
+        "mode": 33188,
+        "sha256": "382155d4d881866b624401f5f492dcc8eedf6715abd1717caa904f303356ba10"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-autoheight-green.log.gz",
+        "mode": 33188,
+        "sha256": "db01bf968ad304dd0ddfca8be8d31842d2cf292a67c7cc6554ed6adef968f9d0"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/manifest.json",
+        "mode": 33188,
+        "sha256": "6695091d54d49e036ed98d1836779d0a1a195497c39aaf8e93aeb79504b68c3a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-autoheight-red2.log.gz",
+        "mode": 33188,
+        "sha256": "73765263db5d610fd874421574ca35f72a348d9e255165da3319e5f7252c0065"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-observed-units-red2.log.gz",
+        "mode": 33188,
+        "sha256": "dbb04089255d9ed908158f5bc5581c4de9ab89b0a26872ede043e046176c6aca"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/manifest.json",
+        "mode": 33188,
+        "sha256": "60d719c36ae449eda2b1f8aca93a1661864c3744d7903144615a6a0f720f5049"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/manifest.json",
+        "mode": 33188,
+        "sha256": "78643974896382d6af4baec73da95e8d8118c826f9787a7ee95ff02a2c82aee3"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/upstream-autoheight-green.log.gz",
+        "mode": 33188,
+        "sha256": "7812985a74c6665df616006f1238b033cf6de4eb93bf3ed4234a9d79eb51b61c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/browser-projection-contracts.html.json.gz",
+        "mode": 33188,
+        "sha256": "5b0f9ce6bdb6803377e854ac86fc6350907ddf0ced3df32ed0caa7a7c629167a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/manifest.json",
+        "mode": 33188,
+        "sha256": "06559dfabf0d33155a471f55563a28e2586e8b4d8a1a1b678b7735f2f90f4a85"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/projection.log.gz",
+        "mode": 33188,
+        "sha256": "3aecd3966abf00d6e3d9a9d0e1db83d563bdc3c4f2ac9630d0549b6f2382e9b8"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/manifest.json",
+        "mode": 33188,
+        "sha256": "612bf5926c45ad9c6d1c9648bdb1062de7ace674ad07b0891ad4d368ff770cc4"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-controls.log.gz",
+        "mode": 33188,
+        "sha256": "d10d1e617212cd20731b07361607a477882819b1beaaa613fc00100eaf05b21b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-types.log.gz",
+        "mode": 33188,
+        "sha256": "b269fc77a33ef1f5fe6b26a67278cf779ef13412299c39ef76b89194efb8300d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-units.log.gz",
+        "mode": 33188,
+        "sha256": "a81a90b4289edb05d153aa848ae80a938b6eece7c4eacaa9b14259d7c3962aaf"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/layout.log.gz",
+        "mode": 33188,
+        "sha256": "73a148299182c5dc14db09af6314c7d86baf44f9404b6f51ddb03326c1a99c7a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/manifest.json",
+        "mode": 33188,
+        "sha256": "2a671da66daf4d574e4fc8a9d375bc4316613220af30ce3b358e28e7258e4bbe"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/backport-published-array-guard-red.log.gz",
+        "mode": 33188,
+        "sha256": "cae31d1dc3750a0d4147b43c512d04f3824851457b2da7501b7d3bcf807a7e7c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/manifest.json",
+        "mode": 33188,
+        "sha256": "d2261f8cb6e86faac2c46c363aff7bbc37ebb0e0e44c280ab5af873234fc9b53"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-autoheight-red-initial-missing-job.log.gz",
+        "mode": 33188,
+        "sha256": "57fdad17f4bc3981a85e25dabae7adcc3fc5d2e9cba5c7c6816325d0e39569d6"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-array-red-manifest.json",
+        "mode": 33188,
+        "sha256": "5e8d75a1d2383f46a0e941a369fa31656e80796342221ac9a9bf475797e74402"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser142-manifest.json",
+        "mode": 33188,
+        "sha256": "3fca7e6c78815049a682374844acdaac625fdae1db2016b60ba0064e32669a27"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser156-manifest.json",
+        "mode": 33188,
+        "sha256": "4290daea466be3c2af74113b07976e3bf7898d63ea0b6793cc95520e85430567"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-units-manifest.json",
+        "mode": 33188,
+        "sha256": "eb2e22bb1e024b6c626de671bdf89f3fd9124616a80ccd8c7f6a28f37e01b4a0"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-green-manifest.json",
+        "mode": 33188,
+        "sha256": "bffcf333975535ecf1fec8b8dd7f40c639bcf53097f2e2c72f0985b8aaf6a7a1"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red-manifest.json",
+        "mode": 33188,
+        "sha256": "c28d871dbd6ad0e2c7478cf5c43a72633ecaa0f76e0ce260240b7dadb5bfaf72"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red2-manifest.json",
+        "mode": 33188,
+        "sha256": "ffe09740c6c13c7bd71d35f49865a5a11bfb31d5012361aeddbddd70c22d5b70"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red3-manifest.json",
+        "mode": 33188,
+        "sha256": "a93c06c30602fcb133d6aff60e688e367928115f9c0d8966d7afb6ec7ab6d58b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-green-manifest.json",
+        "mode": 33188,
+        "sha256": "f16ec7e7875cbbf958e5c98b8e5a50b5df3dff078f5614960d0cce5bf0ef2a7d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red-manifest.json",
+        "mode": 33188,
+        "sha256": "bc478dfc558436e44865221bdfd84d98e66c6d27baae72ff634261c3602f5115"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red2-manifest.json",
+        "mode": 33188,
+        "sha256": "7aa6e8c6cdd4d9c3fdf8d38209fe497f3541b87d76ee5357656b95a0800431a9"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red3-manifest.json",
+        "mode": 33188,
+        "sha256": "f8b334fb0c022582943759699d9a95705bb3cecbe2e8a76b6e5c13bf09dca7b7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-controls-manifest.json",
+        "mode": 33188,
+        "sha256": "2641981d2f9dd10754192331a6bfcd9533b66a3ce419d426af817c9eecb883dc"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-green-manifest.json",
+        "mode": 33188,
+        "sha256": "c9c10bd27801870f7115b73cc3b06b20693f0653b4e44711d5c2306e90e98367"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green-manifest.json",
+        "mode": 33188,
+        "sha256": "b4cf94b6b646136a0fb3a485608c30cef2d2abfa24469f4bc9af906d86e4fabb"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green.log.gz",
+        "mode": 33188,
+        "sha256": "8e4d69b1db6cbe5cbd081eb35fded311c93521bcf818e874657ae4354afb2819"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red-manifest.json",
+        "mode": 33188,
+        "sha256": "fea95f85e1f59c2de440136e2511355bdbf200a8b1632c00e8a944ff21483d30"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red.log.gz",
+        "mode": 33188,
+        "sha256": "f7df9e942619581d5d4a2152a0a6a134240e7d2153ee4ec2307e2ebd41d9bef6"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-red-manifest.json",
+        "mode": 33188,
+        "sha256": "54f079d97b3c5dc406c30903f346120577fef3464b2fe32508b6934af9db60e1"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-types-manifest.json",
+        "mode": 33188,
+        "sha256": "8011d444fa8e14749e173974735057f287a99ddf1eac64877f273bb97a99e74f"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-units-manifest.json",
+        "mode": 33188,
+        "sha256": "d7898585c25afb0a0f64a307a66cdd07eebbb72e5f31dc4cef0fda80563a8191"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/summary.json",
+        "mode": 33188,
+        "sha256": "7b8ac19e457da968463cb2c9d78faa977414564ea1ff508d38055bd54736215f"
+      },
+      {
+        "path": "tests/browser/carousel-roundtrip-16x16.webm",
+        "mode": 33188,
+        "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+      },
+      {
+        "path": "tests/browser/regressions/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      }
+    ],
+    "dirty": true,
+    "identity": "b512a5fb673feb97a814fd766582a04281c3ba072f3c4744219697e48eab2714"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "differential": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T01:20:53.418Z",
+      "finishedAt": "2026-10-30T01:21:01.277Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "cwd": "/tmp/rector-carousel-roundtrip-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/README.md",
+            "mode": 33188,
+            "sha256": "a322a2c62148d23c00632df7ddd7ff80e387b14f914c683816f1ef271441f7e7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/import-error.log",
+            "mode": 33188,
+            "sha256": "29f8374e6afce3647c4fb935ae2942b410fe4dd13e7ec75aae9a8320fe8875a0"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/install.log.gz",
+            "mode": 33188,
+            "sha256": "0dc64dbbca73ce27381c436e24b65c723707205e7d78460d07043c375d408be5"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package-lock.json",
+            "mode": 33188,
+            "sha256": "eb77d6ea23aeebedcd38498f94efb0d315ae992263be81da600f1dd72763d54b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package.json",
+            "mode": 33188,
+            "sha256": "1cbc7a124064294fd2a1b3b2e4d5f3255b3589b83ed906af2671e3ebcc6dc077"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/status.json",
+            "mode": 33188,
+            "sha256": "6c8d75c53ff517354327da45a1bab6310b340ab6433f6cef05df7f70aed799b4"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/install.log.gz",
+            "mode": 33188,
+            "sha256": "2d3e5ab051c41da693199d77a447f3ab88e73c15996b492a4a0d503b05714a77"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package-lock.json",
+            "mode": 33188,
+            "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package.json",
+            "mode": 33188,
+            "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/status.json",
+            "mode": 33188,
+            "sha256": "c561f2c1fe53425fdacec24b64248b4bd09561dd0d7b6ac05806d04cda8872d1"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/verify.mjs",
+            "mode": 33188,
+            "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/install.log.gz",
+            "mode": 33188,
+            "sha256": "89b2826384f5f8090d445bfa0c92ecb73ae4c1e8dff78026bb6e5d9b3ac83c3c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package-lock.json",
+            "mode": 33188,
+            "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package.json",
+            "mode": 33188,
+            "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/status.json",
+            "mode": 33188,
+            "sha256": "6346dcdec3771bac7c1c58b6abf6d89931d288c0304bbf516463430ac9f94d67"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/verify.mjs",
+            "mode": 33188,
+            "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/hash-index.json",
+            "mode": 33188,
+            "sha256": "e99abac7f37c19c206be25a43cf23c498c9ef56583f164e82ecb9c6ec342d0a2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-autoheight-red.patch",
+            "mode": 33188,
+            "sha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-browser.mjs",
+            "mode": 33188,
+            "sha256": "58418156473101662d22e7733c189f1412b380f4b1599ecd2a7f28d344429fe2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-proof.py",
+            "mode": 33188,
+            "sha256": "6dcda23022b95b0aebb41038b6838d77f7217ea08890a5bc240372b87ce063bb"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-detached-run.py",
+            "mode": 33188,
+            "sha256": "1893050e575132d4ba8ef647f5df9f0383f0695fe8ef99934f1bdb98c49e5e0f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-initial-build-vs-installed.json",
+            "mode": 33188,
+            "sha256": "bff83d0c1906b604987e67c89893635bf82fee3b2d98f91a2e877b07eda41ae5"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-layout-probe.mjs",
+            "mode": 33188,
+            "sha256": "d8d263204873eafc704c9faa5d07c70ac994994d6e51810a91766b29ff3bdb7d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-final.patch",
+            "mode": 33188,
+            "sha256": "1c30163401dd80036fb754f1a8ad71d80150c633754e3d9a275e613c7d6121d6"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-metadata.json",
+            "mode": 33188,
+            "sha256": "25b561cd0d905acefbb12c39318958fe1c300ac7d9d9d73c36110b347e455e1d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-source-at-upstream-final.patch",
+            "mode": 33188,
+            "sha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-upstream-proof.py",
+            "mode": 33188,
+            "sha256": "7a967c8b0e350dce5b205d01079f6adafc8c01e3d5b98fb77d738996bb663e64"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/upstream-canonical-final.patch",
+            "mode": 33188,
+            "sha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/manifest.json",
+            "mode": 33188,
+            "sha256": "05960d46f85ae20e73d93e3687efad6ded7891f6dbae3b01a0ab232239f6cc93"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/upstream-autoheight-red.log.gz",
+            "mode": 33188,
+            "sha256": "2d7083c942122cfaddf06b15a9a6ea3e2823982532e9159b3f9ef03a3a9eb183"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-autoheight-red.log.gz",
+            "mode": 33188,
+            "sha256": "242b600c367d8c932a0d59b7bbf01e3df888a986b18a18ef0b31c54804c3d12e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-observed-units-red.log.gz",
+            "mode": 33188,
+            "sha256": "c32f90e146073ce90f5eab5af1d3a48895256fa3b71bf347140e01582cc3a66c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/manifest.json",
+            "mode": 33188,
+            "sha256": "95701564b2b40273a1719b74e391d2a8513c55aa4144497d6ca10260a81df528"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser142.log.gz",
+            "mode": 33188,
+            "sha256": "270235770fd709d89c76142dc8c39f0c2a7f8639ea4886898ff9616a5d92978d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser156.log.gz",
+            "mode": 33188,
+            "sha256": "2288ef2f35c9283bf98e252d14ed5cb54f7493bb73e53bac249066e961c3bdea"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-units.log.gz",
+            "mode": 33188,
+            "sha256": "c8fe8b7b589e39e6c93602bb6aa87341f38d80f511e373a31a42e344192c7919"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/manifest.json",
+            "mode": 33188,
+            "sha256": "574353240511f44e02d5abbef093b96062c46ac6707de91d10554be033d59bc7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-autoheight-red3.log.gz",
+            "mode": 33188,
+            "sha256": "a03b72894c5513c8a7d7c4eca7d926ecedb7f4da052db63c949c740195a12a18"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-observed-units-red3.log.gz",
+            "mode": 33188,
+            "sha256": "59c1069bfd24100ebfe96fcdcd59bfa895b7b17a77b51c4d827c38cd850b6998"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/manifest.json",
+            "mode": 33188,
+            "sha256": "fcbe56a217cdd77ec7fd5b54eabc893b5ca09bea07d76d3c03548a83651872ac"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-all-units-green.log.gz",
+            "mode": 33188,
+            "sha256": "382155d4d881866b624401f5f492dcc8eedf6715abd1717caa904f303356ba10"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-autoheight-green.log.gz",
+            "mode": 33188,
+            "sha256": "db01bf968ad304dd0ddfca8be8d31842d2cf292a67c7cc6554ed6adef968f9d0"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/manifest.json",
+            "mode": 33188,
+            "sha256": "6695091d54d49e036ed98d1836779d0a1a195497c39aaf8e93aeb79504b68c3a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-autoheight-red2.log.gz",
+            "mode": 33188,
+            "sha256": "73765263db5d610fd874421574ca35f72a348d9e255165da3319e5f7252c0065"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-observed-units-red2.log.gz",
+            "mode": 33188,
+            "sha256": "dbb04089255d9ed908158f5bc5581c4de9ab89b0a26872ede043e046176c6aca"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/manifest.json",
+            "mode": 33188,
+            "sha256": "60d719c36ae449eda2b1f8aca93a1661864c3744d7903144615a6a0f720f5049"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/manifest.json",
+            "mode": 33188,
+            "sha256": "78643974896382d6af4baec73da95e8d8118c826f9787a7ee95ff02a2c82aee3"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/upstream-autoheight-green.log.gz",
+            "mode": 33188,
+            "sha256": "7812985a74c6665df616006f1238b033cf6de4eb93bf3ed4234a9d79eb51b61c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/browser-projection-contracts.html.json.gz",
+            "mode": 33188,
+            "sha256": "5b0f9ce6bdb6803377e854ac86fc6350907ddf0ced3df32ed0caa7a7c629167a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/manifest.json",
+            "mode": 33188,
+            "sha256": "06559dfabf0d33155a471f55563a28e2586e8b4d8a1a1b678b7735f2f90f4a85"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/projection.log.gz",
+            "mode": 33188,
+            "sha256": "3aecd3966abf00d6e3d9a9d0e1db83d563bdc3c4f2ac9630d0549b6f2382e9b8"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/manifest.json",
+            "mode": 33188,
+            "sha256": "612bf5926c45ad9c6d1c9648bdb1062de7ace674ad07b0891ad4d368ff770cc4"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-controls.log.gz",
+            "mode": 33188,
+            "sha256": "d10d1e617212cd20731b07361607a477882819b1beaaa613fc00100eaf05b21b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-types.log.gz",
+            "mode": 33188,
+            "sha256": "b269fc77a33ef1f5fe6b26a67278cf779ef13412299c39ef76b89194efb8300d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-units.log.gz",
+            "mode": 33188,
+            "sha256": "a81a90b4289edb05d153aa848ae80a938b6eece7c4eacaa9b14259d7c3962aaf"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/layout.log.gz",
+            "mode": 33188,
+            "sha256": "73a148299182c5dc14db09af6314c7d86baf44f9404b6f51ddb03326c1a99c7a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/manifest.json",
+            "mode": 33188,
+            "sha256": "2a671da66daf4d574e4fc8a9d375bc4316613220af30ce3b358e28e7258e4bbe"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/backport-published-array-guard-red.log.gz",
+            "mode": 33188,
+            "sha256": "cae31d1dc3750a0d4147b43c512d04f3824851457b2da7501b7d3bcf807a7e7c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/manifest.json",
+            "mode": 33188,
+            "sha256": "d2261f8cb6e86faac2c46c363aff7bbc37ebb0e0e44c280ab5af873234fc9b53"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-autoheight-red-initial-missing-job.log.gz",
+            "mode": 33188,
+            "sha256": "57fdad17f4bc3981a85e25dabae7adcc3fc5d2e9cba5c7c6816325d0e39569d6"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-array-red-manifest.json",
+            "mode": 33188,
+            "sha256": "5e8d75a1d2383f46a0e941a369fa31656e80796342221ac9a9bf475797e74402"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser142-manifest.json",
+            "mode": 33188,
+            "sha256": "3fca7e6c78815049a682374844acdaac625fdae1db2016b60ba0064e32669a27"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser156-manifest.json",
+            "mode": 33188,
+            "sha256": "4290daea466be3c2af74113b07976e3bf7898d63ea0b6793cc95520e85430567"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-units-manifest.json",
+            "mode": 33188,
+            "sha256": "eb2e22bb1e024b6c626de671bdf89f3fd9124616a80ccd8c7f6a28f37e01b4a0"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-green-manifest.json",
+            "mode": 33188,
+            "sha256": "bffcf333975535ecf1fec8b8dd7f40c639bcf53097f2e2c72f0985b8aaf6a7a1"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red-manifest.json",
+            "mode": 33188,
+            "sha256": "c28d871dbd6ad0e2c7478cf5c43a72633ecaa0f76e0ce260240b7dadb5bfaf72"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red2-manifest.json",
+            "mode": 33188,
+            "sha256": "ffe09740c6c13c7bd71d35f49865a5a11bfb31d5012361aeddbddd70c22d5b70"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red3-manifest.json",
+            "mode": 33188,
+            "sha256": "a93c06c30602fcb133d6aff60e688e367928115f9c0d8966d7afb6ec7ab6d58b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-green-manifest.json",
+            "mode": 33188,
+            "sha256": "f16ec7e7875cbbf958e5c98b8e5a50b5df3dff078f5614960d0cce5bf0ef2a7d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red-manifest.json",
+            "mode": 33188,
+            "sha256": "bc478dfc558436e44865221bdfd84d98e66c6d27baae72ff634261c3602f5115"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red2-manifest.json",
+            "mode": 33188,
+            "sha256": "7aa6e8c6cdd4d9c3fdf8d38209fe497f3541b87d76ee5357656b95a0800431a9"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red3-manifest.json",
+            "mode": 33188,
+            "sha256": "f8b334fb0c022582943759699d9a95705bb3cecbe2e8a76b6e5c13bf09dca7b7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-controls-manifest.json",
+            "mode": 33188,
+            "sha256": "2641981d2f9dd10754192331a6bfcd9533b66a3ce419d426af817c9eecb883dc"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-green-manifest.json",
+            "mode": 33188,
+            "sha256": "c9c10bd27801870f7115b73cc3b06b20693f0653b4e44711d5c2306e90e98367"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green-manifest.json",
+            "mode": 33188,
+            "sha256": "b4cf94b6b646136a0fb3a485608c30cef2d2abfa24469f4bc9af906d86e4fabb"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green.log.gz",
+            "mode": 33188,
+            "sha256": "8e4d69b1db6cbe5cbd081eb35fded311c93521bcf818e874657ae4354afb2819"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red-manifest.json",
+            "mode": 33188,
+            "sha256": "fea95f85e1f59c2de440136e2511355bdbf200a8b1632c00e8a944ff21483d30"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red.log.gz",
+            "mode": 33188,
+            "sha256": "f7df9e942619581d5d4a2152a0a6a134240e7d2153ee4ec2307e2ebd41d9bef6"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-red-manifest.json",
+            "mode": 33188,
+            "sha256": "54f079d97b3c5dc406c30903f346120577fef3464b2fe32508b6934af9db60e1"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-types-manifest.json",
+            "mode": 33188,
+            "sha256": "8011d444fa8e14749e173974735057f287a99ddf1eac64877f273bb97a99e74f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-units-manifest.json",
+            "mode": 33188,
+            "sha256": "d7898585c25afb0a0f64a307a66cdd07eebbb72e5f31dc4cef0fda80563a8191"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/summary.json",
+            "mode": 33188,
+            "sha256": "7b8ac19e457da968463cb2c9d78faa977414564ea1ff508d38055bd54736215f"
+          },
+          {
+            "path": "tests/browser/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "b512a5fb673feb97a814fd766582a04281c3ba072f3c4744219697e48eab2714"
+      },
+      "elapsedMs": 7856.040819,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/README.md",
+            "mode": 33188,
+            "sha256": "a322a2c62148d23c00632df7ddd7ff80e387b14f914c683816f1ef271441f7e7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/import-error.log",
+            "mode": 33188,
+            "sha256": "29f8374e6afce3647c4fb935ae2942b410fe4dd13e7ec75aae9a8320fe8875a0"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/install.log.gz",
+            "mode": 33188,
+            "sha256": "0dc64dbbca73ce27381c436e24b65c723707205e7d78460d07043c375d408be5"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package-lock.json",
+            "mode": 33188,
+            "sha256": "eb77d6ea23aeebedcd38498f94efb0d315ae992263be81da600f1dd72763d54b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package.json",
+            "mode": 33188,
+            "sha256": "1cbc7a124064294fd2a1b3b2e4d5f3255b3589b83ed906af2671e3ebcc6dc077"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/status.json",
+            "mode": 33188,
+            "sha256": "6c8d75c53ff517354327da45a1bab6310b340ab6433f6cef05df7f70aed799b4"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/install.log.gz",
+            "mode": 33188,
+            "sha256": "2d3e5ab051c41da693199d77a447f3ab88e73c15996b492a4a0d503b05714a77"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package-lock.json",
+            "mode": 33188,
+            "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package.json",
+            "mode": 33188,
+            "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/status.json",
+            "mode": 33188,
+            "sha256": "c561f2c1fe53425fdacec24b64248b4bd09561dd0d7b6ac05806d04cda8872d1"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/verify.mjs",
+            "mode": 33188,
+            "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/install.log.gz",
+            "mode": 33188,
+            "sha256": "89b2826384f5f8090d445bfa0c92ecb73ae4c1e8dff78026bb6e5d9b3ac83c3c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package-lock.json",
+            "mode": 33188,
+            "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package.json",
+            "mode": 33188,
+            "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/status.json",
+            "mode": 33188,
+            "sha256": "6346dcdec3771bac7c1c58b6abf6d89931d288c0304bbf516463430ac9f94d67"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/verify.mjs",
+            "mode": 33188,
+            "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/hash-index.json",
+            "mode": 33188,
+            "sha256": "e99abac7f37c19c206be25a43cf23c498c9ef56583f164e82ecb9c6ec342d0a2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-autoheight-red.patch",
+            "mode": 33188,
+            "sha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-browser.mjs",
+            "mode": 33188,
+            "sha256": "58418156473101662d22e7733c189f1412b380f4b1599ecd2a7f28d344429fe2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-proof.py",
+            "mode": 33188,
+            "sha256": "6dcda23022b95b0aebb41038b6838d77f7217ea08890a5bc240372b87ce063bb"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-detached-run.py",
+            "mode": 33188,
+            "sha256": "1893050e575132d4ba8ef647f5df9f0383f0695fe8ef99934f1bdb98c49e5e0f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-initial-build-vs-installed.json",
+            "mode": 33188,
+            "sha256": "bff83d0c1906b604987e67c89893635bf82fee3b2d98f91a2e877b07eda41ae5"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-layout-probe.mjs",
+            "mode": 33188,
+            "sha256": "d8d263204873eafc704c9faa5d07c70ac994994d6e51810a91766b29ff3bdb7d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-final.patch",
+            "mode": 33188,
+            "sha256": "1c30163401dd80036fb754f1a8ad71d80150c633754e3d9a275e613c7d6121d6"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-metadata.json",
+            "mode": 33188,
+            "sha256": "25b561cd0d905acefbb12c39318958fe1c300ac7d9d9d73c36110b347e455e1d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-source-at-upstream-final.patch",
+            "mode": 33188,
+            "sha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-upstream-proof.py",
+            "mode": 33188,
+            "sha256": "7a967c8b0e350dce5b205d01079f6adafc8c01e3d5b98fb77d738996bb663e64"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/upstream-canonical-final.patch",
+            "mode": 33188,
+            "sha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/manifest.json",
+            "mode": 33188,
+            "sha256": "05960d46f85ae20e73d93e3687efad6ded7891f6dbae3b01a0ab232239f6cc93"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/upstream-autoheight-red.log.gz",
+            "mode": 33188,
+            "sha256": "2d7083c942122cfaddf06b15a9a6ea3e2823982532e9159b3f9ef03a3a9eb183"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-autoheight-red.log.gz",
+            "mode": 33188,
+            "sha256": "242b600c367d8c932a0d59b7bbf01e3df888a986b18a18ef0b31c54804c3d12e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-observed-units-red.log.gz",
+            "mode": 33188,
+            "sha256": "c32f90e146073ce90f5eab5af1d3a48895256fa3b71bf347140e01582cc3a66c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/manifest.json",
+            "mode": 33188,
+            "sha256": "95701564b2b40273a1719b74e391d2a8513c55aa4144497d6ca10260a81df528"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser142.log.gz",
+            "mode": 33188,
+            "sha256": "270235770fd709d89c76142dc8c39f0c2a7f8639ea4886898ff9616a5d92978d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser156.log.gz",
+            "mode": 33188,
+            "sha256": "2288ef2f35c9283bf98e252d14ed5cb54f7493bb73e53bac249066e961c3bdea"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-units.log.gz",
+            "mode": 33188,
+            "sha256": "c8fe8b7b589e39e6c93602bb6aa87341f38d80f511e373a31a42e344192c7919"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/manifest.json",
+            "mode": 33188,
+            "sha256": "574353240511f44e02d5abbef093b96062c46ac6707de91d10554be033d59bc7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-autoheight-red3.log.gz",
+            "mode": 33188,
+            "sha256": "a03b72894c5513c8a7d7c4eca7d926ecedb7f4da052db63c949c740195a12a18"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-observed-units-red3.log.gz",
+            "mode": 33188,
+            "sha256": "59c1069bfd24100ebfe96fcdcd59bfa895b7b17a77b51c4d827c38cd850b6998"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/manifest.json",
+            "mode": 33188,
+            "sha256": "fcbe56a217cdd77ec7fd5b54eabc893b5ca09bea07d76d3c03548a83651872ac"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-all-units-green.log.gz",
+            "mode": 33188,
+            "sha256": "382155d4d881866b624401f5f492dcc8eedf6715abd1717caa904f303356ba10"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-autoheight-green.log.gz",
+            "mode": 33188,
+            "sha256": "db01bf968ad304dd0ddfca8be8d31842d2cf292a67c7cc6554ed6adef968f9d0"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/manifest.json",
+            "mode": 33188,
+            "sha256": "6695091d54d49e036ed98d1836779d0a1a195497c39aaf8e93aeb79504b68c3a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-autoheight-red2.log.gz",
+            "mode": 33188,
+            "sha256": "73765263db5d610fd874421574ca35f72a348d9e255165da3319e5f7252c0065"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-observed-units-red2.log.gz",
+            "mode": 33188,
+            "sha256": "dbb04089255d9ed908158f5bc5581c4de9ab89b0a26872ede043e046176c6aca"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/manifest.json",
+            "mode": 33188,
+            "sha256": "60d719c36ae449eda2b1f8aca93a1661864c3744d7903144615a6a0f720f5049"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/manifest.json",
+            "mode": 33188,
+            "sha256": "78643974896382d6af4baec73da95e8d8118c826f9787a7ee95ff02a2c82aee3"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/upstream-autoheight-green.log.gz",
+            "mode": 33188,
+            "sha256": "7812985a74c6665df616006f1238b033cf6de4eb93bf3ed4234a9d79eb51b61c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/browser-projection-contracts.html.json.gz",
+            "mode": 33188,
+            "sha256": "5b0f9ce6bdb6803377e854ac86fc6350907ddf0ced3df32ed0caa7a7c629167a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/manifest.json",
+            "mode": 33188,
+            "sha256": "06559dfabf0d33155a471f55563a28e2586e8b4d8a1a1b678b7735f2f90f4a85"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/projection.log.gz",
+            "mode": 33188,
+            "sha256": "3aecd3966abf00d6e3d9a9d0e1db83d563bdc3c4f2ac9630d0549b6f2382e9b8"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/manifest.json",
+            "mode": 33188,
+            "sha256": "612bf5926c45ad9c6d1c9648bdb1062de7ace674ad07b0891ad4d368ff770cc4"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-controls.log.gz",
+            "mode": 33188,
+            "sha256": "d10d1e617212cd20731b07361607a477882819b1beaaa613fc00100eaf05b21b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-types.log.gz",
+            "mode": 33188,
+            "sha256": "b269fc77a33ef1f5fe6b26a67278cf779ef13412299c39ef76b89194efb8300d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-units.log.gz",
+            "mode": 33188,
+            "sha256": "a81a90b4289edb05d153aa848ae80a938b6eece7c4eacaa9b14259d7c3962aaf"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/layout.log.gz",
+            "mode": 33188,
+            "sha256": "73a148299182c5dc14db09af6314c7d86baf44f9404b6f51ddb03326c1a99c7a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/manifest.json",
+            "mode": 33188,
+            "sha256": "2a671da66daf4d574e4fc8a9d375bc4316613220af30ce3b358e28e7258e4bbe"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/backport-published-array-guard-red.log.gz",
+            "mode": 33188,
+            "sha256": "cae31d1dc3750a0d4147b43c512d04f3824851457b2da7501b7d3bcf807a7e7c"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/manifest.json",
+            "mode": 33188,
+            "sha256": "d2261f8cb6e86faac2c46c363aff7bbc37ebb0e0e44c280ab5af873234fc9b53"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-autoheight-red-initial-missing-job.log.gz",
+            "mode": 33188,
+            "sha256": "57fdad17f4bc3981a85e25dabae7adcc3fc5d2e9cba5c7c6816325d0e39569d6"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-array-red-manifest.json",
+            "mode": 33188,
+            "sha256": "5e8d75a1d2383f46a0e941a369fa31656e80796342221ac9a9bf475797e74402"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser142-manifest.json",
+            "mode": 33188,
+            "sha256": "3fca7e6c78815049a682374844acdaac625fdae1db2016b60ba0064e32669a27"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser156-manifest.json",
+            "mode": 33188,
+            "sha256": "4290daea466be3c2af74113b07976e3bf7898d63ea0b6793cc95520e85430567"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-units-manifest.json",
+            "mode": 33188,
+            "sha256": "eb2e22bb1e024b6c626de671bdf89f3fd9124616a80ccd8c7f6a28f37e01b4a0"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-green-manifest.json",
+            "mode": 33188,
+            "sha256": "bffcf333975535ecf1fec8b8dd7f40c639bcf53097f2e2c72f0985b8aaf6a7a1"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red-manifest.json",
+            "mode": 33188,
+            "sha256": "c28d871dbd6ad0e2c7478cf5c43a72633ecaa0f76e0ce260240b7dadb5bfaf72"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red2-manifest.json",
+            "mode": 33188,
+            "sha256": "ffe09740c6c13c7bd71d35f49865a5a11bfb31d5012361aeddbddd70c22d5b70"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red3-manifest.json",
+            "mode": 33188,
+            "sha256": "a93c06c30602fcb133d6aff60e688e367928115f9c0d8966d7afb6ec7ab6d58b"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-green-manifest.json",
+            "mode": 33188,
+            "sha256": "f16ec7e7875cbbf958e5c98b8e5a50b5df3dff078f5614960d0cce5bf0ef2a7d"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red-manifest.json",
+            "mode": 33188,
+            "sha256": "bc478dfc558436e44865221bdfd84d98e66c6d27baae72ff634261c3602f5115"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red2-manifest.json",
+            "mode": 33188,
+            "sha256": "7aa6e8c6cdd4d9c3fdf8d38209fe497f3541b87d76ee5357656b95a0800431a9"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red3-manifest.json",
+            "mode": 33188,
+            "sha256": "f8b334fb0c022582943759699d9a95705bb3cecbe2e8a76b6e5c13bf09dca7b7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-controls-manifest.json",
+            "mode": 33188,
+            "sha256": "2641981d2f9dd10754192331a6bfcd9533b66a3ce419d426af817c9eecb883dc"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-green-manifest.json",
+            "mode": 33188,
+            "sha256": "c9c10bd27801870f7115b73cc3b06b20693f0653b4e44711d5c2306e90e98367"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green-manifest.json",
+            "mode": 33188,
+            "sha256": "b4cf94b6b646136a0fb3a485608c30cef2d2abfa24469f4bc9af906d86e4fabb"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green.log.gz",
+            "mode": 33188,
+            "sha256": "8e4d69b1db6cbe5cbd081eb35fded311c93521bcf818e874657ae4354afb2819"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red-manifest.json",
+            "mode": 33188,
+            "sha256": "fea95f85e1f59c2de440136e2511355bdbf200a8b1632c00e8a944ff21483d30"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red.log.gz",
+            "mode": 33188,
+            "sha256": "f7df9e942619581d5d4a2152a0a6a134240e7d2153ee4ec2307e2ebd41d9bef6"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-red-manifest.json",
+            "mode": 33188,
+            "sha256": "54f079d97b3c5dc406c30903f346120577fef3464b2fe32508b6934af9db60e1"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-types-manifest.json",
+            "mode": 33188,
+            "sha256": "8011d444fa8e14749e173974735057f287a99ddf1eac64877f273bb97a99e74f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-units-manifest.json",
+            "mode": 33188,
+            "sha256": "d7898585c25afb0a0f64a307a66cdd07eebbb72e5f31dc4cef0fda80563a8191"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/summary.json",
+            "mode": 33188,
+            "sha256": "7b8ac19e457da968463cb2c9d78faa977414564ea1ff508d38055bd54736215f"
+          },
+          {
+            "path": "tests/browser/carousel-roundtrip-16x16.webm",
+            "mode": 33188,
+            "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+          },
+          {
+            "path": "tests/browser/regressions/carousel-auto-height.js",
+            "mode": 33188,
+            "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+          }
+        ],
+        "dirty": true,
+        "identity": "b512a5fb673feb97a814fd766582a04281c3ba072f3c4744219697e48eab2714"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/README.md",
+        "mode": 33188,
+        "sha256": "a322a2c62148d23c00632df7ddd7ff80e387b14f914c683816f1ef271441f7e7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/import-error.log",
+        "mode": 33188,
+        "sha256": "29f8374e6afce3647c4fb935ae2942b410fe4dd13e7ec75aae9a8320fe8875a0"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/install.log.gz",
+        "mode": 33188,
+        "sha256": "0dc64dbbca73ce27381c436e24b65c723707205e7d78460d07043c375d408be5"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package-lock.json",
+        "mode": 33188,
+        "sha256": "eb77d6ea23aeebedcd38498f94efb0d315ae992263be81da600f1dd72763d54b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/package.json",
+        "mode": 33188,
+        "sha256": "1cbc7a124064294fd2a1b3b2e4d5f3255b3589b83ed906af2671e3ebcc6dc077"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/initial-no-prepare/status.json",
+        "mode": 33188,
+        "sha256": "6c8d75c53ff517354327da45a1bab6310b340ab6433f6cef05df7f70aed799b4"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/install.log.gz",
+        "mode": 33188,
+        "sha256": "2d3e5ab051c41da693199d77a447f3ab88e73c15996b492a4a0d503b05714a77"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package-lock.json",
+        "mode": 33188,
+        "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/package.json",
+        "mode": 33188,
+        "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/status.json",
+        "mode": 33188,
+        "sha256": "c561f2c1fe53425fdacec24b64248b4bd09561dd0d7b6ac05806d04cda8872d1"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-ignore-scripts/verify.mjs",
+        "mode": 33188,
+        "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/install.log.gz",
+        "mode": 33188,
+        "sha256": "89b2826384f5f8090d445bfa0c92ecb73ae4c1e8dff78026bb6e5d9b3ac83c3c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package-lock.json",
+        "mode": 33188,
+        "sha256": "02c2b062f7ef551035ca7c597acc675cf35df327e9cde40e3855dbd239e9b8fd"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/package.json",
+        "mode": 33188,
+        "sha256": "b8b6cdd722f61e8c8fe24d153b0e08013cf8923337b27d3510a306f16115072b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/status.json",
+        "mode": 33188,
+        "sha256": "6346dcdec3771bac7c1c58b6abf6d89931d288c0304bbf516463430ac9f94d67"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/consumer-install/prepare-normal/verify.mjs",
+        "mode": 33188,
+        "sha256": "c5db3a76923cdad65e0f47f02e18b035f44428d92e333de76ce2be6bf43bf250"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/hash-index.json",
+        "mode": 33188,
+        "sha256": "e99abac7f37c19c206be25a43cf23c498c9ef56583f164e82ecb9c6ec342d0a2"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/carousel-roundtrip-16x16.webm",
+        "mode": 33188,
+        "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-autoheight-red.patch",
+        "mode": 33188,
+        "sha256": "2511e0046f788679319a8a68bab86755fab09559ac6801d075d866561efe1e28"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-browser.mjs",
+        "mode": 33188,
+        "sha256": "58418156473101662d22e7733c189f1412b380f4b1599ecd2a7f28d344429fe2"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-backport-proof.py",
+        "mode": 33188,
+        "sha256": "6dcda23022b95b0aebb41038b6838d77f7217ea08890a5bc240372b87ce063bb"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-detached-run.py",
+        "mode": 33188,
+        "sha256": "1893050e575132d4ba8ef647f5df9f0383f0695fe8ef99934f1bdb98c49e5e0f"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-initial-build-vs-installed.json",
+        "mode": 33188,
+        "sha256": "bff83d0c1906b604987e67c89893635bf82fee3b2d98f91a2e877b07eda41ae5"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-layout-probe.mjs",
+        "mode": 33188,
+        "sha256": "d8d263204873eafc704c9faa5d07c70ac994994d6e51810a91766b29ff3bdb7d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-final.patch",
+        "mode": 33188,
+        "sha256": "1c30163401dd80036fb754f1a8ad71d80150c633754e3d9a275e613c7d6121d6"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-release-backport-metadata.json",
+        "mode": 33188,
+        "sha256": "25b561cd0d905acefbb12c39318958fe1c300ac7d9d9d73c36110b347e455e1d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-source-at-upstream-final.patch",
+        "mode": 33188,
+        "sha256": "ea89c8a69aa6969511906d9e199130781d0f9575ef8d29ecc02cb724368dd63e"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/rector-carousel-upstream-proof.py",
+        "mode": 33188,
+        "sha256": "7a967c8b0e350dce5b205d01079f6adafc8c01e3d5b98fb77d738996bb663e64"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/reproduce/upstream-canonical-final.patch",
+        "mode": 33188,
+        "sha256": "9d902e06a616ce522a0eb2380f6a577195a38685deb5175aed35e8fb55c4877b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/manifest.json",
+        "mode": 33188,
+        "sha256": "05960d46f85ae20e73d93e3687efad6ded7891f6dbae3b01a0ab232239f6cc93"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-6njTID/upstream-autoheight-red.log.gz",
+        "mode": 33188,
+        "sha256": "2d7083c942122cfaddf06b15a9a6ea3e2823982532e9159b3f9ef03a3a9eb183"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-autoheight-red.log.gz",
+        "mode": 33188,
+        "sha256": "242b600c367d8c932a0d59b7bbf01e3df888a986b18a18ef0b31c54804c3d12e"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/backport-observed-units-red.log.gz",
+        "mode": 33188,
+        "sha256": "c32f90e146073ce90f5eab5af1d3a48895256fa3b71bf347140e01582cc3a66c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-8Sbuic/manifest.json",
+        "mode": 33188,
+        "sha256": "95701564b2b40273a1719b74e391d2a8513c55aa4144497d6ca10260a81df528"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser142.log.gz",
+        "mode": 33188,
+        "sha256": "270235770fd709d89c76142dc8c39f0c2a7f8639ea4886898ff9616a5d92978d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-browser156.log.gz",
+        "mode": 33188,
+        "sha256": "2288ef2f35c9283bf98e252d14ed5cb54f7493bb73e53bac249066e961c3bdea"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/backport-final-units.log.gz",
+        "mode": 33188,
+        "sha256": "c8fe8b7b589e39e6c93602bb6aa87341f38d80f511e373a31a42e344192c7919"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-J3NFvs/manifest.json",
+        "mode": 33188,
+        "sha256": "574353240511f44e02d5abbef093b96062c46ac6707de91d10554be033d59bc7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-autoheight-red3.log.gz",
+        "mode": 33188,
+        "sha256": "a03b72894c5513c8a7d7c4eca7d926ecedb7f4da052db63c949c740195a12a18"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/backport-observed-units-red3.log.gz",
+        "mode": 33188,
+        "sha256": "59c1069bfd24100ebfe96fcdcd59bfa895b7b17a77b51c4d827c38cd850b6998"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-M4bR1n/manifest.json",
+        "mode": 33188,
+        "sha256": "fcbe56a217cdd77ec7fd5b54eabc893b5ca09bea07d76d3c03548a83651872ac"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-all-units-green.log.gz",
+        "mode": 33188,
+        "sha256": "382155d4d881866b624401f5f492dcc8eedf6715abd1717caa904f303356ba10"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/backport-autoheight-green.log.gz",
+        "mode": 33188,
+        "sha256": "db01bf968ad304dd0ddfca8be8d31842d2cf292a67c7cc6554ed6adef968f9d0"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-exCBSm/manifest.json",
+        "mode": 33188,
+        "sha256": "6695091d54d49e036ed98d1836779d0a1a195497c39aaf8e93aeb79504b68c3a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-autoheight-red2.log.gz",
+        "mode": 33188,
+        "sha256": "73765263db5d610fd874421574ca35f72a348d9e255165da3319e5f7252c0065"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/backport-observed-units-red2.log.gz",
+        "mode": 33188,
+        "sha256": "dbb04089255d9ed908158f5bc5581c4de9ab89b0a26872ede043e046176c6aca"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-hj6rhU/manifest.json",
+        "mode": 33188,
+        "sha256": "60d719c36ae449eda2b1f8aca93a1661864c3744d7903144615a6a0f720f5049"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/manifest.json",
+        "mode": 33188,
+        "sha256": "78643974896382d6af4baec73da95e8d8118c826f9787a7ee95ff02a2c82aee3"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-nPimwT/upstream-autoheight-green.log.gz",
+        "mode": 33188,
+        "sha256": "7812985a74c6665df616006f1238b033cf6de4eb93bf3ed4234a9d79eb51b61c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/browser-projection-contracts.html.json.gz",
+        "mode": 33188,
+        "sha256": "5b0f9ce6bdb6803377e854ac86fc6350907ddf0ced3df32ed0caa7a7c629167a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/manifest.json",
+        "mode": 33188,
+        "sha256": "06559dfabf0d33155a471f55563a28e2586e8b4d8a1a1b678b7735f2f90f4a85"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-uymu1L/projection.log.gz",
+        "mode": 33188,
+        "sha256": "3aecd3966abf00d6e3d9a9d0e1db83d563bdc3c4f2ac9630d0549b6f2382e9b8"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/manifest.json",
+        "mode": 33188,
+        "sha256": "612bf5926c45ad9c6d1c9648bdb1062de7ace674ad07b0891ad4d368ff770cc4"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-controls.log.gz",
+        "mode": 33188,
+        "sha256": "d10d1e617212cd20731b07361607a477882819b1beaaa613fc00100eaf05b21b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-types.log.gz",
+        "mode": 33188,
+        "sha256": "b269fc77a33ef1f5fe6b26a67278cf779ef13412299c39ef76b89194efb8300d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-vWgZHT/upstream-units.log.gz",
+        "mode": 33188,
+        "sha256": "a81a90b4289edb05d153aa848ae80a938b6eece7c4eacaa9b14259d7c3962aaf"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/layout.log.gz",
+        "mode": 33188,
+        "sha256": "73a148299182c5dc14db09af6314c7d86baf44f9404b6f51ddb03326c1a99c7a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xTJ926/manifest.json",
+        "mode": 33188,
+        "sha256": "2a671da66daf4d574e4fc8a9d375bc4316613220af30ce3b358e28e7258e4bbe"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/backport-published-array-guard-red.log.gz",
+        "mode": 33188,
+        "sha256": "cae31d1dc3750a0d4147b43c512d04f3824851457b2da7501b7d3bcf807a7e7c"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/runs/run-xreAeU/manifest.json",
+        "mode": 33188,
+        "sha256": "d2261f8cb6e86faac2c46c363aff7bbc37ebb0e0e44c280ab5af873234fc9b53"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-autoheight-red-initial-missing-job.log.gz",
+        "mode": 33188,
+        "sha256": "57fdad17f4bc3981a85e25dabae7adcc3fc5d2e9cba5c7c6816325d0e39569d6"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-array-red-manifest.json",
+        "mode": 33188,
+        "sha256": "5e8d75a1d2383f46a0e941a369fa31656e80796342221ac9a9bf475797e74402"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser142-manifest.json",
+        "mode": 33188,
+        "sha256": "3fca7e6c78815049a682374844acdaac625fdae1db2016b60ba0064e32669a27"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-browser156-manifest.json",
+        "mode": 33188,
+        "sha256": "4290daea466be3c2af74113b07976e3bf7898d63ea0b6793cc95520e85430567"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-final-units-manifest.json",
+        "mode": 33188,
+        "sha256": "eb2e22bb1e024b6c626de671bdf89f3fd9124616a80ccd8c7f6a28f37e01b4a0"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-green-manifest.json",
+        "mode": 33188,
+        "sha256": "bffcf333975535ecf1fec8b8dd7f40c639bcf53097f2e2c72f0985b8aaf6a7a1"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red-manifest.json",
+        "mode": 33188,
+        "sha256": "c28d871dbd6ad0e2c7478cf5c43a72633ecaa0f76e0ce260240b7dadb5bfaf72"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red2-manifest.json",
+        "mode": 33188,
+        "sha256": "ffe09740c6c13c7bd71d35f49865a5a11bfb31d5012361aeddbddd70c22d5b70"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-red3-manifest.json",
+        "mode": 33188,
+        "sha256": "a93c06c30602fcb133d6aff60e688e367928115f9c0d8966d7afb6ec7ab6d58b"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-green-manifest.json",
+        "mode": 33188,
+        "sha256": "f16ec7e7875cbbf958e5c98b8e5a50b5df3dff078f5614960d0cce5bf0ef2a7d"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red-manifest.json",
+        "mode": 33188,
+        "sha256": "bc478dfc558436e44865221bdfd84d98e66c6d27baae72ff634261c3602f5115"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red2-manifest.json",
+        "mode": 33188,
+        "sha256": "7aa6e8c6cdd4d9c3fdf8d38209fe497f3541b87d76ee5357656b95a0800431a9"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-backport-units-red3-manifest.json",
+        "mode": 33188,
+        "sha256": "f8b334fb0c022582943759699d9a95705bb3cecbe2e8a76b6e5c13bf09dca7b7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-controls-manifest.json",
+        "mode": 33188,
+        "sha256": "2641981d2f9dd10754192331a6bfcd9533b66a3ce419d426af817c9eecb883dc"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-green-manifest.json",
+        "mode": 33188,
+        "sha256": "c9c10bd27801870f7115b73cc3b06b20693f0653b4e44711d5c2306e90e98367"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green-manifest.json",
+        "mode": 33188,
+        "sha256": "b4cf94b6b646136a0fb3a485608c30cef2d2abfa24469f4bc9af906d86e4fabb"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-green.log.gz",
+        "mode": 33188,
+        "sha256": "8e4d69b1db6cbe5cbd081eb35fded311c93521bcf818e874657ae4354afb2819"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red-manifest.json",
+        "mode": 33188,
+        "sha256": "fea95f85e1f59c2de440136e2511355bdbf200a8b1632c00e8a944ff21483d30"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-rebuild-red.log.gz",
+        "mode": 33188,
+        "sha256": "f7df9e942619581d5d4a2152a0a6a134240e7d2153ee4ec2307e2ebd41d9bef6"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-red-manifest.json",
+        "mode": 33188,
+        "sha256": "54f079d97b3c5dc406c30903f346120577fef3464b2fe32508b6934af9db60e1"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-types-manifest.json",
+        "mode": 33188,
+        "sha256": "8011d444fa8e14749e173974735057f287a99ddf1eac64877f273bb97a99e74f"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/source-proofs/rector-carousel-upstream-units-manifest.json",
+        "mode": 33188,
+        "sha256": "d7898585c25afb0a0f64a307a66cdd07eebbb72e5f31dc4cef0fda80563a8191"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/carousel-autoheight-dependency/summary.json",
+        "mode": 33188,
+        "sha256": "7b8ac19e457da968463cb2c9d78faa977414564ea1ff508d38055bd54736215f"
+      },
+      {
+        "path": "tests/browser/carousel-roundtrip-16x16.webm",
+        "mode": 33188,
+        "sha256": "acc9e5c613e78cf0a6c73a18dabbb2662e090f0331e4f31cbc9f9f1f53499d75"
+      },
+      {
+        "path": "tests/browser/regressions/carousel-auto-height.js",
+        "mode": 33188,
+        "sha256": "31108dffcc51571a1ca776d4608fc0226580b2830d6097b87f34dbe455e956e4"
+      }
+    ],
+    "dirty": true,
+    "identity": "b512a5fb673feb97a814fd766582a04281c3ba072f3c4744219697e48eab2714"
+  },
+  "sourceUnchanged": true
+}

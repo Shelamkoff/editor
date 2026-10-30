@@ -1,0 +1,106 @@
+{
+  "reviewedCandidate": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13",
+  "decodedRawSha256": "2ce841177d44800264a5fe73135915cea9faa8ae5749c815b8d46a208fcdaceb",
+  "runnerRevision": "132b59923de9bc6b1f3b3f73ba48c6d1f040826a",
+  "runnerSha256": "c8e5936367c8e1fe9b548857c9418595de718076958ad37d48a73e82a50dda96",
+  "reviewerSha256": "d64dcc6692038fbc0cd59d09c4b36103595b1fec5b4d0d78ba023ce4f7506a7a",
+  "summary": [
+    {
+      "source": "v1",
+      "cases": 1,
+      "unsupported": 7,
+      "observations": 20,
+      "rawFailures": 1,
+      "incomplete": 0,
+      "pageErrors": 0
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 7,
+      "unsupported": 0,
+      "observations": 147,
+      "rawFailures": 8,
+      "incomplete": 0,
+      "pageErrors": 0
+    },
+    {
+      "source": "candidate",
+      "cases": 7,
+      "unsupported": 0,
+      "observations": 147,
+      "rawFailures": 0,
+      "incomplete": 0,
+      "pageErrors": 0
+    }
+  ],
+  "independentlyRecomputedVerdicts": 314,
+  "independentlyReconstructedExpectedValues": 314,
+  "verifiedModuleHashRecords": 271,
+  "verifiedDependencyFiles": 14,
+  "verifiedDependencyVersions": 8,
+  "historicalFailures": [
+    {
+      "source": "v1",
+      "id": "V1_PUBLIC_FOCUS_NATIVE_NAVIGATION",
+      "property": "undo.selection"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "accepted"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "selection"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "settledCurrentEvents"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "edit.records"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "edit.selection"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "undo.selection"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "redo.records"
+    },
+    {
+      "source": "spec-baseline",
+      "id": "DEFECT_FIRST_FOCUS",
+      "property": "redo.selection"
+    }
+  ],
+  "evidenceConsistent": true,
+  "candidatePass": true,
+  "rawHistoricalVerdictsPreserved": true,
+  "acceptanceScope": [
+    "FOCUS_VALUES_OFFSET_1",
+    "FOCUS_VALUES_OFFSET_2",
+    "FOCUS_VALUES_OFFSET_3",
+    "FOCUS_VALUES_OFFSET_4",
+    "FOCUS_VALUES_OFFSET_5",
+    "FOCUS_VALUES_OFFSET_6",
+    "DEFECT_FIRST_FOCUS"
+  ],
+  "limitations": [
+    "The seven v1 keyed/numeric API obligations are UNSUPPORTED, not PASS.",
+    "The v1 counterpart uses its real block.focus() and native keyboard navigation.",
+    "Acceptance is for the specified new/current API contracts, not exact v1 API equivalence.",
+    "Paragraph plain text in Chrome 156/Linux; full PUBLIC_SELECTION and platform coverage remain open."
+  ]
+}

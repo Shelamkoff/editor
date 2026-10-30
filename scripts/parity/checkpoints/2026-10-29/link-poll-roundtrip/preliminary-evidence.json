@@ -1,0 +1,181 @@
+{
+  "artifacts": [
+    {
+      "path": "poll-roundtrip-red.json.gz",
+      "originalPath": "/tmp/rector-poll-roundtrip-red.json",
+      "rawSha256": "89677734254ba156c1564430a4ccb3d8b2fac17da2fe56d7eb5e01411327a241",
+      "storedSha256": "4bbc4972b97e4c32a31b17184e2c2397f27a139603c657cbbabda0cc352d49dd",
+      "rawBytes": 2070151,
+      "storedBytes": 81060,
+      "startedAt": "2026-10-29T22:35:53.717Z",
+      "finishedAt": "2026-10-29T22:36:02.415Z",
+      "headBefore": "b2db285e5eb7e5f321850fac1701f4e9328caf7b",
+      "headAfter": "b2db285e5eb7e5f321850fac1701f4e9328caf7b",
+      "sourceSha256": "142385fcdf2b4567f3bf83a0df648e621c70345a16cc60209e8179aa77c58e70",
+      "fixtureSha256": "124931cfd58913e1e594865ec622a2ed92fb9bf473df568e445d121701c23690",
+      "classifierSha256": null,
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "requestedFilter": "BLOCK_POLL_ROUNDTRIP"
+    },
+    {
+      "path": "poll-roundtrip-green-before-core.json.gz",
+      "originalPath": "/tmp/rector-poll-roundtrip-green-raw.json",
+      "rawSha256": "6513b569e7ccb1b06449ac54248ae9a2c0508541aa816abd756ca4338509a38a",
+      "storedSha256": "e41e73fac6fc104f059ec99a473293aa6c625d54fefaf7d31513f001abeb37ef",
+      "rawBytes": 2916241,
+      "storedBytes": 106680,
+      "startedAt": "2026-10-29T22:51:59.606Z",
+      "finishedAt": "2026-10-29T22:52:11.108Z",
+      "headBefore": "5a48a1b6414388ece478f967e67f59ebbbdf3d9c",
+      "headAfter": "5a48a1b6414388ece478f967e67f59ebbbdf3d9c",
+      "sourceSha256": "48bf7394b51cacddf955d3f1fce72fa5894da2d5b4f78b83d8551ceee1b2a8b5",
+      "fixtureSha256": "499386bb8be98d9858f84839ec2cf88e92b1835166dd383ff4523820abd9eb6d",
+      "classifierSha256": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "requestedFilter": "BLOCK_POLL_ROUNDTRIP"
+    },
+    {
+      "path": "link-preview-roundtrip-red.json.gz",
+      "originalPath": "/tmp/rector-link-preview-roundtrip-red.json",
+      "rawSha256": "0e88cb7f3d65e91ff1e7e5ca2e47c6208836ef9bc4ef8e5349d2f4f2412b75b2",
+      "storedSha256": "3c715da82a2f69cce59c1b6700ff031cda6f1fbf5b56f9bc2793277f5ad0c0ca",
+      "rawBytes": 925096,
+      "storedBytes": 45381,
+      "startedAt": "2026-10-29T22:43:32.190Z",
+      "finishedAt": "2026-10-29T22:43:43.930Z",
+      "headBefore": "1520238d51c52ae6cda47eaee19847fda301ebe5",
+      "headAfter": "1520238d51c52ae6cda47eaee19847fda301ebe5",
+      "sourceSha256": "142385fcdf2b4567f3bf83a0df648e621c70345a16cc60209e8179aa77c58e70",
+      "fixtureSha256": "6e51a7f9eb95969308ad9e92b7faf5e94399cce95a2001ea8aeb110a9c4d94dc",
+      "classifierSha256": null,
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "requestedFilter": "BLOCK_LINK_PREVIEW_ROUNDTRIP"
+    },
+    {
+      "path": "link-preview-roundtrip-green-before-final.json.gz",
+      "originalPath": "/tmp/rector-link-preview-roundtrip-green-raw.json",
+      "rawSha256": "5e75798e689d0e4b3cae45459c9dd29905a137100bf2c82e33a11d5699be5a00",
+      "storedSha256": "2854e249d88a204732e6487d2b416726426a7e5f6bfc61f5c4d64fd978acd480",
+      "rawBytes": 919324,
+      "storedBytes": 45359,
+      "startedAt": "2026-10-29T22:44:23.665Z",
+      "finishedAt": "2026-10-29T22:44:35.346Z",
+      "headBefore": "23f52ed6940111adab9394bfbc0adb5402b82129",
+      "headAfter": "23f52ed6940111adab9394bfbc0adb5402b82129",
+      "sourceSha256": "142385fcdf2b4567f3bf83a0df648e621c70345a16cc60209e8179aa77c58e70",
+      "fixtureSha256": "6e51a7f9eb95969308ad9e92b7faf5e94399cce95a2001ea8aeb110a9c4d94dc",
+      "classifierSha256": null,
+      "sourceUnchanged": true,
+      "sourceIdentityVerified": true,
+      "requestedFilter": "BLOCK_LINK_PREVIEW_ROUNDTRIP"
+    },
+    {
+      "path": "poll-derived-ordinary-red.log",
+      "originalPath": "/tmp/rector-poll-derived-ordinary-red.log",
+      "rawSha256": "18c8b310859d9d087fdcf47bb971b295e27223cc719e806d25a89fa67636d4aa",
+      "storedSha256": "18c8b310859d9d087fdcf47bb971b295e27223cc719e806d25a89fa67636d4aa",
+      "rawBytes": 4159,
+      "storedBytes": 4159
+    },
+    {
+      "path": "poll-derived-native-red.log",
+      "originalPath": "/tmp/rector-poll-derived-native-red.log",
+      "rawSha256": "632ab932d15351654b2df462bb02cec5aa0f7053e22395284d31976a00f5a37b",
+      "storedSha256": "632ab932d15351654b2df462bb02cec5aa0f7053e22395284d31976a00f5a37b",
+      "rawBytes": 1311,
+      "storedBytes": 1311
+    },
+    {
+      "path": "poll-derived-unsupported-attribute-oracle.log",
+      "originalPath": "/tmp/rector-poll-derived-ordinary-green.log",
+      "rawSha256": "ac08d8ea7168341f340a138142f57cf37fdab29631af4ecf4358d7d885ce0a4b",
+      "storedSha256": "ac08d8ea7168341f340a138142f57cf37fdab29631af4ecf4358d7d885ce0a4b",
+      "rawBytes": 4846,
+      "storedBytes": 4846
+    },
+    {
+      "path": "poll-derived-ordinary-green-before-core.log",
+      "originalPath": "/tmp/rector-poll-derived-ordinary-green2.log",
+      "rawSha256": "06a05e1fb827db842c67676e9bef58e5b02cfef3007d5e0e9b2dfa9664796047",
+      "storedSha256": "06a05e1fb827db842c67676e9bef58e5b02cfef3007d5e0e9b2dfa9664796047",
+      "rawBytes": 15561,
+      "storedBytes": 15561
+    },
+    {
+      "path": "poll-derived-native-incomplete-fix.log",
+      "originalPath": "/tmp/rector-poll-derived-native-green2.log",
+      "rawSha256": "64f253be0f9de7d26188597b56dd280e591352bfd42b79f6d5d70240ebe74572",
+      "storedSha256": "64f253be0f9de7d26188597b56dd280e591352bfd42b79f6d5d70240ebe74572",
+      "rawBytes": 18709,
+      "storedBytes": 18709
+    },
+    {
+      "path": "poll-derived-native-green-before-core.log",
+      "originalPath": "/tmp/rector-poll-derived-native-green3.log",
+      "rawSha256": "e10b6be79ec97c1d525b041f8717dd06c6c624c757909cddf1182e1024411b29",
+      "storedSha256": "e10b6be79ec97c1d525b041f8717dd06c6c624c757909cddf1182e1024411b29",
+      "rawBytes": 194,
+      "storedBytes": 194
+    },
+    {
+      "path": "poll-adopted-wrapper-red.log",
+      "originalPath": "/tmp/rector-poll-adopted-wrapper-red.log",
+      "rawSha256": "2532a5c6dd8b33100c92810a4c6391f747725fe49aefb77e8bfe8464e47fd2d7",
+      "storedSha256": "2532a5c6dd8b33100c92810a4c6391f747725fe49aefb77e8bfe8464e47fd2d7",
+      "rawBytes": 1163,
+      "storedBytes": 1163
+    },
+    {
+      "path": "link-preview-reentry-red.log",
+      "originalPath": "/tmp/rector-link-preview-reentry-red.log",
+      "rawSha256": "dd7f1644a90212b8d101d20f6d356af39ab66e59f22dc237e3a7121d2138ad34",
+      "storedSha256": "dd7f1644a90212b8d101d20f6d356af39ab66e59f22dc237e3a7121d2138ad34",
+      "rawBytes": 1413,
+      "storedBytes": 1413
+    },
+    {
+      "path": "link-preview-reentry-green.log",
+      "originalPath": "/tmp/rector-link-preview-reentry-green.log",
+      "rawSha256": "8a6fd60512cb4833279e3c940790f333ae94230512dec1e353de1ba6ce89db0a",
+      "storedSha256": "8a6fd60512cb4833279e3c940790f333ae94230512dec1e353de1ba6ce89db0a",
+      "rawBytes": 200,
+      "storedBytes": 200
+    },
+    {
+      "path": "link-preview-input-lifetime-red.log",
+      "originalPath": "/tmp/rector-link-preview-input-lifetime.log",
+      "rawSha256": "daff858bba505c4d6ae1b4ac09bc3cda97187cde0e2e9d947fc39d9234b03d16",
+      "storedSha256": "daff858bba505c4d6ae1b4ac09bc3cda97187cde0e2e9d947fc39d9234b03d16",
+      "rawBytes": 2951,
+      "storedBytes": 2951
+    },
+    {
+      "path": "link-preview-input-lifetime-green.log",
+      "originalPath": "/tmp/rector-link-preview-input-lifetime-green.log",
+      "rawSha256": "4e545ac029c1c730605eeb9985c6bb459ed31a5b91c6a5f469352cdeb323e632",
+      "storedSha256": "4e545ac029c1c730605eeb9985c6bb459ed31a5b91c6a5f469352cdeb323e632",
+      "rawBytes": 2844,
+      "storedBytes": 2844
+    },
+    {
+      "path": "link-preview-resubmit-red.log",
+      "originalPath": "/tmp/rector-link-preview-resubmit-red.log",
+      "rawSha256": "98419d79ce0c47a676787b482eafeb4d8f7df40d653e1316eb1a537a06923bda",
+      "storedSha256": "98419d79ce0c47a676787b482eafeb4d8f7df40d653e1316eb1a537a06923bda",
+      "rawBytes": 2122,
+      "storedBytes": 2122
+    },
+    {
+      "path": "link-preview-resubmit-cleanup-corrected-red.log",
+      "originalPath": "/tmp/rector-link-preview-resubmit-red2.log",
+      "rawSha256": "7f9bcda9856b620d06e85f4cda6f910166f6ae501b6a47739affdf637edde9c9",
+      "storedSha256": "7f9bcda9856b620d06e85f4cda6f910166f6ae501b6a47739affdf637edde9c9",
+      "rawBytes": 1260,
+      "storedBytes": 1260
+    }
+  ],
+  "boundary": "Executed preliminary evidence, including real REDs and explicitly retained invalid test-oracle/cleanup attempts. Final source-bound acceptance is recorded separately."
+}

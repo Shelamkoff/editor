@@ -1,0 +1,735 @@
+{
+  "schemaVersion": 1,
+  "scope": "Gallery addition to the public ROUNDTRIP template; no ledger acceptance is made by this artifact.",
+  "productionHead": "4bfb39426744bc0a96725258c06dc9192b58098b",
+  "productionDiff": "empty: core/plugins/renderer/shared are byte-identical to the published base",
+  "candidateDefectReproduced": false,
+  "initialRedMeaning": "Unclassified historical differential failures only; candidate Gallery was green before this work and no production fix was required.",
+  "v1": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "specBaseline": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+  "testSources": {
+    "tests/browser/block-roundtrip-fixture.js": "9651c5ba6894e9c5403f4fa05e70618cb547442ce4b75de76800c0f76a481965",
+    "scripts/parity/block-roundtrip.mjs": "3c8695a2061408c9a5a19da4eef0cc0ed5419596f6b0bef8600efa2f07b806e6",
+    "scripts/parity/gallery-roundtrip-classifiers.mjs": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85",
+    "scripts/parity/link-poll-roundtrip-classifiers.mjs": "7807e295fff45c5d96011a3365cadf18efc5cebce972d8cdec1c518bde1a5c72",
+    "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+  },
+  "dependencyRoot": "/tmp/rector-gallery-roundtrip-20261030/node_modules",
+  "dependencyRootIsSymlink": false,
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "browserVersions": {
+    "/tmp/rector-browsers/chrome-linux64/chrome": "Google Chrome for Testing 142.0.7444.175",
+    "/tmp/rector-browsers-156/chrome-linux64/chrome": "Google Chrome for Testing 156.0.8078.47"
+  },
+  "runs": [
+    {
+      "label": "final57-differential",
+      "kind": "differential",
+      "pid": 370505,
+      "startedAt": "2026-10-30T00:53:48.675086+00:00",
+      "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+      "sourceHead": "4bfb39426744bc0a96725258c06dc9192b58098b",
+      "filter": "",
+      "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "outcome": "passed",
+      "manifest": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-fFA7Pt/manifest.json",
+      "log": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-fFA7Pt/differential.log",
+      "exitCode": 0,
+      "finishExitCode": 0,
+      "finishedAt": "2026-10-30T00:56:04.609044+00:00",
+      "manifestArchive": "final57-differential-manifest.json",
+      "logArchive": "final57-differential.log.gz",
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "label": "final57-native156",
+      "kind": "native",
+      "pid": 370506,
+      "startedAt": "2026-10-30T00:53:48.664926+00:00",
+      "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+      "sourceHead": "4bfb39426744bc0a96725258c06dc9192b58098b",
+      "filter": "",
+      "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "outcome": "passed",
+      "manifest": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-EJFGkt/manifest.json",
+      "log": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-EJFGkt/native.log",
+      "exitCode": 0,
+      "finishExitCode": 0,
+      "finishedAt": "2026-10-30T00:54:36.744158+00:00",
+      "manifestArchive": "final57-native156-manifest.json",
+      "logArchive": "final57-native156.log.gz",
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "label": "final4-native142",
+      "kind": "native",
+      "pid": 371869,
+      "startedAt": "2026-10-30T00:54:57.051074+00:00",
+      "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+      "sourceHead": "4bfb39426744bc0a96725258c06dc9192b58098b",
+      "filter": "BLOCK_GALLERY_ROUNDTRIP",
+      "chrome": "/tmp/rector-browsers/chrome-linux64/chrome",
+      "outcome": "passed",
+      "manifest": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-Sw4PUG/manifest.json",
+      "log": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-Sw4PUG/native.log",
+      "exitCode": 0,
+      "finishExitCode": 0,
+      "finishedAt": "2026-10-30T00:55:08.191252+00:00",
+      "manifestArchive": "final4-native142-manifest.json",
+      "logArchive": "final4-native142.log.gz",
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "label": "final-typecheck",
+      "kind": "typecheck",
+      "pid": 370507,
+      "startedAt": "2026-10-30T00:53:48.675225+00:00",
+      "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+      "sourceHead": "4bfb39426744bc0a96725258c06dc9192b58098b",
+      "filter": "BLOCK_GALLERY_ROUNDTRIP",
+      "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "outcome": "passed",
+      "manifest": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-90JTKd/manifest.json",
+      "log": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-90JTKd/typecheck.log",
+      "exitCode": 0,
+      "finishExitCode": 0,
+      "finishedAt": "2026-10-30T00:54:00.435093+00:00",
+      "manifestArchive": "final-typecheck-manifest.json",
+      "logArchive": "final-typecheck.log.gz",
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "sourceUnchanged": true
+    },
+    {
+      "label": "final-classifier",
+      "kind": "classifier",
+      "pid": 370508,
+      "startedAt": "2026-10-30T00:53:48.664949+00:00",
+      "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+      "sourceHead": "4bfb39426744bc0a96725258c06dc9192b58098b",
+      "filter": "BLOCK_GALLERY_ROUNDTRIP",
+      "chrome": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+      "outcome": "passed",
+      "manifest": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-uaE5sW/manifest.json",
+      "log": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-uaE5sW/classifier.log",
+      "exitCode": 0,
+      "finishExitCode": 0,
+      "finishedAt": "2026-10-30T00:53:52.206817+00:00",
+      "manifestArchive": "final-classifier-manifest.json",
+      "logArchive": "final-classifier.log.gz",
+      "source": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "sourceUnchanged": true
+    }
+  ],
+  "differentialCounts": [
+    {
+      "source": "v1",
+      "cases": 57,
+      "observations": 9710,
+      "observationStatuses": {
+        "PASS": 8826,
+        "FAIL": 884
+      },
+      "failureRecords": 884,
+      "failureStatuses": {
+        "FAIL": 884
+      },
+      "classifiedDifferences": 884,
+      "unexpectedFailures": 0,
+      "incompleteCases": 0,
+      "errors": 0,
+      "pageErrors": 0,
+      "classifiedPageErrors": 0,
+      "unexpectedErrors": 0,
+      "unexpectedPageErrors": 0
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 57,
+      "observations": 7173,
+      "observationStatuses": {
+        "PASS": 7075,
+        "FAIL": 98
+      },
+      "failureRecords": 115,
+      "failureStatuses": {
+        "ERROR": 17,
+        "FAIL": 98
+      },
+      "classifiedDifferences": 115,
+      "unexpectedFailures": 0,
+      "incompleteCases": 17,
+      "errors": 1,
+      "pageErrors": 1,
+      "classifiedPageErrors": 1,
+      "unexpectedErrors": 0,
+      "unexpectedPageErrors": 0
+    },
+    {
+      "source": "candidate",
+      "cases": 57,
+      "observations": 9832,
+      "observationStatuses": {
+        "PASS": 9832
+      },
+      "failureRecords": 0,
+      "failureStatuses": {},
+      "classifiedDifferences": 0,
+      "unexpectedFailures": 0,
+      "incompleteCases": 0,
+      "errors": 0,
+      "pageErrors": 0,
+      "classifiedPageErrors": 0,
+      "unexpectedErrors": 0,
+      "unexpectedPageErrors": 0
+    }
+  ],
+  "galleryCaseIds": [
+    "BLOCK_GALLERY_ROUNDTRIP/default",
+    "BLOCK_GALLERY_ROUNDTRIP/populated",
+    "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+    "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control"
+  ],
+  "galleryResults": [
+    {
+      "source": "v1",
+      "cases": 4,
+      "observations": 670,
+      "failureRecords": 103,
+      "unexpectedFailures": 0
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 4,
+      "observations": 349,
+      "failureRecords": 36,
+      "unexpectedFailures": 0
+    },
+    {
+      "source": "candidate",
+      "cases": 4,
+      "observations": 703,
+      "failureRecords": 0,
+      "unexpectedFailures": 0
+    }
+  ],
+  "notApplicableGalleryPhases": [
+    {
+      "source": "v1",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Gallery with no images has no caption field; populated cases exercise declared caption authoring and history."
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Gallery with no images has no caption field; populated cases exercise declared caption authoring and history."
+    },
+    {
+      "source": "candidate",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/default",
+      "phases": [
+        "edit",
+        "undo",
+        "redo"
+      ],
+      "reason": "Gallery with no images has no caption field; populated cases exercise declared caption authoring and history."
+    }
+  ],
+  "incompleteGalleryCases": [
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "completed": [
+        "load"
+      ],
+      "incomplete": [
+        "read-only",
+        "editable-again",
+        "edit",
+        "undo",
+        "redo",
+        "dispose"
+      ]
+    }
+  ],
+  "unsupportedV1GalleryCases": [
+    {
+      "source": "v1",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+      "supported": false,
+      "feature": "Persistent Gallery caption widgets and rich marks",
+      "reason": "Pinned v1 Gallery has inlineTools=false, no mapTextFields hook, and plain textContent captions. The fixed historical wire adapter preserves visible plain caption text; rich marks and persistent sidecars are current-capability controls, not proof of v1 support."
+    },
+    {
+      "source": "v1",
+      "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+      "supported": false,
+      "feature": "Persistent Gallery caption widgets and rich marks",
+      "reason": "Pinned v1 Gallery has inlineTools=false, no mapTextFields hook, and plain textContent captions. The fixed historical wire adapter preserves visible plain caption text; rich marks and persistent sidecars are current-capability controls, not proof of v1 support."
+    }
+  ],
+  "finalArtifacts": [
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-fFA7Pt/manifest.json",
+      "file": "final57-differential-manifest.json",
+      "originalBytes": 14883,
+      "originalSha256": "049181c7ca8b6bda9c692907303b0865983e1b5ca25f9dea9bb9e2cc55226c31",
+      "storedBytes": 14883,
+      "storedSha256": "049181c7ca8b6bda9c692907303b0865983e1b5ca25f9dea9bb9e2cc55226c31"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-fFA7Pt/differential.log",
+      "file": "final57-differential.log.gz",
+      "originalBytes": 29293128,
+      "originalSha256": "8c97ed86e60fac1d7694d523e69bfb25e2c2d93f3a5f63fabc1fdf78fc0b76bb",
+      "storedBytes": 833825,
+      "storedSha256": "2cbff93fa3e0293ab25f777114d6d3b4dbf29b9b7cfcb881754841e23ed06c5b"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-EJFGkt/manifest.json",
+      "file": "final57-native156-manifest.json",
+      "originalBytes": 14876,
+      "originalSha256": "19a24541af51ff44af2d286c69faa6f5272676bae74228566f77cfb975cff517",
+      "storedBytes": 14876,
+      "storedSha256": "19a24541af51ff44af2d286c69faa6f5272676bae74228566f77cfb975cff517"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-EJFGkt/native.log",
+      "file": "final57-native156.log.gz",
+      "originalBytes": 5525,
+      "originalSha256": "3d452cd065ac906312e705f65de397ae48f51f97051ecf67f840ee65c844456c",
+      "storedBytes": 493,
+      "storedSha256": "d4625e306a6e1fac8075ff3fb7358b2c3fe14844106630653b9282b7afed1b69"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-Sw4PUG/manifest.json",
+      "file": "final4-native142-manifest.json",
+      "originalBytes": 14914,
+      "originalSha256": "b4e38db165360f9449e5469f1365b09e006611f0cf05d7d22c373ec6b050b74a",
+      "storedBytes": 14914,
+      "storedSha256": "b4e38db165360f9449e5469f1365b09e006611f0cf05d7d22c373ec6b050b74a"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-Sw4PUG/native.log",
+      "file": "final4-native142.log.gz",
+      "originalBytes": 489,
+      "originalSha256": "ffa0c25c3d958dfe930fdd92db4419a484f60497fafd6afe6fb4ad854e592ca6",
+      "storedBytes": 193,
+      "storedSha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-90JTKd/manifest.json",
+      "file": "final-typecheck-manifest.json",
+      "originalBytes": 14914,
+      "originalSha256": "a98dd9f703aa5098bd3348047d90e5254ba68407d52e9847edd5ff1d548572f8",
+      "storedBytes": 14914,
+      "storedSha256": "a98dd9f703aa5098bd3348047d90e5254ba68407d52e9847edd5ff1d548572f8"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-90JTKd/typecheck.log",
+      "file": "final-typecheck.log.gz",
+      "originalBytes": 259,
+      "originalSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "storedBytes": 185,
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-uaE5sW/manifest.json",
+      "file": "final-classifier-manifest.json",
+      "originalBytes": 14980,
+      "originalSha256": "28db3ca9fd9c029bfff064783707d746529b66dd23cc8c3843bdefb12c2b6539",
+      "storedBytes": 14980,
+      "storedSha256": "28db3ca9fd9c029bfff064783707d746529b66dd23cc8c3843bdefb12c2b6539"
+    },
+    {
+      "original": "/tmp/rector-gallery-roundtrip-20261030/test-results/run-uaE5sW/classifier.log",
+      "file": "final-classifier.log.gz",
+      "originalBytes": 1949,
+      "originalSha256": "c385936a0dc3a96947deed1c3081d8fa4b7083186bb773f1ca9e0fa30d9aa57c",
+      "storedBytes": 799,
+      "storedSha256": "c40932945ed3e500aeaf6672823aaede8cece92442ded4a35383487ccda9a97e"
+    }
+  ],
+  "qualification": "The 57-case differential exits zero because the existing strict classifiers recognize exact historical outcomes. Raw historical failures and 17 incomplete baseline cases remain. Gallery adds two of those incomplete baseline cases. Candidate has no failure or error exemptions."
+}

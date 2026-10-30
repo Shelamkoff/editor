@@ -1,6 +1,7 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el } from '../shared/editorDom.js'
 import { sanitizeUrl } from '../shared/sanitize/sanitizeUrl.js'
+import { hasProtectedDomContent, authoredEditingHosts } from './inlineContent.js'
 import {
   createSelectionPortBinding,
   ICON_LINK, ICON_CHECK, ICON_UNLINK,
@@ -10,25 +11,84 @@ import {
   collectTextTargets,
   normalizeAfterEdit,
   createBackButton,
+  isolateAncestor,
 } from './utils.js'
 
 const ELEMENT_NODE = 1
+const DOCUMENT_POSITION_FOLLOWING = 4
+const NATIVE_CONTROL_SELECTOR = 'button, input, textarea, select, option, [role="button"]'
 
-/** Widget-owned hyperlinks are UI, not authored link formatting.
+/** Hyperlinks belonging to controls or another editing host are not authored
+ * link formatting, even when a native Range geometrically intersects them.
  * @param {Node | null | undefined} node
  * @returns {HTMLAnchorElement | null}
  */
 function authoredAnchor(node) {
   const element = node?.nodeType === ELEMENT_NODE ? /** @type {Element} */ (node) : node?.parentElement
+  if (element?.closest('[data-inline-plugin]')) return null
+  const field = element?.closest('[contenteditable]')
+  if (!field || field.getAttribute('contenteditable') !== 'true') return null
+  const control = element?.closest(NATIVE_CONTROL_SELECTOR)
+  if (control && field.contains(control)) return null
   const anchor = element?.closest('a')
-  return anchor && !anchor.closest('[data-inline-plugin]') ? /** @type {HTMLAnchorElement} */ (anchor) : null
+  return anchor && anchor !== field && field.contains(anchor) ? /** @type {HTMLAnchorElement} */ (anchor) : null
+}
+
+/** A widget is one authored atom; only its surrounding link is formatting.
+ * @param {Node} node
+ */
+function contentAnchor(node) {
+  return authoredAnchor(node.nodeType === ELEMENT_NODE
+    && /** @type {Element} */ (node).hasAttribute('data-inline-plugin') ? node.parentElement : node)
+}
+
+/** @param {Range} range @param {Element} element */
+function containsAtom(range, element) {
+  const parent = element.parentNode
+  if (!parent) return false
+  const index = Array.prototype.indexOf.call(parent.childNodes, element)
+  return range.comparePoint(parent, index) === 0 && range.comparePoint(parent, index + 1) === 0
+}
+
+/** Selected author text, line breaks and complete inline occurrences. Keep
+ * atomic traversal within the same field boundaries as text transformations;
+ * a nested editing host or native control owns its own descendants.
+ * @param {Range} range
+ * @returns {{ text: ReturnType<typeof collectTextTargets>, atoms: Element[] }}
+ */
+function collectLinkContent(range) {
+  /** @type {{ text: ReturnType<typeof collectTextTargets>, atoms: Element[] }} */
+  const content = { text: [], atoms: [] }
+  const root = getWalkRoot(range)
+  if (!root) return content
+  content.text = collectTextTargets(root, range)
+  /** @param {Element} parent */
+  const visit = parent => {
+    for (const element of parent.children) {
+      if (element.hasAttribute('data-inline-plugin')) {
+        if (containsAtom(range, element)) content.atoms.push(element)
+        continue
+      }
+      if (element.matches(NATIVE_CONTROL_SELECTOR) || element.hasAttribute('contenteditable')) continue
+      if (element.tagName === 'BR') {
+        if (containsAtom(range, element)) content.atoms.push(element)
+      } else visit(element)
+    }
+  }
+  for (const host of authoredEditingHosts(root)) visit(host)
+  return content
+}
+
+/** @param {Range} range @returns {Node[]} */
+function linkedContent(range) {
+  const { text, atoms } = collectLinkContent(range)
+  return [...text.map(({ node }) => node), ...atoms]
 }
 
 /**
- * Return every link touched by a range. The walk root is deliberately the
- * contenteditable (or the common editor root for a cross-block selection),
- * rather than the range's common ancestor: the latter can be the link itself,
- * and querySelectorAll() never includes the element it is called on.
+ * Return every link with selected authored content. The actual editing host
+ * (or common editor root for a cross-block selection) supplies the text walker;
+ * control labels between those fields do not make author text appear linked.
  *
  * Keeping detection, active-state rendering, and unlinking on this single
  * query prevents the three code paths from disagreeing about the selection.
@@ -37,22 +97,38 @@ function authoredAnchor(node) {
  * @returns {HTMLAnchorElement[]}
  */
 function getIntersectingLinks(range) {
-  const walkRoot = getWalkRoot(range)
-  if (!walkRoot) return []
+  if (range.collapsed) {
+    const anchor = authoredAnchor(range.startContainer)
+    return anchor ? [anchor] : []
+  }
+  /** @type {Set<HTMLAnchorElement>} */
+  const links = new Set()
+  for (const node of linkedContent(range)) {
+    const anchor = contentAnchor(node)
+    if (anchor) links.add(anchor)
+  }
+  return [...links]
+}
 
-  /** @type {HTMLAnchorElement[]} */
-  const candidates = []
-  if (walkRoot.tagName === 'A') candidates.push(/** @type {HTMLAnchorElement} */ (walkRoot))
-  candidates.push(...walkRoot.querySelectorAll('a'))
-
-  return candidates.filter((candidate) => {
-    if (candidate.closest('[data-inline-plugin]')) return false
-    try {
-      return range.intersectsNode(candidate)
-    } catch {
-      return false
-    }
-  })
+/** Retain whole-link unlinking for author content, while preserving the link
+ * and node identities of controls that share its wrapper.
+ * @param {HTMLAnchorElement} anchor
+ */
+function unlinkAuthoredAnchor(anchor) {
+  if (!hasProtectedDomContent(anchor)) {
+    anchor.replaceWith(...anchor.childNodes)
+    return
+  }
+  const range = anchor.ownerDocument.createRange()
+  range.selectNodeContents(anchor)
+  const nodes = linkedContent(range).filter(node => contentAnchor(node) === anchor)
+  nodes.sort((left, right) => left.compareDocumentPosition(right) & DOCUMENT_POSITION_FOLLOWING ? 1 : -1)
+  for (const node of nodes) {
+    const current = contentAnchor(node)
+    if (!current) continue
+    isolateAncestor(node, current)
+    current.replaceWith(...current.childNodes)
+  }
 }
 
 /**
@@ -97,9 +173,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
       if (!walkRoot) return
 
       for (const link of getIntersectingLinks(actualRange)) {
-        const parent = link.parentNode
-        while (link.firstChild) parent?.insertBefore(link.firstChild, link)
-        link.remove()
+        unlinkAuthoredAnchor(link)
       }
 
       normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
@@ -208,7 +282,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
           if (!walkRoot) return
           // Apply only to the authorized current range, never an earlier DOM
           // range captured before a URL input or a subsequent document change.
-          const targets = collectTextTargets(walkRoot, range)
+          const targets = collectLinkContent(range).text
           for (let i = targets.length - 1; i >= 0; i--) {
             const t = targets[i]
             if (!t) continue
@@ -243,9 +317,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
           const anchor = authoredAnchor(range.startContainer)
           if (anchor) {
             const parent = anchor.parentNode
-            const fragment = anchor.ownerDocument.createDocumentFragment()
-            while (anchor.firstChild) fragment.appendChild(anchor.firstChild)
-            anchor.replaceWith(fragment)
+            unlinkAuthoredAnchor(anchor)
             removeEmptyInlineTags(parent)
           }
           if (!cbs.restore(bookmark)) {

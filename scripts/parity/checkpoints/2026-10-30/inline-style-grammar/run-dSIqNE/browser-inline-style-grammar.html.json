@@ -1,0 +1,35 @@
+[
+  {
+    "name": "A theme variable containing expression in its name retains canonical and visible formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "CSS comments and escaped names survive canonicalization with declaration precedence intact",
+    "status": "PASS"
+  },
+  {
+    "name": "Pending shorthand values do not emit invalid empty longhands: background:var(--theme-bg);color:red",
+    "status": "PASS"
+  },
+  {
+    "name": "Pending shorthand values do not emit invalid empty longhands: font:var(--theme-font);color:blue",
+    "status": "PASS"
+  },
+  {
+    "name": "Pending shorthand values do not emit invalid empty longhands: background:var(--bg)!important;background-color:blue",
+    "status": "PASS"
+  },
+  {
+    "name": "CSS grammar does not admit additional properties or resource-loading declarations",
+    "status": "FAIL",
+    "error": "Error: Assertion failed\n    at assert (http://127.0.0.1:37083/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:37083/tests/browser/inline-style-grammar.js:91:5\n    at async run (http://127.0.0.1:37083/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:37083/tests/browser/inline-style-grammar.js:127:1"
+  },
+  {
+    "name": "Only allowed longhands survive shorthand expansion and native cascade precedence",
+    "status": "PASS"
+  },
+  {
+    "name": "A foreign owning document retains its own theme and canonical CSS through history and rendering",
+    "status": "PASS"
+  }
+]

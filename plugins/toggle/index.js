@@ -162,12 +162,12 @@ export function createTogglePlugin(config = {}) {
               content:body.innerHTML.trim(),
               open:persistedOpen,
             }),
-            update(next){
+            update(next,previousCanonical){
               if(instanceDestroyed)return
-              if(title.innerHTML!==next.title)setSanitizedHtml(title,next.title)
-              if(body.innerHTML!==next.content)setSanitizedHtml(body,next.content)
+              if(previousCanonical?.title!==next.title&&title.innerHTML!==next.title)setSanitizedHtml(title,next.title)
+              if(previousCanonical?.content!==next.content&&body.innerHTML!==next.content)setSanitizedHtml(body,next.content)
               persistedOpen=next.open
-              projectOpen(next.open)
+              if(previousCanonical?.open!==next.open)projectOpen(next.open)
             },
             editableFields:()=>Object.freeze([
               Object.freeze({key:'title',element:title,mode:/** @type {'rich-text'} */('rich-text')}),
@@ -176,7 +176,11 @@ export function createTogglePlugin(config = {}) {
             setReadOnly:applyReadOnly,
             focus(target){
               if(instanceDestroyed||readOnly)return
-              ;(target?.fieldKey==='content'?body:title).focus()
+              const key=target?.fieldKey
+              if(key!==undefined&&key!=='title'&&key!=='content')return
+              // Keyed focus may reveal presentation, but cannot author open.
+              if(key==='content')projectOpen(true)
+              ;(key==='content'?body:title).focus()
             },
             destroy(){instanceDestroyed=true},
           }

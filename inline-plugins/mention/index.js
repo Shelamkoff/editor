@@ -64,6 +64,7 @@ export function createMentionPlugin(options={}){
     styles:Object.freeze([STYLES_URL]),
     trigger,
     schema:mentionWidgetSchema,
+    toText:data=>trigger+data.name,
     editing:Object.freeze({
       handle(input,data){
         const inputType=input.inputType

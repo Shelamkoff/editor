@@ -46,6 +46,7 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `signal` | Abort signal for this block occurrence. |
 | `restoring` | Captured at creation: `true` when reconstructing history or recovering failed projection. Later updates of that instance do not change the flag. Do not repeat automatic author-side metadata requests for restored snapshots; resources needed to display accepted content may still be acquired. Explicit user actions retain their current scoped authority. |
 | `getData()` | Read current canonical block data. |
+| `getFieldText(fieldKey)` | Read plain text of a canonical rich field declared by `schema.mapRichText()`, including an unmounted field. |
 | `updateData(producer)` | Commit a synchronous model-first block-data transaction. |
 | `beginTask()` | Create revocable authority for one asynchronous persisted result. |
 | `commitDomMutation(operation)` | Commit an unavoidable plugin-owned DOM mutation through canonical history. |
@@ -55,11 +56,23 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 
 The inherited `createId(prefix)` allocator creates nested stable identities.
 
+### Canonical text for unmounted fields
+
+Use `context.getFieldText(fieldKey)` for auxiliary labels that need a rich field's canonical text before its author DOM is mounted. Person uses it for profile tabs. The query reads the same scoped record as `getData()`, including the prospective record during construction, update and history projection. It does not flush pending native input or create an editing field, widget instance, popup or provider request. An unknown field key throws; use a stable key declared by `schema.mapRichText()`.
+
+Registered inline definitions can supply a pure synchronous [`toText(data)`](/guide/inline-extensions#canonical-text-without-a-widget-instance). The common rich-text parser substitutes that plain text for actual references and decodes HTML entities once. Unknown definitions, definitions without `toText`, unmatched tokens and explicit literal tokens retain their token text. A returned widget string is inserted as text without another HTML parse or placeholder scan.
+
+A successful query opts the current block instance into its existing `update(next, previous)` when canonical inline data changes. `next` and `previous` block data may be equal in that case; recompute auxiliary labels while retaining unaffected author fields and native controls. An instance without `update` follows the existing replacement path. The query itself creates no transaction or history entry. Native source projection keeps its existing DOM/caret handling and field completion.
+
+The query is protected synchronous extension work. Its inline callback receives an owned, deeply frozen decoded payload. It cannot acquire nested mutation, control or task authority. A stale occurrence, adopted block root or recursive query rejects before the extension callbacks; ownership is checked again after callbacks. Errors and thenables propagate to the current construction, canonical/history or mode recovery boundary.
+
+Canonical text describes accepted payloads and a prospective projection, so it does not include a transient widget preview or mode-specific label. Use `afterProjection` below when auxiliary output depends on the actual completed mounted field. Only write to auxiliary nodes still owned by the block occurrence.
+
 ### Derived presentation after a rich field settles
 
 Implement optional synchronous `afterProjection(field: EditableField): void` when auxiliary presentation depends on the final visible text of a rich field. For example, an image's alternative text must include the rendered labels of its inline widgets. `update()` runs before that inline projection is complete; reading the caption there can still return canonical placeholders.
 
-The editor captures the method once with its original instance receiver. It passes the frozen descriptor of the exact affected mounted rich field after attachment and inline hydration, before accepting a canonical change or history replay. Mode changes deliver after inline mode hooks and scope cancellation. A standalone field replacement or recovery delivers only fields actually projected; an untouched sibling or repeated field query does not deliver again. Native normalization also delivers when final DOM changes but canonical data and history remain unchanged. A discarded detached candidate never receives completion.
+The editor captures the method once with its original instance receiver. It passes the frozen descriptor of the exact affected mounted rich field after attachment and inline hydration, before accepting a canonical change or history replay. This includes ordinary native author text: the changed source field completes while its DOM, widgets and caret are retained. An unchanged input notification adds no completion or history. Native inline normalization also delivers when final DOM changes but canonical data and history remain unchanged; successful finalization is not replayed just because the same source field is subsequently synchronized. Mode changes deliver after inline mode hooks and scope cancellation. A standalone field replacement or recovery delivers only fields actually projected; an untouched sibling or repeated field query does not deliver again. A discarded detached candidate never receives completion.
 
 Use only the instance's captured, still-owned auxiliary nodes. This fragment belongs in the object returned by `create()`; `caption`, `image`, `container` and `wrapper` are exact nodes created for that occurrence:
 
