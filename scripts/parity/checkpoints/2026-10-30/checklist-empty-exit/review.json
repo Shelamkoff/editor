@@ -22,6 +22,7 @@
   },
   "negativeControlsRejected": [
     "candidate",
+    "candidate-unchanged-status",
     "v1",
     "spec-baseline"
   ],

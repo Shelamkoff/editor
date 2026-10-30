@@ -29,6 +29,12 @@ def review(result):
         failure_count = 0
         for case in source['cases']:
             assert case['incompletePhases'] == []
+            for observation in case['observations']:
+                # Recompute every verdict; an edited actual value must not be
+                # accepted merely because the raw record still says PASS.
+                actual = json.dumps(['actual' in observation, observation.get('actual')], sort_keys=True)
+                wanted = json.dumps(['expected' in observation, observation.get('expected')], sort_keys=True)
+                assert (actual == wanted) == (observation['status'] == 'PASS')
             assert [s['phase'] for s in case['snapshots']] == [
                 'load', 'edit', 'exit', 'undo-exit', 'undo-edit', 'redo-edit', 'redo-exit', 'dispose']
             failures = {(f['phase'], f['property']): f for f in case['observations'] if f['status'] != 'PASS'}
@@ -86,13 +92,16 @@ if __name__ == '__main__':
     for filename, field in [('fixture.js', 'fixtureSha256'), ('probe.mjs', 'runnerSha256')]:
         assert hashlib.sha256((ROOT / filename).read_bytes()).hexdigest() == result[field]
     controls = []
-    for label in ['candidate', 'v1', 'spec-baseline']:
+    for label in ['candidate', 'candidate-unchanged-status', 'v1', 'spec-baseline']:
         altered = copy.deepcopy(result)
-        case = next(s for s in altered['results'] if s['source'] == label)['cases'][0 if label == 'candidate' else 1]
+        candidate = label.startswith('candidate')
+        case = next(s for s in altered['results'] if s['source'] == ('candidate' if candidate else label))['cases'][0 if candidate else 1]
         if label == 'candidate':
             observation = case['observations'][0]
             observation['status'] = 'FAIL'; observation['actual'] = None
             case['failures'].append(observation)
+        elif candidate:
+            case['observations'][0]['actual'] = None
         else:
             failure = case['failures'][0]
             observation = next(o for o in case['observations'] if (o['phase'], o['property']) == (failure['phase'], failure['property']))

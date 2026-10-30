@@ -14,7 +14,7 @@ The three-source probe uses pinned Git bytes for every fetched source, fixed aut
 | Spec baseline `e981ff308000c1d92d7e820df95113c1e19bcee8` | 8 | 222 | 35 | 0 |
 | Candidate `d70b318420afd105d311912110dd1caa44444d2c` | 8 | 222 | 0 | 0 |
 
-All sources finish all planned phases, with zero page/server errors and verified unchanged source files. The raw probe exits **1**, retaining every historical difference. Its raw outcome is not a passing all-source gate. `review.py` separately recognizes only the exact historical values below, rejects changed historical observations and an injected candidate failure, and grants zero candidate exemptions.
+All sources finish all planned phases, with zero page/server errors and verified unchanged source files. The raw probe exits **1**, retaining every historical difference. Its raw outcome is not a passing all-source gate. `review.py` separately recognizes only the exact historical values below, recomputes every observation status, rejects changed historical observations and candidate mutations both with and without a changed status, and grants zero candidate exemptions.
 
 ## Historical differences
 
@@ -27,3 +27,5 @@ The spec baseline does not perform the three trailing-empty exits (nine conseque
 `fixture.js` and `probe.mjs` are the exact bytes hashed by the raw result. The runner takes `EDITOR_CANDIDATE_ROOT`, `EDITOR_V1_ROOT`, `EDITOR_SPEC_BASELINE_ROOT`, `EDITOR_DEPENDENCIES_ROOT`, `EDITOR_CHROME_PATH` and `EDITOR_PLAYWRIGHT_PATH`. The candidate root must be at the recorded commit to reproduce this immutable checkpoint. Run `python review.py` here to verify the archived result and its negative controls.
 
 This proves the named empty-exit row for these Chromium fixtures. It does not accept the separate Checklist item CRUD/merge/export rows, arbitrary cross-item selections, other engines, IME or read-only composition behavior. No production code was changed or speculative behavior added to achieve the result.
+
+The review originally trusted PASS labels on otherwise passing observations. A negative control changed one candidate actual value to null while retaining PASS and was accepted. The checker now independently recomputes equality for every actual/expected pair, including absent JSON properties. Both candidate controls and both historical controls are rejected; the underlying browser observations and production source are unchanged.
