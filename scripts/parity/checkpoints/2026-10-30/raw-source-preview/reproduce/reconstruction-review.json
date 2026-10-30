@@ -1,0 +1,24 @@
+{
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "commits": [
+    {
+      "commit": "c66fb93749003589f514eb5d52de45cc6dc3b86e",
+      "tree": "dbff757ed28efe9fafc6f16ced51d163a9fb29fe",
+      "patchAppliesToPriorTree": true,
+      "rawCommitHashMatches": true
+    },
+    {
+      "commit": "e122f317581f116631f9d33c27768012682ac310",
+      "tree": "a7515656f3aff78da857f1bfef3bf1ffde08beae",
+      "patchAppliesToPriorTree": true,
+      "rawCommitHashMatches": true
+    },
+    {
+      "commit": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "tree": "6fa6f2946a375bae518a95f91c005ea42ab04833",
+      "patchAppliesToPriorTree": true,
+      "rawCommitHashMatches": true
+    }
+  ],
+  "workingTreeModified": false
+}

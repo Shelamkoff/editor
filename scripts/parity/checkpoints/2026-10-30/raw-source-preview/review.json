@@ -1,0 +1,68 @@
+{
+  "independentlyRecomputedVerdicts": 4102,
+  "fixedCases": 21,
+  "sources": {
+    "v1": {
+      "cases": 21,
+      "observations": 1260,
+      "failures": 226,
+      "incompleteCases": 0,
+      "pageErrors": 0,
+      "failureProperties": {
+        "sourceSelection": 75,
+        "canonicalRecords": 44,
+        "literalSource": 44,
+        "sourceFocus": 31,
+        "history": 22,
+        "nativeInputObserved": 7,
+        "sourceVisible": 1,
+        "previewHidden": 1,
+        "togglePressed": 1
+      }
+    },
+    "spec-baseline": {
+      "cases": 21,
+      "observations": 1421,
+      "failures": 30,
+      "incompleteCases": 0,
+      "pageErrors": 0,
+      "failureProperties": {
+        "canonicalRecords": 10,
+        "literalSource": 10,
+        "sourceSelection": 10
+      }
+    },
+    "candidate": {
+      "cases": 21,
+      "observations": 1421,
+      "failures": 0,
+      "incompleteCases": 0,
+      "pageErrors": 0,
+      "failureProperties": {}
+    }
+  },
+  "rawSha256": "b873419a97654d03279a7dfd7fe1bdbe36c871d001798dcbbe684d475f163f22",
+  "fixtureSource": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+  "sourceModuleHashes": 297,
+  "dependencyFileHashes": 6,
+  "dependencyVersions": 8,
+  "mutationGuards": [
+    {
+      "mutation": "changed-author-data-with-green-verdict",
+      "rejected": true
+    },
+    {
+      "mutation": "view-creates-history-with-green-verdict",
+      "rejected": true
+    },
+    {
+      "mutation": "lost-backward-selection-with-green-verdict",
+      "rejected": true
+    },
+    {
+      "mutation": "missing-keyboard-history-phase",
+      "rejected": true
+    }
+  ],
+  "note": "Historical verdicts are recomputed and retained. Negative controls exercise this independent oracle; they are not additional browser tests or accepted capabilities."
+}

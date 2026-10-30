@@ -1,0 +1,282 @@
+{
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "baseTree": "bf2b6820b2e08a6e882630959415e668542c34a0",
+  "candidate": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+  "candidateTree": "6fa6f2946a375bae518a95f91c005ea42ab04833",
+  "changedTrackedPaths": [
+    "scripts/parity/raw-source-preview.mjs",
+    "tests/browser/native-source-modes.js",
+    "tests/browser/raw-source-parity-fixture.js",
+    "tests/browser/regressions/raw-readonly-selection-native.js"
+  ],
+  "productionUnchanged": true,
+  "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+  "runtimeSourceEquivalentToBase": true,
+  "sourceScope": "Git-served implementation modules are pinned and hashed. The current node_modules symlink is an untracked dependency location, is not committed, and its loaded dependency bytes/versions are recorded in raw output.",
+  "finalComparison": {
+    "v1": {
+      "cases": 21,
+      "observations": 1260,
+      "failures": 226,
+      "incompleteCases": 0,
+      "pageErrors": 0
+    },
+    "spec-baseline": {
+      "cases": 21,
+      "observations": 1421,
+      "failures": 30,
+      "incompleteCases": 0,
+      "pageErrors": 0
+    },
+    "candidate": {
+      "cases": 21,
+      "observations": 1421,
+      "failures": 0,
+      "incompleteCases": 0,
+      "pageErrors": 0
+    }
+  },
+  "commands": [
+    {
+      "archive": "raw/initial-schema-fixture.json.gz",
+      "fixtureSource": "c66fb93749003589f514eb5d52de45cc6dc3b86e",
+      "candidateSource": "c66fb93749003589f514eb5d52de45cc6dc3b86e",
+      "filter": "read-only-backward-lines",
+      "startedAt": "2026-10-30T17:22:22.022Z",
+      "completedAt": "2026-10-30T17:22:24.738Z",
+      "exitCode": 1,
+      "sha256": "0759b937ae7ae508aac6203a1e8186307c225064d941161a000f1312c1496722",
+      "candidatePass": false,
+      "resultSummary": {
+        "v1": {
+          "cases": 1,
+          "observations": 70,
+          "failures": 16,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "cases": 1,
+          "observations": 0,
+          "failures": 0,
+          "incomplete": 1
+        },
+        "candidate": {
+          "cases": 1,
+          "observations": 0,
+          "failures": 0,
+          "incomplete": 1
+        }
+      }
+    },
+    {
+      "archive": "raw/readonly-control.json.gz",
+      "fixtureSource": "e122f317581f116631f9d33c27768012682ac310",
+      "candidateSource": "e122f317581f116631f9d33c27768012682ac310",
+      "filter": "read-only-backward-lines",
+      "startedAt": "2026-10-30T17:22:53.001Z",
+      "completedAt": "2026-10-30T17:22:57.583Z",
+      "exitCode": 1,
+      "sha256": "b3a0e1674622490943af0381c5d07df79afa43127e84f2f752396321a9d12648",
+      "candidatePass": true,
+      "resultSummary": {
+        "v1": {
+          "cases": 1,
+          "observations": 70,
+          "failures": 16,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "cases": 1,
+          "observations": 79,
+          "failures": 0,
+          "incomplete": 0
+        },
+        "candidate": {
+          "cases": 1,
+          "observations": 79,
+          "failures": 0,
+          "incomplete": 0
+        }
+      }
+    },
+    {
+      "archive": "raw/initial-event-capture.json.gz",
+      "fixtureSource": "e122f317581f116631f9d33c27768012682ac310",
+      "candidateSource": "e122f317581f116631f9d33c27768012682ac310",
+      "filter": "",
+      "startedAt": "2026-10-30T17:23:28.781Z",
+      "completedAt": "2026-10-30T17:23:55.952Z",
+      "exitCode": 1,
+      "sha256": "07351d4aca537e892cb686ab6d70def52ba020ff24534a7471abca1bf9c798f5",
+      "candidatePass": false,
+      "resultSummary": {
+        "v1": {
+          "cases": 21,
+          "observations": 1260,
+          "failures": 238,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "cases": 21,
+          "observations": 1421,
+          "failures": 42,
+          "incomplete": 0
+        },
+        "candidate": {
+          "cases": 21,
+          "observations": 1421,
+          "failures": 12,
+          "incomplete": 0
+        }
+      }
+    },
+    {
+      "archive": "raw/final.json.gz",
+      "fixtureSource": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "candidateSource": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "filter": "",
+      "startedAt": "2026-10-30T17:24:38.543Z",
+      "completedAt": "2026-10-30T17:25:06.286Z",
+      "exitCode": 1,
+      "sha256": "b873419a97654d03279a7dfd7fe1bdbe36c871d001798dcbbe684d475f163f22",
+      "candidatePass": true,
+      "resultSummary": {
+        "v1": {
+          "cases": 21,
+          "observations": 1260,
+          "failures": 226,
+          "incomplete": 0
+        },
+        "spec-baseline": {
+          "cases": 21,
+          "observations": 1421,
+          "failures": 30,
+          "incomplete": 0
+        },
+        "candidate": {
+          "cases": 21,
+          "observations": 1421,
+          "failures": 0,
+          "incomplete": 0
+        }
+      }
+    }
+  ],
+  "native": [
+    {
+      "source": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "page": "native-source-indentation.html",
+      "filter": "Raw",
+      "cases": 27,
+      "exitCode": 0,
+      "rawLogSha256": "7fc7af32afca08a515bd60a9552b2bb6bace1b0d68d550c200520e7e94a24123",
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-source-indentation.html EDITOR_NATIVE_FILTER=Raw node tests/browser/physical-history.mjs"
+    },
+    {
+      "source": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+      "page": "native-source-modes.html",
+      "filter": "Raw",
+      "cases": 28,
+      "exitCode": 0,
+      "rawLogSha256": "5894dc63c8d0259c504161ae1239db1fc689cef73e0400933ad8f1d749c450de",
+      "command": "EDITOR_CHROME_PATH=/tmp/rector-chrome/opt/google/chrome/chrome EDITOR_NATIVE_PAGE=native-source-modes.html EDITOR_NATIVE_FILTER=Raw node tests/browser/physical-history.mjs"
+    }
+  ],
+  "nativeInitial": {
+    "runtimeSource": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+    "exitCode": 0,
+    "cases": 1,
+    "status": "Historical corroboration before the new test was committed; the regression and registration bytes equal c66fb937. It is not added to the 55 final native cases.",
+    "regressionSha256": "05b03e2b23406edd290a27b85ec43bd45ad47a94e4f617ba82c5c48de0baac74",
+    "registrationSha256": "25d8a39745a3bf6c73114859cd537e2115dcc1670d5b21f59cc865c2d70e7138"
+  },
+  "independentReview": {
+    "independentlyRecomputedVerdicts": 4102,
+    "fixedCases": 21,
+    "sources": {
+      "v1": {
+        "cases": 21,
+        "observations": 1260,
+        "failures": 226,
+        "incompleteCases": 0,
+        "pageErrors": 0,
+        "failureProperties": {
+          "sourceSelection": 75,
+          "canonicalRecords": 44,
+          "literalSource": 44,
+          "sourceFocus": 31,
+          "history": 22,
+          "nativeInputObserved": 7,
+          "sourceVisible": 1,
+          "previewHidden": 1,
+          "togglePressed": 1
+        }
+      },
+      "spec-baseline": {
+        "cases": 21,
+        "observations": 1421,
+        "failures": 30,
+        "incompleteCases": 0,
+        "pageErrors": 0,
+        "failureProperties": {
+          "canonicalRecords": 10,
+          "literalSource": 10,
+          "sourceSelection": 10
+        }
+      },
+      "candidate": {
+        "cases": 21,
+        "observations": 1421,
+        "failures": 0,
+        "incompleteCases": 0,
+        "pageErrors": 0,
+        "failureProperties": {}
+      }
+    },
+    "rawSha256": "b873419a97654d03279a7dfd7fe1bdbe36c871d001798dcbbe684d475f163f22",
+    "fixtureSource": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+    "sourceModuleHashes": 297,
+    "dependencyFileHashes": 6,
+    "dependencyVersions": 8,
+    "mutationGuards": [
+      {
+        "mutation": "changed-author-data-with-green-verdict",
+        "rejected": true
+      },
+      {
+        "mutation": "view-creates-history-with-green-verdict",
+        "rejected": true
+      },
+      {
+        "mutation": "lost-backward-selection-with-green-verdict",
+        "rejected": true
+      },
+      {
+        "mutation": "missing-keyboard-history-phase",
+        "rejected": true
+      }
+    ],
+    "note": "Historical verdicts are recomputed and retained. Negative controls exercise this independent oracle; they are not additional browser tests or accepted capabilities."
+  },
+  "acceptanceRecommendation": [
+    "BLOCK_RAW_SOURCE",
+    "BLOCK_RAW_PREVIEW"
+  ],
+  "acceptanceBoundary": "Twelve source cases and nine source/preview/read-only cases in Chrome 156/Linux. The parent integration owns register updates. B-HTML/B-STYLE topology, broader Raw rendering/navigation/policy/platform coverage remain separate.",
+  "historicalFixtureCorrections": [
+    {
+      "source": "c66fb93749003589f514eb5d52de45cc6dc3b86e",
+      "artifact": "raw/initial-schema-fixture.json.gz",
+      "reason": "Paragraph was incorrectly serialized as dataVersion 1; current/spec require their registered version 2. Both current sources stopped before load. Use the actual public registered schema version."
+    },
+    {
+      "source": "e122f317581f116631f9d33c27768012682ac310",
+      "artifact": "raw/initial-event-capture.json.gz",
+      "reason": "Raw intentionally stops Tab propagation. A bubbling-only trusted-key recorder saw no Tab events. All 12 candidate failures were recorder errors; capture-phase registration observes the real trusted events."
+    }
+  ],
+  "reviewDraftCorrection": {
+    "artifact": "review-history/initial-order.stderr.gz",
+    "reason": "The independent reviewer originally compared case-loop ordering. Cases have independent editors; require the complete unique ID set and exact per-case phase order instead. No observed or intended value was changed."
+  }
+}
