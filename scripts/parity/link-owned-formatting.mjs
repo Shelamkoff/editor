@@ -143,6 +143,67 @@ try {
         } catch (error) { entry.errors.push(error.stack ?? String(error)) }
         finally { tool.bindSelectionPort?.(null); root.remove() }
       }
+      for (const action of ['unlink', 'apply']) {
+        const entry = { id: 'cross-block-nested-text-' + action, observations: [], errors: [], complete: false }
+        cases.push(entry)
+        const root = document.createElement('div')
+        root.innerHTML = '<div class="oe-block"><div contenteditable="true">Alpha'
+          + '<span contenteditable="true">' + (action === 'unlink' ? '<a href="/nested">Nested</a>' : '<b>Nested</b> label')
+          + '</span></div></div><div class="oe-block"><div contenteditable="true">Bravo</div></div>'
+        document.body.append(root)
+        const [first, last] = root.querySelectorAll('.oe-block > [contenteditable="true"]')
+        const nested = first.querySelector('[contenteditable="true"]')
+        const children = [...nested.childNodes], text = nested.firstChild.firstChild, markup = nested.innerHTML
+        const range = document.createRange(); range.setStart(first.firstChild, 0); range.setEnd(last.firstChild, 5)
+        const tool = createLinkTool('URL', 'Link')
+        tool.bindSelectionPort?.({ get range() { return range }, capture: () => ({}), restore: () => true })
+        let panel
+        try {
+          check(entry, 'activeBefore', tool.isActive({ range }), false)
+          if (action === 'unlink') {
+            const before = root.innerHTML
+            tool.toggle({ range })
+            check(entry, 'protectedOnlyHtml', root.innerHTML, before)
+            const author = document.createElement('a')
+            author.href = '/author'; last.replaceChildren(author); author.textContent = 'Bravo'
+            range.setStart(first.firstChild, 0); range.setEnd(author.firstChild, 5)
+            check(entry, 'activeWithAuthoredNeighbor', tool.isActive({ range }), true)
+            tool.toggle({ range })
+          } else {
+            const restoreSelection = () => {
+              const native = window.getSelection(); native.removeAllRanges(); native.addRange(range)
+            }
+            restoreSelection()
+            let closed = false
+            // Adapt the public v1 restoreSelection callback and v2 current
+            // Range/mutation port; production sources stay unmodified.
+            panel = tool.renderActions({ get range() { return range }, restoreSelection,
+              mutate: mutation => mutation(range), close: () => { closed = true },
+              showTooltip() {}, hideTooltip() {}, backLabel: 'Back' })
+            check(entry, 'panelOpened', Boolean(panel), true)
+            if (panel) {
+              document.body.append(panel)
+              panel.querySelector('input').value = 'https://example.test/new'
+              panel.querySelector('.oe-inline-tool--apply').click()
+            }
+            check(entry, 'panelClosedAfterApply', closed, true)
+          }
+          check(entry, 'nestedMarkup', nested.innerHTML, markup)
+          check(entry, 'nestedIdentity', nested.isConnected
+            && children.every((node, index) => nested.childNodes[index] === node)
+            && nested.firstChild.firstChild === text, true)
+          const authored = action === 'apply'
+            ? '<a href="https://example.test/new" rel="noopener noreferrer" target="_blank">' : ''
+          check(entry, 'firstAuthoredContent', first.firstChild.outerHTML ?? first.firstChild.textContent,
+            authored ? authored + 'Alpha</a>' : 'Alpha')
+          check(entry, 'lastAuthoredContent', last.innerHTML, authored ? authored + 'Bravo</a>' : 'Bravo')
+          entry.complete = true
+        } catch (error) { entry.errors.push(error.stack ?? String(error)) }
+        finally {
+          window.getSelection().removeAllRanges()
+          tool.bindSelectionPort?.(null); panel?.remove(); root.remove()
+        }
+      }
       return cases
     }, source)
     results.push({ source: source.label, cases, pageErrors })
@@ -151,7 +212,7 @@ try {
   assert.equal(git('rev-parse', 'HEAD').toString().trim(), headBefore, 'HEAD changed during comparison')
   assert.deepEqual(await readFile(fileURLToPath(import.meta.url)), runnerBytes, 'Runner changed during comparison')
   console.log(JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), browser: await browser.version(), node: process.version,
-    scope: 'Eleven direct public-tool real-DOM ownership cases; no native historical editor/caret/history claim. Candidate native editor coverage is a separate gate.',
+    scope: 'Thirteen direct public-tool real-DOM ownership cases; no native historical editor/caret/history claim. Candidate native editor coverage is a separate gate.',
     headBefore, runnerSha256: digest(runnerBytes), sourceIdentity: 'Every production module served from its exact Git object without transformation.',
     sources, dependencyFiles, serverErrors, results }, null, 2))
   // Preserve historical contract failures in the raw result. No source receives

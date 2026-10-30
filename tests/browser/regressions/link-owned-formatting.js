@@ -134,6 +134,62 @@ test('Link excludes nested editing-host line breaks while unlinking an adjacent 
   } finally { h.dispose() }
 })
 
+test('cross-block Link excludes nested editing-host text while unlinking authored text', () => {
+  const first = fixture('Alpha<span contenteditable="true"><a href="/nested">Nested</a></span>')
+  const last = fixture('Bravo'), shell = document.createElement('div')
+  shell.append(first.root, last.root); document.body.append(shell)
+  try {
+    const nested = first.field.querySelector('[contenteditable="true"]')
+    const anchor = nested.firstChild, text = anchor.firstChild, before = shell.innerHTML
+    first.range.setStart(first.field.firstChild, 0); first.range.setEnd(last.field.firstChild, 5)
+    equal(first.tool.isActive({ range: first.range }), false, 'Nested editing-host Text activated cross-block Link')
+    first.tool.toggle({ range: first.range })
+    equal(shell.innerHTML, before, 'Cross-block Unlink edited a nested host')
+    const author = document.createElement('a')
+    author.href = '/author'; author.textContent = ' linked'
+    last.field.append(author); first.range.setEnd(author.firstChild, 7)
+    equal(first.tool.isActive({ range: first.range }), true, 'Authored adjacent text did not activate Link')
+    first.tool.toggle({ range: first.range })
+    assert(!last.field.querySelector('a'), 'Cross-block Unlink retained the authored link')
+    assert(nested.isConnected && anchor.parentNode === nested && anchor.firstChild === text,
+      'Cross-block Unlink changed nested-host nodes')
+    equal(anchor.getAttribute('href'), '/nested')
+  } finally { first.dispose(); last.dispose(); shell.remove() }
+})
+
+test('cross-block Link Apply formats authored text without entering a nested editing host', () => {
+  const first = fixture('Alpha<span contenteditable="true"><b>Nested</b> label</span>')
+  const last = fixture('Bravo'), shell = document.createElement('div')
+  shell.append(first.root, last.root); document.body.append(shell)
+  let panel
+  try {
+    const nested = first.field.querySelector('[contenteditable="true"]')
+    const children = [...nested.childNodes], text = nested.firstChild.firstChild, markup = nested.innerHTML
+    first.range.setStart(first.field.firstChild, 0); first.range.setEnd(last.field.firstChild, 5)
+    const native = window.getSelection(); native.removeAllRanges(); native.addRange(first.range)
+    let closed = false
+    panel = first.tool.renderActions({
+      get range() { return first.range }, mutate: mutation => mutation(first.range),
+      close: () => { closed = true }, showTooltip() {}, hideTooltip() {}, backLabel: 'Back',
+    })
+    assert(panel, 'An unlinked author selection did not open the Link panel')
+    document.body.append(panel)
+    panel.querySelector('input').value = 'https://example.test/new'
+    panel.querySelector('.oe-inline-tool--apply').click()
+    assert(closed, 'Successful Apply did not close its panel')
+    equal(nested.innerHTML, markup, 'Apply formatted text owned by a nested editing host')
+    assert(nested.isConnected && children.every((node, index) => nested.childNodes[index] === node)
+      && nested.firstChild.firstChild === text, 'Apply replaced nested-host children')
+    equal(first.field.firstChild.outerHTML,
+      '<a href="https://example.test/new" rel="noopener noreferrer" target="_blank">Alpha</a>')
+    equal(last.field.innerHTML,
+      '<a href="https://example.test/new" rel="noopener noreferrer" target="_blank">Bravo</a>')
+  } finally {
+    window.getSelection().removeAllRanges()
+    panel?.remove(); first.dispose(); last.dispose(); shell.remove()
+  }
+})
+
 for (const content of ['atomic-only', 'mixed', 'partial']) test(`Unlink removes an authored wrapper around a complete atomic widget / ${content}`, () => {
   const h = fixture('alpha<a href="/author">'
     + (content === 'atomic-only' ? '' : '<b>prefix</b>')

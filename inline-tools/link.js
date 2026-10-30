@@ -54,34 +54,47 @@ function containsAtom(range, element) {
  * atomic traversal within the same field boundaries as text transformations;
  * a nested editing host or native control owns its own descendants.
  * @param {Range} range
- * @returns {Node[]}
+ * @returns {{ text: ReturnType<typeof collectTextTargets>, atoms: Element[] }}
  */
-function linkedContent(range) {
+function collectLinkContent(range) {
+  /** @type {{ text: ReturnType<typeof collectTextTargets>, atoms: Element[] }} */
+  const content = { text: [], atoms: [] }
   const root = getWalkRoot(range)
-  if (!root || root.closest(`${NATIVE_CONTROL_SELECTOR}, [data-inline-plugin]`)) return []
-  /** @type {Node[]} */
-  const nodes = collectTextTargets(root, range).map(({ node }) => node)
+  if (!root || root.closest(`${NATIVE_CONTROL_SELECTOR}, [data-inline-plugin]`)) return content
   /** @param {Element} parent @param {boolean} inField */
-  const visitAtoms = (parent, inField) => {
+  const visit = (parent, inField) => {
     for (const element of parent.children) {
       if (element.hasAttribute('data-inline-plugin')) {
-        if (inField && containsAtom(range, element)) nodes.push(element)
+        if (inField && containsAtom(range, element)) content.atoms.push(element)
         continue
       }
       if (element.matches(NATIVE_CONTROL_SELECTOR)) continue
       if (element.hasAttribute('contenteditable')) {
         // Outside a field, discover explicit fields through plugin shells.
         // Inside one, every nested host is an independent editing boundary.
-        if (!inField) visitAtoms(element, element.getAttribute('contenteditable') === 'true')
+        if (!inField) {
+          const isField = element.getAttribute('contenteditable') === 'true'
+          if (isField) content.text.push(...collectTextTargets(/** @type {HTMLElement} */ (element), range))
+          visit(element, isField)
+        }
         continue
       }
       if (element.tagName === 'BR') {
-        if (inField && containsAtom(range, element)) nodes.push(element)
-      } else visitAtoms(element, inField)
+        if (inField && containsAtom(range, element)) content.atoms.push(element)
+      } else visit(element, inField)
     }
   }
-  visitAtoms(root, root.closest('[contenteditable]')?.getAttribute('contenteditable') === 'true')
-  return nodes
+  const host = root.closest('[contenteditable]')
+  const inField = host?.getAttribute('contenteditable') === 'true'
+  if (inField) content.text.push(...collectTextTargets(/** @type {HTMLElement} */ (host), range))
+  visit(root, inField)
+  return content
+}
+
+/** @param {Range} range @returns {Node[]} */
+function linkedContent(range) {
+  const { text, atoms } = collectLinkContent(range)
+  return [...text.map(({ node }) => node), ...atoms]
 }
 
 /**
@@ -281,7 +294,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
           if (!walkRoot) return
           // Apply only to the authorized current range, never an earlier DOM
           // range captured before a URL input or a subsequent document change.
-          const targets = collectTextTargets(walkRoot, range)
+          const targets = collectLinkContent(range).text
           for (let i = targets.length - 1; i >= 0; i--) {
             const t = targets[i]
             if (!t) continue
