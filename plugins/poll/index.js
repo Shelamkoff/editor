@@ -4,7 +4,7 @@ import { snapshotConfigMethods } from '../shared/configRecords.js'
 import { synchronousResult } from '../../shared/synchronousResult.js'
 import { pollDataSchema } from '../../shared/blockSchemas/poll.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
-import { setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
+import { sanitizeHtml, setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import {
@@ -151,7 +151,7 @@ export function createPollPlugin(config={}){
           const ViewAbortController=document.defaultView?.AbortController??AbortController
           let authorViewController=null
           let runtimeViewController=null
-          /** @type {Map<string,{field:HTMLElement,row:HTMLElement,list:HTMLElement,completed:boolean}>} */
+          /** @type {Map<string,{field:HTMLElement,row:HTMLElement,list:HTMLElement,completedHtml:string|null}>} */
           const optionViews=new Map()
           /** @type {Map<string,{label:HTMLElement,row:HTMLElement,results:HTMLElement}>} */
           const resultViews=new Map()
@@ -161,30 +161,8 @@ export function createPollPlugin(config={}){
             &&view.label.parentNode===view.row&&view.row.parentNode===view.results&&view.results.parentNode===wrapper
           const completeResult=id=>{
             const source=optionViews.get(id),target=resultViews.get(id)
-            if(!source?.completed||!ownsOption(source)||!ownsResult(target))return
-            const container=document.createElement('div')
-            const append=(parent,destination)=>{
-              for(const node of parent.childNodes){
-                if(node.nodeType===3){destination.appendChild(document.createTextNode(node.textContent??''));continue}
-                if(node.nodeType!==1)continue
-                const element=/** @type {Element} */(node)
-                // Auxiliary labels retain author marks, but never acquire a
-                // second widget occurrence or interpret its private payload.
-                if(element.hasAttribute('data-inline-plugin')){
-                  destination.appendChild(document.createTextNode(element.textContent??''))
-                  continue
-                }
-                if(element.matches('button,input,textarea,select,[contenteditable],[data-oe-caret-padding]'))continue
-                const copy=element.cloneNode(false)
-                append(element,copy)
-                destination.appendChild(copy)
-              }
-            }
-            append(source.field,container)
-            const html=container.innerHTML||'—'
-            if(optionViews.get(id)===source&&resultViews.get(id)===target&&ownsOption(source)&&ownsResult(target)){
-              setSanitizedHtml(target.label,html)
-            }
+            if(!source||source.completedHtml===null||!ownsOption(source)||!ownsResult(target))return
+            setSanitizedHtml(target.label,source.completedHtml)
           }
           context.signal.addEventListener('abort',()=>{
             authorViewController?.abort()
@@ -299,7 +277,7 @@ export function createPollPlugin(config={}){
 
 
                 list.appendChild(row)
-                optionViews.set(option.id,{field:text,row,list,completed:false})
+                optionViews.set(option.id,{field:text,row,list,completedHtml:null})
               })
               wrapper.appendChild(list)
 
@@ -630,8 +608,32 @@ export function createPollPlugin(config={}){
               if(field.mode!=='rich-text'||!field.key.startsWith('option:'))return
               const id=field.key.slice('option:'.length),view=optionViews.get(id)
               if(!view||view.field!==field.element||!ownsOption(view))return
-              view.completed=true
-              completeResult(id)
+              const target=resultViews.get(id)
+              const container=document.createElement('div')
+              const append=(parent,destination)=>{
+                for(const node of parent.childNodes){
+                  if(node.nodeType===3){destination.appendChild(document.createTextNode(node.textContent??''));continue}
+                  if(node.nodeType!==1)continue
+                  const element=/** @type {Element} */(node)
+                  // Auxiliary labels retain author marks, but never acquire a
+                  // second widget occurrence or interpret its private payload.
+                  if(element.hasAttribute('data-inline-plugin')){
+                    destination.appendChild(document.createTextNode(element.textContent??''))
+                    continue
+                  }
+                  if(element.matches('button,input,textarea,select,[contenteditable],[data-oe-caret-padding]'))continue
+                  const copy=element.cloneNode(false)
+                  append(element,copy)
+                  destination.appendChild(copy)
+                }
+              }
+              append(view.field,container)
+              const html=sanitizeHtml(container.innerHTML||'—',document)
+              if(optionViews.get(id)!==view||!ownsOption(view))return
+              // Provider-only refreshes reuse this completed value; they do
+              // not admit arbitrary author DOM between core completions.
+              view.completedHtml=html
+              if(resultViews.get(id)===target&&ownsResult(target))completeResult(id)
             },
             setReadOnly(value){
               readOnly=value
