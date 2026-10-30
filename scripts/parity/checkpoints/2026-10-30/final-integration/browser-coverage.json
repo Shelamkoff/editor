@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+    "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [],
+    "dirty": false,
+    "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+  },
+  "originalRun": "run-bJYxpZ",
+  "originalRunOutcome": "failed",
+  "originalBrowserGateOutcome": "interrupted",
+  "originalSourceUnchanged": true,
+  "interruptionObservation": "The execution session no longer existed and its parent verification processes were absent; orphaned owned Vite/Chrome processes remained. The C11 finish operation retained interruption, rather than declaring success. No cause or user cancellation is inferred.",
+  "ordinaryPagesPassed": 36,
+  "namedNativePagesPassed": [
+    {
+      "page": "native-conversion-grouping.html",
+      "cases": 88
+    },
+    {
+      "page": "native-conversion-preservation.html",
+      "cases": 53
+    },
+    {
+      "page": "native-interaction-sequences.html",
+      "cases": 39
+    },
+    {
+      "page": "native-retained-tools.html",
+      "cases": 64
+    },
+    {
+      "page": "native-conversion-continuations.html",
+      "cases": 65
+    },
+    {
+      "page": "native-font-cancel.html",
+      "cases": 58
+    },
+    {
+      "page": "native-background-cancel.html",
+      "cases": 36
+    },
+    {
+      "page": "native-link-cancel.html",
+      "cases": 36
+    },
+    {
+      "page": "native-panel-keyboard.html",
+      "cases": 36
+    },
+    {
+      "page": "native-source-indentation.html",
+      "cases": 50
+    },
+    {
+      "page": "native-source-modes.html",
+      "cases": 61
+    },
+    {
+      "page": "native-config-snapshot.html",
+      "cases": 30
+    },
+    {
+      "page": "native-poll-runtime.html",
+      "cases": 26
+    },
+    {
+      "page": "native-library-boundaries.html",
+      "cases": 42
+    },
+    {
+      "page": "native-instance-methods.html",
+      "cases": 8
+    },
+    {
+      "page": "native-color-popup.html",
+      "cases": 8
+    },
+    {
+      "page": "native-color-popup-trusted.html",
+      "cases": 8
+    },
+    {
+      "page": "native-mention-popup.html",
+      "cases": 64
+    },
+    {
+      "page": "native-audit-edges.html",
+      "cases": 21
+    },
+    {
+      "page": "native-audit-poll.html",
+      "cases": 4
+    },
+    {
+      "page": "native-audit-hidden-fields.html",
+      "cases": 4
+    },
+    {
+      "page": "native-audit-recheck.html",
+      "cases": 49
+    },
+    {
+      "page": "native-structural.html",
+      "cases": 21
+    },
+    {
+      "page": "native-cross-selection.html",
+      "cases": 42
+    },
+    {
+      "page": "native-core-behavior.html",
+      "cases": 57
+    }
+  ],
+  "namedNativeCaseRecords": 970,
+  "initialStages": {
+    "sequentialControlFlowPassed": [
+      "Enter/toolbox assertions",
+      "history.html aggregate",
+      "native-text-input.html",
+      "native-tools.html",
+      "native-clipboard.html",
+      "native-ime.html",
+      "native-conversion.html",
+      "native-block-menus.html"
+    ],
+    "aggregateJsonEmitted": false,
+    "caseCounts": "Not retained in the interrupted output and not reconstructed from older runs or static declarations."
+  },
+  "continuation": {
+    "run": "run-aO0xLM",
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "source": {
+      "head": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+      "tree": "94193654b29acd021200367787cb234d9fbd8cb1",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+      "untracked": [],
+      "dirty": false,
+      "identity": "22dbb1601c57d24d4095b972a8500d938063fd14fd9781116ee52c2955cb52e5"
+    },
+    "pages": [
+      {
+        "page": "native-plugin-parity.html",
+        "cases": 231
+      },
+      {
+        "page": "native-roundtrip-preservation.html",
+        "cases": 53
+      },
+      {
+        "page": "native-presentation-recovery.html",
+        "cases": 14
+      },
+      {
+        "page": "native-plugin-controls.html",
+        "cases": 156
+      },
+      {
+        "page": "native-plugin-ranges.html",
+        "cases": 116
+      },
+      {
+        "page": "native-plugin-local-ranges.html",
+        "cases": 76
+      },
+      {
+        "page": "native-plugin-clipboard.html",
+        "cases": 48
+      },
+      {
+        "page": "native-plugin-field-clipboard.html",
+        "cases": 68
+      },
+      {
+        "page": "native-plugin-media.html",
+        "cases": 93
+      },
+      {
+        "page": "native-plugin-design.html",
+        "cases": 84
+      }
+    ],
+    "caseRecords": 939,
+    "heap": {
+      "sentinels": 23,
+      "retained": 0,
+      "usedHeapMiB": 14.98,
+      "embedderHeapMiB": 1.25,
+      "historyEviction": {
+        "payloadBytes": 32768,
+        "authoredActions": 12,
+        "historyMaxBytes": 1,
+        "historyMaxStack": 100,
+        "retainedControlReleased": true,
+        "replay": {
+          "currentCase": 12,
+          "undoCase": 11,
+          "editorAlive": true
+        },
+        "phases": [
+          {
+            "phase": "before-eviction",
+            "counts": [
+              0,
+              1,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "usedHeapMiB": 14.99,
+            "snapshotMiB": 27.73
+          },
+          {
+            "phase": "after-eviction-with-retained-control",
+            "counts": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 15.08,
+            "snapshotMiB": 27.79
+          },
+          {
+            "phase": "after-releasing-control",
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 15.05,
+            "snapshotMiB": 27.79
+          }
+        ]
+      }
+    },
+    "manifest": "runs/run-aO0xLM/manifest.json"
+  },
+  "qualification": "Composed coverage evidence; the original monolithic browser command is not a passed gate.",
+  "composedCoverage": {
+    "ordinaryPagesPassed": 36,
+    "namedNativePagesPassed": 35,
+    "namedNativeCaseRecords": 1909,
+    "allPlannedNamedNativePagesCoveredInOrder": true,
+    "initialStagesPassedBySequentialControlFlow": true,
+    "initialAggregateJsonRetained": false,
+    "monolithicBrowserCommandPassed": false
+  }
+}

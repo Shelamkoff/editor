@@ -1,0 +1,13 @@
+✔ block read rejects an adopted plugin root before calling its retired instance (6.132505ms)
+✔ block read rejects an adopted outer shell before calling its retired instance (0.569002ms)
+✔ block mode rejects an adopted plugin root before calling its retired instance (1.240433ms)
+✔ block mode rejects an adopted outer shell before calling its retired instance (0.656153ms)
+✔ block root read and mode admission retain harmless host layout wrappers (1.749603ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.744199

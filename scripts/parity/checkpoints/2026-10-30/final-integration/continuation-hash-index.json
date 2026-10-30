@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "scope": "Interrupted browser attempt and separately completed continuation; original outcomes retained.",
+  "originalArtifacts": [
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-bJYxpZ/manifest.json",
+      "archivePath": "runs/run-bJYxpZ/manifest.json",
+      "encoding": "identity",
+      "originalBytes": 4475,
+      "originalSha256": "dee173c54090d277a74f57b9fb66c504d5e220c66820e5d54da838de92db5e31",
+      "storedBytes": 4475,
+      "storedSha256": "dee173c54090d277a74f57b9fb66c504d5e220c66820e5d54da838de92db5e31",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-bJYxpZ/browser.log",
+      "archivePath": "runs/run-bJYxpZ/browser.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 102322,
+      "originalSha256": "a3cc0513c30eba331a30ac44162c9e3358ecb334f60d246c6ae53eefbac638e4",
+      "storedBytes": 15535,
+      "storedSha256": "0b2e30d40df28bf47f7d966fc69c2d1b607f30c91bb10bffe5289d015421668b",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-bJYxpZ/docs.log",
+      "archivePath": "runs/run-bJYxpZ/docs.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 3132,
+      "originalSha256": "6d6079e83e4dc53ca5400f0ddc337e474594ee576259433f73b05e6303fa7282",
+      "storedBytes": 1030,
+      "storedSha256": "fee0fa2344efa9cf9699ac230ee3079abc4617bee3c548795d37bba79f8ea313",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/heap.log",
+      "archivePath": "runs/run-aO0xLM/heap.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 1429,
+      "originalSha256": "d223a16cecb0ae2906db42559fa07ef89887ec73b90bc472b26ceb1f189a7c07",
+      "storedBytes": 591,
+      "storedSha256": "1d90e874b14e4671183fe48cf534f15c6d6e27185b59a108896d697f47767ca3",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/manifest.json",
+      "archivePath": "runs/run-aO0xLM/manifest.json",
+      "encoding": "identity",
+      "originalBytes": 21391,
+      "originalSha256": "b1af281023abd43cfa55ce05a028a2087a9b1f8d9d57d8ca41086d81699d90c5",
+      "storedBytes": 21391,
+      "storedSha256": "b1af281023abd43cfa55ce05a028a2087a9b1f8d9d57d8ca41086d81699d90c5",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-clipboard.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-clipboard.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 5998,
+      "originalSha256": "ef0f1e47285ea8943f3bfee334df7b500a3cc452b7d71543e61a6a37b6a6b5d3",
+      "storedBytes": 388,
+      "storedSha256": "d759af08d40715815cc001afecf72a9fbb89db28f87730482db7129f171c82a1",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-controls.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-controls.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 15501,
+      "originalSha256": "9373d4b946b08b8358bddde49a58dfed26a4aab568e5ef3314e5e5f63b5e9329",
+      "storedBytes": 2044,
+      "storedSha256": "9bd4d06ef7b1dc7d79637da475df6b26454886b3bca28a6dc4301e502d90623b",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-design.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-design.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 9314,
+      "originalSha256": "0d83760c5e8464bbfc299669e70a3505c05a75f8634c2eed4999c125ad989d58",
+      "storedBytes": 567,
+      "storedSha256": "2c4a2e60ce67593d80f67588d66d4daea4cafa058a912e3162e639c77cb27023",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-field-clipboard.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-field-clipboard.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 7754,
+      "originalSha256": "3f913edcb1a490798bcc6f62fe7c0f1438269e066009c9863f5eaf2bfcbd1752",
+      "storedBytes": 584,
+      "storedSha256": "30ca1eb9cc86c3f9a0de129619549a800496fae394db836724b60d438534a80a",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-local-ranges.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-local-ranges.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 9112,
+      "originalSha256": "89641b72c3d567b25690dfb69a2b4f936dbd9c734ee73f1c4f10a0c99965bc0d",
+      "storedBytes": 597,
+      "storedSha256": "2519988d89cce10c82e721d7041c0978dad7416603b2cfca76541c93cf5263fc",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-media.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-media.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 10035,
+      "originalSha256": "274a1647a3a7a59f71223f77c36b701e48098b3db3a342d5cdadd50b3b817277",
+      "storedBytes": 1779,
+      "storedSha256": "96ae6b4a0525965d57b2766d3c7de513830c58bf66364c5d32cfae7a8c406767",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-parity.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-parity.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 23413,
+      "originalSha256": "304736ca87d2ee7a4406c2ed153a62f89a616fc870110397cf8311bfaa132ecc",
+      "storedBytes": 3590,
+      "storedSha256": "805043dbeec2cc125e0d7b98f536a15ca5496b65ee5fd1f9762be222cd958037",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-plugin-ranges.log",
+      "archivePath": "runs/run-aO0xLM/native-plugin-ranges.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 12677,
+      "originalSha256": "b1adc5008aa935d1161c756651c7e140b6bef7e785892b983abea735d31df1c5",
+      "storedBytes": 725,
+      "storedSha256": "622d8acf1d40ac546e749def7cdc4e80c7b006379d9d357eb5c1eacda591fe1e",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-presentation-recovery.log",
+      "archivePath": "runs/run-aO0xLM/native-presentation-recovery.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 1442,
+      "originalSha256": "8f5a11eb4dd77a23a555ab60062623e4a2446c3d5a3ebcab6b8b669edcc6bf88",
+      "storedBytes": 409,
+      "storedSha256": "79c65d747f3026c42e55d3b77634b8b2e73c317227ee39d0b618af9c0d45e7bb",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aO0xLM/native-roundtrip-preservation.log",
+      "archivePath": "runs/run-aO0xLM/native-roundtrip-preservation.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 5129,
+      "originalSha256": "7c4f810554b92864210cef90a870ca106b61c44aadb049c4b1cdb628a214228e",
+      "storedBytes": 472,
+      "storedSha256": "dbdeefa6a9206e8e4d72064f677cb899d811e4a00769af58165753792522cc5f",
+      "decodedBytesVerified": true
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+file:///tmp/rector-person-url-owner-baseline-20261030/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Person URL owner updates its current social icon after trusted provider change",
+    "status": "PASS"
+  },
+  {
+    "name": "Person URL owner does not update the foreign social icon after whole-wrapper adoption",
+    "status": "FAIL",
+    "error": "Error: The retained URL listener wrote into a foreign auxiliary view\nexpected \"Foreign social icon sentinel\", got \"\"\n    at equal (http://127.0.0.1:34771/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:34:7\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184"
+  },
+  {
+    "name": "Person URL owner keeps the source URL editable when only its auxiliary icon is adopted",
+    "status": "FAIL",
+    "error": "Error: \nexpected \"Foreign social icon sentinel\", got \"\"\n    at equal (http://127.0.0.1:34771/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:41:9\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184"
+  },
+  {
+    "name": "Person URL owner preserves an adopted wrapper icon and control during a later flush",
+    "status": "FAIL",
+    "error": "Error: Read/control recovery removed the adopted control\n    at assert (http://127.0.0.1:34771/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:91:5\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184"
+  },
+  {
+    "name": "Person URL owner preserves an adopted wrapper icon and control during a later mode",
+    "status": "FAIL",
+    "error": "Error: Read/control recovery removed the adopted control\n    at assert (http://127.0.0.1:34771/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:91:5\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184"
+  },
+  {
+    "name": "Person URL owner preserves an adopted shell icon and control during a later flush",
+    "status": "FAIL",
+    "error": "Error: Read/control recovery removed the adopted control\n    at assert (http://127.0.0.1:34771/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:91:5\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184"
+  },
+  {
+    "name": "Person URL owner preserves an adopted shell icon and control during a later mode",
+    "status": "FAIL",
+    "error": "Error: Read/control recovery removed the adopted control\n    at assert (http://127.0.0.1:34771/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:91:5\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184"
+  },
+  {
+    "name": "Person URL owner rejects a social resolver that adopts its wrapper before auxiliary assignment",
+    "status": "FAIL",
+    "error": "Error: The resolver transferred ownership before the icon write\nexpected \"Resolver foreign icon sentinel\", got \"\"\n    at equal (http://127.0.0.1:34771/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:129:5\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184\nExpected browser error was not raised: /ownership|owning block|accepted owner|not mounted/"
+  },
+  {
+    "name": "Person URL owner rejects a social resolver that adopts its whole shell before auxiliary assignment",
+    "status": "FAIL",
+    "error": "Error: The resolver transferred ownership before the icon write\nexpected \"Resolver foreign icon sentinel\", got \"\"\n    at equal (http://127.0.0.1:34771/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:34771/tests/browser/regressions/person-url-owner-native.js:129:5\n    at async run (http://127.0.0.1:34771/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:34771/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184\nExpected browser error was not raised: /ownership|owning block|accepted owner|not mounted/"
+  },
+  {
+    "name": "Person URL owner keeps a healthy name editable after one URL control is adopted",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-person-url-owner-baseline-20261030/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-person-url-owner-baseline-20261030/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-person-url-owner-baseline-20261030/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

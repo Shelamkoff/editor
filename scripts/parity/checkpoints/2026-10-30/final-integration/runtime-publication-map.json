@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "repository": "Shelamkoff/editor",
+  "branch": "refactor/rector-v2-architecture",
+  "kind": "Exact-tree commit-object equivalence; ordered ancestry retained",
+  "reason": "Git CLI could read but had no push credentials. Authorized GitHub Git Data publication recreates commit metadata while retaining each complete tree.",
+  "commits": [
+    {
+      "local": "821c0a126325b2be628993f20937218727671186",
+      "remote": "afea0f347db7dc047c5f19b9c2c9fe4caf4ebc30",
+      "tree": "00fca46974e17e4f1a2a323a343d2aaf311fb69c"
+    },
+    {
+      "local": "df3d380d8d090cf57ddeb88d05804cd4cd44a52d",
+      "remote": "f8df108cb03de7cde39261bffd1006c9cd2a116f",
+      "tree": "12ab9a517e4aafd9174378de6f81ad7308141def"
+    },
+    {
+      "local": "315a47407ef04cfd9c4cb9f41c49f2cae22a1120",
+      "remote": "4a05cccc028910e1acc3b3c2a96e732a7cfe73b2",
+      "tree": "77a7528f469bb4e812b4ed0932ea4369d725376e"
+    },
+    {
+      "local": "60fec50c9ac9ec9a82e1d1c0653ce44cda06d51b",
+      "remote": "dc9bf17ecc7ea756fe47b929b2aa197451160588",
+      "tree": "ff795704ef0602156c07c46e17d664048240ca79"
+    },
+    {
+      "local": "f04e63da788564cd00d5316dacf9146b6d6d8aba",
+      "remote": "490aa09c3750d523feb8401f18318b6dee9c1058",
+      "tree": "94193654b29acd021200367787cb234d9fbd8cb1"
+    }
+  ],
+  "qualification": "Evidence names the original checked source. Matching complete trees establish source equivalence, not a second execution on remapped commit IDs. The final evidence-only commit has its own subsequent GitHub identity."
+}

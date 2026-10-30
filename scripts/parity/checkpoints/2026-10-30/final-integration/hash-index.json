@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "scope": "Only the three completed attempts and shared cache diagnostic listed here, plus derived summary.json. Subsequent README or final-run additions are outside this index unless explicitly indexed later.",
+  "originalArtifacts": [
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/manifest.json",
+      "archivePath": "runs/run-T69Tfd/manifest.json",
+      "encoding": "identity",
+      "originalBytes": 15412,
+      "originalSha256": "6eea4fdfbb70c967e1a6638d67001d72c9fface4b677d61b733b162709f52ec6",
+      "storedBytes": 15412,
+      "storedSha256": "6eea4fdfbb70c967e1a6638d67001d72c9fface4b677d61b733b162709f52ec6",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/typecheck.log",
+      "archivePath": "runs/run-T69Tfd/typecheck.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 259,
+      "originalSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "storedBytes": 185,
+      "storedSha256": "12eeba458279cdcf2f07bcdb6775db13c184ee454e62f493f95817de1859e0a0",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/unit.log",
+      "archivePath": "runs/run-T69Tfd/unit.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 192737,
+      "originalSha256": "83901f0380d4676d7373ace8bef62a96dbc5e7dba4f24a8d27e2d0a3ab245d4c",
+      "storedBytes": 53549,
+      "storedSha256": "f54448e007e324296ac80806e6893535145420444f28ac15abf3999bba826b75",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/package.log",
+      "archivePath": "runs/run-T69Tfd/package.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 19484,
+      "originalSha256": "1ba80ee2e85d2214c4dbe93563f818a48ec09b12ea2857a6d5ae5b5de6bd5546",
+      "storedBytes": 3437,
+      "storedSha256": "17e0986adf675990d9b0c0b184c37097bfed76d437897c1b5b647d94f3e95770",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/types.log",
+      "archivePath": "runs/run-T69Tfd/types.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 914,
+      "originalSha256": "c1ce8a08808c4ce10e80201ae62e5fd8708630cca145862571b207a99a86895e",
+      "storedBytes": 553,
+      "storedSha256": "c2b37d0241460dfe903735d3141b6c6484649f7bce14626f04cf52b8f4b9d6bd",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/docs.log",
+      "archivePath": "runs/run-T69Tfd/docs.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 3020,
+      "originalSha256": "88b09fef2d4980b61227da7d21771865a1abdcf12de67429cd845f798eb6cfdb",
+      "storedBytes": 965,
+      "storedSha256": "64a765eed63cd0afc9fe5e6ef7655e5c25eb550b1f18779d9b656b24bd1cbc79",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/size-report.log",
+      "archivePath": "runs/run-T69Tfd/size-report.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 1158,
+      "originalSha256": "8aa0f58af46f30f2bbdb24ade744a1a443c535b3fa9e3e874e78f217769da530",
+      "storedBytes": 369,
+      "storedSha256": "514bebf7497d5d3a492eda09766bb9b100aeb906695d20bfe64f8144e85ff5d9",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/differential.log",
+      "archivePath": "runs/run-T69Tfd/differential.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 26613788,
+      "originalSha256": "48fd1ec025c8e9d55ae71fabb0fb65a5fb531b46624ab6acfdc571d99fa70e05",
+      "storedBytes": 759507,
+      "storedSha256": "96f1be97e0318c7d038306fa50e0044227905d830b8a16fe566cf6a4ce122066",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-T69Tfd/classifier.log",
+      "archivePath": "runs/run-T69Tfd/classifier.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 2282,
+      "originalSha256": "c3b2ea4f8fd59b53ae34b8fedb526db5f880eae5b8467c84ca4fa099bbc185b5",
+      "storedBytes": 923,
+      "storedSha256": "eddd57eebfc27b5e7e93cc7d7085e3a27968f7722b66befe420eeee1839a23f8",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aoJ0oS/manifest.json",
+      "archivePath": "runs/run-aoJ0oS/manifest.json",
+      "encoding": "identity",
+      "originalBytes": 3192,
+      "originalSha256": "3ec4348666c4616fdd1636c5fbc140a5ea34ec0f572f2b4cc45da90b4c83a471",
+      "storedBytes": 3192,
+      "storedSha256": "3ec4348666c4616fdd1636c5fbc140a5ea34ec0f572f2b4cc45da90b4c83a471",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aoJ0oS/browser.log",
+      "archivePath": "runs/run-aoJ0oS/browser.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 13737,
+      "originalSha256": "03c65e391653d4fc3b65fee6d03ccb6c90eac562ee43b421b42326aaedc7f6b7",
+      "storedBytes": 2610,
+      "storedSha256": "13364df194b6dae26572ecae77313c45e535059fa1cd48a4c4ecf435092e6e67",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-aoJ0oS/browser-runtime-contracts.html.json",
+      "archivePath": "runs/run-aoJ0oS/browser-runtime-contracts.html.json",
+      "encoding": "identity",
+      "originalBytes": 12827,
+      "originalSha256": "4c9373e9781e91da6080e8837a26da6a1ee5fff4ddeccd650d607fd5db3b1a44",
+      "storedBytes": 12827,
+      "storedSha256": "4c9373e9781e91da6080e8837a26da6a1ee5fff4ddeccd650d607fd5db3b1a44",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-Ea04al/manifest.json",
+      "archivePath": "runs/run-Ea04al/manifest.json",
+      "encoding": "identity",
+      "originalBytes": 4959,
+      "originalSha256": "213485c1230295414f04f424f1bbf08b5a2d9b3b18d5acff4a4010fab2502d3f",
+      "storedBytes": 4959,
+      "storedSha256": "213485c1230295414f04f424f1bbf08b5a2d9b3b18d5acff4a4010fab2502d3f",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-Ea04al/docs.log",
+      "archivePath": "runs/run-Ea04al/docs.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 2070,
+      "originalSha256": "15b3cd64a2a41a2572b3b412388ecde6d817d5faa9bcd6451b3b0d5821c0644c",
+      "storedBytes": 727,
+      "storedSha256": "534de5b43fae573e120408c4fbd3493398561463b312ad3a5054bec2300ebd16",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-integration-20261030/test-results/run-Ea04al/browser.log",
+      "archivePath": "runs/run-Ea04al/browser.log.gz",
+      "encoding": "gzip",
+      "originalBytes": 2322,
+      "originalSha256": "d0c3b990ccf2e94c5491ebf6089d1f13a510deba66b700706afd0a7a19a1da10",
+      "storedBytes": 889,
+      "storedSha256": "2f41c3bc27d6a134dbdf71f97c1009304a137129cac6ccaec035e9b57fcefc87",
+      "decodedBytesVerified": true
+    },
+    {
+      "sourcePath": "/tmp/rector-shared-vite-cache-diagnostic.json",
+      "archivePath": "shared-vite-cache-diagnostic.json",
+      "encoding": "identity",
+      "originalBytes": 3219,
+      "originalSha256": "af95a6c0b366f48479421afa17c535dac89f0591fe3e622b92239d5c73502dcf",
+      "storedBytes": 3219,
+      "storedSha256": "af95a6c0b366f48479421afa17c535dac89f0591fe3e622b92239d5c73502dcf",
+      "decodedBytesVerified": true
+    }
+  ],
+  "derivedArtifacts": [
+    {
+      "archivePath": "summary.json",
+      "storedBytes": 44874,
+      "storedSha256": "8e8eed4b2d70a13c64d02bac0deaa5a4313a5d84774c2280f1f84e2fdbf02d5f",
+      "derivedFrom": [
+        "runs/run-T69Tfd/manifest.json",
+        "runs/run-T69Tfd/typecheck.log.gz",
+        "runs/run-T69Tfd/unit.log.gz",
+        "runs/run-T69Tfd/package.log.gz",
+        "runs/run-T69Tfd/types.log.gz",
+        "runs/run-T69Tfd/docs.log.gz",
+        "runs/run-T69Tfd/size-report.log.gz",
+        "runs/run-T69Tfd/differential.log.gz",
+        "runs/run-T69Tfd/classifier.log.gz",
+        "runs/run-aoJ0oS/manifest.json",
+        "runs/run-aoJ0oS/browser.log.gz",
+        "runs/run-aoJ0oS/browser-runtime-contracts.html.json",
+        "runs/run-Ea04al/manifest.json",
+        "runs/run-Ea04al/docs.log.gz",
+        "runs/run-Ea04al/browser.log.gz",
+        "shared-vite-cache-diagnostic.json"
+      ]
+    }
+  ],
+  "indexSelfHash": "Excluded to avoid a self-reference; calculate sha256 of hash-index.json externally."
+}

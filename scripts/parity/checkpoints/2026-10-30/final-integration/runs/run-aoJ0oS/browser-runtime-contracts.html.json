@@ -1,0 +1,415 @@
+[
+  {
+    "name": "convert uses source and target capabilities instead of arbitrary data merge",
+    "status": "PASS"
+  },
+  {
+    "name": "whole conversion rejects targets that cannot preserve linked inline data",
+    "status": "PASS"
+  },
+  {
+    "name": "prepared cross-block cut merges endpoint residuals through the declared merge contract",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted plugin protected edit cannot persist a nested host write or alter history",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted plugin protected edit cannot switch the editor to read-only midway",
+    "status": "PASS"
+  },
+  {
+    "name": "failed recovery of a mounted plugin projection preserves save and blocks future producers",
+    "status": "PASS"
+  },
+  {
+    "name": "failed read-only transition restores even the plugin that threw after changing its controls",
+    "status": "PASS"
+  },
+  {
+    "name": "instance data task cannot begin during protected edit",
+    "status": "PASS"
+  },
+  {
+    "name": "instance data task cannot begin during read-only transition",
+    "status": "PASS"
+  },
+  {
+    "name": "failed inline read-only transition restores the widget that threw after applying",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted projection and committed observers reject nested host producers",
+    "status": "PASS"
+  },
+  {
+    "name": "inline producer failure rolls back nested host updates without a history step",
+    "status": "PASS"
+  },
+  {
+    "name": "public host updates commit together and a caught nested error aborts the outer action",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted data task executes its producer once despite recursive commit",
+    "status": "PASS"
+  },
+  {
+    "name": "conversion and undo never revive an old task while a fresh task uses latest author data",
+    "status": "PASS"
+  },
+  {
+    "name": "inline producer preserves a nested update of its containing author text",
+    "status": "PASS"
+  },
+  {
+    "name": "public producer cannot overwrite a block it converted during building",
+    "status": "PASS"
+  },
+  {
+    "name": "recoverable block AggregateError does not revoke healthy mutation authority",
+    "status": "PASS"
+  },
+  {
+    "name": "recoverable inline AggregateError does not revoke healthy mutation authority",
+    "status": "PASS"
+  },
+  {
+    "name": "failed inline control rollback can recover by recreating committed widgets",
+    "status": "PASS"
+  },
+  {
+    "name": "same-value read-only calls do not publish phantom state or history changes",
+    "status": "PASS"
+  },
+  {
+    "name": "public read-only transition rejects nonboolean values without unlocking authoring",
+    "status": "PASS"
+  },
+  {
+    "name": "irrecoverable inline controls stop producers but preserve the committed document and failure causes",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only observations reject synchronous commands before producers and allow queued commands",
+    "status": "PASS"
+  },
+  {
+    "name": "nested whole-block conversion uses author fields from the shared draft and undoes once",
+    "status": "PASS"
+  },
+  {
+    "name": "successive nested appends retain their authored order and form one undo step",
+    "status": "PASS"
+  },
+  {
+    "name": "nested removal accepts a block inserted earlier in the same authoring action",
+    "status": "PASS"
+  },
+  {
+    "name": "caught nested render rejection aborts all authoring changes and preserves the live document",
+    "status": "PASS"
+  },
+  {
+    "name": "async host patch is rejected and cannot commit synchronous nested writes",
+    "status": "PASS"
+  },
+  {
+    "name": "schema preparation rejects public controls and scoped tasks while preserving owner projection",
+    "status": "PASS"
+  },
+  {
+    "name": "ordinary async block update rejects before commit and restores the committed projection",
+    "status": "PASS"
+  },
+  {
+    "name": "popup close handles cannot close a later presentation from another runtime",
+    "status": "PASS"
+  },
+  {
+    "name": "popup validates before replacement and unavailable requests close once",
+    "status": "PASS"
+  },
+  {
+    "name": "popup cleanup cannot mutate canonical or control state and newer reentrant show wins",
+    "status": "PASS"
+  },
+  {
+    "name": "throwing or asynchronous popup cleanup cannot stop the next presentation",
+    "status": "PASS"
+  },
+  {
+    "name": "terminal trigger cancellation is observed and cannot interrupt read-only completion",
+    "status": "PASS"
+  },
+  {
+    "name": "successive inline insertions prepare from the current draft and undo together",
+    "status": "PASS"
+  },
+  {
+    "name": "shortcut split callbacks keep the captured staged field and reject producer reentry",
+    "status": "PASS"
+  },
+  {
+    "name": "failed owned shortcut cancels native fallback: throw",
+    "status": "PASS"
+  },
+  {
+    "name": "failed owned shortcut cancels native fallback: thenable",
+    "status": "PASS"
+  },
+  {
+    "name": "failed owned shortcut cancels native fallback: invalid",
+    "status": "PASS"
+  },
+  {
+    "name": "failed owned shortcut cancels native fallback: accessor",
+    "status": "PASS"
+  },
+  {
+    "name": "nested conversion returns its prepared active snapshot for a newly inserted block",
+    "status": "PASS"
+  },
+  {
+    "name": "rich and inline replacement compose against staged text without restoring removed occurrences",
+    "status": "PASS"
+  },
+  {
+    "name": "slash choice removes a query from staged text at the staged insertion position",
+    "status": "PASS"
+  },
+  {
+    "name": "split reserves current draft IDs after a nested document replacement",
+    "status": "PASS"
+  },
+  {
+    "name": "range and resolved Paste preserve staged text and return a successful no-change caret without history",
+    "status": "PASS"
+  },
+  {
+    "name": "whole-selection replacement keeps unselected staged blocks and omitted IDs resolve from the draft",
+    "status": "PASS"
+  },
+  {
+    "name": "Cut targets a surviving residual and never carries a removed source block identity in focus",
+    "status": "PASS"
+  },
+  {
+    "name": "public no-change Paste collapses to the prepared caret without creating history",
+    "status": "PASS"
+  },
+  {
+    "name": "Paste focus continuation is retired when a current-block observer replaces the document",
+    "status": "PASS"
+  },
+  {
+    "name": "invalid resolved replacement rejects before applying an earlier prepared block",
+    "status": "PASS"
+  },
+  {
+    "name": "clipboard capability focus cannot replace the host-owned block identity",
+    "status": "PASS"
+  },
+  {
+    "name": "file Paste rejects a non-boolean accepts result without native fallback",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only round trip revokes a pending file Paste before it can commit or focus",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML import matcher returning a Promise consumes owned Paste without text fallback",
+    "status": "PASS"
+  },
+  {
+    "name": "selection conversion sees a staged source edit and undoes with its outer action",
+    "status": "PASS"
+  },
+  {
+    "name": "selection conversion uses staged block order and preserves both endpoint residuals",
+    "status": "PASS"
+  },
+  {
+    "name": "joined selection conversion includes a block inserted earlier in the same transaction",
+    "status": "PASS"
+  },
+  {
+    "name": "same-type logical selection without configuration is a true no-op",
+    "status": "PASS"
+  },
+  {
+    "name": "collapsed same-type selection configures staged author data and preserves one Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "per-block conversion reads and invokes target acceptance once per selected piece",
+    "status": "PASS"
+  },
+  {
+    "name": "clearing an old cross-selection controller cannot delete another editor highlight",
+    "status": "PASS"
+  },
+  {
+    "name": "inline presentation failure is contained and other tool remains usable",
+    "status": "PASS"
+  },
+  {
+    "name": "inline mount failure cleans every started tool and allows reuse of its object",
+    "status": "PASS"
+  },
+  {
+    "name": "inline alignment panel can continue its own revisions but rejects an unrelated commit",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted inline mutation actions are unavailable during initialization and after destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "inline panel logical rights expire on unrelated canonical revision",
+    "status": "PASS"
+  },
+  {
+    "name": "scoped mounted tool can mutate only with its own fresh bookmark and loses authority after commit",
+    "status": "PASS"
+  },
+  {
+    "name": "queued selectionchange matching a completed formatting restore keeps its active lease",
+    "status": "PASS"
+  },
+  {
+    "name": "queued inline widget caret cannot steal a user selection moved to another block",
+    "status": "PASS"
+  },
+  {
+    "name": "queued toolbox inline insertion cannot edit a replacement document with reused block IDs",
+    "status": "PASS"
+  },
+  {
+    "name": "queued toolbox block insertion cannot refocus a replacement mounted under the inserted ID",
+    "status": "PASS"
+  },
+  {
+    "name": "queued whole-block replacement cannot reset a successor caret after rendering the same ID",
+    "status": "PASS"
+  },
+  {
+    "name": "queued inline type conversion cannot restore a range into a same-ID replacement document",
+    "status": "PASS"
+  },
+  {
+    "name": "queued toolbox insert cannot steal focus after switching to another unchanged block",
+    "status": "PASS"
+  },
+  {
+    "name": "queued plain-text Paste cannot move a later user caret in another block",
+    "status": "PASS"
+  },
+  {
+    "name": "queued plain-text Paste cannot reset a later caret in its original block",
+    "status": "PASS"
+  },
+  {
+    "name": "Paste with empty plain text does not delete an ordinary selected rich-text range",
+    "status": "PASS"
+  },
+  {
+    "name": "Paste with newline plain text does not delete an ordinary selected rich-text range",
+    "status": "PASS"
+  },
+  {
+    "name": "Paste with CRLF plain text does not delete an ordinary selected rich-text range",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML Paste with empty bold must not delete selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML Paste with empty link must not delete selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML Paste with an actual line break still replaces selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "empty paragraph HTML Paste retains a selected text range and its history",
+    "status": "PASS"
+  },
+  {
+    "name": "single paragraph HTML fragment replaces a local selection inline as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "single div HTML fragment replaces a local selection inline as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "external P-root HTML importer keeps its own block semantics and data",
+    "status": "PASS"
+  },
+  {
+    "name": "single nested paragraph under a transparent HTML wrapper pastes inline as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "queued Enter split cannot reset a later native caret in the same new block",
+    "status": "PASS"
+  },
+  {
+    "name": "single meaningful plain-text Paste strips leading newline as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "single meaningful plain-text Paste strips trailing newline as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "single meaningful plain-text Paste strips both surrounding newlines as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "queued whole-block replacement respects a later caret inside its resulting block",
+    "status": "PASS"
+  },
+  {
+    "name": "Public selection iterable cannot clear document while being captured",
+    "status": "PASS"
+  },
+  {
+    "name": "Public focus uses one stable getter snapshot for the plugin and logical caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Public conversion target getter cannot reenter canonical update during planning",
+    "status": "PASS"
+  },
+  {
+    "name": "Public keyed focus does not publish current block when its field is missing",
+    "status": "PASS"
+  },
+  {
+    "name": "Public keyed focus publishes current block only after its native caret is in the field",
+    "status": "PASS"
+  },
+  {
+    "name": "Native cross-block SelectionController restore preserves backward author direction",
+    "status": "PASS"
+  },
+  {
+    "name": "post-commit event fanout survives a failing change debounce timer",
+    "status": "PASS"
+  },
+  {
+    "name": "deferred code highlighting does not overwrite newer inline text",
+    "status": "FAIL",
+    "error": "TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:39691/node_modules/.vite/deps/highlight__js.js?v=92c92882"
+  },
+  {
+    "name": "native custom-element popup adoption must not steal another DOM owner",
+    "status": "PASS"
+  }
+]

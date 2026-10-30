@@ -1,0 +1,16 @@
+file:///tmp/rector-person-url-owner-20261030/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Person URL owner keeps a healthy name editable after one URL control is adopted",
+    "status": "FAIL",
+    "error": "Error: A healthy name edit must preserve the missing URL control canonical data\nexpected [{\"id\":\"person\",\"type\":\"person\",\"dataVersion\":2,\"data\":{\"persons\":[{\"id\":\"ada\",\"avatar\":\"\",\"name\":\"AdaX\",\"role\":\"\",\"bio\":\"\",\"links\":[{\"id\":\"profile\",\"type\":\"website\",\"url\":\"https://example.com/ada\"}]}]}}], got [{\"id\":\"person\",\"type\":\"person\",\"dataVersion\":2,\"data\":{\"persons\":[{\"id\":\"ada\",\"avatar\":\"\",\"name\":\"Ada\",\"role\":\"\",\"bio\":\"\",\"links\":[{\"id\":\"profile\",\"type\":\"website\",\"url\":\"https://example.com/ada\"}]}]}}]\n    at equal (http://127.0.0.1:44701/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:44701/tests/browser/regressions/person-url-owner-native.js:151:5\n    at async run (http://127.0.0.1:44701/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:44701/tests/browser/native-person-url-owner.html?html-proxy&index=0.js:1:184\nError: Person link control left its accepted owner\n    at syncControls (http://127.0.0.1:44701/plugins/person/index.js:170:38)\n    at Object.read (http://127.0.0.1:44701/plugins/person/index.js:537:15)\n    at Object.read (http://127.0.0.1:44701/core/instanceMethods.js:11:80)\n    at BlockReconciler.readBlock (http://127.0.0.1:44701/core/BlockReconciler.js:377:45)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:44701/core/DocumentRuntime.js:1266:56)\n    at DocumentRuntime.syncBlockFromProjection (http://127.0.0.1:44701/core/DocumentRuntime.js:1323:17)\n    at #commit (http://127.0.0.1:44701/core/NativeInputController.js:447:19)\n    at NativeInputController.handleInput (http://127.0.0.1:44701/core/NativeInputController.js:301:17)\n    at NativeInputController.root.addEventListener.signal.signal (http://127.0.0.1:44701/core/NativeInputController.js:59:50)"
+  }
+]
+    at waitForHistoryMatrix (file:///tmp/rector-person-url-owner-20261030/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///tmp/rector-person-url-owner-20261030/tests/browser/physical-history.mjs:275:30)
+    at async file:///tmp/rector-person-url-owner-20261030/tests/browser/physical-history.mjs:313:48
+
+Node.js v24.22.1

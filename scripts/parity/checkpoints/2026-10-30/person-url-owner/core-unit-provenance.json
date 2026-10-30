@@ -1,0 +1,11 @@
+{
+  "workspace": "/tmp/rector-person-core-peer-red-20261030-8goc35mi",
+  "baselineCore": "/tmp/rector-person-url-owner-base-20261030/core/BlockReconciler.js",
+  "sha256": {
+    "core/BlockReconciler.js": "f369c9f7cc63578264aa98085fb3a9682b5768bd4506a43f3b363b2a4e94dd79",
+    "core/BlockReconciler.test.js": "2c51e32d6a47d9267458fe705c727eabd3eba1e7f6995be23b9fc20dee9789a9"
+  },
+  "meaningfulTestSha256": "1271f84576f76711cca221e4daee4f4ef79fb3dd7f965805b7e74de2f57dd00b",
+  "redBehaviorLogSha256": "5b28de98dfb97abaf1b58afe7f22d406732e5ba79313115a76e1833d8b38b01b",
+  "greenCoreSha256": "bd2ba7c972a8f03ebcf18b474eb18b6bb99118d3db3c3a93d21ed18ba5922054"
+}

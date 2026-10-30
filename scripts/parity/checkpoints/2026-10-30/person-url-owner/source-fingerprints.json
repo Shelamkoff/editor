@@ -1,0 +1,36 @@
+{
+  "patch": "/tmp/rector-person-url-owner-final.patch",
+  "sha256": "4d63e7c447fb378acd1aa5b8bdc28ea05a48d9d54fd766c655bc3dcf1be3c899",
+  "files": [
+    {
+      "path": "core/BlockReconciler.js",
+      "beforeSha256": "f369c9f7cc63578264aa98085fb3a9682b5768bd4506a43f3b363b2a4e94dd79",
+      "afterSha256": "bd2ba7c972a8f03ebcf18b474eb18b6bb99118d3db3c3a93d21ed18ba5922054"
+    },
+    {
+      "path": "core/BlockReconciler.test.js",
+      "beforeSha256": "45313014fbccc045aa3c5a6f2746ee40eb979dca848f82a634413ee0135639af",
+      "afterSha256": "1271f84576f76711cca221e4daee4f4ef79fb3dd7f965805b7e74de2f57dd00b"
+    },
+    {
+      "path": "plugins/person/index.js",
+      "beforeSha256": "38ad00646c1b4afb4bdc890d2e5ed30f4b2fc90ee030d3909c44b8271ae8cc16",
+      "afterSha256": "689b3705fa6f2362fb0066a052c8f348d692eea6cf8eb1cd7f2feff413b868fe"
+    },
+    {
+      "path": "plugins/person/reconciliation.test.js",
+      "beforeSha256": "9805c63d0b10151e956d29973457618e21e4fb0e50a0045173889a1458cf8553",
+      "afterSha256": "1bec0b3d08d15c3a408d16f8dcc367d712e53c07cd7dc6b7a191a1d8afc84e4d"
+    },
+    {
+      "path": "tests/browser/native-plugin-media.js",
+      "beforeSha256": "856d54439c9656076d274a1cfca8b41e7ce1821493fd87aa6ef4585c9c41275b",
+      "afterSha256": "f03b9388d5c8aa01670ec69c3d1503a196cf2e622dc88963107dfce5495b55cc"
+    },
+    {
+      "path": "tests/browser/regressions/person-url-owner-native.js",
+      "beforeSha256": null,
+      "afterSha256": "976114cf2a53958139bbf1d2007000e483fa1775a34bc39d2b54d43b02e6001f"
+    }
+  ]
+}
