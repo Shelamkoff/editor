@@ -1,0 +1,231 @@
+{
+  "recordedAt": "2026-10-30T18:53:31.971663+00:00",
+  "scope": [
+    "BLOCK_HEADING_LEVELS",
+    "BLOCK_LIST_STYLES"
+  ],
+  "implementationBase": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "implementationChanged": false,
+  "archiveBase": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+  "testedSource": "d483be745b0bc00f40a89b823a12f993f1ae21f8",
+  "testedTree": "0d1eb6ee624e8b943cec91c33a50b893d3839b25",
+  "publishedEquivalent": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+  "sourceRevisions": [
+    {
+      "original": "99157b4dbf450b3ad25639bd570b02995aa960c7",
+      "published": "e5829ca7635b2f1bce61ced0e1f7bdb2e55552ee",
+      "tree": "c6f8fecefc610cf23a79a844e191dd34d43e5e71",
+      "parentOriginal": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "parentPublished": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+      "rawCommit": "sources/99157b4d.commit.gz",
+      "patchFromImplementationBase": "sources/99157b4d.patch.gz"
+    },
+    {
+      "original": "d483be745b0bc00f40a89b823a12f993f1ae21f8",
+      "published": "220d4553b6d72396fddaeb15aa426a2f779c1744",
+      "tree": "0d1eb6ee624e8b943cec91c33a50b893d3839b25",
+      "parentOriginal": "99157b4dbf450b3ad25639bd570b02995aa960c7",
+      "parentPublished": "e5829ca7635b2f1bce61ced0e1f7bdb2e55552ee",
+      "rawCommit": "sources/d483be74.commit.gz",
+      "patchFromImplementationBase": "sources/d483be74.patch.gz"
+    }
+  ],
+  "environment": {
+    "node": "v24.22.1",
+    "browser": "156.0.8078.79",
+    "platform": "linux x64"
+  },
+  "final": {
+    "source": "d483be745b0bc00f40a89b823a12f993f1ae21f8",
+    "startedAt": "2026-10-30T17:20:39.655Z",
+    "completedAt": "2026-10-30T17:21:25.585Z",
+    "purpose": "Acceptance evidence with decisive opposite retired controls and per-case page-error attribution.",
+    "filter": "",
+    "candidatePass": true,
+    "runnerSha256": "700f0138e3a1c3046b28f249d475f5af076bc63891a98eaf965bf24517c75dbd",
+    "fixtureSha256": "13e0fb6e316d87952544945c57f81421f18d4578c35311df9c39b3e3f930b28b",
+    "summary": [
+      {
+        "source": "v1",
+        "caseRecords": 21,
+        "executedCases": 17,
+        "unsupportedCases": 4,
+        "observations": 1691,
+        "failures": 29,
+        "incompleteCases": 0,
+        "globalPageErrors": 0,
+        "casePageErrorCaptureAvailable": true,
+        "casePageErrors": 0,
+        "failureProperties": {
+          "control.selectedRange": 3,
+          "redo-control.selectedRange": 5,
+          "redo-input.nativeCaret": 7,
+          "retired-control.canonicalUnchanged": 5,
+          "retired-control.readOnlyUnchanged": 5,
+          "undo-input.nativeCaret": 4
+        }
+      },
+      {
+        "source": "spec-baseline",
+        "caseRecords": 21,
+        "executedCases": 21,
+        "unsupportedCases": 0,
+        "observations": 2323,
+        "failures": 185,
+        "incompleteCases": 0,
+        "globalPageErrors": 10,
+        "casePageErrorCaptureAvailable": true,
+        "casePageErrors": 10,
+        "failureProperties": {
+          "control.completedActions": 10,
+          "control.editorTag": 10,
+          "control.rendererTag": 10,
+          "control.setting": 10,
+          "redo-control.completedActions": 10,
+          "redo-control.editorTag": 10,
+          "redo-control.rendererTag": 10,
+          "redo-control.selectedRange": 5,
+          "redo-control.setting": 10,
+          "redo-input.completedActions": 10,
+          "redo-input.history": 10,
+          "retired-control.noCompletedAction": 10,
+          "undo-control.canonicalTextAndMarks": 10,
+          "undo-control.completedActions": 10,
+          "undo-control.editorFields": 10,
+          "undo-control.exactTypedRecords": 10,
+          "undo-control.history": 10,
+          "undo-control.rendererFields": 10,
+          "undo-input.completedActions": 10
+        }
+      },
+      {
+        "source": "candidate",
+        "caseRecords": 21,
+        "executedCases": 21,
+        "unsupportedCases": 0,
+        "observations": 2323,
+        "failures": 0,
+        "incompleteCases": 0,
+        "globalPageErrors": 0,
+        "casePageErrorCaptureAvailable": true,
+        "casePageErrors": 0,
+        "failureProperties": {}
+      }
+    ],
+    "serverErrors": [],
+    "runnerExpectedExitCode": 1,
+    "actualShellExitCode": null
+  },
+  "earlyDifferential": {
+    "source": "99157b4dbf450b3ad25639bd570b02995aa960c7",
+    "startedAt": "2026-10-30T17:18:57.603Z",
+    "completedAt": "2026-10-30T17:19:39.150Z",
+    "purpose": "Superseded positive/history evidence; retired controls were not consistently decisive and page errors were only global.",
+    "filter": "",
+    "candidatePass": true,
+    "runnerSha256": "b72c6ef2d262abda278d1093f52f34c765ae0a5b8342647b3eba450ba772b872",
+    "fixtureSha256": "8c8e888ab11d0bc1816c6e62d9fb03aee49ed7b087a6e7afa88cef69e1a5c786",
+    "summary": [
+      {
+        "source": "v1",
+        "caseRecords": 21,
+        "executedCases": 17,
+        "unsupportedCases": 4,
+        "observations": 1674,
+        "failures": 20,
+        "incompleteCases": 0,
+        "globalPageErrors": 0,
+        "casePageErrorCaptureAvailable": false,
+        "casePageErrors": null,
+        "failureProperties": {
+          "control.selectedRange": 3,
+          "redo-control.selectedRange": 5,
+          "redo-input.nativeCaret": 7,
+          "retired-control.canonicalUnchanged": 1,
+          "undo-input.nativeCaret": 4
+        }
+      },
+      {
+        "source": "spec-baseline",
+        "caseRecords": 21,
+        "executedCases": 21,
+        "unsupportedCases": 0,
+        "observations": 2302,
+        "failures": 185,
+        "incompleteCases": 0,
+        "globalPageErrors": 10,
+        "casePageErrorCaptureAvailable": false,
+        "casePageErrors": null,
+        "failureProperties": {
+          "control.completedActions": 10,
+          "control.editorTag": 10,
+          "control.rendererTag": 10,
+          "control.setting": 10,
+          "redo-control.completedActions": 10,
+          "redo-control.editorTag": 10,
+          "redo-control.rendererTag": 10,
+          "redo-control.selectedRange": 5,
+          "redo-control.setting": 10,
+          "redo-input.completedActions": 10,
+          "redo-input.history": 10,
+          "retired-control.noCompletedAction": 10,
+          "undo-control.canonicalTextAndMarks": 10,
+          "undo-control.completedActions": 10,
+          "undo-control.editorFields": 10,
+          "undo-control.exactTypedRecords": 10,
+          "undo-control.history": 10,
+          "undo-control.rendererFields": 10,
+          "undo-input.completedActions": 10
+        }
+      },
+      {
+        "source": "candidate",
+        "caseRecords": 21,
+        "executedCases": 21,
+        "unsupportedCases": 0,
+        "observations": 2302,
+        "failures": 0,
+        "incompleteCases": 0,
+        "globalPageErrors": 0,
+        "casePageErrorCaptureAvailable": false,
+        "casePageErrors": null,
+        "failureProperties": {}
+      }
+    ],
+    "serverErrors": [],
+    "runnerExpectedExitCode": 1,
+    "actualShellExitCode": 1
+  },
+  "earlyNative": {
+    "artifact": "early/native-unversioned.log.gz",
+    "passed": 21,
+    "page": "native-plugin-parity.html",
+    "filter": "Text block settings parity",
+    "source": null,
+    "actualShellExitCode": null,
+    "purpose": "Diagnostic only. The log predates the final fixture and has no immutable source metadata. It is not attributed to d483be74."
+  },
+  "processEvidence": {
+    "final": "The complete JSON and candidatePass are retained. The wait collecting session 30982 was interrupted; no final shell outcome is retained. Exit 1 is required by the committed runner for its historical failures/page errors, but is not claimed as observed.",
+    "earlyDifferential": "The retained task transcript reported exit 1. The raw JSON does not itself contain a shell outcome.",
+    "earlyNative": "The textual log reports 21 PASS. Neither an exact source pin nor a separate process outcome was retained in that artifact."
+  },
+  "review": {
+    "verdict": "accept-with-recorded-scope",
+    "proposedRows": [
+      "BLOCK_HEADING_LEVELS",
+      "BLOCK_LIST_STYLES"
+    ],
+    "otherRowsAccepted": false,
+    "script": "audit.py",
+    "result": "audit-result.json",
+    "limitations": [
+      "Chrome 156 on Linux x64 only; no cross-browser acceptance.",
+      "The fixture explicitly refocuses the first field before keyboard history; exact settings-menu return caret is not accepted.",
+      "Inline forward/backward selection and new toolbox heading caret are checked directly.",
+      "V1 has only the default H2 toolbox entry; four direct H3-H6 toolbox cases remain explicitly unsupported.",
+      "General rich paste, split/conversion, resource lifetime, B-HTML, B-STYLE and whole-library parity remain separate.",
+      "Final exact-source Playwright gestures are native. The early CDP log does not prove the final registered wrapper; integration supplies its own focused native outcome."
+    ]
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "scope": "Every gzip payload in this checkpoint; plain documentation, manifest and audit source are pinned by Git.",
+  "files": [
+    {
+      "path": "early/differential-99157b4d.json.gz",
+      "compressedBytes": 112731,
+      "compressedSha256": "82e80ee433fa86934c0ed4010ff7c866913eacd0d8a0b18b5947dcf1c323ae31",
+      "decodedBytes": 4497058,
+      "decodedSha256": "a2c7b305cf7ef3efe4b1fd6962e6f2d7f374a0126668f113a0cb38290c6d1535"
+    },
+    {
+      "path": "early/differential-99157b4d.stderr.gz",
+      "compressedBytes": 20,
+      "compressedSha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "early/native-unversioned.log.gz",
+      "compressedBytes": 238,
+      "compressedSha256": "cb53dc35fb2411e6994f26246db52015d29cd06720aeb926f30f6434b1b0e8da",
+      "decodedBytes": 1757,
+      "decodedSha256": "dbc34783b23703527a82f9997cb29936afdb42f8b824e4c70575ed0ae66721af"
+    },
+    {
+      "path": "final/differential.json.gz",
+      "compressedBytes": 120143,
+      "compressedSha256": "419bbd1749ed5ab93dc468ac2fce20099e5d896ccaa9441bd1ca2c2b220f3de0",
+      "decodedBytes": 4661896,
+      "decodedSha256": "2f4f5e1e71b9027efff9dd579cf4fd10bb16a830f8a214037614bbefc0792183"
+    },
+    {
+      "path": "final/differential.stderr.gz",
+      "compressedBytes": 20,
+      "compressedSha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sources/99157b4d.commit.gz",
+      "compressedBytes": 198,
+      "compressedSha256": "61751498c0faae167c34aa4a985500c73094fba06eded542e8699c3bba2dc0d5",
+      "decodedBytes": 263,
+      "decodedSha256": "c50ed83e4afa557c0d84c1b4b1885d878917da31cce0f8e60868b967ad0a518f"
+    },
+    {
+      "path": "sources/99157b4d.patch.gz",
+      "compressedBytes": 8271,
+      "compressedSha256": "5630a8ff88fd841479c3548eae574152194f652f329970b1e7cc8130ce370e7c",
+      "decodedBytes": 27484,
+      "decodedSha256": "1d155cea1dc732356a1d3610087798793ddea958583cd6ca9a6b11b3575c5ae4"
+    },
+    {
+      "path": "sources/d483be74.commit.gz",
+      "compressedBytes": 204,
+      "compressedSha256": "8ba000cbd9468028545856c6b621c770891ee2579fda4c1026540c3c627ec491",
+      "decodedBytes": 276,
+      "decodedSha256": "637d0affda3a9eb1b9e482c07e09a94d6a3f53358553a8ee37fc17573e580483"
+    },
+    {
+      "path": "sources/d483be74.patch.gz",
+      "compressedBytes": 8635,
+      "compressedSha256": "4e5446d51e10c93b82620daa53ed3528f43758b7d3583bba1aef3efc2c8bb158",
+      "decodedBytes": 29211,
+      "decodedSha256": "d1f81c7b406cdddba57257ecfca9a2ff9b23b7d511a426e91e20e58570ae18a3"
+    },
+    {
+      "path": "sources/publication-progress.json.gz",
+      "compressedBytes": 610,
+      "compressedSha256": "300c0e8974c8230c371a8298d9227705e5ae633bfa7c1c78ce3038aa84f55b07",
+      "decodedBytes": 1746,
+      "decodedSha256": "34e3fa7f8d75c3786dd4fc3a73ffd6071db78263e5f4e6abe7980235704db014"
+    }
+  ]
+}
