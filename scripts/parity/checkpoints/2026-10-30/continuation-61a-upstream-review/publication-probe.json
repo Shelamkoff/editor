@@ -1,0 +1,36 @@
+{
+  "repository": "Shelamkoff/editor",
+  "branch": "refactor/rector-v2-architecture",
+  "scope": "One immutable unreferenced blob only; no ref, file or local repository mutation.",
+  "sourceCommit": "8188731e",
+  "path": "plugins/link-preview/index.js",
+  "writeAttempt": {
+    "startedAt": "2026-10-30T18:27:48.019Z",
+    "finishedAt": "2026-10-30T18:28:08.020Z",
+    "expectedSha": "1b0e4c1375c86e535d3ced51fc4c0f3249304917",
+    "kind": "timeout"
+  },
+  "readback": {
+    "kind": "response",
+    "isError": true,
+    "error": {
+      "content": [
+        {
+          "type": "text",
+          "text": "GitHub API error 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/git/blobs#get-a-blob\",\"status\":\"404\"}"
+        }
+      ],
+      "structuredContent": {
+        "error": "GitHub API error 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/git/blobs#get-a-blob\",\"status\":\"404\"}",
+        "error_code": "NOT_FOUND",
+        "error_data": {
+          "message": "Not Found",
+          "documentation_url": "https://docs.github.com/rest/git/blobs#get-a-blob",
+          "status": "404"
+        }
+      },
+      "isError": true
+    }
+  },
+  "completedAt": "2026-10-30T18:28:42.030Z"
+}

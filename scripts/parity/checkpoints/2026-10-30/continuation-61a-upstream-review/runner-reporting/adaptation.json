@@ -1,0 +1,10 @@
+{
+  "originalPath": "/workspace/scratch/61a2ad7355f4/editor/scripts/parity/checkpoints/2026-10-30/runner-reporting/reproduce/gate-probes.mjs",
+  "originalSha256": "306e85c4eee0394f4a46b4e141f8fad0880303000600d4cd16ee177234fe785f",
+  "adaptedSha256": "cea56803d93b0e53b2da83e7686db3495930e418bf99fea879dbbd415a523629",
+  "changes": {
+    "repositoryPath": "/workspace/scratch/61a2ad7355f4/editor",
+    "outputDirectory": "/workspace/scratch/61a2ad7355f4/tools/runner-reporting-followup"
+  },
+  "behaviorChanges": false
+}

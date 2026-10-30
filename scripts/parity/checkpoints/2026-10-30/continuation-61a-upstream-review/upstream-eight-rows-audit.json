@@ -1,0 +1,215 @@
+{
+  "source": "414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab",
+  "previousSource": "0cceb84eceeb6299f2338ac4798ff40e9aa36ec8",
+  "scope": "Read-only archive integrity and fixed-fixture acceptance audit, not a new browser execution",
+  "corpora": [
+    {
+      "name": "heading-list",
+      "rows": [
+        "BLOCK_HEADING_LEVELS",
+        "BLOCK_LIST_STYLES"
+      ],
+      "path": "scripts/parity/checkpoints/2026-10-30/text-block-settings/final/differential.json.gz",
+      "decodedSha256": "2f4f5e1e71b9027efff9dd579cf4fd10bb16a830f8a214037614bbefc0792183",
+      "verifiedArchivePayloads": 10,
+      "recomputedVerdicts": 6337,
+      "verifiedLoadedProductionRecords": 499,
+      "fixtureSha256": "13e0fb6e316d87952544945c57f81421f18d4578c35311df9c39b3e3f930b28b",
+      "results": [
+        {
+          "source": "v1",
+          "cases": 21,
+          "observations": 1691,
+          "failedObservations": 29,
+          "caseErrors": 0,
+          "casesWithUnsupported": 4,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 21,
+          "observations": 2323,
+          "failedObservations": 185,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 10,
+          "casePageErrors": 10,
+          "inputErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 21,
+          "observations": 2323,
+          "failedObservations": 0,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        }
+      ]
+    },
+    {
+      "name": "columns",
+      "rows": [
+        "BLOCK_COLUMNS_LAYOUTS",
+        "BLOCK_COLUMNS_NO_LOSS_REDUCE"
+      ],
+      "path": "scripts/parity/checkpoints/2026-10-30/columns-layouts/layouts-final-differential.json.gz",
+      "decodedSha256": "4a11251ee18ed3a12181c5d3b86db2d1b6397829c9a5784e71ce257150a05ffd",
+      "verifiedArchivePayloads": 15,
+      "recomputedVerdicts": 7013,
+      "verifiedLoadedProductionRecords": 489,
+      "fixtureSha256": "3c61fd6a194518f37a39520e0e9f8f7b0d12c131872cac9f98f42586afaab370",
+      "results": [
+        {
+          "source": "v1",
+          "cases": 12,
+          "observations": 1253,
+          "failedObservations": 30,
+          "caseErrors": 0,
+          "casesWithUnsupported": 6,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 12,
+          "observations": 2880,
+          "failedObservations": 0,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 12,
+          "observations": 2880,
+          "failedObservations": 0,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        }
+      ]
+    },
+    {
+      "name": "raw",
+      "rows": [
+        "BLOCK_RAW_SOURCE",
+        "BLOCK_RAW_PREVIEW"
+      ],
+      "path": "scripts/parity/checkpoints/2026-10-30/raw-source-preview/raw/final.json.gz",
+      "decodedSha256": "b873419a97654d03279a7dfd7fe1bdbe36c871d001798dcbbe684d475f163f22",
+      "verifiedArchivePayloads": 25,
+      "recomputedVerdicts": 4102,
+      "verifiedLoadedProductionRecords": 297,
+      "fixtureSha256": "d1b27d210f45c2b3d6d1594221c6ba4a0a01242a9f1ada543eff4cd419a3c6af",
+      "results": [
+        {
+          "source": "v1",
+          "cases": 21,
+          "observations": 1260,
+          "failedObservations": 226,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 21,
+          "observations": 1421,
+          "failedObservations": 30,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 21,
+          "observations": 1421,
+          "failedObservations": 0,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        }
+      ]
+    },
+    {
+      "name": "tools",
+      "rows": [
+        "TOOL_CASETRANSFORM_ACTION",
+        "TOOL_CLEARFORMATTING_ACTION"
+      ],
+      "path": "scripts/parity/checkpoints/2026-10-30/tool-actions/final-differential.json.gz",
+      "decodedSha256": "243d1b71b549e49ade94e6c3c9037eadb1e638c852c9120e2339ea9fcbfc9feb",
+      "verifiedArchivePayloads": 35,
+      "recomputedVerdicts": 5930,
+      "verifiedLoadedProductionRecords": 334,
+      "fixtureSha256": "6feaebfcb9c67e281a5a661f9514cb28e6a79cb93a1f03a872ce11ac7985f833",
+      "results": [
+        {
+          "source": "v1",
+          "cases": 48,
+          "observations": 1786,
+          "failedObservations": 278,
+          "caseErrors": 4,
+          "casesWithUnsupported": 48,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "spec-baseline",
+          "cases": 48,
+          "observations": 2072,
+          "failedObservations": 258,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        },
+        {
+          "source": "candidate",
+          "cases": 48,
+          "observations": 2072,
+          "failedObservations": 0,
+          "caseErrors": 0,
+          "casesWithUnsupported": 0,
+          "pageErrors": 0,
+          "casePageErrors": 0,
+          "inputErrors": 0
+        }
+      ]
+    }
+  ],
+  "register": {
+    "uniqueIds": 209,
+    "accepted": 54,
+    "open": 155,
+    "newlyAccepted": [
+      "BLOCK_HEADING_LEVELS",
+      "BLOCK_LIST_STYLES",
+      "BLOCK_RAW_SOURCE",
+      "BLOCK_RAW_PREVIEW",
+      "BLOCK_COLUMNS_LAYOUTS",
+      "BLOCK_COLUMNS_NO_LOSS_REDUCE",
+      "TOOL_CASETRANSFORM_ACTION",
+      "TOOL_CLEARFORMATTING_ACTION"
+    ]
+  },
+  "sourceAndArchiveChecksPassed": true
+}

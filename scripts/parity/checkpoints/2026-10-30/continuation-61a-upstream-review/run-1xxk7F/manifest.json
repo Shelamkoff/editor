@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+  "startedAt": "2026-10-30T19:34:47.544Z",
+  "finishedAt": "2026-10-30T19:34:48.239Z",
+  "outcome": "passed",
+  "source": {
+    "head": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+    "tree": "7b60971a111f63ed4906b57f36d0402294391692",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "a562d8f8abbe4bdda6d8253fde20aa9d5c129804b473632ba23314875bc08728"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "runner-reporting": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T19:34:47.873Z",
+      "finishedAt": "2026-10-30T19:34:48.131Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "/workspace/scratch/61a2ad7355f4/tools/runner-reporting-followup/gate-probes.mjs",
+        "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+        "green-merged"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+        "tree": "7b60971a111f63ed4906b57f36d0402294391692",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "a562d8f8abbe4bdda6d8253fde20aa9d5c129804b473632ba23314875bc08728"
+      },
+      "elapsedMs": 255.13707699999998,
+      "sourceAfter": {
+        "head": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+        "tree": "7b60971a111f63ed4906b57f36d0402294391692",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "a562d8f8abbe4bdda6d8253fde20aa9d5c129804b473632ba23314875bc08728"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "19cea0f8b8715c171b839cf6c3027ba66ea3f556",
+    "tree": "7b60971a111f63ed4906b57f36d0402294391692",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "a562d8f8abbe4bdda6d8253fde20aa9d5c129804b473632ba23314875bc08728"
+  },
+  "sourceUnchanged": true
+}
