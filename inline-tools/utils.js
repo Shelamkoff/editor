@@ -141,9 +141,9 @@ function haveSameAttributes(left, right) {
   return true
 }
 
-/** Split ordinary wrappers to isolate a selected text leaf without cloning
+/** Split ordinary wrappers to isolate an authored leaf without cloning
  * protected descendants, native controls, or inline-widget DOM ownership.
- * @param {Text} text
+ * @param {Node} text
  * @param {HTMLElement} ancestor
  * @returns {void}
  */
