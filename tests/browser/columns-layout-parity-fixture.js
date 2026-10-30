@@ -192,17 +192,20 @@ export async function runColumnsLayoutCase(specification, { sourceBase = '../../
       try { await native('click', { x, y }); await pause() }
       finally { document.removeEventListener('click', captureClick, true) }
     }
-    const retainedControls = []
+    const retainedMenuControls = []
     const choose = async layout => {
       let button
       if (specification.surface === 'menu') {
         await clicked(root().querySelector('.oe-toolbar__drag'))
-        button = [...root().querySelectorAll('.oe-settings-menu [role^="menuitem"]')]
-          .find(item => item.querySelector('.oe-settings-menu__label')?.textContent === layouts[layout].label)
+        const items = [...root().querySelectorAll('.oe-settings-menu [role^="menuitem"]')]
+        for (const [key, definition] of Object.entries(layouts)) {
+          const node = items.find(item => item.querySelector('.oe-settings-menu__label')?.textContent === definition.label)
+          if (node) retainedMenuControls.push({ layout: key, node })
+        }
+        button = items.find(item => item.querySelector('.oe-settings-menu__label')?.textContent === layouts[layout].label)
       } else button = [...wrapper().querySelectorAll('.oe-columns__layout-btn')]
         .find(item => item.getAttribute('aria-label') === `Layout ${layouts[layout].label}`)
       await clicked(button)
-      retainedControls.push(button)
     }
     currentPhase = 'layout'
     await choose(specification.target)
@@ -253,13 +256,29 @@ export async function runColumnsLayoutCase(specification, { sourceBase = '../../
       await capture('redo-expand', finalTexts, finalLayout, { canUndo: true, canRedo: false }, ++completed)
     }
     check('history', 'exactFinalRecords', editor.save().blocks, finalSaved)
-    // Retained menu controls must be inert after dismissal. Direct buttons
-    // remain live in v2; their negative is the existing read-only boundary.
+    // Probe an action that would really change the final layout. The menu
+    // owner must stay retired after read-only is enabled AND disabled, so a
+    // read-only guard or canonical no-op cannot disguise an obsolete action.
+    // Direct controls remain live; their separate negative is read-only.
     currentPhase = 'retired-control'
-    if (specification.surface === 'direct') editor.setReadOnly(true)
-    for (const button of retainedControls) button.click()
-    await pause()
-    if (specification.surface === 'direct') editor.setReadOnly(false)
+    editor.setReadOnly(true); await pause()
+    if (specification.surface === 'menu') {
+      editor.setReadOnly(false); await pause()
+      const retired = retainedMenuControls.find(control => control.layout !== finalLayout)
+      if (!retired) throw new Error('A decisive retained-menu probe requires a different layout')
+      check('retired-control', 'editableBeforeProbe', first().isContentEditable, true)
+      check('retired-control', 'differentLayout', retired.layout !== finalLayout, true)
+      retired.node.click()
+      await pause()
+    } else {
+      const target = Object.keys(layouts).find(layout => layout !== finalLayout)
+      const button = [...wrapper().querySelectorAll('.oe-columns__layout-btn')]
+        .find(item => item.getAttribute('aria-label') === `Layout ${layouts[target].label}`)
+      check('retired-control', 'readOnlyBeforeProbe', first().isContentEditable, false)
+      check('retired-control', 'differentLayout', target !== finalLayout, true)
+      button.click(); await pause()
+      editor.setReadOnly(false); await pause()
+    }
     check('retired-control', 'canonicalUnchanged', editor.save().blocks, finalSaved)
     check('retired-control', 'historyUnchanged', { canUndo: editor.canUndo, canRedo: editor.canRedo }, { canUndo: true, canRedo: false })
     if (!legacy) check('retired-control', 'noCompletedAction', transactions.length, completed)
