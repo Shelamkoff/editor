@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+  "startedAt": "2026-10-30T00:53:48.726Z",
+  "finishedAt": "2026-10-30T00:54:36.737Z",
+  "outcome": "passed",
+  "source": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+        "mode": 33188,
+        "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+        "mode": 33188,
+        "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+        "mode": 33188,
+        "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+        "mode": 33188,
+        "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+        "mode": 33188,
+        "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+        "mode": 33188,
+        "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+        "mode": 33188,
+        "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+        "mode": 33188,
+        "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+        "mode": 33188,
+        "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+        "mode": 33188,
+        "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+        "mode": 33188,
+        "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+      },
+      {
+        "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+        "mode": 33188,
+        "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+      }
+    ],
+    "dirty": true,
+    "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+      "EDITOR_NATIVE_FILTER": "",
+      "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "native": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T00:53:49.425Z",
+      "finishedAt": "2026-10-30T00:54:36.400Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-gallery-roundtrip-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-roundtrip-preservation.html",
+          "EDITOR_NATIVE_FILTER": "",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "elapsedMs": 46969.924524,
+      "sourceAfter": {
+        "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+        "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+        "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+        "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+        "untracked": [
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+            "mode": 33188,
+            "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+            "mode": 33188,
+            "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+            "mode": 33188,
+            "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+            "mode": 33188,
+            "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+            "mode": 33188,
+            "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+            "mode": 33188,
+            "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+            "mode": 33188,
+            "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+            "mode": 33188,
+            "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+          },
+          {
+            "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+            "mode": 33188,
+            "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+          },
+          {
+            "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+            "mode": 33188,
+            "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+          }
+        ],
+        "dirty": true,
+        "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "4bfb39426744bc0a96725258c06dc9192b58098b",
+    "tree": "8c031d7de24a197406408fcc4a584ee72c37f9fc",
+    "patchSha256": "03f87fc527ea0dcd5b81a748f781f362969bdcf8f374d5135e0118e18ad9fa77",
+    "lockSha256": "fdd82d3e28d8b5806c94fe95f4408494c9ac45afc4f0a5d5d9b5d74a32993cbf",
+    "untracked": [
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/classifier-sensitivity.mjs",
+        "mode": 33188,
+        "sha256": "3323818f43231f9ce5c8404b73e1fec9093475769d02f4a5492d3c66dbb4f253"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified-manifest.json",
+        "mode": 33188,
+        "sha256": "3b60afcfbf4379d003805b663ff97fc36066a170c2c1dfbf3e01515b7f266d20"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-initial-unclassified.log.gz",
+        "mode": 33188,
+        "sha256": "48ebf85e9311696752b22eb461d7b603577b25e537578eb9759d7f6a85b1842f"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156-manifest.json",
+        "mode": 33188,
+        "sha256": "5cfcb3743aeb3ee5b05640c2083e5ed6079b9832910eb6c6ac884d0dc1378ba2"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/gallery-native156.log.gz",
+        "mode": 33188,
+        "sha256": "06d744c0ed538c8fb8fe71730c753c7ab3357e23cfca1272284fc99119df543e"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-evidence-index.json",
+        "mode": 33188,
+        "sha256": "4d7fa1adeee4bec57eb9a2803cdab41ea28420c95d17df9ecaf882f34ad06f6a"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/initial-fixture.patch.gz",
+        "mode": 33188,
+        "sha256": "d9c2b51f8802568d32959a7b8436540a8d1406acf5d218c0403ed96679127936"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified-manifest.json",
+        "mode": 33188,
+        "sha256": "14dece1926b1e65e902a3f14dd24289e770d4e6d36a1b97ceea68f6a3f561315"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-initial-unclassified.log.gz",
+        "mode": 33188,
+        "sha256": "572762cff9a3322253ff91b80dc13835f8b9997891d71827088940f44f5cada7"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native-manifest.json",
+        "mode": 33188,
+        "sha256": "569683d5c3b03822d9a701d4b726bca05b7953d4b1a79ba1acee962072c0ce21"
+      },
+      {
+        "path": "scripts/parity/checkpoints/2026-10-30/gallery-roundtrip/literal-native.log.gz",
+        "mode": 33188,
+        "sha256": "e80cde9a967d74319fd3e6001c43df8941f19149a8aee122bb79d6f2842c5c6e"
+      },
+      {
+        "path": "scripts/parity/gallery-roundtrip-classifiers.mjs",
+        "mode": 33188,
+        "sha256": "22607ee33fa21ae119bb81cb06660677aa67af100cbca696eb25ac726af9ea85"
+      }
+    ],
+    "dirty": true,
+    "identity": "5a785333ef966d4d8f957d7ca2b346b965937d60f1f8fddfc9681cf20c7fc40e"
+  },
+  "sourceUnchanged": true
+}

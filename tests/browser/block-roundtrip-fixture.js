@@ -129,6 +129,24 @@ const image = {
   },
 }
 
+const gallery = {
+  type: 'gallery', version: 2, className: 'Gallery', literalCaption: true,
+  fieldSelector: '.oe-gallery__slot-caption', fieldTag: 'DIV',
+  defaultData: { images: [], layout: 'auto', styles: {},
+    options: { loop: true, zoom: true, navigation: true, captions: true, fullscreen: true, thumbnails: false } },
+  populatedData: { images: [
+    { id: 'first', url: pixel, caption: 'Alpha &amp; &lt;b&gt;literal&lt;/b&gt; {{literal}} tail' },
+    { id: 'second', url: pixel, caption: 'Second &amp; &lt;i&gt;literal&lt;/i&gt;' },
+  ], layout: '2', styles: { gap: '8px', height: '180px', borderRadius: '6px' },
+  options: { loop: false, zoom: true, navigation: true, captions: true, fullscreen: false, thumbnails: true } },
+}
+// Gallery v1 author captions are plain strings (textContent), not rich HTML.
+// These fixed values translate only the historical wire representation.
+gallery.legacyPopulatedData = { ...gallery.populatedData, images: [
+  { id: 'first', url: pixel, caption: 'Alpha & <b>literal</b> {{literal}} tail' },
+  { id: 'second', url: pixel, caption: 'Second & <i>literal</i>' },
+] }
+
 const embed = {
   type: 'embed', version: 1, className: 'Embed', textKey: 'caption',
   fieldSelector: '.oe-embed__caption', fieldTag: 'DIV',
@@ -174,10 +192,11 @@ const withEditedText = (block, data, text) => block.type === 'linkPreview' ? tex
     cells: row.cells.map((cell, columnIndex) => rowIndex || columnIndex ? { ...cell } : { ...cell, text }),
   })) }
   : block.type === 'attaches' ? { ...data, files: data.files.map((file, index) => index ? { ...file } : { ...file, name: text }) }
+  : block.type === 'gallery' ? { ...data, images: data.images.map((image, index) => index ? { ...image } : { ...image, caption: text }) }
   : { ...data, [block.textKey ?? 'text']: text }
 const listItemText = item => typeof item === 'string' ? item : item.text
 
-export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, poll, linkPreview].flatMap(block => {
+export const blockRoundtripCases = [paragraph, heading, list, quote, warning, code, checklist, delimiter, image, toggle, spoiler, columns, attaches, raw, embed, table, poll, linkPreview, gallery].flatMap(block => {
   const prefix = 'BLOCK_' + (block.scenarioName ?? block.type.toUpperCase()) + '_ROUNDTRIP/'
   if (block.noEditableField) return [
     { ...block, populated: false, id: prefix + 'default' },
@@ -200,7 +219,18 @@ export const blockRoundtripCases = [paragraph, heading, list, quote, warning, co
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> <i>{{mention}}</i> <s>{{swatch}}</s> tail' } },
     { ...block, populated: true, literalCaption: false, id: prefix + 'populated-widgets-unwrapped-control',
       populatedData: { ...block.populatedData, caption: '<b>Alpha</b> {{mention}} {{swatch}} tail' } },
-  ] : [])
+  ] : []).concat(block.type === 'gallery' ? [true, false].map(wrapped => ({
+    ...block, populated: true, literalCaption: false,
+    id: prefix + (wrapped ? 'populated-widgets' : 'populated-widgets-unwrapped-control'),
+    populatedData: { ...block.populatedData, images: [
+      { id: 'first', url: pixel, caption: '<b>Alpha &amp;</b> ' + (wrapped ? '<i>{{mention}}</i>' : '{{mention}}') + ' tail' },
+      { id: 'second', url: pixel, caption: '<mark>Second &amp;</mark> ' + (wrapped ? '<s>{{swatch}}</s>' : '{{swatch}}') },
+    ] },
+    legacyPopulatedData: { ...block.populatedData, images: [
+      { id: 'first', url: pixel, caption: 'Alpha & {{mention}} tail' },
+      { id: 'second', url: pixel, caption: 'Second & {{swatch}}' },
+    ] },
+  })) : [])
 })
 
 const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -292,7 +322,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
   const emptyImage = specification.type === 'image' && !specification.populated
   const emptyAttaches = specification.type === 'attaches' && !specification.populated
   const emptyEmbed = specification.type === 'embed' && !specification.populated
-  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed
+  const emptyGallery = specification.type === 'gallery' && !specification.populated
+  const hasAuthoring = (!noEditableField || specification.populated) && !emptyImage && !emptyAttaches && !emptyEmbed && !emptyGallery
   const hasSidecars = !noEditableField && specification.fieldMode !== 'plain-text' && !specification.literalCaption && !specification.withoutSidecars
   const plannedPhases = ['load', 'read-only', 'editable-again', ...(hasAuthoring ? ['edit', 'undo', 'redo'] : []), 'dispose']
   const phaseScope = noEditableField ? {
@@ -305,6 +336,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     reason: 'Attaches with no files has no declared editable filename; authoring/history are covered by the populated files case.',
   } : emptyEmbed ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
     reason: 'Unconfigured Embed has no declared caption field; URL configuration is a separate action. Populated cases execute caption authoring/history.',
+  } : emptyGallery ? { authoringTarget: null, notApplicablePhases: ['edit', 'undo', 'redo'],
+    reason: 'Gallery with no images has no caption field; populated cases exercise declared caption authoring and history.',
   } : {}
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, module, paragraphModule, { EditorRenderer }, mentionModule, colorModule] = await Promise.all([
@@ -325,11 +358,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       : legacy && block.type === 'checklist' ? { ...data, items: data.items.map(({ text, checked }) => ({ text, checked })) }
         : legacy && block.type === 'columns' ? { ...data, columns: data.columns.map(({ content }) => ({ content })) }
           : legacy && block.type === 'table' ? { withHeadings: data.withHeadings, content: data.rows.map(row => row.cells.map(cell => cell.text)) }
-          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) } : data,
+          : legacy && block.type === 'attaches' ? { ...data, files: data.files.map(({ id, ...file }) => file) }
+            : legacy && block.type === 'gallery' ? { ...data, images: data.images.map(({ id, ...image }) => image) } : data,
     ...(sidecars ? { inline: sidecars } : {}) })
   const input = specification.populated ? {
     version: legacy ? '1.0.5' : '2.0.0',
-    blocks: [record('prefix', { text: specification.neighborText ?? '<b>Before</b>' }), record('probe', clone(specification.populatedData), hasSidecars ? clone(inline) : undefined, specification),
+    blocks: [record('prefix', { text: specification.neighborText ?? '<b>Before</b>' }), record('probe', clone(legacy ? specification.legacyPopulatedData ?? specification.populatedData : specification.populatedData), hasSidecars ? clone(inline) : undefined, specification),
       record('suffix', { text: '<i>After</i>' })],
   } : undefined
   const originalInput = input ? JSON.stringify(input) : null
@@ -392,7 +426,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     }
     let previousEmbedParts = specification.type === 'embed' ? embedParts() : []
     let previousEmbedText
-    const plainContenteditable = specification.plainContenteditable === true
+    const plainContenteditable = specification.plainContenteditable === true || (legacy && specification.type === 'gallery')
     const plainField = specification.fieldMode === 'plain-text' && !plainContenteditable
     let previousPlainFields = plainField ? [field()] : []
     let previousShells = [...holder.querySelectorAll('.oe-block[data-block-id]')].map(element => [element.dataset.blockId, element])
@@ -419,7 +453,11 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     let previousAttachmentFields = specification.type === 'attaches' ? attachmentFields() : []
     let previousAttachmentWrapper = specification.type === 'attaches' ? shell(id).querySelector('.oe-attaches') : null
     const originalAttachmentRemove = specification.type === 'attaches' && specification.populated ? shell(id).querySelector('.oe-attaches__remove') : null
-    const baseData = clone(specification.populated ? specification.populatedData : specification.defaultData)
+    const galleryFields = () => [...shell(id).querySelectorAll('.oe-gallery__slot-caption')]
+    let previousGalleryWrapper = specification.type === 'gallery' ? shell(id).querySelector('.oe-gallery') : null
+    let previousGalleryFields = specification.type === 'gallery' ? galleryFields() : []
+    let previousGalleryRemoveControls = specification.type === 'gallery' ? [...shell(id).querySelectorAll('.oe-gallery__slot-remove')] : []
+    const baseData = clone(specification.populated ? legacy ? specification.legacyPopulatedData ?? specification.populatedData : specification.populatedData : specification.defaultData)
     if (specification.type === 'poll' && !specification.populated && legacy) {
       const ids = first[0]?.data.options?.map(option => option.id)
       check('create', 'pollDefaultOptionIds', { count: ids?.length, unique: new Set(ids).size,
@@ -428,7 +466,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     }
     const pollFields = () => [shell(id).querySelector('.oe-poll__question'), ...shell(id).querySelectorAll('.oe-poll__option-text')]
     let previousPollFields = specification.type === 'poll' ? pollFields() : []
-    const baseText = noEditableField ? specification.neighborText : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
+    const baseText = noEditableField ? specification.neighborText : specification.type === 'gallery' ? baseData.images[0]?.caption ?? '' : specification.type === 'table' ? baseData.rows[0].cells[0].text : specification.type === 'attaches' ? baseData.files[0]?.name ?? '' : specification.type === 'columns' ? baseData.columns[0].content : ['list', 'checklist'].includes(specification.type) ? baseData.items[0].text : baseData[specification.textKey ?? 'text']
     const expectedBlocks = text => {
       if (noEditableField) return specification.populated
         ? [record('prefix', { text }), record('probe', {}, undefined, specification), record('suffix', { text: '<i>After</i>' })]
@@ -438,12 +476,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [record('prefix', { text: '<b>Before</b>' }), record('probe', data, hasSidecars ? clone(inline) : undefined, specification), record('suffix', { text: '<i>After</i>' })]
         : [record(id, data, undefined, specification)]
     }
-    const expectedTag = block => block.type === 'linkPreview' ? 'A' : ['spoiler', 'columns', 'attaches', 'table', 'poll'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
+    const expectedTag = block => block.type === 'linkPreview' ? 'A' : ['spoiler', 'columns', 'attaches', 'table', 'poll', 'gallery'].includes(block.type) ? 'DIV' : block.type === 'toggle' ? 'DETAILS' : ['image', 'embed'].includes(block.type) ? 'FIGURE' : block.type === 'delimiter' ? 'HR' : block.type === 'checklist' ? 'UL' : block.type === 'list' ? block.data.style === 'ordered' ? 'OL' : 'UL'
       : block.type === 'heading' ? 'H' + block.data.level : block.type === 'quote' ? 'BLOCKQUOTE' : ['warning', 'code', 'raw'].includes(block.type) ? 'DIV' : 'P'
     const canonical = blocks => blocks.map(block => ({ ...block, data: block.type === 'poll' ? { ...block.data, question: markupMeaning(block.data.question), options: block.data.options.map(option => ({ ...option, text: markupMeaning(option.text) })) } : ['code', 'raw', 'delimiter', 'attaches', 'linkPreview'].includes(block.type) ? { ...block.data } : ['list', 'checklist'].includes(block.type)
       ? { ...block.data, items: block.data.items.map(item => typeof item === 'string'
         ? markupMeaning(item) : { ...item, text: markupMeaning(item.text) }) }
       : ['image', 'embed'].includes(block.type) ? { ...block.data, caption: markupMeaning(block.data.caption) }
+      : block.type === 'gallery' ? { ...block.data, images: block.data.images.map(image => ({ ...image, caption: legacy ? image.caption : markupMeaning(image.caption) })) }
       : block.type === 'quote' ? { ...block.data, text: markupMeaning(block.data.text), caption: markupMeaning(block.data.caption) }
       : block.type === 'warning' ? { ...block.data, title: markupMeaning(block.data.title), message: markupMeaning(block.data.message) }
       : block.type === 'toggle' ? { ...block.data, title: markupMeaning(block.data.title), content: markupMeaning(block.data.content) }
@@ -464,6 +503,26 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     }
     const imageCaptionText = html => literalText(hasSidecars
       ? html.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : html)
+    const galleryCaptionText = caption => legacy
+      ? hasSidecars ? caption.replaceAll('{{mention}}', '@Ada').replaceAll('{{swatch}}', '#123456') : caption
+      : imageCaptionText(caption)
+    const galleryRendererMarkup = root => ({
+      layout: [...root.classList].filter(name => name.startsWith('eg--')),
+      styles: { gap: root.style.gap, height: root.style.height },
+      items: [...root.querySelectorAll('.editor-gallery__item')].map(item => ({
+        tag: item.tagName, role: item.getAttribute('role'), tabIndex: item.tabIndex,
+        label: item.getAttribute('aria-label'), radius: item.style.borderRadius,
+        src: item.querySelector('img').getAttribute('src'), alt: item.querySelector('img').alt,
+      })),
+    })
+    const expectedGalleryRendererMarkup = block => ({
+      layout: [block.data.layout === 'auto' ? 'eg--1' : 'eg--' + block.data.layout],
+      styles: { gap: block.data.styles.gap ?? '', height: block.data.styles.height ?? '' },
+      items: block.data.images.map(image => ({ tag: 'FIGURE', role: 'button', tabIndex: 0,
+        label: 'Open image' + (image.caption ? ': ' + galleryCaptionText(image.caption) : ''),
+        radius: block.data.styles.borderRadius ?? '', src: image.url, alt: galleryCaptionText(image.caption),
+      })),
+    })
     const imageRendererMarkup = figure => {
       const picture = figure.querySelector('.editor-image__picture')
       const caption = figure.querySelector('.editor-image__caption')
@@ -564,7 +623,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       image: ['minimal', 'notion'].includes(block.data.template) ? null : block.data.image || null,
       favicon: block.data.favicon || null,
     }
-    const rendererMarkup = element => element.dataset.blockType === 'linkPreview' ? linkPreviewMeaning(element, 'editor-link-preview') : element.dataset.blockType === 'poll' ? pollRendered(element) : element.dataset.blockType === 'table' ? {
+    const rendererMarkup = element => element.dataset.blockType === 'gallery' ? galleryRendererMarkup(element) : element.dataset.blockType === 'linkPreview' ? linkPreviewMeaning(element, 'editor-link-preview') : element.dataset.blockType === 'poll' ? pollRendered(element) : element.dataset.blockType === 'table' ? {
       children: [...element.children].map(child => child.tagName),
       sections: [...element.querySelector('table').children].map(section => ({ tag: section.tagName,
         rows: [...section.children].map(row => ({ tag: row.tagName, cells: [...row.cells].map(cell => ({ tag: cell.tagName, markup: authoredMarkup(cell) })) })),
@@ -604,7 +663,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ...(rows.length > (block.data.withHeadings ? 1 : 0) ? [{ tag: 'TBODY', rows: renderedRows(rows.slice(block.data.withHeadings ? 1 : 0), 'TD') }] : []),
       ] }
     }
-    const expectedRendererMarkup = block => block.type === 'linkPreview' ? expectedLinkPreviewMeaning(block) : block.type === 'poll' ? expectedPollRendered(block) : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
+    const expectedRendererMarkup = block => block.type === 'gallery' ? expectedGalleryRendererMarkup(block) : block.type === 'linkPreview' ? expectedLinkPreviewMeaning(block) : block.type === 'poll' ? expectedPollRendered(block) : block.type === 'table' ? expectedTableRendererMarkup(block) : block.type === 'attaches'
       ? { children: block.data.files.length ? 1 : 0, rows: block.data.files.map(file => ({
         tag: 'DIV', nameTag: 'A', name: file.name, nameElements: 0, href: file.url, download: file.name,
         extension: file.extension.toUpperCase(), size: file.size === 2048 ? '2KB' : '4KB',
@@ -656,7 +715,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
         check(phase, name + 'AuthoredMarkup', blocks.map(rendererMarkup), expected.map(expectedRendererMarkup))
-        check(phase, name + 'Widgets', widgets(root), expectedWidgets)
+        check(phase, name + 'Widgets', widgets(root), specification.type === 'gallery' ? [] : expectedWidgets)
         if (specification.type === 'code' && specification.populated) check(phase, name + 'CodeLanguage',
           blocks.find(element => element.dataset.blockId === id).querySelector('.editor-code__content').classList.contains('language-javascript'), true)
       }
@@ -673,6 +732,15 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         check(phase, 'mountedImageDecoded', { complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight }, { complete: true, width: 1, height: 1 })
         const computed = getComputedStyle(picture)
         check(phase, 'mountedImageComputedPosition', { fit: computed.objectFit, position: computed.objectPosition }, { fit: 'contain', position: '50% 50%' })
+      }
+      if (specification.type === 'gallery' && specification.populated) {
+        const pictures = [...mounted.querySelectorAll('.editor-gallery__image')]
+        for (const picture of pictures) {
+          picture.scrollIntoView({ block: 'nearest' })
+          await picture.decode()
+        }
+        check(phase, 'mountedGalleryImagesDecoded', pictures.map(picture => ({ complete: picture.complete, width: picture.naturalWidth, height: picture.naturalHeight })),
+          [{ complete: true, width: 1, height: 1 }, { complete: true, width: 1, height: 1 }])
       }
       if (specification.type === 'embed' && specification.populated) {
         const cover = mounted.querySelector('.editor-embed__preview')
@@ -742,6 +810,36 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         } else {
           check(phase, 'emptyImageHasNoAuthoring', wrapper.querySelectorAll('[contenteditable="true"]').length, 0)
           check(phase, 'emptyImageHasNoVisibleMedia', [...wrapper.querySelectorAll('img')].filter(picture => picture.getClientRects().length).length, 0)
+        }
+      }
+      if (specification.type === 'gallery') {
+        const wrapper = shell(id).querySelector('.oe-gallery')
+        const fields = galleryFields()
+        const images = withEditedText(specification, baseData, text).images
+        check(phase, 'galleryWrapperIdentity', [wrapper === previousGalleryWrapper], [true])
+        check(phase, 'galleryAuthorFields', fields.map(element => ({
+          tag: element.tagName, caption: legacy ? element.textContent : authoredMarkup(element), editable: element.isContentEditable,
+          src: element.parentElement.querySelector('img').getAttribute('src'), alt: element.parentElement.querySelector('img').alt,
+        })), images.map(image => ({ tag: 'DIV', caption: legacy ? image.caption : markupMeaning(image.caption), editable: !readOnly,
+          src: image.url, alt: galleryCaptionText(image.caption),
+        })))
+        if (!legacy) check(phase, 'galleryImageIds', fields.map(element => element.dataset.imageId), images.map(image => image.id))
+        check(phase, 'galleryFieldLifetime', previousGalleryFields.map((element, index) =>
+          fields[index]?.isConnected && (fields[index] === element || !element.isConnected)), previousGalleryFields.map(() => true))
+        if (phase === 'edit') check(phase, 'galleryNativeFieldIdentity', previousGalleryFields.map((element, index) => fields[index] === element), previousGalleryFields.map(() => true))
+        const retiredFields = previousGalleryFields.filter(element => !fields.includes(element))
+        if (retiredFields.length) {
+          for (const element of retiredFields) {
+            element.textContent = 'Retired Gallery caption'
+            element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'retired' }))
+            element.dispatchEvent(new FocusEvent('blur'))
+          }
+          for (const control of previousGalleryRemoveControls) if (!control.isConnected) control.click()
+          await settled()
+          check(phase, 'galleryRetiredActionsLeaveCanonical', editor.save().blocks, saved.blocks)
+          check(phase, 'galleryRetiredActionsLeaveHistory', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
+          check(phase, 'galleryRetiredActionsLeaveFields', fields.map(element => legacy ? element.textContent : authoredMarkup(element)),
+            images.map(image => legacy ? image.caption : markupMeaning(image.caption)))
         }
       }
       if (specification.type === 'embed') {
@@ -958,7 +1056,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       check(phase, 'modeState', { readOnly: editor.readOnly, editable: hasAuthoring ? plainField ? !field().readOnly : field().isContentEditable : false }, { readOnly, editable: hasAuthoring && !readOnly })
       check(phase, 'historyState', { canUndo: editor.canUndo, canRedo: editor.canRedo }, history)
       check(phase, 'blockDomIdentity', previousShells.map(([blockId, element]) => shell(blockId) === element), previousShells.map(() => true))
-      if (specification.type === 'poll') check(phase, 'pollWidgetLifetime', previousWidgets.map(([widgetId, element]) => {
+      if (['poll', 'gallery'].includes(specification.type)) check(phase, specification.type + 'WidgetLifetime', previousWidgets.map(([widgetId, element]) => {
         const current = shell(id).querySelector(`[data-id="${widgetId}"]`)
         return Boolean(current?.isConnected) && (element === current || !element.isConnected)
       }), previousWidgets.map(() => true))
@@ -988,6 +1086,9 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       previousImageParts = specification.type === 'image' ? imageParts() : []
       previousEmbedParts = specification.type === 'embed' ? embedParts() : []
       previousEmbedText = specification.type === 'embed' ? text : undefined
+      previousGalleryWrapper = specification.type === 'gallery' ? shell(id).querySelector('.oe-gallery') : null
+      previousGalleryFields = specification.type === 'gallery' ? galleryFields() : []
+      previousGalleryRemoveControls = specification.type === 'gallery' ? [...shell(id).querySelectorAll('.oe-gallery__slot-remove')] : []
     }
 
     await inspect('load', baseText, false, { canUndo: false, canRedo: false })
@@ -999,6 +1100,10 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     if (specification.type === 'attaches' && specification.populated && !legacy) {
       check('read-only', 'attachmentFocusRejected', editor.blocks.focus(id, { fieldKey: 'file:first:name', offset: 'end' }), false)
       check('read-only', 'attachmentReadonlyFocusOwner', document.activeElement === outside, true)
+    }
+    if (specification.type === 'gallery' && specification.populated && !legacy) {
+      check('read-only', 'galleryFocusRejected', editor.blocks.focus(id, { fieldKey: 'image:first:caption', offset: 'end' }), false)
+      check('read-only', 'galleryReadonlyFocusOwner', document.activeElement === outside, true)
     }
     await inspect('read-only', baseText, true, { canUndo: false, canRedo: false })
     setPhase('editable-transition')
@@ -1013,6 +1118,14 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           check('edit', 'attachmentAddress:' + file.id, {
             accepted: editor.blocks.focus(id, { fieldKey: 'file:' + file.id + ':name', offset: 'end' }),
             active: document.activeElement === attachmentFields()[index],
+          }, { accepted: true, active: true })
+        }
+      }
+      if (specification.type === 'gallery' && !legacy) {
+        for (const [index, image] of baseData.images.entries()) {
+          check('edit', 'galleryAddress:' + image.id, {
+            accepted: editor.blocks.focus(id, { fieldKey: 'image:' + image.id + ':caption', offset: 'end' }),
+            active: document.activeElement === galleryFields()[index],
           }, { accepted: true, active: true })
         }
       }
@@ -1055,7 +1168,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         }, { previewPressed: 'false', frames: 0, hidden: false, visible: true, receivesPointer: true })
       }
       await focusField(author)
-      const offset = plainField || plainContenteditable ? baseText.length : logicalLength(baseText)
+      const offset = plainField || plainContenteditable ? baseText.length : specification.type === 'gallery' && !hasSidecars ? literalText(baseText).length : logicalLength(baseText)
       if (plainField) author.setSelectionRange(offset, offset)
       else {
         const range = document.createRange()
