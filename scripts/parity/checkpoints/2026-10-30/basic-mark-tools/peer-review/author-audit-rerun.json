@@ -1,0 +1,79 @@
+{
+  "status": "PASS",
+  "reviewedSource": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+  "base": "d67229c08f5fae7101cb2a252f2d56385224da08",
+  "rawPath": "/workspace/scratch/2231de9d6b0d/work-basic-tools-seventh/scripts/parity/checkpoints/2026-10-30/basic-mark-tools/final-differential.json.gz",
+  "rawSha256": "0abec93c00f444dc6118e6b1226c65f2d9605754be7fdc96f38a3028954c8917",
+  "scriptSha256": "2ce8c43077cad0af0e1ca6f4c183944d943b5d0fcef2376a98c7215093acecfd",
+  "exactSourcePatchesRestored": [
+    {
+      "source": "e696882e613d0592720c898f64d40ae41c9b8082",
+      "tree": "b256830ea1f2845235b3c4c2498c69d050d24344"
+    },
+    {
+      "source": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+      "tree": "2cdce22451ed4a109988c1e053cb1e847ae52f7c"
+    }
+  ],
+  "nativeCases": 96,
+  "sourceFilesChecked": 345,
+  "dependencyFilesChecked": 7,
+  "dependencyVersionsChecked": 8,
+  "rawVerdictsRecomputed": 12939,
+  "independentlyRebuiltOracleChecks": 2610,
+  "summaries": [
+    {
+      "source": "v1",
+      "cases": 96,
+      "observations": 3951,
+      "failed": 408,
+      "incomplete": [
+        "bold/noop/atomic/forward",
+        "bold/noop/atomic/backward",
+        "italic/noop/atomic/forward",
+        "italic/noop/atomic/backward",
+        "strikethrough/noop/atomic/forward",
+        "strikethrough/noop/atomic/backward"
+      ],
+      "failuresByProperty": {
+        "selection": 252,
+        "visibleWidgets": 45,
+        "liveWidgetIdentity": 36,
+        "liveWidgetPayloadAndMarkup": 36,
+        "intendedTextAndMarks": 12,
+        "visibleTextAndMarks": 21,
+        "retainedButtonCannotMoveSelection": 3,
+        "liveCapabilityStillWorks": 3
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 96,
+      "observations": 4494,
+      "failed": 504,
+      "incomplete": [],
+      "failuresByProperty": {
+        "intendedTextAndMarks": 84,
+        "visibleTextAndMarks": 126,
+        "completedActions": 42,
+        "exactCanonicalDocument": 42,
+        "selection": 84,
+        "history": 84,
+        "exactCompletedActions": 42
+      }
+    },
+    {
+      "source": "candidate",
+      "cases": 96,
+      "observations": 4494,
+      "failed": 0,
+      "incomplete": [],
+      "failuresByProperty": {}
+    }
+  ],
+  "missingVisibleOracleCases": [],
+  "productionChanges": 0,
+  "mainRefWrites": 0,
+  "runtimeSuitesRerun": 0,
+  "reviewScope": "Author verification with a separate manual character/mark oracle for candidate canonical and live text, marks, widgets, logical range/direction, full public transaction sequence, fixed input/sidecars and replay. This is not a separate-agent peer review."
+}

@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "reviewer": "root (independent of basic-tools author)",
+  "candidate": "0b8541dab9a101d44511bd8c9a2ff319d0d21cb7",
+  "rawSha256": "0abec93c00f444dc6118e6b1226c65f2d9605754be7fdc96f38a3028954c8917",
+  "checks": 14443,
+  "sources": [
+    {
+      "source": "v1",
+      "cases": 96,
+      "observations": 3951,
+      "failures": 408,
+      "incomplete": 6
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 96,
+      "observations": 4494,
+      "failures": 504,
+      "incomplete": 0
+    },
+    {
+      "source": "candidate",
+      "cases": 96,
+      "observations": 4494,
+      "failures": 0,
+      "incomplete": 0
+    }
+  ],
+  "scope": [
+    "TOOL_BOLD_ACTION",
+    "TOOL_ITALIC_ACTION",
+    "TOOL_STRIKETHROUGH_ACTION"
+  ],
+  "limits": [
+    "Recorded Chrome only",
+    "Selections installed through DOM; no physical drag claim",
+    "Other inline widget features remain outside scope"
+  ]
+}

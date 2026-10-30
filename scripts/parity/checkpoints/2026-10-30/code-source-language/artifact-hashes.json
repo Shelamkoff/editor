@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5838,
+      "sha256": "75476867a38f953e98ae4e677c7661f05e58892bef7397fd8291ebd8c4578148"
+    },
+    {
+      "path": "attempts/differential.json.gz",
+      "bytes": 206878,
+      "sha256": "78716cc7d2fe6e10715e086e55e99570ef3c8a9e41c6a687035b7ae1cab36e07",
+      "decodedBytes": 5752428,
+      "decodedSha256": "1e33fb99140d808b5b5ec4fd392c6c31e0200e21863cf28f5aabc727c1b23635"
+    },
+    {
+      "path": "attempts/differential.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "attempts/fixture-initial.patch.gz",
+      "bytes": 8738,
+      "sha256": "105f01e57a9de18dca52c744a0a010a72228139544b03cc81fab25acc1bd1374",
+      "decodedBytes": 30031,
+      "decodedSha256": "f88b2bce18c10eebd5566dd24b25e96e11c951cb78360ab5ceedeb08955a38b7"
+    },
+    {
+      "path": "attempts/fixture-initial.tree.gz",
+      "bytes": 59,
+      "sha256": "741b8b6b7a4e15246bc44e2b66f60ef2fe24683496672a74c3cbbfbb2f1015c9",
+      "decodedBytes": 41,
+      "decodedSha256": "1bd102610621ef503247ed23a1cbc0594f7c320325dbedbd8eecc477e0fa2676"
+    },
+    {
+      "path": "attempts/native-final.log.gz",
+      "bytes": 347,
+      "sha256": "2742a5f1744700d1999e7e93e5b58c6264f9ec1d1b137047fdfe34a4c8067e64",
+      "decodedBytes": 1860,
+      "decodedSha256": "7ac049d62c67b300118d5d937ca88ad184914a95bac888776255bb986800e1c8"
+    },
+    {
+      "path": "attempts/native.log.gz",
+      "bytes": 808,
+      "sha256": "9555c31677623ec41d3db53686911acbb004fcc4a05e8a4e7be56cf11c7df0ce",
+      "decodedBytes": 7561,
+      "decodedSha256": "1cccab39880790baeb0bb6daf659113a4648f9df101727a6a8ea7be7421bc875"
+    },
+    {
+      "path": "attempts/unrecorded-wrapper-differential.json.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "attempts/unrecorded-wrapper-differential.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "differential-process-outcome.json.gz",
+      "bytes": 242,
+      "sha256": "73db0ebed166531d326fd8870229be1c5f0fc9a579671e214b61d810d92e52cc",
+      "decodedBytes": 375,
+      "decodedSha256": "4febdc05fd0ec3ec65d36982aef019c958d1d6d68c1d9436a223f29a47d8956d"
+    },
+    {
+      "path": "differential-recorded.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final-differential.json.gz",
+      "bytes": 206873,
+      "sha256": "b8306dc5d982080cee9c04952de9bdcb0b867c0fe5ed2e311a297b7e214d3be3",
+      "decodedBytes": 5752428,
+      "decodedSha256": "3933f6c82d12f2b727ae6a1776ceea9849ad31f475e278b833714b2e9001b0a7"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 4068,
+      "sha256": "07c8e5925f3c3b9555e3f6aed61727142ab4cabeb30b96dd19d7e218e936ee22"
+    },
+    {
+      "path": "native.log.gz",
+      "bytes": 347,
+      "sha256": "2742a5f1744700d1999e7e93e5b58c6264f9ec1d1b137047fdfe34a4c8067e64",
+      "decodedBytes": 1860,
+      "decodedSha256": "7ac049d62c67b300118d5d937ca88ad184914a95bac888776255bb986800e1c8"
+    },
+    {
+      "path": "native.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "process-outcomes.json.gz",
+      "bytes": 353,
+      "sha256": "5d09391344654636e4368360d686967d49501059453eef0d39d83ad6c8a984b8",
+      "decodedBytes": 588,
+      "decodedSha256": "cae2bc4dd14e8e8ba7d6338d464fbec80347fdb67cb1a60d634fd35e302b1a86"
+    },
+    {
+      "path": "runtime-hashes.json",
+      "bytes": 1362,
+      "sha256": "92b559936863e3cd1b6aa84297df191ca87564d1ef3f2c05b6cd9869fa79081e"
+    },
+    {
+      "path": "sources/e6842abf.patch.gz",
+      "bytes": 8768,
+      "sha256": "25f458e0f752899a04bc9782f0c2bb9650b78e94889e4db1f729521c6cc989de",
+      "decodedBytes": 30159,
+      "decodedSha256": "a77164c29c5f6e756190fbfc275c846521067af563af33486d27283c34124696"
+    }
+  ]
+}

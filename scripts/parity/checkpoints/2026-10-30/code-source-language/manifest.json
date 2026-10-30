@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "scope": [
+    "BLOCK_CODE_SOURCE",
+    "BLOCK_CODE_LANGUAGE"
+  ],
+  "base": "414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab",
+  "candidate": "e6842abf21aee9655d56900ec9fb784edd864609",
+  "tree": "3f63560957dbb38b9f5eba5cc3228bda3cd988a4",
+  "rawCommit": "tree 3f63560957dbb38b9f5eba5cc3228bda3cd988a4\nparent 414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab\nauthor Codex <codex@openai.com> 1793388140 +0300\ncommitter Codex <codex@openai.com> 1793388140 +0300\n\ntest(code): compare native source indentation and language controls\n",
+  "sourcePatch": "sources/e6842abf.patch.gz",
+  "sourcePatchSha256": "a77164c29c5f6e756190fbfc275c846521067af563af33486d27283c34124696",
+  "rawSha256": "3933f6c82d12f2b727ae6a1776ceea9849ad31f475e278b833714b2e9001b0a7",
+  "runnerSha256": "d364a59203591de168a57aae1768636c388cefde557137289760ea7c0504208e",
+  "fixtureSha256": "4ad6c36f883ba1620efc4d669a44db4d39206486f7dfd15b36d55728be9daac9",
+  "runtimeProductionChanged": false,
+  "sources": [
+    {
+      "source": "v1",
+      "recordedCases": 20,
+      "completeCases": 20,
+      "observations": 1894,
+      "failures": 178,
+      "pageErrors": 0,
+      "casePageErrors": 0
+    },
+    {
+      "source": "spec-baseline",
+      "recordedCases": 20,
+      "completeCases": 20,
+      "observations": 2062,
+      "failures": 232,
+      "pageErrors": 0,
+      "casePageErrors": 0
+    },
+    {
+      "source": "candidate",
+      "recordedCases": 20,
+      "completeCases": 20,
+      "observations": 2062,
+      "failures": 0,
+      "pageErrors": 0,
+      "casePageErrors": 0
+    }
+  ],
+  "native": {
+    "gate": "native",
+    "command": [
+      "node",
+      "tests/browser/physical-history.mjs"
+    ],
+    "environment": {
+      "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+      "EDITOR_NATIVE_FILTER": "Code source-language parity"
+    },
+    "startedAt": "2026-10-30T19:27:43.158160+00:00",
+    "completedAt": "2026-10-30T19:28:32.785419+00:00",
+    "exitCode": 0,
+    "elapsedSeconds": 49.627,
+    "stdout": "native.log",
+    "stderr": "native.stderr"
+  },
+  "differential": {
+    "headBefore": "e6842abf21aee9655d56900ec9fb784edd864609",
+    "headAfter": "e6842abf21aee9655d56900ec9fb784edd864609",
+    "sourceUnchanged": true,
+    "startedAt": "2026-10-30T19:30:54.930164+00:00",
+    "completedAt": "2026-10-30T19:31:38.959739+00:00",
+    "command": [
+      "node",
+      "scripts/parity/code-source-language.mjs"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 44.03
+  },
+  "initialAttempt": {
+    "base": "414c6af17e9ec8bab4bde6ac0026e653bb1ed9ab",
+    "tree": "f7faf468bcfb6433756742a952f06d81fe0952c8",
+    "immutableCommit": null,
+    "classification": "Test preparation; 12 source tests passed, eight language tests used an incorrect read-only canUndo expectation. No production RED claim. Exact staged patch retained.",
+    "processExitCode": null
+  },
+  "completedFirstRun": {
+    "candidate": "e6842abf21aee9655d56900ec9fb784edd864609",
+    "nativePassCount": 20,
+    "differentialCandidatePass": true,
+    "processExitCodes": null,
+    "note": "Final tool exit results were unavailable after compaction; these are supplementary complete outputs, not the recorded acceptance process outcomes."
+  },
+  "interruptedWrapper": {
+    "nativeOutcomeRecorded": true,
+    "differentialOutcomeRecorded": false,
+    "differentialStdoutBytes": 0,
+    "note": "The wrapper stopped without recording the second process outcome. No cause or exit code is inferred; the subsequent complete recorded comparison supplies acceptance evidence."
+  },
+  "peerReview": "See peer-review when integrated; root authored the fixture and does not claim independent review of it.",
+  "limits": [
+    "Chrome runtime recorded here only",
+    "No console-message channel or onDiagnostic callback was collected by this fixture; page errors and server errors were collected.",
+    "Exact source caret/direction is checked for indentation and explicitly refocused language history. No post-menu focus equivalence is claimed.",
+    "No full library or B-HTML/B-STYLE acceptance."
+  ]
+}
