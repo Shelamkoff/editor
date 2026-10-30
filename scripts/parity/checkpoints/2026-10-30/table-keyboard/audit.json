@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "candidate": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+  "rawSha256": "59b2600838f0c6664f600d8bca37c6b9dbc561af332886749d7c9fb46cfb517d",
+  "rawVerdictsRecomputed": 13043,
+  "candidatePhases": 227,
+  "fixedOracleChecks": 1575,
+  "sourceModuleHashesVerified": 655,
+  "dependencyFilesVerified": 64,
+  "restoredSourceCommits": 3,
+  "nativeCases": 30,
+  "oldTerminalCases": 1,
+  "guardUnitCases": 24,
+  "preFixSharedCases": {
+    "FAIL": 4,
+    "PASS": 5
+  },
+  "sources": [
+    {
+      "source": "v1",
+      "executed": 19,
+      "unsupported": 2,
+      "observations": 2738,
+      "failures": 159
+    },
+    {
+      "source": "spec-baseline",
+      "executed": 21,
+      "unsupported": 0,
+      "observations": 3435,
+      "failures": 216
+    },
+    {
+      "source": "pre-fix",
+      "executed": 21,
+      "unsupported": 0,
+      "observations": 3435,
+      "failures": 12
+    },
+    {
+      "source": "candidate",
+      "executed": 21,
+      "unsupported": 0,
+      "observations": 3435,
+      "failures": 0
+    }
+  ],
+  "note": "Author-side offline audit. Separate peer review is not claimed by this script."
+}

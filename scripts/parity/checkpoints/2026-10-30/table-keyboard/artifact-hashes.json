@@ -1,0 +1,310 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 12179,
+      "sha256": "5e21a5dcda5eb278ba6b6a68e97ac4fb836c1419fe23ade86608e6052c7d56b2"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-boundary-red.json.gz",
+      "bytes": 60001,
+      "sha256": "3c2ec06fb5321353beda2d9a0b0eb6aca6180c491b299d1aab2a2cacf6161fc3",
+      "decodedBytes": 2302104,
+      "decodedSha256": "8174d58a1ab7ecfa78c8d717446d65a1aab64eb8fab5f8fa0fe487f4fb313bd3"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-boundary-red.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-controlled-experiment.log.gz",
+      "bytes": 158,
+      "sha256": "530e7bc3d54e2c230c820eaff502bcdbe6b55a08e9c91fd18cc43fda60daac87",
+      "decodedBytes": 189,
+      "decodedSha256": "4a0f7f04dea80d8ad871d4ff99432852c4eefa0956ec86f349604202e65f1a73"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-controls-before.log.gz",
+      "bytes": 895,
+      "sha256": "084bbb0c7f4ee1c2f0b80767d28861c006106912e27b205472816ef6178e2966",
+      "decodedBytes": 5319,
+      "decodedSha256": "a0559c4ca88b074b53c35617693a7c7f782505811beac9971dce1a5e79a1c5da"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-end-bias-experiment.log.gz",
+      "bytes": 604,
+      "sha256": "cd4de58ab073a719e972de589173693c995a639e747390e502249da96d19d6d7",
+      "decodedBytes": 1509,
+      "decodedSha256": "7c3c3a21343a3d0772ffe3ff58b5657633122fbef7a379ff8aa8d8f8b482d323"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-final-controls-before.log.gz",
+      "bytes": 799,
+      "sha256": "d266d08a2c6e1a344b6b6c005dc36d04ffc4b82fbce338b37daa6258af71732d",
+      "decodedBytes": 4038,
+      "decodedSha256": "14ecf7ea97baf92c8c4241b43c704f9ada405d7cc50eafb906e3a733c05020c5"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-final-native.log.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-final-terminal-native.log.gz",
+      "bytes": 165,
+      "sha256": "2b5528c523b35cab3afa285a445105fa14117c7568689e224891613de277f04b",
+      "decodedBytes": 205,
+      "decodedSha256": "a61f4060d23e6c147eedab78107b018a2b3bbbdab7ef9c0f4211692253bd38b9"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-focused-unit.log.gz",
+      "bytes": 2443,
+      "sha256": "b9bf6433f6620d2b844faa2cf3600e5266723aac0532789e50f917253d25f75e",
+      "decodedBytes": 6445,
+      "decodedSha256": "89f1fb4b5adcd3b4e357ceb8249eab481a203bd01e5f4835eb2125b967dfb2ee"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-green-native.log.gz",
+      "bytes": 871,
+      "sha256": "19e90b76c95ee2a66d5a994e52f90a9539038c4539312aabe90618d8ec792f35",
+      "decodedBytes": 5234,
+      "decodedSha256": "9bc9b4a3b303ff1249a4d28db563dec07d597c1193c2a0be9f81e56bca644824"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-guard-unit.log.gz",
+      "bytes": 565,
+      "sha256": "e00097416fcdec4a4ddb7df8422509f326ad7d1c91296f42b5295e2ca48c5a78",
+      "decodedBytes": 2165,
+      "decodedSha256": "4461c187b4f4364d5cca48dc618dee9ef894a0c5b72f7b98d68d6d586913acd9"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-initial-native.log.gz",
+      "bytes": 1161,
+      "sha256": "df4df9cf859b1f83a08c2fe8fcfd91f0edf23969d9d638556f0395bcd586a27f",
+      "decodedBytes": 29282,
+      "decodedSha256": "2464d3e664ca3cb8fe2194e17a6c9b86ee158d75529bc3561033a1415f14c226"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-paragraph-red.log.gz",
+      "bytes": 596,
+      "sha256": "97e7c22fe3f2c73b648aeb1edf9b96dc6515467509ff356b057d66f52e9681ad",
+      "decodedBytes": 1516,
+      "decodedSha256": "69c3fb414a14fdd4bfc053917e4232963af070cfe8db56c2a130a70d70c3124c"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-red.json.gz",
+      "bytes": 363288,
+      "sha256": "63c1fd2298326855e244633e5f199e3f8e5feb7d29ca37b04e8239f54cd08af3",
+      "decodedBytes": 20933794,
+      "decodedSha256": "bd4b9e48ac6f0131720f0dd2afc0810653b2cf8e2a8a57e1f610654cd8e92320"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-red.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-terminal-native.log.gz",
+      "bytes": 482,
+      "sha256": "cd9e35ad4b4e313a1137fc1cfa2df89db514a087372f458072d586e7cfa5c0c9",
+      "decodedBytes": 1220,
+      "decodedSha256": "1587b223cb3d86ccf63ea0b4c678bc869d875f92469bba14bcea8d8182315209"
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-typecheck.log.gz",
+      "bytes": 185,
+      "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "decodedBytes": 259,
+      "decodedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    {
+      "path": "audit.json",
+      "bytes": 1138,
+      "sha256": "568a4d8c9f4955da6d1f5348f5999464453d23e7e8d6da63317e2ec3657267d2"
+    },
+    {
+      "path": "audit.py",
+      "bytes": 16673,
+      "sha256": "b675453f7779a434c3a2f128b75259e98a4101551ead3970834e0c73dee5c17a"
+    },
+    {
+      "path": "final/comparison.json.gz",
+      "bytes": 505541,
+      "sha256": "571d1025fbe5e632b7a816146032e87a50cba84298c432344d932f7b56cf777c",
+      "decodedBytes": 28827545,
+      "decodedSha256": "59b2600838f0c6664f600d8bca37c6b9dbc561af332886749d7c9fb46cfb517d"
+    },
+    {
+      "path": "final/comparison.meta.json.gz",
+      "bytes": 775,
+      "sha256": "d71f9f4bc8c2167bda0c4a9c6d688269bc5baa60e6fc630b62524d5680e28445",
+      "decodedBytes": 1472,
+      "decodedSha256": "095922e083992f2747bd5a37967db8454a1ec7372709dda1c5b930b704c75ff4"
+    },
+    {
+      "path": "final/comparison.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final/native.log.gz",
+      "bytes": 429,
+      "sha256": "3866d5366a665be7911cd5b602c27f3d031971e1a93fe189cf6a907cd2a8aae7",
+      "decodedBytes": 2796,
+      "decodedSha256": "236301d4633c934630abcf8ab1edeff9f644c5430a084e6d73aabb4b4ecc1c4d"
+    },
+    {
+      "path": "final/native.meta.json.gz",
+      "bytes": 842,
+      "sha256": "b2a3e952121806eacb0052366dc17d65d65144ffac0c67c59637d261fc66004a",
+      "decodedBytes": 1563,
+      "decodedSha256": "178ec9e02c7bb3bd09cd82ad35fd03cd014b2afbd5cebff4d1e9156834296d5d"
+    },
+    {
+      "path": "final/native.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final/pre-fix-shared-controls.patch.gz",
+      "bytes": 1992,
+      "sha256": "340edb6de2f71546252d68b52494735628684f8e82c784a70728a853d32bb924",
+      "decodedBytes": 6839,
+      "decodedSha256": "1542c656c7d6d0059979dfa70a9315a92029428594274067d9e94e349c93187b"
+    },
+    {
+      "path": "final/pre-fix-shared.log.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final/pre-fix-shared.meta.json.gz",
+      "bytes": 640,
+      "sha256": "6b96b8e2fc52d860da201425f8646134a86c992bdd20753d499681a7b4ff9537",
+      "decodedBytes": 1057,
+      "decodedSha256": "c07a0eebc085ecebbec875d63bb3590e06d3bf716f70bdaaaa19e95a9ba1f7e2"
+    },
+    {
+      "path": "final/pre-fix-shared.stderr.gz",
+      "bytes": 799,
+      "sha256": "09c973cb0b12039042a7b52a99d70a1037c40787fa263a302e1333f381237073",
+      "decodedBytes": 4038,
+      "decodedSha256": "5e6affbcaa79f7eb5313c742d05f8fd8fbf8cf08377af3bc4e27a893cd5efdde"
+    },
+    {
+      "path": "final/terminal.log.gz",
+      "bytes": 165,
+      "sha256": "2b5528c523b35cab3afa285a445105fa14117c7568689e224891613de277f04b",
+      "decodedBytes": 205,
+      "decodedSha256": "a61f4060d23e6c147eedab78107b018a2b3bbbdab7ef9c0f4211692253bd38b9"
+    },
+    {
+      "path": "final/terminal.meta.json.gz",
+      "bytes": 863,
+      "sha256": "f8b46337a321c6261536d47d780a733a308f9f1ed9aa1ae0ef1640aba70b706d",
+      "decodedBytes": 1582,
+      "decodedSha256": "1965b085b3e7f1c0fcf1e9826c27e3210e9476f87b6c127eede49818c4600528"
+    },
+    {
+      "path": "final/terminal.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final/typecheck.log.gz",
+      "bytes": 119,
+      "sha256": "2bb6bf6a07cc1cf0eb1efeb9f8cb35696079f6b4406c5bb74dd5866d19aa7d30",
+      "decodedBytes": 160,
+      "decodedSha256": "47a7fb20950b8eb3c4b0130d55a9eff5dafeb441b94eb1698e9f05ea8cc9c16d"
+    },
+    {
+      "path": "final/typecheck.meta.json.gz",
+      "bytes": 777,
+      "sha256": "080640d6f9226daadd0f5b2dd5f34f291d0ed1034310c11c32223a839912690f",
+      "decodedBytes": 1446,
+      "decodedSha256": "c2b24d95b8967f757cccc9c74fafa3287698ea6fcd80f8df8ad8d90a44a58e13"
+    },
+    {
+      "path": "final/typecheck.stderr.gz",
+      "bytes": 101,
+      "sha256": "934a9d56e1b77b540f21becd97102d1b7088e8e2eba852118cfc29df5c6f4bb7",
+      "decodedBytes": 99,
+      "decodedSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "path": "final/unit.log.gz",
+      "bytes": 568,
+      "sha256": "39c66e6a4caedb1c81ee9db0706ee5f7760445251f4355948ea0a3c850e93571",
+      "decodedBytes": 2165,
+      "decodedSha256": "d43ba56ec9ddc9716b58f3fffbed9e0f760940aed0884f8d959d0e3e5d57dae4"
+    },
+    {
+      "path": "final/unit.meta.json.gz",
+      "bytes": 770,
+      "sha256": "406a47157f658d5447ef1f0da83c765c3a95d1bc54371636ea6cf85be6e7e3de",
+      "decodedBytes": 1472,
+      "decodedSha256": "e97072459535790be141b5aba0851b1ce08b441e76b4ccfe9b430c2ff41dfec0"
+    },
+    {
+      "path": "final/unit.stderr.gz",
+      "bytes": 20,
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "decodedBytes": 0,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 19417,
+      "sha256": "43c5fdbc023e9c23136e3ce3c58159e2b1651fda5587536d4705a66e0688201d"
+    },
+    {
+      "path": "run-supervisor.py.gz",
+      "bytes": 1425,
+      "sha256": "0a8f986a5023c8b1524b4614ef0e53aa1d049c4edfaf1180f7c20796e5ec5bb4",
+      "decodedBytes": 3150,
+      "decodedSha256": "66c56e7610dd4cb0212ee532d4fa955a2e5c38a74ad7c005f50de43e54ede144"
+    },
+    {
+      "path": "runtime-hashes.json",
+      "bytes": 1362,
+      "sha256": "92b559936863e3cd1b6aa84297df191ca87564d1ef3f2c05b6cd9869fa79081e"
+    },
+    {
+      "path": "sources/01fb551a.patch.gz",
+      "bytes": 10043,
+      "sha256": "320066a6447d93a3cc345eff2c7c1f19874ce78c73c54c8c4083696315282c16",
+      "decodedBytes": 35465,
+      "decodedSha256": "a68f75247c55804a45399e9fc16fc10503f6dcbe269f1277e1c40e3219a812c5"
+    },
+    {
+      "path": "sources/3a16cf9f.patch.gz",
+      "bytes": 14055,
+      "sha256": "37226ec7b44e4a445872091508a81dc0ee53f40781558f65116795cc3935cb9f",
+      "decodedBytes": 51035,
+      "decodedSha256": "cb36eedd020103926f4373ad5a67bfbb42288c0f6c63899185c30c271bfaafbc"
+    },
+    {
+      "path": "sources/9fe6a385.patch.gz",
+      "bytes": 9407,
+      "sha256": "372e4f56eec9c91b059d11956d00e594b19ee579874880bc039281a28739ec4c",
+      "decodedBytes": 32644,
+      "decodedSha256": "6d3b4c7e3e1471524facb1382ea9ada71df198f38066111921cb8e5bf4d5f178"
+    }
+  ]
+}

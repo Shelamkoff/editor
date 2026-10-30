@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "scope": [
+    "BLOCK_TABLE_KEYBOARD"
+  ],
+  "base": "d67229c08f5fae7101cb2a252f2d56385224da08",
+  "candidate": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+  "preservedSources": [
+    {
+      "sha": "9fe6a3851976727c3ba54de8fb4f36f23bb5bfd4",
+      "tree": "4c16e7392d716b3ba6073864ae03ac7e430d6f89",
+      "rawCommit": "tree 4c16e7392d716b3ba6073864ae03ac7e430d6f89\nparent d67229c08f5fae7101cb2a252f2d56385224da08\nauthor Codex <codex@openai.com> 1793387803 +0300\ncommitter Codex <codex@openai.com> 1793387803 +0300\n\ntest(table): pin native keyboard and ownership parity scenarios\n",
+      "patch": "sources/9fe6a385.patch.gz",
+      "patchSha256": "6d3b4c7e3e1471524facb1382ea9ada71df198f38066111921cb8e5bf4d5f178"
+    },
+    {
+      "sha": "01fb551a9542ddd94e6b5652f637193875b55888",
+      "tree": "654ff2a764f72f0c6d6c277e977af6ed18ca3639",
+      "rawCommit": "tree 654ff2a764f72f0c6d6c277e977af6ed18ca3639\nparent 9fe6a3851976727c3ba54de8fb4f36f23bb5bfd4\nauthor Codex <codex@openai.com> 1793387908 +0300\ncommitter Codex <codex@openai.com> 1793387908 +0300\n\ntest(selection): record marked break DOM boundary and paragraph control\n",
+      "patch": "sources/01fb551a.patch.gz",
+      "patchSha256": "a68f75247c55804a45399e9fc16fc10503f6dcbe269f1277e1c40e3219a812c5"
+    },
+    {
+      "sha": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "tree": "1300b23d2785743a34fde9d436ac26a657dc26c7",
+      "rawCommit": "tree 1300b23d2785743a34fde9d436ac26a657dc26c7\nparent 01fb551a9542ddd94e6b5652f637193875b55888\nauthor Codex <codex@openai.com> 1793389191 +0300\ncommitter Codex <codex@openai.com> 1793389191 +0300\n\nfix(input): retain authored break formatting during native typing\n",
+      "patch": "sources/3a16cf9f.patch.gz",
+      "patchSha256": "cb36eedd020103926f4373ad5a67bfbb42288c0f6c63899185c30c271bfaafbc"
+    }
+  ],
+  "rawSha256": "59b2600838f0c6664f600d8bca37c6b9dbc561af332886749d7c9fb46cfb517d",
+  "runtimeChanges": [
+    "core/LogicalSelection.js",
+    "core/NativeInputController.js"
+  ],
+  "sourceResults": [
+    {
+      "source": "v1",
+      "recordedCases": 21,
+      "executedCases": 19,
+      "unsupportedCases": 2,
+      "observations": 2738,
+      "failures": 159,
+      "pageErrors": 0,
+      "incompleteCases": 0
+    },
+    {
+      "source": "spec-baseline",
+      "recordedCases": 21,
+      "executedCases": 21,
+      "unsupportedCases": 0,
+      "observations": 3435,
+      "failures": 216,
+      "pageErrors": 0,
+      "incompleteCases": 0
+    },
+    {
+      "source": "pre-fix",
+      "recordedCases": 21,
+      "executedCases": 21,
+      "unsupportedCases": 0,
+      "observations": 3435,
+      "failures": 12,
+      "pageErrors": 0,
+      "incompleteCases": 0
+    },
+    {
+      "source": "candidate",
+      "recordedCases": 21,
+      "executedCases": 21,
+      "unsupportedCases": 0,
+      "observations": 3435,
+      "failures": 0,
+      "pageErrors": 0,
+      "incompleteCases": 0
+    }
+  ],
+  "processOutcomes": {
+    "native": {
+      "name": "native",
+      "headBefore": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanBefore": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Table keyboard parity"
+      },
+      "startedAt": "2026-10-30T19:42:58.090117+00:00",
+      "sourceSha256": {
+        "core/LogicalSelection.js": "cbbaf176f5a00d71034c7df7be319ff483bcbd45be342dba15e45f55d1bcba99",
+        "core/NativeInputController.js": "a379015026786f75a77ef70f9432a6790e0bdd4b5c2bdf78823f601b2ca75f6e",
+        "core/NativeInputController.authoredBreak.test.js": "adb4cf111ec096f0d09ba73c357a1ba4f6ef6b7a64e2d879245bcc680309b0da",
+        "tests/browser/table-keyboard-parity-fixture.js": "bf921500f82cb6ecee38457ba3b6e286b4161544d7e4cd01e65af019f2912344",
+        "tests/browser/regressions/table-keyboard-native.js": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+        "scripts/parity/table-keyboard-parity.mjs": "679dfcb7ccbe085f01d542720e94924a9b29c9bbdb73f687adeecef7d91d0dca"
+      },
+      "status": "complete",
+      "actualExitCode": 0,
+      "elapsedSeconds": 23.735,
+      "completedAt": "2026-10-30T19:43:21.825746+00:00",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanAfter": true,
+      "sourceUnchanged": true,
+      "stdoutFile": "native.log",
+      "stderrFile": "native.stderr",
+      "stdoutSha256": "236301d4633c934630abcf8ab1edeff9f644c5430a084e6d73aabb4b4ecc1c4d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "terminal": {
+      "name": "terminal",
+      "headBefore": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanBefore": true,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+        "EDITOR_NATIVE_FILTER": "Table Enter retains the active mark"
+      },
+      "startedAt": "2026-10-30T19:43:27.212985+00:00",
+      "sourceSha256": {
+        "core/LogicalSelection.js": "cbbaf176f5a00d71034c7df7be319ff483bcbd45be342dba15e45f55d1bcba99",
+        "core/NativeInputController.js": "a379015026786f75a77ef70f9432a6790e0bdd4b5c2bdf78823f601b2ca75f6e",
+        "core/NativeInputController.authoredBreak.test.js": "adb4cf111ec096f0d09ba73c357a1ba4f6ef6b7a64e2d879245bcc680309b0da",
+        "tests/browser/table-keyboard-parity-fixture.js": "bf921500f82cb6ecee38457ba3b6e286b4161544d7e4cd01e65af019f2912344",
+        "tests/browser/regressions/table-keyboard-native.js": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+        "scripts/parity/table-keyboard-parity.mjs": "679dfcb7ccbe085f01d542720e94924a9b29c9bbdb73f687adeecef7d91d0dca"
+      },
+      "status": "complete",
+      "actualExitCode": 0,
+      "elapsedSeconds": 7.193,
+      "completedAt": "2026-10-30T19:43:34.406206+00:00",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanAfter": true,
+      "sourceUnchanged": true,
+      "stdoutFile": "terminal.log",
+      "stderrFile": "terminal.stderr",
+      "stdoutSha256": "a61f4060d23e6c147eedab78107b018a2b3bbbdab7ef9c0f4211692253bd38b9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "unit": {
+      "name": "unit",
+      "headBefore": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanBefore": true,
+      "command": [
+        "node",
+        "--test",
+        "core/NativeInputController.authoredBreak.test.js"
+      ],
+      "environment": {},
+      "startedAt": "2026-10-30T19:42:57.674360+00:00",
+      "sourceSha256": {
+        "core/LogicalSelection.js": "cbbaf176f5a00d71034c7df7be319ff483bcbd45be342dba15e45f55d1bcba99",
+        "core/NativeInputController.js": "a379015026786f75a77ef70f9432a6790e0bdd4b5c2bdf78823f601b2ca75f6e",
+        "core/NativeInputController.authoredBreak.test.js": "adb4cf111ec096f0d09ba73c357a1ba4f6ef6b7a64e2d879245bcc680309b0da",
+        "tests/browser/table-keyboard-parity-fixture.js": "bf921500f82cb6ecee38457ba3b6e286b4161544d7e4cd01e65af019f2912344",
+        "tests/browser/regressions/table-keyboard-native.js": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+        "scripts/parity/table-keyboard-parity.mjs": "679dfcb7ccbe085f01d542720e94924a9b29c9bbdb73f687adeecef7d91d0dca"
+      },
+      "status": "complete",
+      "actualExitCode": 0,
+      "elapsedSeconds": 0.2,
+      "completedAt": "2026-10-30T19:42:57.874213+00:00",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanAfter": true,
+      "sourceUnchanged": true,
+      "stdoutFile": "unit.log",
+      "stderrFile": "unit.stderr",
+      "stdoutSha256": "d43ba56ec9ddc9716b58f3fffbed9e0f760940aed0884f8d959d0e3e5d57dae4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typecheck": {
+      "name": "typecheck",
+      "headBefore": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanBefore": true,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "environment": {},
+      "startedAt": "2026-10-30T19:43:03.256205+00:00",
+      "sourceSha256": {
+        "core/LogicalSelection.js": "cbbaf176f5a00d71034c7df7be319ff483bcbd45be342dba15e45f55d1bcba99",
+        "core/NativeInputController.js": "a379015026786f75a77ef70f9432a6790e0bdd4b5c2bdf78823f601b2ca75f6e",
+        "core/NativeInputController.authoredBreak.test.js": "adb4cf111ec096f0d09ba73c357a1ba4f6ef6b7a64e2d879245bcc680309b0da",
+        "tests/browser/table-keyboard-parity-fixture.js": "bf921500f82cb6ecee38457ba3b6e286b4161544d7e4cd01e65af019f2912344",
+        "tests/browser/regressions/table-keyboard-native.js": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+        "scripts/parity/table-keyboard-parity.mjs": "679dfcb7ccbe085f01d542720e94924a9b29c9bbdb73f687adeecef7d91d0dca"
+      },
+      "status": "complete",
+      "actualExitCode": 0,
+      "elapsedSeconds": 7.726,
+      "completedAt": "2026-10-30T19:43:10.982516+00:00",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanAfter": true,
+      "sourceUnchanged": true,
+      "stdoutFile": "typecheck.log",
+      "stderrFile": "typecheck.stderr",
+      "stdoutSha256": "47a7fb20950b8eb3c4b0130d55a9eff5dafeb441b94eb1698e9f05ea8cc9c16d",
+      "stderrSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "comparison": {
+      "name": "comparison",
+      "headBefore": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanBefore": true,
+      "command": [
+        "node",
+        "scripts/parity/table-keyboard-parity.mjs"
+      ],
+      "environment": {},
+      "startedAt": "2026-10-30T19:42:57.183582+00:00",
+      "sourceSha256": {
+        "core/LogicalSelection.js": "cbbaf176f5a00d71034c7df7be319ff483bcbd45be342dba15e45f55d1bcba99",
+        "core/NativeInputController.js": "a379015026786f75a77ef70f9432a6790e0bdd4b5c2bdf78823f601b2ca75f6e",
+        "core/NativeInputController.authoredBreak.test.js": "adb4cf111ec096f0d09ba73c357a1ba4f6ef6b7a64e2d879245bcc680309b0da",
+        "tests/browser/table-keyboard-parity-fixture.js": "bf921500f82cb6ecee38457ba3b6e286b4161544d7e4cd01e65af019f2912344",
+        "tests/browser/regressions/table-keyboard-native.js": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+        "scripts/parity/table-keyboard-parity.mjs": "679dfcb7ccbe085f01d542720e94924a9b29c9bbdb73f687adeecef7d91d0dca"
+      },
+      "status": "complete",
+      "actualExitCode": 1,
+      "elapsedSeconds": 54.004,
+      "completedAt": "2026-10-30T19:43:51.187693+00:00",
+      "headAfter": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "trackedCleanAfter": true,
+      "sourceUnchanged": true,
+      "stdoutFile": "comparison.json",
+      "stderrFile": "comparison.stderr",
+      "stdoutSha256": "59b2600838f0c6664f600d8bca37c6b9dbc561af332886749d7c9fb46cfb517d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pre-fix-shared": {
+      "productionSource": "01fb551a9542ddd94e6b5652f637193875b55888",
+      "fixtureSource": "3a16cf9fe64046780d4573464387dd2eb864b80e",
+      "fixturePath": "tests/browser/regressions/table-keyboard-native.js",
+      "fixtureSha256": "4552fe8af373c399e44f362cabe75280a75ca32b53c6bd4d8c0d204cee50646c",
+      "testPatchSha256": "1542c656c7d6d0059979dfa70a9315a92029428594274067d9e94e349c93187b",
+      "sourceUnchanged": true,
+      "actualExitCode": 1,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "filter": "Table keyboard parity shared",
+      "startedAt": "2026-10-30T19:45:53.128484+00:00",
+      "completedAt": "2026-10-30T19:45:56.238940+00:00",
+      "elapsedSeconds": 3.111,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "5e6affbcaa79f7eb5313c742d05f8fd8fbf8cf08377af3bc4e27a893cd5efdde",
+      "note": "Production is exact pre-fix Git source; only the native regression file is overlaid from the final immutable fixture. The full patch is retained, with no immutable-commit claim for this overlay."
+    }
+  },
+  "attempts": [
+    {
+      "path": "attempts/table-keyboard-seventh-boundary-red.json.gz",
+      "originalName": "table-keyboard-seventh-boundary-red.json",
+      "bytes": 2302104,
+      "sha256": "8174d58a1ab7ecfa78c8d717446d65a1aab64eb8fab5f8fa0fe487f4fb313bd3",
+      "actualProcessExit": null,
+      "fixtureSource": "01fb551a9542ddd94e6b5652f637193875b55888",
+      "headAfter": "01fb551a9542ddd94e6b5652f637193875b55888",
+      "candidatePass": false,
+      "comparisonComplete": true
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-boundary-red.stderr.gz",
+      "originalName": "table-keyboard-seventh-boundary-red.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-controlled-experiment.log.gz",
+      "originalName": "table-keyboard-seventh-controlled-experiment.log",
+      "bytes": 189,
+      "sha256": "4a0f7f04dea80d8ad871d4ff99432852c4eefa0956ec86f349604202e65f1a73",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-controls-before.log.gz",
+      "originalName": "table-keyboard-seventh-controls-before.log",
+      "bytes": 5319,
+      "sha256": "a0559c4ca88b074b53c35617693a7c7f782505811beac9971dce1a5e79a1c5da",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-end-bias-experiment.log.gz",
+      "originalName": "table-keyboard-seventh-end-bias-experiment.log",
+      "bytes": 1509,
+      "sha256": "7c3c3a21343a3d0772ffe3ff58b5657633122fbef7a379ff8aa8d8f8b482d323",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-final-controls-before.log.gz",
+      "originalName": "table-keyboard-seventh-final-controls-before.log",
+      "bytes": 4038,
+      "sha256": "14ecf7ea97baf92c8c4241b43c704f9ada405d7cc50eafb906e3a733c05020c5",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-final-native.log.gz",
+      "originalName": "table-keyboard-seventh-final-native.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-final-terminal-native.log.gz",
+      "originalName": "table-keyboard-seventh-final-terminal-native.log",
+      "bytes": 205,
+      "sha256": "a61f4060d23e6c147eedab78107b018a2b3bbbdab7ef9c0f4211692253bd38b9",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-focused-unit.log.gz",
+      "originalName": "table-keyboard-seventh-focused-unit.log",
+      "bytes": 6445,
+      "sha256": "89f1fb4b5adcd3b4e357ceb8249eab481a203bd01e5f4835eb2125b967dfb2ee",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-green-native.log.gz",
+      "originalName": "table-keyboard-seventh-green-native.log",
+      "bytes": 5234,
+      "sha256": "9bc9b4a3b303ff1249a4d28db563dec07d597c1193c2a0be9f81e56bca644824",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-guard-unit.log.gz",
+      "originalName": "table-keyboard-seventh-guard-unit.log",
+      "bytes": 2165,
+      "sha256": "4461c187b4f4364d5cca48dc618dee9ef894a0c5b72f7b98d68d6d586913acd9",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-initial-native.log.gz",
+      "originalName": "table-keyboard-seventh-initial-native.log",
+      "bytes": 29282,
+      "sha256": "2464d3e664ca3cb8fe2194e17a6c9b86ee158d75529bc3561033a1415f14c226",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-paragraph-red.log.gz",
+      "originalName": "table-keyboard-seventh-paragraph-red.log",
+      "bytes": 1516,
+      "sha256": "69c3fb414a14fdd4bfc053917e4232963af070cfe8db56c2a130a70d70c3124c",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-red.json.gz",
+      "originalName": "table-keyboard-seventh-red.json",
+      "bytes": 20933794,
+      "sha256": "bd4b9e48ac6f0131720f0dd2afc0810653b2cf8e2a8a57e1f610654cd8e92320",
+      "actualProcessExit": null,
+      "fixtureSource": "9fe6a3851976727c3ba54de8fb4f36f23bb5bfd4",
+      "headAfter": "9fe6a3851976727c3ba54de8fb4f36f23bb5bfd4",
+      "candidatePass": false,
+      "comparisonComplete": true
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-red.stderr.gz",
+      "originalName": "table-keyboard-seventh-red.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-terminal-native.log.gz",
+      "originalName": "table-keyboard-seventh-terminal-native.log",
+      "bytes": 1220,
+      "sha256": "1587b223cb3d86ccf63ea0b4c678bc869d875f92469bba14bcea8d8182315209",
+      "actualProcessExit": null
+    },
+    {
+      "path": "attempts/table-keyboard-seventh-typecheck.log.gz",
+      "originalName": "table-keyboard-seventh-typecheck.log",
+      "bytes": 259,
+      "sha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "actualProcessExit": null
+    }
+  ],
+  "attemptClassification": {
+    "initial-native": "The initial two current mark-end failures are product RED evidence; immutable exact-source differential provides stronger attribution. Its original terminal exit was not retained.",
+    "boundary-red": "Exact-source two-case DOM-boundary investigation on 01fb551a; not the final complete matrix.",
+    "end-bias-experiment": "Uncommitted partial experiment: end bias alone did not prevent Chromium from inserting into the neighboring visual run. No successful fix claim.",
+    "green-native-and-controls-before": "Exploratory control failures include three overly strict fixture expectations around ordinary marked boundaries and backward noncollapsed DOM bias. Corrected final controls preserve their pre-fix behavior.",
+    "terminal-native": "Exploration found that controlling the already-correct padded terminal path suppresses its native input event. The final helper explicitly leaves this path native.",
+    "final-native-empty": "A vanished session left empty output with no actual exit. This is not a success; final/native.log.gz and its recorded process metadata supersede it."
+  },
+  "limits": [
+    "Chrome 156/Linux runtime recorded here.",
+    "Logical ranges in Table are explicitly installed; this is not a physical mouse drag proof.",
+    "The nine shared Paragraph/boundary controls do not accept the complete Paragraph split/merge row.",
+    "No new state/selection/transaction authority, public API or B-HTML/B-STYLE policy.",
+    "Original exploratory logs without process records keep actual exit unknown."
+  ],
+  "independentPeer": "Pending parent integration of separate table_core_peer artifacts under peer-review; this archive audit is authored by the finishing agent."
+}
