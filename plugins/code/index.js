@@ -130,30 +130,38 @@ function selectedPayloadText(payload,ownerDocument){
   return template.content.textContent??''
 }
 
-function highlight(element, code, language, runtime) {
-  element.className = language === 'auto' ? '' : 'language-' + language
-  if (!runtime) {
-    element.textContent = code + '\n'
-    element.classList.add('hljs')
-    return
-  }
+function highlight(element, code, language, runtime, isCurrent) {
+  const className = language === 'auto' ? '' : 'language-' + language
   try {
-    if (language !== 'auto') {
-      if (!runtime.getLanguage(language)) {
-        element.textContent = code + '\n'
-        element.classList.add('hljs')
-        return
+    let html, detectedClass
+    if (runtime) {
+      if (language === 'auto') {
+        const result = runtime.highlightAuto(code)
+        if (!isCurrent()) return
+        html = result.value + '\n'
+        if (!isCurrent()) return
+        if (result.language) detectedClass = 'language-' + result.language
+      } else {
+        const supported = runtime.getLanguage(language)
+        if (!isCurrent()) return
+        if (supported) {
+          const result = runtime.highlight(code, { language, ignoreIllegals: true })
+          if (!isCurrent()) return
+          html = result.value + '\n'
+        }
       }
-      const result = runtime.highlight(code, { language, ignoreIllegals: true })
-      setTrustedHtml(element, result.value + '\n')
-      element.classList.add('hljs', 'language-' + language)
-      return
     }
-    const result = runtime.highlightAuto(code)
-    setTrustedHtml(element, result.value + '\n')
+    // A compatible provider may synchronously update data or retire its
+    // editor. Publish only the still-current presentation after that callback.
+    if (!isCurrent()) return
+    element.className = className
+    if (html === undefined) element.textContent = code + '\n'
+    else setTrustedHtml(element, html)
     element.classList.add('hljs')
-    if (result.language) element.classList.add('language-' + result.language)
+    if (detectedClass) element.classList.add(detectedClass)
   } catch {
+    if (!isCurrent()) return
+    element.className = className
     element.textContent = code + '\n'
     element.classList.add('hljs')
   }
@@ -270,7 +278,13 @@ export function createCodePlugin(config = {}) {
           let dead = false
           let copyResetTimer = null
           const timerHost = document.defaultView ?? globalThis
-          const refresh = () => { if (!dead) highlight(codeElement, textarea.value, data.language, runtime) }
+          let highlightRevision = 0
+          const refresh = () => {
+            if (dead || context.signal.aborted) return
+            const revision = ++highlightRevision, text = textarea.value, language = data.language
+            highlight(codeElement, text, language, runtime, () => !dead && !context.signal.aborted
+              && highlightRevision === revision && textarea.value === text && data.language === language)
+          }
           const mode = () => {
             wrapper.classList.toggle('oe-code-wrap--editing', editMode && !readOnly)
             textarea.hidden = !(editMode && !readOnly)
