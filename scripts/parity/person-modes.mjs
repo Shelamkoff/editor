@@ -99,6 +99,7 @@ try {
         || JSON.stringify(entry.completedPhases) !== JSON.stringify(entry.plannedPhases)))),
       unsupportedCases: cases.filter(entry => entry.unsupported).map(entry => ({ id: entry.id, reason: entry.unsupported })),
       casePageErrors: cases.flatMap(entry => entry.pageErrors.map(error => ({ id: entry.id, ...error }))),
+      caseDiagnostics: cases.flatMap(entry => entry.diagnostics.map(diagnostic => ({ id: entry.id, ...diagnostic }))),
     })
     await page.close()
   }
@@ -107,7 +108,7 @@ try {
   assert.equal(changedTracked, '', 'Tracked source changed during comparison')
   assert.deepEqual(await readFile(runnerPath), runnerBytes, 'Runner bytes changed during comparison')
   assert.deepEqual(await readFile(join(repo, fixturePath)), fixture, 'Fixture bytes changed during comparison')
-  const passed = result => result.cases.length > 0 && !result.errors.length && !result.failures.length && !result.incompleteCases.length && !result.casePageErrors.length
+  const passed = result => result.cases.length > 0 && !result.errors.length && !result.failures.length && !result.incompleteCases.length && !result.casePageErrors.length && !result.caseDiagnostics.length
     && (result.source !== 'candidate' || !result.cases.some(entry => entry.unsupported))
   const current = results.find(result => result.source === 'candidate')
   const candidatePass = !serverErrors.length && Boolean(current) && passed(current)

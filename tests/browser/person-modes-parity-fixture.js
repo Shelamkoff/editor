@@ -87,7 +87,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
   else if (legacy && spec.widgets) unsupported = 'v1 Person has inlineTools=false and no mapTextFields declaration for persistent rich-field widgets. Literal read-only/tab controls execute separately.'
   else if (legacy && spec.keyboard) unsupported = 'v1 Person tabs are non-focusable div click targets without keyboard activation. Its real pointer tab controls execute separately.'
   if (unsupported) return { id: spec.id, spec: clone(spec), unsupported, observations: [], snapshots: [], trusted: [],
-    plannedPhases: [], completedPhases: [], pageErrors: [], error: null }
+    plannedPhases: [], completedPhases: [], pageErrors: [], diagnostics: [], error: null }
 
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, personModule, paragraphModule, mention, color] = await Promise.all([
@@ -115,7 +115,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
     record('after', 'paragraph', { text: 'After' }, paragraphDefinition)]
   const supplied = { version: legacy ? '1.0.5' : '2.0.0', blocks: clone(original) }, caller = clone(supplied)
   const holder = document.createElement('section'); holder.style.cssText = 'width:780px;margin:60px 70px'; document.body.append(holder)
-  const observations = [], snapshots = [], trusted = [], plannedPhases = [], completedPhases = [], pageErrors = [], transactions = []
+  const observations = [], snapshots = [], trusted = [], plannedPhases = [], completedPhases = [], pageErrors = [], diagnostics = [], transactions = []
   let editor, phase = 'load', providers = 0, currentEvents = []
   const check = (property, actual, expected) => observations.push({ phase, property, actual: clone(actual), expected: clone(expected), status: same(actual, expected) ? 'PASS' : 'FAIL' })
   const errorListener = event => pageErrors.push({ phase, message: event.message ?? String(event.reason), stack: (event.error ?? event.reason)?.stack ?? null })
@@ -157,7 +157,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
   const targetEdit = (records, index, kind, backward) => {
     const next = clone(records), person = next[1].data.persons[index]
     if (kind === 'url') person.links[0].url = spec.numericUrl
-      ? person.links[0].url.slice(0, 2) + 'X' + person.links[0].url.slice(2) : person.links[0].url + 'X'
+      ? person.links[0].url.slice(0, 22) + 'X' + person.links[0].url.slice(22) : person.links[0].url + 'X'
     else if (spec.afterWidget) person[kind] = person[kind].replace(' tail', backward ? ' tXil' : ' taXil')
     else {
       const text = people[index][kind], opening = kind === 'name' ? '<b>' : kind === 'role' ? '<i>' : '<mark>'
@@ -200,6 +200,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
     editor = createEditor({ holder, injectStyles: true, data: supplied, readOnly: Boolean(spec.initialReadOnly),
       plugins: [paragraphDefinition, personDefinition], inlineTools: [],
       inlinePlugins: [mention.createMentionPlugin({ searchFunction: async () => { providers++; return [] } }), color.createColorSwatchPlugin()],
+      onDiagnostic: value => diagnostics.push({ phase, code: value.code, message: value.message }),
     })
     if (!legacy) {
       editor.on('transaction:committed', event => transactions.push({ name: event.name, origin: event.origin }))
@@ -228,7 +229,7 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       capture('preceding-input', preceding, spec.start, [true, false], 1, { kind: 'bio', anchor: bioEnd + 1 })
       phase = 'focus'; currentEvents = []
       const offset = spec.afterWidget ? logicalText(original[1].data.persons[spec.target][spec.field]).length - 2
-        : spec.field === 'url' && !spec.numericUrl ? original[1].data.persons[spec.target].links[0].url.length : 2
+        : spec.field === 'url' ? spec.numericUrl ? 22 : original[1].data.persons[spec.target].links[0].url.length : 2
       if (spec.kind === 'focus') {
         const accepted = editor.blocks.focus('profiles', { fieldKey: requestKey(spec.target, spec.field),
           offset: spec.field === 'url' && !spec.numericUrl ? 'end' : offset })
@@ -297,11 +298,11 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
       const retired = [...root().querySelectorAll('.oe-person__tab-add,.oe-person__tab--add,.oe-person__tab-remove,.oe-person__link-add,.oe-person__link-remove')]
       check('decisiveRetiredControlsPresent', retired.length, legacy ? 5 : 6)
       phase = 'read-only'; editor.setReadOnly(true); await pause()
-      capture('read-only', preceding, 1, [true, false], 1)
+      capture('read-only', preceding, 1, [false, false], 1)
       phase = 'retired-readonly'; check('retiredControlsDetached', retired.map(button => button.isConnected), retired.map(() => false))
       retired.forEach(button => button.click()); await pause()
-      capture('retired-readonly', preceding, 1, [true, false], 1)
-      await browse('readonly', preceding, [true, false], 1)
+      capture('retired-readonly', preceding, 1, [false, false], 1)
+      await browse('readonly', preceding, [false, false], 1)
       plannedPhases.push('editable-return', 'retired-editable', 'continued-input', 'undo-continuation', 'undo-first', 'redo-first', 'redo-continuation')
       phase = 'editable-return'; editor.setReadOnly(false); await pause()
       capture('editable-return', preceding, 0, [true, false], 1)
@@ -326,10 +327,11 @@ export async function runPersonModeCase(spec, { sourceBase = '../../', legacy = 
     check('completePhases', completedPhases, plannedPhases)
     check('trustedNativeEdits', trusted.filter(event => event.kind === 'input' && event.phase === 'preceding-input').map(event => event.trusted), [true])
     check('callerInput', supplied, caller)
-    return { id: spec.id, spec: clone(spec), observations, snapshots, trusted, plannedPhases, completedPhases, pageErrors, error: null,
+    check('healthyDiagnostics', diagnostics, [])
+    return { id: spec.id, spec: clone(spec), observations, snapshots, trusted, plannedPhases, completedPhases, pageErrors, diagnostics, error: null,
       unsupportedObservations: legacy ? ['v1 has no v2 transaction:committed observer; first keyed request and invalid keyed request are not substituted in native-navigation controls.'] : [] }
   } catch (error) {
-    return { id: spec.id, spec: clone(spec), observations, snapshots, trusted, plannedPhases, completedPhases, pageErrors,
+    return { id: spec.id, spec: clone(spec), observations, snapshots, trusted, plannedPhases, completedPhases, pageErrors, diagnostics,
       error: { phase, message: error.message, stack: error.stack } }
   } finally {
     editor?.destroy(); holder.remove(); removeEventListener('error', errorListener); removeEventListener('unhandledrejection', errorListener)

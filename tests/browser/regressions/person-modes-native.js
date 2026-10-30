@@ -18,6 +18,7 @@ for (const specification of personModeCases) test(`Person mode parity ${specific
   assert(!result.unsupported, 'Current Person contract must be supported')
   assert(!result.error, JSON.stringify(result.error))
   equal(result.pageErrors, [], 'Person mode generated an unexpected page error')
+  equal(result.diagnostics, [], 'Person mode generated an unexpected diagnostic')
   equal(result.completedPhases, result.plannedPhases, 'Person mode phases did not complete')
   equal(result.observations.filter(value => value.status !== 'PASS'), [], 'Person mode contract failed')
   for (const observation of result.observations) equal(observation.actual, observation.expected,
