@@ -93,6 +93,29 @@ test('field source completion trusted semantic no-op failure recovers before a l
   } finally { h.dispose() }
 })
 
+test('field source completion descriptor capture failure restores the accepted native source', async () => {
+  const h = createCompletionFixture({ publicEditor: true })
+  try {
+    h.mount(); await pause(20)
+    const panel = h.panels.get('a'), field = panel.note, tail = field.lastChild
+    const before = h.editor.save().blocks, widget = h.latest('a-note'), inputs = []
+    field.addEventListener('input', event => {
+      inputs.push(event.isTrusted)
+      h.state.descriptorFailure = { remaining: 1, value: new Error('controlled descriptor capture failure') }
+    }, { once: true })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length, tail, tail.length)
+    expectError(/controlled descriptor capture failure/)
+    await printable('X')
+    equal(inputs, [true]); equal(h.state.descriptorFailure.remaining, 0)
+    equal(h.editor.save().blocks, before); equal(h.state.transactions, [])
+    const current = h.panels.get('a')
+    equal(current.note.textContent, 'Note a-note tail', 'A rejected descriptor capture must not leave unaccepted native text')
+    equal(current.derived.get('note').textContent, 'Note a-note tail')
+    assert(current !== panel && current.note !== field && widget.context.signal.aborted)
+    assert(h.editor.isReady && !h.editor.readOnly && !h.editor.canUndo && !h.editor.canRedo)
+  } finally { h.dispose() }
+})
+
 test('field source completion semantic no-op rejects schema adoption of its captured field owner', async () => {
   const h = createCompletionFixture({ publicEditor: true }), foreign = document.createElement('aside')
   document.body.append(foreign)
