@@ -46,6 +46,7 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `signal` | Abort signal for this block occurrence. |
 | `restoring` | Captured at creation: `true` when reconstructing history or recovering failed projection. Later updates of that instance do not change the flag. Do not repeat automatic author-side metadata requests for restored snapshots; resources needed to display accepted content may still be acquired. Explicit user actions retain their current scoped authority. |
 | `getData()` | Read current canonical block data. |
+| `getFieldText(fieldKey)` | Read plain text of a canonical rich field declared by `schema.mapRichText()`, including an unmounted field. |
 | `updateData(producer)` | Commit a synchronous model-first block-data transaction. |
 | `beginTask()` | Create revocable authority for one asynchronous persisted result. |
 | `commitDomMutation(operation)` | Commit an unavoidable plugin-owned DOM mutation through canonical history. |
@@ -54,6 +55,18 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `isReadOnly()` | Current mutation eligibility. |
 
 The inherited `createId(prefix)` allocator creates nested stable identities.
+
+### Canonical text for unmounted fields
+
+Use `context.getFieldText(fieldKey)` for auxiliary labels that need a rich field's canonical text before its author DOM is mounted. Person uses it for profile tabs. The query reads the same scoped record as `getData()`, including the prospective record during construction, update and history projection. It does not flush pending native input or create an editing field, widget instance, popup or provider request. An unknown field key throws; use a stable key declared by `schema.mapRichText()`.
+
+Registered inline definitions can supply a pure synchronous [`toText(data)`](./inline-extensions#canonical-text-without-a-widget-instance). The common rich-text parser substitutes that plain text for actual references and decodes HTML entities once. Unknown definitions, definitions without `toText`, unmatched tokens and explicit literal tokens retain their token text. A returned widget string is inserted as text without another HTML parse or placeholder scan.
+
+A successful query opts the current block instance into its existing `update(next, previous)` when canonical inline data changes. `next` and `previous` block data may be equal in that case; recompute auxiliary labels while retaining unaffected author fields and native controls. An instance without `update` follows the existing replacement path. The query itself creates no transaction or history entry. Native source projection keeps its existing DOM/caret handling and field completion.
+
+The query is protected synchronous extension work. Its inline callback receives an owned, deeply frozen decoded payload. It cannot acquire nested mutation, control or task authority. A stale occurrence, adopted block root or recursive query rejects before the extension callbacks; ownership is checked again after callbacks. Errors and thenables propagate to the current construction, canonical/history or mode recovery boundary.
+
+Canonical text describes accepted payloads and a prospective projection, so it does not include a transient widget preview or mode-specific label. Use `afterProjection` below when auxiliary output depends on the actual completed mounted field. Only write to auxiliary nodes still owned by the block occurrence.
 
 ### Derived presentation after a rich field settles
 

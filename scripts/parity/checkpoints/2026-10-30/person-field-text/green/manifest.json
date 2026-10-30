@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-next-person-20261030",
+  "startedAt": "2026-10-30T03:41:03.691Z",
+  "finishedAt": "2026-10-30T03:44:02.230Z",
+  "outcome": "passed",
+  "source": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/canonical-field-text.js",
+        "mode": 33188,
+        "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+      }
+    ],
+    "dirty": true,
+    "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "unit": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T03:41:12.186Z",
+      "finishedAt": "2026-10-30T03:41:12.645Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "core/BlockReconciler.test.js",
+        "core/BlockReconciler.focus.test.js",
+        "core/ExtensionRegistry.test.js",
+        "core/DocumentRuntime.inline-read.test.js",
+        "core/DocumentRuntime.test.js",
+        "core/InstanceScope.test.js",
+        "core/projectionFields.test.js",
+        "plugins/person/reconciliation.test.js",
+        "plugins/person/socialResolver.test.js",
+        "renderer/renderers/person/lifecycle.test.js",
+        "inline-plugins/mention.config.test.js",
+        "inline-plugins/mention/labelEdit.test.js",
+        "inline-plugins/mention/popupLifecycle.test.js",
+        "inline-plugins/color.lifecycle.test.js"
+      ],
+      "cwd": "/tmp/rector-next-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "elapsedMs": 455.858302,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "sourceUnchanged": true
+    },
+    "projection": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T03:41:23.032Z",
+      "finishedAt": "2026-10-30T03:41:30.420Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-next-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "elapsedMs": 7385.6795170000005,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "sourceUnchanged": true
+    },
+    "native": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T03:42:04.802Z",
+      "finishedAt": "2026-10-30T03:42:16.081Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/tmp/rector-next-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-plugin-parity.html",
+          "EDITOR_NATIVE_FILTER": "Person",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "elapsedMs": 11275.300603,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "sourceUnchanged": true
+    },
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T03:42:46.345Z",
+      "finishedAt": "2026-10-30T03:42:56.276Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/tmp/rector-next-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "elapsedMs": 9927.778362000001,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "sourceUnchanged": true
+    },
+    "types": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T03:43:13.589Z",
+      "finishedAt": "2026-10-30T03:43:23.812Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "shared/declarationParity.test.js"
+      ],
+      "cwd": "/tmp/rector-next-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "elapsedMs": 10219.509211999999,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [
+          {
+            "path": "tests/browser/regressions/canonical-field-text.js",
+            "mode": 33188,
+            "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+          }
+        ],
+        "dirty": true,
+        "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/canonical-field-text.js",
+        "mode": 33188,
+        "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+      }
+    ],
+    "dirty": true,
+    "identity": "ed447bf9a075024a046ebfd61ca62e2a124d096302017e2ade6e22772f222be3"
+  },
+  "sourceUnchanged": true
+}

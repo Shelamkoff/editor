@@ -1,0 +1,87 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 6760,
+    "sha256": "7afeba6d90589e4d3039e516714c96ef588e16f99a77f3bf8921a931707ec2ed"
+  },
+  {
+    "path": "environment/vite-launcher.mjs",
+    "bytes": 146,
+    "sha256": "5780b37481bf236a920e77cc0c4286a106bcb395e3d3263e36d1744ce0269859"
+  },
+  {
+    "path": "environment/vite.config.mjs",
+    "bytes": 237,
+    "sha256": "5afff01a78421761bbda05c7279b4a9eaa30c4710c66c3aec08bfec19b3836f7"
+  },
+  {
+    "path": "green/canonical-field-text.js",
+    "bytes": 14973,
+    "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+  },
+  {
+    "path": "green/manifest.json",
+    "bytes": 13328,
+    "sha256": "8f83a523f52568941baac24688d048f6263e348ec7e21911ab9a04b81974a127"
+  },
+  {
+    "path": "green/native.log.gz",
+    "bytes": 611,
+    "sha256": "2bba66e7b5fff911c949bbad1c56e086a1630d1cb32659ed6b13b0e4e821a798"
+  },
+  {
+    "path": "green/projection.log.gz",
+    "bytes": 4316,
+    "sha256": "ecf53a1aa2ec583aba17dea127cc2cb14bd8bc0c11cb789708927586eed173c1"
+  },
+  {
+    "path": "green/source.patch.gz",
+    "bytes": 11594,
+    "sha256": "8d0facd5c70c5ea27241f7b252b557abbf7c2137434b651e16e0f1a88fc140ab"
+  },
+  {
+    "path": "green/typecheck.log.gz",
+    "bytes": 185,
+    "sha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2"
+  },
+  {
+    "path": "green/types.log.gz",
+    "bytes": 439,
+    "sha256": "9d5bbf6dfded7ad1ea2593666e4b67ec5659c5adc7e7930010811c1c166e6f54"
+  },
+  {
+    "path": "green/unit.log.gz",
+    "bytes": 9150,
+    "sha256": "1182a72f4fedc2ab2e62f333ee70d99929be9c1aa273da0b87ee29dd0c51dada"
+  },
+  {
+    "path": "red/browser-projection-contracts.html.json.gz",
+    "bytes": 3818,
+    "sha256": "3641ed1ccf9d9a217ffc161b5beb64e2600ac0444440bedf887215fa92521c72"
+  },
+  {
+    "path": "red/fixture.js",
+    "bytes": 22345,
+    "sha256": "979a6951dd24c7461164df705cedae2f7689408b6056dbb7453b6c4b166206bf"
+  },
+  {
+    "path": "red/manifest.json",
+    "bytes": 3225,
+    "sha256": "80e63a30a4e35b01edc6b52de4110623c516d44c7281e9d3ba3764ed21dd7df0"
+  },
+  {
+    "path": "red/projection.log.gz",
+    "bytes": 753,
+    "sha256": "c15527771b84e9be2d08b111322b6ca1f3e299fc235a449731f8de8b505c88a2"
+  },
+  {
+    "path": "red/source.patch.gz",
+    "bytes": 1492,
+    "sha256": "d7b3ee72f8a6677090d5d1ad34d30840071008d44c95b4a64f7c9ca2aaf54582"
+  },
+  {
+    "path": "summary.json",
+    "bytes": 1861,
+    "sha256": "9766c900aa72b359f4803541566c3aeb289225a7d37fe35729097605b345eccf"
+  }
+]

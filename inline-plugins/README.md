@@ -28,7 +28,9 @@ const editor = createEditor({
 })
 ```
 
-An inline plugin is an immutable `InlinePluginDefinition`: it owns a versioned `schema`, optional `paste`, `editing`, `insertion` and trigger capabilities, and a `setup()` factory. The per-editor runtime creates widget instances through `create(id, initial, context)`. Widget mutations use `context.updateData()`, while the stable widget id remains owned by the document model.
+An inline plugin is an immutable `InlinePluginDefinition`: it owns a versioned `schema`, optional `toText`, `paste`, `editing`, `insertion` and trigger capabilities, and a `setup()` factory. The per-editor runtime creates widget instances through `create(id, initial, context)`. Widget mutations use `context.updateData()`, while the stable widget id remains owned by the document model.
+
+Optional pure `toText(data)` supplies canonical plain text for block labels without mounting a widget. Block instances read it through `context.getFieldText(fieldKey)`, which also preserves literal/unknown tokens and one-pass entity decoding. The callback receives an owned, deeply frozen decoded payload and returns a string synchronously. Mention includes its configured trigger and name; Color returns its canonical value. Queries do not create widget instances or search-provider requests.
 
 Mounted changes must use the mutation context supplied by Rector so one completed interaction produces one undo step. Release popup DOM, timers, requests, listeners, and object URLs from the plugin lifecycle.
 

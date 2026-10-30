@@ -1,0 +1,60 @@
+{
+  "verifiedCommit": "d673b9d04d9aad7d1687b356f7a726455b6fd99e",
+  "verifiedTree": "97b0748553c19307f84a2dae3782fbe427318643",
+  "base": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+  "publishedAssembly": "37ed30083ee97629eecf284944f99b7b330d65ad",
+  "publishedAssemblyNote": "Contains additional Gallery/core changes; no tree equivalence or combined acceptance is asserted by this isolated checkpoint.",
+  "red": {
+    "run": "run-xQuiuf",
+    "outcome": "failed",
+    "sourceUnchanged": true,
+    "projection": {
+      "total": 161,
+      "passed": 160,
+      "failed": 1
+    },
+    "patchSha256": "3b7d5a2bcfc19562ff6010000e0ba7917fcda169da741d7998e80d5214d4b54c"
+  },
+  "green": {
+    "run": "run-QMUd5Z",
+    "finishedAt": "2026-10-30T03:44:02.230Z",
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "unit": {
+      "passed": 306,
+      "failed": 0,
+      "skipped": 0
+    },
+    "projection": {
+      "passed": 190,
+      "failed": 0
+    },
+    "nativePerson": {
+      "passed": 20,
+      "failed": 0
+    },
+    "typecheckProjects": 2,
+    "declarationContracts": {
+      "passed": 7,
+      "failed": 0
+    },
+    "patchSha256": "b3cc91c2232100c3782f117b6074206f1564b48f1554cb348758635ba7695b66",
+    "untracked": [
+      {
+        "path": "tests/browser/regressions/canonical-field-text.js",
+        "mode": 33188,
+        "sha256": "f340f9c33af4fb238cc43c346e706a435daf274449f8948f019dc911b8d32123"
+      }
+    ]
+  },
+  "documentation": {
+    "checkedAt": "2026-10-30T08:09:45.013995+00:00",
+    "contractAudit": "passed",
+    "localizedReadmePairs": 47,
+    "russianProseChangedFiles": 6,
+    "untranslatedTerms": [],
+    "preservationIdsUnchanged": 209,
+    "acceptedStatusUnchanged": 35
+  },
+  "scope": "One reproduced Person presentation defect; no new preservation acceptance, combined suite, performance or whole-library parity claim."
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/tmp/rector-next-person-20261030",
+  "startedAt": "2026-10-30T03:26:39.736Z",
+  "finishedAt": "2026-10-30T03:27:44.092Z",
+  "outcome": "failed",
+  "source": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "3b7d5a2bcfc19562ff6010000e0ba7917fcda169da741d7998e80d5214d4b54c",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": true,
+    "identity": "0f8aefec1fd7ed37c1989ae73fbd9591a5d8f9d5fc27e97874cca84784f97958"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.55",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "projection": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T03:26:47.880Z",
+      "finishedAt": "2026-10-30T03:26:55.415Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/tmp/rector-next-person-20261030",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.55",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+          "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs"
+        }
+      },
+      "sourceBefore": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "3b7d5a2bcfc19562ff6010000e0ba7917fcda169da741d7998e80d5214d4b54c",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": true,
+        "identity": "0f8aefec1fd7ed37c1989ae73fbd9591a5d8f9d5fc27e97874cca84784f97958"
+      },
+      "elapsedMs": 7533.086785,
+      "sourceAfter": {
+        "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+        "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+        "patchSha256": "3b7d5a2bcfc19562ff6010000e0ba7917fcda169da741d7998e80d5214d4b54c",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": true,
+        "identity": "0f8aefec1fd7ed37c1989ae73fbd9591a5d8f9d5fc27e97874cca84784f97958"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+    "tree": "8b22cffd41d5f1e56729029d492f7151dabade56",
+    "patchSha256": "3b7d5a2bcfc19562ff6010000e0ba7917fcda169da741d7998e80d5214d4b54c",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": true,
+    "identity": "0f8aefec1fd7ed37c1989ae73fbd9591a5d8f9d5fc27e97874cca84784f97958"
+  },
+  "sourceUnchanged": true
+}
