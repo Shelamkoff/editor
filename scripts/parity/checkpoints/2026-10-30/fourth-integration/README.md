@@ -76,3 +76,8 @@ The first documentation run, `run-gztFjC` on `6ed34140e9a2733d3ba821b2d001f1f787
 
 Recorded comparison sources preserve their original hashed bytes. In particular, the compound checkpoint's `probe.mjs` retains its original trailing space on line 124; a whole-diff whitespace review reports that single formatting warning. This does not change any execution result or source identity.
 
+## Final documentation verification
+
+**All three gates pass** in `run-Nn9ivn` on unchanged `23b133ca733f901ca5367de88736f656af8d175a`, tree `8ba0315ffc5f7fd823ef92872ab51e63b57a8f97`. Completion: `2026-10-30T15:45:09.534Z`. Package/README build, documentation contracts and the site build/static/browser checks all pass. `documentation/` retains the original manifest and complete logs; the earlier failed translation check remains in `documentation-attempts/`.
+
+Only documentation and evidence changed after the frozen implementation. The final archive addition records this completed documentation run without changing runtime, registered test fixtures, comparison runners or the checked documentation pages. Independent review confirmed both translations, the raw result counts and their stated limitations.

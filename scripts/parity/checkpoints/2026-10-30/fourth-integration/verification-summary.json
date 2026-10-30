@@ -557,5 +557,49 @@
     "sources": 7,
     "index": "isolated-sources/manifest.json"
   },
-  "publication": "Local source only; remote push was blocked by automatic approval review. No published counterpart is asserted."
+  "publication": "Local source only; remote push was blocked by automatic approval review. No published counterpart is asserted.",
+  "documentationVerification": {
+    "run": "run-Nn9ivn",
+    "source": {
+      "head": "23b133ca733f901ca5367de88736f656af8d175a",
+      "tree": "8ba0315ffc5f7fd823ef92872ab51e63b57a8f97",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+      "untracked": [],
+      "dirty": false,
+      "identity": "00c235eb4ff4e5702ab69d42a5fbc73a1be56502ce52084096e6704d5ba2f8ab"
+    },
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "finishedAt": "2026-10-30T15:45:09.534Z",
+    "gates": {
+      "build": {
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "outcome": "passed",
+        "elapsedMs": 5444.61492
+      },
+      "docs-contracts": {
+        "command": [
+          "npm",
+          "run",
+          "test:docs"
+        ],
+        "outcome": "passed",
+        "elapsedMs": 3094.684488
+      },
+      "docs-site": {
+        "command": [
+          "npm",
+          "run",
+          "docs:check"
+        ],
+        "outcome": "passed",
+        "elapsedMs": 47764.910791
+      }
+    }
+  }
 }

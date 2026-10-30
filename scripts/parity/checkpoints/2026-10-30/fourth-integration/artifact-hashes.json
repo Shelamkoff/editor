@@ -23,6 +23,30 @@
     "decodedSha256": "73bb38d7b2424d8abc77d8417c33b1365aca4c0e968a465361fbe730db1e1086",
     "sha256": "835ebf3c726fdba4a01b5862bef2c34aa2ca3f5ced235d7806326c0b03779762"
   },
+  "documentation/build.log.gz": {
+    "bytes": 280,
+    "decodedBytes": 517,
+    "decodedSha256": "cf4ed5a69db41abe8803e1af0b8204295da0840a77dd261d22cfb63c3294e86b",
+    "sha256": "c2e8182dd7eb5267141b095edade9dc7f348e90176be20031c55f52f0172e5c5"
+  },
+  "documentation/docs-contracts.log.gz": {
+    "bytes": 405,
+    "decodedBytes": 1137,
+    "decodedSha256": "f46f7346a2c974e5b80e1a422f6f8c391c88bd3661feef59bde4f5f28be50ab7",
+    "sha256": "60b12331788850d412e5f5573b444ad97addf9989786b85cd97adb948c760a86"
+  },
+  "documentation/docs-site.log.gz": {
+    "bytes": 1003,
+    "decodedBytes": 2643,
+    "decodedSha256": "93c18158a63719aca37c2ad73b272c97d45ea2de9ca878f539c077fa4fa29595",
+    "sha256": "b7fc71f0e2817cbd74ad99a5e32bd75a0f82d6b1298320ee119f61a078f2cd8d"
+  },
+  "documentation/manifest.json.gz": {
+    "bytes": 942,
+    "decodedBytes": 6657,
+    "decodedSha256": "1ef09e3786545cd872b7cd3115f99cd39febd7d8aa3658de38dd9e37989ccd97",
+    "sha256": "0441064e77f00bf0a4df3dbdfe6b1ddc1d22162880b0734ce2a03f11ac1124a4"
+  },
   "environment/initial-unprivileged-unit.log.gz": {
     "bytes": 3350,
     "decodedBytes": 10988,
@@ -282,7 +306,7 @@
     "sha256": "5bc761446646ae74fb9332bb3ddb1d259adff39ba0638c02b9afee629a971b0e"
   },
   "verification-summary.json": {
-    "bytes": 13671,
-    "sha256": "ce9f2f59aa7097d0f7e7e61aa4f29ffac0022ca8fe897ca008def56262ab8e4e"
+    "bytes": 14838,
+    "sha256": "068fa86c0327e0d6dc8621d3ccacc232abb562c8dfb8aec0b85e988a6597251b"
   }
 }
