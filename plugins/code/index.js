@@ -138,7 +138,12 @@ function highlight(element, code, language, runtime) {
     return
   }
   try {
-    if (language !== 'auto' && runtime.getLanguage(language)) {
+    if (language !== 'auto') {
+      if (!runtime.getLanguage(language)) {
+        element.textContent = code + '\n'
+        element.classList.add('hljs')
+        return
+      }
       const result = runtime.highlight(code, { language, ignoreIllegals: true })
       setTrustedHtml(element, result.value + '\n')
       element.classList.add('hljs', 'language-' + language)
