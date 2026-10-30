@@ -324,10 +324,21 @@ export function createPersonPlugin(config={}){
               select.appendChild(label)
               if(person.id===activeId)activeTabView={personId:person.id,label,select,tab}
               select.addEventListener('click',()=>{
-                if(activeId===person.id)return
+                const ownsTarget=()=>!dead&&!context.signal.aborted&&label.parentNode===select
+                  &&select.parentNode===tab&&tab.parentNode===tabs&&tabs.parentNode===wrapper
+                if(activeId===person.id||!ownsTarget())return
                 flushVisible()
+                if(!ownsTarget())return
+                const previous=activeTabView
+                if(ownsTabView(previous)){
+                  previous.tab.classList.remove('oe-person__tab--active')
+                  previous.select.setAttribute('aria-pressed','false')
+                }
                 activeId=person.id
-                render()
+                tab.classList.add('oe-person__tab--active')
+                select.setAttribute('aria-pressed','true')
+                activeTabView={personId:person.id,label,select,tab}
+                renderBody()
                 wrapper.focus({preventScroll:true})
               },{signal:tabsController.signal})
               tab.appendChild(select)
