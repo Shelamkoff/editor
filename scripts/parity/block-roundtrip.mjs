@@ -737,7 +737,7 @@ try {
   for (const result of results) Object.assign(result, classifyEmbedPageErrors(result.source, result.cases, result.errors, result.pageErrors, origin))
   const failed = results.some(result => result.unexpectedErrors.length || result.unexpectedPageErrors.length || result.cases.some(entry => entry.unexpectedFailures.length))
   console.log(JSON.stringify({
-    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed/Gallery/Carousel record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept detailed behavior rows or all built-in blocks.',
+    scope: 'Public ROUNDTRIP template; actual implemented and selected coverage is listed in selectedCaseIds. Default/populated construction, detached/mounted renderer, read-only and back, native declared-field edit and one Undo/Redo where applicable (Delimiter records a labeled neighbor edit, while empty Delimiter/Image/Attaches/Embed/Gallery/Carousel record explicit not-applicable phases), fixed canonical marks/sidecars/IDs/order and cleanup. This does not accept every detailed behavior row or whole-library parity.',
     requestedFilter, selectedCaseIds: results[0]?.cases.map(entry => entry.id) ?? [],
     incompleteCases: results.flatMap(source => source.cases.filter(entry => entry.incompletePhases?.length)
       .map(entry => ({ source: source.source, id: entry.id, completed: entry.completedPhases, incomplete: entry.incompletePhases }))),
