@@ -212,3 +212,13 @@ test('Code copy reset cannot repaint a formerly owned button after adoption', as
     assert.equal(f.timers(), 0)
   } finally { f.instance.destroy(); f.runtime.destroy() }
 })
+
+test('Code synchronous projection failures still reach the update caller', () => {
+  const f = createHarness(), fault = new Error('Controlled Code projection failure')
+  const surface = f.instance.element.children.find(element => element.className === 'oe-code-editor')
+  const code = surface.children.find(element => element.tagName === 'PRE').children[0]
+  Object.defineProperty(code, 'textContent', { configurable: true, set() { throw fault } })
+  try {
+    assert.throws(() => f.instance.update({ code: 'New source', language: 'plaintext' }), error => error === fault)
+  } finally { f.instance.destroy(); f.runtime.destroy() }
+})
