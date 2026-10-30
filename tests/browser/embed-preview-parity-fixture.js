@@ -46,6 +46,7 @@ export async function runEmbedPreviewCase({ base = '', legacy = false, kind = 't
     } else {
       await pause(60)
       check('timeout.signal', request.signal.aborted, true)
+      check('timeout.reason', request.signal.reason?.name ?? null, 'TimeoutError')
       check('timeout.noPreview', !!holder.querySelector('.oe-embed__preview'), false)
       request.resolve({ thumbnailUrl: pixel, title: 'Late preview' })
       await pause(0)

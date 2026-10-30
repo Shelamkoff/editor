@@ -130,7 +130,7 @@ class FakeElement {
   getClientRects() { return [] }
 }
 
-function mount({ config = {}, initial = {}, fetch } = {}) {
+function mount({ config = {}, initial = {}, fetch, schedule } = {}) {
   const timers = new Map()
   let nextTimer = 1
   let clock = 0
@@ -141,7 +141,12 @@ function mount({ config = {}, initial = {}, fetch } = {}) {
       AbortController,
       fetch,
       addEventListener() {}, removeEventListener() {},
-      setTimeout(callback, delay = 0) { const id = nextTimer++; timers.set(id, { callback, at: clock + Math.max(0, Number(delay) || 0) }); return id },
+      setTimeout(callback, delay = 0) {
+        if (schedule) return schedule(callback, delay)
+        const id = nextTimer++
+        timers.set(id, { callback, at: clock + Math.max(0, Number(delay) || 0) })
+        return id
+      },
       clearTimeout(id) { timers.delete(id) },
     },
     createElement(tag) { return new FakeElement(tag, ownerDocument) },
@@ -277,6 +282,25 @@ test('Embed cancels the default preview deadline even when fetch ignores abort',
     assert.equal(h.pendingTimers(), 0, 'Cancellation retained a preview timer until its ignored request settles')
     assert.equal(h.writes(), 0)
   } finally { h.destroy(); pending.resolve({ ok: false }); await pending.promise }
+})
+
+test('Embed contains a preview scheduler failure without an author edit or unhandled rejection', async () => {
+  const failure = new Error('Controlled owner-document scheduler failure')
+  const h = mount({
+    config: { resolvePreview: undefined },
+    initial: { service: 'vimeo', videoId: '12345' },
+    schedule() { throw failure },
+    async fetch() { return { ok: true, async json() { return { thumbnail_url: 'https://example.test/preview.jpg' } } } },
+  })
+  try {
+    const before = structuredClone(h.model())
+    // Let Node report an unhandled rejected void resolver promise if it escaped.
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
 })
 
 function caption(instance) {
