@@ -3,7 +3,7 @@ export const srcsetCases = [
   'leading-dot-density', 'positive-exponent-density', 'width-height-descriptors',
   'trailing-comma', 'ascii-whitespace', 'unsafe-neighbors', 'unsafe-leading-candidate',
   'parenthesized-invalid-descriptor', 'unterminated-invalid-descriptor',
-  'non-ascii-descriptor-whitespace',
+  'non-ascii-descriptor-whitespace', 'blob-url', 'raster-data',
 ]
 
 // The expected resource and candidate spelling come from each authored case,
@@ -15,6 +15,18 @@ export function srcsetDefinition(name, origin = location.href) {
   const fallback = asset(name + '-fallback')
   const common = { name, fallback: null, sizes: '2px', expectedCurrentSrc: primary, controlKind: 'bare-authored' }
   const exact = input => ({ ...common, input, expectedSrcset: input, controlSrcset: input })
+  if (name === 'blob-url' || name === 'raster-data') {
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 1
+    const data = canvas.toDataURL('image/png')
+    let resource = data, revokeUrl = null
+    if (name === 'blob-url') {
+      const bytes = Uint8Array.from(atob(data.split(',')[1]), character => character.charCodeAt(0))
+      revokeUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
+      resource = revokeUrl + '#asset,one'
+    }
+    return { ...exact(resource + ' 1x'), expectedCurrentSrc: resource, revokeUrl }
+  }
   if (name === 'comma-url') return exact(primary + ' 1x')
   if (name === 'comma-url-without-descriptor') return exact(primary)
   if (name === 'exponent-density') return exact(primary + ' 1e0x')
@@ -88,5 +100,6 @@ export async function observeSrcset({ name, sanitizer, ownerDocument = document 
   } finally {
     host.remove()
     control.remove()
+    if (definition.revokeUrl) URL.revokeObjectURL(definition.revokeUrl)
   }
 }

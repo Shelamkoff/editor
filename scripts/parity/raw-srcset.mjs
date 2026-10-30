@@ -92,7 +92,8 @@ try {
       const foreignRequests = []
       await context.route('**/*', route => {
         const url = route.request().url()
-        if (url.startsWith(origin + '/')) return route.continue()
+        if (url.startsWith(origin + '/') || url.startsWith('blob:' + origin + '/')
+          || url.startsWith('data:image/png;base64,')) return route.continue()
         foreignRequests.push(url)
         return route.abort()
       })
