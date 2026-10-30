@@ -1,0 +1,195 @@
+{
+  "scope": "BLOCK_CAROUSEL_STRUCTURE source-add selection subset: native caption edit, source batch or one URL/HTML append, and two native Undo/Redo actions with fixed mixed-media neighbors.",
+  "base": "ebf128b1ac301c8985e0359e1cf6ced422ed94b0",
+  "candidate": "36fa23d0541ed156447ee7c684a8c32f27b1a448",
+  "candidateTree": "cfe7329557ef05c1eb371fe6cfece1b570576d39",
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+    },
+    {
+      "label": "candidate",
+      "sha": "36fa23d0541ed156447ee7c684a8c32f27b1a448"
+    }
+  ],
+  "runtimeSha256": "396686798284e2f386112bba8b963e350ce02391bd756443699673b2c9356036",
+  "regressionModuleSha256": "912d3e06d3869ce1566dec7e4973cb7f5a2fc7a7811f080700d3e3653921f7bf",
+  "environment": {
+    "browser": "156.0.8078.47",
+    "node": "v24.22.1",
+    "dependencyVersions": {
+      "@shelamkoff/carousel": "1.0.0",
+      "@shelamkoff/color-picker": "1.0.0",
+      "@shelamkoff/cropper": "1.0.0",
+      "@shelamkoff/event-bus": "1.0.0",
+      "@shelamkoff/expose": "1.0.0",
+      "@shelamkoff/masonry": "1.0.0",
+      "@shelamkoff/infinite-scroll": "1.0.1"
+    }
+  },
+  "finalGates": {
+    "nativePluginParity": 255,
+    "nativePluginMedia": 95,
+    "typecheckConfigs": [
+      "jsconfig.json",
+      "jsconfig.runtime.json"
+    ],
+    "unitCases": 15,
+    "allExitCodesZero": true,
+    "sourceFilesUnchanged": 854
+  },
+  "differential": [
+    {
+      "source": "v1",
+      "cases": 3,
+      "observations": 83,
+      "rawFailures": 9,
+      "pageErrors": 0,
+      "executionErrors": 0,
+      "appendCounters": [
+        "4 / 5",
+        "4 / 4",
+        "4 / 4"
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 3,
+      "observations": 83,
+      "rawFailures": 6,
+      "pageErrors": 0,
+      "executionErrors": 0,
+      "appendCounters": [
+        "1 / 5",
+        "1 / 4",
+        "1 / 4"
+      ]
+    },
+    {
+      "source": "candidate",
+      "cases": 3,
+      "observations": 83,
+      "rawFailures": 0,
+      "pageErrors": 0,
+      "executionErrors": 0,
+      "appendCounters": [
+        "4 / 5",
+        "4 / 4",
+        "4 / 4"
+      ]
+    }
+  ],
+  "candidateExceptions": 0,
+  "sourceUnchanged": true,
+  "sourceIdentityVerified": true,
+  "loadedSourceFiles": {
+    "v1": 117,
+    "spec-baseline": 108,
+    "candidate": 108
+  },
+  "dependencyFiles": 6,
+  "historicalDifferences": [
+    {
+      "source": "v1",
+      "classification": "historical defect",
+      "detail": "All three append paths select the first new slide. Their subsequent native shortcuts target BODY and do not replay history; nine raw record mismatches remain visible. No fixture refocus is used."
+    },
+    {
+      "source": "spec-baseline",
+      "classification": "historical regression from v1",
+      "detail": "All three append paths keep the original slide active, producing six counter/caption mismatches. Their native history sequences pass."
+    }
+  ],
+  "controls": {
+    "listenerNavigation": "Synchronous publishing callbacks may observe the new slide but may not call public focus. The final control queues the newer navigation in a microtask; the completed source does not overwrite it.",
+    "staleTask": "Remove all aborts the delayed source. After native Undo and newer navigation to Bravo, late completion neither appends nor selects a slide.",
+    "canonicalRecovery": "Controlled failure after the actual added-slide projection retires the old owner and restores original records, initial Alpha view and public Undo/Redo. This does not prove arbitrary prior-view or native-keyboard recovery.",
+    "settingsTarget": "A native manual settings selection of Bravo is replaced by Delta when an accepted source navigates to Delta. Ordinary metadata updates retain their existing selection behavior."
+  },
+  "retainedFailedExploration": {
+    "initialControls": "One attempted synchronous publishing-phase focus was an invalid fixture expectation. A separate native Undo failure after canonical recovery is a real diagnostic retained verbatim; it is not labeled green or repaired by this Carousel patch.",
+    "recoveryFollowup": "The independent core owner is investigating recovery keyboard focus. The final Carousel recovery assertion is explicitly limited to canonical history and remount, with its original native failure archived."
+  },
+  "notClaimed": [
+    "Complete BLOCK_CAROUSEL_STRUCTURE acceptance",
+    "Detailed remove/reorder coverage beyond the unchanged affected page",
+    "Rich-caption/widget source-add parity",
+    "Arbitrary prior active-slide recovery after failure",
+    "Native keyboard recovery after failure",
+    "Other browsers or platforms",
+    "Media playback timing",
+    "B-HTML/B-STYLE decisions",
+    "Whole-library parity"
+  ],
+  "commands": [
+    {
+      "label": "native-plugin-parity",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs",
+        "EDITOR_NATIVE_PAGE": "native-plugin-parity.html"
+      },
+      "exitCode": 0,
+      "startedAt": "2026-10-30T09:26:40.531950+00:00",
+      "finishedAt": "2026-10-30T09:27:52.191949+00:00"
+    },
+    {
+      "label": "native-plugin-media",
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "environment": {
+        "EDITOR_CHROME_PATH": "/tmp/rector-browsers-156/chrome-linux64/chrome",
+        "EDITOR_VITE_PATH": "/tmp/rector-root-vite.mjs",
+        "EDITOR_NATIVE_PAGE": "native-plugin-media.html"
+      },
+      "exitCode": 0,
+      "startedAt": "2026-10-30T09:27:52.192245+00:00",
+      "finishedAt": "2026-10-30T09:28:30.390758+00:00"
+    },
+    {
+      "label": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "environment": {},
+      "exitCode": 0,
+      "startedAt": "2026-10-30T09:28:30.391201+00:00",
+      "finishedAt": "2026-10-30T09:28:40.489036+00:00"
+    },
+    {
+      "label": "units",
+      "command": [
+        "node",
+        "--test",
+        "--test-isolation=none",
+        "plugins/carousel/file-reader-lifecycle.test.js",
+        "plugins/carousel/settings-lifecycle.test.js",
+        "plugins/carousel/video-paste-parity.test.js",
+        "shared/carouselData.test.js",
+        "plugins/media-blob-commit.test.js"
+      ],
+      "environment": {},
+      "exitCode": 0,
+      "startedAt": "2026-10-30T09:28:40.489298+00:00",
+      "finishedAt": "2026-10-30T09:28:40.612782+00:00"
+    }
+  ],
+  "differentialCommand": [
+    "node",
+    "/tmp/rector-carousel-add-probe.mjs"
+  ],
+  "reproduction": "The exact one-off probe and gate runner are archived. Their absolute checkout, dependency and browser paths describe the executed environment; preserve those mounts or adapt paths explicitly. Source SHAs and loaded-byte hashes remain mandatory."
+}

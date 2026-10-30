@@ -1,0 +1,13 @@
+# Carousel source selection — 2026-10-30
+
+This checkpoint covers the source-add subset of `BLOCK_CAROUSEL_STRUCTURE`; it does not accept the full row or change preservation counters.
+
+Runtime/test commit: `36fa23d0541ed156447ee7c684a8c32f27b1a448`, parent `ebf128b1ac301c8985e0359e1cf6ced422ed94b0`. A completed source now selects its first new slide during canonical projection and resets an earlier manual settings target only for that accepted addition. Caption-input preservation and generic recovery are unchanged.
+
+The initial native RED and the three-path RED are retained. Batch, URL and HTML cases use native input/clicks with fixed image/video/HTML neighbors and two separate native Undo/Redo actions. The settings follow-up has its own RED (`delta` expected, `bravo` observed) and GREEN. Final immutable gates pass **255 native plugin cases, 95 native media cases, both typecheck configurations and 15 unit cases**; 854 source files remain unchanged.
+
+The same three-source probe verifies loaded bytes against pinned Git sources and records every native action. Candidate: **3 cases, 83 observations, zero failures/errors/exceptions**. v1 selects the first new slide in all three paths but retains nine historical keyboard-history failures. The specification baseline retains six active-selection failures. These reference failures are present in both raw result files, not relabeled as passes. The sources share the exact recorded installed dependency graph; this is a controlled source comparison, not a claim about every historical deployment.
+
+The first additional-control run remains failed. Its synchronous `transaction:committed` focus attempt violated the existing publishing guard; the final listener queues the newer navigation after that boundary. Its separate native-keyboard failure following canonical rollback is retained verbatim and assigned to the core recovery investigation. The final Carousel recovery control proves canonical data/history and owner remount for the initial Alpha view using public Undo/Redo; it does **not** claim that native recovery focus or arbitrary previous active-slide restoration is fixed. Stale-task and later-listener navigation controls pass. No native refocus is inserted into the successful append/history cases.
+
+`summary.json` records scope, results, commands, source identities and limitations. `hash-index.json` identifies every archive with compressed and decoded SHA-256 values. `three-source-probe.mjs` and `final-gates.py` are exact one-off executed programs; their absolute paths record the session mounts and must be preserved or explicitly adapted for reproduction. Final regression source is in `tests/browser/regressions/carousel-structure-native.js` at the candidate commit.
