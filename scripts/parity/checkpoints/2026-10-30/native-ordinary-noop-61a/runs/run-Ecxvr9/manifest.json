@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+  "startedAt": "2026-10-30T18:27:53.356Z",
+  "finishedAt": "2026-10-30T18:27:55.550Z",
+  "outcome": "failed",
+  "source": {
+    "head": "cea090636f12a688b13b486d1aaab14818b33450",
+    "tree": "7a0d530b279c551c89536c026449450b0e45a079",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "c82a2553a60842156c90627c63843db6adb23e8da55a402c3516a60d9f864773"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-library-boundaries.html",
+      "EDITOR_NATIVE_FILTER": "field source completion descriptor capture failure",
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "capture-recovery-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:27:53.613Z",
+      "finishedAt": "2026-10-30T18:27:55.455Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/native-completion-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-library-boundaries.html",
+          "EDITOR_NATIVE_FILTER": "field source completion descriptor capture failure",
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "cea090636f12a688b13b486d1aaab14818b33450",
+        "tree": "7a0d530b279c551c89536c026449450b0e45a079",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "c82a2553a60842156c90627c63843db6adb23e8da55a402c3516a60d9f864773"
+      },
+      "elapsedMs": 1839.366634,
+      "sourceAfter": {
+        "head": "cea090636f12a688b13b486d1aaab14818b33450",
+        "tree": "7a0d530b279c551c89536c026449450b0e45a079",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "c82a2553a60842156c90627c63843db6adb23e8da55a402c3516a60d9f864773"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "cea090636f12a688b13b486d1aaab14818b33450",
+    "tree": "7a0d530b279c551c89536c026449450b0e45a079",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "c82a2553a60842156c90627c63843db6adb23e8da55a402c3516a60d9f864773"
+  },
+  "sourceUnchanged": true
+}

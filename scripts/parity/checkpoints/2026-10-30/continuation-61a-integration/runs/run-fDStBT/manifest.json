@@ -1,0 +1,532 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+  "startedAt": "2026-10-30T18:44:27.481Z",
+  "finishedAt": "2026-10-30T18:49:56.612Z",
+  "outcome": "passed",
+  "source": {
+    "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+    "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "typecheck": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:44:27.802Z",
+      "finishedAt": "2026-10-30T18:44:35.069Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 7264.267245,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "unit": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:44:35.252Z",
+      "finishedAt": "2026-10-30T18:44:53.301Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 18046.813967,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "build": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:44:53.483Z",
+      "finishedAt": "2026-10-30T18:44:58.624Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 5138.682048,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "types": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:44:58.796Z",
+      "finishedAt": "2026-10-30T18:45:05.961Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "test:types"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 7159.556146999999,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "package": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:45:06.152Z",
+      "finishedAt": "2026-10-30T18:45:28.984Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 22829.376611,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "size-report": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:45:29.170Z",
+      "finishedAt": "2026-10-30T18:45:36.388Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "benchmarks/bundle-budget.mjs",
+        "--enforce"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 7215.228116,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "docs-contract": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:45:36.570Z",
+      "finishedAt": "2026-10-30T18:45:39.689Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "test:docs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 3116.791768,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "docs-browser": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:45:39.921Z",
+      "finishedAt": "2026-10-30T18:46:27.760Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "npm",
+        "run",
+        "docs:check"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 47834.429588,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "ordinary-browser": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:46:27.975Z",
+      "finishedAt": "2026-10-30T18:47:05.702Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 37724.328338,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "common-parity": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:47:05.950Z",
+      "finishedAt": "2026-10-30T18:49:40.613Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/parity/block-roundtrip.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 154658.955037,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    },
+    "gallery-parity": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:49:40.851Z",
+      "finishedAt": "2026-10-30T18:49:56.486Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/parity/gallery-caption-order.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/editor",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "elapsedMs": 15631.708829000001,
+      "sourceAfter": {
+        "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+        "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+    "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "5d0f053e185628a1f871669809cf7ff8052e9a01e313dc2258082079833578be"
+  },
+  "sourceUnchanged": true
+}

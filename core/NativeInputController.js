@@ -328,6 +328,11 @@ export class NativeInputController {
     }
 
     const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
+    const completedNativeInput = pending?.kind === 'field' && pending.trusted && event?.isTrusted === true
+      && pending.blockId === owner.blockId && pending.fieldKey === owner.fieldKey && pending.element === owner.element
+      && pending.generation === this.#runtime.generation && pending.revision === this.#runtime.revision
+      && pending.modeEpoch === this.#runtime.modeEpoch && !pending.originalEvent.defaultPrevented
+      && pending.originalEvent.inputType === inputType
     const selectionBefore = pending?.kind === 'field'
       && pending.blockId === owner.blockId && pending.fieldKey === owner.fieldKey
       && pending.generation === this.#runtime.generation && pending.revision === this.#runtime.revision
@@ -337,6 +342,7 @@ export class NativeInputController {
     this.#commit(owner, {
       group: this.#historyGroup(owner),
       preserveSourceProjection: SOURCE_PROJECTION_INPUTS.has(inputType),
+      completeNativeNoop: completedNativeInput,
       selectionBefore,
     })
     if (isolated) this.#lastGroup = null
@@ -473,19 +479,32 @@ export class NativeInputController {
     return editingHostForEvent(this.#root, target) === owner.element ? owner : null
   }
 
-  #commit(owner, { group, preserveSourceProjection, selectionBefore = undefined }) {
+  #commit(owner, { group, preserveSourceProjection, completeNativeNoop = false, selectionBefore = undefined }) {
     if (this.#controller.signal.aborted) return
+    // A trusted completed edit can replace author DOM without changing its
+    // canonical value. Retain the existing descriptor across the guarded read.
+    const completeField = completeNativeNoop && preserveSourceProjection && owner.mode === 'rich-text'
+    let field
     // Paste/cut can rebuild the authoring host after decoding its native edit.
     // Keep the logical caret without retaining untrusted clipboard markup.
     const captured = !preserveSourceProjection ? this.#selection?.capture() : null
     const local = point => point?.blockId === owner.blockId && point?.fieldKey === owner.fieldKey
     const selectionAfter = captured && local(captured.anchor) && local(captured.focus) ? captured : null
-    this.#runtime.syncBlockFromProjection(owner.blockId, () => {}, {
+    this.#runtime.syncBlockFromProjection(owner.blockId, () => {
+      if (!completeField) return
+      field = this.#reconciler.getEditableField(owner.blockId, owner.fieldKey)
+      if (!field || field.key !== owner.fieldKey || field.element !== owner.element || field.mode !== owner.mode) {
+        throw new Error('Native completion lost its captured field owner')
+      }
+    }, {
       origin: 'native-input',
       name: 'native-input',
       historyGroup: group,
       coalesce: true,
       preserveSourceProjection,
+      ...(completeField ? { finalizeNativeProjection: (_next, changed) => {
+        if (!changed) this.#reconciler.completeFieldProjection?.(owner.blockId, field)
+      } } : {}),
       ...(selectionBefore === undefined ? {} : { selectionBefore }),
       ...(selectionAfter ? { selectionAfter: () => selectionAfter } : {}),
     })

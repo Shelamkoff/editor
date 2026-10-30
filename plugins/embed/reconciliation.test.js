@@ -130,15 +130,23 @@ class FakeElement {
   getClientRects() { return [] }
 }
 
-function mount() {
+function mount({ config = {}, initial = {}, fetch, schedule } = {}) {
   const timers = new Map()
   let nextTimer = 1
+  let clock = 0
+  let writes = 0
   const ownerDocument = {
     activeElement: null,
     defaultView: {
       AbortController,
+      fetch,
       addEventListener() {}, removeEventListener() {},
-      setTimeout(callback) { const id = nextTimer++; timers.set(id, callback); return id },
+      setTimeout(callback, delay = 0) {
+        if (schedule) return schedule(callback, delay)
+        const id = nextTimer++
+        timers.set(id, { callback, at: clock + Math.max(0, Number(delay) || 0) })
+        return id
+      },
       clearTimeout(id) { timers.delete(id) },
     },
     createElement(tag) { return new FakeElement(tag, ownerDocument) },
@@ -150,11 +158,12 @@ function mount() {
     addEventListener() {},
   }
   const owner = new AbortController()
-  const definition = createEmbedPlugin({ injectStyles: false, resolvePreview: false })
+  const definition = createEmbedPlugin({ injectStyles: false, resolvePreview: false, ...config })
   let canonical = {
     ...definition.schema.createDefault(),
     service: 'youtube',
     videoId: 'dQw4w9WgXcQ',
+    ...initial,
   }
   let instance
   instance = definition.setup({ t: (_key, fallback) => fallback }).create(canonical, {
@@ -163,6 +172,7 @@ function mount() {
     getData: () => canonical,
     isReadOnly: () => false,
     updateData(producer) {
+      writes++
       canonical = producer(structuredClone(canonical))
       instance.update(canonical)
     },
@@ -171,12 +181,21 @@ function mount() {
     instance,
     ownerDocument,
     model: () => canonical,
+    writes: () => writes,
     pendingTimers: () => timers.size,
     pendingTimerIds: () => [...timers.keys()],
     flushTimers() {
       const queued = [...timers.values()]
       timers.clear()
-      for (const callback of queued) callback()
+      for (const { callback } of queued) callback()
+    },
+    advance(ms) {
+      clock += ms
+      for (const [id, timer] of [...timers]) {
+        if (timer.at > clock || !timers.has(id)) continue
+        timers.delete(id)
+        timer.callback()
+      }
     },
     nativeCommit(next) { canonical = structuredClone(next) },
     external(next) {
@@ -186,6 +205,217 @@ function mount() {
     destroy() { instance.destroy(); owner.abort() },
   }
 }
+
+function deferred() {
+  let resolve, reject
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise
+    reject = rejectPromise
+  })
+  return { promise, resolve, reject }
+}
+
+test('Embed custom preview timeout aborts its resolver and ignores a late result', async () => {
+  const pending = deferred()
+  let request
+  const h = mount({
+    config: { previewTimeoutMs: 25, resolvePreview(value) { request = value; return pending.promise } },
+    initial: { service: 'vimeo', videoId: '12345' },
+  })
+  try {
+    const before = structuredClone(h.model())
+    assert.equal(request.service, 'vimeo')
+    assert.equal(request.videoId, '12345')
+    assert.equal(request.url, 'https://vimeo.com/12345')
+    assert.equal(request.signal.aborted, false)
+    h.advance(24)
+    assert.equal(request.signal.aborted, false, 'The resolver expired before its configured deadline')
+    h.advance(1)
+    assert.equal(request.signal.aborted, true, 'The custom resolver did not receive its configured timeout')
+    pending.resolve({ thumbnailUrl: 'https://example.test/late.jpg', title: 'Late preview' })
+    await pending.promise
+    await Promise.resolve()
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0, 'Preview timeout or completion submitted an author edit')
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed custom preview completes before its deadline without authoring or retaining a timer', async () => {
+  const pending = deferred()
+  let request
+  const h = mount({
+    config: { previewTimeoutMs: 25, resolvePreview(value) { request = value; return pending.promise } },
+    initial: { service: 'vimeo', videoId: '12345' },
+  })
+  try {
+    const before = structuredClone(h.model())
+    h.advance(24)
+    pending.resolve({ thumbnailUrl: 'https://example.test/current.jpg', title: 'Current preview' })
+    await pending.promise
+    await Promise.resolve()
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview')?.getAttribute('src'), 'https://example.test/current.jpg')
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview')?.alt, 'Current preview')
+    assert.equal(request.signal.aborted, false)
+    assert.equal(h.pendingTimers(), 0)
+    h.advance(100)
+    assert.equal(request.signal.aborted, false, 'A completed request retained an obsolete deadline')
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed cancels the default preview deadline even when fetch ignores abort', async () => {
+  const pending = deferred()
+  let signal
+  const h = mount({
+    config: { resolvePreview: undefined, previewTimeoutMs: 25 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    fetch(_url, options) { signal = options.signal; return pending.promise },
+  })
+  try {
+    assert.equal(signal.aborted, false)
+    assert.equal(h.pendingTimers(), 1)
+    h.destroy()
+    assert.equal(signal.aborted, true)
+    assert.equal(h.pendingTimers(), 0, 'Cancellation retained a preview timer until its ignored request settles')
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy(); pending.resolve({ ok: false }); await pending.promise }
+})
+
+test('Embed default preview timeout exposes TimeoutError and ignores a late response', async () => {
+  const pending = deferred()
+  let signal
+  const h = mount({
+    config: { resolvePreview: undefined, previewTimeoutMs: 25 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    fetch(_url, options) { signal = options.signal; return pending.promise },
+  })
+  try {
+    const before = structuredClone(h.model())
+    h.advance(24)
+    assert.equal(signal.aborted, false)
+    h.advance(1)
+    assert.equal(signal.aborted, true)
+    assert.equal(signal.reason?.name, 'TimeoutError', 'Preview expiration must remain distinguishable from lifecycle cancellation')
+    pending.resolve({ ok: true, async json() { return { thumbnail_url: 'https://example.test/late.jpg' } } })
+    await pending.promise
+    await Promise.resolve()
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed contains a preview scheduler failure without an author edit or unhandled rejection', async () => {
+  const failure = new Error('Controlled owner-document scheduler failure')
+  const h = mount({
+    config: { resolvePreview: undefined },
+    initial: { service: 'vimeo', videoId: '12345' },
+    schedule() { throw failure },
+    async fetch() { return { ok: true, async json() { return { thumbnail_url: 'https://example.test/preview.jpg' } } } },
+  })
+  try {
+    const before = structuredClone(h.model())
+    // Let Node report an unhandled rejected void resolver promise if it escaped.
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
+})
+
+for (const [label, configured, deadline] of [
+  ['omitted', undefined, 5000],
+  ['non-finite', Infinity, 5000],
+  ['negative', -25, 0],
+]) test(`Embed custom preview uses the documented ${label} deadline`, () => {
+  let signal
+  const h = mount({
+    config: { previewTimeoutMs: configured, resolvePreview(request) {
+      signal = request.signal
+      return new Promise(() => {})
+    } },
+    initial: { service: 'vimeo', videoId: '12345' },
+  })
+  try {
+    if (deadline) h.advance(deadline - 1)
+    assert.equal(signal.aborted, false)
+    h.advance(deadline ? 1 : 0)
+    assert.equal(signal.aborted, true)
+    assert.equal(signal.reason?.name, 'TimeoutError')
+    assert.equal(h.pendingTimers(), 0)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed disabled preview acquires neither a fetch request nor a deadline', () => {
+  let fetches = 0
+  const h = mount({
+    config: { resolvePreview: false, previewTimeoutMs: 0 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    async fetch() { fetches++; return { ok: false } },
+  })
+  try {
+    h.advance(5000)
+    assert.equal(fetches, 0)
+    assert.equal(h.pendingTimers(), 0)
+    assert.equal(h.writes(), 0)
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+  } finally { h.destroy() }
+})
+
+test('Embed default preview completes before its deadline without retaining a timer', async () => {
+  const pending = deferred()
+  let signal
+  const h = mount({
+    config: { resolvePreview: undefined, previewTimeoutMs: 25 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    fetch(_url, options) { signal = options.signal; return pending.promise },
+  })
+  try {
+    const before = structuredClone(h.model())
+    h.advance(24)
+    pending.resolve({ ok: true, async json() { return { thumbnail_url: 'https://example.test/current.jpg', title: 'Current preview' } } })
+    await pending.promise
+    await Promise.resolve()
+    const preview = h.instance.element.querySelector('.oe-embed__preview')
+    assert.equal(preview?.getAttribute('src'), 'https://example.test/current.jpg')
+    assert.equal(preview?.alt, 'Current preview')
+    assert.equal(h.pendingTimers(), 0)
+    h.advance(100)
+    assert.equal(signal.aborted, false)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed preview settlement preserves an adopted placeholder', async () => {
+  const pending = deferred()
+  const h = mount({
+    config: { resolvePreview: () => pending.promise },
+    initial: { service: 'vimeo', videoId: '12345' },
+  })
+  try {
+    const before = structuredClone(h.model())
+    const placeholder = h.instance.element.querySelector('.oe-embed__placeholder')
+    const foreign = h.ownerDocument.createElement('aside')
+    foreign.append(placeholder)
+    placeholder.textContent = 'Foreign preview sentinel'
+    const html = foreign.innerHTML
+    pending.resolve({ thumbnailUrl: 'https://example.test/current.jpg', title: 'Current preview' })
+    await pending.promise
+    await Promise.resolve()
+    assert.equal(placeholder.parentNode, foreign, 'A captured preview was removed after another owner adopted it')
+    assert.equal(foreign.innerHTML, html)
+    assert.deepEqual(foreign.children, [placeholder])
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+  } finally { h.destroy() }
+})
 
 function caption(instance) {
   return instance.editableFields().find(field => field.key === 'caption')?.element

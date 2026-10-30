@@ -1,0 +1,21 @@
+{
+  "source": "6c2a48d1ea4ebd0014bd2fb4573738db2c3593e6",
+  "run": "run-MKgB9Y",
+  "verifiedPayloads": 62,
+  "verifiedOriginals": 62,
+  "verifiedRunnerFiles": 9,
+  "originalCommitIdentityVerified": true,
+  "nativeCases": 2481,
+  "nativeGroups": 43,
+  "physicalGroups": 2,
+  "historyCases": 14,
+  "splitCaseMultiset": {
+    "count": 376,
+    "matchesOriginal": true
+  },
+  "heapSentinels": 23,
+  "heapRetained": 0,
+  "sourceUnchanged": true,
+  "c11Outcome": "passed",
+  "verificationSha256": "dc870246a173518b92bc2daeaf1d87d515216a25d6e9ec9709619cb5a1f6e48e"
+}

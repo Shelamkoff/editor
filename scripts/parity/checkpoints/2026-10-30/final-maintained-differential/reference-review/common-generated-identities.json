@@ -1,0 +1,1634 @@
+{
+  "current": {
+    "path": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification/test-results/run-AYPL00/common-parity.log",
+    "rawSha256": "767fe0fbeedfd21a52b12611684ec36466b949b811b0b3c41cda0c337d1c7290"
+  },
+  "archived": {
+    "path": "/workspace/scratch/61a2ad7355f4/worktrees/final-differential-verification/scripts/parity/checkpoints/2026-10-30/continuation-61a-integration/runs/run-fDStBT/common-parity.log.gz",
+    "rawSha256": "228c167f18f76522dd5d5e28a095c6a40593b316259431cce9c17fcab7207718"
+  },
+  "observedFailureCount": 1339,
+  "archivedFailureCount": 1339,
+  "exactMatchedFailureCount": 1329,
+  "exactSignatureEquality": false,
+  "newOrChanged": [
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "phase": "load",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "phase": "read-only",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "phase": "editable-again",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "1zfeml",
+          "type": "person"
+        }
+      ],
+      "phase": "undo",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "phase": "load",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "phase": "read-only",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "phase": "editable-again",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "phase": "edit",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "phase": "undo",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-QOvNFC",
+          "type": "table"
+        }
+      ],
+      "phase": "redo",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    }
+  ],
+  "missingOrChanged": [
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "phase": "load",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "phase": "read-only",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "phase": "editable-again",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "persons": []
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "case": "BLOCK_PERSON_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "persons": [
+              {
+                "avatar": "",
+                "bio": [],
+                "links": [],
+                "name": [],
+                "role": []
+              }
+            ]
+          },
+          "id": "45HZ6v",
+          "type": "person"
+        }
+      ],
+      "phase": "undo",
+      "property": "canonicalRecords",
+      "source": "v1",
+      "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "phase": "load",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "phase": "read-only",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "phase": "editable-again",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "phase": "edit",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "phase": "undo",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    },
+    {
+      "actual": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  }
+                ],
+                "id": "row-0"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "case": "BLOCK_TABLE_ROUNDTRIP/default",
+      "expected": [
+        {
+          "data": {
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "id": "cell-0-0",
+                    "text": [
+                      "X"
+                    ]
+                  },
+                  {
+                    "id": "cell-0-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-0-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-0"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-1-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-1-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-1"
+              },
+              {
+                "cells": [
+                  {
+                    "id": "cell-2-0",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-1",
+                    "text": []
+                  },
+                  {
+                    "id": "cell-2-2",
+                    "text": []
+                  }
+                ],
+                "id": "row-2"
+              }
+            ],
+            "withHeadings": false
+          },
+          "dataVersion": 2,
+          "id": "table-NBpAxl",
+          "type": "table"
+        }
+      ],
+      "phase": "redo",
+      "property": "canonicalRecords",
+      "source": "spec-baseline",
+      "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "status": "FAIL"
+    }
+  ],
+  "fieldDifferences": [
+    {
+      "key": {
+        "case": "BLOCK_PERSON_ROUNDTRIP/default",
+        "phase": "load",
+        "property": "canonicalRecords",
+        "source": "v1",
+        "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_PERSON_ROUNDTRIP/default",
+        "phase": "read-only",
+        "property": "canonicalRecords",
+        "source": "v1",
+        "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_PERSON_ROUNDTRIP/default",
+        "phase": "editable-again",
+        "property": "canonicalRecords",
+        "source": "v1",
+        "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_PERSON_ROUNDTRIP/default",
+        "phase": "undo",
+        "property": "canonicalRecords",
+        "source": "v1",
+        "sourceSha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "1zfeml",
+          "archived": "45HZ6v"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_TABLE_ROUNDTRIP/default",
+        "phase": "load",
+        "property": "canonicalRecords",
+        "source": "spec-baseline",
+        "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_TABLE_ROUNDTRIP/default",
+        "phase": "read-only",
+        "property": "canonicalRecords",
+        "source": "spec-baseline",
+        "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_TABLE_ROUNDTRIP/default",
+        "phase": "editable-again",
+        "property": "canonicalRecords",
+        "source": "spec-baseline",
+        "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_TABLE_ROUNDTRIP/default",
+        "phase": "edit",
+        "property": "canonicalRecords",
+        "source": "spec-baseline",
+        "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_TABLE_ROUNDTRIP/default",
+        "phase": "undo",
+        "property": "canonicalRecords",
+        "source": "spec-baseline",
+        "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        }
+      ]
+    },
+    {
+      "key": {
+        "case": "BLOCK_TABLE_ROUNDTRIP/default",
+        "phase": "redo",
+        "property": "canonicalRecords",
+        "source": "spec-baseline",
+        "sourceSha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "status": "FAIL"
+      },
+      "changedFields": [
+        {
+          "path": "/actual/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        },
+        {
+          "path": "/expected/0/id",
+          "current": "table-QOvNFC",
+          "archived": "table-NBpAxl"
+        }
+      ]
+    }
+  ],
+  "policy": "Descriptions retain exact source SHAs and raw payloads. They are not classifiers and do not change exit codes, statuses or the acceptance ledger.",
+  "boundedFinding": "Exactly ten unmatched observations differ only in the generated top-level block id, consistently present in actual and expected. Existing maintained classifiers returned exit 0; exact archive signature equality remains false."
+}

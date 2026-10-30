@@ -1,0 +1,151 @@
+{
+  "base": "936bf0a77218bbd46e7706744ad3a360ecf6af18",
+  "head": "e8ef275d6be39b2b502b2e61c37f480d2bcfa797",
+  "files": {
+    "scripts/parity/block-roundtrip.md": "0f5638102fb46fc8f65cb79c377367b70b2114ca4c9c38dd18535b85c8ff7464",
+    "scripts/parity/block-roundtrip.mjs": "0c56f464abd549f3abe36a435956115bc86ce341803313f8895544c92a5fba26",
+    "tests/browser/block-roundtrip-fixture.js": "1b43641172acd4c4e21590365926208673374e3256a7721ababdbf9d2344d71d"
+  },
+  "patch": "/tmp/rector-person-roundtrip-final-review-v2.patch",
+  "patchSha256": "6a2b1b42fb59c0557293ca916903ec48c197c1d68fcb9b567bbd0e141e062128",
+  "runtimeSixHashesVerified": {
+    "plugins/person/index.js": "cc9e97768ad60bcf3baf155a48cdcee3ecfd029e6841a10eda948255236ecc87",
+    "renderer/renderers/person/index.js": "b8b0aa407e1809c36c75ccd4839557e16614a22d672abbe19b74c3517ae7f8c9",
+    "plugins/person/reconciliation.test.js": "4dbaaeab234dd3f79effcc81fc93f925b42ec6168474566bedd8224bd2a92309",
+    "tests/browser/projection-contracts.js": "d1227d780b49ad8cb1b1c01de8c366e73f68d8819cfac0902629b4fc2260767d",
+    "tests/browser/regressions/person-derived-presentation.js": "618d82e0efc874d437b689b421488a7a6693b275788de748f01a6b3aafed4c01",
+    "tests/browser/native-plugin-controls.js": "99673d307ca3ccb6fa413d98743053cc582c3f42b4b902f47c7a3afd22b844fa"
+  },
+  "raw": {
+    "path": "/tmp/rector-person-normalized-raw.json",
+    "sha256": "9d14138ad45333d933e2040e66c1390abb6425a4c2d83079ffab30de575ae126",
+    "currentObservations": 906,
+    "currentFailures": 0,
+    "v1Unsupported": 90,
+    "v1Repaired": 61,
+    "specBaselineRepaired": 24,
+    "specBaselineIncomplete": 2
+  },
+  "offlineClassification": {
+    "status": "PASS",
+    "root": "/tmp/rector-person-final-roundtrip-20261029",
+    "rawPath": "/tmp/rector-person-normalized-raw.json",
+    "runnerSha256": "0c56f464abd549f3abe36a435956115bc86ce341803313f8895544c92a5fba26",
+    "classifierSha256": "921f43f5e59804f265404a00a8f078a14772851e88d91acb648babad1a297d18",
+    "rawSha256": "9d14138ad45333d933e2040e66c1390abb6425a4c2d83079ffab30de575ae126",
+    "positives": 175,
+    "negativeFamilies": {
+      "candidate source": 175,
+      "unknown source": 175,
+      "similar future case": 175,
+      "unknown phase": 175,
+      "wrong status": 175,
+      "unobserved property": 175,
+      "changed actual value": 175,
+      "changed expected value": 175,
+      "missing completed phase": 175,
+      "changed canonical record": 175,
+      "missing phase snapshot": 175,
+      "changed history actual": 175,
+      "changed history expected": 175,
+      "duplicate history observation": 175
+    },
+    "negativeCount": 2450,
+    "changedNativeOwnerNegativeCount": 12,
+    "bySource": {
+      "v1": {
+        "rawFailures": 151,
+        "categories": {
+          "repaired": 61,
+          "unsupported": 90
+        },
+        "classifications": {
+          "repaired-v1-person-fallback-label": 4,
+          "repaired-v1-person-mode-remount": 16,
+          "repaired-v1-person-native-tab-label": 1,
+          "repaired-v1-person-history-remount": 16,
+          "repaired-v1-person-empty-history-caret": 2,
+          "unsupported-v1-person-field-sidecars": 12,
+          "unsupported-v1-person-widget-tab-label": 12,
+          "unsupported-v1-person-field-widgets": 36,
+          "unsupported-v1-person-widget-avatar-alternative": 24,
+          "unsupported-v1-person-widget-caret": 6,
+          "repaired-v1-person-first-undo-caret": 3,
+          "repaired-v1-person-literal-tab-label": 6,
+          "repaired-v1-person-avatar-alternative": 12,
+          "repaired-v1-person-literal-redo-caret": 1
+        }
+      },
+      "spec-baseline": {
+        "rawFailures": 24,
+        "categories": {
+          "repaired": 24,
+          "unsupported": 0
+        },
+        "classifications": {
+          "repaired-baseline-person-fallback-label": 4,
+          "repaired-baseline-person-widget-tab-label": 2,
+          "repaired-baseline-person-avatar-alternative": 16,
+          "repaired-baseline-person-mode-field-replacement": 2
+        }
+      },
+      "candidate": {
+        "rawFailures": 0,
+        "categories": {
+          "repaired": 0,
+          "unsupported": 0
+        },
+        "classifications": {}
+      }
+    },
+    "note": "Offline classifier sensitivity only. Raw failures and incomplete phases are unchanged; no browser gate is credited."
+  },
+  "offlinePlaceholder": {
+    "positive": 1,
+    "negative": [
+      "native X",
+      "avatar only",
+      "role only",
+      "bio only",
+      "link only",
+      "multiple blank profiles",
+      "no profile",
+      "current profile ID",
+      "whitespace name",
+      "inline payload",
+      "explicit empty sidecar map",
+      "explicit undefined sidecar map",
+      "unknown profile content",
+      "unknown data content",
+      "another block type",
+      "multiple blocks",
+      "candidate source",
+      "populated case",
+      "similar future case"
+    ],
+    "negativeCount": 19,
+    "status": "PASS",
+    "root": "/tmp/rector-person-final-roundtrip-20261029"
+  },
+  "offlineFiles": {
+    "/tmp/rector-person-classification-check.mjs": "1991d76b35125324ea0603c6f3747d92e9e8d0aad62b85025c451c70cb4b2cb1",
+    "/tmp/rector-person-classification-check.json": "7083bb7d9df4ffce0f2e0e7997fd5683900bbb2e784d3dfe348e788783ce620c",
+    "/tmp/rector-person-placeholder-controls-merged.mjs": "9846aecbba747bf8463c3b1ad073acb664ef38ac714025611f78593b76407fdb",
+    "/tmp/rector-person-merged-placeholder-controls.json": "04d6e15b2c70425f97ffdf39f056a1121caf88bad8bdd1c2fdd5e137ad5a025e"
+  },
+  "definitionMerge": {
+    "previous47Unchanged": true,
+    "person4Unchanged": true,
+    "total": 51,
+    "onlyConflict": "Adjacent Image and Person additions; both restored from exact original segments."
+  },
+  "limits": [
+    "No full51/native51 run yet; awaiting classifier review.",
+    "Inactive unprojected rich-name labels remain OPEN.",
+    "Original raw runs and failures retained; no reference record rewrite or candidate exception."
+  ],
+  "previousReview": {
+    "head": "6f491b21f18914824274b86d04b0d559434cf708",
+    "delta": "README scope sentence lists Person and51 instead of47; executable bytes unchanged."
+  }
+}

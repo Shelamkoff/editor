@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "testedSource": "ed4222f5b66a36aa9f5f88be62d4efeb369202e1",
+  "artifacts": [
+    {
+      "path": "runs/run-iSS2vy/completed-label-red.log.gz",
+      "storedBytes": 568,
+      "storedSha256": "97bb9d965a666ed5d4bae6850db61312d9569b81a8eba20bb63ed206ad51dd0b",
+      "uncompressedBytes": 1447,
+      "uncompressedSha256": "31c8c395505eb4d98a5d90d06186c8964cfe865f7be5cef0b3f46518a1c65649",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-iSS2vy/completed-label-red.log"
+    },
+    {
+      "path": "runs/run-iSS2vy/completed-label-red.wrapper.log.gz",
+      "storedBytes": 568,
+      "storedSha256": "97bb9d965a666ed5d4bae6850db61312d9569b81a8eba20bb63ed206ad51dd0b",
+      "uncompressedBytes": 1447,
+      "uncompressedSha256": "31c8c395505eb4d98a5d90d06186c8964cfe865f7be5cef0b3f46518a1c65649",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-iSS2vy/completed-label-red.wrapper.log"
+    },
+    {
+      "path": "runs/run-iSS2vy/manifest.json",
+      "storedBytes": 3556,
+      "storedSha256": "127757fb14fb13946eec1d803b9701e11389d237195db415a2e40347f6516db2",
+      "uncompressedBytes": 3556,
+      "uncompressedSha256": "127757fb14fb13946eec1d803b9701e11389d237195db415a2e40347f6516db2",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-iSS2vy/manifest.json"
+    },
+    {
+      "path": "runs/run-NWrLV1/manifest.json",
+      "storedBytes": 10692,
+      "storedSha256": "1aabf9054aecffb91d30f9545c846aab875299ac5c942eef07577d60808b0919",
+      "uncompressedBytes": 10692,
+      "uncompressedSha256": "1aabf9054aecffb91d30f9545c846aab875299ac5c942eef07577d60808b0919",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/manifest.json"
+    },
+    {
+      "path": "runs/run-NWrLV1/native-poll.log.gz",
+      "storedBytes": 716,
+      "storedSha256": "f9135fad2819a1190ea14d07fd1281167cd7d42be13d3c5b4ce0cce9c7bfe560",
+      "uncompressedBytes": 2929,
+      "uncompressedSha256": "8cfa592cbd020b8637dcbb341ed494e95aa87e5acf62d2a5065f8521be9158f1",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/native-poll.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/native-poll.wrapper.log.gz",
+      "storedBytes": 716,
+      "storedSha256": "f9135fad2819a1190ea14d07fd1281167cd7d42be13d3c5b4ce0cce9c7bfe560",
+      "uncompressedBytes": 2929,
+      "uncompressedSha256": "8cfa592cbd020b8637dcbb341ed494e95aa87e5acf62d2a5065f8521be9158f1",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/native-poll.wrapper.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/poll-state.log.gz",
+      "storedBytes": 1011,
+      "storedSha256": "68640849ea35a8cef5bcc37ecf7c46354ad53afe7cc5d36f0805100bfb7df9c5",
+      "uncompressedBytes": 2411,
+      "uncompressedSha256": "7a4422a360b465e97b2dc22384750fee736bb66d655cc51ba7185e9c67b7a8d8",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/poll-state.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/poll-state.wrapper.log.gz",
+      "storedBytes": 1011,
+      "storedSha256": "68640849ea35a8cef5bcc37ecf7c46354ad53afe7cc5d36f0805100bfb7df9c5",
+      "uncompressedBytes": 2411,
+      "uncompressedSha256": "7a4422a360b465e97b2dc22384750fee736bb66d655cc51ba7185e9c67b7a8d8",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/poll-state.wrapper.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/poll-units.log.gz",
+      "storedBytes": 735,
+      "storedSha256": "903c236cf586524e315cd4dc69bbd3b67ed78c73694eb8dca5294372a7b51e98",
+      "uncompressedBytes": 1424,
+      "uncompressedSha256": "b5d81182973a1a46f6a96afc9b9b0795abd51ba4dd6cc3235f10c3de0a970e29",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/poll-units.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/poll-units.wrapper.log.gz",
+      "storedBytes": 735,
+      "storedSha256": "903c236cf586524e315cd4dc69bbd3b67ed78c73694eb8dca5294372a7b51e98",
+      "uncompressedBytes": 1424,
+      "uncompressedSha256": "b5d81182973a1a46f6a96afc9b9b0795abd51ba4dd6cc3235f10c3de0a970e29",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/poll-units.wrapper.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/projection.log.gz",
+      "storedBytes": 4496,
+      "storedSha256": "5e67e5ccf0c5fd9958cad91bcb8d4c8231be98fa0f867173d51784f7e5766af2",
+      "uncompressedBytes": 25886,
+      "uncompressedSha256": "4028036070c21e6433f6a698d56e87d76d534b066f0712d94cb39891e65d242d",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/projection.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/projection.wrapper.log.gz",
+      "storedBytes": 4496,
+      "storedSha256": "5e67e5ccf0c5fd9958cad91bcb8d4c8231be98fa0f867173d51784f7e5766af2",
+      "uncompressedBytes": 25886,
+      "uncompressedSha256": "4028036070c21e6433f6a698d56e87d76d534b066f0712d94cb39891e65d242d",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/projection.wrapper.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/types.log.gz",
+      "storedBytes": 185,
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "uncompressedBytes": 259,
+      "uncompressedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/types.log"
+    },
+    {
+      "path": "runs/run-NWrLV1/types.wrapper.log.gz",
+      "storedBytes": 185,
+      "storedSha256": "24445f97dcde24deef33474b84a38a8fa876e20aef54d4bb968efa1bc7e8c7d2",
+      "uncompressedBytes": 259,
+      "uncompressedSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b",
+      "encoding": "gzip",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current/test-results/run-NWrLV1/types.wrapper.log"
+    },
+    {
+      "path": "source-final.patch.gz",
+      "storedBytes": 11653,
+      "storedSha256": "063294271afaba4fc60265bf9a93ef7134695caf71b3bf9fae890c71db9594d4",
+      "uncompressedBytes": 43504,
+      "uncompressedSha256": "c2da3bb737f857731ed3e18db9a97d4b0cb085bd49234ef4b14287a9ca393612",
+      "encoding": "gzip"
+    },
+    {
+      "path": "source-continuation.mbox.gz",
+      "storedBytes": 78356,
+      "storedSha256": "fc3319935621bfe1fa756cfb921fd4fad2be30cd708e6dd81272f4f965186e7d",
+      "uncompressedBytes": 218754,
+      "uncompressedSha256": "8878d1adb435ad7e1cfd7a20ec1e625876fe0ce3618688cd5c15528f7bdf17e8",
+      "encoding": "gzip"
+    },
+    {
+      "path": "poll-completed-value-review.patch",
+      "storedBytes": 7842,
+      "storedSha256": "05e0d55201857e51b7afc279860766d059c2e73654345beac647ed5fbb745ce2",
+      "uncompressedBytes": 7842,
+      "uncompressedSha256": "05e0d55201857e51b7afc279860766d059c2e73654345beac647ed5fbb745ce2",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-completed-value-review.patch"
+    },
+    {
+      "path": "poll-completed-followup-gates.py",
+      "storedBytes": 1888,
+      "storedSha256": "925baa059b5362c9ac03504afae97248a78a124494ee2a7141c026b50636c9f5",
+      "uncompressedBytes": 1888,
+      "uncompressedSha256": "925baa059b5362c9ac03504afae97248a78a124494ee2a7141c026b50636c9f5",
+      "encoding": "identity",
+      "originalPath": "/workspace/scratch/61a2ad7355f4/worktrees/poll-completed-followup-gates.py"
+    },
+    {
+      "path": "completed-tests-review.patch",
+      "storedBytes": 3718,
+      "storedSha256": "63a36dfd1bebccc7b0993a3fd7e255f8042009879290c2b0cc1f59982c95aa35",
+      "uncompressedBytes": 3718,
+      "uncompressedSha256": "63a36dfd1bebccc7b0993a3fd7e255f8042009879290c2b0cc1f59982c95aa35",
+      "encoding": "identity"
+    },
+    {
+      "path": "summary.json",
+      "storedBytes": 6178,
+      "storedSha256": "8660c3e47b07163b4222e0b2ff3739c9d0ee410a0b45a60bae8b3f379813a476",
+      "uncompressedBytes": 6178,
+      "uncompressedSha256": "8660c3e47b07163b4222e0b2ff3739c9d0ee410a0b45a60bae8b3f379813a476",
+      "encoding": "identity"
+    },
+    {
+      "path": "README.md",
+      "storedBytes": 3886,
+      "storedSha256": "1e420bc6be862a507790f1f5de581858c3f4606c51d5b168de59f74d84cf26f2",
+      "uncompressedBytes": 3886,
+      "uncompressedSha256": "1e420bc6be862a507790f1f5de581858c3f4606c51d5b168de59f74d84cf26f2",
+      "encoding": "identity"
+    },
+    {
+      "path": "tests-final-review.patch",
+      "storedBytes": 19604,
+      "storedSha256": "349c21724ab749dbc74c0295d0d5cd79ec581e5477fdf041071751d45d98d560",
+      "uncompressedBytes": 19604,
+      "uncompressedSha256": "349c21724ab749dbc74c0295d0d5cd79ec581e5477fdf041071751d45d98d560",
+      "encoding": "identity"
+    },
+    {
+      "path": "runtime-final-review.patch",
+      "storedBytes": 23900,
+      "storedSha256": "37ade8b933519bc68f34dbbb615cfcb9abc0b387c216513266e60212bc095599",
+      "uncompressedBytes": 23900,
+      "uncompressedSha256": "37ade8b933519bc68f34dbbb615cfcb9abc0b387c216513266e60212bc095599",
+      "encoding": "identity"
+    }
+  ]
+}

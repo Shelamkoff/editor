@@ -1,0 +1,35 @@
+diff --git a/tests/browser/block-roundtrip-fixture.js b/tests/browser/block-roundtrip-fixture.js
+index e4642cf8..f0e22dff 100644
+--- a/tests/browser/block-roundtrip-fixture.js
++++ b/tests/browser/block-roundtrip-fixture.js
+@@ -279,6 +279,21 @@ async function settled() {
+   await pause(20)
+ }
+ 
++// Expected-wire adjustment for the pinned legacy runner only. The source is
++// the fixed expected fixture, never an initial save. v1 omits its sole wholly
++// empty draft profile; current Person keeps that placeholder's stable ID.
++export function expectedLegacyPersonPlaceholder(records, { legacy, caseId }) {
++  if (!legacy || caseId !== 'BLOCK_PERSON_ROUNDTRIP/default' || records.length !== 1) return records
++  const [block] = records
++  if (block.type !== 'person' || Object.hasOwn(block, 'inline')
++    || Object.keys(block.data).join() !== 'persons' || block.data.persons.length !== 1) return records
++  const [profile] = block.data.persons
++  if (Object.keys(profile).sort().join() !== 'avatar,bio,links,name,role'
++    || ['avatar', 'name', 'role', 'bio'].some(key => profile[key] !== '')
++    || !Array.isArray(profile.links) || profile.links.length !== 0) return records
++  return [{ ...block, data: { persons: [] } }]
++}
++
+ export async function runBlockRoundtripCase(specification, { sourceBase, legacy = false, focusField, typeText, shortcut, onPhase }) {
+   const noEditableField = specification.noEditableField === true
+   const emptyImage = specification.type === 'image' && !specification.populated
+@@ -690,7 +705,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy
+       snapshots[phase] = saved.blocks
+       const expected = expectedBlocks(text)
+       const target = expected.find(block => block.id === id)
+-      check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expected))
++      check(phase, 'canonicalRecords', canonical(saved.blocks), canonical(expectedLegacyPersonPlaceholder(expected, { legacy, caseId: specification.id })))
+       if (hasAuthoring) {
+         check(phase, 'editorFieldTag', field().tagName, noEditableField ? 'P' : specification.type === 'table' ? baseData.withHeadings ? 'TH' : 'TD' : specification.fieldTag ?? (plainField ? 'TEXTAREA' : specification.type === 'list' ? 'LI' : expectedTag(target)))
+         if (plainField) {

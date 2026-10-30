@@ -1,0 +1,68 @@
+{
+  "diagnosticOnly": true,
+  "caseCount": 376,
+  "caseFailures": [],
+  "groups": {
+    "Code copy ownership:": {
+      "cases": 10,
+      "elapsedMs": 12286.0
+    },
+    "Text block settings parity": {
+      "cases": 21,
+      "elapsedMs": 17399.39999999851
+    },
+    "Columns layout": {
+      "cases": 13,
+      "elapsedMs": 13550.0
+    },
+    "Columns": {
+      "cases": 22,
+      "elapsedMs": 15455.599999997765
+    },
+    "Table authoring": {
+      "cases": 0,
+      "elapsedMs": 0
+    }
+  },
+  "lastCases": [
+    {
+      "name": "Gallery retired settings controls cannot mutate refreshed canonical data",
+      "status": "PASS",
+      "elapsedMs": 91.39999999850988
+    },
+    {
+      "name": "Checklist Enter on visually empty markup exits to default block and Undo restores it",
+      "status": "PASS",
+      "elapsedMs": 36.80000000074506
+    },
+    {
+      "name": "List Enter on trailing visually empty markup inserts a new paragraph in one history action",
+      "status": "PASS",
+      "elapsedMs": 43.900000002235174
+    },
+    {
+      "name": "destroyed block and inline toolbar buttons do not consume late browser events",
+      "status": "PASS",
+      "elapsedMs": 3
+    }
+  ],
+  "deadlineObservation": [
+    {
+      "elapsedMs": 120035,
+      "status": "running",
+      "completed": 313,
+      "current": {
+        "name": "Literal source conversion to Quote keeps markup as text and newlines",
+        "startedAt": 119876.69999999925
+      },
+      "currentElapsedMs": 562.6999999992549
+    }
+  ],
+  "final": [
+    {
+      "elapsedMs": 130307,
+      "status": "pass",
+      "completed": 376
+    }
+  ]
+}

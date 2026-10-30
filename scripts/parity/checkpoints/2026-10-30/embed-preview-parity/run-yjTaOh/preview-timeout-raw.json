@@ -1,0 +1,1448 @@
+{
+  "startedAt": "2026-10-30T19:10:14.132Z",
+  "completedAt": "2026-10-30T19:10:17.305Z",
+  "node": "v24.22.1",
+  "browser": "156.0.8078.47",
+  "platform": "linux x64",
+  "runnerSha256": "4f8ae66b7f0763edc616e898003bf184a53f2ab7e1752fb8426b6401a6ff7ad4",
+  "fixtureSha256": "dd30c565279cb69ebf0929ccf527d94c2e6e2f8260b7d425731f914c30de4ac9",
+  "headBefore": "80ba594f31ff177619f59979779946097604ea9a",
+  "headAfter": "80ba594f31ff177619f59979779946097604ea9a",
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "legacy": true,
+      "loaded": {
+        "core/index.js": "a7ac12ad5154d39819a1dddfddff89c29ac47c8794e31ecf0150613b7db920a2",
+        "core/dom.js": "00f1f88a2ce99afdad892748683c2dbc442edc5efc79a3f50697e2c8a20aa794",
+        "core/editorEvents.js": "7258344951e7f6e6369b99f69f5658b5b39870bbb5cfe6ef85fb5c72387a78d0",
+        "core/I18n.js": "1dbf4c12667b132eb697e15ec5fe05deacce0b7e6043a8e6fab710a3bcd106cd",
+        "core/DocumentSnapshotStore.js": "215d2174d33222620311b11a0bcbc1552ce770ad5788717d944a1e3dcb3b8c3c",
+        "core/DocumentSchema.js": "3099b7f612bc8de273449abef5bb4cbff2bac94a85fb8a8dd5fd18f034d21660",
+        "core/EditorFacade.js": "c73946f10188d60dac37d483e5236280dff2a310ff07c07e83095ddc58ae4167",
+        "core/BlockManager.js": "18e13a75a13edf872bdf38c4a48545101c01a23e48c9432eb15262495345dede",
+        "core/Diagnostics.js": "7563df5d4ac521cccf842df241e95e8393c60dade389fa1f4d4ac60b6b7c8462",
+        "core/PublicEditorApi.js": "f95475f9eff8572217f3fc24e8fa247039823766fc8680bf8833bcd460d36149",
+        "core/BlockOperations.js": "4ca924173c68e380eb1fd2fd8ec442f930e30dc06670165274bc462e140991f0",
+        "core/ShortcutRegistry.js": "cea52864fbd00b83f02c91c20522993a65f012efbe76a3cd7245b435e09ea760",
+        "core/SelectionManager.js": "c5880d321db61b6800c492237d03375bb78ba46169885206bc5ac665986be535",
+        "core/toolbar/Toolbar.js": "bf249dcc992908a563e0ee82c97728a95b08cb835640215c4bc0d49a909b22c6",
+        "core/inline-toolbar/InlineToolbar.js": "b18ffbefc6e7c76138a14e9b0140f8f325689e09b02e1e720520e536d82622d6",
+        "core/TypeSelector.js": "083f6f0c679ab4933623c90765f12535f9c29a853f03a9225f56030c782b0eae",
+        "core/KeyboardManager.js": "912d8e901e258715450761d9eb50e21caeeb93dc8188ccb39b136412be4bd7ba",
+        "core/UndoManager.js": "0317e7c157695e68a7d4024473e5cc697618f913230e340db37843298e86e97d",
+        "core/CommandDispatcher.js": "dc4b5e772a8ffce38540fe13168fa15ed42163345937c1a190309a0b7255db16",
+        "core/clipboard/Clipboard.js": "31b7e3ffe77ebaa17626db27b10a9a89cf6cfa0b0538c4bb2a6e8dcb51c6f3a8",
+        "core/DragManager.js": "1791ae47eee1459566afaaedf9c474e3f3d0e9c9cde0778f24fd7852f15a64f2",
+        "core/CrossBlockSelection.js": "36c7d4ba0184f7825f2fac6e1dd37c1d4f64c096e4cfeba65ce9d53b132208b0",
+        "core/ChangeNotifier.js": "33c89c492755a944ebb2c1db08e03168d9b2893279548de9119449997bd05947",
+        "inline-tools/defaults.js": "e2785d924719534787916a110ab4e459397bd901f01387379b40278ef56d88f9",
+        "core/SlashCommands.js": "cd7837ad044e7c0d0066232ec847a4e9dbc5a8225b2cafec07d9151de24c3812",
+        "core/MouseSelectionManager.js": "87f6891d0122d40703002abe2b939866e8ec422c5821afae5a17b056e9ff34e9",
+        "core/hydrateInlinePlugins.js": "e8867a4b3606a6c7b1661a0b8a3a1ffd38bab573f6263884d7b3cdf1999e7b3c",
+        "core/TriggerManager.js": "dd4928499f2ea8a5e1c5cb5a35f53b890ae18c229843b864a435a178d7dcf725",
+        "core/InlinePluginRegistry.js": "c1fb7fc9f2e5362a9846263665ae7765af3a06843cd25b50c53753bc5f3da362",
+        "core/InlinePatternMatcher.js": "0c5ca004b402a485cffcc5b4212cf1a0bda876233cb41c254b003855277a04e4",
+        "core/PopupManager.js": "3fe99468c5aabed69add9fb76a368aff2a601af8e2de37ea7b655e1849348764",
+        "core/StyleInjector.js": "9e59a81f18e8b07f4b7e6a22883b490b24e2ba4c0a06e65c08aa90353b4b5a1e",
+        "core/config.js": "c6efda594ad1c27bc75066bf88f722b9abc0259fc74477695802d0d2e0dd03b4",
+        "core/constants.js": "f5b652974812164cfb8c7766051b9d821f4be07028246b18d95945991e208482",
+        "core/PluginOwnership.js": "847f0d0a8f2d9d7b91f2df0691885762232ea8e51c912414394d95e84ac4caaf",
+        "core/EditorHolderOwnership.js": "784cbc48c863ca890b1b6fc8ca0eb3bdba09d5a701e200d98f4e8ab0574b544d",
+        "core/LifecycleScope.js": "4c9a2ad4a26e5c1b1867ed87ca9cdd51dfb2adb045f8cec5252f48bd628c6d8b",
+        "core/locale/en.js": "e0c8a84dcda1d2b760f1bef15bfafd60117e0162318f3671c641c564e019b54d",
+        "core/uid.js": "891151e52f705a6180b11bad1f22bf82a8922dd3c4981dc0819c4a27b0f24e04",
+        "core/sanitize.js": "6f523d2efebcfc183910ed52de08f67045c79016873a0d847359feb7f6f7973c",
+        "inline-plugins/color.js": "a087ed6d01496b2d92b29dadc379681e3848779391e390d664e0f54b7b662d19",
+        "inline-plugins/mention/index.js": "306748a777187f2053c804158bd60eb174d281aa82b55921b98c6cee836861c5",
+        "shared/inlineMarshal.js": "4df515f717ee82ee3826ef317028b80b687e7da99fb31a2748b9d7dccfa474d9",
+        "shared/cloneEditorData.js": "a83ee55b99318ca778a0a35c0d11f9d31018a13c113f0cac7856c920088ac792",
+        "core/inlinePluginInsert.js": "3ad438a50835b9b399f6fc1a4a2fff9975fba40aaba0b1d4145b71f3205ec3d1",
+        "core/Block.js": "02646a0d87a787ac2e7b1b50e50df0e385473e4b35b56211c3f2aee04eb95b16",
+        "core/PreservedBlockPlugin.js": "81b471a52a86fc8e353ed9cb4fccbcb7493ce0a7f1bbe36cec3d6758ccb456b0",
+        "core/textOffset.js": "437b1200624511eb1c6336a76d3d8a8875d06d6f6afc4b507ecb3492c5da46a0",
+        "core/block-settings-menu/BlockSettingsMenu.js": "a11b56efa31ea047566c248e65693116368919ece14bcb31c40bf110c2773064",
+        "core/Tooltip.js": "6afc6cdcb6edf0deaea9d3e5e15f01088c3561d6831d37d6faffaf0d11cc6bc4",
+        "core/icons.js": "59238664e0e2cc5a52f8ca716bbe764cd568bc73e763972d2339e31cefc008af",
+        "core/BlockAnimator.js": "5733f55d87e63e33e33383d9ff84c6bdecb9e723cbe6ca721b7522e65cb0a36b",
+        "core/toolbar/OffcanvasRoot.js": "adfb3a52e5376025b90d523b34a6dd5cf8a5cdd74b05c83635cf40a591ed0b72",
+        "core/toolbar/ToolbarPositioner.js": "e36c63f7c91a5c03882b8cd1d7eb9672c25a9f922b9244c46a0f86b6b4f99047",
+        "core/toolbar/ToolboxBuilder.js": "ddb239290e6ba2b2b246db7c6733bb49a3ae7dcd97b1745221bddfc2be149b8d",
+        "core/crossBlockConvert.js": "1bd6172da055215642a2d6804ee781f6367f13e580464fa8e20689af00075a5d",
+        "core/inline-toolbar/ActionsPanel.js": "3289b05dab892437c29af25a1c428dc27573bd46287d1b1e65d3b4c56c959fa3",
+        "core/inline-toolbar/InlinePositioner.js": "802b686ccbb9cd655495ff574d03342a6a93c0680eb74f9a7105ca6d48c34e73",
+        "core/inline-toolbar/PluginControlsSlot.js": "1ca7f076e6e1b0211244cef161a9b121f741fbfce9043a4bcc9de9aa77b2e659",
+        "core/inline-toolbar/SelectionTracker.js": "c89789c491e7f7ced54867461d3f657e6a1048b92c2d7b33c8fa7874aec81588",
+        "core/menuKeyboardNav.js": "1889e35e3d3ca3c66b6c79e49812ba1a9118ca453b9264493a71d8af1e6e051b",
+        "core/splitConvert.js": "35bb0f82b3ac8f26a90dbe628d75b91aa989c0c5d0ba82c65f8164a45fbdc0c7",
+        "core/clipboard/CrossBlockEditor.js": "d20107b1bbc1901b04cb88e4af5e2fdb29d27d97ee47528831e202524b1655ef",
+        "core/clipboard/PasteRouter.js": "0e9549469fdfd9dcff1d6e30d88916c175a61dd0d351b646f17aeba074810455",
+        "core/clipboard/pasteInsert.js": "ff1769bb4c3dd897f73b639f44113430a47590316e499a2828a420099168d067",
+        "inline-tools/bold.js": "0c9a01d1d411ad025998455b9a739f15e777f0accb9cba5fbb52679ae6f0a44f",
+        "inline-tools/italic.js": "2f6dcb095de53db0aae11c3acde67bdd70bd47cd297459eb71dea9c753dd33c5",
+        "inline-tools/strikethrough.js": "b3fe97cd839403595589fd2e0595e9688111e446bc1315064bb6e8179df0a75c",
+        "inline-tools/link.js": "835dc5db8f4b665f6553225bb0f7a2a4e150fff2e1a958f42ef0658aab5ad673",
+        "inline-tools/code.js": "328db963746972dd8c6989277fca6078c26b87bb32cb84ee4235354c243f0f0e",
+        "inline-tools/marker.js": "03b7cdcf93799cb9949e3e15ee7b0d6a6186aa429d9363dc7a7c1d43272c33b0",
+        "inline-tools/colorPicker.js": "99ba2f00563310bff63dd928e5aa8d206437941cc38054d47bdbc09028f76505",
+        "inline-tools/fontSize.js": "a9ed58959824ff94856a2c5e85d65f4190f2b3225b424e2abb3eaad8fad84f0d",
+        "inline-tools/align.js": "8bbb04350a675fd7b072c571ac04c3c02cecf1d514a5a7399b748cd7c59c45f1",
+        "inline-tools/scriptTool.js": "1ec0bef80a4eef7511804ec24d90a5fee5972975fd7f473ca9bb76902879a364",
+        "inline-tools/caseTransform.js": "ce832ae930daf1934ed5ca576fa188229003363866cfb0685396a413379312fb",
+        "inline-tools/clearFormatting.js": "b2d07a7a134e036d037a2629626055c7085edb87b211305f91f61485f0e38aad",
+        "shared/styleRegistry.js": "9a81048f2c4707dd6d926466b2cf4f085410cff2d015ada138ad4cd6dcfab6d7",
+        "shared/sanitize/sanitizeHtml.js": "f836ae635f68ea02b51158b6eb4c4a475373b4a30d39b5977fc65c6ef584fb3f",
+        "shared/sanitize/escapeHtml.js": "b509908bce89329e9d45cee8da344676fedfbaebf3d569b1ddf1010bb14a8a40",
+        "shared/textFormat.js": "984d48e97b45d4a25ca3ed155797503551cee76606325de70e2eb9d4c36006e7",
+        "inline-plugins/mention/widget.js": "c995af87d61a9ac3ca44507858a23413bf5113e488d15a4760dd6a33232c6f3b",
+        "shared/sanitize/sanitizeUrl.js": "abc9825131c5168eec517b378b532222fa5238333a228f05dcd0d8d18f64ac20",
+        "shared/jsonData.js": "4b6b018399e6d1dad64ee4b01ec2289c3d48feda40693b4d1f4b3e8e0461cd4f",
+        "core/block-settings-menu/BlockActions.js": "d318288e74dc129ef54a85629ecedff774fa86867d08620bd7a619132d4d4eff",
+        "core/block-settings-menu/MenuBuilder.js": "7bb22b5cc20439460b0460fe1d8a722bc1b78e58fc9a8b1ee6784e7133e47f2e",
+        "core/clipboard/pasteUtils.js": "5bcd851c6463f48f6afcd2409d82d97ae4d83287ae98d764860600cb0c484dae",
+        "inline-tools/utils.js": "59629c99063189a256b1f8fa26689f50d1943d4e4643f4d07ceacbc9c765c69c",
+        "shared/sanitize/allowlist.js": "67e097f08a808d2e462ebc129aa028805bbf8a4f05db9b60a4bd874096b551be",
+        "core/block-settings-menu/MenuPositioner.js": "d3c9b39d2bb5cb5295c7699ac9b67362b46da74de0081cd03e191f1784f8fef3",
+        "shared/sanitize/walker.js": "de28568c006b5ce43cb8cf943a1cc4a9ed2bc19cff6337303cc99a0ec92dfe09",
+        "shared/sanitize/sanitizeStyle.js": "dad51ee9f1e090fb0438817ef2e0ebd5e5a5bcc3ab1b9b584f787bfe0beea721",
+        "plugins/embed/index.js": "92da9273f39ee434a2f00ea0347caf258654d495e2f2e7c1976dc564fe5ecd13",
+        "plugins/embed/player.js": "06fc8fb687f73b56b3075318f0318eaa136ede7068c4a6e30297d7ce9fa4df5c",
+        "plugins/BlockPluginAbstract.js": "85815ce99132ae5103925f841a3d2a5af95949d9f02fbcf237a2ee4920f0549b",
+        "shared/blockDataValidators.js": "49b67050892a3760210dfb6be6edf29e14aee01d603aef220330ed0ab9430bbe",
+        "shared/embedPlayer.js": "3420a442bf64c084071bb77b8a87d75d3b01d343e500df6126ceb51cd1de0de5",
+        "shared/pollData.js": "f2acaf278acf6ca075aa965d9814670903af2be28d68c92863af576443aa3ee2",
+        "shared/carouselData.js": "e978d9e57ad6aada46c0de40b11cfdc7b50f0adbbd0aee6ff02fcaee5692a8af",
+        "shared/sanitize/sanitizeRawHtml.js": "cfd27645389b2fd4521d5d6d299555563977f78e1f511d6dbed25ec9058615a6",
+        "shared/runtime/dompurify.js": "78186199d23ab4e9967f21dc3efe627bbb70103a563d8681f35c3c87dc4f0b44"
+      }
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "legacy": false,
+      "loaded": {
+        "core/index.js": "e9e3e1eb1fb8e1dcf7e25fbf100e475ff8db1fe1ce1593cd6d3180e333639b73",
+        "core/createEditorRuntime.js": "bd5de9e87859953043ec7f4e1b304cae2d02111fd255095485f7170767f2de5d",
+        "shared/cloneEditorData.js": "529f335cc5c583434375043f96041fb072e481ef74500e3c6fe7db838b171fb2",
+        "shared/styleRegistry.js": "3384242e3f1c1aabbc3166758263b9cfc6dbeb508b9d2c6a3820f908c0ad77b4",
+        "shared/invokeObserver.js": "c4c3c4e2d763fdb877c9d77f8b91b3a5dae27d7d04e2420b7800153f59a4d927",
+        "shared/uid.js": "7ba355cdd33b33ccbfc072b5d0b25a3708d9b96c1674a53acc1ecca625d17943",
+        "core/locale/en.js": "e0c8a84dcda1d2b760f1bef15bfafd60117e0162318f3671c641c564e019b54d",
+        "core/I18n.js": "e6266ac1f405f5470b8620ac0610ff5dea4365cff0674c825dc77594b69c9799",
+        "core/LifecycleScope.js": "d70640534173921c8e497b961c0dc415fe1c09336d7aac3cf2f683f7b4648b00",
+        "core/EditorHolderOwnership.js": "784cbc48c863ca890b1b6fc8ca0eb3bdba09d5a701e200d98f4e8ab0574b544d",
+        "core/ExtensionRegistry.js": "384271a88d76114fc20826608752d03455e864ad112d11e417f5dc421d4ea824",
+        "core/InlinePopupHost.js": "683370142b9d10f7aa7056d0d7cdf278a4e8fa6331a1ebe40e923dc62c27a5e9",
+        "core/Diagnostics.js": "a8e1930fc62b32f75e9f0d6478616ffdd14fb2fad780e6846f4bc1a5b4527687",
+        "core/BlockReconciler.js": "d51f9cc416f53e3d154c472338b4c324b651681e61332740343144dc331a5cd4",
+        "core/DocumentRuntime.js": "39ef10af8ac6df05d688bdfc3c3da5e29f15d125d46e74f72f426d677969a676",
+        "core/NativeInputController.js": "eecaf85ce072f2aff0a3d54977983f7f901f6710018b0fdb44558638f5bac974",
+        "core/KeyboardRouter.js": "d78c9b95955d3081d0d50e137d014ba392ed123890bfd9e218fd86fb7da549f0",
+        "core/LogicalSelection.js": "834ddf9363c8a7095c73ad2334a64becd37e7ab38681d5ab888448356bca07ee",
+        "core/InlineProjectionRuntime.js": "9dbb1d1c40860478c73e89e55565b19d67e8c2d7d79e74bad51a45a918c93709",
+        "core/SelectionController.js": "348c8b797f2a2d997e1cc2bb9ac3f7939879cde219174d82683445d97d613f4a",
+        "core/InteractionState.js": "086195c390a4fe59bc3494eb0c64f250c2a318612f88af56874fc702ec62628c",
+        "core/EditorViewModel.js": "2dc02ce4fa53c7c13b5e959b91eb6ed3a21edee54f31bab1bb20d5e9c991ac63",
+        "core/InlineCommandController.js": "8222cf84b8eef50221c23b2b364556c92fd6d79d72cae4a555ad5f27c9a8bc32",
+        "core/InlineTriggerController.js": "56b47f7c7998dddefa2232c9a4a298ded5e60cb340cfb64b5a3248b8bf03a70a",
+        "core/InlineWidgetInputController.js": "9603ac8d9a839b38977cf7eddba83cb078f0b387d8e5aaf91e91a5acf54d0446",
+        "core/SlashCommandController.js": "9e26a8da1c0032439af90b82600eedb098290a56f06603e522a26e7815418c7e",
+        "core/PublicEditorApi.js": "de53cab1c408f5de6cbd170c61f95785997d7d9539f67f25e2151eb51b6631c9",
+        "core/ChangeNotifier.js": "0a9b3a61ce85a2ee6a30a065032c136a8d66a54be90c4b58b5f617c3096d21e5",
+        "core/BlockToolbar.js": "4aac48e609a2fd59f5c4e7ec52bb4f3f9bfe2b9f55f6cd898d3c581243fdce3e",
+        "core/ClipboardController.js": "e0db4d26294241b205698e3d50e39ba787aba2f244b6d265deb6245cc5b808b8",
+        "core/DragController.js": "76253daab710954a45e89e9a0bd83f4a78b4b8fccea80d74292d17e3f0bdaa95",
+        "core/InlineToolbar.js": "bcd4656b6ae61a47777ed34e8cbd99776e1c0ba00eef5fa114d03c4a7c190a6e",
+        "shared/jsonData.js": "d19f7f958732b4d602f33a63fcbc865bf4e2438816ccff39a564132a2fc744c5",
+        "shared/synchronousResult.js": "226b0c318b3a25d62ad5ff492587cf23dbd72ab0cc13be2008594944eae9886a",
+        "shared/snapshotDataSchema.js": "9f352791fcb65983403c0c147bfbedc79dab2f84531bde0cb3ddc31cdf0025f0",
+        "core/instanceMethods.js": "5d29255bd11b456f3d0102580fb8a7362226cb2e369865cafcaa47cee186ccee",
+        "core/InstanceScope.js": "6b619ab0778254bbfc62ee19a12f3ac94b6ea75b17d29ca62f5ec49d284e950b",
+        "core/ReadOnlyRecoveryError.js": "c95939dfc37b401a1bd9bb3085f891a04a9d34b18bddbca35233d9a0080cff74",
+        "core/ProjectionAnimator.js": "26d6c2eb11eed88bdfcc8dcd82a2097b912080c7e18422e16cd6feb6672b8ab9",
+        "core/projectionFields.js": "64fc49162a2b5dff447518e880feeb8410d290efac56c4d9cf5d3e2d276cf604",
+        "core/HtmlImportRouter.js": "4aeeb3f2d7ad95a5283b83ae7c4372c49507c0e41b28362d1586961f22325070",
+        "shared/DocumentSchema.js": "1714465ebbe8085b7e109598c00af3edf4ef5d16d6e35f9edace03cca3cdd092",
+        "shared/documentValidationIssue.js": "7a756ce2af26fb4e0a9cfbf8ce91a73c4d42c936a04c410f2460f64ba955bf79",
+        "shared/documentFormat.js": "83be1a842841a5b0fd00407ac46a9286be09a1f6fc7bb8f3a5de63b8265848ad",
+        "shared/richTextCodec.js": "1d81f8f4a051573ddd68ec8481fcfc28bc009f46645ae8ebbfff40f3e0a94ce5",
+        "shared/richTextOperations.js": "ba8b3e3a623c510324ebdfb2ccf697a7b1cda258537af2fd50c3402c20cb147e",
+        "core/CanonicalTransforms.js": "099e4a7c9e66ec98459301469ed39f49ad869fb5713a971cd1e35bcc56531e40",
+        "core/LogicalRangePlans.js": "56c0044df32a26f8fa4875e253ab2f3f2a14ec81ef02c5a8c98a3aaeece11546",
+        "core/ClipboardPlans.js": "56e85540ac15e29c904bab4ac1d2ad8588c592b2e42522252591d23c82dc1b01",
+        "core/SelectionConversionPlans.js": "adbae02044775aa783cbf345f9fd345197646601cd65b5c72e25f4c65a847a48",
+        "core/DocumentStore.js": "0e47f47389eb85bc6a4b3a1c6e87125201411b73c9889b2bb7706ce1048fa5ef",
+        "core/HistoryStore.js": "45e314c3dc7308ff956f9560435ce1ea216128d716855dc1ef9737a2ca3aecd1",
+        "core/TransactionEngine.js": "3e0362def4ad56f05f22944c7ee882a62217272c1c44958ad340e9f0b5c936c3",
+        "core/DocumentIngestion.js": "8eb5bafdffc7d6b8c430c9853c4f4c1547256c3776347a0af13bc47f54aaa96f",
+        "shared/editableFields.js": "5b345a003ac99b2727091068682fd01167540815d5d73fc6637bcf50ce6bfec7",
+        "shared/textOffset.js": "a459b56b1ee5428f601d1fb1fa4ce6d8f2fe8933674c5e0f2ef51dd7cacc8c62",
+        "shared/shortcutKey.js": "626b183ae0e2eccc328d14277b2677bff7eeb7a19f493292a35a653837aba7cf",
+        "shared/sanitize/walker.js": "57e8ccf5f4949a285796f189412d446893da56a9ca29aa7c6c80671cfa421fb6",
+        "shared/sanitize/trustedHtml.js": "4a79ff7608ccb2bc6f503f4a40e0d48a2394eb0e8664e1a68b07c0a3948906bd",
+        "shared/richTextCaretPadding.js": "c7b711612c85129070183dd712b9da849dacdd870e9c642f0c041446d8812dc4",
+        "shared/containedTextRange.js": "ad730655ce367d09b13d88e5dacde2f5edd444dad264128f9337971b90aae18a",
+        "shared/sanitize/sanitizeHtml.js": "adc1c693146f066a020c377dd38efb3586ef76fd853776259c3ea3d06fe4a1d1",
+        "core/conversionSelection.js": "f1edc60f92a30a72d426732994f7910568c829c8fb5b46e2bbe4b723f89e4b3f",
+        "core/Tooltip.js": "ca4525eb792d018578c44d396fd13fc8dd0c293df775149899fce7cacc38c6a1",
+        "core/SettingsActions.js": "a2144683e7d2367ecbb308dbbf5b9291f8b291fa79e349e56adb0dbb218a3b82",
+        "shared/editorDom.js": "675fef5d7af9a1035ef1e2d629d98690b158ae179f1d8f580f17b97d891fa56d",
+        "core/icons.js": "f9754db51be7a77145da67f30bad475e7168489e56f9e96219ac0c382e0defd5",
+        "core/ClipboardFragment.js": "3f7146a88b2fb5edb292eb47d00caeb4d6c8f3cc0bf69de3618dc824e03334e7",
+        "shared/sanitize/escapeHtml.js": "4c249d5299f51eaabf9c894a08374f15a57f4d9e859aa39945b753cee3fa3c35",
+        "plugin-kit/index.js": "229d10fdd96ca88acd70da0b5c590a3bd41b95652ae360e7c293498aff0962aa",
+        "core/InlineToolMounts.js": "f28b7f8d2482b65ec800c5067f6525e54d3b9eaa7a4acf179f58707bdd046a29",
+        "core/InlineSelectionAuthority.js": "66ed5b4de4f89fa884d4fdd564d60ac31f29b90626d4952f9e8b7e62fc56cd9a",
+        "shared/sanitize/allowlist.js": "de96bbcc38859bcdced2de0c168103801523c430117290494fd0e8331f4553f8",
+        "shared/sanitize/sanitizeRawHtml.js": "3deaadc0c56a20fa44929dd5d9f19daf5e907dd4b6fc6ecac6d93c70a58cfa26",
+        "core/PersistentBlockMap.js": "7c460fc9e08d851555b26eaa6a95537dafcc1e9a2c3fc15af67c2c57f7b0d872",
+        "shared/sanitize/sanitizeUrl.js": "e05e7b39f7e9d15fa713a9fa67d2ea4621a031382161f0a7880d2ae8c94c8245",
+        "shared/sanitize/sanitizeStyle.js": "dad51ee9f1e090fb0438817ef2e0ebd5e5a5bcc3ab1b9b584f787bfe0beea721",
+        "shared/editorIcons.js": "fa186d34c7f96b24195b16be453360563237e2d6140bac42a8af103e1272c495",
+        "shared/menuKeyboardNav.js": "f180f7fed4985a3f52c827dda14588e0250481dfc4edc52556121d560a191f4b",
+        "shared/extensionConstants.js": "51eb81d163df14c8dcbe63416ad947c7c634f48cf183f0bb0fd2e88dfa53b7b3",
+        "plugins/embed/index.js": "d48c21644a72e3d812eff77137913a5d413b5ab661e610febfdef72bdafa6549",
+        "plugins/shared/configRecords.js": "372357d3cf6769d1aae1ac0fdfe5f3672de18469d7882cd7ff25e5a4ab92f2df",
+        "shared/blockSchemas/embed.js": "ccf8311564864f3a51a60b94436474584ed86e2488af145a37a2c8ac6c3aa7b3",
+        "plugins/shared/textConversion.js": "7513ff5a529e0413156dae665a5a117c79b676bfc0397a066c00a31842b1b9d9",
+        "plugins/shared/textSelectionSlice.js": "709c0dfe06250db06b182c2cabea06aeaee5b7cab32ca6cd43a0105663c1f03f",
+        "plugins/shared/textClipboardSlice.js": "453c68ed9622573e844dc4f4402f23c623a3dbe6add5b8e437a7584540796016",
+        "plugins/shared/retainControlFocus.js": "580f94d07328cfb83881b640f28f8c11beaf908f46212eea24411e9dab07bb20",
+        "plugins/shared/layer.js": "199b4827c8419ac981519142d1c5dfa2c85394fb9e980311b6a50e3f71c33c44",
+        "plugins/shared/sourceEditor.js": "3e012972a960c3c7eff01d7060eea8190ceadffb388ebf84d8dcabcb2d85eb99",
+        "plugins/shared/fileInput.js": "83dae39cfa85d3efad8e0a7729bc051a4376f5629d9a17c5129ddc2a2fb0d71d",
+        "plugins/embed/player.js": "06fc8fb687f73b56b3075318f0318eaa136ede7068c4a6e30297d7ce9fa4df5c",
+        "plugins/shared/positionPluginPanel.js": "61fc3b3ee4277d3c438fca9315d1467beeb86fb50b2e86c7f2771d75555b55c0",
+        "shared/versionedDataSchema.js": "90fff142e3600ce5031b217b5dc5cce2a37bcb61da7ad85871780f45e049f2c2",
+        "shared/blockSchemas/helpers.js": "002446baa48cbdfb22275dfda65ff4eb6f4649133983c74290f0f8779085a357",
+        "shared/embedPlayer.js": "67a54eac16af381adeb978eb6637ac79e4bc4a2525e8be12552c1a3e1c8c0c36",
+        "plugins/embed/url.js": "4f8c54997a5a6ec3a20887153132f88b43b163873a5493f87aed4fed34af6e72"
+      }
+    },
+    {
+      "label": "candidate",
+      "sha": "80ba594f31ff177619f59979779946097604ea9a",
+      "legacy": false,
+      "loaded": {
+        "core/index.js": "e9e3e1eb1fb8e1dcf7e25fbf100e475ff8db1fe1ce1593cd6d3180e333639b73",
+        "core/createEditorRuntime.js": "7cf197cb778141b145d07ee3c0153250bbafe075fd21409019309f5034cf6797",
+        "shared/cloneEditorData.js": "529f335cc5c583434375043f96041fb072e481ef74500e3c6fe7db838b171fb2",
+        "shared/styleRegistry.js": "3384242e3f1c1aabbc3166758263b9cfc6dbeb508b9d2c6a3820f908c0ad77b4",
+        "shared/invokeObserver.js": "c4c3c4e2d763fdb877c9d77f8b91b3a5dae27d7d04e2420b7800153f59a4d927",
+        "shared/uid.js": "7ba355cdd33b33ccbfc072b5d0b25a3708d9b96c1674a53acc1ecca625d17943",
+        "core/locale/en.js": "e0c8a84dcda1d2b760f1bef15bfafd60117e0162318f3671c641c564e019b54d",
+        "core/I18n.js": "e6266ac1f405f5470b8620ac0610ff5dea4365cff0674c825dc77594b69c9799",
+        "core/LifecycleScope.js": "d70640534173921c8e497b961c0dc415fe1c09336d7aac3cf2f683f7b4648b00",
+        "core/EditorHolderOwnership.js": "784cbc48c863ca890b1b6fc8ca0eb3bdba09d5a701e200d98f4e8ab0574b544d",
+        "core/ExtensionRegistry.js": "76c84bbe57257a796357bd678675b0ea612e75687d15de092f1d1c983d77a614",
+        "core/InlinePopupHost.js": "683370142b9d10f7aa7056d0d7cdf278a4e8fa6331a1ebe40e923dc62c27a5e9",
+        "core/InlineProjectionRuntime.js": "f701071da117a783cb3e1a8cf649d37ba8e875c9d3704dfe25401ce949b8ab05",
+        "core/Diagnostics.js": "a8e1930fc62b32f75e9f0d6478616ffdd14fb2fad780e6846f4bc1a5b4527687",
+        "core/BlockReconciler.js": "e185ba27035f8d23c60ac74cc4d3480a79e1eaf0047161234470541a21fb495d",
+        "core/DocumentRuntime.js": "0df7fea742bfa8be17a4233becb468e58dcf636554ba62eac867ba5ad7bc2d00",
+        "core/NativeInputController.js": "f4b633f7dda9e54c6eb9c083a5fe364529f4b2a7f65812e82fdd73521ceff8cc",
+        "core/KeyboardRouter.js": "e2854bad9ffee852f8cab211f166a4f0a201cad10176c7df2481372b8f1aded8",
+        "core/LogicalSelection.js": "834ddf9363c8a7095c73ad2334a64becd37e7ab38681d5ab888448356bca07ee",
+        "core/SelectionController.js": "348c8b797f2a2d997e1cc2bb9ac3f7939879cde219174d82683445d97d613f4a",
+        "core/InteractionState.js": "76d5911afce511fe6128e9fbba217f1f37919f72e1a70e4ee27118fdd933e898",
+        "core/EditorViewModel.js": "f840b07db35cb4a6a9c436b0d9347074a1f63fccd537fba3da142de4d43fda1f",
+        "core/InlineCommandController.js": "bffe2d6b9e0c773e56ab2d02adcb530856fc17ba3ba93caa1191c969095c11c3",
+        "core/InlineTriggerController.js": "56b47f7c7998dddefa2232c9a4a298ded5e60cb340cfb64b5a3248b8bf03a70a",
+        "core/InlineWidgetInputController.js": "f217ebf76d71ad806fc154270824ced1d329d23bddf86396bb6e395cdacc924f",
+        "core/SlashCommandController.js": "9e26a8da1c0032439af90b82600eedb098290a56f06603e522a26e7815418c7e",
+        "core/PublicEditorApi.js": "cbe7c8ce6300e15ada396714565dc191343c91d64520ee1238bcc2119c572730",
+        "core/ChangeNotifier.js": "e08d2cd883647a86da77ea68baa0182697b37b2938715f9c80f0192332748e32",
+        "core/BlockToolbar.js": "b248c2ba85c44a1ace02d4191b03a2a669020a5db2875dff4a58acf76b60da89",
+        "core/ClipboardController.js": "e0db4d26294241b205698e3d50e39ba787aba2f244b6d265deb6245cc5b808b8",
+        "core/DragController.js": "76253daab710954a45e89e9a0bd83f4a78b4b8fccea80d74292d17e3f0bdaa95",
+        "core/InlineToolbar.js": "b150dce50eafc19d1d9445cb9c7034db1362bc0f06169336a8eaea77ae6b862f",
+        "shared/jsonData.js": "d19f7f958732b4d602f33a63fcbc865bf4e2438816ccff39a564132a2fc744c5",
+        "shared/synchronousResult.js": "226b0c318b3a25d62ad5ff492587cf23dbd72ab0cc13be2008594944eae9886a",
+        "shared/snapshotDataSchema.js": "9f352791fcb65983403c0c147bfbedc79dab2f84531bde0cb3ddc31cdf0025f0",
+        "core/instanceMethods.js": "5d29255bd11b456f3d0102580fb8a7362226cb2e369865cafcaa47cee186ccee",
+        "shared/textOffset.js": "a459b56b1ee5428f601d1fb1fa4ce6d8f2fe8933674c5e0f2ef51dd7cacc8c62",
+        "core/InstanceScope.js": "03ecc2751c7acb4c4f2bd18ea5244c0a2b4ae87589fc72d0a9584491c64d7ec2",
+        "shared/richTextCodec.js": "9bd652660628672252c93add8073f812c4d522bfba80a1c2704d9cf5dcb1ea0f",
+        "shared/sanitize/walker.js": "a5d27a9539f05cd88b00b6f33054b230b8d1b3f0aede92fcded83225fe63f1cc",
+        "core/ReadOnlyRecoveryError.js": "c95939dfc37b401a1bd9bb3085f891a04a9d34b18bddbca35233d9a0080cff74",
+        "shared/sanitize/trustedHtml.js": "4a79ff7608ccb2bc6f503f4a40e0d48a2394eb0e8664e1a68b07c0a3948906bd",
+        "shared/richTextCaretPadding.js": "c7b711612c85129070183dd712b9da849dacdd870e9c642f0c041446d8812dc4",
+        "shared/richTextOperations.js": "1d82337568ee7263a022fc376eba8adbfbaedad26a9752057b3da72384097292",
+        "core/projectionFields.js": "64fc49162a2b5dff447518e880feeb8410d290efac56c4d9cf5d3e2d276cf604",
+        "shared/sanitize/allowlist.js": "de96bbcc38859bcdced2de0c168103801523c430117290494fd0e8331f4553f8",
+        "core/HtmlImportRouter.js": "4aeeb3f2d7ad95a5283b83ae7c4372c49507c0e41b28362d1586961f22325070",
+        "shared/DocumentSchema.js": "1714465ebbe8085b7e109598c00af3edf4ef5d16d6e35f9edace03cca3cdd092",
+        "shared/documentValidationIssue.js": "7a756ce2af26fb4e0a9cfbf8ce91a73c4d42c936a04c410f2460f64ba955bf79",
+        "shared/documentFormat.js": "83be1a842841a5b0fd00407ac46a9286be09a1f6fc7bb8f3a5de63b8265848ad",
+        "core/CanonicalTransforms.js": "099e4a7c9e66ec98459301469ed39f49ad869fb5713a971cd1e35bcc56531e40",
+        "core/ProjectionAnimator.js": "26d6c2eb11eed88bdfcc8dcd82a2097b912080c7e18422e16cd6feb6672b8ab9",
+        "core/LogicalRangePlans.js": "56c0044df32a26f8fa4875e253ab2f3f2a14ec81ef02c5a8c98a3aaeece11546",
+        "core/ClipboardPlans.js": "f372ba81df0ab59612e608372f33fa878b5160b53a78f4dddf2b4bd2902b9e43",
+        "core/SelectionConversionPlans.js": "d7475c8dcee9ea14917f09ca4f983c170b796452dd76c9dcdbe142b199417bc2",
+        "core/DocumentStore.js": "0e47f47389eb85bc6a4b3a1c6e87125201411b73c9889b2bb7706ce1048fa5ef",
+        "core/HistoryStore.js": "1147251103bdfe75a2cacb0a0a02b909f28522cc855cfe0457be45a557dd2123",
+        "core/TransactionEngine.js": "8e878e36342d9ec031b17d144fc87644042d6149ef8ad6a3557cd671ca5b7796",
+        "core/DocumentIngestion.js": "8eb5bafdffc7d6b8c430c9853c4f4c1547256c3776347a0af13bc47f54aaa96f",
+        "shared/editableFields.js": "5b345a003ac99b2727091068682fd01167540815d5d73fc6637bcf50ce6bfec7",
+        "shared/shortcutKey.js": "626b183ae0e2eccc328d14277b2677bff7eeb7a19f493292a35a653837aba7cf",
+        "shared/containedTextRange.js": "ad730655ce367d09b13d88e5dacde2f5edd444dad264128f9337971b90aae18a",
+        "shared/sanitize/sanitizeHtml.js": "adc1c693146f066a020c377dd38efb3586ef76fd853776259c3ea3d06fe4a1d1",
+        "core/conversionSelection.js": "f1edc60f92a30a72d426732994f7910568c829c8fb5b46e2bbe4b723f89e4b3f",
+        "core/Tooltip.js": "ca4525eb792d018578c44d396fd13fc8dd0c293df775149899fce7cacc38c6a1",
+        "core/SettingsActions.js": "a2144683e7d2367ecbb308dbbf5b9291f8b291fa79e349e56adb0dbb218a3b82",
+        "shared/editorDom.js": "675fef5d7af9a1035ef1e2d629d98690b158ae179f1d8f580f17b97d891fa56d",
+        "core/icons.js": "f9754db51be7a77145da67f30bad475e7168489e56f9e96219ac0c382e0defd5",
+        "core/ClipboardFragment.js": "f68c4911de6829c7c58ef06d64108556eb8c23d65a3d19963a077df25cac4dd5",
+        "plugin-kit/index.js": "229d10fdd96ca88acd70da0b5c590a3bd41b95652ae360e7c293498aff0962aa",
+        "core/InlineToolMounts.js": "f28b7f8d2482b65ec800c5067f6525e54d3b9eaa7a4acf179f58707bdd046a29",
+        "core/InlineSelectionAuthority.js": "afb3e7f032bf498be3417652d1fe04ea659b5c976aa04034778e2d1b8f2edf78",
+        "shared/sanitize/sanitizeUrl.js": "e05e7b39f7e9d15fa713a9fa67d2ea4621a031382161f0a7880d2ae8c94c8245",
+        "shared/sanitize/escapeHtml.js": "4c249d5299f51eaabf9c894a08374f15a57f4d9e859aa39945b753cee3fa3c35",
+        "shared/sanitize/sanitizeRawHtml.js": "3deaadc0c56a20fa44929dd5d9f19daf5e907dd4b6fc6ecac6d93c70a58cfa26",
+        "core/PersistentBlockMap.js": "7c460fc9e08d851555b26eaa6a95537dafcc1e9a2c3fc15af67c2c57f7b0d872",
+        "shared/editorIcons.js": "fa186d34c7f96b24195b16be453360563237e2d6140bac42a8af103e1272c495",
+        "shared/menuKeyboardNav.js": "f180f7fed4985a3f52c827dda14588e0250481dfc4edc52556121d560a191f4b",
+        "shared/extensionConstants.js": "51eb81d163df14c8dcbe63416ad947c7c634f48cf183f0bb0fd2e88dfa53b7b3",
+        "shared/sanitize/sanitizeStyle.js": "285dafbee51f7bcef1ad0444957716e398e2fde7e6872742b0688a6985753a2c",
+        "plugins/embed/index.js": "ebd3a5e25acb715bac9ea2d8f1ce7b727cc6f25e78049de433edfb7ac33cb4f2",
+        "plugins/shared/configRecords.js": "372357d3cf6769d1aae1ac0fdfe5f3672de18469d7882cd7ff25e5a4ab92f2df",
+        "shared/blockSchemas/embed.js": "ccf8311564864f3a51a60b94436474584ed86e2488af145a37a2c8ac6c3aa7b3",
+        "plugins/shared/textConversion.js": "7513ff5a529e0413156dae665a5a117c79b676bfc0397a066c00a31842b1b9d9",
+        "plugins/shared/textSelectionSlice.js": "709c0dfe06250db06b182c2cabea06aeaee5b7cab32ca6cd43a0105663c1f03f",
+        "plugins/shared/textClipboardSlice.js": "453c68ed9622573e844dc4f4402f23c623a3dbe6add5b8e437a7584540796016",
+        "plugins/shared/retainControlFocus.js": "580f94d07328cfb83881b640f28f8c11beaf908f46212eea24411e9dab07bb20",
+        "plugins/shared/layer.js": "199b4827c8419ac981519142d1c5dfa2c85394fb9e980311b6a50e3f71c33c44",
+        "plugins/shared/sourceEditor.js": "3e012972a960c3c7eff01d7060eea8190ceadffb388ebf84d8dcabcb2d85eb99",
+        "plugins/shared/fileInput.js": "83dae39cfa85d3efad8e0a7729bc051a4376f5629d9a17c5129ddc2a2fb0d71d",
+        "plugins/embed/player.js": "06fc8fb687f73b56b3075318f0318eaa136ede7068c4a6e30297d7ce9fa4df5c",
+        "plugins/embed/url.js": "4f8c54997a5a6ec3a20887153132f88b43b163873a5493f87aed4fed34af6e72",
+        "plugins/shared/positionPluginPanel.js": "61fc3b3ee4277d3c438fca9315d1467beeb86fb50b2e86c7f2771d75555b55c0",
+        "shared/versionedDataSchema.js": "90fff142e3600ce5031b217b5dc5cce2a37bcb61da7ad85871780f45e049f2c2",
+        "shared/blockSchemas/helpers.js": "002446baa48cbdfb22275dfda65ff4eb6f4649133983c74290f0f8779085a357",
+        "shared/embedPlayer.js": "eb16717ae95f2dcf499c521efacaf1dc059b31ed86d5136157b9f9aa4165bc2c"
+      }
+    }
+  ],
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "dependencyFiles": {
+    "@shelamkoff/event-bus/dist/index.js": "44980801a34408be115a36b765b730c6a4fda9f88cc668d2417cde149716de2f",
+    "@shelamkoff/event-bus/dist/src/EventBus.js": "6ca95dcaa99e4e7aa57c24666ded5dab71f270c19ca4f0c3667659f4274d2408",
+    "@shelamkoff/color-picker/dist/index.js": "47d393a3abb3dbd3c10b97f6ef23f11d0c37052744b8034876d624b3ca236cae",
+    "@shelamkoff/color-picker/dist/colorMath.js": "ae1e9a60ce6ff8267b98bc732d56f7dc4de9e05fd2f8d4290b3171ee8ecf63b7",
+    "@shelamkoff/color-picker/dist/ColorPicker.js": "dc8a67a5b0ac2c81e1d4087bab79700edc721eb9f10da76cca1ab6817f924a8a",
+    "dompurify/dist/purify.es.mjs": "60c5d5ccbb466de3de3ba863461a92bf134f8c156cef7992da43e0f659bc5cbd"
+  },
+  "serverErrors": [],
+  "results": [
+    {
+      "source": "v1",
+      "kind": "timeout",
+      "observations": [
+        {
+          "property": "load.authorData",
+          "actual": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "expected": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "load.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.liveRequests",
+          "actual": 1,
+          "expected": 1,
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.arguments",
+          "actual": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "expected": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "load.signal",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.signal",
+          "actual": true,
+          "expected": true,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.reason",
+          "actual": "TimeoutError",
+          "expected": "TimeoutError",
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.noPreview",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.latePreviewIgnored",
+          "actual": true,
+          "expected": false,
+          "status": "FAIL"
+        },
+        {
+          "property": "settled.authorData",
+          "actual": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "expected": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "settled.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "caller.unchanged",
+          "actual": {
+            "version": "1.0.5",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "expected": {
+            "version": "1.0.5",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "destroy.editorRemoved",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        }
+      ],
+      "failures": [
+        {
+          "property": "timeout.latePreviewIgnored",
+          "actual": true,
+          "expected": false,
+          "status": "FAIL"
+        }
+      ],
+      "complete": true,
+      "errors": []
+    },
+    {
+      "source": "v1",
+      "kind": "timely",
+      "observations": [
+        {
+          "property": "load.authorData",
+          "actual": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "expected": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "load.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.liveRequests",
+          "actual": 1,
+          "expected": 1,
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.arguments",
+          "actual": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "expected": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "load.signal",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timely.preview",
+          "actual": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg==",
+          "expected": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg==",
+          "status": "PASS"
+        },
+        {
+          "property": "timely.alt",
+          "actual": "Current preview",
+          "expected": "Current preview",
+          "status": "PASS"
+        },
+        {
+          "property": "timely.noObsoleteTimeout",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "settled.authorData",
+          "actual": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "expected": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "settled.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "caller.unchanged",
+          "actual": {
+            "version": "1.0.5",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "expected": {
+            "version": "1.0.5",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "destroy.editorRemoved",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        }
+      ],
+      "failures": [],
+      "complete": true,
+      "errors": []
+    },
+    {
+      "source": "spec-baseline",
+      "kind": "timeout",
+      "observations": [
+        {
+          "property": "load.authorData",
+          "actual": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "expected": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "load.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.liveRequests",
+          "actual": 1,
+          "expected": 1,
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.arguments",
+          "actual": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "expected": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "load.signal",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.signal",
+          "actual": false,
+          "expected": true,
+          "status": "FAIL"
+        },
+        {
+          "property": "timeout.reason",
+          "actual": null,
+          "expected": "TimeoutError",
+          "status": "FAIL"
+        },
+        {
+          "property": "timeout.noPreview",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.latePreviewIgnored",
+          "actual": true,
+          "expected": false,
+          "status": "FAIL"
+        },
+        {
+          "property": "settled.authorData",
+          "actual": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "expected": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "settled.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "caller.unchanged",
+          "actual": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "expected": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "destroy.editorRemoved",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        }
+      ],
+      "failures": [
+        {
+          "property": "timeout.signal",
+          "actual": false,
+          "expected": true,
+          "status": "FAIL"
+        },
+        {
+          "property": "timeout.reason",
+          "actual": null,
+          "expected": "TimeoutError",
+          "status": "FAIL"
+        },
+        {
+          "property": "timeout.latePreviewIgnored",
+          "actual": true,
+          "expected": false,
+          "status": "FAIL"
+        }
+      ],
+      "complete": true,
+      "errors": []
+    },
+    {
+      "source": "spec-baseline",
+      "kind": "timely",
+      "observations": [
+        {
+          "property": "load.authorData",
+          "actual": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "expected": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "load.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.liveRequests",
+          "actual": 1,
+          "expected": 1,
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.arguments",
+          "actual": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "expected": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "load.signal",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timely.preview",
+          "actual": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg==",
+          "expected": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg==",
+          "status": "PASS"
+        },
+        {
+          "property": "timely.alt",
+          "actual": "Current preview",
+          "expected": "Current preview",
+          "status": "PASS"
+        },
+        {
+          "property": "timely.noObsoleteTimeout",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "settled.authorData",
+          "actual": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "expected": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "settled.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "caller.unchanged",
+          "actual": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "expected": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "destroy.editorRemoved",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        }
+      ],
+      "failures": [],
+      "complete": true,
+      "errors": []
+    },
+    {
+      "source": "candidate",
+      "kind": "timeout",
+      "observations": [
+        {
+          "property": "load.authorData",
+          "actual": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "expected": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "load.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.liveRequests",
+          "actual": 1,
+          "expected": 1,
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.arguments",
+          "actual": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "expected": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "load.signal",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.signal",
+          "actual": true,
+          "expected": true,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.reason",
+          "actual": "TimeoutError",
+          "expected": "TimeoutError",
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.noPreview",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timeout.latePreviewIgnored",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "settled.authorData",
+          "actual": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "expected": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "settled.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "caller.unchanged",
+          "actual": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "expected": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "destroy.editorRemoved",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        }
+      ],
+      "failures": [],
+      "complete": true,
+      "errors": []
+    },
+    {
+      "source": "candidate",
+      "kind": "timely",
+      "observations": [
+        {
+          "property": "load.authorData",
+          "actual": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "expected": {
+            "service": "vimeo",
+            "videoId": "12345",
+            "caption": "Author caption",
+            "cover": "",
+            "title": "",
+            "duration": ""
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "load.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.liveRequests",
+          "actual": 1,
+          "expected": 1,
+          "status": "PASS"
+        },
+        {
+          "property": "resolver.arguments",
+          "actual": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "expected": [
+            "vimeo",
+            "12345",
+            "https://vimeo.com/12345"
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "load.signal",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "timely.preview",
+          "actual": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg==",
+          "expected": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg==",
+          "status": "PASS"
+        },
+        {
+          "property": "timely.alt",
+          "actual": "Current preview",
+          "expected": "Current preview",
+          "status": "PASS"
+        },
+        {
+          "property": "timely.noObsoleteTimeout",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        },
+        {
+          "property": "settled.authorData",
+          "actual": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "expected": [
+            {
+              "id": "embed",
+              "type": "embed",
+              "dataVersion": 1,
+              "data": {
+                "service": "vimeo",
+                "videoId": "12345",
+                "caption": "Author caption",
+                "cover": "",
+                "title": "",
+                "duration": ""
+              }
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "settled.history",
+          "actual": [
+            false,
+            false
+          ],
+          "expected": [
+            false,
+            false
+          ],
+          "status": "PASS"
+        },
+        {
+          "property": "caller.unchanged",
+          "actual": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "expected": {
+            "version": "2.0.0",
+            "blocks": [
+              {
+                "id": "embed",
+                "type": "embed",
+                "dataVersion": 1,
+                "data": {
+                  "service": "vimeo",
+                  "videoId": "12345",
+                  "caption": "Author caption",
+                  "cover": "",
+                  "title": "",
+                  "duration": ""
+                }
+              }
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "property": "destroy.editorRemoved",
+          "actual": false,
+          "expected": false,
+          "status": "PASS"
+        }
+      ],
+      "failures": [],
+      "complete": true,
+      "errors": []
+    }
+  ],
+  "candidatePass": true,
+  "note": "Historical differences are raw observations; no classifier grants reference or candidate exceptions."
+}

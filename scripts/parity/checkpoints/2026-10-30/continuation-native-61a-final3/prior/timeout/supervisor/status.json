@@ -1,0 +1,14 @@
+{
+  "source": "c6e537e5d7433f0d902749719c8af265c6ae8591",
+  "startedAt": "2026-10-30T19:31:17.949524+00:00",
+  "outcome": "failed",
+  "gates": {
+    "native": 1,
+    "heap": 0
+  },
+  "directory": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x",
+  "supersedesIncompleteRun": "run-2n1RIx",
+  "current": "heap",
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-30T19:44:29.925818+00:00"
+}

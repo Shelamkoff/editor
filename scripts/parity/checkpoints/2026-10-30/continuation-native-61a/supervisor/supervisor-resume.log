@@ -1,0 +1,6 @@
+{"source": "eae1b93ee6bc39a32230de1b46c67f27b39c8015", "startedAt": "2026-10-30T18:44:19.405747+00:00", "outcome": "running", "gates": {}, "directory": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d", "resumedAt": "2026-10-30T18:46:18.671944+00:00"}
+{"gate": "native", "startedAt": "2026-10-30T18:46:18.672541+00:00"}
+{"gate": "native", "exitCode": 0, "finishedAt": "2026-10-30T19:03:23.754346+00:00"}
+{"gate": "heap", "startedAt": "2026-10-30T19:03:23.754804+00:00"}
+{"gate": "heap", "exitCode": 0, "finishedAt": "2026-10-30T19:03:38.473097+00:00"}
+{"source": "eae1b93ee6bc39a32230de1b46c67f27b39c8015", "startedAt": "2026-10-30T18:44:19.405747+00:00", "outcome": "passed", "gates": {"native": 0, "heap": 0}, "directory": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/test-results/run-ODin2d", "resumedAt": "2026-10-30T18:46:18.671944+00:00", "current": "heap", "sourceUnchanged": true, "finishedAt": "2026-10-30T19:03:38.547623+00:00", "completeResultsVerified": true, "nativeGroupCount": 41, "nativeCases": 2389, "heapSentinels": 23, "heapRetained": 0}

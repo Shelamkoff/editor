@@ -270,7 +270,26 @@ export function createCodePlugin(config = {}) {
           let dead = false
           let copyResetTimer = null
           const timerHost = document.defaultView ?? globalThis
+          const ownsCopyButton = () => !dead && !context.signal.aborted
+            && copy.parentNode === bar && bar.parentNode === wrapper
+          const canUpdateCopyFeedback = () => {
+            if (!ownsCopyButton()) return false
+            // Reuse the core's original block-owner admission for a late
+            // presentation; local parent checks alone cannot prove its root.
+            try { context.getData() } catch { return false }
+            return ownsCopyButton()
+          }
           const refresh = () => { if (!dead) highlight(codeElement, textarea.value, data.language, runtime) }
+          const ownsHighlightView = () => !dead && !context.signal.aborted
+            && codeElement.parentNode === pre && pre.parentNode === editor
+            && textarea.parentNode === editor && editor.parentNode === wrapper
+          const refreshAfterLoad = () => {
+            if (!ownsHighlightView()) return
+            // Only the late loader continuation needs a new owner admission.
+            // Synchronous projection keeps its existing fallible refresh.
+            try { context.getData() } catch { return }
+            if (ownsHighlightView()) refresh()
+          }
           const mode = () => {
             wrapper.classList.toggle('oe-code-wrap--editing', editMode && !readOnly)
             textarea.hidden = !(editMode && !readOnly)
@@ -293,7 +312,7 @@ export function createCodePlugin(config = {}) {
             refresh()
             mode()
           }
-          refreshers.add(refresh)
+          refreshers.add(refreshAfterLoad)
           project(data)
 
           edit.addEventListener('click', () => {
@@ -315,13 +334,13 @@ export function createCodePlugin(config = {}) {
             const clipboard = document.defaultView?.navigator?.clipboard
             if (typeof clipboard?.writeText !== 'function') return
             void clipboard.writeText(source).then(() => {
-              if (dead || context.signal.aborted) return
+              if (!canUpdateCopyFeedback()) return
               setTrustedHtml(copy, CHECK_ICON)
               copy.classList.add('oe-code-btn--copied')
               if (copyResetTimer !== null) timerHost.clearTimeout(copyResetTimer)
               copyResetTimer = timerHost.setTimeout(() => {
                 copyResetTimer = null
-                if (dead || context.signal.aborted) return
+                if (!canUpdateCopyFeedback()) return
                 setTrustedHtml(copy, COPY_ICON)
                 copy.classList.remove('oe-code-btn--copied')
               }, 1800)
@@ -364,7 +383,7 @@ export function createCodePlugin(config = {}) {
               if (dead) return
               dead = true
               language.destroy()
-              refreshers.delete(refresh)
+              refreshers.delete(refreshAfterLoad)
               if (copyResetTimer !== null) {
                 timerHost.clearTimeout(copyResetTimer)
                 copyResetTimer = null

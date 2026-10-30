@@ -2,10 +2,12 @@ import { createLinkPreviewPlugin } from '../../plugins/link-preview/index.js'
 import { test, make, blockElement, assert, equal, pause } from './regressions/harness.js'
 import { printable, dispatchKey } from './native-input-helpers.js'
 
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGPwKZz9HwAEvQJYppltbwAAAABJRU5ErkJggg=='
+
 for (const populated of [false, true]) test(`LinkPreview native URL typing preserves visible card and exact Undo/Redo from ${populated ? 'populated data' : 'the actual default'}`, async () => {
   const definition = createLinkPreviewPlugin(), defaults = { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' }
   const initial = populated ? { ...defaults, url: 'https://example.test/story', title: 'Original title',
-    description: 'Original description', domain: 'display.example', template: 'horizontal' } : defaults
+    description: 'Original description', image: pixel, domain: 'display.example', template: 'horizontal' } : defaults
   const editor = make(populated ? [{ id: 'link', type: 'linkPreview', dataVersion: 1, data: initial }] : [],
     { plugins: [definition], defaultBlock: 'linkPreview', inlineTools: [], ...(!populated ? { data: undefined } : {}) })
   try {
@@ -18,8 +20,10 @@ for (const populated of [false, true]) test(`LinkPreview native URL typing prese
       equal(input.value, data.url)
       const card = root.querySelector('.oe-lp__card')
       equal({ hidden: card.hidden, href: card.getAttribute('href'), title: card.querySelector('.oe-lp__title').textContent,
-        description: card.querySelector('.oe-lp__desc').textContent },
-      { hidden: !data.url, href: data.url || null, title: data.title || data.url, description: data.description })
+        description: card.querySelector('.oe-lp__desc').textContent,
+        image: { src: card.querySelector('.oe-lp__image img').getAttribute('src'), alt: card.querySelector('.oe-lp__image img').alt } },
+      { hidden: !data.url, href: data.url || null, title: data.title || data.url, description: data.description,
+        image: { src: data.image || null, alt: data.title } })
       assert(blockElement(editor, id) === root && root.querySelector('.oe-lp__url-input') === input)
     }
     check(initial)

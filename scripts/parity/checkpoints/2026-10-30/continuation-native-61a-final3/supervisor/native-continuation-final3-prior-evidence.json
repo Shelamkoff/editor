@@ -1,0 +1,189 @@
+{
+  "records": [
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/documentation-successor.json",
+      "bytes": 14364,
+      "sha256": "980ed3efec4e17283bef4b7128c66b5d437e3c8e2d1b41260f9a97a75ffbefb8"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/init.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/init.stdout.log",
+      "bytes": 93,
+      "sha256": "c777820d9be6664af8648a6565901a39d7a7876ceec09172ccd80ac435fd0fff"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/preflight.json",
+      "bytes": 10135,
+      "sha256": "7eac6a547f3f4c8b1419892eb804caa03edd20041127c0bc131d07dfab99486f"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/setup.log",
+      "bytes": 154,
+      "sha256": "eb17e6d3f109a6233a4d179024886ecce4022e723ac5bbe9a0161034bcc9960c"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/status.json",
+      "bytes": 283,
+      "sha256": "506567932eebae859310812c8075e5d63af8ed2f1f4a61402babdbc784827cd5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2/supervisor.log",
+      "bytes": 316,
+      "sha256": "01bcad07c6808961b8ea26792fdce49a8a7279f4616fdd55740fd9beeb3c6ff7"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-2n1RIx/manifest.json",
+      "bytes": 2428,
+      "sha256": "e9d024ad28bac845e5bcb17c0e624dced06fbe4199f9117cfdde640165a01dd0"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-2n1RIx/native.log",
+      "bytes": 482,
+      "sha256": "a175c9fa5904864b51bcead11df1dd2e749451283575d078960b266df1966eb5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-2n1RIx/native.wrapper.log",
+      "bytes": 482,
+      "sha256": "a175c9fa5904864b51bcead11df1dd2e749451283575d078960b266df1966eb5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/init.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/init.stdout.log",
+      "bytes": 93,
+      "sha256": "21a9a71bd382248da7be74e079bc4f6641d40f6fed743b94e9f30037faa3d35a"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/interruption.json",
+      "bytes": 3522,
+      "sha256": "7e3758595377934e34eff44dafa0f0579ae477c65ea911146aad329ba88bb156"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/post-merge-native-equivalence.json",
+      "bytes": 13019,
+      "sha256": "701a48c5b31f3ad50654eee3a91ab0b39bea6155dd4bf3b141746d1413d555dc"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/preflight.json",
+      "bytes": 10401,
+      "sha256": "44c9d8248c84bb5a2a664c730ef19af8bb0e970b8e97034efe65f555c67a11f5"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/process-recovery.txt",
+      "bytes": 42890,
+      "sha256": "a3255a70e375e48519ee4c5669753ec642f93254d9c34febc40fed68dac2ecf0"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/status.json",
+      "bytes": 436,
+      "sha256": "bb212d31e0bfa2f8749b67fad46bafbdfc08b4d506606353c4960259e60fed05"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-continuation-final2-retry/supervisor.log",
+      "bytes": 993,
+      "sha256": "fa2ce5f77af22d3cbc2d67c9b7f2d1d72891b65df340ffabdc19aaa95763dfe7"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x/finish.wrapper.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x/heap.log",
+      "bytes": 1451,
+      "sha256": "acdf6d4eebd9fce78c5a6295f62c981b5b46b7c945eb03316a31d0bb1ef66881"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x/heap.wrapper.log",
+      "bytes": 1451,
+      "sha256": "acdf6d4eebd9fce78c5a6295f62c981b5b46b7c945eb03316a31d0bb1ef66881"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x/manifest.json",
+      "bytes": 5113,
+      "sha256": "edc39dafa310aed6994a6d294dd16f00dfb647e416bfad7b8feb68aee267a69b"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x/native.log",
+      "bytes": 1820,
+      "sha256": "9b367781b72be706417480068b05f675a12eed64e0bda0af983645c36444d600"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-yiPE1x/native.wrapper.log",
+      "bytes": 1820,
+      "sha256": "9b367781b72be706417480068b05f675a12eed64e0bda0af983645c36444d600"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/case-inventory.json",
+      "bytes": 144334,
+      "sha256": "5e3d2496cb055c028c4e19a94b5fee7a177d924e398526c4595a0f3bed889790"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/case-names.json",
+      "bytes": 30003,
+      "sha256": "eb54c0d123d7c938ecda2804420de4200438b5773479ea3907cb559e8a182888"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/diagnostic-harness.js",
+      "bytes": 6662,
+      "sha256": "a07ad987a266c6a8291144f00feb4e5c52471622be900447be45fc3524b64bde"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/diagnostic-runner.mjs",
+      "bytes": 30606,
+      "sha256": "98f127996d75dcda46d1d99a5e5a737a0d739868f36e023d4fbbcffcadbea50f"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/finish.wrapper.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/init.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/init.stdout.log",
+      "bytes": 93,
+      "sha256": "252e3cf78fd83e7b2075b16d7112b2e77f1449b16c57fc5b5edd42b8aec52f29"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/metadata.json",
+      "bytes": 787,
+      "sha256": "4acf5c19d5de75ca3545bed845fa81475d27b17d9b486851828b7b7ecd7d16fa"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/run.wrapper.log",
+      "bytes": 102835,
+      "sha256": "49f782176ef9ffe4b53dd7936ed1fb7f5e235b3873e9e2eac423ce6d5c3a3cf3"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/status.json",
+      "bytes": 263,
+      "sha256": "a183a7a6469fec06e831ae5cfb187ded33f69a4b08c032c66d851e90bc65789a"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/tools/native-parity-budget-diagnostic/timing-summary.json",
+      "bytes": 1623,
+      "sha256": "5d5acd85daa4d28b0f29906a2ad791c681e6f8c756b007a2ca1667d6d6a7616c"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-8G2oM5/diagnostic.log",
+      "bytes": 102835,
+      "sha256": "49f782176ef9ffe4b53dd7936ed1fb7f5e235b3873e9e2eac423ce6d5c3a3cf3"
+    },
+    {
+      "path": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final2/test-results/run-8G2oM5/manifest.json",
+      "bytes": 3500,
+      "sha256": "09f3f42114f60791e6a6f3614981e1b4b86bb001f6f2f72e4a5b53d57c07d2fb"
+    }
+  ]
+}

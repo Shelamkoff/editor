@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/embed-preview-parity",
+  "startedAt": "2026-10-30T18:56:00.404Z",
+  "finishedAt": "2026-10-30T18:56:08.481Z",
+  "outcome": "failed",
+  "source": {
+    "head": "62ec6c85b9519f57ee19afaad404bd5d50d2eb18",
+    "tree": "8719b01074d079d4e7183313e19640d0a2f16103",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "179738437b7681a7e06bcba876b0fa9019b645d6a6787a5654c9b9fe2dab7db8"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "browser-preview-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:56:00.663Z",
+      "finishedAt": "2026-10-30T18:56:08.383Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/embed-preview-parity",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_BROWSER_PAGE": "projection-contracts.html",
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "62ec6c85b9519f57ee19afaad404bd5d50d2eb18",
+        "tree": "8719b01074d079d4e7183313e19640d0a2f16103",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "179738437b7681a7e06bcba876b0fa9019b645d6a6787a5654c9b9fe2dab7db8"
+      },
+      "elapsedMs": 7715.270956,
+      "sourceAfter": {
+        "head": "62ec6c85b9519f57ee19afaad404bd5d50d2eb18",
+        "tree": "8719b01074d079d4e7183313e19640d0a2f16103",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "179738437b7681a7e06bcba876b0fa9019b645d6a6787a5654c9b9fe2dab7db8"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "62ec6c85b9519f57ee19afaad404bd5d50d2eb18",
+    "tree": "8719b01074d079d4e7183313e19640d0a2f16103",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "179738437b7681a7e06bcba876b0fa9019b645d6a6787a5654c9b9fe2dab7db8"
+  },
+  "sourceUnchanged": true
+}

@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "root": "/tmp/rector-person-final-roundtrip-20261029",
+  "rawPath": "/tmp/rector-person-normalized-raw.json",
+  "runnerSha256": "0c56f464abd549f3abe36a435956115bc86ce341803313f8895544c92a5fba26",
+  "classifierSha256": "921f43f5e59804f265404a00a8f078a14772851e88d91acb648babad1a297d18",
+  "rawSha256": "9d14138ad45333d933e2040e66c1390abb6425a4c2d83079ffab30de575ae126",
+  "positives": 175,
+  "negativeFamilies": {
+    "candidate source": 175,
+    "unknown source": 175,
+    "similar future case": 175,
+    "unknown phase": 175,
+    "wrong status": 175,
+    "unobserved property": 175,
+    "changed actual value": 175,
+    "changed expected value": 175,
+    "missing completed phase": 175,
+    "changed canonical record": 175,
+    "missing phase snapshot": 175,
+    "changed history actual": 175,
+    "changed history expected": 175,
+    "duplicate history observation": 175
+  },
+  "negativeCount": 2450,
+  "changedNativeOwnerNegativeCount": 12,
+  "bySource": {
+    "v1": {
+      "rawFailures": 151,
+      "categories": {
+        "repaired": 61,
+        "unsupported": 90
+      },
+      "classifications": {
+        "repaired-v1-person-fallback-label": 4,
+        "repaired-v1-person-mode-remount": 16,
+        "repaired-v1-person-native-tab-label": 1,
+        "repaired-v1-person-history-remount": 16,
+        "repaired-v1-person-empty-history-caret": 2,
+        "unsupported-v1-person-field-sidecars": 12,
+        "unsupported-v1-person-widget-tab-label": 12,
+        "unsupported-v1-person-field-widgets": 36,
+        "unsupported-v1-person-widget-avatar-alternative": 24,
+        "unsupported-v1-person-widget-caret": 6,
+        "repaired-v1-person-first-undo-caret": 3,
+        "repaired-v1-person-literal-tab-label": 6,
+        "repaired-v1-person-avatar-alternative": 12,
+        "repaired-v1-person-literal-redo-caret": 1
+      }
+    },
+    "spec-baseline": {
+      "rawFailures": 24,
+      "categories": {
+        "repaired": 24,
+        "unsupported": 0
+      },
+      "classifications": {
+        "repaired-baseline-person-fallback-label": 4,
+        "repaired-baseline-person-widget-tab-label": 2,
+        "repaired-baseline-person-avatar-alternative": 16,
+        "repaired-baseline-person-mode-field-replacement": 2
+      }
+    },
+    "candidate": {
+      "rawFailures": 0,
+      "categories": {
+        "repaired": 0,
+        "unsupported": 0
+      },
+      "classifications": {}
+    }
+  },
+  "note": "Offline classifier sensitivity only. Raw failures and incomplete phases are unchanged; no browser gate is credited."
+}

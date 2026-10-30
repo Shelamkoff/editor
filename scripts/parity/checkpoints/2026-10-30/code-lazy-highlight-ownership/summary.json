@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "scope": "Code lazy highlight completion reads and paints only its exact current source/target nodes",
+  "preservationRow": "BLOCK_CODE_HIGHLIGHT_COPY",
+  "base": "b409e912fa62521d5dc1e7f9a156b0cc823a2dc9",
+  "combinedBase": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "testedSource": "1a6199f77ab6949afdc2cb7c98613924ae289ac5",
+  "testedTree": "307d8613eebc235978d7d60938d162600dabea45",
+  "runs": [
+    {
+      "run": "run-YOHUg7",
+      "source": {
+        "head": "c6ae46135ba23562e1423abdf36868d3d9992ead",
+        "tree": "af927b42cfbe402043375c04bd10127ed4c1bc80",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "1baa08e8e2ba4656c17c63bef019ebf102360d11d6067d0616c319afb66fdc2b"
+      },
+      "outcome": "not-run",
+      "gates": {
+        "sync-projection-control": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "lazy-owner-red": {
+          "outcome": "not-run",
+          "exitCode": null
+        }
+      }
+    },
+    {
+      "run": "run-ZC5Wbe",
+      "source": {
+        "head": "b9305af814dce9e99a5f67ce813acf14d9d82fc9",
+        "tree": "b9d855ae860e713211fa7f8b5e193c467cbeb386",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "7bde4fcd3926113dbcca739ce6d7cfb2104e2e4dd7c5c3c2d0665b1765e94b25"
+      },
+      "outcome": "failed",
+      "gates": {
+        "sync-projection-control": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "lazy-owner-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-MMnUcn",
+      "source": {
+        "head": "1a6199f77ab6949afdc2cb7c98613924ae289ac5",
+        "tree": "307d8613eebc235978d7d60938d162600dabea45",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "99a52b3d52ddca9fa8378433d6617c8f016a671627ed61bc87bccee96901a5ad"
+      },
+      "outcome": "passed",
+      "gates": {
+        "code-highlight-units": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "code-highlight-browser": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    }
+  ],
+  "counts": {
+    "run-YOHUg7": {
+      "sync-projection-control": {
+        "passed": 9,
+        "failed": 0
+      },
+      "lazy-owner-red": {
+        "outcome": "not-run"
+      }
+    },
+    "run-ZC5Wbe": {
+      "sync-projection-control": {
+        "passed": 9,
+        "failed": 0
+      },
+      "lazy-owner-red": {
+        "total": 113,
+        "passed": 107,
+        "failed": 6,
+        "newCases": {
+          "passed": 2,
+          "failed": 6
+        }
+      }
+    },
+    "run-MMnUcn": {
+      "code-highlight-units": {
+        "passed": 9,
+        "failed": 0
+      },
+      "code-highlight-browser": {
+        "total": 113,
+        "passed": 113,
+        "failed": 0,
+        "newCases": {
+          "passed": 8,
+          "failed": 0
+        }
+      },
+      "types": {
+        "exitCode": 0
+      }
+    }
+  },
+  "approvals": {
+    "runtime": "Root reviewed initial candidate SHA256 df4d85e8b9c09596f21573a930784011f096947477ea9379e13028643a4d73d5 and public tests, requested a dedicated separately adopted textarea RED and its exact parent check before/after getData, then authorized the amended patch after actual RED.",
+    "appliedCandidateSha256": "d506969a7343e63611ed1c14333f4d116a9e0de98bc4d6efb5af8a272d03e6a6"
+  },
+  "initialControlRun": "run-YOHUg7 executed only the 9 passing Node controls on c6ae4613 while browser lane A was reserved. Before any browser gate, root requested the additional textarea-source regression. The original run was finished as not-run before changing source. Its manifest/logs are retained unchanged. A new sequential RED and final GREEN use their own frozen source identities.",
+  "environment": {
+    "chrome": "156.0.8078.47",
+    "node": "v24.22.1",
+    "dependencies": "Physical copy of the preceding Code Copy worktree installation, originally copied from successful main npm ci with actual Carousel Git f7f6485886a1d77f9213d9079eb70000efeff499.",
+    "loader": "Existing getHighlightRuntime/setHighlightRuntime/window.hljs reset seam and actual loadHighlightRuntime() package import; no injected/mock loader or new production API."
+  },
+  "sources": [
+    {
+      "path": "plugins/code/index.js",
+      "bytes": 17867,
+      "sha256": "d9e39586bb683412d8da15e12bfe8e7a16db18c6f0fe8fa85ca8b45df5bead17"
+    },
+    {
+      "path": "plugins/code/lifecycle.test.js",
+      "bytes": 7921,
+      "sha256": "fbaaa1fb5a97bc1e925dccdddc0885f600d8d457b3742351c5e87458e2362e22"
+    },
+    {
+      "path": "tests/browser/regressions/code-lazy-highlight-ownership.js",
+      "bytes": 5137,
+      "sha256": "fe1b095701893a9f1165cb66711da47cb352e3b33bd093ee36846034dfdb7cb6"
+    },
+    {
+      "path": "tests/browser/runtime-contracts.js",
+      "bytes": 117428,
+      "sha256": "b1dea5a28e768e71aee0c6266fcf1d171cf0c33006a5ae45a7d535bdc62f05f6"
+    }
+  ],
+  "limitations": [
+    "This is a scoped public-editor DOM/dependency proof, not a trusted native-input or system-clipboard proof.",
+    "The preceding Code Copy browser proof remains tied to 3906cdec. No broad Copy native rerun is claimed on this lazy-highlight source; root owns final combined native verification.",
+    "Full library and v1 parity completion are not claimed.",
+    "Normal synchronous refresh/project/input and their error propagation remain unchanged; only existing late loader callbacks use the new admission."
+  ]
+}

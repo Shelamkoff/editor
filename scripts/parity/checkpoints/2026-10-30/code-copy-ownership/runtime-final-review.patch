@@ -1,0 +1,36 @@
+diff --git a/plugins/code/index.js b/plugins/code/index.js
+index 97a806e4..c47713d0 100644
+--- a/plugins/code/index.js
++++ b/plugins/code/index.js
+@@ -270,6 +270,15 @@ export function createCodePlugin(config = {}) {
+           let dead = false
+           let copyResetTimer = null
+           const timerHost = document.defaultView ?? globalThis
++          const ownsCopyButton = () => !dead && !context.signal.aborted
++            && copy.parentNode === bar && bar.parentNode === wrapper
++          const canUpdateCopyFeedback = () => {
++            if (!ownsCopyButton()) return false
++            // Reuse the core's original block-owner admission for a late
++            // presentation; local parent checks alone cannot prove its root.
++            try { context.getData() } catch { return false }
++            return ownsCopyButton()
++          }
+           const refresh = () => { if (!dead) highlight(codeElement, textarea.value, data.language, runtime) }
+           const mode = () => {
+             wrapper.classList.toggle('oe-code-wrap--editing', editMode && !readOnly)
+@@ -315,13 +324,13 @@ export function createCodePlugin(config = {}) {
+             const clipboard = document.defaultView?.navigator?.clipboard
+             if (typeof clipboard?.writeText !== 'function') return
+             void clipboard.writeText(source).then(() => {
+-              if (dead || context.signal.aborted) return
++              if (!canUpdateCopyFeedback()) return
+               setTrustedHtml(copy, CHECK_ICON)
+               copy.classList.add('oe-code-btn--copied')
+               if (copyResetTimer !== null) timerHost.clearTimeout(copyResetTimer)
+               copyResetTimer = timerHost.setTimeout(() => {
+                 copyResetTimer = null
+-                if (dead || context.signal.aborted) return
++                if (!canUpdateCopyFeedback()) return
+                 setTrustedHtml(copy, COPY_ICON)
+                 copy.classList.remove('oe-code-btn--copied')
+               }, 1800)

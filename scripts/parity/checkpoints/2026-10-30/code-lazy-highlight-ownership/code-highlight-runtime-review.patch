@@ -1,0 +1,36 @@
+--- a/plugins/code/index.js
++++ b/plugins/code/index.js
+@@ -280,6 +280,15 @@
+             return ownsCopyButton()
+           }
+           const refresh = () => { if (!dead) highlight(codeElement, textarea.value, data.language, runtime) }
++          const ownsHighlightView = () => !dead && !context.signal.aborted
++            && codeElement.parentNode === pre && pre.parentNode === editor && editor.parentNode === wrapper
++          const refreshAfterLoad = () => {
++            if (!ownsHighlightView()) return
++            // Only the late loader continuation needs a new owner admission.
++            // Synchronous projection keeps its existing fallible refresh.
++            try { context.getData() } catch { return }
++            if (ownsHighlightView()) refresh()
++          }
+           const mode = () => {
+             wrapper.classList.toggle('oe-code-wrap--editing', editMode && !readOnly)
+             textarea.hidden = !(editMode && !readOnly)
+@@ -302,7 +311,7 @@
+             refresh()
+             mode()
+           }
+-          refreshers.add(refresh)
++          refreshers.add(refreshAfterLoad)
+           project(data)
+ 
+           edit.addEventListener('click', () => {
+@@ -373,7 +382,7 @@
+               if (dead) return
+               dead = true
+               language.destroy()
+-              refreshers.delete(refresh)
++              refreshers.delete(refreshAfterLoad)
+               if (copyResetTimer !== null) {
+                 timerHost.clearTimeout(copyResetTimer)
+                 copyResetTimer = null

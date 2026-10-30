@@ -1,0 +1,222 @@
+diff --git a/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md b/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md
+index c88812b1..b2971fdd 100644
+--- a/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md
++++ b/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md
+@@ -462,6 +462,8 @@ Use the common canonical rich-text parser and placeholder scanner in the owning
+ 
+ The existing block occurrence owns the query. Reject revoked/stale scopes, invalid mounted roots/shells and recursive text queries before schema or `toText` callbacks. Staged candidates may read their own prospective record before publication; discarded candidates never retain query authority. Run all schema mapping, decoding, snapshot capture and text callbacks under the existing protected extension-preparation boundary. Nested mutation, control and task acquisition must fail before their producer runs. Revalidate the same scope epoch/generation and block owner after callbacks; adoption or revocation cannot bless a new owner. No deferred authority is returned.
+ 
++Scoped block `getData()` snapshots use this same existing block-owner check before reading their record and after snapshot capture. Staged construction, prospective updates/recovery and ordinary read-only access remain supported; an adopted root or shell cannot use its old context to obtain a fresh snapshot for an asynchronous view update. This read does not opt into field-text updates, add a public capability or retire an owner through a new path. Provider-driven presentation must report a failed read once without attempting that rejected view update again from its error handler. Native rich authoring remains owned by the core input settlement; an independent deferred blur notification is not new authority over an adopted block.
++
+ A successful query opts that existing block lifetime into ordinary `update(next, previous)` delivery when its canonical inline sidecars change, including when `next` and `previous` block data are equal. Data changes keep their existing delivery; a consumer without optional `update` uses the existing replacement path. Do not introduce another lifecycle hook, event bridge, registry, dependency cache or canonical store. An unchanged record and healthy repeated field queries do not manufacture updates. Native retained-source projection keeps its existing author-DOM/caret admission and section 16.7 completion, rather than calling the block's update over pending native input. All derived text must settle inside the operation's existing fallible pre-commit projection, never its post-commit finalizer.
+ 
+ Query/formatter failures preserve every thrown value and use current construction, canonical/history, mode or caller recovery owners. Callable thenables and promises are rejected synchronously; no background completion is scheduled. A read failure does not become a document edit or a new failure/retry API. Auxiliary writes remain the block's responsibility and require its original still-owned nodes. The opt-in does not authorize remounting an unrelated active author field or changing canonical/history/selection state for a label.
+diff --git a/core/DocumentRuntime.js b/core/DocumentRuntime.js
+index d0712fed..7f5fb88e 100644
+--- a/core/DocumentRuntime.js
++++ b/core/DocumentRuntime.js
+@@ -1671,7 +1671,10 @@ export class DocumentRuntime {
+ 
+     const authority = scope.createAuthority({
+       prepareValue: operation => this.prepareExtensionValue(operation),
+-      readData: () => currentRecord().data,
++      readData: () => {
++        assertReadOwner()
++        return currentRecord().data
++      },
+       updateData: (producer, options) => {
+         this.update(id, current => ({
+           data: producer(current.data),
+@@ -1726,6 +1729,11 @@ export class DocumentRuntime {
+     let context
+     context = Object.freeze({
+       ...authority,
++      getData: () => {
++        const data = authority.getData()
++        assertReadOwner()
++        return data
++      },
+       getFieldText,
+       ownerDocument: this.#ownerDocument,
+       signal,
+diff --git a/docs/guide/extensions.md b/docs/guide/extensions.md
+index b158aa33..1cc27a73 100644
+--- a/docs/guide/extensions.md
++++ b/docs/guide/extensions.md
+@@ -45,7 +45,7 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
+ | `ownerDocument` | Create DOM and browser objects in the editor's realm. |
+ | `signal` | Abort signal for this block occurrence. |
+ | `restoring` | Captured at creation: `true` when reconstructing history or recovering failed projection. Later updates of that instance do not change the flag. Do not repeat automatic author-side metadata requests for restored snapshots; resources needed to display accepted content may still be acquired. Explicit user actions retain their current scoped authority. |
+-| `getData()` | Read current canonical block data. |
++| `getData()` | Read current canonical block data while the original block occurrence still owns its root and shell. |
+ | `getFieldText(fieldKey)` | Read plain text of a canonical rich field declared by `schema.mapRichText()`, including an unmounted field. |
+ | `updateData(producer)` | Commit a synchronous model-first block-data transaction. |
+ | `beginTask()` | Create revocable authority for one asynchronous persisted result. |
+@@ -56,6 +56,8 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
+ 
+ The inherited `createId(prefix)` allocator creates nested stable identities.
+ 
++`getData()` validates that original block owner before reading and after capturing its immutable snapshot. Construction and update candidates may read their prospective data, and read-only blocks retain ordinary read access. A retained context cannot authorize a fresh asynchronous view update after its root or shell is adopted elsewhere. Report that failed read without retrying the same view write from the error handler.
++
+ ### Canonical text for unmounted fields
+ 
+ Use `context.getFieldText(fieldKey)` for auxiliary labels that need a rich field's canonical text before its author DOM is mounted. Person uses it for profile tabs. The query reads the same scoped record as `getData()`, including the prospective record during construction, update and history projection. It does not flush pending native input or create an editing field, widget instance, popup or provider request. An unknown field key throws; use a stable key declared by `schema.mapRichText()`.
+diff --git a/docs/ru/guide/extensions.md b/docs/ru/guide/extensions.md
+index 2255d4d9..7cdea82c 100644
+--- a/docs/ru/guide/extensions.md
++++ b/docs/ru/guide/extensions.md
+@@ -45,7 +45,7 @@ interface BlockPluginDefinition<Data> {
+ | `ownerDocument` | Создание DOM и browser-объектов в realm редактора. |
+ | `signal` | AbortSignal конкретного экземпляра блока. |
+ | `restoring` | Фиксируется при создании: `true` означает восстановление истории или проекции после ошибки. Последующие обновления того же экземпляра не меняют флаг. Автоматические запросы авторских метаданных не повторяются для восстановленного снимка; ресурсы, необходимые для отображения принятого содержимого, по-прежнему можно загружать. Явные действия пользователя сохраняют актуальные полномочия контекста. |
+-| `getData()` | Чтение текущих канонических данных. |
++| `getData()` | Чтение текущих канонических данных, пока исходный экземпляр блока владеет своим корневым элементом и оболочкой. |
+ | `getFieldText(fieldKey)` | Обычный текст канонического поля, объявленного через `schema.mapRichText()`, в том числе ещё не смонтированного. |
+ | `updateData(producer)` | Синхронная model-first транзакция данных блока. |
+ | `beginTask()` | Создать отзывные полномочия для сохранения одного асинхронного результата. |
+@@ -56,6 +56,8 @@ interface BlockPluginDefinition<Data> {
+ 
+ Унаследованный `createId(prefix)` создаёт стабильные вложенные идентификаторы.
+ 
++`getData()` проверяет исходного владельца блока перед чтением и после получения неизменяемого снимка. Подготавливаемые экземпляры при создании и обновлении могут читать свои будущие данные; режим только для чтения сохраняет обычный доступ к чтению. Сохранённый контекст не разрешает новое асинхронное обновление представления после переноса корневого элемента или оболочки к другому владельцу. Сообщите об отказе чтения, не повторяя ту же запись в представление из обработчика ошибки.
++
+ ### Канонический текст несмонтированного поля
+ 
+ Используйте `context.getFieldText(fieldKey)` для вспомогательных подписей, которым нужен канонический текст ещё до монтирования редактируемого поля. Person применяет его для вкладок профилей. Запрос читает ту же запись своего экземпляра, что и `getData()`, включая подготовленный вариант при создании, обновлении и воспроизведении истории. Он не завершает ожидающий нативный ввод и не создаёт редактируемое поле, экземпляр виджета, всплывающее окно или запрос к источнику данных. Неизвестный ключ вызывает ошибку; используйте устойчивый ключ из `schema.mapRichText()`.
+diff --git a/plugins/poll/index.js b/plugins/poll/index.js
+index d7abcc39..7171a813 100644
+--- a/plugins/poll/index.js
++++ b/plugins/poll/index.js
+@@ -191,8 +191,16 @@ export function createPollPlugin(config={}){
+             runtimeViewController?.abort()
+           },{once:true})
+ 
+-          const report=error=>{
+-            if(!dead){failed=true;projectRuntime()}
++          const report=(error,repaint=true)=>{
++            if(!dead){
++              failed=true
++              if(repaint){
++                try{projectRuntime()}
++                catch(presentationError){
++                  error=new AggregateError([error,presentationError],'Poll failure presentation failed',{cause:error})
++                }
++              }
++            }
+             if(snapshot.onError){
+               try{
+                 const observed=snapshot.onError(error)
+@@ -412,17 +420,16 @@ export function createPollPlugin(config={}){
+             }
+           }
+ 
+-          const projectRuntime=()=>retainControlFocus(wrapper,()=>{
++          const projectRuntime=()=>{
+             // Native source projections may commit without calling update().
+-            // Read authoring data from the current canonical owner, not an old cache.
+-            data=cloneData(context.getData())
+-            project(true)
+-          })
+-
+-          const syncAuthoring=()=>{
+-            if(readOnly||dead)return
+-            // Core serializes owned inline occurrences into canonical references.
+-            context.commitDomMutation(()=>{})
++            // Admit the current canonical owner before touching its view.
++            const next=cloneData(context.getData())
++            retainControlFocus(wrapper,()=>{data=next;project(true)})
++          }
++
++          const refreshRuntime=()=>{
++            try{projectRuntime();return true}
++            catch(error){report(error,false);return false}
+           }
+ 
+           const disposeSubscription=()=>{
+@@ -459,7 +466,7 @@ export function createPollPlugin(config={}){
+                     if(dead||connectionController.signal.aborted||version!==connectionVersion)return
+                     loadVersion++
+                     loading=false
+-                    try{if(acceptResults(results))projectRuntime()}
++                    try{if(acceptResults(results))refreshRuntime()}
+                     catch(error){report(error)}
+                   },
+                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
+@@ -475,18 +482,20 @@ export function createPollPlugin(config={}){
+                 if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)
+               }
+             }
++            let loadFailure
+             void Promise.resolve().then(()=>{
+               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return undefined
+               return snapshot.dataSource.load({pollId:data.pollId,signal:connectionController.signal})
+             }).then(results=>{
+               if(results===undefined||dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
+-              if(acceptResults(results))projectRuntime()
++              acceptResults(results)
+             }).catch(error=>{
+-              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)report(error)
++              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)loadFailure={error}
+             }).finally(()=>{
+               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
+               loading=false
+-              projectRuntime()
++              if(loadFailure)report(loadFailure.error)
++              else refreshRuntime()
+             })
+           }
+ 
+@@ -502,7 +511,7 @@ export function createPollPlugin(config={}){
+               next.add(optionId)
+             }
+             selected=next
+-            projectRuntime()
++            refreshRuntime()
+           }
+ 
+           const submitVote=async ()=>{
+@@ -531,7 +540,13 @@ export function createPollPlugin(config={}){
+             context.signal.addEventListener('abort',abort,{once:true,signal:pendingVote.signal})
+             submitting=true
+             failed=false
+-            projectRuntime()
++            if(!refreshRuntime()){
++              submitting=false
++              voteController=null
++              pendingVote.abort()
++              return
++            }
++            let voteFailure
+             try{
+               const results=await snapshot.dataSource.vote({
+                 pollId:data.pollId,
+@@ -542,24 +557,22 @@ export function createPollPlugin(config={}){
+               if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote){
+                 hasVoted=true
+                 acceptResults(results)
+-                projectRuntime()
+               }
+             }catch(error){
+-              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)report(error)
++              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)voteFailure={error}
+             }finally{
+               if(voteController===pendingVote){
+                 voteController=null
+                 submitting=false
+-                if(!dead)projectRuntime()
++                if(!dead){
++                  if(voteFailure)report(voteFailure.error)
++                  else refreshRuntime()
++                }
+               }
+               pendingVote.abort()
+             }
+           }
+ 
+-          wrapper.addEventListener('focusout',event=>{
+-            if(!readOnly&&wrapper.contains(/** @type {Node} */(event.target)))queueMicrotask(syncAuthoring)
+-          },{signal:context.signal})
+-
+           project()
+           connect()
+ 

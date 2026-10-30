@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/code-copy-ownership",
+  "startedAt": "2026-10-30T18:46:51.609Z",
+  "finishedAt": "2026-10-30T18:46:52.109Z",
+  "outcome": "failed",
+  "source": {
+    "head": "2a642706e10cc8cd522868ee0d1b31b2b2807d90",
+    "tree": "a294b7c394355248fd3b3599bd0bafb2e44e7be8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "e89655dc207483d10cf208fc406a7c4889f71532c86e560dcbb1485ccf839881"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {}
+  },
+  "context": {},
+  "gates": {
+    "code-copy-owner-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:46:51.894Z",
+      "finishedAt": "2026-10-30T18:46:52.022Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "plugins/code/lifecycle.test.js"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/code-copy-ownership",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "2a642706e10cc8cd522868ee0d1b31b2b2807d90",
+        "tree": "a294b7c394355248fd3b3599bd0bafb2e44e7be8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "e89655dc207483d10cf208fc406a7c4889f71532c86e560dcbb1485ccf839881"
+      },
+      "elapsedMs": 125.75865099999999,
+      "sourceAfter": {
+        "head": "2a642706e10cc8cd522868ee0d1b31b2b2807d90",
+        "tree": "a294b7c394355248fd3b3599bd0bafb2e44e7be8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "e89655dc207483d10cf208fc406a7c4889f71532c86e560dcbb1485ccf839881"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "2a642706e10cc8cd522868ee0d1b31b2b2807d90",
+    "tree": "a294b7c394355248fd3b3599bd0bafb2e44e7be8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "e89655dc207483d10cf208fc406a7c4889f71532c86e560dcbb1485ccf839881"
+  },
+  "sourceUnchanged": true
+}

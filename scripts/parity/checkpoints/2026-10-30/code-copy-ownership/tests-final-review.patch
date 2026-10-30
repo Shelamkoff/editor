@@ -1,0 +1,265 @@
+diff --git a/plugins/code/lifecycle.test.js b/plugins/code/lifecycle.test.js
+index f73063b2..38fa1797 100644
+--- a/plugins/code/lifecycle.test.js
++++ b/plugins/code/lifecycle.test.js
+@@ -58,26 +58,36 @@ class FakeElement {
+   }
+   append(...children) { for (const child of children) this.appendChild(child) }
+   appendChild(child) {
++    if (child.parentNode) child.parentNode.removeChild(child)
+     this.children.push(child)
+     child.parentNode = this
+     child.parentElement = this
+     return child
+   }
++  removeChild(child) {
++    const index = this.children.indexOf(child)
++    if (index < 0) throw new Error('Not a child')
++    this.children.splice(index, 1)
++    child.parentNode = null
++    child.parentElement = null
++    return child
++  }
+   focus() {}
+ }
+ 
+ function createHarness() {
+   let resolveWrite
+-  let timers = 0
++  let nextTimer = 0
++  const timers = new Map(), writes = []
+   const window = {
+     AbortController,
+     navigator: {
+       clipboard: {
+-        writeText() { return new Promise(resolve => { resolveWrite = resolve }) },
++        writeText(text) { writes.push(text); return new Promise(resolve => { resolveWrite = resolve }) },
+       },
+     },
+-    setTimeout() { timers += 1; return 1 },
+-    clearTimeout() {},
++    setTimeout(callback) { const id = ++nextTimer; timers.set(id, callback); return id },
++    clearTimeout(id) { timers.delete(id) },
+   }
+   const ownerDocument = {
+     defaultView: window,
+@@ -112,7 +122,13 @@ function createHarness() {
+     requestExit() {},
+     isReadOnly: () => false,
+   })
+-  return { instance, runtime, runtimeController, instanceController, resolveWrite: () => resolveWrite(), timers: () => timers }
++  return {
++    instance, runtime, runtimeController, instanceController, ownerDocument, writes,
++    resolveWrite: () => resolveWrite(), timers: () => timers.size,
++    runTimers() {
++      for (const [id, callback] of [...timers]) { timers.delete(id); callback() }
++    },
++  }
+ }
+ 
+ test('Code preserves copy feedback and makes a pending copy completion inert after destroy', async () => {
+@@ -130,9 +146,10 @@ test('Code preserves copy feedback and makes a pending copy completion inert aft
+   f.runtime.destroy()
+ })
+ 
+-test('Code copy success shows feedback and schedules one reset while the instance is live', async () => {
++test('Code copy success shows feedback and resets it while the exact button is still owned', async () => {
+   const f = createHarness()
+   const copyButton = f.instance.element.children[0].children[1]
++  const initialIcon = copyButton.innerHTML
+ 
+   copyButton.dispatch('click')
+   f.resolveWrite()
+@@ -141,6 +158,57 @@ test('Code copy success shows feedback and schedules one reset while the instanc
+ 
+   assert.equal(copyButton.classList.contains('oe-code-btn--copied'), true)
+   assert.equal(f.timers(), 1)
++  assert.deepEqual(f.writes, ['abc'])
++  assert.notEqual(copyButton.innerHTML, initialIcon)
++  f.runTimers()
++  assert.equal(copyButton.innerHTML, initialIcon)
++  assert.equal(copyButton.classList.contains('oe-code-btn--copied'), false)
++  assert.equal(f.timers(), 0)
+   f.instance.destroy()
+   f.runtime.destroy()
+ })
++
++test('Code pending copy completion cannot repaint a button adopted by a foreign owner', async () => {
++  const f = createHarness(), foreign = f.ownerDocument.createElement('aside')
++  const copyButton = f.instance.element.children[0].children[1]
++  try {
++    copyButton.dispatch('click')
++    foreign.append(copyButton)
++    copyButton.innerHTML = '<b>Foreign copy owner</b>'
++    copyButton.classList.add('foreign-owned')
++    f.resolveWrite()
++    await Promise.resolve()
++    await Promise.resolve()
++
++    assert.deepEqual(f.writes, ['abc'])
++    assert.equal(copyButton.parentNode, foreign)
++    assert.equal(copyButton.innerHTML, '<b>Foreign copy owner</b>')
++    assert.equal(copyButton.classList.contains('foreign-owned'), true)
++    assert.equal(copyButton.classList.contains('oe-code-btn--copied'), false)
++    assert.equal(f.timers(), 0)
++  } finally { f.instance.destroy(); f.runtime.destroy() }
++})
++
++test('Code copy reset cannot repaint a formerly owned button after adoption', async () => {
++  const f = createHarness(), foreign = f.ownerDocument.createElement('aside')
++  const copyButton = f.instance.element.children[0].children[1]
++  try {
++    copyButton.dispatch('click')
++    f.resolveWrite()
++    await Promise.resolve()
++    await Promise.resolve()
++    assert.equal(copyButton.classList.contains('oe-code-btn--copied'), true)
++    assert.equal(f.timers(), 1)
++
++    foreign.append(copyButton)
++    copyButton.innerHTML = '<b>Foreign reset owner</b>'
++    copyButton.classList.add('foreign-owned')
++    f.runTimers()
++
++    assert.equal(copyButton.parentNode, foreign)
++    assert.equal(copyButton.innerHTML, '<b>Foreign reset owner</b>')
++    assert.equal(copyButton.classList.contains('foreign-owned'), true)
++    assert.equal(copyButton.classList.contains('oe-code-btn--copied'), true)
++    assert.equal(f.timers(), 0)
++  } finally { f.instance.destroy(); f.runtime.destroy() }
++})
+diff --git a/tests/browser/native-plugin-parity.js b/tests/browser/native-plugin-parity.js
+index 8a16d48e..710c3344 100644
+--- a/tests/browser/native-plugin-parity.js
++++ b/tests/browser/native-plugin-parity.js
+@@ -3,6 +3,7 @@ import './regressions/compound-rich-siblings-native.js'
+ import './regressions/compound-rich-field-native.js'
+ import './regressions/toggle-focus-native.js'
+ import './regressions/code-highlighter-native.js'
++import './regressions/code-copy-ownership-native.js'
+ import './quote-paste-merge.js'
+ import './presentation-values.js'
+ import './regressions/table-default.js'
+diff --git a/tests/browser/regressions/code-copy-ownership-native.js b/tests/browser/regressions/code-copy-ownership-native.js
+new file mode 100644
+index 00000000..7040e7f6
+--- /dev/null
++++ b/tests/browser/regressions/code-copy-ownership-native.js
+@@ -0,0 +1,117 @@
++import { createCodePlugin } from '../../../plugins/code/index.js'
++import { clickNative } from '../native-input-helpers.js'
++import { assert, blockElement, equal, make, pause, test } from './harness.js'
++
++const source = 'const answer = 42;'
++
++function copyFixture(readOnly = false) {
++  const writes = [], transactions = [], clicks = []
++  const clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
++  // A controlled Clipboard API provider proves callback ownership. It does
++  // not claim a write to, or a transfer through, the system clipboard.
++  Object.defineProperty(navigator, 'clipboard', {
++    configurable: true,
++    value: { writeText(text) {
++      return new Promise(resolve => { writes.push({ text, resolve }) })
++    } },
++  })
++  const definition = createCodePlugin({ injectStyles: false, hljs: {
++    getLanguage: () => false,
++    highlight: () => ({ value: '' }),
++    highlightAuto: () => ({ value: '' }),
++  } })
++  const editor = make([{ id: 'code', type: 'code', dataVersion: 1, data: { code: source, language: 'plaintext' } }], {
++    plugins: [definition], defaultBlock: 'code', inlineTools: [], readOnly,
++  })
++  editor.on('transaction:committed', event => transactions.push(event))
++  const shell = blockElement(editor, 'code'), wrapper = shell.querySelector('.oe-code-wrap')
++  const bar = wrapper.querySelector('.oe-code-bar'), button = bar.querySelector('.oe-code-btn--copy')
++  button.addEventListener('click', event => clicks.push(event.isTrusted))
++  return {
++    editor, shell, wrapper, bar, button, writes, transactions, clicks,
++    dispose() {
++      try { editor.destroy() }
++      finally {
++        if (clipboardDescriptor) Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)
++        else delete navigator.clipboard
++      }
++    },
++  }
++}
++
++async function startCopy(h) {
++  await clickNative(h.button)
++  equal(h.clicks, [true], 'Copy did not receive exactly one trusted click')
++  equal(h.writes.map(request => request.text), [source], 'Clipboard provider received the wrong source')
++}
++
++function unchangedDocument(h, before) {
++  equal(h.editor.save().blocks, before)
++  equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 0, undo: false, redo: false })
++}
++
++for (const readOnly of [false, true]) {
++  test(`Code copy ownership: a current ${readOnly ? 'read-only' : 'editable'} button completes and resets without a document action`, async () => {
++    const h = copyFixture(readOnly)
++    try {
++      const before = h.editor.save().blocks, initialIcon = h.button.innerHTML
++      await startCopy(h)
++      h.writes[0].resolve()
++      await pause()
++      assert(h.button.classList.contains('oe-code-btn--copied'))
++      assert(h.button.innerHTML !== initialIcon)
++      unchangedDocument(h, before)
++      await pause(1900)
++      equal(h.button.innerHTML, initialIcon)
++      assert(!h.button.classList.contains('oe-code-btn--copied'))
++      assert(h.button.parentNode === h.bar && h.bar.parentNode === h.wrapper)
++      unchangedDocument(h, before)
++    } finally { h.dispose() }
++  })
++}
++
++for (const adopted of ['button', 'bar', 'wrapper', 'shell']) {
++  test(`Code copy ownership: pending success cannot repaint an adopted ${adopted}`, async () => {
++    const h = copyFixture(), foreign = document.createElement('aside')
++    document.body.append(foreign)
++    try {
++      const before = h.editor.save().blocks, target = h[adopted]
++      await startCopy(h)
++      foreign.append(target)
++      h.button.innerHTML = '<b>Foreign pending copy</b>'
++      h.button.classList.add('foreign-owned')
++      await pause()
++      const html = foreign.innerHTML, children = [...h.button.childNodes]
++      h.writes[0].resolve()
++      await pause()
++      unchangedDocument(h, before)
++      assert(target.parentNode === foreign)
++      equal(foreign.innerHTML, html, 'Pending copy repainted a foreign owner\'s DOM')
++      equal([...h.button.childNodes], children, 'Pending copy replaced foreign button children')
++    } finally { h.dispose(); foreign.remove() }
++  })
++}
++
++for (const adopted of ['button', 'bar', 'wrapper', 'shell']) {
++  test(`Code copy ownership: a scheduled reset cannot repaint an adopted ${adopted}`, async () => {
++    const h = copyFixture(), foreign = document.createElement('aside')
++    document.body.append(foreign)
++    try {
++      const before = h.editor.save().blocks, target = h[adopted]
++      await startCopy(h)
++      h.writes[0].resolve()
++      await pause()
++      assert(h.button.classList.contains('oe-code-btn--copied'))
++      foreign.append(target)
++      h.button.innerHTML = '<b>Foreign reset owner</b>'
++      h.button.classList.add('foreign-owned')
++      await pause()
++      const html = foreign.innerHTML, children = [...h.button.childNodes]
++      await pause(1900)
++      unchangedDocument(h, before)
++      assert(target.parentNode === foreign)
++      equal(foreign.innerHTML, html, 'Copy reset repainted a foreign owner\'s DOM')
++      equal([...h.button.childNodes], children, 'Copy reset replaced foreign button children')
++    } finally { h.dispose(); foreign.remove() }
++  })
++}

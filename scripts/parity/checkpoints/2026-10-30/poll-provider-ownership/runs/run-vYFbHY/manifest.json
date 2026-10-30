@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current",
+  "startedAt": "2026-10-30T18:22:53.667Z",
+  "finishedAt": "2026-10-30T18:24:08.006Z",
+  "outcome": "failed",
+  "source": {
+    "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+    "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "11.9.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "release": "6.18.57",
+    "runner": {},
+    "selection": {
+      "EDITOR_NATIVE_PAGE": "native-poll-provider-ownership.html",
+      "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+    }
+  },
+  "context": {},
+  "gates": {
+    "data-owner-unit-green": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:23:11.721Z",
+      "finishedAt": "2026-10-30T18:23:11.881Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=block getData",
+        "core/DocumentRuntime.test.js"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {}
+      },
+      "sourceBefore": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "elapsedMs": 158.12361299999998,
+      "sourceAfter": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "sourceUnchanged": true
+    },
+    "native-owner-green": {
+      "outcome": "passed",
+      "startedAt": "2026-10-30T18:23:17.528Z",
+      "finishedAt": "2026-10-30T18:23:24.857Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-poll-provider-ownership.html",
+          "EDITOR_NATIVE_FILTER": "Poll native ownership:",
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "elapsedMs": 7326.563758,
+      "sourceAfter": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "sourceUnchanged": true
+    },
+    "provider-report-red": {
+      "outcome": "failed",
+      "startedAt": "2026-10-30T18:23:39.615Z",
+      "finishedAt": "2026-10-30T18:23:41.097Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ],
+      "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/poll-current",
+      "environment": {
+        "node": "v24.22.1",
+        "nodeExecutable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "npm": "11.9.0",
+        "platform": "linux",
+        "architecture": "x64",
+        "release": "6.18.57",
+        "runner": {},
+        "selection": {
+          "EDITOR_NATIVE_PAGE": "native-poll-provider-ownership.html",
+          "EDITOR_NATIVE_FILTER": "Poll provider ownership:",
+          "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome"
+        }
+      },
+      "sourceBefore": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "elapsedMs": 1479.915195,
+      "sourceAfter": {
+        "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+        "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "13d53076b69d8e8994726cfe3486d90744ee65cb",
+    "tree": "ba127000d5bb0fde958c640e4fe0243cac3883bd",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "f2ff7c17073b209d3351dc019dea80c63dc8bf7e7c847f2bd08f84b5f71f9e4c"
+  },
+  "sourceUnchanged": true
+}

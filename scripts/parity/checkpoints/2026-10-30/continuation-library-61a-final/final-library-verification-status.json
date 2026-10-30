@@ -1,0 +1,18 @@
+{
+  "source": "1c933545c6f05701741031997945c64b1ab5ba9d",
+  "directory": "/workspace/scratch/61a2ad7355f4/editor/test-results/run-kAQSyz",
+  "outcome": "passed",
+  "gates": {
+    "typecheck": 0,
+    "build": 0,
+    "unit": 0,
+    "types": 0,
+    "package": 0,
+    "size-report": 0,
+    "docs-contract": 0,
+    "docs-browser": 0,
+    "ordinary-browser": 0
+  },
+  "current": "ordinary-browser",
+  "sourceUnchanged": true
+}

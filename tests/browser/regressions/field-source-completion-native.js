@@ -1,5 +1,5 @@
 import { createCompletionFixture } from './field-projection-completion-fixture.js'
-import { test, assert, equal, pause, expectError } from './harness.js'
+import { test, assert, equal, pause, expectError, make } from './harness.js'
 import { dispatchKey, printable } from '../native-input-helpers.js'
 
 const completions = h => h.state.completions.map(item => [item.name, item.key, item.text])
@@ -14,6 +14,178 @@ function placeSourceCaret(h) {
   field.focus(); getSelection().setBaseAndExtent(tail, tail.length, tail, tail.length)
   return { field, tail }
 }
+
+test('field source completion trusted same-character replacement completes once without a canonical action', async () => {
+  const h = createCompletionFixture({ publicEditor: true })
+  try {
+    h.mount(); await pause(20)
+    const panel = h.panels.get('a'), field = panel.note, tail = field.lastChild
+    assert(tail.nodeType === Node.TEXT_NODE && tail.data === ' tail')
+    const descriptor = h.state.completions.find(item => item.name === 'a' && item.key === 'note').field
+    const before = h.editor.save().blocks, widget = h.latest('a-note'), sibling = h.latest('a-front')
+    const inputs = [], notices = []
+    field.addEventListener('input', event => inputs.push({ trusted: event.isTrusted, type: event.inputType, data: event.data }), { once: true })
+    h.state.completions.length = 0
+    h.state.onCompletion = notice => notices.push({ canonical: h.editor.save().blocks, commits: h.state.transactions.length })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length - 1, tail, tail.length)
+    await printable('l')
+    equal(inputs, [{ trusted: true, type: 'insertText', data: 'l' }], 'A genuine browser replacement is required')
+    equal(h.editor.save().blocks, before)
+    equal(completions(h), [['a', 'note', 'Note a-note tail']])
+    const completed = h.state.completions[0]
+    assert(completed.field === descriptor && completed.element === field && completed.frozen && completed.receiver)
+    equal(notices, [{ canonical: before, commits: 0 }])
+    equal(h.state.transactions, []); assert(!h.editor.canUndo && !h.editor.canRedo)
+    assert(h.panels.get('a').note === field && h.latest('a-note') === widget && h.latest('a-front') === sibling)
+    equal(h.state.nativeEdits, [], 'Ordinary author text must not use inline-label reconciliation')
+    const native = getSelection()
+    assert(native.isCollapsed && field.contains(native.focusNode))
+    equal(native.focusOffset, native.focusNode.textContent.length)
+
+    h.state.completions.length = 0; notices.length = 0
+    field.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: '' }))
+    h.editor.blocks.focus('a', { fieldKey: 'note', offset: 'end' })
+    equal(h.state.completions, [], 'A later unchanged notification and healthy query cannot replay completion')
+    equal(notices, []); equal(h.state.transactions, [])
+  } finally { h.dispose() }
+})
+
+test('field source completion trusted semantic no-op failure recovers before a later native edit and history replay', async () => {
+  const h = createCompletionFixture({ publicEditor: true })
+  try {
+    h.mount(); await pause(20)
+    const panel = h.panels.get('a'), field = panel.note, tail = field.lastChild
+    const before = h.editor.save().blocks, oldWidget = h.latest('a-note'), attempts = [], inputs = []
+    let armed = true, failures = 0
+    h.state.onCompletion = notice => {
+      if (notice.name !== 'a' || notice.key !== 'note') return
+      attempts.push(notice)
+      if (armed) { armed = false; failures++; throw new Error('controlled ordinary no-op completion failure') }
+    }
+    field.addEventListener('input', event => inputs.push({ trusted: event.isTrusted, type: event.inputType }), { once: true })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length - 1, tail, tail.length)
+    expectError(/controlled ordinary no-op completion failure/)
+    await printable('l')
+    equal(inputs, [{ trusted: true, type: 'insertText' }])
+    equal(failures, 1, 'The actual native no-op must reach its fallible completion boundary')
+    equal(h.editor.save().blocks, before); equal(h.state.transactions, [])
+    assert(h.editor.isReady && !h.editor.readOnly && !h.editor.canUndo && !h.editor.canRedo)
+    const recovered = h.panels.get('a'), widget = h.latest('a-note')
+    assert(recovered !== panel && recovered.note !== field && !field.isConnected)
+    assert(widget !== oldWidget && oldWidget.context.signal.aborted && !widget.context.signal.aborted)
+    equal(recovered.note.textContent, 'Note a-note tail')
+    equal(recovered.derived.get('note').textContent, 'Note a-note tail')
+    equal(attempts.filter(item => item.element === field).length, 1, 'The failed field must not receive another completion')
+    assert(attempts.at(-1).element === recovered.note)
+    equal(attempts.at(-1).text, 'Note a-note tail')
+
+    const count = attempts.length
+    for (let index = 0; index < 3; index++) h.editor.blocks.focus('a', { fieldKey: 'note', offset: 'end' })
+    equal(attempts.length, count, 'Healthy queries cannot replay the failed native completion')
+    await printable('X')
+    const edited = structuredClone(before); edited[0].data.note += 'X'
+    equal(h.editor.save().blocks, edited); assert(h.editor.canUndo && !h.editor.canRedo)
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(h.editor.save().blocks, before); assert(!h.editor.canUndo && h.editor.canRedo)
+    await dispatchKey('z', 'KeyZ', 90, 10)
+    equal(h.editor.save().blocks, edited)
+    equal(h.state.transactions.map(event => event.action), ['commit', 'undo', 'redo'])
+  } finally { h.dispose() }
+})
+
+test('field source completion descriptor capture failure restores the accepted native source', async () => {
+  const h = createCompletionFixture({ publicEditor: true })
+  try {
+    h.mount(); await pause(20)
+    const panel = h.panels.get('a'), field = panel.note, tail = field.lastChild
+    const before = h.editor.save().blocks, widget = h.latest('a-note'), inputs = []
+    field.addEventListener('input', event => {
+      inputs.push(event.isTrusted)
+      h.state.descriptorFailure = { remaining: 1, value: new Error('controlled descriptor capture failure') }
+    }, { once: true })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length, tail, tail.length)
+    expectError(/controlled descriptor capture failure/)
+    await printable('X')
+    equal(inputs, [true]); equal(h.state.descriptorFailure.remaining, 0)
+    equal(h.editor.save().blocks, before); equal(h.state.transactions, [])
+    const current = h.panels.get('a')
+    equal(current.note.textContent, 'Note a-note tail', 'A rejected descriptor capture must not leave unaccepted native text')
+    equal(current.derived.get('note').textContent, 'Note a-note tail')
+    assert(current !== panel && current.note !== field && widget.context.signal.aborted)
+    assert(h.editor.isReady && !h.editor.readOnly && !h.editor.canUndo && !h.editor.canRedo)
+  } finally { h.dispose() }
+})
+
+test('field source completion semantic no-op rejects schema adoption of its captured field owner', async () => {
+  const h = createCompletionFixture({ publicEditor: true }), foreign = document.createElement('aside')
+  document.body.append(foreign)
+  const original = h.block.schema.encode
+  let armed = false, transferred = null, originalPanel = null
+  h.block = { ...h.block, schema: { ...h.block.schema, encode(data) {
+    if (armed && data.name === 'a') {
+      armed = false
+      transferred = originalPanel.root.parentNode
+      foreign.append(transferred)
+      originalPanel.derived.get('note').textContent = 'foreign auxiliary sentinel'
+    }
+    return original.call(this, data)
+  } } }
+  try {
+    h.mount(); await pause(20)
+    originalPanel = h.panels.get('a')
+    const field = originalPanel.note, tail = field.lastChild, shell = originalPanel.root.parentNode
+    const before = h.editor.save().blocks, widget = h.latest('a-note'), inputs = []
+    h.state.completions.length = 0
+    field.addEventListener('input', event => inputs.push(event.isTrusted), { once: true })
+    field.focus(); getSelection().setBaseAndExtent(tail, tail.length - 1, tail, tail.length)
+    armed = true
+    expectError(/Completed field left its accepted ownership boundary/)
+    await printable('l')
+    equal(inputs, [true]); assert(transferred === shell && shell.parentNode === foreign)
+    equal(originalPanel.derived.get('note').textContent, 'foreign auxiliary sentinel')
+    equal(h.state.completions.filter(item => item.element === field), [])
+    assert(originalPanel.context.signal.aborted && widget.context.signal.aborted)
+    equal(h.editor.save().blocks, before); equal(h.state.transactions, [])
+    assert(h.editor.isReady && !h.editor.canUndo && !h.editor.canRedo)
+    const current = h.panels.get('a')
+    assert(current !== originalPanel && current.root.isConnected)
+    equal(current.note.textContent, 'Note a-note tail')
+    equal(current.derived.get('note').textContent, 'Note a-note tail')
+    h.editor.destroy()
+    assert(shell.parentNode === foreign && originalPanel.root.parentNode === shell)
+  } finally { h.dispose(); foreign.remove() }
+})
+
+for (const tag of ['input', 'textarea']) test(`field source completion plain ${tag} retains native no-op and one-step history without a rich hook`, async () => {
+  let field, completions = 0
+  const plugin = {
+    type: 'plain-completion-control', icon: '', label: { key: 'plain', fallback: 'Plain field' },
+    schema: { currentVersion: 1, createDefault: () => ({ text: '' }), decode: input => input,
+      encode: data => ({ dataVersion: 1, data }) },
+    setup({ ownerDocument }) { return { create(initial) {
+      field = ownerDocument.createElement(tag); field.value = initial.text
+      return { element: field, read: () => ({ text: field.value }), update(next) { field.value = next.text },
+        editableFields: () => [{ key: 'text', element: field, mode: 'plain-text' }],
+        afterProjection() { completions++ }, setReadOnly(value) { field.readOnly = value }, destroy() {} }
+    }, destroy() {} } },
+  }
+  const editor = make([{ id: 'plain', type: plugin.type, dataVersion: 1, data: { text: 'Alpha' } }],
+    { plugins: [plugin], defaultBlock: plugin.type, inlinePlugins: [] })
+  const before = editor.save().blocks, inputs = []
+  field.addEventListener('input', event => inputs.push({ trusted: event.isTrusted, type: event.inputType }), { once: true })
+  field.focus(); field.setSelectionRange(4, 5)
+  await printable('a')
+  equal(inputs, [{ trusted: true, type: 'insertText' }])
+  equal(editor.save().blocks, before); equal(completions, 0)
+  assert(!editor.canUndo && !editor.canRedo)
+  await printable('X')
+  const edited = structuredClone(before); edited[0].data.text = 'AlphaX'
+  equal(editor.save().blocks, edited); equal(completions, 0)
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before); assert(!editor.canUndo && editor.canRedo)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  equal(editor.save().blocks, edited); equal(completions, 0)
+})
 
 const observedWidgetTag = 'rector-source-completion-widget'
 if (!customElements.get(observedWidgetTag)) customElements.define(observedWidgetTag, class extends HTMLElement {

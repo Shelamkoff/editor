@@ -1,0 +1,603 @@
+[
+  {
+    "gate": "common-parity",
+    "path": "scripts/parity/checkpoints/2026-10-30/continuation-61a-integration/runs/run-fDStBT/common-parity.log.gz",
+    "rawSha256": "228c167f18f76522dd5d5e28a095c6a40593b316259431cce9c17fcab7207718",
+    "browser": "156.0.8078.47",
+    "node": "v24.22.1",
+    "elapsedSeconds": 153.818,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "candidate",
+        "sha": "eae1b93ee6bc39a32230de1b46c67f27b39c8015"
+      }
+    ],
+    "cases": {
+      "v1": 65,
+      "spec-baseline": 65,
+      "candidate": 65
+    },
+    "referenceFailureCounts": {
+      "v1": 1156,
+      "spec-baseline": 183
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": [
+        {
+          "id": "BLOCK_PARAGRAPH_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_HEADING_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_LIST_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_QUOTE_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_WARNING_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_CHECKLIST_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_IMAGE_ROUNDTRIP/populated-widgets",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_TOGGLE_ROUNDTRIP/populated-closed",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_SPOILER_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_COLUMNS_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_EMBED_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_TABLE_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_POLL_ROUNDTRIP/populated-unwrapped-control",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_GALLERY_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_PERSON_ROUNDTRIP/populated-unwrapped-control",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        },
+        {
+          "id": "BLOCK_CAROUSEL_ROUNDTRIP/populated-widgets-unwrapped-control",
+          "reasons": [
+            "error",
+            "incompletePhases"
+          ]
+        }
+      ]
+    },
+    "referenceSignatureMultisetSha256": "42ec10622795897da44d86a7ce627d11dd2cc550493f33104bff2be8b588d44b"
+  },
+  {
+    "gate": "gallery-parity",
+    "path": "scripts/parity/checkpoints/2026-10-30/continuation-61a-integration/runs/run-fDStBT/gallery-parity.log.gz",
+    "rawSha256": "0e212f8f396e54067ac1f30904c07b197b149ed76b48221053ac263a860a0293",
+    "browser": "156.0.8078.47",
+    "node": "v24.22.1",
+    "elapsedSeconds": 15.18,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "candidate",
+        "sha": "eae1b93ee6bc39a32230de1b46c67f27b39c8015"
+      }
+    ],
+    "cases": {
+      "v1": 6,
+      "spec-baseline": 6,
+      "candidate": 6
+    },
+    "referenceFailureCounts": {
+      "v1": 123,
+      "spec-baseline": 101
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "61eca2a801bab6bff55ef77daec84650180f698d090d17891f05d76f40d609a8"
+  },
+  {
+    "gate": "public-focus",
+    "path": "scripts/parity/checkpoints/2026-10-30/public-focus/integrated/result.json.gz",
+    "rawSha256": "4501548d681fac146abb89d74915d7fa7636f6430a3fafb866b14e2a83642abf",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 3.301,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc"
+      },
+      {
+        "label": "candidate",
+        "sha": "a7dc4172198dea9c641f5de41d4331e5a94a17b4",
+        "tree": "500d124440261953986dac14afa51d444f35ac5c"
+      }
+    ],
+    "cases": {
+      "v1": 1,
+      "spec-baseline": 7,
+      "candidate": 7
+    },
+    "referenceFailureCounts": {
+      "v1": 1,
+      "spec-baseline": 8
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "196f0d57651e0f9dcfb6aee152c68da1290f013c7ba6604d1aa9e0afff4160dc"
+  },
+  {
+    "gate": "formatting-ownership",
+    "path": "scripts/parity/checkpoints/2026-10-30/formatting-host-ownership/differential-final.json.gz",
+    "rawSha256": "2ccf7d25184b44c8f292e43c02eb813fc6350fdf5403793d39c1f4598961bdc7",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 1.251,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "candidate",
+        "sha": "94304cc1764ce0b18f0227add598f67da5cf7dcd"
+      }
+    ],
+    "cases": {
+      "v1": 10,
+      "spec-baseline": 10,
+      "candidate": 10
+    },
+    "referenceFailureCounts": {
+      "v1": 30,
+      "spec-baseline": 5
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "5054b68ba5ce2b98f61ad90cd2f2b2e3bb0000590e6c59305c914be81f1ac5cc"
+  },
+  {
+    "gate": "link-ownership",
+    "path": "scripts/parity/checkpoints/2026-10-30/link-atomic-ownership/three-source-final.json.gz",
+    "rawSha256": "6b061871b64712995dc9e93f6c3a84d3745cbf738bb8f5bf413098f56154fb33",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 1.95,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "candidate",
+        "sha": "9fe66c88d1fcf6517e1308550bfb454c392548f8"
+      }
+    ],
+    "cases": {
+      "v1": 13,
+      "spec-baseline": 13,
+      "candidate": 13
+    },
+    "referenceFailureCounts": {
+      "v1": 33,
+      "spec-baseline": 27
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "52f399e3943a480cdba828d3b2dd63d57499b726993704be75e672383b627a76"
+  },
+  {
+    "gate": "gallery-viewer",
+    "path": "scripts/parity/checkpoints/2026-10-30/gallery-renderer-lifecycle-and-viewer/viewer-three-source.json.gz",
+    "rawSha256": "3321dd67e9efdfe5a0f69019c779fc06842db4b6a9f4b271c71019ef13004913",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 9.403,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "candidate",
+        "sha": "0e2c034f84b2505622f63dfd0981dcfdce19dbfd"
+      }
+    ],
+    "cases": {
+      "v1": 2,
+      "spec-baseline": 2,
+      "candidate": 2
+    },
+    "referenceFailureCounts": {
+      "v1": 4,
+      "spec-baseline": 8
+    },
+    "referenceIncompleteCases": {
+      "v1": [
+        {
+          "id": "iframe",
+          "reasons": [
+            "incomplete"
+          ]
+        }
+      ],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "ad3328d0350c4a780d752dbe3b6bce35f24697d022d13827cf12b7e167bb35fe"
+  },
+  {
+    "gate": "code-languages",
+    "path": "scripts/parity/checkpoints/2026-10-30/code-language-highlighting/differential.json.gz",
+    "rawSha256": "f00cf09824ae6889b214455f8f51060fe75bc0ef7f5a2795129d485748deb8dd",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 7.45,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "pre-fix",
+        "sha": "b856d85e13848d7129fb3f2ad96fd8cb9e2b7d13"
+      },
+      {
+        "label": "candidate",
+        "sha": "e37d0195ffef700de03a36665af94be586e4ba9e"
+      }
+    ],
+    "cases": {
+      "v1": 3,
+      "spec-baseline": 3,
+      "pre-fix": 3,
+      "candidate": 3
+    },
+    "referenceFailureCounts": {
+      "v1": 8,
+      "spec-baseline": 12,
+      "pre-fix": 12
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": [],
+      "pre-fix": []
+    },
+    "referenceSignatureMultisetSha256": "fbe77e75e093e602a0ba7c34152e9ffe95df2f0cab8b73ae9a544c525b1beffb"
+  },
+  {
+    "gate": "table-settings",
+    "path": "scripts/parity/checkpoints/2026-10-30/table-settings/settings-final-differential.json.gz",
+    "rawSha256": "0e9b950734b0f24f1eb5cbba496abf3de71e0e92f27a399d6ef238671f6ba04b",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 26.123,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8"
+      },
+      {
+        "label": "candidate",
+        "sha": "5e3bdd7cd5b73c8652a819d07c6b51cf2335f8df"
+      }
+    ],
+    "cases": {
+      "v1": 14,
+      "spec-baseline": 14,
+      "candidate": 14
+    },
+    "referenceFailureCounts": {
+      "v1": 38
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "c50032ff6322db38eca2113c068c1e0e9128b1c20ab587509f64ca907b667c28"
+  },
+  {
+    "gate": "columns-layout",
+    "path": "scripts/parity/checkpoints/2026-10-30/columns-layouts/layouts-final-differential.json.gz",
+    "rawSha256": "4a11251ee18ed3a12181c5d3b86db2d1b6397829c9a5784e71ce257150a05ffd",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 34.105,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc"
+      },
+      {
+        "label": "candidate",
+        "sha": "b7ac66388e44999d794368cd00a99b4057d41083",
+        "tree": "b42df21e288c4bebfa7d5b1f4764814d215aa5a6"
+      }
+    ],
+    "cases": {
+      "v1": 12,
+      "spec-baseline": 12,
+      "candidate": 12
+    },
+    "referenceFailureCounts": {
+      "v1": 30
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "47059c3d1c879e7f15773e9011fc27185fe0ba00b0d4d268d94265557f940dca"
+  },
+  {
+    "gate": "tool-actions",
+    "path": "scripts/parity/checkpoints/2026-10-30/tool-actions/final-differential.json.gz",
+    "rawSha256": "243d1b71b549e49ade94e6c3c9037eadb1e638c852c9120e2339ea9fcbfc9feb",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 51.619,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc"
+      },
+      {
+        "label": "candidate",
+        "sha": "9cb70473c9793623632e1018144e490ca2cc73d7",
+        "tree": "882fe5eaba43fc2fc76610be4302c965e76e38c1"
+      }
+    ],
+    "cases": {
+      "v1": 48,
+      "spec-baseline": 48,
+      "candidate": 48
+    },
+    "referenceFailureCounts": {
+      "v1": 278,
+      "spec-baseline": 258
+    },
+    "referenceIncompleteCases": {
+      "v1": [
+        {
+          "id": "clearFormatting/noop/atomic/forward",
+          "reasons": [
+            "error",
+            "planned",
+            "completed"
+          ]
+        },
+        {
+          "id": "clearFormatting/noop/atomic/backward",
+          "reasons": [
+            "error",
+            "planned",
+            "completed"
+          ]
+        },
+        {
+          "id": "caseTransform/noop/atomic/forward",
+          "reasons": [
+            "error",
+            "planned",
+            "completed"
+          ]
+        },
+        {
+          "id": "caseTransform/noop/atomic/backward",
+          "reasons": [
+            "error",
+            "planned",
+            "completed"
+          ]
+        }
+      ],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "b5076aa92e7b8add6685d9273ca077e10f060b41284531909b93409a34b2d033"
+  },
+  {
+    "gate": "raw-source",
+    "path": "scripts/parity/checkpoints/2026-10-30/raw-source-preview/raw/final.json.gz",
+    "rawSha256": "b873419a97654d03279a7dfd7fe1bdbe36c871d001798dcbbe684d475f163f22",
+    "browser": "156.0.8078.79",
+    "node": "v24.22.1",
+    "elapsedSeconds": 27.743,
+    "sources": [
+      {
+        "label": "v1",
+        "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+        "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78"
+      },
+      {
+        "label": "spec-baseline",
+        "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+        "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc"
+      },
+      {
+        "label": "candidate",
+        "sha": "90b28965d2ea7735c44f5f1483a334f8a565fda3",
+        "tree": "6fa6f2946a375bae518a95f91c005ea42ab04833"
+      }
+    ],
+    "cases": {
+      "v1": 21,
+      "spec-baseline": 21,
+      "candidate": 21
+    },
+    "referenceFailureCounts": {
+      "v1": 226,
+      "spec-baseline": 30
+    },
+    "referenceIncompleteCases": {
+      "v1": [],
+      "spec-baseline": []
+    },
+    "referenceSignatureMultisetSha256": "738c4335e37a9b3eeeb79459ec9c50bf9fa19170e7c57406371f84e973504b47"
+  }
+]

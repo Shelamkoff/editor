@@ -1,0 +1,372 @@
+diff --git a/core/DocumentRuntime.test.js b/core/DocumentRuntime.test.js
+index 5e0d22a0..5118885e 100644
+--- a/core/DocumentRuntime.test.js
++++ b/core/DocumentRuntime.test.js
+@@ -1577,6 +1577,61 @@ test('block instance DataTask inherits plugin authoring provenance through Docum
+   runtime.destroy()
+ })
+ 
++for (const boundary of ['before', 'record', 'snapshot']) {
++  test(`block getData validates its existing projection owner across ${boundary} capture`, () => {
++    let contextFactory, reads = 0, owned = boundary !== 'before'
++    const fault = new Error('Controlled block owner loss')
++    const runtime = new DocumentRuntime({
++      registry: registry([paragraphDefinition()]),
++      data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
++      projectorFactory({ contextFactory: createContext }) {
++        contextFactory = createContext
++        return { mount() {}, destroy() {} }
++      },
++    })
++    const controller = new AbortController(), scope = new InstanceScope({ generation: runtime.generation })
++    const context = contextFactory('a', 'paragraph', controller.signal, () => {
++      reads++
++      if (boundary === 'record') owned = false
++      const data = boundary === 'snapshot' ? { get text() { owned = false; return 'Alpha' } } : { text: 'Alpha' }
++      return { ...runtime.get('a'), data }
++    }, scope, () => { if (!owned) throw fault })
++    try {
++      assert.throws(() => context.getData(), error => error === fault)
++      assert.equal(reads, boundary === 'before' ? 0 : 1)
++      assert.deepEqual(runtime.get('a').data, { text: 'Alpha' })
++      assert.equal(runtime.canUndo, false)
++    } finally { controller.abort(); runtime.destroy() }
++  })
++}
++
++test('block getData keeps prospective, active and read-only snapshots while rejecting revoked contexts', () => {
++  let contextFactory
++  const runtime = new DocumentRuntime({
++    registry: registry([paragraphDefinition()]),
++    data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
++    projectorFactory({ contextFactory: createContext }) {
++      contextFactory = createContext
++      return { mount() {}, destroy() {} }
++    },
++  })
++  const controller = new AbortController(), scope = new InstanceScope({ staged: true, generation: runtime.generation })
++  let candidate = { ...runtime.get('a'), data: { text: 'Prospective' } }
++  const context = contextFactory('a', 'paragraph', controller.signal, () => candidate, scope, () => {})
++  try {
++    const staged = context.getData()
++    assert.deepEqual(staged, { text: 'Prospective' })
++    assert.equal(Object.isFrozen(staged), true)
++    assert.notEqual(staged, candidate.data)
++    candidate = runtime.get('a'); scope.activate(runtime.generation)
++    assert.deepEqual(context.getData(), { text: 'Alpha' })
++    scope.setReadOnly(true)
++    assert.deepEqual(context.getData(), { text: 'Alpha' })
++    controller.abort()
++    assert.throws(() => context.getData(), error => error?.name === 'AbortError')
++  } finally { controller.abort(); runtime.destroy() }
++})
++
+ test('shortcut capability receives the owning editor document rather than ambient document', () => {
+   const ownerDocument = Object.freeze({ kind: 'owning-editor-realm' })
+   let received = null
+diff --git a/tests/browser/native-plugin-controls.js b/tests/browser/native-plugin-controls.js
+index 06883847..53e9a594 100644
+--- a/tests/browser/native-plugin-controls.js
++++ b/tests/browser/native-plugin-controls.js
+@@ -1,4 +1,5 @@
+ import './native-poll-derived.js'
++import './regressions/poll-native-owner-blur.js'
+ import './native-link-preview-derived.js'
+ import { test, make, para, editorRoot, blockElement, pause, assert, equal, run } from './regressions/harness.js'
+ import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+diff --git a/tests/browser/native-poll-provider-ownership.html b/tests/browser/native-poll-provider-ownership.html
+new file mode 100644
+index 00000000..31bc9ce1
+--- /dev/null
++++ b/tests/browser/native-poll-provider-ownership.html
+@@ -0,0 +1,6 @@
++<!doctype html>
++<html lang="en"><head><meta charset="utf-8"><title>Poll provider ownership</title>
++<style>body{font-family:sans-serif;padding:20px}section{width:640px}</style>
++</head><body data-status="running"><pre id="result">running</pre>
++<script type="module">import './native-input-driver.js'; import './regressions/poll-provider-ownership.js'; import './regressions/poll-native-owner-blur.js'; import { run } from './regressions/harness.js'; await run()</script>
++</body></html>
+diff --git a/tests/browser/projection-contracts.js b/tests/browser/projection-contracts.js
+index 0dd15274..1f81506b 100644
+--- a/tests/browser/projection-contracts.js
++++ b/tests/browser/projection-contracts.js
+@@ -6,6 +6,7 @@ import './regressions/field-projection-completion.js'
+ import './regressions/canonical-field-text.js'
+ import './regressions/person-derived-presentation.js'
+ import './regressions/poll-derived-presentation.js'
++import './regressions/poll-provider-ownership.js'
+ import './regressions/image-derived-alt.js'
+ import { assembleCanonicalRecord, filterCanonicalInline, remapCanonicalInline } from '../../core/CanonicalTransforms.js'
+ import { InlineProjectionRuntime } from '../../core/InlineProjectionRuntime.js'
+diff --git a/tests/browser/regressions/poll-native-owner-blur.js b/tests/browser/regressions/poll-native-owner-blur.js
+new file mode 100644
+index 00000000..1957785c
+--- /dev/null
++++ b/tests/browser/regressions/poll-native-owner-blur.js
+@@ -0,0 +1,108 @@
++import { assert, equal, pause, test } from './harness.js'
++import { clickNative, printable } from '../native-input-helpers.js'
++import { pollProviderFixture, results } from './poll-provider-ownership.js'
++
++function focusEnd(field) {
++  field.focus()
++  const range = document.createRange()
++  range.selectNodeContents(field); range.collapse(false)
++  const selection = getSelection()
++  selection.removeAllRanges(); selection.addRange(range)
++}
++
++function outsideButton() {
++  const button = document.createElement('button')
++  button.textContent = 'Outside Poll'
++  document.body.append(button)
++  return button
++}
++
++test('Poll native ownership: current option input and blur keep one Undo/Redo action', async () => {
++  const h = await pollProviderFixture(), outside = outsideButton()
++  try {
++    const before = h.editor.save().blocks, input = []
++    h.field.addEventListener('input', event => input.push({ trusted: event.isTrusted, type: event.inputType }))
++    focusEnd(h.field)
++    await printable('X')
++    equal(input, [{ trusted: true, type: 'insertText' }])
++    const after = structuredClone(before); after[0].data.options[0].text = '<b>AlphaX</b>'
++    equal(h.editor.save().blocks, after)
++    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>AlphaX</b>')
++    await clickNative(outside)
++    equal(h.editor.save().blocks, after)
++    equal(h.transactions.length, 1, 'Blur added another authoring action')
++    assert(h.editor.undo()); equal(h.editor.save().blocks, before)
++    assert(!h.editor.canUndo && h.editor.canRedo)
++    assert(h.editor.redo()); equal(h.editor.save().blocks, after)
++    equal(h.transactions.length, 3)
++    equal(h.errors, [])
++  } finally { h.editor.destroy(); outside.remove() }
++})
++
++test('Poll completed labels: provider refresh uses the last trusted native option completion', async () => {
++  const h = await pollProviderFixture()
++  try {
++    const before = h.editor.save().blocks, input = []
++    h.field.addEventListener('input', event => input.push({ trusted: event.isTrusted, type: event.inputType }))
++    focusEnd(h.field)
++    await printable('X')
++    equal(input, [{ trusted: true, type: 'insertText' }])
++    const after = structuredClone(before); after[0].data.options[0].text = '<b>AlphaX</b>'
++    equal(h.editor.save().blocks, after)
++    h.subscriptions[0].onUpdate(results('2', 8, 2))
++    await pause()
++    equal([...h.wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), ['80%', '20%'])
++    assert(h.wrapper.querySelector('.oe-poll__option-text[data-option-id="first"]') === h.field)
++    equal(h.field.innerHTML, '<b>AlphaX</b>')
++    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>AlphaX</b>')
++    equal(h.editor.save().blocks, after)
++    equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 1, undo: true, redo: false })
++    equal(h.errors, [])
++  } finally { h.editor.destroy() }
++})
++
++for (const adopted of ['wrapper', 'shell']) {
++  test(`Poll native ownership: native blur cannot submit an adopted whole ${adopted}`, async () => {
++    const h = await pollProviderFixture(), foreign = document.createElement('aside'), outside = outsideButton()
++    document.body.append(foreign)
++    try {
++      const before = h.editor.save().blocks, target = adopted === 'wrapper' ? h.wrapper : h.shell, inputs = []
++      foreign.append(target)
++      h.field.addEventListener('input', event => inputs.push({ trusted: event.isTrusted, type: event.inputType }))
++      focusEnd(h.field)
++      await printable('X')
++      equal(inputs, [{ trusted: true, type: 'insertText' }])
++      equal(h.field.textContent, 'AlphaX')
++      const content = h.wrapper.innerHTML
++      await clickNative(outside)
++      await pause()
++      equal(h.wrapper.innerHTML, content, 'Blur changed the adopted author view')
++      assert(target.parentNode === foreign)
++      equal(h.editor.save().blocks, before)
++      equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 0, undo: false, redo: false })
++      equal(h.errors, [])
++    } finally { h.editor.destroy(); foreign.remove(); outside.remove() }
++  })
++}
++
++test('Poll native ownership: an outstanding vote cannot repaint an adopted shell or report twice', async () => {
++  const h = await pollProviderFixture(), foreign = document.createElement('aside')
++  document.body.append(foreign)
++  try {
++    const before = h.editor.save().blocks
++    await clickNative(h.wrapper.querySelector('.oe-poll__choice[data-option-id="first"]'))
++    await clickNative(h.wrapper.querySelector('.oe-poll__submit'))
++    equal(h.votes.length, 1)
++    assert(!h.votes[0].signal.aborted)
++    foreign.append(h.shell)
++    const html = h.wrapper.innerHTML, children = [...h.wrapper.childNodes]
++    h.votes[0].resolve(results('2', 8, 2))
++    await pause(30)
++    equal(h.wrapper.innerHTML, html); equal([...h.wrapper.childNodes], children)
++    assert(h.shell.parentNode === foreign)
++    equal(h.errors.length, 1, 'Vote settlement retried the rejected presentation')
++    assert(h.votes[0].signal.aborted, 'Completed vote resources were not released')
++    equal(h.editor.save().blocks, before); equal(h.transactions.length, 0)
++    assert(!h.editor.canUndo && !h.editor.canRedo)
++  } finally { h.editor.destroy(); foreign.remove() }
++})
+diff --git a/tests/browser/regressions/poll-provider-ownership.js b/tests/browser/regressions/poll-provider-ownership.js
+new file mode 100644
+index 00000000..00775a54
+--- /dev/null
++++ b/tests/browser/regressions/poll-provider-ownership.js
+@@ -0,0 +1,152 @@
++import { createPollPlugin } from '../../../plugins/poll/index.js'
++import { assert, equal, make, blockElement, pause, test } from './harness.js'
++
++export const results = (revision, first = 5, second = 5) => ({
++  revision, total: first + second,
++  options: [{ id: 'first', votes: first }, { id: 'second', votes: second }],
++})
++
++export async function pollProviderFixture({ deferLoad = false, observeError = () => {} } = {}) {
++  const subscriptions = [], errors = [], transactions = [], contexts = [], loads = [], votes = []
++  const definition = createPollPlugin({
++    injectStyles: false,
++    compareRevisions: (next, current) => Number(next) - Number(current),
++    onError: error => { errors.push(error); return observeError(error) },
++    dataSource: {
++      load(request) {
++        const entry = { ...request }; loads.push(entry)
++        return deferLoad ? new Promise(resolve => { entry.resolve = resolve }) : Promise.resolve(results('1'))
++      },
++      vote(request) { return new Promise(resolve => { votes.push({ ...request, resolve }) }) },
++      subscribe(request) {
++        const subscription = { ...request, releases: 0 }
++        subscriptions.push(subscription)
++        return () => { subscription.releases++ }
++      },
++    },
++  })
++  const capture = { ...definition, setup(runtimeContext) {
++    const runtime = definition.setup(runtimeContext)
++    return { ...runtime, create(data, context) {
++      contexts.push(context)
++      return runtime.create(data, context)
++    } }
++  } }
++  const editor = make([{ id: 'poll', type: 'poll', dataVersion: 1, data: {
++    pollId: 'poll-owner-proof', question: 'Question', type: 'single', resultsMode: 'always',
++    options: [{ id: 'first', text: '<b>Alpha</b>' }, { id: 'second', text: '<i>Beta</i>' }],
++  } }], { defaultBlock: 'poll', plugins: [capture], inlineTools: [] })
++  editor.on('transaction:committed', event => transactions.push(event))
++  await pause(30)
++  const shell = blockElement(editor, 'poll'), wrapper = shell.querySelector('.oe-poll')
++  const field = wrapper.querySelector('.oe-poll__option-text[data-option-id="first"]')
++  assert(subscriptions.length === 1 && loads.length === 1, 'Real provider did not connect exactly once')
++  equal([...wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), deferLoad ? [] : ['50%', '50%'])
++  return { editor, shell, wrapper, field, subscriptions, errors, transactions, contexts, loads, votes }
++}
++
++test('Poll provider ownership: a current subscription refresh preserves author fields and history', async () => {
++  const h = await pollProviderFixture()
++  try {
++    const before = h.editor.save().blocks, result = h.wrapper.querySelector('.oe-poll__result-label')
++    h.subscriptions[0].onUpdate(results('2', 8, 2))
++    await pause()
++    equal([...h.wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), ['80%', '20%'])
++    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>Alpha</b>')
++    assert(h.wrapper.querySelector('.oe-poll__option-text[data-option-id="first"]') === h.field)
++    assert(h.wrapper.querySelector('.oe-poll__result-label') !== result && !result.isConnected)
++    equal(h.editor.save().blocks, before)
++    equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 0, undo: false, redo: false })
++    equal(h.errors, [])
++  } finally { h.editor.destroy() }
++})
++
++test('Poll completed labels: provider refresh ignores uncommitted author DOM drift', async () => {
++  const h = await pollProviderFixture()
++  try {
++    const before = h.editor.save().blocks
++    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>Alpha</b>')
++    h.field.querySelector('b').textContent = 'Unaccepted author drift'
++    h.subscriptions[0].onUpdate(results('2', 8, 2))
++    await pause()
++    equal([...h.wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), ['80%', '20%'])
++    assert(h.wrapper.querySelector('.oe-poll__option-text[data-option-id="first"]') === h.field)
++    equal(h.field.innerHTML, '<b>Unaccepted author drift</b>', 'A provider refresh rewrote the author field')
++    equal(h.editor.save().blocks, before)
++    equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 0, undo: false, redo: false })
++    equal(h.errors, [])
++    equal(h.wrapper.querySelector('.oe-poll__result-label').innerHTML, '<b>Alpha</b>', 'Unaccepted DOM drift leaked into a completed result label')
++  } finally { h.editor.destroy() }
++})
++
++for (const adopted of ['wrapper', 'shell']) {
++  test(`Poll provider ownership: a subscription cannot repaint an adopted whole ${adopted}`, async () => {
++    const h = await pollProviderFixture(), foreign = document.createElement('aside')
++    document.body.append(foreign)
++    try {
++      const before = h.editor.save().blocks, target = adopted === 'wrapper' ? h.wrapper : h.shell
++      foreign.append(target)
++      const label = h.wrapper.querySelector('.oe-poll__result-label')
++      label.textContent = 'foreign result sentinel'
++      const beforeHtml = h.wrapper.innerHTML, children = [...h.wrapper.childNodes]
++      h.subscriptions[0].onUpdate(results('2', 8, 2))
++      await pause()
++      equal(h.wrapper.innerHTML, beforeHtml, 'Provider callback changed a foreign owner\'s DOM')
++      equal([...h.wrapper.childNodes], children, 'Provider callback replaced foreign child identities')
++      assert(target.parentNode === foreign && label.parentNode?.parentNode?.parentNode === h.wrapper)
++      equal(h.editor.save().blocks, before)
++      equal({ events: h.transactions.length, undo: h.editor.canUndo, redo: h.editor.canRedo }, { events: 0, undo: false, redo: false })
++      equal(h.errors.length, 1, 'Owner loss should be reported once without another repaint')
++    } finally { h.editor.destroy(); foreign.remove() }
++  })
++}
++
++test('Poll provider ownership: a deferred load cannot repaint an adopted wrapper or report twice', async () => {
++  const h = await pollProviderFixture({ deferLoad: true }), foreign = document.createElement('aside')
++  document.body.append(foreign)
++  try {
++    const before = h.editor.save().blocks
++    foreign.append(h.wrapper)
++    const html = h.wrapper.innerHTML, children = [...h.wrapper.childNodes]
++    h.loads[0].resolve(results('2', 8, 2))
++    await pause(30)
++    equal(h.wrapper.innerHTML, html); equal([...h.wrapper.childNodes], children)
++    assert(h.wrapper.parentNode === foreign)
++    equal(h.errors.length, 1, 'Load settlement retried the rejected presentation')
++    equal(h.editor.save().blocks, before); equal(h.transactions.length, 0)
++    assert(!h.editor.canUndo && !h.editor.canRedo)
++  } finally { h.editor.destroy(); foreign.remove() }
++})
++
++test('Poll provider ownership: a live provider error keeps its identity and a later update recovers', async () => {
++  const h = await pollProviderFixture(), fault = new Error('Controlled provider error')
++  try {
++    const before = h.editor.save().blocks
++    h.subscriptions[0].onError(fault)
++    equal(h.errors, [fault]); assert(h.wrapper.querySelector('[role="alert"]'))
++    h.subscriptions[0].onUpdate(results('2', 8, 2))
++    equal([...h.wrapper.querySelectorAll('.oe-poll__result-pct')].map(node => node.textContent), ['80%', '20%'])
++    assert(!h.wrapper.querySelector('[role="alert"]'))
++    equal(h.editor.save().blocks, before); equal(h.transactions.length, 0)
++  } finally { h.editor.destroy() }
++})
++
++for (const failure of ['throw', 'reject']) {
++  test(`Poll provider ownership: an error observer may ${failure} after adoption without a second callback`, async () => {
++    const observerFault = new Error('Controlled error observer failure')
++    const h = await pollProviderFixture({ observeError() {
++      if (failure === 'throw') throw observerFault
++      return Promise.reject(observerFault)
++    } }), foreign = document.createElement('aside')
++    document.body.append(foreign)
++    try {
++      foreign.append(h.wrapper)
++      const html = h.wrapper.innerHTML
++      h.subscriptions[0].onUpdate(results('2', 8, 2))
++      await pause(30)
++      equal(h.wrapper.innerHTML, html); equal(h.errors.length, 1)
++      assert(h.wrapper.parentNode === foreign)
++      assert(!h.editor.canUndo && !h.editor.canRedo)
++    } finally { h.editor.destroy(); foreign.remove() }
++  })
++}

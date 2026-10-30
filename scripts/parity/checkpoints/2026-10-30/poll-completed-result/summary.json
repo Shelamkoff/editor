@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "scope": "Poll provider result labels reuse the last completed author presentation",
+  "base": "69c8425e0081fde69cf5176ccb73d032720c15fc",
+  "previousTestedSource": "64f53902c8ace8010716bb2987c50f961f522d5c",
+  "redSource": "133b9905aa2b201d68254f4a1b0c068d532a1923",
+  "testedSource": "ed4222f5b66a36aa9f5f88be62d4efeb369202e1",
+  "testedTree": "bc36e1e4c4283619a5a8c06834bffc3b8b2e52af",
+  "runs": [
+    {
+      "run": "run-iSS2vy",
+      "source": {
+        "head": "133b9905aa2b201d68254f4a1b0c068d532a1923",
+        "tree": "75c71e6a4127b420baa0098b5f3052a1006eaa35",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "a67dae35b29abeb91ead61ad2faead54f30c7dc3c5a23d677c8e8b750726c57f"
+      },
+      "outcome": "failed",
+      "gates": {
+        "completed-label-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-NWrLV1",
+      "source": {
+        "head": "ed4222f5b66a36aa9f5f88be62d4efeb369202e1",
+        "tree": "bc36e1e4c4283619a5a8c06834bffc3b8b2e52af",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "2a049eaa317b080841b37f4d2baf4700eede59ee679698216f3e57d8f340b180"
+      },
+      "outcome": "passed",
+      "gates": {
+        "poll-units": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "projection": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "poll-state": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "native-poll": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    }
+  ],
+  "counts": {
+    "run-iSS2vy": {
+      "completed-label-red": {
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    "run-NWrLV1": {
+      "poll-units": {
+        "passed": 15,
+        "failed": 0
+      },
+      "types": {
+        "exitCode": 0
+      },
+      "projection": {
+        "passed": 198,
+        "failed": 0
+      },
+      "poll-state": {
+        "passed": 20,
+        "failed": 0
+      },
+      "native-poll": {
+        "passed": 27,
+        "failed": 0
+      }
+    }
+  },
+  "approvals": {
+    "runtimeSpec": "Parent reviewed complete production/spec patch (SHA256 05e0d55201857e51b7afc279860766d059c2e73654345beac647ed5fbb745ce2), RED test commit133b9905, and sanitizer contracts; approved before integration.",
+    "previousTests": "Sibling native_completion_current reviewed full 64f53902 test diff, including exact DOM identity assertions, public staging/read-only/revocation controls, and ordinary full-gate registration; no blocking findings."
+  },
+  "previousCheckpoint": {
+    "path": "../poll-provider-ownership",
+    "hashIndexSha256": "31f771c1bdd0cf7f5ef75f6d73fc46a14f602f99f8b19301d299b9d471ef4289",
+    "note": "Only README/summary and their index hashes were clarified to identify 206 as core-only Node coverage. No raw log, manifest, source patch or supervisor was altered."
+  },
+  "environment": {
+    "chrome": "156.0.8078.47",
+    "node": "v24.22.1",
+    "dependencies": "Physical copy of successful main npm-ci installation with Carousel Git f7f64858 pin, unchanged from previous GREEN."
+  },
+  "sources": [
+    {
+      "path": "RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md",
+      "bytes": 100343,
+      "sha256": "49fbad0700bc62b2c0b8228f3b9385e2667810a771f7bafd4210937603133ee6"
+    },
+    {
+      "path": "core/DocumentRuntime.js",
+      "bytes": 78407,
+      "sha256": "f35d4335c1819b11e6ec00a59ea3b12c2f7922e984c5787dac7903585d914f58"
+    },
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "bytes": 76638,
+      "sha256": "b61d722e7be432a80d15bb1c8925344b4e825159ee21bda52de26dae9891f32c"
+    },
+    {
+      "path": "docs/guide/extensions.md",
+      "bytes": 21441,
+      "sha256": "1e66e3b07cd3764384bf610a16b4821d195a76cf0723f42de8803f446a77fa89"
+    },
+    {
+      "path": "docs/ru/guide/extensions.md",
+      "bytes": 36448,
+      "sha256": "167a9789921191368c17b49940f4f9ab3e825c427cc22281a769b8232f1f8f83"
+    },
+    {
+      "path": "plugins/poll/index.js",
+      "bytes": 34268,
+      "sha256": "b343474f623332eb7b2da80fae0c50e2afc5a49c6e1323e912bed110e9de8c10"
+    },
+    {
+      "path": "tests/browser/native-plugin-controls.js",
+      "bytes": 45332,
+      "sha256": "b124e9e202654a3fe4fc30e019204d40a3bc34daf7e90fd27fd2d1d9ca824aed"
+    },
+    {
+      "path": "tests/browser/native-poll-provider-ownership.html",
+      "bytes": 484,
+      "sha256": "d09a8283fcebb5ecc1e56fa3bbd93b168b4257d9d49861e4a26e2a2260a787eb"
+    },
+    {
+      "path": "tests/browser/projection-contracts.js",
+      "bytes": 75417,
+      "sha256": "acd4f9ed5d0507dbfa280db857d3df7a727357f3d3ef18b462eb379ad6ec4c47"
+    },
+    {
+      "path": "tests/browser/regressions/poll-native-owner-blur.js",
+      "bytes": 5291,
+      "sha256": "d4f906b29670f86c1123d9f669cad21e0053a1d86b9eb7ee3b115acdda865ebe"
+    },
+    {
+      "path": "tests/browser/regressions/poll-provider-ownership.js",
+      "bytes": 8266,
+      "sha256": "9e93cd6fda092f44d0565f725c04e98ae5fd7fd53046e426bd28794623b96b35"
+    }
+  ],
+  "limitations": [
+    "Full library and v1 parity are not claimed; root owns combined verification and publication.",
+    "Final native gate is filtered by Poll on the existing native-plugin-controls entry point; 27 executed cases are credited, not the whole native library.",
+    "Final production source is ed4222f5; this evidence-only checkpoint and prior README clarification are later additions, not relabeled test source."
+  ]
+}

@@ -129,6 +129,7 @@ export function buildPlayer(opts) {
    * @param {string} [alt]
    */
   function setPreview(src, alt) {
+    if (previewEl && previewEl.parentNode !== player) return
     const img = ownerDocument.createElement('img')
     img.className = `${prefix}__preview`
     const safePreview = setSafeUrlAttribute(img, 'src', src, 'media')

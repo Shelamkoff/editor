@@ -1,0 +1,297 @@
+{
+  "source": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "tree": "b4eb26ffc1f9c04c14c60a09031a8affe5a7cdb8",
+  "cwd": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final",
+  "branch": "agent/61a-continuation-native-final",
+  "node": "v24.22.1",
+  "chrome": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+  "chromeVersion": "Google Chrome for Testing 156.0.8078.47",
+  "chromeSha256": "230f0db8c5086182f46c59c867c0d461eb525d6552dfad226ea6b4d9ec249db2",
+  "playwright": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+  "supervisorSha256": "d8755537d08c3ccf6e750ef9509e8e65206e386a6e1c12b89965b6615e622e82",
+  "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+  "installedLockSha256": "b021956852a011c817ab156fee4e2acf6f9744a36413b8e52739e169430f2829",
+  "carouselResolution": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+  "carouselPhysicalCopy": true,
+  "carouselFiles": [
+    {
+      "path": "LICENSE",
+      "bytes": 1067,
+      "sha256": "ee385e1b8ccc05bbd96d114f77bfde8163ff52631783691234d35211838ac302"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4816,
+      "sha256": "88385995f7feb230a23ca5589dbc928a2a7f2442cd0cd737ab2f6909184bd15f"
+    },
+    {
+      "path": "README.ru.md",
+      "bytes": 4209,
+      "sha256": "031b45c9d01bf273f686a05ed916a38a8ca1bd74f762523dc0e4c871aca65072"
+    },
+    {
+      "path": "dist/src/BreakpointManager.d.ts",
+      "bytes": 354,
+      "sha256": "5bfc96021544a46521c53efaea8fc92828eeac22eee857e79782754eb3ec5526"
+    },
+    {
+      "path": "dist/src/BreakpointManager.js",
+      "bytes": 3100,
+      "sha256": "3d3cc67866108ef71fd094188c303d7cb499d31f9cd8b44f50cfff582676b2f4"
+    },
+    {
+      "path": "dist/src/Carousel.d.ts",
+      "bytes": 1072,
+      "sha256": "5da13db2ca82f51fd527a639d74e0c435e580846089061675bc63d9e88455819"
+    },
+    {
+      "path": "dist/src/Carousel.js",
+      "bytes": 28725,
+      "sha256": "a3969ff43b5ff8d326e297fff122c11ffeb7747ff7f68f0bfd38fa6a32cdef1f"
+    },
+    {
+      "path": "dist/src/LoopEngine.d.ts",
+      "bytes": 378,
+      "sha256": "5003f3bf9de12f1b5ea9cf7103a187bf6f77fa2a7b9299e82129037db65f44fe"
+    },
+    {
+      "path": "dist/src/LoopEngine.js",
+      "bytes": 3232,
+      "sha256": "0efae61567ab966f50161698c5cc02f54792c4791919d11ef3a0e18b661e5ed3"
+    },
+    {
+      "path": "dist/src/SlideManager.d.ts",
+      "bytes": 309,
+      "sha256": "3af07797feb3ec88311fe022f9a33a9d64fe364faef07e7b718466607c8462ae"
+    },
+    {
+      "path": "dist/src/SlideManager.js",
+      "bytes": 1280,
+      "sha256": "096bb3d1effe623e9445f92933bc8b34b4030414df212addcac39c3ef214f1af"
+    },
+    {
+      "path": "dist/src/TrackRenderer.d.ts",
+      "bytes": 1063,
+      "sha256": "f44726aac2c22ca52588f446507b4734b4e0ccc6b8b3f7100bddb45044b9b61a"
+    },
+    {
+      "path": "dist/src/TrackRenderer.js",
+      "bytes": 10988,
+      "sha256": "637086ae6119d8fed554acc9e5d47465ab79179137761f68c8bf1c7d1ce40fee"
+    },
+    {
+      "path": "dist/src/index.d.ts",
+      "bytes": 814,
+      "sha256": "618ad18a98d0cf8fc72af0e9ca6a2a0289114cc6e4c1082a1d94921c1a50fd1d"
+    },
+    {
+      "path": "dist/src/index.js",
+      "bytes": 576,
+      "sha256": "6c73f6583b1b7d3280a1a2aa75885a8ca8b0c0265fce23d3a123fbe99007b1b6"
+    },
+    {
+      "path": "dist/src/plugins/arrows/README.md",
+      "bytes": 539,
+      "sha256": "8e2306aa1acabb115fe0935299e9b5db1a866f34b50abd17f8cde223d8150683"
+    },
+    {
+      "path": "dist/src/plugins/arrows/README.ru.md",
+      "bytes": 548,
+      "sha256": "f40a9b74f9a18a2a409a6e4c260930ba0f6ed643226ef6a84ef2a7270cc73c9b"
+    },
+    {
+      "path": "dist/src/plugins/arrows.d.ts",
+      "bytes": 174,
+      "sha256": "c4a41c51d9c213ec20e1fd2a9afff3526ebe726b7962f8434fdd59e936bf819f"
+    },
+    {
+      "path": "dist/src/plugins/arrows.js",
+      "bytes": 3060,
+      "sha256": "91bbe344b1131a8798fca7e652466b2fdd8a494dd10b55669abddb18b3fcc5da"
+    },
+    {
+      "path": "dist/src/plugins/autoplay/README.md",
+      "bytes": 707,
+      "sha256": "ef0ba1185eb4957d2a7ba8350382ec2519cca839f29dced2b3153cda03b709d9"
+    },
+    {
+      "path": "dist/src/plugins/autoplay/README.ru.md",
+      "bytes": 618,
+      "sha256": "43fda056ad1473d8caad7424c8e7e7a248c481dcb82750811a98d43758201291"
+    },
+    {
+      "path": "dist/src/plugins/autoplay.d.ts",
+      "bytes": 319,
+      "sha256": "7acab5dd76479c0abe8a9e075838b9cedcfe1ffa81b449870cf7067e931291b4"
+    },
+    {
+      "path": "dist/src/plugins/autoplay.js",
+      "bytes": 3676,
+      "sha256": "8b502f680cf86862ed8f37260aedb9e1a605c157821661feca9db212053fec46"
+    },
+    {
+      "path": "dist/src/plugins/dots/README.md",
+      "bytes": 404,
+      "sha256": "ea8ade3e3eac671bd2f118dcef602c9e45ba24e97339b4385f1cc6ac66d1ad96"
+    },
+    {
+      "path": "dist/src/plugins/dots/README.ru.md",
+      "bytes": 408,
+      "sha256": "6ca2e7827a12a296b0ef17700a7a2a571cd6163c2424fd2b024ed882c182013a"
+    },
+    {
+      "path": "dist/src/plugins/dots.d.ts",
+      "bytes": 131,
+      "sha256": "83ba5db2fe31189119ad2dcd005e9a3ba685a0a02c90fe79934524057a6cd0ae"
+    },
+    {
+      "path": "dist/src/plugins/dots.js",
+      "bytes": 2989,
+      "sha256": "261b11c5de5f9656c95e1dae89cec4f963d30b7252a3a9550b0815b42e0b3228"
+    },
+    {
+      "path": "dist/src/plugins/index.js",
+      "bytes": 362,
+      "sha256": "1a6980e086a61291e1e993079d977244a1451dbd45fe8603d1124ae4b612853f"
+    },
+    {
+      "path": "dist/src/plugins/keyboard/README.md",
+      "bytes": 462,
+      "sha256": "f5830be42195120e1af9f26f2a4c6918c760e396ff0385f1d4aaf2c040dd645e"
+    },
+    {
+      "path": "dist/src/plugins/keyboard/README.ru.md",
+      "bytes": 415,
+      "sha256": "423b4d52e43e56b6bfe7fdef74ca512b2c7a1ca8d7d28ccfd140d8017160b407"
+    },
+    {
+      "path": "dist/src/plugins/keyboard.d.ts",
+      "bytes": 148,
+      "sha256": "0c58151a0992a759ab4fe3693f51b8fdb17bb19dce32fae21656c79b1cb59d63"
+    },
+    {
+      "path": "dist/src/plugins/keyboard.js",
+      "bytes": 2278,
+      "sha256": "affb6d74026a59c9758871702bba4cf4f8af22309a6cfa34c67dc6f8dffd94f2"
+    },
+    {
+      "path": "dist/src/plugins/lazyload/README.md",
+      "bytes": 682,
+      "sha256": "7e9cb6d3cee6bbb693f2c5362668c19c27a4e162e400cdf4e3c641d8913f9204"
+    },
+    {
+      "path": "dist/src/plugins/lazyload/README.ru.md",
+      "bytes": 479,
+      "sha256": "f13f502fc1217dfe2ba42e3fe8f2ca3595fa838eb95a76f506e830885e2e9400"
+    },
+    {
+      "path": "dist/src/plugins/lazyload.d.ts",
+      "bytes": 175,
+      "sha256": "db0c936c3615a759e8ef3a88550224e27bc19d7d2b10c0e35d26b9ce37f5e40f"
+    },
+    {
+      "path": "dist/src/plugins/lazyload.js",
+      "bytes": 4094,
+      "sha256": "2425cda1df630f375168e631f27f5f29465ac6013b3fb1e14f616a11af41fcd3"
+    },
+    {
+      "path": "dist/src/plugins/parallax/README.md",
+      "bytes": 389,
+      "sha256": "ce3ab473021b49c1dcb234d44678314ab140a86c4e0ecc01a8a2200ee43ad8ea"
+    },
+    {
+      "path": "dist/src/plugins/parallax/README.ru.md",
+      "bytes": 467,
+      "sha256": "26554df10954e0b93d992a72e7e3b7a06799f7f905e0a38f8f8c0cda16a7fdd0"
+    },
+    {
+      "path": "dist/src/plugins/parallax.d.ts",
+      "bytes": 131,
+      "sha256": "2a5507e021c7e47f764ff5d5610542e800ef2dcf20484beb8d562cee921430c7"
+    },
+    {
+      "path": "dist/src/plugins/parallax.js",
+      "bytes": 5971,
+      "sha256": "d03d759e1fb41efbd7ed12864a1348a6f46e2ccb7acb629f0ad266191efdb22e"
+    },
+    {
+      "path": "dist/src/plugins/swipe/README.md",
+      "bytes": 578,
+      "sha256": "e06d642fc5a744ff40abe4eb47c29e3fd34afd598018a1ca716f3cd4fa75e3ea"
+    },
+    {
+      "path": "dist/src/plugins/swipe/README.ru.md",
+      "bytes": 458,
+      "sha256": "6992f0819062db9f63a430e9012b85a530162806b4a6b29742632374b66a85c6"
+    },
+    {
+      "path": "dist/src/plugins/swipe.d.ts",
+      "bytes": 171,
+      "sha256": "18463b03bac91543d736168a79ffde74d022430d4882e4e7e3c8dc7dd3b81549"
+    },
+    {
+      "path": "dist/src/plugins/swipe.js",
+      "bytes": 7519,
+      "sha256": "33a8cfe76b99c5be0f6b08cfd5f7c299c29f6d9cc2fa80c46fa6c894055374f7"
+    },
+    {
+      "path": "dist/src/plugins/thumbnails/README.md",
+      "bytes": 510,
+      "sha256": "3dc2d632880b89417310f15e9eaf7ea7e4c40d7ccf85d7b65fb87c88ec56118f"
+    },
+    {
+      "path": "dist/src/plugins/thumbnails/README.ru.md",
+      "bytes": 423,
+      "sha256": "1d972cc0c57bb91200b7704e371dc13127c7e373f2708b02bf5dd9a2985bd896"
+    },
+    {
+      "path": "dist/src/plugins/thumbnails.d.ts",
+      "bytes": 191,
+      "sha256": "e3f949206a46416e5930febbf32a271e806f13a8190573c676c48649a038c16a"
+    },
+    {
+      "path": "dist/src/plugins/thumbnails.js",
+      "bytes": 2948,
+      "sha256": "f612dc43eaa0d8dafc7090d39b00e64a6b2455a07b7c04fc3c55643b5a0e593d"
+    },
+    {
+      "path": "dist/src/types.d.ts",
+      "bytes": 2937,
+      "sha256": "b18dd77d73ceb78c5e3f1b3ffdc3f67d4b82840ce202db32b13c0b5ad05ea83c"
+    },
+    {
+      "path": "dist/styles/carousel.css",
+      "bytes": 5742,
+      "sha256": "8aeb1884d1ecacf326b50ab46f1f16b0b6efb1cba9fada533ebb94064b4e6259"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1199,
+      "sha256": "0c8a77116957f083fc08483e69fbdf806e56fd71b34853cbddf86a540e85eff6"
+    }
+  ],
+  "removedSelectionEnvironmentNames": [],
+  "editorEnvironment": {
+    "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_CANDIDATE_ROOT": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final",
+    "EDITOR_CANDIDATE_SHA": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+    "EDITOR_DEPENDENCIES_ROOT": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/node_modules"
+  },
+  "gates": [
+    [
+      "native",
+      [
+        "node",
+        "tests/browser/physical-history.mjs"
+      ]
+    ],
+    [
+      "heap",
+      [
+        "node",
+        "tests/browser/heap-gate.mjs"
+      ]
+    ]
+  ]
+}

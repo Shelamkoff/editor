@@ -1,0 +1,16 @@
+{
+  "source": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "at": "2026-10-30T18:46:18.511835+00:00",
+  "initialPreflightSha256": "eb1a9787651610b9c6fb708ddbca464ed404eb9d8f3da1b2d3acdf1bd7db4c03",
+  "resumeSupervisorSha256": "ede2a1435e0344962038a5eff5a96be13e6c911f658743cc7cc0509b161767e6",
+  "sourceClean": true,
+  "installedDependenciesRechecked": true,
+  "editorEnvironment": {
+    "EDITOR_CHROME_PATH": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+    "EDITOR_PLAYWRIGHT_PATH": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "EDITOR_CANDIDATE_ROOT": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final",
+    "EDITOR_CANDIDATE_SHA": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+    "EDITOR_DEPENDENCIES_ROOT": "/workspace/scratch/61a2ad7355f4/worktrees/continuation-native-final/node_modules"
+  },
+  "reason": "Initial default-sandbox C11 initialization returned spawnSync git EPERM before any gate started; resume uses the approved tool escalation."
+}
