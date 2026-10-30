@@ -59,6 +59,7 @@ assert(selectedCases.length, 'No case matches EDITOR_CODE_CASE')
 const selectedSources = process.env.EDITOR_CODE_SOURCE ? sources.filter(source => source.label === process.env.EDITOR_CODE_SOURCE) : sources
 assert(selectedSources.length, 'No source matches EDITOR_CODE_SOURCE')
 const loaded = new Map(), dependencyFiles = {}, serverErrors = [], loadOutcomes = [], gates = new Map()
+let currentGate
 const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost'), pathname = url.pathname
@@ -73,6 +74,15 @@ const server = createServer(async (request, response) => {
     }
     response.setHeader('content-type', extname(pathname) === '.css' ? 'text/css' : 'text/javascript')
     if (pathname === '/fixture.js') { response.end(fixture); return }
+    // V1 ships its dependency bundle as a relative module. Delay/fail that
+    // request without replacing or rewriting any of its immutable bytes.
+    if (pathname.endsWith('/shared/runtime/highlightBundle.js')) {
+      assert(currentGate, 'Missing v1 lazy-load boundary')
+      currentGate.requested = true
+      if (currentGate.name !== 'lazy-default') await currentGate.promise
+      loadOutcomes.push({ case: currentGate.id, mode: currentGate.name, status: currentGate.name === 'lazy-failed' ? 503 : 200 })
+      if (currentGate.name === 'lazy-failed') { response.statusCode = 503; response.end('Deliberate unavailable highlighter boundary'); return }
+    }
     if (pathname.startsWith('/highlight/')) {
       const gate = gates.get(pathname)
       assert(gate, `Unexpected highlighter request ${pathname}`)
@@ -109,9 +119,10 @@ try {
     const id = `${source.label}-${name}`
     let release
     const gate = { id, name, requested: false, promise: new Promise(resolve => { release = resolve }), release: () => release() }
+    currentGate = gate
     gates.set(`/highlight/${id}.js`, gate)
-    const context = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] })
-    const page = await context.newPage({ viewport: { width: 1100, height: 900 } })
+    const context = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'], viewport: { width: 1100, height: 900 } })
+    const page = await context.newPage()
     const errors = [], warnings = []
     page.on('pageerror', error => errors.push(error.stack ?? String(error)))
     page.on('console', message => { if (['warning', 'error'].includes(message.type())) warnings.push({ type: message.type(), text: message.text() }) })
@@ -125,7 +136,7 @@ try {
         gate.release()
         await page.waitForTimeout(80)
       } else if (action.kind === 'wait-highlight') await page.locator('.oe-code-pre code span').first().waitFor({ state: 'attached', timeout: 10000 })
-      else if (action.kind === 'wait-copy-reset') await page.waitForFunction(() => !document.querySelector('.oe-code-btn--copy')?.classList.contains('oe-code-btn--copied'), { timeout: 5000 })
+      else if (action.kind === 'wait-copy-reset') await page.waitForFunction(() => !document.querySelector('.oe-code-btn--copy')?.classList.contains('oe-code-btn--copied'), null, { timeout: 5000 })
       else throw new Error(`Unknown action ${action.kind}`)
     })
     await page.goto(`${origin}/?case=${id}`)

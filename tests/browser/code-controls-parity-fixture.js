@@ -77,7 +77,9 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
       completedPhases.push(name)
     }
     const enter = async () => {
-      await action({ kind: 'click', selector: '.oe-code-btn--edit' })
+      if (!holder.querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing')) {
+        await action({ kind: 'click', selector: '.oe-code-btn--edit' })
+      }
       field().focus()
       field().setSelectionRange(field().value.length, field().value.length)
     }
@@ -196,8 +198,11 @@ export async function runCodeControlsCase({ sourceBase, legacy, name }) {
         await action({ kind: 'click', selector: '#clipboard-target' })
         await press('Control+v')
         check('copy', 'nativePaste', destination.value, source + 'X')
-        state('copy', source + 'X', initialLanguage, { canUndo: true, canRedo: false })
-        if (name === 'copy-read-only') editor.setReadOnly(false)
+        state('copy', source + 'X', initialLanguage, { canUndo: name !== 'copy-read-only', canRedo: false })
+        if (name === 'copy-read-only') {
+          editor.setReadOnly(false)
+          state('editable-again', source + 'X', initialLanguage, { canUndo: true, canRedo: false })
+        }
         await action({ kind: 'wait-copy-reset' })
         check('reset', 'feedbackCleared', button().classList.contains('oe-code-btn--copied'), false)
         await enter()
