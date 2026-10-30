@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "scope": "Code asynchronous Copy success/reset feedback belongs to its exact current button and block owner",
+  "preservationRow": "BLOCK_CODE_HIGHLIGHT_COPY",
+  "base": "eae1b93ee6bc39a32230de1b46c67f27b39c8015",
+  "testedSource": "3906cdec5635521893a7e402771995d1d69f8ee3",
+  "testedTree": "4296ede573ab872b6e8e3f829e4d19765bf56fc0",
+  "runs": [
+    {
+      "run": "run-ltB6L7",
+      "source": {
+        "head": "2a642706e10cc8cd522868ee0d1b31b2b2807d90",
+        "tree": "a294b7c394355248fd3b3599bd0bafb2e44e7be8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "e89655dc207483d10cf208fc406a7c4889f71532c86e560dcbb1485ccf839881"
+      },
+      "outcome": "failed",
+      "gates": {
+        "code-copy-owner-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-yTJPu7",
+      "source": {
+        "head": "762d14da540693a8aa57982045f8bad7531adb6d",
+        "tree": "fb58dc340f60c3c39275909750731f5511fb835e",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "84c0b35cbd505914fc9559224f8e6eb2b92dade49312d7871ef6019f7dde8d47"
+      },
+      "outcome": "failed",
+      "gates": {
+        "code-copy-native-red": {
+          "outcome": "failed",
+          "exitCode": 1,
+          "sourceUnchanged": true
+        }
+      }
+    },
+    {
+      "run": "run-k5bmCb",
+      "source": {
+        "head": "3906cdec5635521893a7e402771995d1d69f8ee3",
+        "tree": "4296ede573ab872b6e8e3f829e4d19765bf56fc0",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+        "untracked": [],
+        "dirty": false,
+        "identity": "8b4f362df2958f96da941323992965ff3bd1555f7f37aa636a4a7ad7a0ddf4ae"
+      },
+      "outcome": "passed",
+      "gates": {
+        "code-copy-unit": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "code-copy-native": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        },
+        "types": {
+          "outcome": "passed",
+          "exitCode": 0,
+          "sourceUnchanged": true
+        }
+      }
+    }
+  ],
+  "counts": {
+    "run-ltB6L7": {
+      "code-copy-owner-red": {
+        "passed": 2,
+        "failed": 2
+      }
+    },
+    "run-yTJPu7": {
+      "code-copy-native-red": {
+        "passed": 2,
+        "failed": 8
+      }
+    },
+    "run-k5bmCb": {
+      "code-copy-unit": {
+        "passed": 4,
+        "failed": 0
+      },
+      "code-copy-native": {
+        "passed": 10,
+        "failed": 0
+      },
+      "types": {
+        "exitCode": 0
+      }
+    }
+  },
+  "approvals": {
+    "runtime": "Root reviewed exact runtime candidate SHA256 a133e975016a03460d7c7a9bb56245c1250e4323e2b7cb538f84511c5472d011 before applying or committing; approval was conditional on genuine whole-wrapper/shell browser RED, subsequently observed in run-yTJPu7.",
+    "tests": "Root read and approved all 10 actual browser controls. Agent parity_remaining_audit independently read the complete runtime candidate and browser cases and found no blocking issue."
+  },
+  "environment": {
+    "chrome": "156.0.8078.47",
+    "chromePath": "/workspace/scratch/61a2ad7355f4/tools/chrome-156/chrome-linux64/chrome",
+    "node": "v24.22.1",
+    "dependencies": "Physical node_modules copy from main after successful pinned npm ci.",
+    "installedCarousel": {
+      "version": "1.0.0",
+      "resolved": "git+ssh://git@github.com/Shelamkoff/carousel.git#f7f6485886a1d77f9213d9079eb70000efeff499",
+      "integrity": "sha512-hZoQ8Zt8m8XUM6uJlpEwtimueUCxTpbcU090DOc+54JpBcOFVRJ0KiSFdkzpSQK2ASe4VMRPBv99NxyShDggAA=="
+    }
+  },
+  "sources": [
+    {
+      "path": "plugins/code/index.js",
+      "bytes": 17265,
+      "sha256": "cbe6421d21adfde42bc27acbe0b53c2eb27115b9989b185d983787c2b415e6c0"
+    },
+    {
+      "path": "plugins/code/lifecycle.test.js",
+      "bytes": 7286,
+      "sha256": "51c96c63507f9fc8a558717f5aff3c460dd7992c3f68cf81c1e8ae91f0f33515"
+    },
+    {
+      "path": "tests/browser/native-plugin-parity.js",
+      "bytes": 118441,
+      "sha256": "14ec3ccfad657de1fa972c94581105190547c8533a18bebc6703574e942a0d4c"
+    },
+    {
+      "path": "tests/browser/regressions/code-copy-ownership-native.js",
+      "bytes": 5071,
+      "sha256": "2d582745a9b62a1c911a86af5975a6ceb1456b53815c7be8a2865e9ebdef83b7"
+    }
+  ],
+  "limitations": [
+    "Browser Clipboard API provider is controlled; these tests do not establish a write to or transfer through the system clipboard. Trusted clicks and real reset timers are exercised.",
+    "Native gate is filtered to the 10 registered Code copy ownership cases on existing native-plugin-parity.html. Full native parity and full-library verification belong to the combined integration source.",
+    "No global highlighter changes, new API, registry, token or canonical data store are introduced.",
+    "An initial default-sandbox recorder initialization failed at spawnSync git EPERM before running tests. The actual recorded runs above used the approved subprocess-capable environment; that initialization failure is not a RED test result."
+  ]
+}
