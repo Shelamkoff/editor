@@ -284,6 +284,31 @@ test('Embed cancels the default preview deadline even when fetch ignores abort',
   } finally { h.destroy(); pending.resolve({ ok: false }); await pending.promise }
 })
 
+test('Embed default preview timeout exposes TimeoutError and ignores a late response', async () => {
+  const pending = deferred()
+  let signal
+  const h = mount({
+    config: { resolvePreview: undefined, previewTimeoutMs: 25 },
+    initial: { service: 'vimeo', videoId: '12345' },
+    fetch(_url, options) { signal = options.signal; return pending.promise },
+  })
+  try {
+    const before = structuredClone(h.model())
+    h.advance(24)
+    assert.equal(signal.aborted, false)
+    h.advance(1)
+    assert.equal(signal.aborted, true)
+    assert.equal(signal.reason?.name, 'TimeoutError', 'Preview expiration must remain distinguishable from lifecycle cancellation')
+    pending.resolve({ ok: true, async json() { return { thumbnail_url: 'https://example.test/late.jpg' } } })
+    await pending.promise
+    await Promise.resolve()
+    assert.equal(h.instance.element.querySelector('.oe-embed__preview'), null)
+    assert.deepEqual(h.model(), before)
+    assert.equal(h.writes(), 0)
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
+})
+
 test('Embed contains a preview scheduler failure without an author edit or unhandled rejection', async () => {
   const failure = new Error('Controlled owner-document scheduler failure')
   const h = mount({
