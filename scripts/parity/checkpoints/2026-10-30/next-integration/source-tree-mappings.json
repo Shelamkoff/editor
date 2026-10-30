@@ -1,0 +1,45 @@
+{
+  "baseLocal": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+  "basePublished": "e99fec9d3cfe6b3b05028fb60bc26bb24c3924ef",
+  "parent": "9925c80584e17214013791a4e8ed1791c7e02080",
+  "tree": "ab58ba3cc14e05982a365f83e5a6f0305c086058",
+  "branchHead": "9925c80584e17214013791a4e8ed1791c7e02080",
+  "mappings": [
+    {
+      "local": "479cbf5a96a6efbaedba7d3ed0bfcb03a5a2698f",
+      "published": "836fed7db5af30240b8156f811cb2a10b4fa0511",
+      "tree": "d89699d6d88de4a32d970ce75baa179ac65ed8d4",
+      "message": "fix(gallery): retain keyboard history after native image drag"
+    },
+    {
+      "local": "5aa9b1dbb524cbedc9bf22c3e2df171afce56879",
+      "published": "54a655d707ddc51de6ce9cbd7c4459164f5211c8",
+      "tree": "9126a39d4fc5c25a5f48b9709a710e4a5e5d7096",
+      "message": "perf(runtime): avoid copying canonical records for internal reads"
+    },
+    {
+      "local": "69f98e05dd14e544545f26b14c2b1dee97894b31",
+      "published": "37ed30083ee97629eecf284944f99b7b330d65ad",
+      "tree": "2143db0a364cb50f677766ed2d7b9acc28b4eb5c",
+      "message": "fix(person): derive unopened tab labels without hidden widgets"
+    },
+    {
+      "local": "2e0b80e63cf0e460296108056b099606034f7d56",
+      "published": "24c012015542e0f955164a47d52fa4c4c7db75ae",
+      "tree": "5dfb00c40829208936c1672b6330bd18ff546369",
+      "message": "test(gallery): prove native caption order and replay parity"
+    },
+    {
+      "local": "8d2e37d0c0f7989b5abc6aea03ba722f5dd960e5",
+      "published": "5eb0abec1df5be70ff42576f78bf2d2e1ce5ff03",
+      "tree": "e004d9901c3a33e992bfdf27391ded765a3b3229",
+      "message": "fix(rich-text): preserve browser-parsed inline CSS grammar"
+    },
+    {
+      "local": "b2d9e46fc1a856aadb4aff072425fb09a7aff721",
+      "published": "9925c80584e17214013791a4e8ed1791c7e02080",
+      "tree": "ab58ba3cc14e05982a365f83e5a6f0305c086058",
+      "message": "docs: retain CSS grammar red green and negative-control evidence"
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+{
+  "outcome": "passed",
+  "sourceUnchanged": true,
+  "run": "run-sWvJG9",
+  "source": {
+    "head": "b2d9e46fc1a856aadb4aff072425fb09a7aff721",
+    "tree": "ab58ba3cc14e05982a365f83e5a6f0305c086058",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "untracked": [],
+    "dirty": false,
+    "identity": "32c7c6d0934db7aca4c4d6a2c272a3420fa338148f6199cd65fcf11535fe34a2"
+  },
+  "publishedSource": {
+    "local": "b2d9e46fc1a856aadb4aff072425fb09a7aff721",
+    "published": "9925c80584e17214013791a4e8ed1791c7e02080",
+    "tree": "ab58ba3cc14e05982a365f83e5a6f0305c086058",
+    "message": "docs: retain CSS grammar red green and negative-control evidence"
+  },
+  "gates": {
+    "typecheck": "passed",
+    "unit": "passed",
+    "build": "passed",
+    "types": "passed",
+    "package": "passed",
+    "differential": "passed",
+    "gallery-differential": "passed",
+    "browser": "passed"
+  },
+  "unitTests": 2031,
+  "ordinaryPages": [
+    "harness-contract.html",
+    "mode-recovery.html",
+    "scoped-authority.html",
+    "formatting-correspondence.html",
+    "script-panel.html",
+    "runtime-contracts.html",
+    "roundtrip.html",
+    "roundtrip-trusted-types.html",
+    "person-avatar-csp.html",
+    "history.html",
+    "selection.html",
+    "lifecycle.html",
+    "plugin-style-ownership.html",
+    "security.html",
+    "trusted-types.htm",
+    "action-label-security.html",
+    "audit-regressions.html",
+    "attaches-abort-urls.html",
+    "embed-service-registry.html",
+    "person-social-registry.html",
+    "gallery-layout-registry.html",
+    "mention.html",
+    "mention-session-race.html",
+    "poll.html",
+    "carousel.html",
+    "plugin-surfaces.html",
+    "imports.html",
+    "slash.html",
+    "selection-convert.html",
+    "projection-contracts.html",
+    "optional-inline-update.html",
+    "inline-pattern-transfer.html",
+    "toolbar-keyboard.html",
+    "public-extension-contracts.html",
+    "poll-state-contracts.html",
+    "presentation-recovery.html",
+    "inline-style-grammar.html",
+    "inline-style-grammar-trusted-types.html"
+  ],
+  "nativeGroups": {
+    "nativeTextInput": 52,
+    "nativeTools": 92,
+    "nativeClipboard": 25,
+    "nativeIme": 16,
+    "nativeConversion": 7,
+    "nativeBlockMenus": 110,
+    "nativeConversionGrouping": 88,
+    "nativeConversionPreservation": 53,
+    "nativeInteractionSequences": 39,
+    "nativeRetainedTools": 64,
+    "nativeConversionContinuations": 65,
+    "nativeFontCancel": 58,
+    "nativeBackgroundCancel": 36,
+    "nativeLinkCancel": 36,
+    "nativePanelKeyboard": 36,
+    "nativeSourceIndentation": 54,
+    "nativeSourceModes": 61,
+    "nativeConfigSnapshot": 30,
+    "nativePollRuntime": 26,
+    "nativeLibraryBoundaries": 42,
+    "nativeInstanceMethods": 8,
+    "nativeColorPopup": 8,
+    "nativeColorPopupTrusted": 8,
+    "nativeMentionPopup": 64,
+    "nativeAuditEdges": 21,
+    "nativeAuditPoll": 4,
+    "nativeAuditHiddenFields": 4,
+    "nativeAuditRecheck": 49,
+    "nativeStructural": 21,
+    "nativeCrossSelection": 42,
+    "nativeCoreBehavior": 67,
+    "nativePluginParity": 248,
+    "nativeRoundtripPreservation": 65,
+    "nativePresentationRecovery": 14,
+    "nativePluginControls": 156,
+    "nativePluginRanges": 116,
+    "nativePluginLocalRanges": 76,
+    "nativePluginClipboard": 48,
+    "nativePluginFieldClipboard": 68,
+    "nativePluginMedia": 95,
+    "nativePluginDesign": 84
+  },
+  "nativePassed": 2256,
+  "browserFinalObjects": [
+    {
+      "sentinels": 23,
+      "retained": 0,
+      "usedHeapMiB": 15.08,
+      "embedderHeapMiB": 1.21,
+      "historyEviction": {
+        "payloadBytes": 32768,
+        "authoredActions": 12,
+        "historyMaxBytes": 1,
+        "historyMaxStack": 100,
+        "retainedControlReleased": true,
+        "replay": {
+          "currentCase": 12,
+          "undoCase": 11,
+          "editorAlive": true
+        },
+        "phases": [
+          {
+            "phase": "before-eviction",
+            "counts": [
+              0,
+              1,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "usedHeapMiB": 15.07,
+            "snapshotMiB": 27.86
+          },
+          {
+            "phase": "after-eviction-with-retained-control",
+            "counts": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 15.17,
+            "snapshotMiB": 27.93
+          },
+          {
+            "phase": "after-releasing-control",
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              2
+            ],
+            "usedHeapMiB": 15.14,
+            "snapshotMiB": 27.92
+          }
+        ]
+      }
+    }
+  ],
+  "roundtrip": {
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "fixtureSha256": "66393a01017ccd07c08cc5c6f429a23f0a2aedc346f89d90c3a357ea4097038e",
+    "sources": [
+      {
+        "source": "v1",
+        "cases": 65,
+        "observations": 11258,
+        "failures": 1156,
+        "classifiedDifferences": 1156,
+        "unexpectedFailures": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 65,
+        "observations": 8043,
+        "failures": 183,
+        "classifiedDifferences": 183,
+        "unexpectedFailures": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 21
+      },
+      {
+        "source": "candidate",
+        "cases": 65,
+        "observations": 11434,
+        "failures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0
+      }
+    ]
+  },
+  "galleryCaptionOrder": {
+    "sourceUnchanged": true,
+    "sourceIdentityVerified": true,
+    "fixtureSha256": "776ee272e8cf6bcf1f0041d2f0ee1b23d2f57c8d73fda558bba903865fd31800",
+    "sources": [
+      {
+        "source": "v1",
+        "cases": 6,
+        "observations": 336,
+        "failures": 123,
+        "classifiedDifferences": 123,
+        "unexpectedFailures": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0
+      },
+      {
+        "source": "spec-baseline",
+        "cases": 6,
+        "observations": 378,
+        "failures": 101,
+        "classifiedDifferences": 101,
+        "unexpectedFailures": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0
+      },
+      {
+        "source": "candidate",
+        "cases": 6,
+        "observations": 378,
+        "failures": 0,
+        "classifiedDifferences": 0,
+        "unexpectedFailures": 0,
+        "unexpectedErrors": 0,
+        "unexpectedPageErrors": 0,
+        "incompleteCases": 0
+      }
+    ]
+  },
+  "limits": "Chrome 156 on Linux. Complete registered suites and bounded differential corpora, not all 209 preservation obligations or cross-platform parity. Documentation changes after this run have separate verification."
+}
