@@ -1,0 +1,77 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 7547,
+    "sha256": "81d9d451bf7854c64c1d3b5c2423ac7d0366fbc0f468b3a0a471277387c6e6ec"
+  },
+  {
+    "path": "environment/vite-launcher.mjs",
+    "bytes": 146,
+    "sha256": "5780b37481bf236a920e77cc0c4286a106bcb395e3d3263e36d1744ce0269859"
+  },
+  {
+    "path": "environment/vite.config.mjs",
+    "bytes": 237,
+    "sha256": "5afff01a78421761bbda05c7279b4a9eaa30c4710c66c3aec08bfec19b3836f7"
+  },
+  {
+    "path": "exploratory/playwright-path-failure-manifest.json",
+    "bytes": 4047,
+    "sha256": "0c614d49b9059181aa7b5ad44fb49c5eadc415115f27827234bd1e896a6222db"
+  },
+  {
+    "path": "exploratory/playwright-path-failure.log.gz",
+    "bytes": 453,
+    "sha256": "d12f88d84986812b34c835477a4712912d75a39ef8ec3e7d9d15b0c29cb3fa29"
+  },
+  {
+    "path": "native/manifest.json",
+    "bytes": 3525,
+    "sha256": "f7a8a1aafb0db32667c87ddcfda8c21ba545fc1447a6bebc30b595c87265a980"
+  },
+  {
+    "path": "native/person-native.log.gz",
+    "bytes": 782,
+    "sha256": "f9d7d89fb8b59580f8277d249008768228af86ea7793deec4cf78cb97f680644"
+  },
+  {
+    "path": "reference/fixture.js",
+    "bytes": 8063,
+    "sha256": "857c739d961f2482f46c1dff9e9520893145e16de663a861daafe40b2ae8eba3"
+  },
+  {
+    "path": "reference/manifest.json",
+    "bytes": 4040,
+    "sha256": "fdfe26a85893bf0398250a158b841efae4cd98b3b4479ceadb7ba27cf54a895e"
+  },
+  {
+    "path": "reference/raw.json.gz",
+    "bytes": 27535,
+    "sha256": "c08fa4bc73d24a9e54e616ddf35f0b765973c887f81242e9465deea73fe961bc"
+  },
+  {
+    "path": "reference/runner.mjs",
+    "bytes": 8115,
+    "sha256": "007c6733430b82c0585142490338f09dc63c31db29529532d728d3c0ea395fd2"
+  },
+  {
+    "path": "reference/untracked-person-cards-native.js",
+    "bytes": 12757,
+    "sha256": "2cc045dd37bb2cf8a8f9cccd3586a96915886d073683185cc8168547afc22704"
+  },
+  {
+    "path": "reference/working-tree.patch.gz",
+    "bytes": 315,
+    "sha256": "1f4d264b3344db5adc5bfc40e8a80cf502a7ed486fb7def2f1197d495f840ab1"
+  },
+  {
+    "path": "summary.json",
+    "bytes": 4688,
+    "sha256": "dedac43fe2eeacc0b6037fe355ee2df94238d97b3343d097fc9125c4c1c35fb7"
+  },
+  {
+    "path": "test-source.patch.gz",
+    "bytes": 3466,
+    "sha256": "0882a8fedc01d9a11a4f079691b6129482a4df5b13ad59b7c6696410c8ecdd10"
+  }
+]
