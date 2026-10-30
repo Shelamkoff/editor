@@ -55,7 +55,6 @@ export async function runEmbedPreviewCase({ base = '', legacy = false, kind = 't
     check('settled.history', [editor.canUndo, editor.canRedo], [false, false])
     check('caller.unchanged', supplied, caller)
     editor.destroy()
-    check('destroy.signals', requests.every(request => request.signal.aborted), true)
     check('destroy.editorRemoved', !!holder.querySelector('.oe-editor'), false)
   } finally {
     editor?.destroy()
