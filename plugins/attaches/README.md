@@ -41,13 +41,14 @@ The registered block type is `attaches`. Its factory is also exported by the com
 
 | Field | Required | Meaning and constraints |
 | --- | --- | --- |
-| `files` | yes | Non-empty array. Saves always use this plural form. |
+| `files` | yes | Array of attachments. An empty array represents the file-selection state; one file is a one-entry array. |
+| `files[].id` | yes | Non-empty stable identifier, unique within this block. Device and application-source selections receive identifiers automatically. |
 | `files[].url` | yes | Canonical URL allowed by the download policy. |
 | `files[].name`, `files[].extension` | yes | Strings used for the displayed file name and extension. |
 | `files[].size` | yes | Finite non-negative byte count. |
 | `variant` | no | Presentation variant `a`, `b`, `f`, or `g`; the plugin default is `f`. |
 
-Legacy input may contain one `file` object instead of `files`; the next save normalizes it to the array contract. Callback URLs must pass the shared download URL policy. Without `uploadFile`, selected files use temporary object URLs; configure an uploader for data that must survive cleanup or page reload.
+The current schema requires the `files` array and stable file identifiers. The singular `{ file: ... }` shape is not a supported input format. Callback URLs must pass the shared download URL policy. Without `uploadFile`, selected files use temporary object URLs; configure an uploader for data that must survive cleanup or page reload.
 
 ## Configuration
 
