@@ -518,6 +518,94 @@ test('protected projection edits cannot change read-only mode midway through the
   runtime.destroy()
 })
 
+test('protected projection selection capture cannot change mode before the admitted DOM edit', () => {
+  let runtime
+  let armed = false
+  let projected = { text: 'Committed' }
+  let producerCalls = 0
+  const failures = []
+  const selection = {
+    capture() {
+      if (armed) {
+        armed = false
+        try { runtime.setReadOnly(true) }
+        catch (error) { failures.push(error.message) }
+      }
+      return null
+    },
+    restore() {},
+  }
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', projected)] },
+    selection,
+    projector: {
+      readBlock() { return { data: projected } },
+      setReadOnly() {},
+      restore(store) { projected = { ...store.get('a').data } },
+      prepare({ draft }) {
+        const before = projected
+        return {
+          apply() { projected = { ...draft.get('a').data } },
+          recover() { projected = before },
+          finalize() {},
+          discard() {},
+        }
+      },
+    },
+  })
+  try {
+    armed = true
+    runtime.syncBlockFromProjection('a', () => {
+      producerCalls++
+      projected = { text: 'Accepted DOM edit' }
+    })
+    assert.deepEqual(failures, ['Cannot mutate document during protected projection edit'],
+      'selection capture changed mode after edit admission but before its producer')
+    assert.equal(runtime.readOnly, false)
+    assert.equal(producerCalls, 1)
+    assert.equal(runtime.get('a').data.text, 'Accepted DOM edit')
+    assert.equal(runtime.revision, 1)
+    assert.equal(runtime.undo(), true)
+    assert.equal(runtime.get('a').data.text, 'Committed')
+    assert.deepEqual(projected, { text: 'Committed' })
+    assert.equal(runtime.canUndo, false)
+  } finally { runtime.destroy() }
+})
+
+test('protected projection bookmark capture failure releases its guard without restoring an unstarted edit', () => {
+  let projected = { text: 'Committed' }
+  let producerCalls = 0, restores = 0, bookmarkReads = 0
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', projected)] },
+    projector: {
+      readBlock() { return { data: projected } },
+      restore() { restores++ },
+      prepare() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    },
+  })
+  const failure = new Error('Bookmark capture failed')
+  try {
+    assert.throws(() => runtime.syncBlockFromProjection('a', () => { producerCalls++ }, {
+      get selectionBefore() {
+        bookmarkReads++
+        assert.equal(runtime.get('a').data.text, 'Committed', 'capture lost accepted-state query access')
+        throw failure
+      },
+    }), error => error === failure)
+    assert.equal(bookmarkReads, 1)
+    assert.equal(producerCalls, 0)
+    assert.equal(restores, 0, 'an input error invoked recovery without an admitted DOM action')
+    assert.equal(runtime.revision, 0)
+    assert.equal(runtime.canUndo, false)
+    assert.equal(runtime.health, 'ready')
+    runtime.syncBlockFromProjection('a', () => { projected = { text: 'Accepted after capture failure' } })
+    assert.equal(runtime.get('a').data.text, 'Accepted after capture failure')
+    assert.equal(runtime.revision, 1)
+  } finally { runtime.destroy() }
+})
+
 
 test('host update rejects projection and publication reentry before running its producer', () => {
   let runtime

@@ -1252,10 +1252,20 @@ export class DocumentRuntime {
       ordered.push(id)
     }
 
-    const selectionBefore = metadata.selectionBefore === undefined
-      ? this.#captureSelection()
-      : cloneEditorData(metadata.selectionBefore)
+    // Selection capture and bookmark accessors are callback boundaries too.
+    // Protect them before the admitted DOM producer can observe a mode change
+    // or an unrelated write that slipped in after its initial admission.
     this.#editingProjection = true
+    let selectionBefore
+    try {
+      const bookmark = metadata.selectionBefore
+      selectionBefore = bookmark === undefined ? this.#captureSelection() : cloneEditorData(bookmark)
+    } catch (error) {
+      // Input capture failed before any DOM action. Release the guard without
+      // borrowing the projection recovery owner for an unstarted edit.
+      this.#editingProjection = false
+      throw error
+    }
     try {
       const result = synchronousResult(operation(), error => {
         this.#reportDiagnosticError('projection.edit', error)

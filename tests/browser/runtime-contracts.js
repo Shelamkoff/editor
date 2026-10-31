@@ -1,5 +1,6 @@
 import './regressions/committed-event-ownership.js'
 import './regressions/code-lazy-highlight-ownership.js'
+import './regressions/dom-selection-capture.js'
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
 import { SelectionController } from '../../core/SelectionController.js'
 import { InlinePopupHost } from '../../core/InlinePopupHost.js'
