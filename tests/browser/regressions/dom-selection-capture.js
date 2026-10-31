@@ -1,7 +1,7 @@
 import { test, make, select, key, assert, equal } from './harness.js'
 
-function fixture(mode = 'rich-text') {
-  const contexts = new Map(), fields = new Map()
+function fixture(mode = 'rich-text', { inline = false } = {}) {
+  const contexts = new Map(), fields = new Map(), inlineContexts = new Map()
   const validate = data => {
     if (typeof data?.text !== 'string' || typeof data?.key !== 'string') throw new TypeError('Key and text are required')
     return { key: data.key, text: data.text }
@@ -47,16 +47,37 @@ function fixture(mode = 'rich-text') {
       }
     },
   }
+  const badge = {
+    type: 'capture-badge', icon: '', label: { key: 'captureBadge', fallback: 'Capture badge' },
+    schema: {
+      currentVersion: 1, createDefault: () => ({ label: 'Before' }),
+      decode: input => ({ dataVersion: 1, data: { label: input.data.label } }),
+      encode: data => ({ dataVersion: 1, data: { label: data.label } }),
+    },
+    setup(runtime) { return {
+      create(id, initial, context) {
+        const element = runtime.ownerDocument.createElement('span')
+        element.contentEditable = 'false'
+        element.textContent = initial.label
+        inlineContexts.set(id, context)
+        return { element, update(next) { element.textContent = next.label }, setReadOnly() {}, destroy() {} }
+      },
+      destroy() {},
+    } },
+  }
   const editor = make(['a', 'b'].map((id, index) => ({
-    id, type: definition.type, dataVersion: 1, data: { key: id, text: index ? 'Bravo' : 'Alpha' },
+    id, type: definition.type, dataVersion: 1,
+    data: { key: id, text: index ? 'Bravo' : inline ? 'Alpha{{ref}}' : 'Alpha' },
+    ...(!inline || index ? {} : { inline: { ref: { type: badge.type, dataVersion: 1, data: { label: 'Before' } } } }),
   })), {
     defaultBlock: definition.type,
     plugins: [definition],
+    inlinePlugins: inline ? [badge] : [],
     blockInsertAnimationMs: 0,
     blockMoveAnimationMs: 0,
     blockRemoveAnimationMs: 0,
   })
-  return { editor, contexts, fields }
+  return { editor, contexts, fields, inlineContexts }
 }
 
 for (const action of ['host write', 'mode change']) {
@@ -189,4 +210,66 @@ test('DOM selection capture guard leaves healthy idle selection observers able t
   equal(editor.undo(), true)
   equal(editor.blocks.get('b').data.text, 'Bravo')
   equal(editor.canUndo, false)
+})
+
+for (const action of ['host write', 'mode change']) {
+  test(`inline update selection capture denies ${action} from the real public selection-cleared observer`, () => {
+    const { editor, fields, inlineContexts } = fixture('rich-text', { inline: true })
+    const before = editor.save().blocks
+    const first = fields.get('a'), native = window.getSelection()
+    first.focus()
+    native.collapse(first, first.childNodes.length)
+    assert(key(first, 'ArrowRight', { shiftKey: true }).defaultPrevented, 'Cross-block selection was not admitted')
+    equal(editor.blocks.selectedIds(), ['a', 'b'])
+    let notices = 0, hostProducers = 0, inlineProducers = 0
+    const failures = []
+    editor.on('selection:changed', event => {
+      if (event.selectedIds.length || notices++) return
+      try {
+        if (action === 'host write') editor.blocks.update('b', () => {
+          hostProducers++
+          return { data: { key: 'b', text: 'Unexpected observer edit' } }
+        })
+        else editor.setReadOnly(true)
+      } catch (error) { failures.push(error.message) }
+    })
+    native.removeAllRanges()
+    let updateFailure
+    try {
+      inlineContexts.get('ref').updateData(() => {
+        inlineProducers++
+        return { label: 'Accepted inline edit' }
+      })
+    } catch (error) { updateFailure = error }
+    equal(failures, ['Cannot mutate document during extension preparation'],
+      'The selection-cleared observer acquired authoring rights before the inline producer')
+    equal(hostProducers, 0)
+    equal(updateFailure, undefined)
+    equal(inlineProducers, 1)
+    equal(editor.readOnly, false)
+    equal(editor.blocks.get('b').data.text, 'Bravo')
+    equal(editor.blocks.get('a').inline.ref.data.label, 'Accepted inline edit')
+    equal(editor.undo(), true)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  })
+}
+
+test('inline update selection capture leaves nested author composition in one undoable transaction', () => {
+  const { editor, inlineContexts } = fixture('rich-text', { inline: true })
+  const before = editor.save().blocks
+  let siblingProducers = 0
+  inlineContexts.get('ref').updateData(() => {
+    editor.blocks.update('b', () => {
+      siblingProducers++
+      return { data: { key: 'b', text: 'Composed sibling edit' } }
+    })
+    return { label: 'Composed inline edit' }
+  })
+  equal(siblingProducers, 1)
+  equal(editor.blocks.get('b').data.text, 'Composed sibling edit')
+  equal(editor.blocks.get('a').inline.ref.data.label, 'Composed inline edit')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false, 'Nested author commands created independent history')
 })

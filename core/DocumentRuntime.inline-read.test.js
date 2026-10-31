@@ -5,7 +5,7 @@ import { ExtensionRegistry } from './ExtensionRegistry.js'
 import { InstanceScope } from './InstanceScope.js'
 import { EditorHandle } from './PublicEditorApi.js'
 
-function fixture({ staged = false } = {}) {
+function fixture({ staged = false, selection = null } = {}) {
   const flags = { onDecode: null, onValue: null, decodes: 0, valueReads: 0 }
   const ownerDocument = { createElement() { throw new Error('This context test does not mount DOM') } }
   const blockSchema = { currentVersion: 1, createDefault: () => ({ text: '' }),
@@ -30,7 +30,7 @@ function fixture({ staged = false } = {}) {
   })
   const owner = new AbortController(), inlineOwner = new AbortController()
   let context, blockContext, scope, parent, destroyed = false
-  const runtime = new DocumentRuntime({ registry, ownerDocument, richTextNormalizer: value => value,
+  const runtime = new DocumentRuntime({ registry, ownerDocument, selection, richTextNormalizer: value => value,
     data: { version: '2.0.0', blocks: [
       { id: 'a', type: 'custom', dataVersion: 1, data: { text: '{{ref}}' },
         inline: { ref: { type: 'badge', dataVersion: 1, data: { label: 'Accepted' } } } },
@@ -54,6 +54,73 @@ function fixture({ staged = false } = {}) {
   flags.decodes = flags.valueReads = 0
   return { runtime, handle, context, blockContext, scope, parent, flags }
 }
+
+for (const action of ['host write', 'mode change']) {
+  test(`inline update selection capture denies ${action} before its author producer`, () => {
+    let h, armed = false, nestedProducers = 0, authorProducers = 0
+    const failures = []
+    h = fixture({ selection: {
+      capture() {
+        if (armed) {
+          armed = false
+          try {
+            if (action === 'host write') h.runtime.update('b', () => {
+              nestedProducers++
+              return { data: { text: 'Unexpected capture edit' } }
+            }, 'host')
+            else h.runtime.setReadOnly(true)
+          } catch (error) { failures.push(error.message) }
+        }
+        return null
+      },
+      restore() {},
+    } })
+    try {
+      const before = h.runtime.save().blocks
+      const entered = new Error('Admitted inline author producer')
+      armed = true
+      assert.throws(() => h.context.updateData(() => {
+        authorProducers++
+        throw entered
+      }), error => error === entered)
+      assert.deepEqual(failures, ['Cannot mutate document during extension preparation'])
+      assert.equal(nestedProducers, 0)
+      assert.equal(authorProducers, 1)
+      assert.equal(h.runtime.readOnly, false)
+      assert.equal(h.runtime.get('b').data.text, 'Sibling')
+      assert.equal(h.context.getData().label, 'Accepted')
+      assert.equal(h.runtime.revision, 0)
+      assert.deepEqual(h.runtime.save().blocks, before)
+      assert.equal(h.runtime.canUndo, false)
+    } finally { h.handle.destroy() }
+  })
+}
+
+test('inline update selection capture failure preserves nested author composition and atomic rollback', () => {
+  let captures = 0, nestedProducers = 0
+  const h = fixture({ selection: {
+    capture() { captures++; throw new Error('Selection capture failed') },
+    restore() {},
+  } })
+  try {
+    const before = h.runtime.save().blocks
+    const failure = new Error('Author composition failed')
+    assert.throws(() => h.context.updateData(() => {
+      h.runtime.update('b', () => {
+        nestedProducers++
+        return { data: { text: 'Composed sibling edit' } }
+      }, 'host')
+      throw failure
+    }), error => error === failure)
+    assert.equal(captures, 1)
+    assert.equal(nestedProducers, 1)
+    assert.equal(h.runtime.get('b').data.text, 'Sibling')
+    assert.equal(h.context.getData().label, 'Accepted')
+    assert.equal(h.runtime.revision, 0, 'nested author composition escaped its failed transaction')
+    assert.deepEqual(h.runtime.save().blocks, before)
+    assert.equal(h.runtime.canUndo, false)
+  } finally { h.handle.destroy() }
+})
 
 test('registered inline getData decoder has no synchronous sibling-write authority', () => {
   const h = fixture()

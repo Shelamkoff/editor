@@ -1058,7 +1058,10 @@ export class DocumentRuntime {
     this.#assertInteractionMutation()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
     let trailingText=''
-    const selection = this.#captureSelection()
+    // Capturing may clear a stale cross-block selection and publish its
+    // observer before the engine starts. Those callbacks cannot borrow the
+    // admitted update's idle rights; its author producer runs after capture.
+    const selection = this.prepareExtensionValue(() => this.#captureSelection())
     let selectionAfter = selection
     this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update',
       selectionBefore: selection, selectionAfter: () => selectionAfter,
