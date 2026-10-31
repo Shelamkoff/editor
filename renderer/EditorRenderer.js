@@ -668,18 +668,20 @@ export class EditorRenderer {
     if (target ? this.#renderingContainers.has(target) : this.#activeRenderToCount > 0) {
       throw new Error('Cannot destroy renderer output during an active renderTo()')
     }
+    // Capture exact owners before calling any disposer. A callback can retire
+    // a sibling and publish a successor under the same container/element key;
+    // that later output does not belong to this destruction invocation.
     const containers = target
-      ? (this.#mountedContainers.has(target) ? [target] : [])
-      : [...this.#mountedContainers.keys()]
+      ? [/** @type {const} */ ([target, this.#mountedContainers.get(target)])]
+      : [...this.#mountedContainers]
     const documents = target
-      ? (this.#detachedDocuments.has(target) ? [target] : [])
-      : [...this.#detachedDocuments.keys()]
+      ? [/** @type {const} */ ([target, this.#detachedDocuments.get(target)])]
+      : [...this.#detachedDocuments]
     const blocks = target
-      ? (this.#detachedBlocks.has(target) ? [target] : [])
-      : [...this.#detachedBlocks.keys()]
-    for (const container of containers) {
-      const mounted = this.#mountedContainers.get(container)
-      if (!mounted) continue
+      ? [/** @type {const} */ ([target, this.#detachedBlocks.get(target)])]
+      : [...this.#detachedBlocks]
+    for (const [container, mounted] of containers) {
+      if (!mounted || this.#mountedContainers.get(container) !== mounted) continue
       // Relinquish ownership before invoking extension code. A disposer may
       // call destroy() again (including on siblings) without double release.
       this.#mountedContainers.delete(container)
@@ -695,9 +697,8 @@ export class EditorRenderer {
       }
     }
 
-    for (const wrapper of documents) {
-      const entries = this.#detachedDocuments.get(wrapper)
-      if (!entries) continue
+    for (const [wrapper, entries] of documents) {
+      if (!entries || this.#detachedDocuments.get(wrapper) !== entries) continue
       this.#detachedDocuments.delete(wrapper)
       this.#destroyingTargets.add(wrapper)
       try {
@@ -709,9 +710,8 @@ export class EditorRenderer {
       }
     }
 
-    for (const element of blocks) {
-      const entry = this.#detachedBlocks.get(element)
-      if (!entry) continue
+    for (const [element, entry] of blocks) {
+      if (!entry || this.#detachedBlocks.get(element) !== entry) continue
       this.#detachedBlocks.delete(element)
       this.#destroyingTargets.add(element)
       try {

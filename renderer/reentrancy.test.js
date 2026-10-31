@@ -152,6 +152,90 @@ test('full destroy tolerates sibling disposal and preserves newly created indepe
   assert.deepEqual(disposed, ['first', 'second', 'replacement'])
 })
 
+test('full destroy preserves a successor mounted in a sibling container after its old owner is released', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const first = document.createElement('main')
+  const second = document.createElement('main')
+  const disposed = []
+  let replacement
+  const data = id => ({ version: '2.0.0', blocks: [{ id, type: 'owner', dataVersion: 1, data: {} }] })
+  renderer.registerRenderer({
+    schema: passthroughSchema,
+    type: 'owner',
+    render(block) {
+      const element = document.createElement('article')
+      element.textContent = block.id
+      return element
+    },
+    destroy(element) {
+      disposed.push(element.textContent)
+      if (element.textContent === 'first') {
+        renderer.destroy(second)
+        renderer.renderTo(data('replacement'), second)
+        replacement = second.firstChild
+      }
+    },
+  })
+  try {
+    renderer.renderTo(data('first'), first)
+    renderer.renderTo(data('second'), second)
+    renderer.destroy()
+    assert.deepEqual(disposed, ['first', 'second'], 'the retiring invocation must not release a later sibling owner')
+    assert.equal(first.firstChild, null)
+    assert.equal(second.firstChild, replacement)
+    assert.equal(replacement.firstChild.textContent, 'replacement')
+    renderer.renderTo(data('replacement'), second)
+    assert.equal(second.firstChild, replacement, 'the new owner must retain ordinary incremental reuse')
+    renderer.destroy(second)
+    assert.deepEqual(disposed, ['first', 'second', 'replacement'])
+    assert.equal(second.firstChild, null)
+    renderer.destroy()
+    assert.deepEqual(disposed, ['first', 'second', 'replacement'])
+  } finally {
+    renderer.destroy()
+  }
+})
+
+test('full destroy preserves a successor that reuses a released sibling block element', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const disposed = []
+  let second
+  let replacement
+  const block = id => ({ id, type: 'cached-owner', dataVersion: 1, data: {} })
+  renderer.registerRenderer({
+    schema: passthroughSchema,
+    type: 'cached-owner',
+    render(data) {
+      const element = data.id === 'replacement' ? second : document.createElement('article')
+      element.textContent = data.id
+      return element
+    },
+    destroy(element) {
+      disposed.push(element.textContent)
+      if (element.textContent === 'first') {
+        renderer.destroy(second)
+        replacement = renderer.renderBlock(block('replacement'))
+      }
+    },
+  })
+  try {
+    renderer.renderBlock(block('first'))
+    second = renderer.renderBlock(block('second'))
+    renderer.destroy()
+    assert.deepEqual(disposed, ['first', 'second'], 'a released element may belong to a newer output by this point')
+    assert.equal(replacement, second, 'the positive reuse control must retain the exact released element')
+    assert.equal(replacement.textContent, 'replacement')
+    renderer.destroy(replacement)
+    assert.deepEqual(disposed, ['first', 'second', 'replacement'])
+    renderer.destroy()
+    assert.deepEqual(disposed, ['first', 'second', 'replacement'])
+  } finally {
+    renderer.destroy()
+  }
+})
+
 test('renderTo cannot remount a container from its disposer', async () => {
   const { EditorRenderer } = await import('./index.js')
   const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
