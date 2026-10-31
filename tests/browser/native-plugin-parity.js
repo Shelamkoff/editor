@@ -1,4 +1,5 @@
 import './regressions/carousel-structure-native.js'
+import './regressions/attaches-filename-native.js'
 import './regressions/compound-rich-siblings-native.js'
 import './regressions/compound-rich-field-native.js'
 import './regressions/toggle-focus-native.js'
