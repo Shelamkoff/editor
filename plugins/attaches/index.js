@@ -528,11 +528,16 @@ export function createAttachesPlugin(config={}){
               const committedNames=new Map(current.files.map(file=>[file.id,file.name]))
               return {
                 variant:data.variant,
-                files:data.files.map(file=>({
-                  ...file,
-                  name:nameFields.get(file.id)?.textContent?.trim()
-                    ||(committedNames.has(file.id)?committedNames.get(file.id):file.name),
-                })),
+                files:data.files.map(file=>{
+                  const name=nameFields.get(file.id)?.textContent
+                  return {
+                    ...file,
+                    // Whitespace decides emptiness, not the stored spelling.
+                    // A trailing space can be an in-progress word separator.
+                    name:name?.trim()?name
+                      :(committedNames.has(file.id)?committedNames.get(file.id):file.name),
+                  }
+                }),
               }
             },
             update(next,previousCanonical){if(!dead&&!reconcileNames(next,previousCanonical))project(next)},
