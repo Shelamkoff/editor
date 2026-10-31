@@ -361,16 +361,18 @@ export class TransactionEngine {
       const committedGeneration = storeCommit.generation
       const committedRevision = storeCommit.revision
       if (selection && restored !== false) {
+        const ownsDeferredSelection = () => !this.#destroyed
+          && this.#health === 'ready'
+          && this.#phase === 'idle'
+          && this.#store.generation === committedGeneration
+          && this.#store.revision === committedRevision
         queueMicrotask(() => {
-          if (
-            this.#destroyed
-            || this.#health !== 'ready'
-            || this.#phase !== 'idle'
-            || this.#store.generation !== committedGeneration
-            || this.#store.revision !== committedRevision
-            || (this.#selection?.capture
-              && JSON.stringify(this.#captureSelection()) !== JSON.stringify(restoredSelection))
-          ) return
+          if (!ownsDeferredSelection()) return
+          if (this.#selection?.capture
+            && JSON.stringify(this.#captureSelection()) !== JSON.stringify(restoredSelection)) return
+          // Capturing the live selection can synchronously retire its owner.
+          // An unchanged bookmark cannot renew the earlier replay lifetime.
+          if (!ownsDeferredSelection()) return
           this.#restoreSelection(selection, { reason: 'history' })
         })
       }

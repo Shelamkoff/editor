@@ -77,3 +77,70 @@ test('a rejected immediate history selection cannot retry after a newer focus de
   assert.equal(engine.canUndo, false)
   assert.equal(engine.canRedo, true)
 })
+
+for (const action of ['undo', 'redo']) {
+  test(`deferred ${action} restore completes for the unchanged live selection owner`, async () => {
+    const store = new DocumentStore({ version: '2.0.0', blocks: [block('Alpha')] })
+    const restorations = []
+    const engine = new TransactionEngine({
+      store,
+      history: new HistoryStore(),
+      selection: { capture: bookmark, restore: value => restorations.push(value) },
+    })
+    engine.execute({ origin: 'user', name: 'edit' }, tx => tx.update('a', block('AlXpha')))
+    if (action === 'redo') {
+      assert.equal(engine.undo(), true)
+      await Promise.resolve()
+      restorations.length = 0
+    }
+    assert.equal(engine[action](), true)
+    assert.deepEqual(restorations, [bookmark()])
+    const revision = store.revision
+    await Promise.resolve()
+    assert.deepEqual(restorations, [bookmark(), bookmark()])
+    assert.equal(store.revision, revision, 'deferred selection added a history revision')
+    assert.equal(store.get('a').data.text, action === 'undo' ? 'Alpha' : 'AlXpha')
+    engine.destroy()
+  })
+
+  test(`deferred ${action} capture cannot restore into an owner it destroys`, async () => {
+    const store = new DocumentStore({ version: '2.0.0', blocks: [block('Alpha')] })
+    const history = new HistoryStore()
+    const restorations = []
+    let retireDuringCapture = false
+    let retiredCaptures = 0
+    const engine = new TransactionEngine({
+      store,
+      history,
+      selection: {
+        capture() {
+          if (retireDuringCapture) {
+            retireDuringCapture = false
+            retiredCaptures++
+            engine.destroy()
+          }
+          return bookmark()
+        },
+        restore(value) { restorations.push(value) },
+      },
+    })
+    engine.execute({ origin: 'user', name: 'edit' }, tx => tx.update('a', block('AlXpha')))
+    if (action === 'redo') {
+      assert.equal(engine.undo(), true)
+      await Promise.resolve()
+      restorations.length = 0
+    }
+    assert.equal(engine[action](), true)
+    assert.equal(restorations.length, 1, 'history must complete its immediate restore')
+    const revision = store.revision
+    retireDuringCapture = true
+    await Promise.resolve()
+    assert.equal(retiredCaptures, 1, 'the queued selection capture did not run')
+    assert.equal(restorations.length, 1,
+      'a queued selection callback restored after its capture destroyed the owner')
+    assert.equal(store.revision, revision, 'retirement changed the committed history revision')
+    assert.equal(store.get('a').data.text, action === 'undo' ? 'Alpha' : 'AlXpha')
+    assert.equal(history.canUndo, action === 'redo')
+    assert.equal(history.canRedo, action === 'undo')
+  })
+}
