@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **62 / 209 obligations**, with **147 open**; see the [seventh continuation](#code-table-keyboard-person-and-basic-mark-acceptance-2026-10-30). Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **64 / 209 obligations**, with **145 open**; see the [file-source and successor-ownership continuation](#attaches-files-and-successor-ownership-2026-10-31). Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
@@ -865,3 +865,51 @@ All **147 v1 failures** arise in the four edge-space cases: trimming changes loa
 An initial control-lookup attempt without matching locale labels and the first full corpus's whole-`save()` timestamp comparison remain excluded fixture errors. The corrected view-only comparison uses exact blocks, version and history flags, excluding only generated `save().time`; no meaningful file data is normalized. Raw reports and exit statuses remain in ignored verification output, while reproducible fixtures, runner, audit and manual checkpoints are committed.
 
 Acceptance is limited to this names/variants row in the recorded Chrome/Linux environment. `BLOCK_ATTACHES_FILES`, `BLOCK_ATTACHES_DOWNLOADS` and `BLOCK_ATTACHES_LIFETIME` remain separate: source/upload delivery, actual individual or ZIP downloads, cancellation and resource cleanup are not accepted here. Uninterrupted caret recovery, IME, other browsers/platforms, B-HTML/B-STYLE, complete C09/T15 and whole-library parity remain outside this proof.
+
+## Attaches file sources and successor ownership — 2026-10-31 {#attaches-files-and-successor-ownership-2026-10-31}
+
+**Accepted scenario: `BLOCK_ATTACHES_FILES`.** The register retains **209 unique obligations: 64 accepted / 145 open**. The three neighboring runtime fixes below do not independently accept another preservation row. These numbers count proof obligations, not known defects or a completion percentage.
+
+The final comparison and integrated verification use the same clean published source [`fad69ef82293fcac28b5be756e3a7118a2c4750f`](https://github.com/Shelamkoff/editor/commit/fad69ef82293fcac28b5be756e3a7118a2c4750f), tree `0b114d129a4416c84b86df63eb4c488196bb2d53`, on Linux x64, Node `v24.22.1` and Chrome `142.0.7444.175`. The [file-source checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-31/attaches-files/README.md) records the corpus and reproduction commands. The [combined checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-10-31/successor-and-result-ownership/README.md) records the separate bug proofs, integration manifest and actual outcomes.
+
+### Executed file-source comparison
+
+| Source | Executed cases | Capabilities declared absent before execution | Passing observations | Raw failures |
+| --- | ---: | ---: | ---: | ---: |
+| v1 `5e5c7f8d` | 16 | 2 | 1,742 | 0 |
+| Specification baseline `e981ff30` | 18 | 0 | 2,336 | 0 |
+| Published candidate `fad69ef8` | 18 | 0 | 2,336 | 0 |
+
+The final replay completed 2026-10-31 20:50:46.810–20:51:17.587 UTC. The raw runner exits **0**; the complete audit exits **0**. There are no page/server errors, incomplete cases, unsupported candidate cases or candidate exceptions. The immutable candidate commit/tree, unchanged checkout before/after, fixture and runner hashes, all 166 loaded candidate product-file hashes and loaded dependency hashes were checked independently. The earlier corrected comparison of pinned `5572d039` retains its own identity; it is not relabelled as this final run.
+
+The 18 cases cover single and multiple local files, asynchronous upload providers and configured application actions. Picker cases use a trusted click on the real button, browser `filechooser`, disk-backed files and a trusted `change` event. Action cases use trusted button clicks. Drop cases exercise the real plugin handler with a controlled `DragEvent`, real `DataTransfer` and real browser `File` objects; `isTrusted: false` remains explicit, so this does not claim operating-system drag automation or a human-operated native file dialog.
+
+Fixed records distinguish duplicate basenames with different contents, zero-byte and nonempty files, literal markup characters, Cyrillic, combining Unicode and non-BMP characters. Upload input bytes, MIME type, name, size and call order are exact; returned metadata size and fallback to browser file size are checked separately. Canonical names, URLs, extensions, sizes and order remain exact. Current IDs must be nonempty, unique and stable through replay, including the pre-existing record.
+
+Local object URLs remain exact owner capabilities: the observer calls the real allocator, associates each returned URL with independently specified file bytes, and requires the editor and renderer to preserve that URL. Fetching the URL after Undo/Redo must return the original bytes. The fixture checks no early revocation and one final release per allocation. Remote and existing URLs retain their query and fragment components. This is a bounded successful-source cleanup check, not general cancellation or lifetime acceptance.
+
+Each accepted source batch is one semantic history action. A trusted native filename edit contributes a second action; two public Undo/Redo calls independently remove and restore the edit and source batch. Rejected upload siblings and unsafe URLs preserve accepted siblings and any existing file. Action `null`, empty arrays and rejections leave the document and history unchanged. Read-only mode removes source buttons; returning to editable mode preserves data, names and history without restarting providers. Renderer link/download attributes are checked as metadata, without activating a download.
+
+Exactly two v1 capabilities are declared absent before execution: local and upload drop into a populated block. Its drop listeners belong to the empty selection view and are removed when files are displayed. Its single/multiple empty-block drop paths are executed. Both newer versions retain their useful populated-block drop behavior. No timeout, runtime error or rejected assertion is converted into an unsupported capability. Current `files[]` records remain the contract; no obsolete singular-wire decoder was added. The corresponding English/Russian guide correction was published separately as `d888217a`.
+
+### Independent review and evidence corrections
+
+Root and a separate reviewer examined the fixture, runner, audit and raw results. The first complete attempt retained mutable observation references; later URL cleanup changed the recorded value after its PASS status was computed. The audit rejected that raw report. The recorder now snapshots both operands with `structuredClone`, and the complete corpus was rerun. The original attempt remains excluded and unchanged. Earlier child-anchor lookup and first-picker-interception failures likewise remain harness errors, without product-defect or capability-gap claims.
+
+The audit requires the exact case, phase and property inventory, matching stored values and statuses, trusted input telemetry, source/dependency bytes and empty candidate exceptions. It rejects all three deliberate corruptions: candidate data loss under a retained PASS, a missing observation and a runtime error inside a declared historical gap. Generated output stays in ignored `test-results`; source fixtures and manual accounts are committed.
+
+### Published neighboring fixes and combined verification
+
+| Published fix | Resulting behavior | Independent browser counterexample and repair |
+| --- | --- | --- |
+| [`99620603`](https://github.com/Shelamkoff/editor/commit/996206038e0c0358eac185d296bf7b84e766ea5c), renderer disposal | A disposer can replace an output under the same container/element key without the outer destroy retiring its successor. Exact owner snapshots preserve disposal order, CSS ownership and subsequent reuse. | Same final fixture: baseline 32/36 PASS, repaired 36/36 PASS. |
+| [`072f5290`](https://github.com/Shelamkoff/editor/commit/072f5290f8d7bb6e773fa3d3aab42cf33cd1062f), LinkPreview | A synchronous abort observer's newer request keeps its completion rights; stale outer refresh cannot duplicate the request or restart after a mode round trip. | Isolated baseline 214/217 PASS, same fixture plus only the repair 217/217 PASS. |
+| [`ad153941`](https://github.com/Shelamkoff/editor/commit/ad153941a29d39c111970ea12e1c7c09e63ef10a), scoped core updates | Cancellation or occurrence retirement during result/schema getters prevents publication. Successful remount, independent editor writes, sibling tasks and nested author composition retain their behavior. | Same browser fixture: baseline 10/12 PASS, repaired 12/12 PASS. |
+
+The core check runs after full record capture and before transaction application, with no extra JSON traversal or public API. It does not revalidate after projection, where a successful remount may legitimately abort the previous signal. Original thrown causes, including `undefined`, remain intact. LinkPreview's focused Enter events are synthetic DOM events; their real editor and history coverage is distinct from the separate full native gate.
+
+Integrated `run-l2J6B3` passes all **eleven gates** on unchanged `fad69ef8`: **2,168/2,168 Node tests**, both typecheck configurations, build, 7 public type contracts, installed-package consumers and CSS assets, documentation contracts, all **42 ordinary browser pages**, **47 native result groups / 2,683 passing cases** plus their separately recorded physical/history controls, **23 heap sentinels / zero retained** with history-eviction controls, the **127-page documentation site**, and the full Attaches file-source audit. Every gate records exit 0 and unchanged clean source. Source identity and per-command timestamps remain in `test-results/run-l2J6B3/manifest.json`. The native count includes each final aggregate array once; progress lines and overlapping slice checks are not added. Documentation updates were prepared outside the checkout during the freeze and are applied afterward, with separate documentation-only verification.
+
+A separate GitHub browser job on `fad69ef8` was cancelled at its 20-minute whole-job budget after the native media page; six other jobs succeeded. The local eleven-gate manifest remains a distinct completed result. Follow-up [`710cf5c1`](https://github.com/Shelamkoff/editor/commit/710cf5c162d18d4c9375d255d313cfb1a6f49666) gives only the browser job 30 minutes, retaining other job budgets, all commands, assertions and per-page deadlines. The combined checkpoint records the cancellation timeline and diagnosis; the corrected workflow has its own subsequent execution.
+
+Acceptance remains bounded to `BLOCK_ATTACHES_FILES` in the recorded Chrome/Linux environment. Actual individual/ZIP downloads, cancellation during pending reads or uploads, failed commits, late completion and broad lifetime/mode behavior retain their separate rows. These fixes do not accept complete renderer error/registration, LinkPreview cancellation or general core rows. `B-HTML`, `B-STYLE`, complete `C09`/`T15`, other browsers/platforms and whole-library functional parity remain open. Useful current behavior is preserved.

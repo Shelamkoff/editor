@@ -202,3 +202,13 @@ node scripts/parity/attaches-files-audit.mjs \
 The optional `EDITOR_ATTACHES_FILES_FILTER` selects a narrow case by substring
 for diagnosis. A filtered result cannot pass the full-row audit. Raw output is
 an ignored local artifact and is never added to Git.
+
+## Final published source and scoped acceptance
+
+The final complete replay uses published `fad69ef82293fcac28b5be756e3a7118a2c4750f`, tree `0b114d129a4416c84b86df63eb4c488196bb2d53`, including the three neighboring runtime repairs and these committed proof sources. It ran 2026-10-31 20:50:46.810–20:51:17.587 UTC. HEAD before and after matches the candidate, and the checkout remains clean. Product files are served from recorded immutable Git objects; the shared installed dependency bytes and versions are hashed separately. All 166 loaded candidate product-file hashes were checked independently.
+
+Results remain: candidate 18 cases / 2,336 PASS; specification baseline 18 / 2,336 PASS; v1 16 / 1,742 PASS with exactly two predeclared populated-drop gaps. There are no page/server errors, incomplete cases or candidate exceptions. Raw runner exit is 0, independent audit exit is 0, and the final integrated audit exits 0. The raw JSON SHA-256 is `9b715b527829877923a8dea7620f27f1afede11b850bc443da48527dc169ee81`. Evidence is under ignored `test-results/attaches-files/final-fad69ef8/`; the independent review retains its own `peer-review.*` records without altering raw output.
+
+The [completed combined checkpoint](../successor-and-result-ownership/README.md) records all eleven passed gates in `test-results/run-l2J6B3/manifest.json` on this exact clean, unchanged source. Independent scoped review and that completed integration accept only `BLOCK_ATTACHES_FILES`: **209 unique obligations, 64 accepted / 145 open**. Downloads/ZIP, pending cancellation, failed commit and broad lifetime/mode guarantees remain separate. Better current populated-drop behavior is retained.
+
+To reproduce this final result, use the commands above with `EDITOR_CANDIDATE_SHA=fad69ef82293fcac28b5be756e3a7118a2c4750f` and a fresh ignored output directory. The earlier `snapshot-corpus` remains a result for `5572d039`, not this later candidate. The fixture, runner and audit hashes remain unchanged.
