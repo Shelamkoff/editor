@@ -42,6 +42,32 @@ function restoreChildOrder(parent, expected) {
   }
 }
 
+/** Revalidate a provisional block after later extension or DOM callbacks.
+ * A document render has already staged its blocks inside its own wrapper;
+ * a mounted render keeps new blocks detached until their individual commit.
+ * @param {{ element: HTMLElement, type: string }} entry
+ * @param {Document} ownerDocument
+ * @param {HTMLElement | null} [parent]
+ */
+function assertRenderedElementOwnership({ element, type }, ownerDocument, parent = null) {
+  if ((element.parentNode ?? null) !== parent || (!parent && element.isConnected)) {
+    throw new TypeError(parent
+      ? `Block renderer "${type}" element must remain in its renderer wrapper`
+      : `Block renderer "${type}" must return a detached HTMLElement`)
+  }
+  if (element.ownerDocument && element.ownerDocument !== ownerDocument) {
+    throw new TypeError(`Block renderer "${type}" must return an HTMLElement in the owning document`)
+  }
+}
+
+/** @param {HTMLElement} wrapper @param {Document} ownerDocument */
+function assertDetachedWrapper(wrapper, ownerDocument) {
+  if (wrapper.parentNode || wrapper.isConnected
+    || (wrapper.ownerDocument && wrapper.ownerDocument !== ownerDocument)) {
+    throw new TypeError('Rendered document wrapper must remain detached in the owning document')
+  }
+}
+
 /** Stable fingerprint of already-owned JSON. Unlike JSON.stringify(), this
  * treats object property insertion order as irrelevant while retaining array
  * order and primitive values. Only used on the deep-signature path; a trusted
@@ -360,12 +386,7 @@ export class EditorRenderer {
       // attributeChangedCallback. Another DOM owner can adopt the element
       // after our initial detached check but before these writes finish.
       // Revalidate immediately before returning a node for publication.
-      if (element.isConnected || element.parentNode) {
-        throw new TypeError(`Block renderer "${block.type}" must return a detached HTMLElement`)
-      }
-      if (element.ownerDocument && element.ownerDocument !== ownerDocument) {
-        throw new TypeError(`Block renderer "${block.type}" must return an HTMLElement in the owning document`)
-      }
+      assertRenderedElementOwnership({ element, type: block.type }, ownerDocument)
       return { element, type: block.type, renderer }
     } catch (error) {
       // The renderer allocated this element, but decorating it failed.
@@ -404,9 +425,12 @@ export class EditorRenderer {
         for (const block of blocks) {
           const entry = this.#createRenderedBlock(block, ownerDocument)
           created.push(entry)
+          assertDetachedWrapper(wrapper, ownerDocument)
           wrapper.appendChild(entry.element)
         }
       }
+      assertDetachedWrapper(wrapper, ownerDocument)
+      for (const entry of created) assertRenderedElementOwnership(entry, ownerDocument, wrapper)
       this.#detachedDocuments.set(wrapper, created)
       return wrapper
     } catch (error) {
@@ -538,10 +562,14 @@ export class EditorRenderer {
 
       // Stage all required styles while both old and new renderer owners
       // are still live, before any mounted DOM is changed.
+      const createdByElement = new Map(created.map(entry => [entry.element, entry]))
       const oldWrapperChildren = Array.from(wrapper.childNodes)
       const oldContainerChildren = Array.from(container.childNodes)
       try {
         this.#ensureStyles(ownerDocument)
+        // A later renderer or the final stylesheet acquisition can adopt an
+        // earlier staged result. Reject the batch before moving accepted DOM.
+        for (const entry of created) assertRenderedElementOwnership(entry, ownerDocument)
 
         // Keep unchanged nodes connected. Replacing the same nodes would
         // reset iframe contexts, focus and custom-element lifecycle state.
@@ -552,6 +580,10 @@ export class EditorRenderer {
         const movable = /** @type {HTMLElement & { moveBefore?: (node: Node, child: Node | null) => void }} */ (wrapper)
         let cursor = wrapper.firstChild
         for (const element of ordered) {
+          // Inserting an earlier custom element may synchronously adopt a
+          // still-pending result. Never reclaim it from that newer DOM owner.
+          const createdEntry = createdByElement.get(element)
+          if (createdEntry) assertRenderedElementOwnership(createdEntry, ownerDocument)
           if (element === cursor) {
             cursor = cursor.nextSibling
             continue
@@ -565,12 +597,27 @@ export class EditorRenderer {
         if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
           container.replaceChildren(wrapper)
         }
+        if (provisionalWrapper && (wrapper.parentNode !== container
+          || (wrapper.ownerDocument && wrapper.ownerDocument !== ownerDocument))) {
+          throw new TypeError('Rendered document wrapper must remain in its owning container and document')
+        }
+        // The final connected callback can also move an already-inserted
+        // provisional result. Keep prior ownership until this check succeeds.
+        for (const entry of created) assertRenderedElementOwnership(entry, ownerDocument, wrapper)
       } catch (error) {
         const recoveryErrors = []
         // A host DOM operation may throw after changing the tree. Keep the
         // published previous owners alive until both node lists are restored.
-        try { restoreChildOrder(wrapper, oldWrapperChildren) }
-        catch (failure) { recoveryErrors.push(failure) }
+        // A new wrapper may itself have been adopted by its first connected
+        // callback. Release our provisional resources without editing that
+        // newer parent's subtree or moving it back across a document boundary.
+        const canRestoreWrapper = !provisionalWrapper
+          || ((!wrapper.parentNode || wrapper.parentNode === container)
+            && (!wrapper.ownerDocument || wrapper.ownerDocument === ownerDocument))
+        if (canRestoreWrapper) {
+          try { restoreChildOrder(wrapper, oldWrapperChildren) }
+          catch (failure) { recoveryErrors.push(failure) }
+        }
         try { restoreChildOrder(container, oldContainerChildren) }
         catch (failure) { recoveryErrors.push(failure) }
         for (const entry of created) this.#disposeRenderedElement(entry)

@@ -5,11 +5,19 @@
 <script type="module">
 import { EditorRenderer } from '../../renderer/index.js'
 import { runRendererLifetimeParity } from './renderer-lifetime-parity-fixture.js'
+import { runRendererPublicationOwnership } from './renderer-publication-ownership.js'
 try {
-  const cases = runRendererLifetimeParity({ EditorRenderer })
+  const cases = [
+    ...runRendererLifetimeParity({ EditorRenderer }),
+    ...runRendererPublicationOwnership({ EditorRenderer }),
+  ].map(entry => {
+    const failures = entry.observations.filter(item => item.status !== 'PASS')
+    const passed = entry.complete && !entry.errors.length && !failures.length
+    return { ...entry, name: entry.id, status: passed ? 'PASS' : 'FAIL',
+      error: passed ? undefined : [...entry.errors, ...failures.map(item => JSON.stringify(item))].join('\n') }
+  })
   document.querySelector('#result').textContent = JSON.stringify(cases, null, 2)
-  document.body.dataset.status = cases.every(entry => entry.complete && !entry.errors.length
-    && entry.observations.every(item => item.status === 'PASS')) ? 'pass' : 'fail'
+  document.body.dataset.status = cases.every(entry => entry.status === 'PASS') ? 'pass' : 'fail'
 } catch (error) {
   document.querySelector('#result').textContent = error.stack ?? String(error)
   document.body.dataset.status = 'fail'

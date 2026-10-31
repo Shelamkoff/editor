@@ -634,6 +634,306 @@ test('mounted renderer does not steal nodes adopted by a later decoration callba
   }
   assert.equal(disposals, 1)
 })
+
+test('renderTo does not reclaim an earlier staged block adopted by a later renderer', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const container = document.createElement('main')
+  const outside = document.createElement('aside')
+  const elements = new Map()
+  const disposed = []
+  renderer.registerRenderer({
+    type: 'staged-adoption', schema: passthroughSchema,
+    render(block) {
+      const element = document.createElement('article')
+      elements.set(block.id, element)
+      if (block.id === 'second') outside.appendChild(elements.get('first'))
+      return element
+    },
+    destroy(element) { disposed.push(element) },
+  })
+  const block = id => ({ id, type: 'staged-adoption', dataVersion: 1, data: {} })
+  renderer.renderTo({ version: '2.0.0', blocks: [block('kept')] }, container)
+  const previousWrapper = container.firstChild
+  const previousElement = previousWrapper.firstChild
+
+  assert.throws(() => renderer.renderTo({
+    version: '2.0.0', blocks: [block('kept'), block('first'), block('second')],
+  }, container), /detached HTMLElement/)
+  assert.equal(outside.firstChild, elements.get('first'), 'a later callback gave the staged block a new DOM owner')
+  assert.equal(container.firstChild, previousWrapper)
+  assert.deepEqual(previousWrapper.childNodes, [previousElement], 'failed staging changed the accepted output')
+  assert.deepEqual(disposed, [elements.get('first'), elements.get('second')], 'provisional resources must retire once')
+  renderer.destroy(container)
+  assert.deepEqual(disposed, [elements.get('first'), elements.get('second'), previousElement])
+})
+
+for (const method of ['render', 'renderTo']) {
+  for (const adoption of ['outside', 'nested']) {
+    test(`${method} rejects earlier staged ownership lost to a later ${adoption} adoption`, async () => {
+      const { EditorRenderer } = await import('./index.js')
+      const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+      const container = document.createElement('main')
+      const outside = document.createElement('aside')
+      const elements = new Map()
+      const disposed = []
+      renderer.registerRenderer({
+        type: 'staged-adoption', schema: passthroughSchema,
+        render(block) {
+          const element = document.createElement('article')
+          elements.set(block.id, element)
+          if (block.id === 'second') {
+            const parent = adoption === 'outside' ? outside : element
+            parent.appendChild(elements.get('first'))
+          }
+          return element
+        },
+        destroy(element) { disposed.push(element) },
+      })
+      const data = {
+        version: '2.0.0',
+        blocks: ['first', 'second'].map(id => ({ id, type: 'staged-adoption', dataVersion: 1, data: {} })),
+      }
+
+      assert.throws(() => renderer[method](data, container), /detached HTMLElement|renderer wrapper/)
+      const newParent = adoption === 'outside' ? outside : elements.get('second')
+      assert.equal(elements.get('first').parentNode, newParent, 'failed publication must preserve the newer DOM owner')
+      assert.deepEqual(container.childNodes, [], 'a failed first render must not publish its wrapper')
+      assert.deepEqual(disposed, [elements.get('first'), elements.get('second')])
+      renderer.destroy()
+      assert.equal(disposed.length, 2, 'failed acquisition must leave no live result to destroy again')
+    })
+  }
+}
+
+test('render does not publish a document wrapper adopted by a later renderer', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const outside = document.createElement('aside')
+  const elements = []
+  const disposed = []
+  renderer.registerRenderer({
+    type: 'wrapper-adoption', schema: passthroughSchema,
+    render() {
+      if (elements.length) outside.appendChild(elements[0].parentNode)
+      const element = document.createElement('article')
+      elements.push(element)
+      return element
+    },
+    destroy(element) { disposed.push(element) },
+  })
+  const data = {
+    version: '2.0.0',
+    blocks: ['first', 'second'].map(id => ({ id, type: 'wrapper-adoption', dataVersion: 1, data: {} })),
+  }
+
+  assert.throws(() => renderer.render(data), /detached.*wrapper|wrapper.*detached/)
+  assert.equal(outside.firstChild.firstChild, elements[0], 'failed rendering must leave the adopted wrapper in its newer host')
+  assert.deepEqual(disposed, elements)
+  renderer.destroy()
+  assert.equal(disposed.length, 2)
+})
+
+test('renderTo rejects staged adoption from the final stylesheet callback', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  const container = document.createElement('main')
+  container.ownerDocument = document
+  const outside = document.createElement('aside')
+  const elements = new Map()
+  const disposed = []
+  const previousHead = document.head
+  const head = document.createElement('head')
+  document.head = head
+  const append = head.appendChild
+  let adoptions = 0
+  head.appendChild = function (child) {
+    const result = append.call(this, child)
+    if (child.href === '/late-style.css') {
+      adoptions++
+      outside.appendChild(elements.get('first'))
+    }
+    return result
+  }
+  renderer.registerRenderer({
+    type: 'style-adoption', schema: passthroughSchema,
+    render(block) {
+      const element = document.createElement('article')
+      elements.set(block.id, element)
+      if (block.id === 'second') {
+        renderer.registerRenderer({
+          type: 'late-style', schema: passthroughSchema, styles: ['/late-style.css'],
+          render() { return document.createElement('article') },
+        })
+      }
+      return element
+    },
+    destroy(element) { disposed.push(element) },
+  })
+  const block = id => ({ id, type: 'style-adoption', dataVersion: 1, data: {} })
+  try {
+    renderer.renderTo({ version: '2.0.0', blocks: [block('kept')] }, container)
+    const wrapper = container.firstChild
+    const kept = wrapper.firstChild
+
+    let failure
+    try {
+      renderer.renderTo({
+        version: '2.0.0', blocks: [block('kept'), block('first'), block('second')],
+      }, container)
+    } catch (error) { failure = error }
+    assert.equal(adoptions, 1, 'the last stylesheet acquisition must execute the adoption callback')
+    assert.match(failure?.message ?? '', /detached HTMLElement/)
+    assert.equal(outside.firstChild, elements.get('first'))
+    assert.deepEqual(container.childNodes, [wrapper])
+    assert.deepEqual(wrapper.childNodes, [kept])
+    assert.deepEqual(disposed, [elements.get('first'), elements.get('second')])
+    renderer.destroy(container)
+    assert.deepEqual(disposed, [elements.get('first'), elements.get('second'), kept])
+  } finally {
+    renderer.destroy()
+    document.head = previousHead
+  }
+})
+
+test('renderTo revision replacement rejects adoption without retiring previous or reused blocks', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const container = document.createElement('main')
+  const outside = document.createElement('aside')
+  const elements = new Map()
+  const disposed = []
+  let adopt = false
+  renderer.registerRenderer({
+    type: 'revision-adoption', schema: passthroughSchema,
+    render(block) {
+      const element = document.createElement('article')
+      elements.set(`${block.id}:${block.revision}`, element)
+      if (adopt && block.id === 'second') outside.appendChild(elements.get('first:2'))
+      return element
+    },
+    destroy(element) { disposed.push(element) },
+  })
+  const block = (id, revision) => ({ id, revision, type: 'revision-adoption', dataVersion: 1, data: {} })
+  renderer.renderTo({ version: '2.0.0', blocks: [block('kept', 1), block('first', 1)] }, container)
+  const wrapper = container.firstChild
+  const accepted = [...wrapper.childNodes]
+  adopt = true
+  const update = { version: '2.0.0', blocks: [block('kept', 1), block('first', 2), block('second', 1)] }
+
+  assert.throws(() => renderer.renderTo(update, container), /detached HTMLElement/)
+  assert.equal(outside.firstChild, elements.get('first:2'))
+  assert.deepEqual(wrapper.childNodes, accepted)
+  assert.deepEqual(disposed, [elements.get('first:2'), elements.get('second:1')])
+
+  adopt = false
+  renderer.renderTo(update, container)
+  assert.equal(container.firstChild, wrapper)
+  assert.equal(wrapper.firstChild, accepted[0], 'an unchanged revision retains its parented DOM and owner')
+  assert.deepEqual(wrapper.childNodes, [accepted[0], elements.get('first:2'), elements.get('second:1')])
+  assert.equal(disposed.filter(element => element === accepted[0]).length, 0)
+  assert.equal(disposed.filter(element => element === accepted[1]).length, 1, 'old changed block retires only on a successful update')
+  renderer.destroy(container)
+})
+
+for (const adopted of ['pending', 'inserted']) {
+  test(`renderTo rejects ${adopted} staged adoption from a DOM insertion callback`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+    const container = document.createElement('main')
+    const outside = document.createElement('aside')
+    const elements = new Map()
+    const disposed = []
+    renderer.registerRenderer({
+      type: 'insertion-adoption', schema: passthroughSchema,
+      render(block) {
+        const element = document.createElement('article')
+        elements.set(block.id, element)
+        return element
+      },
+      destroy(element) { disposed.push(element) },
+    })
+    const block = id => ({ id, type: 'insertion-adoption', dataVersion: 1, data: {} })
+    renderer.renderTo({ version: '2.0.0', blocks: [block('kept')] }, container)
+    const wrapper = container.firstChild
+    const kept = wrapper.firstChild
+    const insert = wrapper.insertBefore
+    const triggerId = adopted === 'pending' ? 'first' : 'second'
+    const adoptedId = adopted === 'pending' ? 'second' : 'first'
+    wrapper.insertBefore = function (child, anchor) {
+      const result = insert.call(this, child, anchor)
+      if (child === elements.get(triggerId)) outside.appendChild(elements.get(adoptedId))
+      return result
+    }
+
+    assert.throws(() => renderer.renderTo({
+      version: '2.0.0', blocks: [block('kept'), block('first'), block('second')],
+    }, container), /detached HTMLElement|renderer wrapper/)
+    assert.equal(outside.firstChild, elements.get(adoptedId))
+    assert.deepEqual(container.childNodes, [wrapper])
+    assert.deepEqual(wrapper.childNodes, [kept])
+    assert.deepEqual(disposed, [elements.get('first'), elements.get('second')])
+    renderer.destroy(container)
+    assert.deepEqual(disposed, [elements.get('first'), elements.get('second'), kept])
+  })
+}
+
+for (const destination of ['outside-host', 'foreign-document']) {
+  test(`initial renderTo preserves a provisional wrapper adopted into ${destination}`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+    const container = document.createElement('main')
+    const original = document.createElement('p')
+    container.appendChild(original)
+    const outside = document.createElement('aside')
+    const foreignDocument = { adoptedOwner: true }
+    const elements = []
+    const disposed = []
+    renderer.registerRenderer({
+      type: 'mounted-wrapper-adoption', schema: passthroughSchema,
+      render() {
+        const element = document.createElement('article')
+        elements.push(element)
+        return element
+      },
+      destroy(element) { disposed.push(element) },
+    })
+    const replace = container.replaceChildren
+    let adoptedWrapper
+    container.replaceChildren = function (wrapper) {
+      const result = replace.call(this, wrapper)
+      adoptedWrapper = wrapper
+      if (destination === 'outside-host') outside.appendChild(wrapper)
+      else {
+        wrapper.remove()
+        wrapper.ownerDocument = foreignDocument
+        for (const element of wrapper.childNodes) element.ownerDocument = foreignDocument
+      }
+      return result
+    }
+    try {
+      assert.throws(() => renderer.renderTo({
+        version: '2.0.0', blocks: ['first', 'second'].map(id => ({
+          id, type: 'mounted-wrapper-adoption', dataVersion: 1, data: {},
+        })),
+      }, container), TypeError)
+      assert.deepEqual(container.childNodes, [original], 'failed first mount must restore preexisting caller DOM')
+      assert.equal(adoptedWrapper.parentNode, destination === 'outside-host' ? outside : null)
+      assert.deepEqual(adoptedWrapper.childNodes, elements, 'rollback must not empty a wrapper acquired by a new DOM owner')
+      if (destination === 'foreign-document') assert.equal(adoptedWrapper.ownerDocument, foreignDocument)
+      assert.deepEqual(disposed, elements, 'provisional block resources retire exactly once')
+      renderer.destroy(container)
+      renderer.destroy()
+      assert.deepEqual(disposed, elements)
+      assert.deepEqual(adoptedWrapper.childNodes, elements)
+      assert.equal(adoptedWrapper.parentNode, destination === 'outside-host' ? outside : null)
+    } finally {
+      container.replaceChildren = replace
+      renderer.destroy()
+    }
+  })
+}
+
 test('block renderer rejects an element adopted by a foreign document during decoration', async () => {
   const { EditorRenderer } = await import('./index.js')
   const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
