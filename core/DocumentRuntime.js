@@ -618,7 +618,8 @@ export class DocumentRuntime {
     })
   }
 
-  update(id, producer, authority = 'interaction', options = undefined) {
+  /** @param {() => void} [assertPreparedOwner] Internal scoped-result validation. */
+  update(id, producer, authority = 'interaction', options = undefined, assertPreparedOwner = undefined) {
     this.#assertMutationAuthority(authority)
     if (typeof producer !== 'function') throw new TypeError('Block update producer must be a function')
     const token = options?.historyContinuation
@@ -668,6 +669,7 @@ export class DocumentRuntime {
         const next = this.#recordFromData(
           id, current.type, definition, nextData, nextTunes, latest.inline,
         )
+        assertPreparedOwner?.()
         return { latest, next }
       })
       const { latest, next } = prepared
@@ -1054,7 +1056,8 @@ export class DocumentRuntime {
     })
   }
 
-  updateInlineWidget(blockId, inlineId, producer, options = {}) {
+  /** @param {() => void} [assertPreparedOwner] Internal scoped-result validation. */
+  updateInlineWidget(blockId, inlineId, producer, options = {}, assertPreparedOwner = undefined) {
     this.#assertInteractionMutation()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
     let trailingText=''
@@ -1115,6 +1118,7 @@ export class DocumentRuntime {
         const next = this.#recordFromData(
           latest.id, latest.type, blockDefinition, blockData, latest.tunes, inline,
         )
+        assertPreparedOwner?.()
         return {latest,next}
       })
       if (!canonicalRecordsEqual(prepared.latest,prepared.next))tx.update(blockId, prepared.next)
@@ -1690,10 +1694,10 @@ export class DocumentRuntime {
         assertReadOwner()
         return currentRecord().data
       },
-      updateData: (producer, options) => {
+      updateData: (producer, options, assertPreparedOwner) => {
         this.update(id, current => ({
           data: producer(current.data),
-        }), 'interaction', { ...options, pluginOrigin: true })
+        }), 'interaction', { ...options, pluginOrigin: true }, assertPreparedOwner)
       },
       commitDomMutation: operation => {
         this.syncBlockFromProjection(id, operation, {
@@ -1789,7 +1793,7 @@ export class DocumentRuntime {
               data: ref.data,
             }).data
           },
-          updateData: (producer, options) => this.updateInlineWidget(id, inlineId, producer, { trailingText: options?.trailingText, fieldKey }),
+          updateData: (producer, options, assertPreparedOwner) => this.updateInlineWidget(id, inlineId, producer, { trailingText: options?.trailingText, fieldKey }, assertPreparedOwner),
           commitDomMutation: operation => {
             this.syncBlockFromProjection(id, operation, {
               origin: 'plugin',

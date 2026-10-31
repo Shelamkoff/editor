@@ -219,7 +219,11 @@ export class InstanceScope{
         // that obsolete candidate into a successor generation.
         if(!this.#stillOwnGeneration(epoch,generation))throw createAbortError()
         return next
-      },captured)
+      },captured,()=>{
+        // Returned accessors and schema callbacks run later, inside the
+        // runtime's existing capture. Recheck before that record is applied.
+        if(!this.#stillOwnGeneration(epoch,generation))throw createAbortError()
+      })
     }
     const commitDom=operation=>{
       if(typeof operation!=='function')throw new TypeError('commitDomMutation() requires an operation')
@@ -416,7 +420,13 @@ export class InstanceScope{
             if(task.closed||controller.signal.aborted
               ||!this.#stillOwnGeneration(task.epoch,task.generation))throw createAbortError()
             return next
-          },continuation)
+          },continuation,()=>{
+            // Cancellation during result/schema capture is still before
+            // publication. Projection retirement after this point is owned
+            // by the admitted transaction and may legitimately abort us.
+            if(task.closed||controller.signal.aborted
+              ||!this.#stillOwnGeneration(task.epoch,task.generation))throw createAbortError()
+          })
           close(false)
           return true
         }catch(error){

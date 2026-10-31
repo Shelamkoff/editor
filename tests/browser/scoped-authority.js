@@ -205,6 +205,69 @@ test('a successful remount may abort its old task signal without changing its tr
   equal(h.editor.canUndo, false)
 })
 
+for (const kind of ['block', 'inline']) {
+  test(`${kind} result cancellation leaves its document untouched and other tasks and editors live`, () => {
+    const h = fixture(), independent = make()
+    const context = kind === 'block' ? h.context : h.inlineContext
+    const field = kind === 'block' ? 'count' : 'label'
+    const task = context.beginTask(), sibling = context.beginTask()
+    const before = h.editor.save().blocks, events = []
+    h.editor.on('transaction:committed', event => events.push(event.action))
+    let reads = 0, producers = 0
+    rejected(() => task.commit(current => {
+      producers++
+      return { ...current, get [field]() {
+        reads++
+        task.cancel()
+        independent.blocks.update('a', () => ({ data: { text: 'Independent result capture' } }))
+        return kind === 'block' ? 1 : 'Cancelled result'
+      } }
+    }), error => error.name === 'AbortError')
+    equal([reads, producers], [1, 1])
+    equal(h.editor.save().blocks, before)
+    equal(h.editor.canUndo, false)
+    equal(events, [])
+    assert(task.signal.aborted)
+    equal(task.commit(() => { throw new Error('Cancelled producer retried') }), false)
+    assert(!sibling.signal.aborted && !context.signal.aborted)
+    equal(independent.blocks.get('a').data.text, 'Independent result capture')
+    equal(independent.undo(), true)
+    equal(independent.blocks.get('a').data.text, 'A')
+
+    equal(sibling.commit(current => ({ ...current, [field]: kind === 'block' ? 2 : 'Sibling result' })), true)
+    const accepted = h.editor.save().blocks
+    equal(kind === 'block' ? accepted[0].data.count : accepted[0].inline.ref.data.label,
+      kind === 'block' ? 2 : 'Sibling result')
+    equal(h.editor.undo(), true)
+    equal(h.editor.save().blocks, before)
+    equal(h.editor.canUndo, false)
+    equal(h.editor.redo(), true)
+    equal(h.editor.save().blocks, accepted)
+    equal(events, ['commit', 'undo', 'redo'])
+  })
+}
+
+test('a healthy returned getter preserves scoped and host author composition in one history entry', () => {
+  const h = fixture(), task = h.context.beginTask(), before = h.editor.save().blocks
+  let reads = 0, nestedProducers = 0
+  equal(task.commit(current => {
+    h.editor.blocks.update('a', () => {
+      nestedProducers++
+      return { tunes: { textAlign: 'center' } }
+    })
+    return { ...current, get count() { reads++; return 3 } }
+  }), true)
+  equal([reads, nestedProducers], [1, 1])
+  const accepted = h.editor.save().blocks
+  equal(accepted[0].data, { text: 'Before{{ref}}After', count: 3 })
+  equal(accepted[0].tunes, { textAlign: 'center' })
+  equal(h.editor.undo(), true)
+  equal(h.editor.save().blocks, before)
+  equal(h.editor.canUndo, false)
+  equal(h.editor.redo(), true)
+  equal(h.editor.save().blocks, accepted)
+})
+
 test('public destruction after terminal transaction failure releases the holder exactly once', () => {
   const h = fixture(), holder = editorHolder(h.editor)
   const task = h.context.beginTask(), before = h.editor.save().blocks

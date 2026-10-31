@@ -6,11 +6,11 @@ import { InstanceScope } from './InstanceScope.js'
 import { EditorHandle } from './PublicEditorApi.js'
 
 function fixture({ staged = false, selection = null } = {}) {
-  const flags = { onDecode: null, onValue: null, decodes: 0, valueReads: 0 }
+  const flags = { onDecode: null, onValue: null, encodeBlock: null, encodeInline: null, decodes: 0, valueReads: 0 }
   const ownerDocument = { createElement() { throw new Error('This context test does not mount DOM') } }
   const blockSchema = { currentVersion: 1, createDefault: () => ({ text: '' }),
     decode: input => ({ dataVersion: 1, data: { text: input.data.text } }),
-    encode: data => ({ dataVersion: 1, data: { text: data.text } }),
+    encode: data => flags.encodeBlock ? flags.encodeBlock(data) : ({ dataVersion: 1, data: { text: data.text } }),
   }
   const inlineSchema = { currentVersion: 1, createDefault: () => ({ label: 'Widget' }),
     decode(input) {
@@ -20,7 +20,7 @@ function fixture({ staged = false, selection = null } = {}) {
         get label() { flags.valueReads++; flags.onValue?.(); return input.data.label },
       } }
     },
-    encode: data => ({ dataVersion: 1, data: { label: data.label } }),
+    encode: data => flags.encodeInline ? flags.encodeInline(data) : ({ dataVersion: 1, data: { label: data.label } }),
   }
   const definition = (type, schema) => ({ type, schema, icon: '', label: { key: type, fallback: type },
     setup: () => ({ create() { throw new Error('Not used by the context seam') }, destroy() {} }),
@@ -409,3 +409,111 @@ test('deferred application work after a protected read receives fresh ordinary a
     assert.equal(h.runtime.canUndo, true)
   } finally { h.handle.destroy() }
 })
+
+for (const { name, contextKey, scopeKey, field, encodeKey } of [
+  { name: 'block', contextKey: 'blockContext', scopeKey: 'parent', field: 'text', encodeKey: 'encodeBlock' },
+  { name: 'inline', contextKey: 'context', scopeKey: 'scope', field: 'label', encodeKey: 'encodeInline' },
+]) {
+  test(`a cancelled ${name} task cannot publish from its producer result getter`, () => {
+    const h = fixture(), task = h[contextKey].beginTask()
+    const before = h.runtime.save().blocks
+    let reads = 0, producers = 0, result, failure
+    try {
+      try {
+        result = task.commit(() => {
+          producers++
+          return { get [field]() { reads++; task.cancel(); return 'Cancelled result' } }
+        })
+      } catch (error) { failure = error }
+      assert.equal(producers, 1)
+      assert.equal(reads, 1)
+      assert.deepEqual(h.runtime.save().blocks, before,
+        'a cancelled task published data while its returned value was being captured')
+      assert.equal(h.runtime.canUndo, false)
+      assert.equal(task.signal.aborted, true)
+      assert.equal(result, undefined)
+      assert.equal(failure?.name, 'AbortError')
+      assert.equal(task.commit(() => { throw new Error('Cancelled task retried') }), false)
+    } finally { h.handle.destroy() }
+  })
+
+  for (const boundary of ['completion', 'data', 'value']) {
+    test(`${name} task cancellation from a schema ${boundary} getter discards the prepared record`, () => {
+      const h = fixture(), task = h[contextKey].beginTask()
+      const before = h.runtime.save().blocks
+      let reads = 0, producers = 0
+      const cancel = () => { reads++; task.cancel() }
+      h.flags[encodeKey] = data => {
+        if (boundary === 'completion') return { get then() { cancel(); return undefined }, dataVersion: 1, data }
+        if (boundary === 'data') return { dataVersion: 1, get data() { cancel(); return data } }
+        return { dataVersion: 1, data: { get [field]() { cancel(); return data[field] } } }
+      }
+      try {
+        assert.throws(() => task.commit(() => { producers++; return { [field]: 'Cancelled schema result' } }), { name: 'AbortError' })
+        assert.equal(reads, 1)
+        assert.equal(producers, 1)
+        assert.deepEqual(h.runtime.save().blocks, before)
+        assert.equal(h.runtime.canUndo, false)
+        assert.equal(task.signal.aborted, true)
+        assert.equal(task.commit(() => { throw new Error('Cancelled task retried') }), false)
+      } finally { h.handle.destroy() }
+    })
+  }
+
+  test(`${name} result and schema capture preserve the original thrown cause after task cancellation`, () => {
+    for (const { boundary, cause } of [
+      { boundary: 'result', cause: new Error('Returned value failed') },
+      { boundary: 'result', cause: undefined },
+      { boundary: 'schema', cause: new Error('Encoded data failed') },
+      { boundary: 'schema', cause: undefined },
+    ]) {
+      const h = fixture(), task = h[contextKey].beginTask()
+      const before = h.runtime.save().blocks
+      let threw = false, failure
+      if (boundary === 'schema') h.flags[encodeKey] = () => ({
+        dataVersion: 1, get data() { task.cancel(); throw cause },
+      })
+      try {
+        try {
+          task.commit(() => boundary === 'schema'
+            ? { [field]: 'Pending schema capture' }
+            : { get [field]() { task.cancel(); throw cause } })
+        } catch (error) { threw = true; failure = error }
+        assert.equal(threw, true)
+        assert.equal(failure, cause)
+        assert.equal(task.signal.aborted, true)
+        assert.deepEqual(h.runtime.save().blocks, before)
+        assert.equal(h.runtime.canUndo, false)
+        assert.equal(task.commit(() => { throw new Error('Failed task retried') }), false)
+      } finally { h.handle.destroy() }
+    }
+  })
+
+  test(`${name} update result capture rejects an occurrence retired by its getter`, () => {
+    const h = fixture(), before = h.runtime.save().blocks
+    let reads = 0
+    try {
+      assert.throws(() => h[contextKey].updateData(() => ({
+        get [field]() { reads++; h[scopeKey].revoke(); return 'Retired result' },
+      })), { name: 'AbortError' })
+      assert.equal(reads, 1)
+      assert.deepEqual(h.runtime.save().blocks, before)
+      assert.equal(h.runtime.canUndo, false)
+    } finally { h.handle.destroy() }
+  })
+}
+
+for (const boundary of ['onDecode', 'onValue']) {
+  test(`inline task cancellation during ${boundary} rejects before its author producer`, () => {
+    const h = fixture(), task = h.context.beginTask(), before = h.runtime.save().blocks
+    let producers = 0
+    h.flags[boundary] = () => task.cancel()
+    try {
+      assert.throws(() => task.commit(() => { producers++; return { label: 'Unwanted result' } }), { name: 'AbortError' })
+      assert.equal(producers, 0)
+      assert.deepEqual(h.runtime.save().blocks, before)
+      assert.equal(h.runtime.canUndo, false)
+      assert.equal(task.signal.aborted, true)
+    } finally { h.handle.destroy() }
+  })
+}
