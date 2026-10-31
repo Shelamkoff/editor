@@ -40,6 +40,7 @@ function ownerDocument() {
   })
   return doc
 }
+
 const block = {
   id: 'a', type: 'poll', data: {
     pollId: 'p', question: '', type: 'single', resultsMode: 'always',
@@ -344,3 +345,142 @@ test('editor Poll contains later subscription callback failures from revision co
   f.instance.destroy()
   f.runtime.destroy()
 })
+
+test('renderer Poll does not subscribe after inline rendering retires its initial output', async () => {
+  const doc = ownerDocument()
+  const create = doc.createElement
+  let element
+  doc.createElement = tag => {
+    const node = create(tag)
+    element ??= node
+    return node
+  }
+  let subscriptions = 0
+  let loads = 0
+  const renderer = createPollRenderer('test', {}, {
+    dataSource: {
+      async load() { loads++; return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe() { subscriptions++ },
+    },
+  })
+  renderer.render(block, value => {
+    renderer.destroy(element)
+    return { textContent: value }
+  }, { ownerDocument: doc })
+  await settle()
+  assert.equal(subscriptions, 0, 'an output destroyed during initial labels cannot acquire a provider connection')
+  assert.equal(loads, 0)
+})
+
+for (const retiredField of ['question', 'option']) {
+  test(`renderer Poll stops a provider projection retired by its ${retiredField} renderer`, () => {
+    const doc = ownerDocument()
+    let publish
+    let retire = false
+    let element
+    const successor = { textContent: 'Replacement output' }
+    const renderer = createPollRenderer('test', {}, {
+      dataSource: {
+        load: () => new Promise(() => {}),
+        async vote() { return emptyResults() },
+        subscribe({ onUpdate }) { publish = onUpdate },
+      },
+    })
+    element = renderer.render({ ...block, data: { ...block.data, question: 'Choose an answer' } }, value => {
+      if (retire && value === (retiredField === 'question' ? 'Choose an answer' : 'Yes')) {
+        retire = false
+        renderer.destroy(element)
+        element.replaceChildren(successor)
+      }
+      return { textContent: value }
+    }, { ownerDocument: doc })
+
+    retire = true
+    assert.doesNotThrow(() => publish(emptyResults()))
+    assert.equal(element.children.length, 1,
+      'an inline renderer retired the output; the old result must not append question, options or controls')
+    assert.equal(element.children[0], successor)
+    renderer.destroy(element)
+  })
+}
+
+test('renderer Poll keeps the newer provider projection when inline rendering publishes again', () => {
+  const doc = ownerDocument()
+  let publish
+  let publishNewer = false
+  const newer = { total: 4, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 3 }] }
+  const renderer = createPollRenderer('test', {}, {
+    dataSource: {
+      load: () => new Promise(() => {}),
+      async vote() { return emptyResults() },
+      subscribe({ onUpdate }) { publish = onUpdate },
+    },
+  })
+  const element = renderer.render(block, value => {
+    if (publishNewer && value === 'Yes') {
+      publishNewer = false
+      publish(newer)
+    }
+    return { textContent: value }
+  }, { ownerDocument: doc })
+
+  publishNewer = true
+  publish({ total: 1, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }] })
+  assert.equal(element.querySelectorAll('.test-poll__options').length, 1,
+    'the superseded build must not append another list after the newer result')
+  assert.deepEqual(element.querySelectorAll('.test-poll__pct').map(label => label.textContent), ['25%', '75%'])
+  renderer.destroy(element)
+})
+
+for (const key of ['selectOption', 'emptyResults', 'voters', 'anonymousVoter', 'vote']) {
+  for (const continuation of ['destroy', 'newer results']) {
+    test(`renderer Poll stops ${key} locale projection after ${continuation}`, () => {
+      const doc = ownerDocument()
+      let publish
+      let element
+      let remainingReads = 0
+      let callbacks = 0
+      const successor = { textContent: 'Replacement output' }
+      const newer = { total: 4, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 3 }] }
+      const locale = Object.defineProperty({}, `renderer.poll.${key}`, {
+        get() {
+          if (remainingReads > 0 && --remainingReads === 0) {
+            callbacks++
+            if (continuation === 'destroy') {
+              renderer.destroy(element)
+              element.replaceChildren(successor)
+            } else publish(newer)
+          }
+          return key
+        },
+      })
+      const renderer = createPollRenderer('test', locale, {
+        dataSource: {
+          load: () => new Promise(() => {}),
+          async vote() { return emptyResults() },
+          subscribe({ onUpdate }) { publish = onUpdate },
+        },
+      })
+      element = renderer.render(block, value => ({ textContent: value }), { ownerDocument: doc })
+
+      // Retire at the final option, so no later inline-parser guard can hide
+      // an unguarded locale callback before the options are published.
+      remainingReads = key === 'selectOption' ? block.data.options.length : 1
+      const results = { ...emptyResults(), voters: [{ id: 'anonymous' }] }
+      assert.doesNotThrow(() => publish(results))
+      assert.equal(callbacks, 1, 'the locale callback was not exercised')
+      if (continuation === 'destroy') {
+        assert.equal(element.children.length, 1, 'retired locale projection changed the replacement DOM')
+        assert.equal(element.children[0], successor)
+      } else {
+        assert.equal(element.querySelectorAll('.test-poll__options').length, 1)
+        assert.deepEqual(element.querySelectorAll('.test-poll__pct').map(label => label.textContent), ['25%', '75%'])
+        assert.equal(element.querySelectorAll('.test-poll__status').length, 0)
+        assert.equal(element.querySelectorAll('.test-poll__voters').length, 0)
+        assert.equal(element.querySelectorAll('.test-poll__submit').length, 1)
+      }
+      renderer.destroy(element)
+    })
+  }
+}

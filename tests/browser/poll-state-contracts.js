@@ -1,4 +1,5 @@
 import { createPollPlugin } from '../../plugins/poll/index.js'
+import { createPollRenderer } from '../../renderer/renderers/poll/index.js'
 import { DocumentStore } from '../../core/DocumentStore.js'
 import { HistoryStore } from '../../core/HistoryStore.js'
 import { TransactionEngine } from '../../core/TransactionEngine.js'
@@ -396,6 +397,77 @@ test('retired Poll add-option action cannot write after a runtime-only refresh',
     equal(h.store.get('poll').data.options.length, 3, 'the current add-option action stopped working')
   } finally { h.destroy() }
 })
+
+for (const boundary of ['parseInline', 'connectedCallback']) {
+  for (const action of ['retire', 'supersede']) {
+    test(`Poll renderer ${boundary} ${action} keeps the current real DOM owner`, () => {
+      let publish, element, signal
+      let armed = false, callbacks = 0, releases = 0
+      const replacement = document.createElement('p')
+      replacement.textContent = 'Replacement output'
+      const renderer = createPollRenderer('contract', {}, {
+        dataSource: {
+          load: () => new Promise(() => {}),
+          vote: async () => result('3'),
+          subscribe(request) {
+            publish = request.onUpdate
+            signal = request.signal
+            return () => { releases++ }
+          },
+        },
+      })
+      const interrupt = () => {
+        if (!armed) return
+        armed = false
+        callbacks++
+        if (action === 'retire') {
+          renderer.destroy(element)
+          element.replaceChildren(replacement)
+        } else publish(result('2', 1, 3, []))
+      }
+      const tag = `rector-poll-inline-${action}`
+      if (boundary === 'connectedCallback') {
+        customElements.define(tag, class extends HTMLElement {
+          connectedCallback() { interrupt() }
+        })
+      }
+      const block = { id: 'poll-renderer', type: 'poll', data: {
+        pollId: 'poll-renderer', question: 'Question', type: 'single', resultsMode: 'always',
+        options: [{ id: 'a', text: 'A' }, { id: 'b', text: 'B' }],
+      } }
+      element = renderer.render(block, value => {
+        if (boundary === 'parseInline' && value === 'Question') interrupt()
+        const node = document.createElement(boundary === 'connectedCallback' && value === 'Question' ? tag : 'span')
+        node.textContent = value
+        return node
+      }, { ownerDocument: document })
+      document.querySelector('#sandbox').append(element)
+      try {
+        armed = true
+        publish(result('1', 3, 1, []))
+        equal(callbacks, 1, 'the real callback boundary did not run')
+        if (action === 'retire') {
+          equal(element.childNodes.length, 1, 'a retired projection appended into replacement output')
+          equal(element.firstChild === replacement, true, 'replacement output lost its DOM identity')
+          equal(signal.aborted, true, 'retired output kept its provider signal')
+          equal(releases, 1, 'retired output must release its subscription once')
+        } else {
+          equal(element.querySelectorAll('.contract-poll__options').length, 1, 'the old build appended a second option list')
+          equal([...element.querySelectorAll('.contract-poll__pct')].map(node => node.textContent),
+            ['25%', '75%'], 'the superseded build changed newer result values')
+          equal(releases, 0, 'the newer result lost its live subscription')
+          publish(result('3', 3, 1, []))
+          equal([...element.querySelectorAll('.contract-poll__pct')].map(node => node.textContent),
+            ['75%', '25%'], 'the retained provider stopped accepting later results')
+        }
+      } finally {
+        renderer.destroy(element)
+        element.remove()
+      }
+      equal(releases, 1, 'provider cleanup was not idempotent')
+    })
+  }
+}
 
 const results = []
 for (const entry of cases) {

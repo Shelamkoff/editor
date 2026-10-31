@@ -35,6 +35,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
    *   connectionVersion: number,
    *   loadVersion: number,
    *   voteVersion: number,
+   *   buildVersion: number,
    *   controller: AbortController | null,
    *   unsubscribe: (() => void) | null,
    *   parseInline: import('../../types').InlineParser,
@@ -85,13 +86,21 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
   /** @param {HTMLElement} wrapper @param {any} state */
   function build(wrapper, state) {
     if (states.get(wrapper) !== state) return
+    const buildVersion = ++state.buildVersion
+    const isCurrent = () => states.get(wrapper) === state && state.buildVersion === buildVersion
     wrapper.replaceChildren()
+    if (!isCurrent()) return
 
     if (state.data.question) {
       const question = state.ownerDocument.createElement('div')
       question.className = `${p}__question`
-      question.appendChild(state.parseInline(state.data.question))
+      const content = state.parseInline(state.data.question)
+      // Inline renderers may dispose this output or publish newer results.
+      // A retired build cannot overwrite the caller's replacement DOM.
+      if (!isCurrent()) return
+      question.appendChild(content)
       wrapper.appendChild(question)
+      if (!isCurrent()) return
     }
 
     const options = state.ownerDocument.createElement('div')
@@ -119,8 +128,12 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       content.className = `${p}__option-content`
       const text = state.ownerDocument.createElement('span')
       text.className = `${p}__option-text`
-      text.appendChild(state.parseInline(option.text))
-      marker.setAttribute('aria-label', `${t('selectOption', 'Select option')}: ${text.textContent || option.id}`)
+      const label = state.parseInline(option.text)
+      if (!isCurrent()) return
+      text.appendChild(label)
+      const selectLabel = t('selectOption', 'Select option')
+      if (!isCurrent()) return
+      marker.setAttribute('aria-label', `${selectLabel}: ${text.textContent || option.id}`)
       content.appendChild(text)
 
       if (showResults(state)) {
@@ -140,25 +153,32 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       row.appendChild(content)
       options.appendChild(row)
     }
+    if (!isCurrent()) return
     wrapper.appendChild(options)
+    if (!isCurrent()) return
 
     if (state.loading || state.error || (showResults(state) && state.results.total === 0)) {
       const status = state.ownerDocument.createElement('div')
       status.className = `${p}__status${state.error ? ` ${p}__status--error` : ''}`
       status.setAttribute('role', state.error ? 'alert' : 'status')
-      status.textContent = state.loading
+      const statusText = state.loading
         ? t('loading', 'Loading results…')
         : state.error
           ? t('loadError', 'Could not load poll results')
           : t('emptyResults', 'No votes yet')
+      if (!isCurrent()) return
+      status.textContent = statusText
       wrapper.appendChild(status)
+      if (!isCurrent()) return
     }
 
     if (showResults(state) && state.results.voters?.length) {
       const voters = state.ownerDocument.createElement('div')
       voters.className = `${p}__voters`
       const title = state.ownerDocument.createElement('strong')
-      title.textContent = `${t('voters', 'Voters')}: ${state.results.votersTotal ?? state.results.voters.length}`
+      const votersLabel = t('voters', 'Voters')
+      if (!isCurrent()) return
+      title.textContent = `${votersLabel}: ${state.results.votersTotal ?? state.results.voters.length}`
       voters.appendChild(title)
       const list = state.ownerDocument.createElement('ul')
       for (const voter of state.results.voters) {
@@ -172,19 +192,25 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
           item.appendChild(avatar)
         }
         const name = state.ownerDocument.createElement('span')
-        name.textContent = voter.name || t('anonymousVoter', 'Anonymous voter')
+        const voterName = voter.name || t('anonymousVoter', 'Anonymous voter')
+        if (!isCurrent()) return
+        name.textContent = voterName
         item.appendChild(name)
         list.appendChild(item)
       }
       voters.appendChild(list)
+      if (!isCurrent()) return
       wrapper.appendChild(voters)
+      if (!isCurrent()) return
     }
 
     const submit = state.ownerDocument.createElement('button')
     submit.type = 'button'
     submit.className = `${p}__submit`
     submit.disabled = state.loading || state.submitting || state.selected.size === 0
-    submit.textContent = state.submitting ? t('submitting', 'Submitting…') : t('vote', 'Vote')
+    const submitText = state.submitting ? t('submitting', 'Submitting…') : t('vote', 'Vote')
+    if (!isCurrent()) return
+    submit.textContent = submitText
     submit.addEventListener('click', () => vote(wrapper, state))
     wrapper.appendChild(submit)
   }
@@ -250,7 +276,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
 
   /** @param {HTMLElement} wrapper @param {any} state */
   function connect(wrapper, state) {
-    if (!config.dataSource || !state.data.pollId) return
+    if (states.get(wrapper) !== state || !config.dataSource || !state.data.pollId) return
     const AbortControllerCtor = state.ownerDocument.defaultView?.AbortController ?? AbortController
     const controller = new AbortControllerCtor()
     state.controller = controller
@@ -259,6 +285,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     state.voteVersion++
     state.loading = true
     build(wrapper, state)
+    if (states.get(wrapper) !== state || controller.signal.aborted) return
     if (config.dataSource.subscribe) {
       try {
         const unsubscribe = synchronousResult(config.dataSource.subscribe({
@@ -328,6 +355,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
         connectionVersion: 0,
         loadVersion: 0,
         voteVersion: 0,
+        buildVersion: 0,
         controller: null,
         unsubscribe: null,
         parseInline,
