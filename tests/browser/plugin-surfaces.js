@@ -167,6 +167,55 @@ async function testAttachesRelativeUrls() {
   }
 }
 
+function testAttachesGroupSize() {
+  const definition = createAttachesPlugin({ injectStyles: false })
+  const data = { ...definition.schema.createDefault(), variant: 'a', files: [
+    { id: 'first', url: '/first.txt', name: ' First .txt', size: 1024, extension: 'txt' },
+    { id: 'second', url: '/second.pdf', name: 'Second.pdf', size: 1024, extension: 'pdf' },
+  ] }
+  const originalInput = JSON.stringify(data)
+  const entry = mount(definition, data, 'attaches-group-size')
+  const summary = () => entry.block.querySelector('.oe-attaches__group-header .oe-attaches__meta')?.textContent
+  try {
+    // save().time is generated per query; compare the exact accepted block records.
+    const original = entry.editor.save().blocks
+    assert(summary() === '2KB', 'attaches: multi-file group lost its total size')
+    assert(!entry.editor.canUndo, 'attaches: initial size display created history')
+    entry.editor.blocks.update(entry.id, current => ({ data: { ...current.data,
+      files: current.data.files.map(file => file.id === 'first' ? { ...file, size: 3072 } : file),
+    } }))
+    const resized = entry.editor.save().blocks
+    assert(summary() === '4KB', 'attaches: group size did not follow the accepted metadata update')
+    assert(entry.editor.undo(), 'attaches: file metadata update was not undoable')
+    assert(summary() === '2KB' && JSON.stringify(entry.editor.save().blocks) === JSON.stringify(original),
+      'attaches: metadata Undo did not restore exact files and total size')
+    assert(!entry.editor.canUndo, 'attaches: one metadata update created extra history')
+    assert(entry.editor.redo(), 'attaches: file metadata update was not redoable')
+    assert(summary() === '4KB' && JSON.stringify(entry.editor.save().blocks) === JSON.stringify(resized),
+      'attaches: metadata Redo did not restore exact files and total size')
+
+    entry.editor.blocks.update(entry.id, current => ({ data: { ...current.data, files: current.data.files.slice(0, 1) } }))
+    const single = entry.editor.save().blocks
+    assert(!entry.block.querySelector('.oe-attaches__group-header'), 'attaches: single file kept a stale group header')
+    assert(entry.block.querySelector('.oe-attaches__meta')?.textContent === '3KB', 'attaches: single file lost its own size')
+    assert(entry.editor.undo() && summary() === '4KB', 'attaches: removal Undo did not restore the group size')
+    assert(entry.editor.redo() && JSON.stringify(entry.editor.save().blocks) === JSON.stringify(single),
+      'attaches: removal Redo changed the remaining file metadata')
+    assert(entry.editor.undo(), 'attaches: grouped files could not be restored for view controls')
+    for (const readOnly of [true, false]) {
+      entry.editor.setReadOnly(readOnly)
+      assert(summary() === '4KB', 'attaches: a mode change lost the total size')
+      assert(JSON.stringify(entry.editor.save().blocks) === JSON.stringify(resized), 'attaches: size display changed author data')
+    }
+    entry.block.querySelector('.oe-attaches__chevron').click()
+    assert(summary() === '4KB', 'attaches: collapsing the files hid their total size')
+    assert(entry.editor.canRedo, 'attaches: a presentation control cleared Redo')
+    assert(entry.editor.undo() && JSON.stringify(entry.editor.save().blocks) === JSON.stringify(original),
+      'attaches: presentation controls added an extra history step')
+    assert(JSON.stringify(data) === originalInput, 'attaches: displaying the group mutated caller data')
+  } finally { unmount(entry) }
+}
+
 async function openSettings(entry) {
   entry.editor.blocks.focus(entry.id)
   await tick()
@@ -296,12 +345,14 @@ function testLayeringContract() {
 async function run() {
   await testSourceEditors()
   await testAttachesRelativeUrls()
+  testAttachesGroupSize()
   await testSettingsPanels()
   testLayeringContract()
   sandbox.replaceChildren()
   return {
     sourceEditors: ['image:url','gallery:url','carousel:url','carousel:html','attaches:url'],
     attachmentFilenameSources: 5,
+    attachmentGroupSize: true,
     settingsPanels: ['gallery','carousel'],
     inlineSettings: ['image'],
     actionSettings: ['attaches'],

@@ -397,6 +397,13 @@ export function createAttachesPlugin(config={}){
                 const count=document.createElement('div')
                 count.className='oe-attaches__info'
                 count.textContent=data.files.length+' '+runtimeContext.t('filesCount','files')
+                const totalSize=data.files.reduce((sum,file)=>sum+file.size,0)
+                if(totalSize){
+                  const size=document.createElement('div')
+                  size.className='oe-attaches__meta'
+                  size.textContent=formatSize(totalSize)
+                  count.appendChild(size)
+                }
                 groupChevron=document.createElement('button')
                 groupChevron.type='button'
                 groupChevron.className='oe-attaches__chevron'
