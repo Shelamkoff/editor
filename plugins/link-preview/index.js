@@ -256,11 +256,15 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const resolveMeta=async(url,{authorSubmission=false}={})=>{
-            currentTask?.cancel()
-            if(!snapshot.fetchMeta||!url||readOnly||dead)return
+            // Abort listeners can synchronously submit a newer request. Retire
+            // this slot before notifying them and keep their successor current.
+            const retiredTask=currentTask
+            currentTask=null
+            const current=++generation
+            retiredTask?.cancel()
+            if(!snapshot.fetchMeta||!url||readOnly||dead||context.signal.aborted||generation!==current)return
             const task=context.beginTask()
             currentTask=task
-            const current=++generation
             try{
               // The data authority can be revoked synchronously even after
               // beginTask(). Both snapshot acquisition and external metadata

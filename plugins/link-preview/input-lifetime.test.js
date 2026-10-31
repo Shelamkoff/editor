@@ -544,3 +544,41 @@ test('LinkPreview automatic initial metadata is not attached to unrelated histor
       'initial automatic metadata must not ask to merge with prior authoring history')
   } finally { h.destroy() }
 })
+
+test('LinkPreview refresh preserves a newer metadata request started by an abort observer', async () => {
+  const requests = []
+  let h
+  h = mount({
+    fetchMeta(url, { signal }) {
+      let resolve
+      const promise = new Promise(finish => { resolve = finish })
+      requests.push({ url, signal, resolve })
+      if (requests.length === 1) {
+        signal.addEventListener('abort', () => h.input.dispatch('keydown'), { once: true })
+      }
+      return promise
+    },
+  })
+  try {
+    h.input.focus()
+    h.input.dispatch('keydown')
+    assert.equal(requests.length, 1)
+
+    h.input.dispatch('keydown')
+    assert.deepEqual(requests.map(request => request.url), [h.model().url, h.model().url],
+      'the superseded outer refresh started another request after its abort observer submitted a newer one')
+    assert.equal(requests[0].signal.aborted, true)
+    assert.equal(requests[1].signal.aborted, false)
+
+    requests[0].resolve({ title: 'Obsolete title' })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(h.model().title, 'Alpha')
+
+    requests[1].resolve({ title: 'Newest title', description: 'Newest description' })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(h.model().title, 'Newest title')
+    assert.equal(h.model().description, 'Newest description')
+  } finally { h.destroy() }
+})
