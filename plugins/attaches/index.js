@@ -107,7 +107,7 @@ export function createAttachesPlugin(config={}){
             const safe=entries.flatMap(entry=>{
               const url=sanitizeDownloadUrl(entry.url)
               if(!url)return []
-              const name=String(entry.name||urlName(url)||'file')
+              const name=String(entry.name||urlName(url,document.baseURI)||'file')
               return [{
                 id:typeof entry.id==='string'&&entry.id?entry.id:null,
                 url,
@@ -170,9 +170,9 @@ export function createAttachesPlugin(config={}){
                     if(url)resolved.push({
                       id:'',
                       url,
-                      name:file.name||urlName(url)||'file',
+                      name:file.name||urlName(url,document.baseURI)||'file',
                       size:Number.isFinite(result?.size)?Math.max(0,Number(result.size)):file.size||0,
-                      extension:getExtension(file.name||urlName(url)),
+                      extension:getExtension(file.name||urlName(url,document.baseURI)),
                     })
                   }catch(error){
                     if(!task.signal.aborted)console.warn('[Attaches] Upload failed',error)
@@ -234,7 +234,7 @@ export function createAttachesPlugin(config={}){
               cancelText:runtimeContext.t('cancel','Cancel'),
               invalidText:runtimeContext.t('invalidUrl','Invalid file URL'),
               normalize:sanitizeDownloadUrl,
-              onSubmit:url=>addResolved([{id:context.createId('file'),url,name:urlName(url)||'file',size:0,extension:getExtension(urlName(url))}]),
+              onSubmit:url=>addResolved([{id:context.createId('file'),url,name:urlName(url,document.baseURI)||'file',size:0,extension:getExtension(urlName(url,document.baseURI))}]),
             })
           }
 
@@ -579,9 +579,9 @@ function cloneData(data){
   return {variant:data.variant,files:data.files.map(file=>({...file}))}
 }
 
-function urlName(url){
+function urlName(url,baseURI){
   try{
-    const part=new URL(url).pathname.split('/').filter(Boolean).at(-1)||''
+    const part=new URL(url,baseURI).pathname.split('/').filter(Boolean).at(-1)||''
     try{return decodeURIComponent(part)}catch{return part}
   }catch{return ''}
 }

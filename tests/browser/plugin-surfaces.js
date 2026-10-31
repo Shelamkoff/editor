@@ -136,6 +136,37 @@ async function testSourceEditors() {
   unmount(attaches)
 }
 
+async function testAttachesRelativeUrls() {
+  const definition = createAttachesPlugin({ injectStyles: false })
+  const cases = [
+    ['/downloads/quarterly%20report.pdf?download=1#attachment', 'quarterly report.pdf', 'pdf'],
+    ['../downloads/%20annual%20report%20.txt', ' annual report .txt', 'txt'],
+    ['//cdn.example.test/files/archive.zip?download=1', 'archive.zip', 'zip'],
+    ['downloads/100%done.csv', '100%done.csv', 'csv'],
+    ['https://example.test/files/%D0%BE%D1%82%D1%87%D1%91%D1%82.pdf', 'отчёт.pdf', 'pdf'],
+  ]
+  for (const [url, name, extension] of cases) {
+    const entry = mount(definition, definition.schema.createDefault(), 'attaches-relative-source')
+    try {
+      await submitSource(entry, 'url', 'url', url)
+      const files = entry.editor.save().blocks[0].data.files
+      assert(files.length === 1, 'attaches: inserting a URL did not add exactly one file')
+      assert(files[0].url === url, 'attaches: filename inference rewrote the authored URL')
+      assert(files[0].name === name,
+        `attaches: URL ${url} lost its filename: ${JSON.stringify(files[0].name)}`)
+      assert(files[0].extension === extension, `attaches: URL ${url} lost its extension`)
+      assert(entry.block.querySelector('.oe-attaches__name')?.textContent === name,
+        'attaches: inferred filename was not projected')
+      assert(entry.editor.undo(), 'attaches: URL insertion was not undoable')
+      assert(entry.editor.save().blocks[0].data.files.length === 0, 'attaches: Undo did not remove the inserted URL')
+      assert(!entry.editor.canUndo, 'attaches: URL insertion created more than one history step')
+      assert(entry.editor.redo(), 'attaches: URL insertion was not redoable')
+      assert(JSON.stringify(entry.editor.save().blocks[0].data.files) === JSON.stringify(files),
+        'attaches: Redo changed the URL, inferred filename or stable file ID')
+    } finally { unmount(entry) }
+  }
+}
+
 async function openSettings(entry) {
   entry.editor.blocks.focus(entry.id)
   await tick()
@@ -264,11 +295,13 @@ function testLayeringContract() {
 
 async function run() {
   await testSourceEditors()
+  await testAttachesRelativeUrls()
   await testSettingsPanels()
   testLayeringContract()
   sandbox.replaceChildren()
   return {
     sourceEditors: ['image:url','gallery:url','carousel:url','carousel:html','attaches:url'],
+    attachmentFilenameSources: 5,
     settingsPanels: ['gallery','carousel'],
     inlineSettings: ['image'],
     actionSettings: ['attaches'],
