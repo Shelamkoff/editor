@@ -61,7 +61,9 @@ jobs:
   release:
     name: ${{ matrix.gate }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Browser includes ordinary pages, the full native matrix and heap checks.
+    # Leave time for dependency setup and result/artifact finalization as well.
+    timeout-minutes: ${{ matrix.gate == 'browser' && 30 || 20 }}
     strategy:
       fail-fast: false
       matrix:
