@@ -139,6 +139,10 @@ The ordinary browser count includes 41 `.html` pages and `trusted-types.htm`; th
 
 The history-eviction control authors 12 actions with 32 KiB payloads under a one-byte history budget. Its deliberately retained control survives eviction, is released after the explicit reference is dropped, and the live editor still reports current case 12 / Undo case 11. These are bounded resource checks; the 23 sentinel result does not claim every possible leak is excluded.
 
+## Documentation closeout
+
+The first documentation-only follow-up, `run-9Zkytx` on published `51cb3391744e5e927f1cee61819299dc78f9ba31`, remains **failed** with unchanged source. Documentation contracts passed, and the site build completed, but its smoke check rejected untranslated technical terms in the newly added Russian preservation prose. A focused call to the same existing validator also identified terms in the new publication-review section. The raw manifest and logs remain in ignored verification output. The wording correction uses natural Russian prose and code formatting for exact identifiers; it changes no validator, allowlist, production code or test expectation. Subsequent documentation checks retain their own source identities and manifests; they are not folded into the eleven-gate result for `a7c77d11` above.
+
 ## Reproduction and remaining acceptance
 
 Use a fresh checkout at the frozen commit, `npm ci`, and an available Chrome executable; leave page/case filters unset for full gates.
