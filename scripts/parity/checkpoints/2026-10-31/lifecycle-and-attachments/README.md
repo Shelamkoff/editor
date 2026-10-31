@@ -101,7 +101,7 @@ The change adds no document store, history owner or public API.
 | Public type contracts | 7/7 passed | `types.log` |
 | Installed package | Bundler, NodeNext, Vite, native ESM, external Chrome contracts and 22 CSS assets passed | `package.log` |
 | Documentation contracts | README, source, locale and documentation audits passed | `docs.log` |
-| Ordinary browser | All 41 registered pages passed | `browser.log` |
+| Ordinary browser | All 42 registered pages passed, including `trusted-types.htm` | `browser.log` |
 | Full native | 47 array-valued result groups / 2,683 cases, all PASS; separate physical Enter, toolbox and history controls passed | `native.log` |
 | Heap/resources | 23 sentinels / zero retained; history-eviction and retained-control checks passed | `heap.log` |
 | Documentation site | 47 README pairs, 127 HTML pages, zero broken links, zero missing assets; browser smoke checks passed | `docs-site.log` |
