@@ -262,6 +262,57 @@ test('structured diagnostics report command failure and slow operations once', a
   assert.equal(events.filter(event => event.code === 'command.slow').length, 1)
 })
 
+test('command timing accepts a zero-valued clock origin for edits and history replay', () => {
+  const events = []
+  let clock = 0
+  const diagnostics = {
+    now() { const value = clock; clock += 5; return value },
+    threshold() { return 5 },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit(code, details) { events.push({ code, ...details }) },
+  }
+  const { store, engine } = harness({ diagnostics })
+  const scenarios = [
+    ['edit', () => engine.execute({ origin: 'user', name: 'edit' }, tx => {
+      tx.update('a', block('a', 'Changed'))
+      return 'completed'
+    }), 'completed', 'Changed'],
+    ['history.undo', () => engine.undo(), true, 'a'],
+    ['history.redo', () => engine.redo(), true, 'Changed'],
+  ]
+  for (const [operation, run, expectedResult, expectedText] of scenarios) {
+    clock = 0
+    events.length = 0
+    assert.equal(run(), expectedResult)
+    assert.equal(store.get('a').data.text, expectedText)
+    assert.deepEqual(events, [{ code: 'command.slow', operation, durationMs: 5 }],
+      'a valid zero start was treated as an absent diagnostic clock')
+  }
+})
+
+test('command timing ignores unusable clock measurements without changing accepted edits', () => {
+  for (const readings of [[NaN, 5], [Infinity, 5], [-Infinity, 5], [0, NaN], [0, Infinity]]) {
+    const events = []
+    let reads = 0
+    const diagnostics = {
+      now() { return readings[reads++] },
+      threshold() { return 0 },
+      errorName(error) { return error?.name ?? 'UnknownError' },
+      emit(code, details) { events.push({ code, ...details }) },
+    }
+    const { store, history, engine } = harness({ diagnostics })
+    assert.equal(engine.execute({ origin: 'user', name: 'edit' }, tx => {
+      tx.update('a', block('a', 'Changed'))
+      return 'completed'
+    }), 'completed')
+    assert.equal(store.get('a').data.text, 'Changed')
+    assert.equal(store.revision, 1)
+    assert.equal(history.undoDepth, 1)
+    assert.equal(engine.health, 'ready')
+    assert.deepEqual(events, [], `invalid clock readings ${readings} reported a slow operation`)
+  }
+})
+
 test('contained observer failures use structured diagnostics without affecting the commit', () => {
   const events = []
   const diagnostics = {

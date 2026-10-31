@@ -507,7 +507,7 @@ export class TransactionEngine {
   }
 
   #observeCommand(operation, run) {
-    const startedAt = this.#observeDiagnostics(sink => sink.now()) ?? 0
+    const startedAt = this.#observeDiagnostics(sink => sink.now())
     this.#assertHealthy()
     try {
       return run()
@@ -518,10 +518,10 @@ export class TransactionEngine {
       }))
       throw error
     } finally {
-      if (startedAt) {
+      if (typeof startedAt === 'number' && Number.isFinite(startedAt)) {
         this.#observeDiagnostics(sink => {
           const durationMs = sink.now() - startedAt
-          if (durationMs >= sink.threshold('commandMs')) {
+          if (Number.isFinite(durationMs) && durationMs >= sink.threshold('commandMs')) {
             sink.emit('command.slow', { operation, durationMs })
           }
         })
