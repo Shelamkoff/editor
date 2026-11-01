@@ -16,7 +16,7 @@ Sanitization is context-specific:
 
 ## Trusted Types
 
-Rector supports pages that enforce `Content-Security-Policy: require-trusted-types-for 'script'`. Internal HTML sinks are routed through scoped policies rather than a default Trusted Types policy. If the application also sets an explicit `trusted-types` allowlist, permit `rector` and `dompurify`: `rector` is used for Rector-owned or already-sanitized markup, while `dompurify` is used by the Raw HTML sanitizer.
+Rector supports pages that enforce `Content-Security-Policy: require-trusted-types-for 'script'`. Internal HTML sinks reuse the owning realm's `rector` policy rather than a default policy. The Raw sanitizer uses that same policy only for its inert parse and sanitized output, so it does not compete for the `dompurify` policy name with an independent host instance. An explicit `trusted-types` allowlist must permit `rector`; permit `dompurify` as well if the application separately uses DOMPurify's default policy. No `allow-duplicates` or script/script-URL policy callback is required. Existing allowlists containing both names remain supported.
 
 Rector never installs a default policy. `sanitizeHtml()` intentionally remains a string-returning API because sanitized HTML is also persisted as document data and may be sent to storage or the network. Application code must not take that returned string and assign it directly to a Trusted Types-protected HTML sink. Prefer DOM construction, or create and review an application-owned policy for that specific integration.
 

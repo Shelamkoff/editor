@@ -237,8 +237,9 @@ await test('Raw HTML preserves its benign corpus and rejects active markup in th
         host.remove()
       }
     }
-    assert(childPolicies.filter(name => name === 'dompurify').length === 1,
+    assert(childPolicies.filter(name => name === 'rector').length === 1,
       'the sanitizer must acquire and reuse the real owning Window policy')
+    assert(!childPolicies.includes('dompurify'), 'Rector must not reserve an independent host sanitizer policy name')
   } finally {
     if (originalPolicyDescriptor) Object.defineProperty(childTypes, 'createPolicy', originalPolicyDescriptor)
     else delete childTypes.createPolicy

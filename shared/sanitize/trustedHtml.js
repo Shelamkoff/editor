@@ -15,9 +15,22 @@ const sharedPolicyKey = Symbol.for('@shelamkoff/rector/trusted-types-policy')
  * @returns {string | unknown}
  */
 export function toTrustedHtml(html, ownerDocument = globalThis.document) {
+  const policy = getTrustedHtmlPolicy(ownerDocument)
+  return policy ? policy.createHTML(html) : html
+}
+
+/**
+ * Reuse the owning realm's existing Rector policy at reviewed inert-parser
+ * sinks. Dirty parser inputs must stay inside the sanitizer; only its cleaned
+ * nodes/serialization may reach active DOM. No script or script-URL callback
+ * is granted by this policy.
+ * @param {Document} [ownerDocument]
+ * @returns {TrustedTypePolicy | null}
+ */
+export function getTrustedHtmlPolicy(ownerDocument = globalThis.document) {
   const view = ownerDocument?.defaultView
   const trustedTypes = view ? /** @type {any} */ (view).trustedTypes : null
-  if (!trustedTypes?.createPolicy || !view) return html
+  if (!trustedTypes?.createPolicy || !view) return null
 
   let policy = policies.get(view)
   if (!policy) {
@@ -54,7 +67,7 @@ export function toTrustedHtml(html, ownerDocument = globalThis.document) {
     }
     policies.set(view, policy)
   }
-  return policy.createHTML(html)
+  return policy
 }
 
 /**

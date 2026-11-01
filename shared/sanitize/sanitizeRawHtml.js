@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify'
 import { sanitizeUrl } from './sanitizeUrl.js'
+import { getTrustedHtmlPolicy } from './trustedHtml.js'
 
 const RAW_HTML_CONFIG = {
   USE_PROFILES: { html: true },
@@ -16,9 +17,10 @@ const RAW_HTML_CONFIG = {
   ],
   FORBID_ATTR: ['srcdoc'],
   ALLOW_DATA_ATTR: true,
-  // srcset contains several URLs, not one URI. Keep it only inside the inert
-  // fragment until hardenRawFragment validates each candidate with media policy.
-  ADD_URI_SAFE_ATTR: ['srcset'],
+  // Keep these URLs only inside the inert fragment until hardenRawFragment
+  // applies the selected policy. DOMPurify's generic URI policy otherwise
+  // removes valid host Blob media/downloads before our policies can see them.
+  ADD_URI_SAFE_ATTR: ['srcset', 'href', 'src', 'poster'],
 }
 
 const CSS_URL_RE = /url\(\s*(?:(["'])(.*?)\1|([^\s)"']+))\s*\)/gi
@@ -35,6 +37,14 @@ function purifierFor(ownerDocument) {
     purifierByWindow.set(view, purifier)
   }
   return purifier
+}
+
+/** Match the policy to purifierFor's existing backend for inert Documents.
+ * Output nodes are still adopted into the caller's explicit target document.
+ * @param {Document} ownerDocument
+ */
+function inertParserPolicyFor(ownerDocument) {
+  return getTrustedHtmlPolicy(ownerDocument.defaultView ? ownerDocument : globalThis.document) ?? undefined
 }
 
 /** @param {string} value */
@@ -163,6 +173,9 @@ function sanitizeRawFragment(html, ownerDocument) {
   const purifier = purifierFor(ownerDocument)
   const fragment = /** @type {DocumentFragment} */ (purifier.sanitize(String(html || ''), {
     ...RAW_HTML_CONFIG,
+    // Keep DOMPurify's inert parse inside Rector's existing policy instead of
+    // competing for its default policy name with an independent host instance.
+    TRUSTED_TYPES_POLICY: inertParserPolicyFor(ownerDocument),
     RETURN_DOM_FRAGMENT: true,
     RETURN_TRUSTED_TYPE: false,
   }))
@@ -186,11 +199,11 @@ export function sanitizeRawHtml(html, ownerDocument = globalThis.document) {
 /**
  * Return sanitized Raw HTML in the value form required by HTML injection
  * sinks. Browsers without Trusted Types receive the same string as
- * sanitizeRawHtml(); enforcing browsers receive DOMPurify's TrustedHTML.
+ * sanitizeRawHtml(); enforcing browsers receive sanitized TrustedHTML.
  *
  * The first pass performs Rector's URL/style hardening. The optional second
- * pass only signs that already-sanitized serialization with DOMPurify's
- * owning-window Trusted Types policy.
+ * pass only signs that already-sanitized serialization with the owning
+ * window's existing Rector Trusted Types policy.
  *
  * @param {string} html
  * @param {Document} [ownerDocument]
@@ -205,6 +218,7 @@ export function sanitizeRawHtmlForSink(html, ownerDocument = globalThis.document
   const purifier = purifierFor(ownerDocument)
   return purifier.sanitize(safeHtml, {
     ...RAW_HTML_CONFIG,
+    TRUSTED_TYPES_POLICY: inertParserPolicyFor(ownerDocument),
     RETURN_TRUSTED_TYPE: true,
   })
 }
