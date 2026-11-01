@@ -8,6 +8,19 @@ Single preservation register: `docs/architecture/rector-v2/PRESERVATION.md`.
 Current recorded acceptance: **209 unique IDs, 66 accepted / 143 open**.
 The open count is a proof-obligation count, not a confirmed-bug count.
 
+Latest local immutable production checkpoint: `1226c8fa` (Raw Blob URL and
+Trusted Types parser ownership), following `28b83e13` (Code acceptance),
+`40bab78d` (native clipboard reference), `2833feb7` (Git-byte comparison),
+`1dd4d0a1` (archive fixes) and `282d3077` (Windows checks). No push/release.
+Five frozen-patch gates in `run-1Xc9oI` pass; all 44 ordinary browser pages pass
+separately on the same runtime bytes. These are not a full native rerun.
+
+C05 now selects the demonstrated scriptless-frame/explicit-contentStyles
+contract before production work. The decision checkpoint is
+`scripts/parity/checkpoints/2026-11-01/html-style-decision/README.md`.
+Decision-only fixtures pass 13 native cases plus 12 independent native-link
+comparisons. Production integration, all four surfaces and C06 remain open.
+
 ## Accepted user decision
 
 On 2026-11-01 the user selected **explicit application-owned content styles and
