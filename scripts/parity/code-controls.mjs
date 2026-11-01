@@ -144,6 +144,20 @@ try {
       else if (action.kind === 'key') await page.keyboard.press(action.key)
       else if (action.kind === 'click') await page.locator(action.selector).click({ timeout: 5000 })
       else if (action.kind === 'read-clipboard') return page.evaluate(() => navigator.clipboard.readText())
+      else if (action.kind === 'clipboard-reference') {
+        // Observe native OS newline conversion independently, then replace
+        // the clipboard so a failed product copy cannot pass on that value.
+        const reference = await page.evaluate(async text => {
+          await navigator.clipboard.writeText(text)
+          const actual = await navigator.clipboard.readText()
+          await navigator.clipboard.writeText('CODE PARITY: distinct clipboard sentinel')
+          const seed = await navigator.clipboard.readText()
+          return { source: text, actual, seed }
+        }, action.text)
+        assert.equal(reference.actual.replace(/\r\n/g, '\n'), action.text, 'Native reference changed more than platform newline representation')
+        assert.notEqual(reference.seed, reference.actual, 'Clipboard reference must leave a distinct seed')
+        return reference
+      }
       else if (action.kind === 'release-lazy') {
         const deadline = Date.now() + 5000
         while (!gate.requested && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 10))

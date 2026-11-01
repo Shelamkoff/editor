@@ -140,10 +140,16 @@ export async function runCodeRendererCase({ sourceBase, legacy, name }) {
         check('permission', 'actualBrowserPolicyDenied', document.featurePolicy.allowsFeature('clipboard-write'), false)
         check('permission', 'permissionGrantDoesNotBypassPolicy', (await navigator.permissions.query({ name: 'clipboard-write' })).state, 'granted')
       }
+      const reference = name === 'renderer-copy-native'
+        ? await window.__codeControlAction({ kind: 'clipboard-reference', text: source }) : null
+      if (reference) {
+        check('copy-control', 'source', reference.source, source)
+        check('copy-control', 'distinctSeed', reference.seed === reference.actual, false)
+      }
       await action({ kind: 'click', selector: '.parity-code__copy' })
       state('copy')
       if (name === 'renderer-copy-native') {
-        check('copy', 'actualClipboard', await window.__codeControlAction({ kind: 'read-clipboard' }), source)
+        check('copy', 'actualClipboard', await window.__codeControlAction({ kind: 'read-clipboard' }), reference.actual)
         check('copy', 'feedback', copy().classList.contains('parity-code__copy--success'), true)
         await action({ kind: 'click', selector: '#clipboard-target' })
         await action({ kind: 'key', key: 'Control+v' })
