@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, unlink } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -253,6 +253,8 @@ async function installNativeInput(client) {
       ? client.send('Emulation.setDeviceMetricsOverride', { ...request.params, deviceScaleFactor: 1, mobile: false })
       : request.method === 'Viewport.reset'
       ? client.send('Emulation.clearDeviceMetricsOverride')
+      : request.method === 'Download.take'
+      ? takeDownload()
       : allowed.includes(request.method)
       ? client.send(request.method, request.params)
       : Promise.reject(new Error('Unsupported fixture input method'))
@@ -261,6 +263,26 @@ async function installNativeInput(client) {
       .finally(() => pendingNativeInput.delete(pending))
     pendingNativeInput.add(pending)
   })
+}
+
+// Chrome writes only to this runner's disposable profile. The page cannot
+// supply filesystem paths; return and remove one completed browser download.
+async function takeDownload() {
+  const deadline = Date.now() + 8000
+  while (Date.now() < deadline) {
+    if (downloadFailure) throw new Error(downloadFailure)
+    if (completedDownloads.length > 1) throw new Error('Unexpected extra completed downloads')
+    if (completedDownloads.length === 1) {
+      const { guid, name } = completedDownloads.shift()
+      if (!/^[a-z0-9-]+$/i.test(guid)) throw new Error('Invalid browser download identifier')
+      const path = join(downloadDirectory, guid)
+      const bytes = [...await readFile(path)]
+      await unlink(path)
+      return { name, bytes }
+    }
+    await delay(25)
+  }
+  throw new Error('Chrome did not complete the expected download')
 }
 
 async function runNativePage(client, pageUrl, page) {
@@ -282,6 +304,8 @@ const vitePort = await freePort()
 const debugPort = await freePort()
 const pageUrl = `http://127.0.0.1:${vitePort}/tests/browser/physical-history.html`
 const userDataDir = await mkdtemp(join(tmpdir(), 'ophire-editor-physical-history-'))
+const downloadDirectory = join(userDataDir, 'downloads')
+await mkdir(downloadDirectory)
 const vite = spawn(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort'], {
   cwd: fileURLToPath(editorRoot),
   stdio: 'ignore',
@@ -290,6 +314,10 @@ const vite = spawn(process.execPath, [vitePath, '--host', '127.0.0.1', '--port',
 
 let chrome
 let client
+let browserClient
+const completedDownloads = []
+const downloadNames = new Map()
+let downloadFailure = null
 try {
   await waitForHttp(pageUrl, vite)
   chrome = spawn(chromePath, [
@@ -305,6 +333,14 @@ try {
 
   const target = await findPageTarget(debugPort, pageUrl, chrome)
   client = await CdpClient.connect(target.webSocketDebuggerUrl)
+  const browserVersion = await (await fetch(`http://127.0.0.1:${debugPort}/json/version`)).json()
+  browserClient = await CdpClient.connect(browserVersion.webSocketDebuggerUrl)
+  browserClient.on('Browser.downloadWillBegin', event => downloadNames.set(event.guid, event.suggestedFilename))
+  browserClient.on('Browser.downloadProgress', event => {
+    if (event.state === 'completed') completedDownloads.push({ guid: event.guid, name: downloadNames.get(event.guid) })
+    else if (event.state === 'canceled') downloadFailure = 'Chrome cancelled a requested download'
+  })
+  await browserClient.send('Browser.setDownloadBehavior', { behavior: 'allowAndName', downloadPath: downloadDirectory, eventsEnabled: true })
   await client.send('Runtime.enable')
   await installNativeInput(client)
   const nativePage = process.env.EDITOR_NATIVE_PAGE
@@ -442,6 +478,7 @@ try {
     await delay(50)
   }
   const nativeTextInput = JSON.parse(await waitForHistoryMatrix(client))
+  const nativeAttachesDownloads = await runNativePage(client, pageUrl, 'native-attaches-downloads.html')
 
   await client.send('Page.navigate', { url: new URL('/tests/browser/native-tools.html', pageUrl).href })
   const toolsDeadline = Date.now() + 20_000
@@ -538,6 +575,7 @@ try {
     },
     historyMatrix: JSON.parse(historyMatrix),
     nativeTextInput,
+    nativeAttachesDownloads,
     nativeTools,
     nativeClipboard,
     nativeIme,
@@ -588,6 +626,7 @@ try {
   }
 } finally {
   client?.close()
+  browserClient?.close()
   await Promise.all([stopProcess(chrome), stopProcess(vite)])
   await rm(userDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
 }

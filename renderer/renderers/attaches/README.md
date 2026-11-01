@@ -51,6 +51,8 @@ The renderer subpath also exports the same archive primitives used by its “dow
 
 Files with rejected URL schemes are omitted. Filenames are made unique inside an archive. The helper does not return the generated `Blob` and does not upload or persist anything.
 
+Cancellation closes the acquired stream reader without waiting for another chunk or for the source's cleanup promise. Reader locks are released after both successful reads and failures. ZIP-entry names are checked for portable trailing characters and reserved names after truncation and collision suffixing. Saved attachment names retain their authored values.
+
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
 
 The VitePress guide documents renderer ownership, inline widget reconstruction, styles, cleanup, and security boundaries.

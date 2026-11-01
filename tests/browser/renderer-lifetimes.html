@@ -7,11 +7,13 @@ import { EditorRenderer } from '../../renderer/index.js'
 import { runRendererLifetimeParity } from './renderer-lifetime-parity-fixture.js'
 import { runRendererPublicationOwnership } from './renderer-publication-ownership.js'
 import { runRendererSuccessorDisposal } from './renderer-successor-disposal.js'
+import { runAttachesArchiveOwnership } from './attaches-archive-ownership.js'
 try {
   const cases = [
     ...runRendererLifetimeParity({ EditorRenderer }),
     ...runRendererPublicationOwnership({ EditorRenderer }),
     ...runRendererSuccessorDisposal({ EditorRenderer }),
+    ...await runAttachesArchiveOwnership(),
   ].map(entry => {
     const failures = entry.observations.filter(item => item.status !== 'PASS')
     const passed = entry.complete && !entry.errors.length && !failures.length

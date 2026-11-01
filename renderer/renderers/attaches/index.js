@@ -50,8 +50,10 @@ export function sanitizeArchiveFilename(value, index = 0) {
     .replace(/[<>:"/\\|?*\x00-\x1f\x7f]/g, '_')
     .replace(/[. ]+$/g, '')
     .trim()
+  // Truncation/trim can expose a new unsafe suffix or a reserved basename.
+  name = truncateArchiveFilename(name, 128).replace(/[.\s]+$/u, '')
   if (!name || name === '.' || name === '..' || WINDOWS_RESERVED_NAME_RE.test(name)) name = fallback
-  return truncateArchiveFilename(name, 128) || fallback
+  return name || fallback
 }
 
 /** @param {string} name @param {Set<string>} used */
@@ -70,7 +72,7 @@ function uniqueArchiveFilename(name, used) {
     // least one stem code unit; suffixing must never increase the ZIP limit.
     const safeExtension = truncateArchiveFilename(
       extension, Math.max(0, 128 - marker.length - 1),
-    )
+    ).replace(/[.\s]+$/u, '')
     const safeStem = truncateArchiveFilename(
       stem, 128 - marker.length - safeExtension.length,
     ) || '_'
@@ -119,6 +121,19 @@ async function readBoundedResponse(response, signal, total) {
   // response must return its reservation so later valid files are not
   // rejected as if the discarded content were present in the archive.
   let reserved = 0
+  let cancelled = false
+  /** @param {unknown} reason */
+  const cancelReader = reason => {
+    if (cancelled) return
+    cancelled = true
+    // Closing an owned reader settles its pending read even when the fetch
+    // adapter does not connect the response body to our AbortSignal. Cleanup
+    // must not wait for an underlying source's cancellation Promise.
+    try { void reader.cancel(reason).catch(() => {}) } catch {}
+  }
+  const onAbort = () => cancelReader(signal.reason)
+  signal.addEventListener('abort', onAbort, { once: true })
+  if (signal.aborted) onAbort()
   try {
     while (true) {
       signal.throwIfAborted()
@@ -148,8 +163,11 @@ async function readBoundedResponse(response, signal, total) {
     return content
   } catch (error) {
     total.value -= reserved
-    try { await reader.cancel(error) } catch {}
+    cancelReader(error)
     throw error
+  } finally {
+    signal.removeEventListener('abort', onAbort)
+    try { reader.releaseLock?.() } catch {}
   }
 }
 
@@ -314,10 +332,15 @@ export function createAttachesRenderer(classPrefix, locale) {
           if (files.length === 1) wrapper.appendChild(buildCardA(files[0], cls, t, ownerDocument))
           else wrapper.appendChild(buildGroupA(files, cls, t, p, ownerDocument, () => {
             if (!liveElements.has(wrapper)) return
-            archiveRequests.get(wrapper)?.abort()
+            const retired = archiveRequests.get(wrapper)
             const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? AbortController
             const controller = new AbortControllerCtor()
             archiveRequests.set(wrapper, controller)
+            // Abort observers can destroy this output or request a newer ZIP.
+            // Publish this reservation first so either action can revoke it.
+            retired?.abort()
+            if (!liveElements.has(wrapper) || controller.signal.aborted
+              || archiveRequests.get(wrapper) !== controller) return
             downloadArchive(files, { signal: controller.signal, ownerDocument }).catch(error => {
               if (controller.signal.aborted) return
               const CustomEventCtor = ownerDocument.defaultView?.CustomEvent ?? CustomEvent
@@ -334,8 +357,9 @@ export function createAttachesRenderer(classPrefix, locale) {
 
     destroy(wrapper) {
       liveElements.delete(wrapper)
-      archiveRequests.get(wrapper)?.abort()
+      const retired = archiveRequests.get(wrapper)
       archiveRequests.delete(wrapper)
+      retired?.abort()
     },
   }
 }

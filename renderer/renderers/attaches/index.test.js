@@ -646,7 +646,7 @@ test('failed streaming attachment releases its provisional bytes so valid files 
 })
 
 
-test('ZIP duplicate filenames with very long extensions stay within the portable name limit', async () => {
+test('ZIP duplicate filenames with very long extensions stay portable and within the name limit', async () => {
   const previousRuntime = getZipRuntime()
   const recorded = []
   class FakeZip {
@@ -667,17 +667,22 @@ test('ZIP duplicate filenames with very long extensions stay within the portable
     },
     createElement() { return { setAttribute() {}, click() {}, download: '' } },
   }
-  const name = 'a.' + 'x'.repeat(126) // Exactly 128 UTF-16 code units.
   try {
-    await downloadArchive([
-      { url: 'https://example.test/one', name },
-      { url: 'https://example.test/two', name },
-      { url: 'https://example.test/three', name },
-    ], { signal: new AbortController().signal, ownerDocument })
-    assert.equal(recorded.length, 3)
-    assert.ok(recorded.every(value => value.length <= 128),
-      'collision suffix produced an overlong ZIP entry name')
-    assert.equal(new Set(recorded.map(value => value.toLowerCase())).size, 3)
+    // The second extension exposes a space at the collision truncation edge.
+    for (const name of ['a.' + 'x'.repeat(126), 'a.' + 'x'.repeat(121) + ' qqqq']) {
+      recorded.length = 0
+      await downloadArchive([
+        { url: 'https://example.test/one', name },
+        { url: 'https://example.test/two', name },
+        { url: 'https://example.test/three', name },
+      ], { signal: new AbortController().signal, ownerDocument })
+      assert.equal(recorded.length, 3)
+      assert.ok(recorded.every(value => value.length <= 128),
+        'collision suffix produced an overlong ZIP entry name')
+      assert.ok(recorded.every(value => !/[.\s]$/u.test(value)),
+        'collision suffix exposed an unsafe trailing character')
+      assert.equal(new Set(recorded.map(value => value.toLowerCase())).size, 3)
+    }
   } finally {
     setZipRuntime(previousRuntime)
   }
@@ -688,4 +693,13 @@ test('archive filename truncation does not leave half of a Unicode surrogate pai
   const truncated = sanitizeArchiveFilename(original)
   assert.equal(truncated, 'x'.repeat(127))
   assert.equal(/[\uD800-\uDBFF]$/.test(truncated), false)
+})
+
+test('ZIP filename truncation and whitespace cleanup cannot expose unsafe trailing characters or reserved names', () => {
+  const stem = 'x'.repeat(127)
+  assert.equal(sanitizeArchiveFilename(stem + '.suffix'), stem)
+  assert.equal(sanitizeArchiveFilename(stem + ' suffix'), stem)
+  assert.equal(sanitizeArchiveFilename('CON' + ' '.repeat(125) + 'suffix', 3), 'file-4')
+  assert.equal(sanitizeArchiveFilename('report.\u00a0'), 'report')
+  assert.equal(sanitizeArchiveFilename(' ordinary report.txt '), 'ordinary report.txt')
 })

@@ -26,6 +26,8 @@ The physical runner includes trusted native Copy/Cut/Paste between independent e
 
 For a focused native run, set `EDITOR_NATIVE_PAGE=native-cross-selection.html` (or another `native-*.html`) and run `node tests/browser/physical-history.mjs`. `EDITOR_NATIVE_FILTER` optionally selects case names containing that text; an empty selection of cases fails. Unset both variables before the full run. The runner waits for all input acknowledgements before navigating to the next fixture and fails on a driver error.
 
+`native-attaches-downloads.html` adds 13 cases for individual A/B/F/G downloads, both grouped-A links, complete/partial ZIPs, portable and colliding names, and pending stream cancellation. Trusted Chrome clicks perform real downloads into the runner's disposable profile. The driver waits for `Browser.downloadProgress` completion, reads the completed file and returns its bytes to the fixture; it does not intercept generated download anchors or accept an empty placeholder file. ZIP contents and literal bytes are checked using JSZip. Three stream cases use controlled fetch responses with native ReadableStream cancellation, including pending and rejected cleanup. Browser download behavior is configured through CDP, without OS save dialogs.
+
 Tests belonging to the standalone cropper/expose repositories are not part of this checkout. Rector's own lifecycle and plugin integration suites still test its use and cleanup of those installed packages.
 
 ## Bundle size
