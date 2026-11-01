@@ -15,10 +15,12 @@ const treeBefore = git('rev-parse', 'HEAD^{tree}').toString().trim()
 const startedAt = new Date().toISOString()
 const fixturePath = 'tests/browser/code-controls-parity-fixture.js'
 const fixture = git('show', `${headBefore}:${fixturePath}`)
-assert.deepEqual(fixture, await readFile(join(repo, fixturePath)), 'Fixture differs from committed source')
+const fixtureWorktree = await readFile(join(repo, fixturePath))
+assert.equal(fixture.toString('utf8').replace(/\r\n/g, '\n'), fixtureWorktree.toString('utf8').replace(/\r\n/g, '\n'), 'Fixture differs from committed source beyond checkout newline conversion')
 const rendererFixturePath = 'tests/browser/code-renderer-parity-fixture.js'
 const rendererFixture = git('show', `${headBefore}:${rendererFixturePath}`)
-assert.deepEqual(rendererFixture, await readFile(join(repo, rendererFixturePath)), 'Renderer fixture differs from committed source')
+const rendererFixtureWorktree = await readFile(join(repo, rendererFixturePath))
+assert.equal(rendererFixture.toString('utf8').replace(/\r\n/g, '\n'), rendererFixtureWorktree.toString('utf8').replace(/\r\n/g, '\n'), 'Renderer fixture differs from committed source beyond checkout newline conversion')
 assert.equal(git('diff', '--name-only', 'HEAD').toString().trim(), '', 'Commit source changes before comparing')
 const dependencyRoot = resolve(process.env.EDITOR_DEPENDENCIES_ROOT ?? join(repo, 'node_modules'))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
@@ -178,6 +180,8 @@ try {
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, headBefore, treeBefore, headAfter,
     runnerSha256: digest(await readFile(fileURLToPath(import.meta.url))), fixtureSha256: digest(fixture),
     rendererFixtureSha256: digest(rendererFixture),
+    fixtureWorktreeSha256: digest(fixtureWorktree), rendererFixtureWorktreeSha256: digest(rendererFixtureWorktree),
+    fixtureBytes: 'Served unchanged from Git; checkout equivalence allows only CRLF/LF conversion.',
     highlighterBundleSha256: digest(highlighter), highlighterInputs, sources, dependencyVersions, dependencyFiles,
     serverErrors, loadOutcomes, selectedCases, results, candidatePass,
     note: 'All observations retain raw verdicts; historical defects are not candidate exceptions. Native denied-permission and successful clipboard cases use the actual browser API; separate controlled rejection/unavailability/pending cases exercise host boundaries.' }, null, 2))

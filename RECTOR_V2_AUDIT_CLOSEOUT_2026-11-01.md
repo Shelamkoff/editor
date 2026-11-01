@@ -5,7 +5,7 @@ improved v2 behavior rather than reproducing inferior v1 behavior.
 
 Normative target: `RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md`.
 Single preservation register: `docs/architecture/rector-v2/PRESERVATION.md`.
-Current recorded acceptance: **209 unique IDs, 64 accepted / 145 open**.
+Current recorded acceptance: **209 unique IDs, 65 accepted / 144 open**.
 The open count is a proof-obligation count, not a confirmed-bug count.
 
 ## Accepted user decision

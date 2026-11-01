@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **64 / 209 obligations**, with **145 open**; see the [file-source and successor-ownership continuation](#attaches-files-and-successor-ownership-2026-10-31). Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **65 / 209 obligations**, with **144 open**; see the [renderer registration acceptance](#renderer-registration-acceptance-2026-11-01). Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
@@ -913,3 +913,9 @@ Integrated `run-l2J6B3` passes all **eleven gates** on unchanged `fad69ef8`: **2
 A separate GitHub browser job on `fad69ef8` was cancelled at its 20-minute whole-job budget after the native media page; six other jobs succeeded. The local eleven-gate manifest remains a distinct completed result. Follow-up [`710cf5c1`](https://github.com/Shelamkoff/editor/commit/710cf5c162d18d4c9375d255d313cfb1a6f49666) gives only the browser job 30 minutes, retaining other job budgets, all commands, assertions and per-page deadlines. The combined checkpoint records the cancellation timeline and diagnosis; the corrected workflow has its own subsequent execution.
 
 Acceptance remains bounded to `BLOCK_ATTACHES_FILES` in the recorded Chrome/Linux environment. Actual individual/ZIP downloads, cancellation during pending reads or uploads, failed commits, late completion and broad lifetime/mode behavior retain their separate rows. These fixes do not accept complete renderer error/registration, LinkPreview cancellation or general core rows. `B-HTML`, `B-STYLE`, complete `C09`/`T15`, other browsers/platforms and whole-library functional parity remain open. Useful current behavior is preserved.
+
+## Renderer registration acceptance — 2026-11-01
+
+Accept **RENDERER_REGISTRATION** on local immutable `1dd4d0a1e1ebb97da11affb78afad8be252427ae`, Windows Chrome 156. The [fresh checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-01/renderer-registration/README.md) records all three output routes, both signatures, replacement/unregister/re-register, retained originating disposers, same-data mounted invalidation and exact cleanup. All 12 registration cases / 246 observations pass in v1, specification baseline, parent and candidate. Existing independent historical review and root's new exact-inventory/verdict/module review support this bounded acceptance.
+
+The complete 21-case comparison preserves raw diagnostic failures (46/42/42/0) and exit 1; candidate has zero failures. The review recomputes 1,208 verdicts and verifies 318 loaded production-module records plus 68 dependency files. Earlier combined `run-cLXIAC` and this new comparison retain their different source identities; no new full native matrix is claimed. The register becomes **209 unique IDs, 65 accepted / 144 open**. `RENDERER_ERRORS`, HTML/style, full structural performance and all other incomplete obligations remain open.
