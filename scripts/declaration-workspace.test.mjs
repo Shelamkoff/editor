@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 test('declarations build in a standalone checkout with an arbitrary directory name', async t => {
   const sourceRoot = fileURLToPath(new URL('../', import.meta.url))
   const temporaryRoot = await mkdtemp(join(tmpdir(), 'rector-checkout-'))
-  t.after(() => rm(temporaryRoot, { recursive: true, force: true }))
+  t.after(() => rm(temporaryRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }))
   const checkout = join(temporaryRoot, 'custom editor name')
   await mkdir(checkout)
   for (const path of ['core', 'plugin-kit', 'plugins', 'preset', 'inline-tools', 'inline-plugins', 'locale', 'shared', 'renderer',

@@ -21,8 +21,9 @@ test('the audited sanitizer pin agrees with its resolved lock entry', () => {
 
 test('distributed attribution identifies the installed sanitizer and includes its complete selected license', () => {
   const notice = readFileSync(new URL('../NOTICE', import.meta.url), 'utf8')
-  const licenses = readFileSync(new URL('../THIRD_PARTY_LICENSES.txt', import.meta.url), 'utf8')
-  const apache = readFileSync(new URL('../LICENSE', import.meta.resolve('dompurify')), 'utf8')
+  // Git checkouts and installed packages may use different newline formats.
+  const licenses = readFileSync(new URL('../THIRD_PARTY_LICENSES.txt', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+  const apache = readFileSync(new URL('../LICENSE', import.meta.resolve('dompurify')), 'utf8').replace(/\r\n/g, '\n')
   assert.ok(notice.includes('DOMPurify 3.4.17,'))
   assert.ok(licenses.startsWith('DOMPurify 3.4.17 (Apache-2.0 option selected)\n'))
   assert.ok(licenses.includes('Source: https://github.com/cure53/DOMPurify/tree/3.4.17\n'))

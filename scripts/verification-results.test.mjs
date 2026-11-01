@@ -12,7 +12,7 @@ const helper = fileURLToPath(new URL('./verification-results.mjs', import.meta.u
 
 async function repository(t, ignoreResults = true) {
   const cwd = await mkdtemp(join(tmpdir(), 'rector-verification-test-'))
-  t.after(() => rm(cwd, { recursive: true, force: true }))
+  t.after(() => rm(cwd, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }))
   await writeFile(join(cwd, '.gitignore'), ignoreResults ? '/test-results/\n' : '')
   await writeFile(join(cwd, 'source.js'), 'export const value = 1\n')
   execFileSync('git', ['init', '--quiet'], { cwd })

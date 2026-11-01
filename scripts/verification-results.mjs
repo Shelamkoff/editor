@@ -12,7 +12,10 @@ const hash = value => createHash('sha256').update(value).digest('hex')
 const selectedEnvironment = names => Object.fromEntries(names.filter(name => process.env[name] !== undefined).map(name => [name, process.env[name]]))
 function environment() {
   let npm = null
-  try { npm = execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['--version'], { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }).trim() } catch { /* No version was observed. */ }
+  // Windows command shims require cmd.exe; execFile cannot launch npm.cmd.
+  const executable = process.platform === 'win32' ? 'cmd.exe' : 'npm'
+  const args = process.platform === 'win32' ? ['/d', '/s', '/c', 'npm --version'] : ['--version']
+  try { npm = execFileSync(executable, args, { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }).trim() } catch { /* No version was observed. */ }
   return {
     node: process.version, nodeExecutable: process.execPath, npm, platform: process.platform, architecture: process.arch, release: release(),
     runner: selectedEnvironment(['RUNNER_OS', 'RUNNER_ARCH', 'ImageOS', 'ImageVersion']),
