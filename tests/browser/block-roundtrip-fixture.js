@@ -325,10 +325,14 @@ function embeddedMarkup(root) {
   return authoredMarkup(frame.contentDocument.body)
 }
 
-async function embeddedReady(root) {
+async function embeddedReady(root, needsContent = true) {
   for (const frame of root.querySelectorAll('iframe[sandbox="allow-same-origin"][srcdoc]')) {
     const deadline = performance.now() + 3000
-    while (!frame.contentDocument?.URL.startsWith('about:srcdoc') || frame.contentDocument.readyState !== 'complete') {
+    // The private empty document can finish loading before its asynchronous
+    // author projection. This benign corpus must expose actual author nodes;
+    // an explicitly empty Raw fixture has no authored markup to await.
+    while (!frame.contentDocument?.URL.startsWith('about:srcdoc') || frame.contentDocument.readyState !== 'complete'
+      || (needsContent && !frame.contentDocument.body?.childNodes.length)) {
       if (performance.now() > deadline) throw new Error('Mounted HTML content did not load')
       await new Promise(resolve => setTimeout(resolve, 10))
     }
@@ -860,11 +864,13 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       }
       inspectOutput(detached, 'detached', false)
       detachedMount.append(detached)
-      await embeddedReady(detached)
+      const needsContent = specification.type !== 'raw'
+        || saved.blocks.some(block => block.type === 'raw' && markupMeaning(block.data.html).length > 0)
+      await embeddedReady(detached, needsContent)
       inspectOutput(detached, 'attachedDetached')
       renderer.renderTo(saved, mounted)
       await settled()
-      await embeddedReady(mounted)
+      await embeddedReady(mounted, needsContent)
       inspectOutput(mounted, 'mounted')
       if (specification.type === 'image' && specification.populated) {
         const picture = mounted.querySelector('.editor-image__picture')
@@ -961,7 +967,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           previewVisible: getComputedStyle(preview).display !== 'none',
           pressed: control.getAttribute('aria-pressed'), frames: frames.length,
         }, { sourceHidden: true, previewVisible: true, pressed: 'true', frames: 1 })
-        await embeddedReady(preview)
+        await embeddedReady(preview, markupMeaning(text).length > 0)
         for (const frame of frames) check(phase, 'rawBenignPreview', {
           sandbox: { present: frame.hasAttribute('sandbox'), extraPermissions: [...frame.sandbox].filter(token => token !== 'allow-same-origin') },
           title: frame.title, markup: frame.getAttribute('sandbox') === 'allow-same-origin'

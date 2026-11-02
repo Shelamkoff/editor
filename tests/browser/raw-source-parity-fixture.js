@@ -110,7 +110,10 @@ export async function runRawSourceCase(specification, { sourceBase = '../../', l
       const frame = preview().querySelector('iframe')
       if (frame?.getAttribute('sandbox') === 'allow-same-origin') {
         const deadline = performance.now() + 3000
-        while (!frame.contentDocument?.URL.startsWith('about:srcdoc') || frame.contentDocument.readyState !== 'complete') {
+        // Every source in this corpus has benign nonempty author content.
+        // The scriptless private document's load alone is not its projection.
+        while (!frame.contentDocument?.URL.startsWith('about:srcdoc') || frame.contentDocument.readyState !== 'complete'
+          || !frame.contentDocument.body?.childNodes.length) {
           if (performance.now() > deadline) throw new Error('Owned Raw content did not load')
           await pause()
         }
