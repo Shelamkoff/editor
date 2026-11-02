@@ -13,7 +13,7 @@ test('Native typing and Undo/Redo preserve CSS variables, comments and important
   const field = editableField(editor, 'sample')
   const trusted = []
   field.addEventListener('beforeinput', event => trusted.push(event.isTrusted))
-  await clickNative(field.querySelector('.grammar-sample'))
+  await clickNative(field.querySelector('span[*|class~="grammar-sample"]'))
   await dispatchKey('End', 'End', 35)
   await printable('X')
   assert(trusted.length > 0 && trusted.every(Boolean))
@@ -21,7 +21,7 @@ test('Native typing and Undo/Redo preserve CSS variables, comments and important
   equal(after[0].data.text, before[0].data.text + 'X')
   equal(after[1], before[1])
   const check = () => {
-    const sample = editableField(editor, 'sample').querySelector('.grammar-sample')
+    const sample = editableField(editor, 'sample').querySelector('span[*|class~="grammar-sample"]')
     equal(getComputedStyle(sample).fontSize, '32px')
     equal(getComputedStyle(sample).color, 'rgb(12, 84, 156)')
     equal(sample.style.getPropertyPriority('color'), 'important')
@@ -41,8 +41,8 @@ test('Native typing and Undo/Redo preserve CSS variables, comments and important
   document.body.append(output)
   try {
     renderer.renderTo(editor.save(), output)
-    equal(getComputedStyle(output.querySelector('.grammar-sample')).fontSize, '32px')
-    equal(getComputedStyle(output.querySelector('.grammar-sample')).color, 'rgb(12, 84, 156)')
+    equal(getComputedStyle(output.querySelector('span[*|class~="grammar-sample"]')).fontSize, '32px')
+    equal(getComputedStyle(output.querySelector('span[*|class~="grammar-sample"]')).color, 'rgb(12, 84, 156)')
     equal(JSON.stringify(input), original)
   } finally { renderer.destroy(); output.remove() }
 })

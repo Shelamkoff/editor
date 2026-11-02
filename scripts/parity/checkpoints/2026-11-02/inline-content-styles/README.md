@@ -71,7 +71,62 @@ The site gate flags four untranslated Russian prose terms; those are corrected.
 Neither failed gate is relabelled. Focused native-tools then passes, and the
 expanded 29-case CSS page passes after the failed-output cleanup repair.
 
-Remaining: fresh frozen build/types/Node/browser/native/resource/package/docs gates,
+## Immutable candidate and further boundary repairs
+
+Candidate `20cc1ab7d07e545836f9c41f13d29a27a0575e02` retains **528 observations
+per source across all eleven FONT/class cases**. Native Git-byte replay has no
+unexpected failures or page/server errors: v1 retains its 22 exact historical
+neighbor remount differences; baseline and candidate have zero raw failures.
+Loaded production modules: 145/160/166. Artifacts:
+`inline-classes-presentation-immutable.json` in the ignored closeout directory.
+
+Frozen `run-20ECtW` passes nine of ten gates, including installed package,
+all 45 ordinary pages and the 127-page site/demo. Its native gate stops at one
+ordinary class query in `inline-style-native-history.js`. Only the observation
+is corrected; the native input, variables, priorities, records and history
+expectations remain. Frozen follow-up `run-0pL3cL` passes the **complete native
+matrix** and **72 native navigation comparisons** on unchanged source. The
+native CSS page in that snapshot has 31 cases; the additional two test cases
+are theme variables and append-then-throw stylesheet acquisition. Navigation
+now includes both Paragraph surfaces alongside the four embedded surfaces.
+These are separately attributed snapshots, not a relabelled ten-gate pass.
+
+Additional independent probes then find three real gaps, kept as explicit RED:
+
+- Tag-based content CSS also styles independent button/input UI inside a rich
+  field. The native control is 13.3333px; both auxiliary controls become 200px.
+  The CSS scope limit now follows the existing independent UI/editing-island
+  and owner boundaries, without changing the scope root's author typography.
+- Application default namespaces accidentally govern generated structural
+  selectors, hiding a valid HTML-prefixed rule. Generated owner/field/limit
+  selectors now use namespace-independent universals. The native comparison
+  also covers collision with the compiler's preferred namespace prefix.
+- Direct fragment insertion retains SVG `a`/`mark` nodes after their unsupported
+  root is unwrapped. They have no visible geometry, unlike the old canonical
+  HTML reparse. The narrow walker now converts admitted foreign local names to
+  HTML after attribute/URL/style filtering, before live publication. Raw's
+  separate SVG support is unchanged. Public replacement, adjacent insertion
+  and a custom renderer using the supplied parser match the native HTML control.
+
+The complete frozen native follow-up contains **50 result groups / 2755 cases**
+plus its original physical editing scenarios. It predates the three later
+runtime repairs above and is not attributed to them. Their focused checks pass
+all 33 CSS cases, all 45 ordinary pages, both typechecks, 2192 Node tests with
+three skips, all eleven FONT/class cases, and exact native glyph PNGs.
+
+The first expanded wildcard-selector attempt accidentally concatenated two
+universals and fails 32 cases; that attempt is retained. Corrected selectors
+pass the complete **33-case** CSS page, including all previous positive cases.
+The expanded Trusted Types page passes too. Standalone probe setup initially
+assumed private helpers were plugin-kit exports; that fixture error is retained
+separately from the actual invisible-DOM RED. No public alias was introduced.
+
+The CSS font resource test now uses VitePress's locked, self-hosted
+`inter-roman-latin.woff2` development asset and forces layout before awaiting
+font readiness. It no longer depends on a Windows-installed font. The font
+resource is used only by browser tests, not added to the Rector package.
+
+Remaining: fresh frozen checks for these later runtime repairs,
 exact Git-source differential replay, broader native authoring/clipboard and
 extension integration, and the remaining audit obligations. No new preservation
 row is accepted by this initial integration checkpoint.

@@ -12,6 +12,9 @@ const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
   ? pathToFileURL(resolve(process.env.EDITOR_PLAYWRIGHT_PATH)).href : 'playwright')
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
 const files = ['scripts/parity/html-content-navigation.mjs',
+  'shared/sanitize/walker.js', 'shared/sanitize/parseInline.js', 'shared/sanitize/sanitizeHtml.js',
+  'shared/sanitize/contentClasses.js', 'shared/contentClassStyles.js', 'shared/contentClassSelectors.js',
+  'core/InlineProjectionRuntime.js', 'renderer/inlineWidgets.js', 'plugins/paragraph/index.js', 'renderer/renderers/paragraph/index.js',
   'shared/embeddedHtml.js', 'shared/rebaseContentViewport.js', 'shared/contentStyles.js',
   'plugins/raw/index.js', 'plugins/carousel/index.js', 'core/createEditorRuntime.js',
   'renderer/EditorRenderer.js', 'renderer/renderers/raw/index.js', 'renderer/renderers/carousel/index.js',
@@ -50,7 +53,7 @@ const results=[]
 try {
   for (const specification of cases) {
     const variants=[]
-    for (const kind of ['platform-control','raw-editor','raw-renderer','carousel-editor','carousel-renderer']) {
+    for (const kind of ['platform-control','raw-editor','raw-renderer','carousel-editor','carousel-renderer','paragraph-editor','paragraph-renderer']) {
       const context=await browser.newContext({ viewport:{width:1100,height:800} })
       const page=await context.newPage(), errors=[]
       page.on('pageerror', error=>errors.push(String(error)))
@@ -70,25 +73,25 @@ try {
         const opened=context.waitForEvent('page');await owner.locator('#existing').click();await (await opened).waitForLoadState('load')
       }
       await owner.evaluate(async({kind,target,name,href='/boundary-destination?case='+name})=>{
-        const holder=document.createElement('section');document.body.append(holder)
+        const holder=document.createElement('section');holder.id='content-owner';document.body.append(holder)
         const source=`<a id="subject" href="${href}" target="${target}" rel="noopener noreferrer">Requested destination</a>`
         if(kind!=='platform-control') {
           const [type, mode] = kind.split('-')
-          const data = { version:'2.0.0', blocks:[{ id:'content', type, dataVersion:1,
-            data:type==='raw'?{html:source}:{slides:[{id:'html',type:'html',html:source,caption:''}],options:{loop:false,autoplay:false,autoplayDelay:3000,navigation:true,pagination:true,thumbnails:false}} }] }
+          const data = { version:'2.0.0', blocks:[{ id:'content', type, dataVersion:type==='paragraph'?2:1,
+            data:type==='paragraph'?{text:source}:type==='raw'?{html:source}:{slides:[{id:'html',type:'html',html:source,caption:''}],options:{loop:false,autoplay:false,autoplayDelay:3000,navigation:true,pagination:true,thumbnails:false}} }] }
           const contentStyles=['html,body{margin:0}body{display:flow-root;font:20px sans-serif}']
           if(mode==='editor') {
             const {createEditor}=await import('/core/index.js')
             const module=await import('/plugins/'+type+'/index.js')
             window.probe=createEditor({holder,data,contentStyles,readOnly:true,injectStyles:false,
-              plugins:[type==='raw'?module.createRawPlugin({injectStyles:false}):module.createCarouselPlugin({injectStyles:false})]})
+              plugins:[type==='paragraph'?module.createParagraphPlugin({injectStyles:false}):type==='raw'?module.createRawPlugin({injectStyles:false}):module.createCarouselPlugin({injectStyles:false})]})
           } else {
             const {EditorRenderer}=await import('/renderer/index.js')
             window.probe=new EditorRenderer({blockTypes:[type],contentStyles,injectStyles:false})
             window.probe.renderTo(data,holder)
           }
           const frame=holder.querySelector('iframe'),deadline=performance.now()+3000
-          while(!frame?.contentDocument?.querySelector('#subject')) {
+          while(type!=='paragraph'&&!frame?.contentDocument?.querySelector('#subject')) {
             if(performance.now()>deadline)throw Error('No owned document')
             await new Promise(resolve=>setTimeout(resolve,10))
           }
@@ -97,8 +100,8 @@ try {
           anchor.target=target;anchor.rel='noopener noreferrer';anchor.textContent='Requested destination';holder.append(anchor)
         }
       },{kind,...specification})
-      const targetFrame=kind==='platform-control'?owner:owner.childFrames()[0]
-      await targetFrame.locator('#subject').click({ ...(specification.modifiers?{modifiers:specification.modifiers}:{}), ...(specification.button?{button:specification.button}:{}) })
+      const targetFrame=kind==='platform-control'||kind.startsWith('paragraph-')?owner:owner.childFrames()[0]
+      await targetFrame.locator(kind.startsWith('paragraph-')?'#content-owner a':'#subject').click({ ...(specification.modifiers?{modifiers:specification.modifiers}:{}), ...(specification.button?{button:specification.button}:{}) })
       // Observe the requested native outcome, rather than assuming a fixed
       // sleep covers a browser's navigation/IPC scheduling under load.
       const wanted=specification.expectedPage??'/boundary-destination?case='+specification.name
@@ -132,7 +135,7 @@ try {
   }
   for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(sha256(await readFile(resolve(root, path))), expected, 'Source changed: '+path)
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim(), head, 'HEAD changed')
-  const candidatePass=results.length===48&&results.every(result=>result.status==='PASS')
-  console.log(JSON.stringify({scope:'Real target/modifier navigation on all four public Raw/HTML Carousel surfaces compared to an independent bare anchor in the same owner hierarchy and CSP',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,browser:browser.version(),sourceHashes,sourceUnchanged:true,candidatePass,results},null,2))
+  const candidatePass=results.length===72&&results.every(result=>result.status==='PASS')
+  console.log(JSON.stringify({scope:'Real target/modifier navigation on six public Raw/HTML Carousel/Paragraph surfaces compared to an independent bare anchor in the same owner hierarchy and CSP',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,browser:browser.version(),sourceHashes,sourceUnchanged:true,candidatePass,results},null,2))
   if(!candidatePass)process.exitCode=1
 } finally {await browser.close();await server.close()}

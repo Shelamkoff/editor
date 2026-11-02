@@ -24,6 +24,30 @@ await test('sanitized template owns inert content and retains author class seria
   assert(template.innerHTML === '<span class="author-sample">Safe</span>', 'Canonical HTML class spelling changed')
 })
 
+await test('inline DOM sinks preserve the visible HTML meaning of allowed names from a foreign namespace', () => {
+  const html = '<svg><a href="/boundary-destination">Link</a></svg><svg><mark>Mark</mark></svg> tail'
+  const canonical = '<a href="/boundary-destination" rel="noopener noreferrer">Link</a><mark>Mark</mark> tail'
+  assert(sanitizeHtml(html, document) === canonical, 'Canonical inline HTML changed')
+  const reference = document.createElement('div'), replaced = document.createElement('div'), inserted = document.createElement('div'), rendered = document.createElement('div')
+  document.querySelector('#sandbox').append(reference, replaced, inserted, rendered)
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({ type: 'namespace-inline', schema: { currentVersion: 1, createDefault: () => ({ html: '' }),
+    decode: input => ({ dataVersion: input.dataVersion, data: structuredClone(input.data) }), encode: data => ({ dataVersion: 1, data: structuredClone(data) }) },
+    render(block, parse, context) { const root = context.ownerDocument.createElement('div'); root.append(parse(block.data.html)); return root },
+  })
+  try {
+    reference.innerHTML = toTrustedHtml(canonical, document)
+    setSanitizedHtml(replaced, html); insertSanitizedHtml(inserted, 'beforeend', html)
+    renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'p', type: 'namespace-inline', dataVersion: 1, data: { html } }] }, rendered)
+    const meaning = root => [...root.querySelectorAll('a,mark')].map(element => ({ tag: element.localName,
+      namespace: element.namespaceURI, text: element.textContent, visible: element.getBoundingClientRect().width > 0,
+      href: element.getAttribute('href'), rel: element.getAttribute('rel') }))
+    const expected = meaning(reference)
+    assert(expected.length === 2 && expected.every(element => element.visible), 'Native HTML control is not visible')
+    for (const root of [replaced, inserted, rendered]) assert(JSON.stringify(meaning(root)) === JSON.stringify(expected), 'Live inline tags lost canonical HTML namespace or visible content')
+  } finally { renderer.destroy(); for (const root of [reference, replaced, inserted, rendered]) root.remove() }
+})
+
 for (const position of ['beforebegin', 'afterbegin', 'beforeend', 'afterend']) await test(`sanitized adjacent insertion retains native ${position} ordering under Trusted Types`, () => {
   const actual = document.createElement('section'), reference = document.createElement('section')
   for (const parent of [actual, reference]) {

@@ -73,7 +73,7 @@ const selectorCases = [
   ['multiple-specificity', '.a.b,.unused', '<span class="a b app-screen-cover">j</span>'],
 ]
 
-async function withNativeContent(html, css, inspect) {
+async function withNativeContent(html, css, inspect, { unscopedReference = false } = {}) {
   const holder = document.createElement('section'); document.querySelector('#fixtures').append(holder)
   const frame = document.createElement('iframe')
   frame.setAttribute('sandbox', 'allow-same-origin'); frame.style.cssText = 'position:absolute;left:-20000px;width:600px;height:400px'
@@ -82,7 +82,7 @@ async function withNativeContent(html, css, inspect) {
   try {
     const doc = frame.contentDocument
     doc.documentElement.style.fontSize = '16px'; doc.body.style.font = '20px serif'
-    const style = doc.createElement('style'); style.textContent = '@scope (#reference-root){' + css + '}'
+    const style = doc.createElement('style'); style.textContent = unscopedReference ? css : '@scope (#reference-root){' + css + '}'
     doc.head.append(style)
     const reference = doc.createElement('p'); reference.id = 'reference-root'
     const template = doc.createElement('template'); template.innerHTML = toTrustedHtml(html, doc)
@@ -133,8 +133,12 @@ test('Renderer: scoped keyframes animate author typography like native CSS', asy
 })
 
 test('Renderer: scoped font-face loads and preserves actual author glyph width', async () => {
-  const css = '@font-face{font-family:RectorAuditMono;src:local("Courier New")} .article-accent{font:73px RectorAuditMono}'
+  // Use the locked development dependency's self-hosted asset, rather than
+  // relying on an OS-specific installed font in Windows/Linux browser gates.
+  const font = new URL('../../../node_modules/vitepress/dist/client/theme-default/fonts/inter-roman-latin.woff2', import.meta.url).href
+  const css = `@font-face{font-family:RectorAuditMono;src:url("${font}")} .article-accent{font:73px RectorAuditMono}`
   await withNativeContent('<span class="article-accent">jMWii</span>', css, async ({ reference, holder, doc }) => {
+    reference.getBoundingClientRect(); holder.getBoundingClientRect()
     await Promise.all([doc.fonts.ready, document.fonts.ready])
     const faces = owner => [...owner.fonts].filter(face => face.family === 'RectorAuditMono').map(face => face.status)
     equal(faces(doc), ['loaded'], 'Independent native font resource did not load')
@@ -237,6 +241,87 @@ test('Renderer: failed content-field admission cannot keep styling a retired out
     foreign.append(retired)
     assert(getComputedStyle(retired.querySelector('span')).color !== 'rgb(12, 84, 156)', 'Failed output retained a live content-style scope')
   } finally { renderer.destroy(); manual.destroy(); holder.remove(); foreign.remove() }
+})
+
+test('Renderer: inherited application theme variables update native typography without changing author HTML', async () => {
+  const html = '<span class="article-accent">Theme text</span>'
+  const css = ':scope{font:20px serif}.article-accent{font-size:var(--article-size);color:var(--article-color)}'
+  await withNativeContent(html, css, ({ reference, holder }) => {
+    const original = holder.innerHTML
+    for (const [size, color, pixels] of [['1.5em', 'rgb(12,84,156)', '30px'], ['calc(10px + 1em)', 'rgb(156,84,12)', '30px'], ['250px', 'rgb(10,20,30)', '250px']]) {
+      for (const root of [reference, holder]) { root.style.setProperty('--article-size', size); root.style.setProperty('--article-color', color) }
+      const expected = readStyles(reference)
+      equal(expected[0].font, pixels); equal(readStyles(holder), expected)
+      equal(holder.innerHTML, original, 'A CSS-only theme change altered the author DOM')
+    }
+  })
+})
+
+test('Renderer: append-then-throw stylesheet acquisition retires only its own CSS and permits a successor', () => {
+  const nativeSheets = document.adoptedStyleSheets, initial = [...nativeSheets]
+  const foreign = new CSSStyleSheet(); foreign.replaceSync('.foreign-css-sentinel{color:rgb(10,20,30)}'); nativeSheets.push(foreign)
+  const foreignNode = document.createElement('div'); foreignNode.className = 'foreign-css-sentinel'; document.body.append(foreignNode)
+  const renderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: false,
+    contentStyles: ['.article-accent{color:rgb(12,84,156);font-size:73px}', ':scope{font-style:italic}'] })
+  const original = Object.getOwnPropertyDescriptor(document, 'adoptedStyleSheets'), failure = { label: 'append then throw' }
+  const holder = document.createElement('section'); document.querySelector('#fixtures').append(holder)
+  let observed, failedSheets = []
+  const proxy = new Proxy(nativeSheets, { get(target, name, receiver) {
+    if (name === 'push') return (...sheets) => { failedSheets = sheets; Array.prototype.push.apply(target, sheets); throw failure }
+    return Reflect.get(target, name, receiver)
+  } })
+  try {
+    try {
+      Object.defineProperty(document, 'adoptedStyleSheets', { configurable: true, get: () => proxy })
+      try { renderer.injectStyles(document) } catch (error) { observed = error }
+    } finally {
+      if (original) Object.defineProperty(document, 'adoptedStyleSheets', original)
+      else delete document.adoptedStyleSheets
+    }
+    equal(observed, failure)
+    equal([...nativeSheets], [...initial, foreign]); equal(getComputedStyle(foreignNode).color, 'rgb(10, 20, 30)')
+    assert(failedSheets.length === 2 && failedSheets.every(sheet => sheet.disabled && !nativeSheets.includes(sheet)), 'Failed acquisition retained active CSS')
+    renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'p', type: 'paragraph', dataVersion: 2, data: { text: '<span class="article-accent">j</span>' } }] }, holder)
+    const style = getComputedStyle(holder.querySelector('span'))
+    equal(style.color, 'rgb(12, 84, 156)'); equal(style.fontSize, '73px'); equal(style.fontStyle, 'italic')
+    renderer.destroy(); equal([...nativeSheets], [...initial, foreign])
+  } finally {
+    renderer.destroy(); holder.remove(); foreignNode.remove()
+    const index = nativeSheets.indexOf(foreign); if (index !== -1) nativeSheets.splice(index, 1)
+    equal([...nativeSheets], initial)
+  }
+})
+
+test('Content boundary: application CSS leaves independent auxiliary author UI usable', async () => {
+  const holder = document.createElement('section'), control = document.createElement('button'), nativeLabel = document.createElement('span')
+  control.textContent = 'Native control'; nativeLabel.textContent = 'Native label'; document.querySelector('#fixtures').append(holder, control, nativeLabel)
+  const data = { version: '2.0.0', blocks: [{ id: 'p', type: 'paragraph', dataVersion: 2, data: { text: '<span class="article-accent">Author</span>' } }] }
+  const editor = createEditor({ holder, data, injectStyles: false, plugins: [createParagraphPlugin({ injectStyles: false })],
+    contentStyles: ['button,input,[role="button"]{font-size:200px!important}span{letter-spacing:42px}.article-accent{font-size:73px}'] })
+  try {
+    const before = editor.save().blocks, field = holder.querySelector('[contenteditable=true]')
+    const button = document.createElement('button'), input = document.createElement('input'), role = document.createElement('div'), label = document.createElement('span'), island = document.createElement('div'), islandLabel = document.createElement('span')
+    button.textContent = 'Auxiliary control'; role.setAttribute('role', 'button'); label.textContent = 'Private label'; role.append(label)
+    island.contentEditable = 'true'; islandLabel.textContent = 'Independent island'; island.append(islandLabel)
+    field.append(button, input, role, island)
+    equal(getComputedStyle(button).fontSize, getComputedStyle(control).fontSize)
+    equal(getComputedStyle(input).fontSize, getComputedStyle(control).fontSize)
+    for (const privateLabel of [label, islandLabel]) equal(getComputedStyle(privateLabel).letterSpacing, getComputedStyle(nativeLabel).letterSpacing)
+    const author = field.querySelector('span[*|class~="article-accent"]')
+    equal(getComputedStyle(author).fontSize, '73px'); equal(getComputedStyle(author).letterSpacing, '42px')
+    let clicked = false; button.addEventListener('click', event => { clicked = event.isTrusted })
+    await clickNative(button); assert(clicked, 'Auxiliary UI lost native activation')
+    equal(editor.save().blocks, before); assert(!editor.canUndo)
+  } finally { editor.destroy(); holder.remove(); control.remove(); nativeLabel.remove() }
+})
+
+test('Content boundary: application default namespace and prefix collision retain native HTML meaning', async () => {
+  const css = '@namespace url("urn:other");@namespace rectorContent url("urn:collision");@namespace h url("http://www.w3.org/1999/xhtml");h|span.article-accent{color:rgb(12,84,156);font-size:73px}'
+  await withNativeContent('<span class="article-accent">Namespaced content</span>', css, ({ reference, holder }) => {
+    const expected = readStyles(reference)
+    equal(expected[0].color, 'rgb(12, 84, 156)'); equal(expected[0].font, '73px')
+    equal(readStyles(holder), expected)
+  }, { unscopedReference: true })
 })
 
 await run()

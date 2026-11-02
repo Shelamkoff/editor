@@ -2,6 +2,7 @@ import { ALLOWED_TAGS, ALLOWED_ATTRS } from './allowlist.js'
 import { sanitizeUrl } from './sanitizeUrl.js'
 import { sanitizeStyle } from './sanitizeStyle.js'
 import { namespaceContentClass } from './contentClasses.js'
+const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml'
 
 /**
  * Recursively sanitize a DOM subtree in place.
@@ -44,7 +45,7 @@ function sanitize(node, presentation) {
       continue
     }
 
-    const el = /** @type {HTMLElement} */ (child)
+    let el = /** @type {HTMLElement} */ (child)
     const tag = el.tagName.toLowerCase()
 
     if (!ALLOWED_TAGS.has(tag)) {
@@ -80,6 +81,19 @@ function sanitize(node, presentation) {
       } else {
         el.removeAttribute('style')
       }
+    }
+
+    // The former serialize/reparse sink gave every admitted tag HTML meaning.
+    // Preserve that meaning in direct fragments too: an SVG <a>/<mark> moved
+    // outside its rejected SVG root otherwise becomes invisible foreign DOM.
+    // Copy only attributes already admitted and hardened above, before any
+    // replacement can enter an active document.
+    if (el.namespaceURI !== undefined && el.namespaceURI !== HTML_NAMESPACE) {
+      const replacement = el.ownerDocument.createElementNS(HTML_NAMESPACE, tag)
+      for (const attribute of Array.from(el.attributes)) replacement.setAttribute(attribute.name, attribute.value)
+      while (el.firstChild) replacement.appendChild(el.firstChild)
+      el.replaceWith(replacement)
+      el = replacement
     }
 
     // Unwrap empty `<span>` with no meaningful attributes.

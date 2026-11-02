@@ -40,8 +40,11 @@ function prelude(text) {
 export function compileContentClassSheets(sources, ownerDocument, scope) {
   const Ctor = ownerDocument.defaultView?.CSSStyleSheet
   if (!Ctor) throw new TypeError('Content styles require an active owning document with CSSStyleSheet support')
-  const owner = `[${CONTENT_STYLE_OWNER}="${scope.id}"]`, field = `[${CONTENT_STYLE_FIELD}="${scope.id}"]`
-  const scopeSelector = `${owner} ${field}, ${owner}${field}`
+  // Application @namespace declarations govern author selectors, never the
+  // library's structural owners or independent UI/field boundaries.
+  const owner = `*|*[${CONTENT_STYLE_OWNER}="${scope.id}"]`, field = `[${CONTENT_STYLE_FIELD}="${scope.id}"]`
+  const scopeSelector = `${owner} *|*${field}, ${owner}${field}`
+  const limit = `*|*:scope *|*:is(*|*[data-inline-plugin], *|*[contenteditable], *|button, *|input, *|textarea, *|select, *|option, *|*[role="button"], *|*[${CONTENT_STYLE_OWNER}])`
   return sources.map(source => {
     const parsed = new Ctor(); parsed.replaceSync(source)
     const namespaces = [], body = [], prefixes = new Set()
@@ -75,7 +78,7 @@ export function compileContentClassSheets(sources, ownerDocument, scope) {
     }
     const rules = Array.from(admitted.cssRules).filter(rule => rule.type !== 10).map(serialize).join('\n')
     const sheet = new Ctor()
-    sheet.replaceSync(header + `@scope (${scopeSelector}) to ([data-inline-plugin]){${rules}}`)
+    sheet.replaceSync(header + `@scope (${scopeSelector}) to (${limit}){${rules}}`)
     return sheet
   })
 }
