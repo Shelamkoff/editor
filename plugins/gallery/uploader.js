@@ -1,4 +1,5 @@
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { uploadGalleryFiles } from './remoteUpload.js'
 
 /**
  * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} UploadFn
@@ -45,23 +46,7 @@ export class GalleryUploader {
    * @returns {Promise<void>}
    */
   async #uploadRemote(files, onAdded, signal, ownerDocument) {
-    if (!this.#uploadFn) return
-    /** @type {Array<{ url: string, caption: string }>} */
-    const added = []
-    for (const file of files) {
-      if (signal?.aborted) break
-      try {
-        const AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
-        const result = await this.#uploadFn(file, { signal: signal ?? new AbortControllerCtor().signal })
-        const url = sanitizeMediaUrl(result?.url || '')
-        if (!signal?.aborted && url) {
-          added.push({ url, caption: typeof result?.alt === 'string' ? result.alt : '' })
-        }
-      } catch {
-        // Skip a failed file and continue the same batch.
-      }
-    }
-    if (!signal?.aborted && added.length > 0) onAdded(added)
+    await uploadGalleryFiles(this.#uploadFn, files, onAdded, signal, ownerDocument)
   }
 
   /**

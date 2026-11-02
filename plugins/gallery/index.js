@@ -9,6 +9,7 @@ import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
 import { CSS } from './css.js'
+import { uploadGalleryFiles } from './remoteUpload.js'
 import { ICON, LAYOUT_ICONS, ICON_SETTINGS, ICON_ADD_IMAGE, ICON_CHEVRON_RIGHT, ICON_BACK, ICON_UPLOAD, ICON_URL } from './icons.js'
 import { gallerySlotCount, autoGalleryLayout, galleryOrientation } from '../../shared/galleryLayout.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
@@ -25,6 +26,14 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
  * @typedef {{label:string,icon?:string,handler:(context:{signal:AbortSignal})=>Promise<Array<{url:string,alt?:string}>|null>}} SourceAction
  */
 
+
+/** Resolve optional local-file code only after the existing task owns it. */
+async function resolveGalleryFiles(files,onAdded,signal,ownerDocument,uploadFile){
+  if(signal.aborted||!files.length)return
+  if(uploadFile)return uploadGalleryFiles(uploadFile,files,onAdded,signal,ownerDocument)
+  const {GalleryUploader}=await import('./uploader.js')
+  return new GalleryUploader({}).handle(files,onAdded,signal,ownerDocument)
+}
 
 function galleryLabel(key,fallback){return Object.freeze({key,fallback})}
 
@@ -191,10 +200,8 @@ export function createGalleryPlugin(config={}){
       async resolve(input,context){
         if(input.kind!=='file'||!isSupportedImageFile(input.file))return null
         if(context.signal.aborted)return null
-        const {GalleryUploader}=await import('./uploader.js')
-        const uploader=new GalleryUploader(snapshot)
         const box={images:/** @type {Array<{url:string,caption:string}>} */([])}
-        await uploader.handle([input.file],images=>{box.images=images},context.signal,context.ownerDocument)
+        await resolveGalleryFiles([input.file],images=>{box.images=images},context.signal,context.ownerDocument,snapshot.uploadFile)
         if(context.signal.aborted||box.images.length===0)return null
         return {
           kind:/** @type {'block'} */('block'),
@@ -322,11 +329,9 @@ export function createGalleryPlugin(config={}){
             if(!accepted.length)return
             const task=beginTask()
             try{
-              const {GalleryUploader}=await import('./uploader.js')
-              const uploader=new GalleryUploader(snapshot)
-              await uploader.handle(accepted,images=>{
+              await resolveGalleryFiles(accepted,images=>{
                 if(!task.signal.aborted)addImages(images,task)
-              },task.signal,document)
+              },task.signal,document,snapshot.uploadFile)
             }catch(error){
               if(!task.signal.aborted)console.warn('[Gallery] Upload failed',error)
             }finally{
