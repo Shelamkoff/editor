@@ -205,7 +205,13 @@ DOMPurify maintenance is separable only after current official version/advisory 
 
 ## 10. C06 — presentation-preserving inline safety
 
-**Owner:** shared inline sanitizer/normalizer. Preservation is settled; destructive new trust policy is blocked by B-STYLE.
+**Owner:** shared inline sanitizer/normalizer. Preservation is settled. The application-style class representation below is selected for integration; B-STYLE acceptance remains open.
+
+**Contract selected 2026-11-02:** reuse the explicit application-owned `contentStyles` input selected for C05. Canonical span/code class values remain ordinary HTML in persisted data. Before author nodes enter a live projection, their class attribute uses the presentation-only namespace `urn:rector:author-class`; ordinary page class selectors therefore cannot activate host UI rules. Keep flat editable DOM and native selections; no paint clipping, wrapper, class allowlist, trust flag or alternative wire spelling is introduced.
+
+Compile the application's CSS with the owning realm's native CSSOM. Rewrite class selectors to that namespace without changing their specificity, declarations or native condition/variable/font/animation semantics. Scope them to the existing instance/output's actual rich-content fields and completed derived author views, excluding inline widget UI. The field markers grant no command or lifecycle rights. Acquire sheets through the existing per-document style registry and lease them alongside existing automatic/manual owners; independent installed copies must have distinct scope identities. Never borrow another realm's CSSStyleSheet. Detached output adopted into a different document uses the existing explicit `injectStyles(document)` integration; `renderTo` acquires for its actual target document.
+
+The initial public proof includes actual editor/renderer input and history, sixteen independent native selector comparisons, native CSS grouping/variables/keyframes/font loading, an exact 201px italic-glyph PNG comparison and a hostile native control that covers the real host action. The source FONT/class corpus retains its positive expectations through explicit application CSS with equivalent specificity. See `scripts/parity/checkpoints/2026-11-02/inline-content-styles/README.md`. This selects the current-only representation, not whole-surface, navigation, differential, performance or B-STYLE acceptance.
 
 Keep supported inline properties color, background-color and font-size, URL protections, required rel handling, code lang/highlighting and sidecar/token boundaries. Do not add arbitrary new CSS properties. Validate using the owning realm and preserve neighboring legitimate text/marks when rejecting unsafe attributes.
 

@@ -1,4 +1,4 @@
-import { sanitizeSubtree } from './walker.js'
+import { sanitizePresentationSubtree } from './walker.js'
 import { toTrustedHtml } from './trustedHtml.js'
 import { normalizeTextValue } from '../textFormat.js'
 
@@ -6,8 +6,8 @@ import { normalizeTextValue } from '../textFormat.js'
  * Parse an HTML string into a sanitized DocumentFragment.
  * Used by the renderer for document output of inline content.
  *
- * Behaves identically to sanitizeHtml(), but returns a live DocumentFragment
- * instead of a string — avoids an extra serialize/parse round-trip.
+ * Retains sanitizeHtml()'s canonical HTML meaning, with presentation-only class
+ * identity on live nodes. Returns a DocumentFragment without serialize/reparse.
  *
  * @param {string} html
  * @param {Document} [ownerDocument]
@@ -20,7 +20,7 @@ export function parseInline(html, ownerDocument = globalThis.document) {
 
   const template = ownerDocument.createElement('template')
   template.innerHTML = /** @type {any} */ (toTrustedHtml(source, ownerDocument))
-  sanitizeSubtree(template.content)
+  sanitizePresentationSubtree(template.content)
   fragment.appendChild(template.content)
 
   return fragment

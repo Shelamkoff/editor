@@ -6,15 +6,22 @@ import assert from 'node:assert/strict'
  */
 export function plainTextTemplate(ownerDocument) {
   let text = ''
-  const content = { childNodes: [] }
+  const content = { nodeType: 11, childNodes: [] }
   return {
-    ownerDocument,
+    ownerDocument, localName: 'template',
     content,
     get innerHTML() { return text },
     set innerHTML(value) {
       text = String(value)
       assert.doesNotMatch(text, /[<&]/, 'This DOM fixture only supports plain text')
-      content.childNodes = text ? [{ nodeType: 3, textContent: text }] : []
+      content.childNodes = text ? [{ nodeType: 3, textContent: text, parentNode: content,
+        remove() {
+          if (!this.parentNode) return
+          const siblings = this.parentNode.childNodes ?? this.parentNode.children
+          siblings.splice(siblings.indexOf(this), 1)
+          this.parentNode = null
+        },
+      }] : []
     },
   }
 }

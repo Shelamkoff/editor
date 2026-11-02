@@ -4,6 +4,8 @@ import { createHeadingPlugin, createListPlugin, createParagraphPlugin, createRaw
 import { EditorRenderer } from '../../renderer/index.js'
 import { sanitizeRawHtml, sanitizeRawHtmlForSink, setSanitizedRawHtml } from '../../shared/sanitize/sanitizeRawHtml.js'
 import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
+import { setSanitizedHtml, insertSanitizedHtml } from '../../plugin-kit/index.js'
+import { toTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
 
 const results = []
 function assert(value, message) { if (!value) throw new Error(message) }
@@ -11,6 +13,41 @@ async function test(name, fn) {
   try { await fn(); results.push({ name, status: 'PASS' }) }
   catch (error) { results.push({ name, status: 'FAIL', error: error?.stack ?? String(error) }) }
 }
+
+await test('sanitized template owns inert content and retains author class serialization', () => {
+  const template = document.createElement('template')
+  setSanitizedHtml(template, '<span class="author-sample">Safe</span><img src=x onerror=bad()>')
+  assert(template.childNodes.length === 0, 'Template content was inserted as ordinary children')
+  const span = template.content.firstElementChild
+  assert(span?.textContent === 'Safe' && template.content.childNodes.length === 1, 'Sanitized template content is missing or unsafe')
+  assert(span.getAttribute('class') === 'author-sample' && span.className === '', 'Author class acquired ordinary UI identity')
+  assert(template.innerHTML === '<span class="author-sample">Safe</span>', 'Canonical HTML class spelling changed')
+})
+
+for (const position of ['beforebegin', 'afterbegin', 'beforeend', 'afterend']) await test(`sanitized adjacent insertion retains native ${position} ordering under Trusted Types`, () => {
+  const actual = document.createElement('section'), reference = document.createElement('section')
+  for (const parent of [actual, reference]) {
+    const element = document.createElement('i'); element.textContent = 'middle'; parent.append(element)
+  }
+  const html = '<span class="author-sample" style="font-size:32.75px">Author</span>'
+  reference.firstElementChild.insertAdjacentHTML(position, toTrustedHtml(html, document))
+  insertSanitizedHtml(actual.firstElementChild, position, html)
+  const meaning = node => [...node.childNodes].map(child => child.nodeType === 3 ? child.textContent : {
+    tag: child.localName, class: child.getAttribute('class'), size: child.style.fontSize, children: meaning(child),
+  })
+  assert(JSON.stringify(meaning(actual)) === JSON.stringify(meaning(reference)), 'Sanitized insertion changed native position or inline meaning')
+  assert(actual.querySelector('span').className === '', 'Adjacent author class activated ordinary UI identity')
+})
+
+await test('sanitized adjacent insertion retains native invalid-position and missing-parent errors', () => {
+  const element = document.createElement('span')
+  for (const [position, expected] of [['invalid', 'SyntaxError'], ['beforebegin', 'NoModificationAllowedError'], ['afterend', 'NoModificationAllowedError']]) {
+    let actual, reference
+    try { element.insertAdjacentHTML(position, toTrustedHtml('safe', document)) } catch (error) { reference = error.name }
+    try { insertSanitizedHtml(element, position, 'safe') } catch (error) { actual = error.name }
+    assert(actual === expected && actual === reference, `Native adjacent error changed: ${position}`)
+  }
+})
 
 await test('inline sanitizer remains a string API under Trusted Types enforcement', () => {
   assert(typeof /** @type {any} */ (globalThis).trustedTypes === 'object', 'Trusted Types API unavailable under the test browser')

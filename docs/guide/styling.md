@@ -43,6 +43,16 @@ Pass `contentStyles: readonly string[]` to `createEditor()` and `EditorRenderer`
 
 Content uses its own scriptless document and follows the available width and natural content height. Page stylesheets and classes are not copied automatically. Move the relevant content rules into `contentStyles` when migrating a theme. Viewport lengths refer to the containing page, and explicit content scrollers remain usable. The original HTML stays in the author record.
 
+## Inline content classes
+
+The same `contentStyles` input supplies rich text and completed derived author views. Use `:scope` for each content field; for example, `contentStyles: [':scope { font-size:20px; } :scope span.article-accent, :scope code.article-accent { color:#12549c; font-size:1.5em; }']`. Rules retain normal CSS specificity and cascade. Move the relevant page rules with equivalent specificity; library defaults can otherwise win. These trusted CSS strings are application configuration, separate from the narrow properties permitted in author-supplied inline style attributes.
+
+Author span/code classes keep their original HTML spelling in saved data. Their live DOM attribute uses a private namespace so ordinary page class selectors cannot activate interface rules. For DOM observation, use `span[*|class~="article-accent"]` and `getAttribute('class')`; `classList` and ordinary `.article-accent` queries describe the interface class namespace. Editor fields remain flat DOM with native selection and overflow; content CSS does not wrap or clip glyphs.
+
+Styles are leased per actual owning document and released with their owner. `renderTo(data, foreignContainer)` uses that container's document. When adopting a detached `renderBlock()` result into another document, acquire the existing `renderer.injectStyles(targetDocument)` handle there and release that handle when finished. Page stylesheets are never copied implicitly.
+
+Use `setSanitizedHtml()`, `insertSanitizedHtml()` or the supplied parser for live DOM. `sanitizeHtml()` and `normalizeRichText()` remain canonical HTML string APIs; serialization does not carry the live attribute namespace. Re-parsing through your own `innerHTML` restores ordinary classes, and that presentation must provide its own selected content boundary.
+
 ## Extension styles
 
 A custom block definition publishes immutable style URLs:

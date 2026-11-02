@@ -48,13 +48,15 @@ function harness(render, { registered = true } = {}) {
   return { invoke: () => renderInlineWidgets(fragment, inline, registry, ownerDocument), token, fragment, ownerDocument }
 }
 
-test('literal inline text markers never render as widgets with colliding sidecar IDs', () => {
+for (const namespace of [null, 'urn:rector:author-class']) test(`literal inline text markers (${namespace ?? 'HTML'}) never render as widgets with colliding sidecar IDs`, () => {
   let rendered = 0
   const probe = harness(() => { rendered++; return new FakeElement() })
   probe.token.data = '{{one}}'
   probe.token.parentElement = {
     closest(selector) {
-      return selector.includes('span.oe-inline-literal') ? this : null
+      const selectors = selector.split(/\s*,\s*/)
+      return selectors.includes('span[*|class~="oe-inline-literal"]')
+        || namespace === null && selectors.includes('span.oe-inline-literal') ? this : null
     },
   }
   assert.equal(probe.invoke(), probe.fragment)

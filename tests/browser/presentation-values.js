@@ -6,6 +6,7 @@ for (const specification of presentationValueCases) {
   test(`Presentation differential: ${specification.id} survives save/render and neighboring native edit/Undo`, async () => {
     const result = await runPresentationValueCase(specification, {
       sourceBase: new URL('../../', import.meta.url).href,
+      explicitContentStyles: true,
       typeText: printable,
       shortcut: action => dispatchKey('z', 'KeyZ', 90, action === 'redo' ? 10 : 2),
     })

@@ -486,6 +486,7 @@ try {
   const nativeTextInput = JSON.parse(await waitForHistoryMatrix(client))
   const nativeAttachesDownloads = await runNativePage(client, pageUrl, 'native-attaches-downloads.html')
   const nativeHtmlContent = await runNativePage(client, pageUrl, 'native-html-content.html')
+  const nativeInlineContentStyles = await runNativePage(client, pageUrl, 'native-inline-content-styles.html')
 
   await client.send('Page.navigate', { url: new URL('/tests/browser/native-tools.html', pageUrl).href })
   const toolsDeadline = Date.now() + 20_000
@@ -584,6 +585,7 @@ try {
     nativeTextInput,
     nativeAttachesDownloads,
     nativeHtmlContent,
+    nativeInlineContentStyles,
     nativeTools,
     nativeClipboard,
     nativeIme,

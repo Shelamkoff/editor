@@ -12,6 +12,14 @@ It makes no changes to production modules, sanitization policy or package
 dependencies. The user must supply Chromium and Playwright from their test
 environment; neither is added to the Rector package.
 
+The current candidate receives the selected application-owned `contentStyles`
+input; the historical sources retain their original host-CSS contract. The
+fixture preserves the original specificity, positive computed values and
+canonical markup expectations. Namespace-aware observation reads either DOM
+representation without changing the oracle. The server serves exact Git bytes;
+only JS/MJS/CSS checkout CRLF/LF equivalence is permitted before serving them.
+End checks still require unchanged actual checkout bytes.
+
 ## Inputs and invocation
 
 Run `npm ci` in the Rector checkout first. Prepare archive directories from

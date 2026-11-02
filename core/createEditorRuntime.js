@@ -2,7 +2,8 @@
 import { EventBus } from '@shelamkoff/event-bus'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { snapshotContentStyles } from '../shared/contentStyles.js'
-import { acquireStyleUrls } from '../shared/styleRegistry.js'
+import { acquireStyleUrls, acquireContentStyles } from '../shared/styleRegistry.js'
+import { createContentStyleScope, CONTENT_STYLE_OWNER } from '../shared/contentClassStyles.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { uid } from '../shared/uid.js'
 import en from './locale/en.js'
@@ -212,6 +213,8 @@ export function createEditorRuntime(input){
   const root=document.createElement('div')
   lifecycle.register({destroy(){root.remove()}})
   root.className='oe-editor oe-theme-'+(config.theme??'dark')
+  const contentStyleScope=config.contentStyles.length?createContentStyleScope():null
+  if(contentStyleScope)root.setAttribute(CONTENT_STYLE_OWNER,contentStyleScope.id)
   root.tabIndex=-1
   if(config.minHeight!==undefined)root.style.minHeight=String(config.minHeight)+'px'
   const mobileBreakpoint=config.mobileBreakpoint??768
@@ -268,9 +271,11 @@ export function createEditorRuntime(input){
   }))
 
   const styles=config.injectStyles===false?null:lifecycle.register(acquireStyleUrls(CORE_STYLE_URLS,document))
+  if(contentStyleScope)lifecycle.register(acquireContentStyles(config.contentStyles,document,contentStyleScope))
   /** @type {NativeInputController | null} */
   let nativeInput=null
   const inlineProjection=new InlineProjectionRuntime({
+    contentStyleScope,
     preservePendingField:(blockId,key,element)=>nativeInput?.canPreservePresentationField(blockId,key,element)??false,
     registry,
     ownerDocument:document,

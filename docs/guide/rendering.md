@@ -47,7 +47,7 @@ interface RendererConfig {
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `injectStyles` | `true` | automatically load base and registered-renderer styles on first render |
-| `contentStyles` | `[]` | copied application-owned CSS text for Raw and HTML Carousel content; independent of automatic UI styles |
+| `contentStyles` | `[]` | copied application-owned CSS text for rich text, derived author views, Raw and HTML Carousel content; independent of automatic UI styles |
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |

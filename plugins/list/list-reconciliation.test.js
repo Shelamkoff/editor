@@ -20,11 +20,22 @@ class FakeElement {
     this.moveCount = 0
   }
   appendChild(child) {
+    if (child.nodeType === 11) {
+      for (const node of [...child.childNodes]) this.appendChild(node)
+      return child
+    }
     if (child.parentNode) child.moveCount++
     child.remove()
     child.parentNode = this
     this.children.push(child)
     return child
+  }
+  replaceChildren(...children) {
+    for (const child of this.children) child.parentNode = null
+    this.children = []
+    for (const child of children) this.appendChild(child)
+    this.textContent = this.children.map(child => child.textContent).join('')
+    this.innerHTML = this.textContent
   }
   insertBefore(child, before) {
     if (child === before) return child

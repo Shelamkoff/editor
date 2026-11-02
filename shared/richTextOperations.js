@@ -12,7 +12,7 @@ export const INLINE_LITERAL_CLASS = 'oe-inline-literal'
 
 /** @param {Node} node */
 function isLiteralInlineText(node) {
-  return Boolean(node.parentElement?.closest?.('span.' + INLINE_LITERAL_CLASS))
+  return Boolean(node.parentElement?.closest?.('span[*|class~="' + INLINE_LITERAL_CLASS + '"]'))
 }
 
 /** Preserve literal "{{id}}" characters separately from actual inline

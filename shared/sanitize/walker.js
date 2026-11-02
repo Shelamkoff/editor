@@ -1,6 +1,7 @@
 import { ALLOWED_TAGS, ALLOWED_ATTRS } from './allowlist.js'
 import { sanitizeUrl } from './sanitizeUrl.js'
 import { sanitizeStyle } from './sanitizeStyle.js'
+import { namespaceContentClass } from './contentClasses.js'
 
 /**
  * Recursively sanitize a DOM subtree in place.
@@ -16,6 +17,18 @@ import { sanitizeStyle } from './sanitizeStyle.js'
  * @param {Node} node
  */
 export function sanitizeSubtree(node) {
+  sanitize(node, false)
+}
+
+/** Sanitize author nodes for a DOM projection, before widget hydration.
+ * @param {Node} node
+ */
+export function sanitizePresentationSubtree(node) {
+  sanitize(node, true)
+}
+
+/** @param {Node} node @param {boolean} presentation */
+function sanitize(node, presentation) {
   let i = 0
 
   while (i < node.childNodes.length) {
@@ -78,7 +91,8 @@ export function sanitizeSubtree(node) {
       continue
     }
 
-    sanitizeSubtree(el)
+    if (presentation) namespaceContentClass(el)
+    sanitize(el, presentation)
     i++
   }
 }

@@ -72,7 +72,7 @@ function caretIn(field) {
 }
 
 /** Run one complete FONT/class template through public editor/renderer APIs. */
-export async function runPresentationValueCase(specification, { sourceBase, legacy = false, typeText, shortcut }) {
+export async function runPresentationValueCase(specification, { sourceBase, legacy = false, explicitContentStyles = false, typeText, shortcut }) {
   const base = new URL(sourceBase, import.meta.url)
   const [{ createEditor }, paragraphModule, { EditorRenderer }] = await Promise.all([
     import(new URL('core/index.js', base).href),
@@ -109,8 +109,9 @@ export async function runPresentationValueCase(specification, { sourceBase, lega
   })
   try {
     const paragraph = legacy ? new paragraphModule.Paragraph() : paragraphModule.createParagraphPlugin()
-    editor = createEditor({ holder, plugins: [paragraph], inlineTools: [], inlinePlugins: [], injectStyles: true, data: documentData })
-    renderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: true })
+    const content = explicitContentStyles ? { contentStyles: [':scope{font-size:20px}:scope span.article-accent,:scope code.article-accent{color:rgb(12,84,156);font-size:1.5em}'] } : {}
+    editor = createEditor({ holder, plugins: [paragraph], inlineTools: [], inlinePlugins: [], injectStyles: true, data: documentData, ...content })
+    renderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: true, ...content })
     const block = id => holder.querySelector(`[data-block-id="${id}"]`)
     const field = () => block('sample').querySelector('[contenteditable="true"]')
     const sentinel = block('sentinel')
@@ -150,7 +151,8 @@ export async function runPresentationValueCase(specification, { sourceBase, lega
       check(phase, 'rendererNeighborMarkup', rendered[1] ? markupMeaning(rendered[1].innerHTML) : null, markupMeaning('<s>Untouched</s>'))
       const css = element => {
         if (!element) return null
-        const sample = element.querySelector(specification.selector)
+        const selector = specification.selector.replace(/\.(article-accent)/g, '[*|class~="$1"]')
+        const sample = element.querySelector(selector)
         return {
           base: parseFloat(getComputedStyle(element).fontSize),
           root: parseFloat(getComputedStyle(document.documentElement).fontSize),

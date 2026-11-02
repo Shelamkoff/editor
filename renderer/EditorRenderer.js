@@ -5,7 +5,8 @@ import { createDefaultRenderers, getSupportedBlockTypes } from './renderers/inde
 import { renderInlineWidgets } from './inlineWidgets.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
-import { acquireStyleUrls } from '../shared/styleRegistry.js'
+import { acquireStyleUrls, acquireContentStyles } from '../shared/styleRegistry.js'
+import { createContentStyleScope, CONTENT_STYLE_OWNER, CONTENT_STYLE_FIELD } from '../shared/contentClassStyles.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 import { documentValidationIssue, markDocumentValidationFailure } from '../shared/documentValidationIssue.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
@@ -136,6 +137,8 @@ export class EditorRenderer {
   /** Automatic stylesheet owners are isolated per owning document. */
   /** @type {Map<Document, { owner: { destroy(): void }, key: string }>} */
   #styleOwners = new Map()
+  /** @type {Readonly<{id:string}> | null} */
+  #contentStyleScope = null
 
   /**
    * @param {import('./types').RendererConfig} [config]
@@ -152,6 +155,7 @@ export class EditorRenderer {
       theme: config.theme ?? 'dark',
       onValidationError: config.onValidationError,
     }
+    if (this.#config.contentStyles.length) this.#contentStyleScope = createContentStyleScope()
     const locale = { ...defaultLocale, ...config.locale }
     this.#renderers = createDefaultRenderers(
       this.#config.classPrefix,
@@ -313,7 +317,7 @@ export class EditorRenderer {
    * @param {Document} ownerDocument
    * @param {object} [validationSource] Original identity, not a signature clone.
    * @param {boolean} [alreadyOwned] Whether JSON was already cloned by this owner.
-   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }}
+   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document }}
    */
   #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block, alreadyOwned = false) {
     // Reject a registered version mismatch before traversing opaque data.
@@ -353,9 +357,16 @@ export class EditorRenderer {
     // Sanitize document HTML first, then mount schema-decoded widget DOM.
     // Package-owned widget attributes must not cross the external HTML sanitizer.
     const baseParser = this.#inlineParserFor(ownerDocument)
-    const inlineParser = renderableBlock.inline && this.#inlineRenderers.size > 0
+    const parse = renderableBlock.inline && this.#inlineRenderers.size > 0
       ? html => renderInlineWidgets(baseParser(html), renderableBlock.inline, this.#inlineRenderers, ownerDocument)
       : baseParser
+    /** @type {{first:ChildNode,last:ChildNode}[]} */
+    const parsedFields = []
+    const inlineParser = this.#contentStyleScope ? html => {
+      const fragment = parse(html)
+      if (fragment.firstChild && fragment.lastChild) parsedFields.push({ first: fragment.firstChild, last: fragment.lastChild })
+      return fragment
+    } : parse
     const element = synchronousResult(renderer.render(renderableBlock, inlineParser, { ownerDocument, contentStyles: this.#config.contentStyles }))
     const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
       ?? ownerDocument.defaultView?.HTMLElement
@@ -384,16 +395,33 @@ export class EditorRenderer {
       if (textAlign) element.style.textAlign = textAlign
       if (block.id) element.dataset.blockId = block.id
       element.dataset.blockType = block.type
+      if (this.#contentStyleScope) {
+        const roots = parsedFields.flatMap(({ first, last }) => {
+          let field = first === element ? element : first.parentElement
+          while (field && !field.contains(last)) field = field.parentElement
+          return field && (field === element || element.contains(field)) ? [{ field, first, last }] : []
+        })
+        if (roots.length) element.setAttribute(CONTENT_STYLE_OWNER, this.#contentStyleScope.id)
+        for (const { field, first, last } of roots) {
+          if (!element.contains(field) || !field.contains(first) || !field.contains(last) || field.ownerDocument !== ownerDocument) {
+            throw new TypeError('Rendered content field left its creating output')
+          }
+          field.setAttribute(CONTENT_STYLE_FIELD, this.#contentStyleScope.id)
+          if (!element.contains(field) || !field.contains(first) || !field.contains(last) || field.ownerDocument !== ownerDocument) {
+            throw new TypeError('Rendered content field left its creating output')
+          }
+        }
+      }
       // HTMLElement attributes may invoke a custom element's synchronous
       // attributeChangedCallback. Another DOM owner can adopt the element
       // after our initial detached check but before these writes finish.
       // Revalidate immediately before returning a node for publication.
       assertRenderedElementOwnership({ element, type: block.type }, ownerDocument)
-      return { element, type: block.type, renderer }
+      return { element, type: block.type, renderer, styleOwnerDocument: ownerDocument }
     } catch (error) {
       // The renderer allocated this element, but decorating it failed.
       // Retire the provisional lease and release its resources exactly once.
-      this.#disposeRenderedElement({ element, type: block.type, renderer })
+      this.#disposeRenderedElement({ element, type: block.type, renderer, styleOwnerDocument: ownerDocument })
       throw error
     }
   }
@@ -445,9 +473,15 @@ export class EditorRenderer {
 
   /**
    * Release resources owned by one rendered block.
-   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }} entry
+   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document }} entry
    */
   #disposeRenderedElement(entry) {
+    try {
+      if (this.#contentStyleScope && entry.element.ownerDocument === entry.styleOwnerDocument
+        && entry.element.getAttribute(CONTENT_STYLE_OWNER) === this.#contentStyleScope.id) {
+        entry.element.removeAttribute(CONTENT_STYLE_OWNER)
+      }
+    } catch (error) { warnRendererFailure('Failed to retire content style scope:', error) }
     try {
       // Cleanup follows the same synchronous extension contract as render().
       // Observe returned thenables so a late rejection never escapes ownership.
@@ -817,14 +851,23 @@ export class EditorRenderer {
 
   /** @param {Document} ownerDocument */
   #ensureStyles(ownerDocument) {
-    if (!this.#config.injectStyles) return
-    const urls = this.getStyleUrls()
+    if (!this.#config.injectStyles && !this.#contentStyleScope) return
+    const urls = this.#config.injectStyles ? this.getStyleUrls() : []
     const key = urls.join('\n')
     const current = this.#styleOwners.get(ownerDocument)
     if (current?.key === key) return
-    const nextOwner = acquireStyleUrls(urls, ownerDocument)
-    current?.owner.destroy()
+    const nextOwner = this.#acquireStyles(urls, ownerDocument)
     this.#styleOwners.set(ownerDocument, { owner: nextOwner, key })
+    current?.owner.destroy()
+  }
+
+  /** @param {readonly string[]} urls @param {Document} ownerDocument */
+  #acquireStyles(urls, ownerDocument) {
+    const ui = acquireStyleUrls(urls, ownerDocument)
+    let content
+    try { content = this.#contentStyleScope ? acquireContentStyles(this.#config.contentStyles, ownerDocument, this.#contentStyleScope) : null }
+    catch (error) { ui.destroy(); throw error }
+    return { destroy() { try { ui.destroy() } finally { content?.destroy() } } }
   }
 
   /** @param {Document} ownerDocument */
@@ -860,7 +903,7 @@ export class EditorRenderer {
    * @returns {{ destroy(): void }}
    */
   injectStyles(ownerDocument = globalThis.document) {
-    return acquireStyleUrls(this.getStyleUrls(), ownerDocument)
+    return this.#acquireStyles(this.getStyleUrls(), ownerDocument)
   }
 }
 

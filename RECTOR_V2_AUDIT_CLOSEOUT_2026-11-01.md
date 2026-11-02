@@ -1,4 +1,14 @@
-# Rector v2 audit closeout — paused at user request
+# Rector v2 audit closeout — active work
+
+## Resumed — 2026-11-02
+
+The user asked to continue after the requested stop below. Remote is fetched
+again and remains `3fcfa866`. The saved inline CSS experiment is restored; its
+stash and exact backup remain intact. C06 selects the explicit application CSS
+and isolated live author-class representation for integration. The focused
+native FONT/class corpus, actual glyph comparison, CSS/native ownership cases
+and ordinary browser suite pass. Broader immutable integration/differential
+proof remains to be completed; acceptance stays **66/209, 143 open**.
 
 ## Requested stop — 2026-11-02
 

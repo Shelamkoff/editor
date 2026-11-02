@@ -2,12 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createPollRenderer } from './index.js'
 import { createPollPlugin } from '../../../plugins/poll/index.js'
+import { plainTextTemplate } from '../../../tests/helpers/plainTextTemplate.js'
 
 // Only the synchronous DOM operations needed by Poll's view builder. Network
 // and disposal assertions below use the real renderer factory, not a mock.
 function ownerDocument() {
   const doc = { defaultView: { AbortController } }
-  doc.createElement = tag => ({
+  doc.createElement = tag => tag === 'template' ? plainTextTemplate(doc) : ({
     tagName: tag, ownerDocument: doc, children: [], style: {}, attributes: {}, dataset: {},
     classList: { add() {}, remove() {}, toggle() {} }, listeners: new Map(),
     setAttribute(name, value) { this.attributes[name] = value },
@@ -19,9 +20,19 @@ function ownerDocument() {
       const parent = this.parentNode
       if (parent) { parent.children.splice(parent.children.indexOf(this), 1); this.parentNode = null }
     },
-    replaceChildren(...children) { this.children = children },
-    append(...children) { this.children.push(...children) },
-    appendChild(child) { this.children.push(child); child.parentNode = this; return child },
+    replaceChildren(...children) {
+      for (const child of this.children) child.parentNode = null
+      this.children = []; this.append(...children)
+    },
+    append(...children) { for (const child of children) this.appendChild(child) },
+    appendChild(child) {
+      if (child.nodeType === 11) {
+        for (const node of [...child.childNodes]) this.appendChild(node)
+      } else {
+        child.remove?.(); this.children.push(child); child.parentNode = this
+      }
+      return child
+    },
     querySelectorAll(selector) {
       const result = []
       const visit = node => {

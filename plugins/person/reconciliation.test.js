@@ -29,6 +29,10 @@ class FakeElement {
   get firstChild() { return this.children[0] ?? null }
 
   appendChild(child) {
+    if (child.nodeType === 11) {
+      for (const node of [...child.childNodes]) this.appendChild(node)
+      return child
+    }
     child.remove()
     child.parentNode = this
     this.children.push(child)
@@ -42,6 +46,7 @@ class FakeElement {
     }
     for (const child of this.children) child.parentNode = null
     this.children = []
+    this._text = ''; this._html = ''
     for (const child of children) this.appendChild(child)
   }
   remove() {
@@ -89,8 +94,8 @@ class FakeElement {
   querySelectorAll(selector) {
     const result = []
     const visit = parent => {
-      for (const child of parent.children) {
-        if (child.matches(selector)) result.push(child)
+      for (const child of parent.children ?? []) {
+        if (child.matches?.(selector)) result.push(child)
         visit(child)
       }
     }

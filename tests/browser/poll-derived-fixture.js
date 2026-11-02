@@ -6,7 +6,7 @@ import { make, blockElement, assert, equal, pause } from './regressions/harness.
 export const optionHtml = '<span class="answer-emphasis" style="font-size:1.5em"><b>Answer</b></span> <i>{{mention}}</i> <s>{{swatch}}</s> tail'
 export const optionText = 'Answer @Ada #123456 tail'
 
-export async function pollDerivedFixture() {
+export async function pollDerivedFixture(options = {}) {
   const inline = [], transactions = []
   const capture = definition => ({ ...definition, setup(runtimeContext) {
     const runtime = definition.setup(runtimeContext)
@@ -24,6 +24,7 @@ export async function pollDerivedFixture() {
     swatch: { type: 'color', dataVersion: 1, data: { value: '#123456' } },
   } }], { defaultBlock: 'poll', inlineTools: [], plugins: [createPollPlugin({ injectStyles: false })],
     inlinePlugins: [capture(createMentionPlugin({ searchFunction: async () => [] })), capture(createColorSwatchPlugin())],
+    ...options,
   })
   editor.on('transaction:committed', event => transactions.push(event))
   await pause(20)
@@ -40,8 +41,8 @@ export async function pollDerivedFixture() {
 export function checkPollDerivedLabel(h, expected = optionText) {
   const result = h.result()
   equal(result.textContent, expected, 'Result label must contain completed option text')
-  equal({ bold: result.querySelector('b')?.textContent, className: result.querySelector('.answer-emphasis')?.className,
-    fontSize: result.querySelector('.answer-emphasis')?.style.fontSize,
+  equal({ bold: result.querySelector('b')?.textContent, className: result.querySelector('span[*|class~="answer-emphasis"]')?.getAttribute('class'),
+    fontSize: result.querySelector('span[*|class~="answer-emphasis"]')?.style.fontSize,
     mention: result.querySelector('i')?.textContent, color: result.querySelector('s')?.textContent,
     widgets: result.querySelectorAll('[data-inline-plugin]').length,
   }, { bold: 'Answer', className: 'answer-emphasis', fontSize: '1.5em',

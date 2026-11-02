@@ -6,7 +6,9 @@ import { getTextOffset } from '../shared/textOffset.js'
 import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { normalizeRichText, canonicalizeRichTextSubtree } from '../shared/richTextCodec.js'
-import { sanitizeSubtree } from '../shared/sanitize/walker.js'
+import { sanitizeSubtree, sanitizePresentationSubtree } from '../shared/sanitize/walker.js'
+import { namespaceContentClass, canonicalizeContentClass } from '../shared/sanitize/contentClasses.js'
+import { CONTENT_STYLE_FIELD } from '../shared/contentClassStyles.js'
 import { ALLOWED_TAGS, ALLOWED_ATTRS } from '../shared/sanitize/allowlist.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
@@ -15,7 +17,7 @@ import { richTextFieldMap, mapRichTextFields, mountedRichFields } from './projec
 import { synchronousResult } from '../shared/synchronousResult.js'
 
 const liveWidgetRoots=new WeakMap()
-const inlineOwnershipBoundary='[data-inline-plugin], [contenteditable], span.oe-inline-literal, button, input, textarea, select, option, [role="button"]'
+const inlineOwnershipBoundary='[data-inline-plugin], [contenteditable], span[*|class~="oe-inline-literal"], button, input, textarea, select, option, [role="button"]'
 
 /** A widget or author Text node belongs to its registered rich field only
  * when the path to that field does not enter another DOM owner. Connectivity
@@ -101,14 +103,16 @@ export class InlineProjectionRuntime {
   /** @type {(blockId:string,fieldKey:string,element:HTMLElement)=>boolean} */
   #preservePendingField
   #destroyed=false
+  #contentStyleScope
 
-  constructor({registry,ownerDocument,readOnly=false,preservePendingField=()=>false}){
+  constructor({registry,ownerDocument,readOnly=false,preservePendingField=()=>false,contentStyleScope=null}){
     if(!registry)throw new TypeError('InlineProjectionRuntime requires an ExtensionRegistry')
     if(!ownerDocument?.createElement)throw new TypeError('InlineProjectionRuntime requires an ownerDocument')
     this.#registry=registry
     this.#ownerDocument=ownerDocument
     this.#readOnly=readOnly===true
     this.#preservePendingField=preservePendingField
+    this.#contentStyleScope=contentStyleScope
   }
 
   reconcileBlock(blockId,record,definition,fields,baseContext,{
@@ -713,6 +717,11 @@ export class InlineProjectionRuntime {
       if(html===undefined)continue
 
       assertFieldBoundary(fieldKey,element)
+      if(this.#contentStyleScope&&element.getAttribute(CONTENT_STYLE_FIELD)!==this.#contentStyleScope.id){
+        element.setAttribute(CONTENT_STYLE_FIELD,this.#contentStyleScope.id)
+        this.#assertLive()
+        assertFieldBoundary(fieldKey,element)
+      }
       if(retained.get(fieldKey)?.element===element){
         // The native owner will settle these occurrences. A sibling tab does
         // not hydrate or retire an in-progress native field.
@@ -740,6 +749,7 @@ export class InlineProjectionRuntime {
         }else if(element.innerHTML!==normalized){
           const template=this.#ownerDocument.createElement('template')
           template.innerHTML=/** @type {any} */(toTrustedHtml(normalized,this.#ownerDocument))
+          sanitizePresentationSubtree(template.content)
           // Release owned roots while their exact author-field ancestry is
           // still provable. Otherwise a formatted root keeps its discarded
           // parent after replaceChildren(), indistinguishable from a root
@@ -825,6 +835,7 @@ export class InlineProjectionRuntime {
         const tag=node.tagName.toLowerCase(),allowed=ALLOWED_ATTRS[tag]
         if(!ALLOWED_TAGS.has(tag)||[...node.attributes].some(attr=>!allowed?.has(attr.name)))return false
         const clone=node.cloneNode(false)
+        canonicalizeContentClass(clone)
         if(!append(node,clone))return false
         target.append(clone)
       }
@@ -888,14 +899,23 @@ export class InlineProjectionRuntime {
   #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live,liveOpaque=new Set(),canonicalOwners=new Map(),assertBoundary=()=>{},decodedWidgets=null){
     let projected=false
     const textNodes=[]
-    const walker=this.#ownerDocument.createTreeWalker(element,4)
+    const walker=this.#ownerDocument.createTreeWalker(element,5)
     let current=walker.nextNode()
     while(current){
       // A source projection can already contain mounted widget labels and
       // auxiliary controls. A literal {{id}} inside those owners must never
       // be interpreted as an authored inline reference: doing so can move
       // the existing widget into a button or even into its own descendant.
-      if(belongsToAuthorField(element,current))
+      if(current.nodeType===1){
+        const author=/** @type {Element} */(current)
+        if((author.localName==='span'||author.localName==='code')
+          &&author.hasAttributeNS(null,'class')
+          &&!author.matches('[data-inline-plugin], [contenteditable], [role="button"]')
+          &&belongsToAuthorField(element,author)){
+          namespaceContentClass(author)
+          assertBoundary()
+        }
+      }else if(belongsToAuthorField(element,current))
         textNodes.push(/** @type {Text} */(current))
       current=walker.nextNode()
     }

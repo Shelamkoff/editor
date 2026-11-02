@@ -1,5 +1,6 @@
-import { sanitizeSubtree } from './walker.js'
+import { sanitizeSubtree, sanitizePresentationSubtree } from './walker.js'
 import { toTrustedHtml } from './trustedHtml.js'
+import { inheritContentStyleField } from './contentClasses.js'
 
 /**
  * Parse an HTML string into an inert template using Rector's private Trusted
@@ -8,12 +9,14 @@ import { toTrustedHtml } from './trustedHtml.js'
  *
  * @param {string} html
  * @param {Document} ownerDocument
+ * @param {boolean} [presentation]
  * @returns {HTMLTemplateElement}
  */
-function sanitizedTemplate(html, ownerDocument) {
+function sanitizedTemplate(html, ownerDocument, presentation = false) {
   const template = ownerDocument.createElement('template')
   template.innerHTML = /** @type {any} */ (toTrustedHtml(String(html || ''), ownerDocument))
-  sanitizeSubtree(template.content)
+  if (presentation) sanitizePresentationSubtree(template.content)
+  else sanitizeSubtree(template.content)
   return template
 }
 
@@ -72,15 +75,16 @@ export function insertTrustedHtml(element, position, html) {
 }
 
 /**
- * Sanitize and replace an element's children through a TrustedHTML sink when
- * Trusted Types are enforced.
+ * Sanitize inert nodes and preserve presentation identity when replacing the
+ * owned target. A template owns its content fragment rather than DOM children.
  * @param {Element} element
  * @param {string} html
  */
 export function setSanitizedHtml(element, html) {
   const ownerDocument = element.ownerDocument ?? globalThis.document
-  const safe = sanitizeHtml(html, ownerDocument)
-  setTrustedHtml(element, safe)
+  const target = element.localName === 'template' ? /** @type {HTMLTemplateElement} */ (element).content : element
+  target.replaceChildren(sanitizedTemplate(html, ownerDocument, true).content)
+  if (target === element) inheritContentStyleField(element)
 }
 
 /**
@@ -93,5 +97,20 @@ export function setSanitizedHtml(element, html) {
 export function insertSanitizedHtml(element, position, html) {
   const ownerDocument = element.ownerDocument ?? globalThis.document
   const safe = sanitizeHtml(html, ownerDocument)
-  insertTrustedHtml(element, position, safe)
+  // Preserve insertAdjacentHTML's context and native position errors while
+  // keeping the class namespace on the actual inserted nodes.
+  const range = ownerDocument.createRange()
+  const parent = element.parentNode
+  const where = position.toLowerCase()
+  const Exception = ownerDocument.defaultView?.DOMException ?? DOMException
+  if (where === 'beforebegin' || where === 'afterend') {
+    if (!parent || parent.nodeType === 9) throw new Exception('No parent permits adjacent insertion', 'NoModificationAllowedError')
+    if (where === 'beforebegin') range.setStartBefore(element)
+    else range.setStartAfter(element)
+  } else if (where === 'afterbegin') range.setStart(element, 0)
+  else if (where === 'beforeend') range.setStart(element, element.childNodes.length)
+  else throw new Exception('Invalid adjacent position', 'SyntaxError')
+  const fragment = range.createContextualFragment(/** @type {any} */ (toTrustedHtml(safe, ownerDocument)))
+  sanitizePresentationSubtree(fragment)
+  range.insertNode(fragment)
 }

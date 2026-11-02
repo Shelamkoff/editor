@@ -1929,7 +1929,7 @@ test('canonical save and replay distinguish literal inline IDs from owned occurr
     equal(replay.length,1,'Undo/replay created a duplicate widget from a literal token')
     assert(replay[0].isConnected && project.resolveWidgetElement(replay[0])===replay[0],
       'Replayed canonical occurrence lost its owned DOM')
-    const remaining=field.querySelector('.oe-inline-literal')
+    const remaining=field.querySelector('span[*|class~="oe-inline-literal"]')
     assert(remaining && remaining.textContent==='{{inline-1}}',
       'Literal reference characters were lost on canonical replay')
   }finally{
@@ -2082,7 +2082,7 @@ test('serializing a literal inline ID split between adjacent formatting wrappers
       {createInlineWidgetContext(){return{}}})
     equal(field.querySelectorAll('[data-inline-plugin="mention"]').length,1,
       'Replay mounted another widget from the formatted literal')
-    assert(field.querySelector('.oe-inline-literal')?.textContent==='{{inline-1}}',
+    assert(field.querySelector('span[*|class~="oe-inline-literal"]')?.textContent==='{{inline-1}}',
       'Replay did not restore the complete formatted author literal')
   }finally{
     projection.destroy()
@@ -2169,7 +2169,7 @@ test('multi-field save protects a literal ID owned by a widget in a sibling rich
 
     projection.reconcileBlock('a',{data:saved.data,inline:saved.inline},
       definition,fields,context)
-    equal(first.querySelector('.oe-inline-literal')?.textContent,'{{inline-1}}')
+    equal(first.querySelector('span[*|class~="oe-inline-literal"]')?.textContent,'{{inline-1}}')
     const replayWidget=second.querySelector('[data-inline-plugin="mention"]')
     assert(replayWidget&&projection.resolveWidgetElement(replayWidget)===replayWidget,
       'Replay of a composite block lost its only inline widget')
