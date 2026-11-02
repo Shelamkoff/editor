@@ -307,6 +307,15 @@ function authoredMarkup(field) {
   return markupMeaning(copy.innerHTML)
 }
 
+function expectedEmbeddedMarkup(html) {
+  const template = document.createElement('template')
+  template.innerHTML = html
+  // The selected current HTML contract requires both protections. Keep the
+  // original source unchanged; historical missing-rel observations stay FAIL.
+  for (const anchor of template.content.querySelectorAll('a')) anchor.setAttribute('rel', 'noopener noreferrer')
+  return markupMeaning(template.innerHTML)
+}
+
 // Author content inside the admitted document is observable only after mount.
 // Historical same-document renderer output retains its original observation.
 function embeddedMarkup(root) {
@@ -660,7 +669,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       slides: block.data.slides.map(slide => ({ tag: 'FIGURE', mediaTag: slide.type === 'image' ? 'IMG' : slide.type === 'video' ? 'VIDEO' : 'DIV',
         ...(slide.type === 'image' ? { src: slide.src, alt: slide.alt, loading: 'lazy' }
           : slide.type === 'video' ? { src: slide.src, poster: slide.poster, controls: true, preload: 'metadata', label: slide.alt }
-            : { html: markupMeaning(slide.html) }),
+            : { html: expectedEmbeddedMarkup(slide.html) }),
         caption: slide.caption ? carouselCaptionMeaning(slide.caption) : null })),
       navigation: block.data.slides.length && block.data.options.navigation
         ? ['Previous slide', 'Next slide'].map(label => ({ label, tag: 'BUTTON' })) : [],
@@ -1387,7 +1396,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           trustedClick: true, counter: `${index + 1} / 3`, tag: slide.type === 'image' ? 'IMG' : slide.type === 'video' ? 'VIDEO' : 'DIV',
           caption: carouselCaptionMeaning(slide.caption),
           videoSize: slide.type === 'video' ? { width: 16, height: 16, controls: true, preload: 'metadata' } : null,
-          html: slide.type === 'html' ? markupMeaning(slide.html) : null,
+          html: slide.type === 'html' ? expectedEmbeddedMarkup(slide.html) : null,
           dataUnchanged: true, history: { canUndo: false, canRedo: false },
         })
       }

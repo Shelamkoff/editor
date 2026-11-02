@@ -56,13 +56,13 @@ function records({ legacy, populated, rich, wrapped, edited, id, canonical = fal
     record('suffix', 'paragraph', 2, { text: canonical ? [mark('i', 'After')] : '<i>After</i>' })]
 }
 
-const rendered = values => [[mark('b', 'Before')], {
+const rendered = (values, safeRel = false) => [[mark('b', 'Before')], {
   label: 'Content carousel', aspectRatio: '', fixedRatio: false,
   slides: [
     { tag: 'FIGURE', mediaTag: 'IMG', src: pixel, alt: 'First <&> image', loading: 'lazy', caption: values[0] },
     { tag: 'FIGURE', mediaTag: 'VIDEO', src: video, poster: pixel, controls: true, preload: 'metadata', label: 'Second & video', caption: values[1] },
     { tag: 'FIGURE', mediaTag: 'DIV', html: [{ tag: 'section', attributes: {}, children: [mark('h3', 'Local & HTML'),
-      { tag: 'p', attributes: {}, children: [{ tag: 'a', attributes: { href: 'https://example.test/more' }, children: ['More'] }] }] }], caption: values[2] },
+      { tag: 'p', attributes: {}, children: [{ tag: 'a', attributes: { href: 'https://example.test/more', ...(safeRel ? { rel: 'noopener noreferrer' } : {}) }, children: ['More'] }] }] }], caption: values[2] },
   ],
   navigation: ['Previous slide', 'Next slide'].map(label => ({ label, tag: 'BUTTON' })),
   pagination: [0, 1, 2].map(index => ({ label: 'Go to page ' + (index + 1), current: index ? 'false' : 'page' })),
@@ -99,6 +99,20 @@ export function classifyCarouselDifference(source, entry, failure) {
   if (failure.status !== 'FAIL' || !observedPhases.includes(failure.phase)) return null
   const matches = (actual, expected) => same(failure.actual, actual) && same(failure.expected, expected)
   const edited = editedPhase(failure.phase)
+
+  if (populated && ['detachedAuthoredMarkup', 'attachedDetachedAuthoredMarkup', 'mountedAuthoredMarkup'].includes(failure.property)) {
+    const canonicalCaptions = captions({ ...context, edited, canonical: true })
+    if (matches(rendered(canonicalCaptions), rendered(canonicalCaptions, true))) return 'repaired-html-link-rel'
+    if (!legacy && matches(rendered(captions({ ...context, edited }).map(caption => [caption])), rendered(canonicalCaptions, true))) {
+      return 'repaired-baseline-carousel-caption-and-html-rel'
+    }
+  }
+  if (populated && failure.phase === 'editable-again' && failure.property === 'carouselViewNavigation:html') {
+    const view = safeRel => ({ trustedClick: true, counter: '3 / 3', tag: 'DIV', caption: ['HTML & caption'], videoSize: null,
+      html: rendered(captions({ ...context, edited, canonical: true }), safeRel)[1].slides[2].html,
+      dataUnchanged: true, history: { canUndo: false, canRedo: false } })
+    if (matches(view(false), view(true))) return 'repaired-html-link-rel'
+  }
 
   if (legacy) {
     const remount = ['read-only', 'editable-again', ...(populated ? ['undo', 'redo'] : [])].includes(failure.phase)

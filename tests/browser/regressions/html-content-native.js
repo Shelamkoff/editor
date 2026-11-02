@@ -3,6 +3,7 @@ import { createRawPlugin } from '../../../plugins/raw/index.js'
 import { createCarouselPlugin } from '../../../plugins/carousel/index.js'
 import { EditorRenderer } from '../../../renderer/index.js'
 import { waitForEmbeddedDocument } from '../embedded-html-helpers.js'
+import { clickNative, dispatchKey } from '../native-input-helpers.js'
 import { test, assert, equal, pause, run } from './harness.js'
 
 const surfaces = [['Raw editor', 'raw', true], ['Raw renderer', 'raw', false],
@@ -115,6 +116,67 @@ for (const [name, type, editing] of surfaces) test(`${name}: a live trusted link
       equal(location.hash, '#live-host-navigation', 'The live link was suppressed or forced into a different target')
     })
   } finally { history.replaceState(null, '', originalUrl) }
+})
+
+async function clickContent(frame, element) {
+  frame.scrollIntoView({ block: 'start' }); await pause(40)
+  const outer = frame.getBoundingClientRect(), inner = element.getBoundingClientRect()
+  await window.__testInput('Input.click', { x: outer.left + inner.left + inner.width / 2, y: outer.top + inner.top + inner.height / 2 })
+}
+
+for (const [name, type, editing] of surfaces) test(`${name}: a real trusted download preserves the application Blob and filename`, async () => {
+  const bytes = [0, 65, 255, 10], filename = 'content Ω.bin'
+  const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: 'application/octet-stream' }))
+  try {
+    await mounted(type, editing, `<a href="${url}" download="${filename}">Download authored content</a>`, async (frame, child) => {
+      let trusted = false
+      child.defaultView.addEventListener('click', event => { trusted = event.isTrusted }, { once: true, capture: true })
+      const link = child.querySelector('a')
+      equal(link.getAttribute('href'), url)
+      await clickContent(frame, link)
+      equal(await window.__testInput('Download.take', {}), { name: filename, bytes })
+      assert(trusted)
+    })
+    // A bare native download also proves the caller's URL remains live. Fetch
+    // would need a separate connect-src blob: grant under this fixture's CSP.
+    const reference = document.createElement('a'); reference.href = url; reference.download = 'caller-owned-control.bin'
+    reference.textContent = 'Caller-owned download control'; document.body.append(reference)
+    try {
+      await clickNative(reference)
+      equal(await window.__testInput('Download.take', {}), { name: 'caller-owned-control.bin', bytes })
+    } finally { reference.remove() }
+  } finally { URL.revokeObjectURL(url) }
+})
+
+for (const [name, type, editing] of surfaces) test(`${name}: scriptless content retains actual native video playback and retires it`, async () => {
+  const response = await fetch('/tests/browser/carousel-roundtrip-16x16.webm')
+  assert(response.ok)
+  const url = URL.createObjectURL(await response.blob())
+  try {
+    await mounted(type, editing, `<video src="${url}" controls muted loop playsinline width="320" height="180"></video>`, async (frame, child, retire) => {
+      const video = child.querySelector('video'), deadline = performance.now() + 3000
+      while (video.readyState < 2) {
+        assert(performance.now() < deadline && !video.error, 'Native video did not decode')
+        await pause(10)
+      }
+      let trusted = false
+      child.defaultView.addEventListener('keydown', event => { trusted ||= event.isTrusted && event.code === 'Space' }, { capture: true })
+      video.focus()
+      await dispatchKey(' ', 'Space', 32)
+      await pause(100)
+      assert(trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')
+      retire(); await pause(50)
+      assert(video.paused, 'Retired child content kept playing its native media')
+    })
+    const reference = document.createElement('video'); reference.src = url; reference.preload = 'auto'; document.body.append(reference)
+    try {
+      const deadline = performance.now() + 3000
+      while (reference.readyState < 2) {
+        assert(performance.now() < deadline && !reference.error, 'Disposal revoked caller-owned video bytes')
+        await pause(10)
+      }
+    } finally { reference.remove() }
+  } finally { URL.revokeObjectURL(url) }
 })
 
 await run()

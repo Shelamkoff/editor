@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
-import { extname, join, resolve } from 'node:path'
+import { extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { classifyLinkPollDifference, linkPollCaseIds } from './link-poll-roundtrip-classifiers.mjs'
 import { classifyGalleryDifference, galleryCaseIds } from './gallery-roundtrip-classifiers.mjs'
@@ -438,13 +438,19 @@ const server = createServer(async (request, response) => {
       const relative = pathname.slice(source ? source.label.length + 2 : '/dependencies/'.length)
       const root = source?.root ?? dependencyRoot
       const path = resolve(root, relative)
-      assert(path.startsWith(resolve(root) + '/'), 'Fixture URL escaped its source root')
-      const bytes = await readFile(path)
+      assert(path.startsWith(resolve(root) + sep), 'Fixture URL escaped its source root')
+      const checkoutBytes = await readFile(path)
+      let bytes = checkoutBytes
       if (source) {
-        assert.deepEqual(bytes, git('show', `${source.sha}:${relative}`), `${source.label}/${relative} differs from its pinned Git source`)
+        bytes = git('show', `${source.sha}:${relative}`)
+        if (!checkoutBytes.equals(bytes)) {
+          assert(['.js', '.mjs', '.css'].includes(extname(relative)), 'Non-text source bytes differ: ' + relative)
+          assert.equal(checkoutBytes.toString('utf8').replace(/\r\n/g, '\n'), bytes.toString('utf8').replace(/\r\n/g, '\n'),
+            `${source.label}/${relative} differs from pinned Git source beyond checkout newline conversion`)
+        }
         source.loaded[relative] = digest(bytes)
       } else dependencyFiles[relative] = digest(bytes)
-      loaded.set(pathname, { bytes, path })
+      loaded.set(pathname, { bytes, path, checkoutBytes })
     }
     response.end(loaded.get(pathname).bytes)
   } catch (error) {
@@ -724,7 +730,7 @@ try {
     results.push({ source: source.label, cases, errors, pageErrors })
     await page.close()
   }
-  for (const { bytes, path } of loaded.values()) assert.deepEqual(await readFile(path), bytes, 'Source changed during probe: ' + path)
+  for (const { checkoutBytes, path } of loaded.values()) assert.deepEqual(await readFile(path), checkoutBytes, 'Source changed during probe: ' + path)
   assert.deepEqual(await readFile(fixturePath), fixtureBytes, 'The browser fixture changed during its probe')
   assert.deepEqual(await readFile(carouselMediaPath), carouselMediaBytes, 'The local Carousel video fixture changed during its probe')
   assert.equal(digest(await readFile(fileURLToPath(import.meta.url))), sourceSha256, 'The runner changed during its probe')

@@ -151,3 +151,51 @@ glyph PNG exactly matches the benign native control. This is promising C06
 research, with no production inline policy or B-STYLE acceptance. The CSS
 selector compiler, scope/lifetime integration and broader formatting/selection
 proof remain to be done.
+
+## Immutable preservation replay and native media
+
+The remote branch was fetched again after local production commit
+`0bedf9a4c1f8ffb85ce508229c2299a0d174408e`; it remains at `3fcfa866`.
+Nothing is pushed or released. Raw source/preview replay on that immutable
+production completes all 21 cases per source: v1 has 226 raw failures, baseline
+30, current zero; all cases complete and caller/source identities remain intact.
+Raw ROUNDTRIP then completes both cases on each source, with 346 current
+observations and zero unexpected differences. Historical differences stay raw.
+
+The Windows ROUNDTRIP server initially rejected all source paths because its
+containment check hardcoded `/`. It now uses the platform path separator and
+serves exact Git module bytes after verifying each selected archive/checkout;
+only JS/MJS/CSS checkout CRLF/LF conversion is permitted. End checks still
+compare every working file byte for byte with its captured original.
+
+The first Carousel replay correctly flags 39 current differences: the existing
+oracle omitted the newly required `noopener noreferrer`. The protection is
+retained. Expected embedded markup now independently requires both rel tokens.
+Only exact observed historical missing-rel combinations receive a repaired
+difference classification; candidate failures never do. The four-case replay
+passes with all 718 current observations and no incomplete current phases.
+Historical v1 raw failure counts are 4/28/58/58; baseline 0/19/7/7 retains both
+incomplete rich-widget cases. Existing and fresh classifier sensitivity runs
+pass (123 and 181 classified historical failures respectively), including
+candidate-source, altered data/expectation/phase/identity/mode and unrelated
+error rejection. The original failing replay is retained.
+
+The production native HTML page now passes **28** cases. Four real Blob
+downloads preserve exact filenames/bytes; a second independent bare native
+download proves each caller-owned URL survived disposal. Four actual native
+Space actions play video inside scriptless content; disposing the surface
+pauses it, and independent native video decoding proves the caller's URL was
+not revoked. Saved author data is checked unchanged for every surface.
+The first added fixture incorrectly tried fetching Blob URLs under a CSP
+without `connect-src blob:` and assumed a video center click was its play
+control. Those are retained fixture failures, not product RED. Final native
+controls use the original CSP and browser-owned downloads/video decoding;
+no fetch permission or sandbox grant is added.
+
+Raw replay artifacts: `raw-source-preview-0bedf9a4.json` and
+`raw-roundtrip-portable-runner.json`. Carousel replay:
+`carousel-roundtrip-protected-links.json`, with both sensitivity logs. Native:
+`html-native-downloads-video-controls.log`. They live in the ignored dated
+closeout directory and retain their actual runner/fixture/runtime identities.
+The following integration run must include these new fixture/oracle bytes.
+No additional preservation row or B-HTML/B-STYLE closure is claimed.

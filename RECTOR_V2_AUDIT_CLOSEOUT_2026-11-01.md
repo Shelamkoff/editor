@@ -223,6 +223,39 @@ Carousel ROUNDTRIP immutable comparisons; finish actual media/download/control,
 resources/CSS-family/accessibility proof; implement and verify the separately
 selected inline class mechanism only after its complete CSS/lifetime decision.
 
+### Production checkpoint and immutable replay
+
+Production HTML integration, including observer-failure cleanup, is committed
+locally as `0bedf9a4c1f8ffb85ce508229c2299a0d174408e`. A fresh origin fetch
+still finds `3fcfa866`; no remote changes, push or release. Raw source/preview
+executes all21 cases/source: v1 226 raw failures, baseline30, candidate0;
+all complete. Raw ROUNDTRIP completes both current cases/346 observations with
+no unexpected differences. Windows archive path containment and Git byte
+serving are corrected in the separate test-runner continuation.
+
+Carousel's first replay finds39 differences, all attributable to newly required
+rel protection omitted by the old expected markup. Retain the improvement.
+The independent oracle now requires noopener/noreferrer; only exact historical
+missing-rel combinations receive a repaired classification. Four current cases/
+718 observations pass completely; historical failures and two incomplete
+baseline widget cases remain explicit. Old/fresh classifier sensitivity runs
+pass with123/181 classified failures, rejecting candidate exceptions and altered
+data/identity/mode/phase/expected values. No new preservation row is accepted.
+
+All28 native HTML cases pass: previous20 plus four actual completed Blob
+downloads and four actual native video playback/disposal controls. Independent
+bare downloads and video decoding prove caller-owned Blob URLs remain live.
+The first fixture's Blob fetch was disallowed by existing connect-src policy,
+and a video center click was not its native play control; those are fixture
+failures, not product RED. Final tests retain the original CSP and use trusted
+Space plus independent browser controls. Source/history/caller data stay exact.
+
+Next freeze and complete the integration matrix on the committed packet,
+including the full native matrix with new progress diagnostics. Then finish
+C05 fixed-ratio/mixed controls, resources/credentials, CSS-family/realm/failure/
+accessibility proof and C06 selector/style-lifetime integration. Still66/209
+accepted and143 open; the complete audit goal remains active.
+
 ## Accepted user decision
 
 On 2026-11-01 the user selected **explicit application-owned content styles and
