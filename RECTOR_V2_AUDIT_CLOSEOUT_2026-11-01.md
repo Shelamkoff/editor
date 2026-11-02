@@ -2,6 +2,36 @@
 
 ## Resumed — 2026-11-02
 
+Latest implementation is `906e3dbf`; `68b7c913` changes only two HTML-ready
+observations. Remote was fetched again and remains `3fcfa866` (no incoming
+commits). Register acceptance is still **66/209, 143 open** pending final
+integration; no push or release.
+
+The enforced fullPreset budget now passes at 96.0 KiB gzip, preserving the
+96 KiB limit and immediate application upload callbacks. The first deferred
+Gallery upload introduced a real cold-drop regression; `8761946d` repairs it
+without weakening either original drop assertion. All 37 loading/retirement
+controls and 11 uploader checks pass.
+
+Isolated C09/T15 evidence compares `8761946d` with `906e3dbf`: identical 184-module
+graphs except `InlineProjectionRuntime`. It passes 74 controls, 56 timing and 56
+attribution groups, 14 memory observations and independent source/trace/profile
+review. The [checkpoint](scripts/parity/checkpoints/2026-11-02/core-prepared-fields/README.md)
+retains slower sub-metrics as well as the large-structure improvements.
+The [renderer error matrix](scripts/parity/checkpoints/2026-11-02/renderer-errors/README.md)
+passes 348 cases / 6918 observations per source on current/specification/parent,
+with all v1 differences retained. It adds no acceptance before integration.
+
+`run-hjYzYh` remains failed (13/14 gates, Gallery's first remote drop).
+`run-qoqb4j` remains failed (15/16 gates, three Carousel common cases observing
+the private empty iframe document before author projection). Raw's independent
+replay exposes the same observation race once. The test-only readiness correction
+waits for actual benign author nodes while retaining explicit empty Raw cases
+and every prior expected value. Four Carousel cases pass; Raw completes all
+21 cases / 1421 current observations with zero differences, versus the unchanged
+226/30 historical failures. A new common run is required; neither failed run
+is relabelled.
+
 The selected C06 style boundary is now accepted on immutable `7a77b7aa`:
 `run-uxve4N` passes all eleven gates with unchanged source, including 2757
 native cases / 50 groups, 33 style cases, 72 navigation comparisons, heap,
@@ -9,9 +39,9 @@ installed package and site. Git-byte FONT replay has no unexpected differences;
 review verifies 1584 observations and 471 module records, plus two rejected
 evidence corruptions. **B-STYLE closes only for this selected contract/scope.**
 Register acceptance remains **66/209, 143 open**. B-HTML and full C09/T15 remain
-open. Current bundle reporting measures fullPreset at 98.8 KiB gzip versus its
-96 KiB enforced budget; the informational core target is also unmet. Preserve
-features while addressing measured work/bundle issues. No push/release.
+open. The initial bundle report measured fullPreset at 98.8 KiB gzip versus its
+96 KiB enforced budget; the later repair is recorded above. The informational
+core target remains unmet. No push/release.
 
 The user asked to continue after the requested stop below. Remote is fetched
 again and remains `3fcfa866`. The saved inline CSS experiment is restored; its
