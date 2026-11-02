@@ -71,19 +71,28 @@ export function mountEmbeddedHtml(container, html, options = {}) {
     parent = ownerDocument.defaultView
     if (!parent || !sameContainer()) { automaticDestroy(); return }
     accepted = frame.contentDocument
+    /** @type {MutationObserver | null} */
+    let observer = null
     try {
-      ownershipObserver = new parent.MutationObserver(records => {
+      // Keep a returned resource provisional across reentrant platform calls.
+      // A retired owner cannot accept a constructor/observe result afterward.
+      observer = new parent.MutationObserver(records => {
         if (!sameContainer() || records.some(record => Array.from(record.removedNodes).includes(frame))) automaticDestroy()
       })
-      ownershipObserver.observe(container, { childList: true })
+      if (!owns()) { observer.disconnect(); automaticDestroy(); return }
+      observer.observe(container, { childList: true })
+      if (!owns()) { observer.disconnect(); automaticDestroy(); return }
+      ownershipObserver = observer
     } catch {
+      try { observer?.disconnect() } catch { /* Preserve the initialization failure. */ }
+      if (!live) return
       try { destroy() } catch { /* Preserve the initialization failure. */ }
       notifyFailure()
       return
     }
     void import('./embeddedHtmlDocument.js').then(({ initializeEmbeddedDocument }) => {
       if (!owns()) { automaticDestroy(); return }
-      initializeEmbeddedDocument({ frame, container, accepted, ownerDocument, parent,
+      initializeEmbeddedDocument({ frame, accepted, ownerDocument, parent,
         html, contentStyles, minimumHeight, owns,
         registerCleanup: cleanup => { documentCleanup = cleanup } })
       if (owns()) settleReady(true)

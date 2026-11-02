@@ -10,7 +10,7 @@ import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
-import { ImageUploader } from './uploader.js'
+import { uploadImageFile } from './remoteUpload.js'
 import { CSS } from './css.js'
 import { ICON, ICON_SELECT, ICON_SETTINGS, ICON_REPLACE, ICON_TRASH, ICON_UPLOAD, ICON_URL, ICON_BACK, ICON_CHEVRON_RIGHT } from './icons.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
@@ -23,6 +23,23 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
 /** @typedef {{url:string,alt?:string}} ImageSourceResult */
 /** @typedef {(file:File,context:{signal:AbortSignal})=>Promise<ImageSourceResult>} ImageUpload */
 /** @typedef {(context:{signal:AbortSignal})=>Promise<ImageSourceResult|null>} ImageSourceHandler */
+
+/** Resolve local-file code only when the existing source task requests it.
+ * @param {ImageUpload | undefined} uploadFile
+ * @param {File} file
+ * @param {(result:ImageSourceResult)=>void} onResolve
+ * @param {AbortSignal} signal
+ * @param {Document} ownerDocument
+ * @returns {Promise<void>}
+ */
+async function resolveImageFile(uploadFile,file,onResolve,signal,ownerDocument){
+  if(signal.aborted)return
+  if(uploadFile)return uploadImageFile(uploadFile,file,onResolve,signal,ownerDocument)
+  let module
+  try{module=await import('./uploader.js')}
+  catch{return}
+  return new module.ImageUploader({}).handle(file,onResolve,signal,ownerDocument)
+}
 
 
 function imageLabel(key,fallback){return Object.freeze({key,fallback})}
@@ -191,9 +208,8 @@ export function createImagePlugin(config={}){
           return url?{kind:/** @type {'block'} */('block'),data:{...imageDataSchema.createDefault(),file:{url}}}:null
         }
         if(input.kind!=='file'||!isSupportedImageFile(input.file))return null
-        const uploader=new ImageUploader(snapshot)
         const box={value:/** @type {ImageSourceResult|null} */(null)}
-        await uploader.handle(input.file,value=>{box.value=value},context.signal,context.ownerDocument)
+        await resolveImageFile(snapshot.uploadFile,input.file,value=>{box.value=value},context.signal,context.ownerDocument)
         const result=box.value
         if(context.signal.aborted||!result||!result.url)return null
         return {
@@ -217,7 +233,6 @@ export function createImagePlugin(config={}){
     capabilities,
     setup(runtimeContext){
       let destroyed=false
-      const uploader=new ImageUploader(snapshot)
       return {
         create(initial,context){
           if(destroyed)throw new Error('Image runtime is destroyed')
@@ -417,7 +432,7 @@ export function createImagePlugin(config={}){
             const task=beginTask()
             wrapper.classList.add(CSS.loading)
             try{
-              await uploader.handle(file,result=>finishSource(task,result),task.task.signal,document)
+              await resolveImageFile(snapshot.uploadFile,file,result=>finishSource(task,result),task.task.signal,document)
             }finally{
               task.task.cancel()
               if(currentTask===task.task)currentTask=null

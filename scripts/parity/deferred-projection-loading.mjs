@@ -14,6 +14,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const paths = ['scripts/parity/deferred-projection-loading.mjs', 'shared/embeddedHtml.js',
   'shared/embeddedHtmlDocument.js', 'shared/rebaseContentViewport.js', 'shared/galleryMasonry.js',
   'shared/sanitize/sanitizeRawHtml.js', 'plugins/gallery/index.js', 'plugins/gallery/uploader.js', 'plugins/gallery/remoteUpload.js',
+  'plugins/image/index.js', 'plugins/image/uploader.js', 'plugins/image/remoteUpload.js',
   'plugins/raw/index.js', 'plugins/carousel/index.js', 'renderer/EditorRenderer.js', 'package-lock.json']
 const sourceHashes = Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(resolve(root, path)))])))
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim()
@@ -267,6 +268,114 @@ try {
         results.push({ type: 'gallery-remote', action, observation, status: 'PASS' })
       }
       assert.equal(requestCount(), 0, 'Remote uploads acquired the optional local FileReader module')
+    } finally { await page.close() }
+  }
+  for (const route of ['file', 'paste']) for (const action of ['live', 'retire', 'fail']) {
+    const { page, release, request } = await heldPage('plugins/image/uploader.js')
+    try {
+      await page.evaluate(async route => {
+        const { createEditor } = await import('/core/index.js')
+        const { createImagePlugin } = await import('/plugins/image/index.js')
+        const plugin = createImagePlugin(), holder = document.createElement('section'); document.body.append(holder)
+        const editor = createEditor({ holder, plugins: [plugin], data: { version: '2.0.0', blocks: [{
+          id: 'image', type: 'image', dataVersion: 1, data: { file: { url: '' }, caption: '' },
+        }] } })
+        let readers = 0
+        const Reader = window.FileReader
+        window.FileReader = class extends Reader { constructor() { super(); readers++ } }
+        const controller = new AbortController()
+        window.probe = { editor, holder, controller, wrapper: holder.querySelector('.oe-image'), readers: () => readers,
+          destroy: () => { controller.abort(); editor.destroy() } }
+        if (route === 'paste') {
+          const p = window.probe, file = new File(['image'], 'one.png', { type: 'image/png' })
+          p.operation = plugin.capabilities.paste.resolve({ kind: 'file', file }, {
+            signal: controller.signal, ownerDocument: document, createId: () => 'paste-image',
+          })
+        }
+      }, route)
+      if (route === 'file') {
+        const chosen = page.waitForEvent('filechooser')
+        await page.locator('.oe-image__select-link').first().click()
+        await (await chosen).setFiles({ name: 'one.png', mimeType: 'image/png', buffer: Buffer.from('image') })
+      }
+      await Promise.race([request, new Promise((_, reject) => setTimeout(() => reject(Error('Image local-file module was not requested')), 5000))])
+      assert.equal(await page.evaluate(() => window.probe.readers()), 0)
+      if (action === 'retire') await page.evaluate(() => window.probe.destroy())
+      release(action === 'fail' ? 'fail' : 'load')
+      if (route === 'file' && action === 'live') await page.waitForFunction(() => window.probe.editor.save().blocks[0].data.file.url)
+      else if (route === 'file') await page.waitForTimeout(180)
+      const observation = await page.evaluate(async ({ route, action }) => {
+        const p = window.probe, resolved = route === 'paste' ? await p.operation : null
+        const data = route === 'paste' ? resolved?.data : action === 'retire' ? null : p.editor.save().blocks[0].data
+        const result = { readers: p.readers(), loading: p.wrapper.classList.contains('oe-image--loading'),
+          url: data?.file.url ?? null, caption: data?.caption ?? null, resolved: !!resolved }
+        p.destroy(); return result
+      }, { route, action })
+      assert.equal(observation.readers, action === 'live' ? 1 : 0)
+      assert.equal(observation.loading, false)
+      assert.equal(observation.url, action === 'live' ? 'data:image/png;base64,aW1hZ2U=' : route === 'file' && action === 'fail' ? '' : null)
+      if (action === 'live') assert.equal(observation.caption, '')
+      if (route === 'paste') assert.equal(observation.resolved, action === 'live')
+      results.push({ type: 'image-local', route, action, observation, status: 'PASS' })
+    } finally { release('load'); await page.close() }
+  }
+  for (const action of ['file', 'retire', 'paste']) {
+    const { page, release, requestCount } = await heldPage('plugins/image/uploader.js')
+    release('fail')
+    try {
+      await page.evaluate(async action => {
+        const { createEditor } = await import('/core/index.js')
+        const { createImagePlugin } = await import('/plugins/image/index.js')
+        let calls = 0, signal, finish
+        const plugin = createImagePlugin({ uploadFile: (_file, context) => {
+          calls++; signal = context.signal
+          const result = { url: '/remote-upload.gif', alt: 'Uploaded caption' }
+          return action === 'retire' ? new Promise(resolve => { finish = () => resolve(result) }) : Promise.resolve(result)
+        } })
+        const holder = document.createElement('section'); document.body.append(holder)
+        const input = { version: '2.0.0', blocks: [{ id: 'image', type: 'image', dataVersion: 1, data: { file: { url: '' }, caption: '' } }] }
+        const before = JSON.stringify(input), editor = createEditor({ holder, plugins: [plugin], data: input })
+        window.probe = { editor, plugin, input, before, counts: () => calls, aborted: () => signal.aborted,
+          finish: () => finish(), destroy: () => editor.destroy() }
+      }, action)
+      if (action === 'paste') {
+        const observation = await page.evaluate(async () => {
+          const p = window.probe, controller = new AbortController(), file = new File(['image'], 'one.png', { type: 'image/png' })
+          const context = { signal: controller.signal, ownerDocument: document, createId: () => 'paste-image' }
+          const operation = p.plugin.capabilities.paste.resolve({ kind: 'file', file }, context)
+          const synchronousCalls = p.counts(), resolved = await operation
+          controller.abort()
+          const cancelled = await p.plugin.capabilities.paste.resolve({ kind: 'file', file }, context)
+          p.destroy()
+          return { synchronousCalls, calls: p.counts(), cancelled, file: resolved.data.file, caption: resolved.data.caption }
+        })
+        assert.equal(observation.synchronousCalls, 1)
+        assert.equal(observation.calls, 1)
+        assert.equal(observation.cancelled, null)
+        assert.deepEqual(observation.file, { url: '/remote-upload.gif' })
+        assert.equal(observation.caption, 'Uploaded caption')
+        results.push({ type: 'image-remote', action, observation, status: 'PASS' })
+      } else {
+        const chosen = page.waitForEvent('filechooser')
+        await page.locator('.oe-image__select-link').first().click()
+        await (await chosen).setFiles({ name: 'one.png', mimeType: 'image/png', buffer: Buffer.from('image') })
+        assert.equal(await page.evaluate(() => window.probe.counts()), 1, 'The Image provider was postponed behind local-file code')
+        if (action === 'retire') { await page.evaluate(() => { window.probe.destroy(); window.probe.finish() }); await page.waitForTimeout(40) }
+        else await page.waitForFunction(() => window.probe.editor.save().blocks[0].data.file.url)
+        const observation = await page.evaluate(action => {
+          const p = window.probe
+          const result = { calls: p.counts(), inputUnchanged: p.before === JSON.stringify(p.input), aborted: p.aborted(),
+            data: action === 'retire' ? null : p.editor.save().blocks[0].data }
+          p.destroy(); return result
+        }, action)
+        assert.equal(observation.calls, 1)
+        assert.equal(observation.inputUnchanged, true)
+        assert.equal(observation.aborted, action === 'retire')
+        assert.equal(observation.data?.file.url ?? null, action === 'retire' ? null : '/remote-upload.gif')
+        if (action !== 'retire') assert.equal(observation.data.caption, 'Uploaded caption')
+        results.push({ type: 'image-remote', action, observation, status: 'PASS' })
+      }
+      assert.equal(requestCount(), 0, 'Remote Image upload acquired optional FileReader code')
     } finally { await page.close() }
   }
   for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(hash(await readFile(resolve(root, path))), expected, 'Source changed: ' + path)

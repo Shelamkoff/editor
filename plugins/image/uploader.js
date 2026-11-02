@@ -1,4 +1,5 @@
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { uploadImageFile } from './remoteUpload.js'
 
 /**
  * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} UploadFn
@@ -42,17 +43,7 @@ export class ImageUploader {
    * @returns {Promise<void>}
    */
   async #uploadRemote(file, onResolve, signal, ownerDocument) {
-    if (!this.#uploadFn) return
-    try {
-      const AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
-      const result = await this.#uploadFn(file, { signal: signal ?? new AbortControllerCtor().signal })
-      const url = sanitizeMediaUrl(result?.url || '')
-      if (!signal?.aborted && url) {
-        onResolve({ url, alt: typeof result?.alt === 'string' ? result.alt : undefined })
-      }
-    } catch {
-      // Upload failed or was cancelled; keep the current image data.
-    }
+    await uploadImageFile(this.#uploadFn, file, onResolve, signal, ownerDocument)
   }
 
   /**

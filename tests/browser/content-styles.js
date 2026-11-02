@@ -1,3 +1,4 @@
+import './embedded-html-acquisition-fixture.js'
 import { createEditor } from '../../core/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { createRawPlugin } from '../../plugins/raw/index.js'

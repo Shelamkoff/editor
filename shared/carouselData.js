@@ -1,4 +1,3 @@
-import { sanitizeRawHtml } from './sanitize/sanitizeRawHtml.js'
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
 
 /**

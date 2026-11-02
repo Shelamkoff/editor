@@ -5,7 +5,7 @@ import { rebaseViewportUnits } from './rebaseContentViewport.js'
 
 /** Document behavior for the existing iframe owner, loaded only at its already
  * asynchronous first-document admission. No second lifecycle or authority store.
- * @param {{frame:HTMLIFrameElement,container:HTMLElement,accepted:Document,
+ * @param {{frame:HTMLIFrameElement,accepted:Document,
  * ownerDocument:Document,parent:Window & typeof globalThis,html:string,
  * contentStyles:readonly string[],minimumHeight:number,owns:()=>boolean,
  * registerCleanup:(cleanup:()=>void)=>void}} context
@@ -56,6 +56,7 @@ export function initializeEmbeddedDocument(context) {
     // Distinct native axes let vi/vb retain per-consumer CSS resolution. A
     // square natural result gets one un-clipped CSS pixel of additional flow.
     if (Math.abs(width - height) < 1) height = Math.ceil(width) + 1
+    if (!owns()) return
     if (frame.style.height !== height + 'px') {
       frame.style.height = height + 'px'
       refresh()
@@ -72,23 +73,33 @@ export function initializeEmbeddedDocument(context) {
     // content. Natural body flow still determines the complete frame height.
     accepted.documentElement.style.setProperty('overflow-y', 'hidden', 'important')
     frame.getBoundingClientRect()
+    if (!owns()) return
     if (Math.abs(accepted.defaultView.innerWidth - accepted.defaultView.innerHeight) < 1) {
       frame.style.height = Math.ceil(accepted.defaultView.innerWidth) + 1 + 'px'
       frame.getBoundingClientRect()
     }
     const viewport = { width: parent.innerWidth, height: parent.innerHeight,
       nativeWidth: accepted.defaultView.innerWidth, nativeHeight: accepted.defaultView.innerHeight }
-    for (const [element, source] of inlineStyles) element.style.cssText = rebaseViewportUnits(source, viewport)
-    accepted.adoptedStyleSheets = styles.map(({ sheet: source, queries }) => {
+    for (const [element, source] of inlineStyles) {
+      if (!owns()) return
+      element.style.cssText = rebaseViewportUnits(source, viewport)
+    }
+    const preparedSheets = []
+    for (const { sheet: source, queries } of styles) {
+      if (!owns()) return
       // Resolve the original condition in the containing page before rebasing
       // declaration lengths. A transformed vi/vb expression belongs to the
       // child geometry and cannot be evaluated as a parent media condition.
       for (const { rule, query } of queries) rule.media.mediaText = query.matches ? 'all' : 'not all'
       const sheet = new accepted.defaultView.CSSStyleSheet()
+      if (!owns()) return
       sheet.replaceSync(rebaseViewportUnits(Array.from(source.cssRules, rule => rule.cssText).join('\n'), viewport))
-      return sheet
-    })
-    requestMeasure()
+      if (!owns()) return
+      preparedSheets.push(sheet)
+    }
+    if (!owns()) return
+    accepted.adoptedStyleSheets = preparedSheets
+    if (owns()) requestMeasure()
   }
   /** @param {MouseEvent} event */
   const activate = event => {
@@ -131,15 +142,22 @@ export function initializeEmbeddedDocument(context) {
   // Register before the first acquisition so partial setup retires through
   // the same owner and preserves independent cleanup after a platform failure.
   registerCleanup(cleanup)
-  controller = new accepted.defaultView.AbortController()
-  styles = contentStyles.map(source => {
+  if (!owns()) return
+  const ownedController = new accepted.defaultView.AbortController()
+  if (!owns()) { ownedController.abort(); return }
+  controller = ownedController
+  for (const source of contentStyles) {
     const sheet = new accepted.defaultView.CSSStyleSheet()
+    if (!owns()) return
     sheet.replaceSync(source)
+    if (!owns()) return
     const queries = []
     const collect = rules => {
       for (const rule of rules) {
+        if (!owns()) return
         if (rule.type === parent.CSSRule.MEDIA_RULE) {
           const query = parent.matchMedia(rule.conditionText)
+          if (!owns()) return
           query.addEventListener('change', refresh, { signal: controller.signal })
           queries.push({ rule, query })
         }
@@ -147,9 +165,12 @@ export function initializeEmbeddedDocument(context) {
       }
     }
     collect(sheet.cssRules)
-    return { sheet, queries }
-  })
+    if (!owns()) return
+    styles.push({ sheet, queries })
+  }
+  if (!owns()) return
   setSanitizedRawHtml(accepted.body, html)
+  if (!owns()) return
   for (const element of accepted.querySelectorAll('[autofocus]')) element.removeAttribute('autofocus')
   for (const element of accepted.querySelectorAll('[style]')) inlineStyles.set(/** @type {HTMLElement} */ (element), element.getAttribute('style'))
   accepted.addEventListener('click', activate, { capture: true, signal: controller.signal })
@@ -157,7 +178,14 @@ export function initializeEmbeddedDocument(context) {
     if (event.button === 1 && (!owns() || !event.isTrusted || !parent.navigator.userActivation.isActive)) event.preventDefault()
   }, { capture: true, signal: controller.signal })
   accepted.addEventListener('load', requestMeasure, { capture: true, signal: controller.signal })
-  resizeObserver = new parent.ResizeObserver(requestMeasure); resizeObserver.observe(accepted.body)
-  parent.addEventListener('resize', refresh)
+  // Observation can retire the owner before returning or failing. Only publish
+  // a live acquisition; release a provisional observer even on a falsy throw.
+  const observer = new parent.ResizeObserver(requestMeasure)
+  if (!owns()) { observer.disconnect(); return }
+  try { observer.observe(accepted.body) }
+  catch (error) { try { observer.disconnect() } catch {} throw error }
+  if (!owns()) { observer.disconnect(); return }
+  resizeObserver = observer
+  parent.addEventListener('resize', refresh, { signal: controller.signal })
   refresh()
 }

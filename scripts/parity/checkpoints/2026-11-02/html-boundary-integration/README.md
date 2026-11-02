@@ -1,8 +1,9 @@
 # HTML boundary integration — active 2026-11-02
 
 This implements the user-selected C05 contract in all four Raw/HTML Carousel
-editor and renderer surfaces. **B-HTML and B-STYLE remain open; no new register
-row is accepted by this implementation checkpoint.** The 2026-11-01 decision
+editor and renderer surfaces. **B-HTML remains open; the separately recorded
+C06 scope closes B-STYLE. No new register row is accepted by this HTML
+implementation checkpoint.** The 2026-11-01 decision
 checkpoint retains its own immutable source and experiment results.
 
 Application `contentStyles` is a one-read immutable snapshot of CSS text,
@@ -218,3 +219,54 @@ bare control. Frozen follow-up `run-a0RspD` passes all four gates with unchanged
 source: **2,191 Node/three skips**, **62 source-mode cases**, **four Raw design
 cases across 16 states**, and **48 navigation comparisons**. These remain scoped
 follow-up results rather than an invented successful twelve-gate run.
+
+
+## Staged resource acquisition follow-up
+
+A public-surface probe found that retirement inside ResizeObserver construction
+left a child observer and parent resize listener alive on all four surfaces.
+The same publication gap affected a child AbortController, stylesheet setup and
+partial MutationObserver/ResizeObserver observation. Construction/observation
+can return after the existing owner has retired, including after a falsy throw.
+
+The repair keeps each returned observer/controller provisional until its owner
+is revalidated, disconnects/aborts an unaccepted resource, and preserves the
+initiating observation failure while attempting independent cleanup. Setup,
+stylesheet publication and measurement stop after retirement. Parent resize
+also uses the existing content AbortSignal. No new owner, manager or public API
+is introduced. The unused sanitizer import is removed from pure Carousel data
+normalizers; real sanitization remains in HTML publication.
+
+The permanent public-API fixture is
+`tests/browser/embedded-html-acquisition-fixture.js`, registered in the existing
+CSP/Trusted Types content-style page. Its 60 cases cover four actual surfaces,
+constructor/observe cancellation, stylesheet/media acquisition, retirement
+before native observe returns, falsy partial failure, successful acquisition,
+resource release, unchanged canonical data and a fresh valid successor output.
+The unchanged predecessor runtime fails 44 of these cases for the intended
+late-acquisition/resource effects; all 60 pass with the repair. Earlier exploratory
+fixture mistakes (saving after terminal destroy and identifying a removed frame
+by its current parent) remain failed diagnostics, not product RED evidence.
+
+Pre-commit production checks pass all 75 content-style cases and both typecheck
+configurations. Immutable affected-path integration is the next step. All earlier
+full integrations retain their own source identity, including the successful
+17-gate `run-PC0mTs` before this repair. This follow-up does not close B-HTML,
+resource/credential, mixed Carousel, native context-menu or broader platform proof.
+
+The actual package budget initially fails after the resource repair, despite a
+passing preliminary virtual-source estimate. Those failed measurements remain
+separate. Optional Image local-file code now follows the existing Gallery loading
+boundary: the public uploader class retains its original direct behavior, while
+the plugin imports it only for local I/O. Application uploads stay synchronous
+up to their first existing await through the shared original remote algorithm;
+the same task signal owns cancellation and late completion. Module delivery
+failure leaves the image unchanged and releases the loading/task state. No
+source-editor preloading, language menu or upload capability is removed.
+
+The expanded real-browser loading probe passes all 46 cases, including nine
+Image file/Paste, retirement, module-failure and immediate-provider cases in
+addition to the original 37 HTML/Gallery cases. Existing Image uploader tests
+pass without changed expectations. The actual enforced package build reports
+95.9 KiB gzip against the unchanged 96 KiB fullPreset limit. The earlier failed
+budget runs are not converted to passes.
