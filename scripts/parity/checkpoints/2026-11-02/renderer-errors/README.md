@@ -1,7 +1,8 @@
 # Public renderer errors
 
-The complete scoped error comparison passes on `906e3dbf`; common final
-integration remains pending. `RENDERER_ERRORS` is not yet marked accepted.
+Accept `RENDERER_ERRORS` on immutable `e3cbb0d5`, Windows Chrome 156, after its
+complete 17-gate unchanged-source integration. The earlier scoped comparison on
+`906e3dbf` remains a separate successful observation.
 
 `scripts/parity/renderer-errors.mjs` serves every production module from its
 exact Git object. The shared real-browser fixture is also registered in the
@@ -52,6 +53,18 @@ transformed. Local frozen evidence is `test-results/run-qoqb4j/renderer-errors.l
 and `renderer-errors-review.log`. That sixteen-gate run remains **failed** at
 the unrelated asynchronous HTML-ready observation in the native common corpus;
 its fifteen successful gates are not relabelled as a complete integration pass.
+
+The fresh `test-results/run-PC0mTs/manifest.json` completes all 17 gates on clean
+`e3cbb0d5306c58b9860d07345e341901dc5f536b`, 2026-11-02 20:13:42-20:43:20 UTC.
+Its renderer comparison and independent review repeat all 348 cases / 6918
+observations per source, with zero candidate/specification/parent failures and
+the same 3636 raw v1 differences. The corrected ordinary/native HTML-ready
+observations require actual authored nodes and preserve all existing expected
+values, including valid empty Raw content. Every gate records unchanged source.
+The manifest SHA-256 is
+`8b1f1ffe41e47c96632af61cd3a4d261df131d40660c17398bc0c0d39612bd58`.
+Registration/output/construction retain their own accepted scopes; HTML and the
+other remaining obligations are not accepted by this error matrix.
 
 Earlier candidate-only two-case and 180-case probes remain exploratory evidence.
 The complete fixture adds actual built-in validation because v1 deliberately

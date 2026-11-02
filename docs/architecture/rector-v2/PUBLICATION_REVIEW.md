@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **66 / 209 obligations**, with **143 open**; see the [Code highlight/copy acceptance](#code-highlight-copy-acceptance-2026-11-01) and [renderer registration acceptance](#renderer-registration-acceptance-2026-11-01). Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **67 / 209 obligations**, with **142 open**; see the [renderer-error acceptance](#renderer-errors-acceptance-2026-11-02). The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
@@ -975,3 +975,71 @@ renderer errors and full C09/T15 remain open. FullPreset currently reports
 98.8 KiB gzip against its enforced 96 KiB budget; bundle reporting without
 `--enforce` is not a passing budget gate. Other platform/device/context-menu
 behavior and whole-library release readiness are not claimed.
+
+## Renderer errors acceptance — 2026-11-02 {#renderer-errors-acceptance-2026-11-02}
+
+Accept **`RENDERER_ERRORS`** on immutable local
+`e3cbb0d5306c58b9860d07345e341901dc5f536b`, Windows Chrome 156.0.8078.79,
+Node 24.9.0. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-02/renderer-errors/README.md)
+executes 348 cases / 6918 observations per source across all three output routes,
+both signatures, custom and actual built-in schemas, unknown types, versions,
+diagnostic callbacks and recovery. Error identity/causes, content-free frozen
+issues, prior DOM, caller input and staged cleanup remain authoritative despite
+falsy throws, rejected/hostile thenables and synchronous/asynchronous reentry.
+
+Current, specification baseline and diagnostic parent have zero differences.
+All 3636 v1 differences remain raw, classified from its missing custom/version
+admission, causes, diagnostic shape, rejection containment and recursion guard.
+They do not authorize restoring those older gaps. The independent reviewer
+reconstructs fixed oracles, recomputes 27672 verdicts and verifies 323 production
+module records plus 68 dependencies. Three corruptions are rejected: another
+candidate, consistently altered actual/expected error and missing source record.
+
+Fresh `test-results/run-PC0mTs/manifest.json` passes all **17 gates** on unchanged
+clean source, 2026-11-02 20:13:42-20:43:20 UTC: build, 2192 Node passes / three
+platform skips, both typechecks, 45 ordinary browser pages, complete native
+matrix, glyphs, 72 navigation comparisons, 37 deferred-loading cases, responsive
+content, enforced bundle, structural review, heap/history, docs, installed
+package and the 127-page site/demo. Manifest SHA-256:
+`8b1f1ffe41e47c96632af61cd3a4d261df131d40660c17398bc0c0d39612bd58`.
+The earlier cold-drop and HTML-readiness failures remain failed runs; the latter
+fix changes only observation of actual authored nodes, retaining empty content
+and every expected value. No production behavior is relaxed by the fixture.
+
+This accepts exactly one row: **67/209 accepted, 142 open**. B-HTML and other
+incomplete preservation obligations remain open. A separate resource-acquisition
+probe found a late HTML observer/subscription leak; its repair and complete
+HTML acceptance are independent of this renderer-error scope. No push/release.
+
+## Structural preparation acceptance — 2026-11-02 {#structural-preparation-acceptance-2026-11-02}
+
+Accept the measured **C09/T15 structural proof in this recorded environment**.
+The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-02/core-prepared-fields/README.md)
+isolates `8761946d` versus `906e3dbf`: identical 184-module graphs except the
+existing `InlineProjectionRuntime` field preparation. Source/key invalidation,
+field pruning, sidecar admission, live DOM checks and cleanup remain under the
+existing projection owner. Required external JSON validation is retained.
+
+Five warmups and 21 alternating paired samples cover seven populated shapes,
+public/native paths, no-ops, composition controls and Undo/Redo. All 74 controls,
+56 timing groups, 56 separate attribution groups and 14 GC observations pass.
+Independent review verifies all 336 summaries, 112 trace/allocation artifacts,
+source/dependencies and 1008 released references per memory observation with
+live positive controls and zero retained. Four fresh canonical evidence
+corruptions are rejected. The common 17-gate integration above passes with the
+same core runtime bytes.
+
+Demonstrated DOM preparation/traversal decreases and all six large-shape frame
+medians improve. Table public/native frame medians change 66.9→48.6 / 93.5→80.7
+ms; Gallery 14.1→13.8 / 31.7→25.2; Columns 36.1→28.1 / 50.6→48.1. Native
+Columns synchronous median increases 37.4→38.2 ms and native Gallery p95 tails
+increase; complete distributions and slower metrics are retained. Small-shape
+medians stay comparable, with a largest frame increase of 0.4 ms. No uniform
+speedup, universal SLA or absence of every leak is claimed. Allocation sampling
+and retained heap remain distinct observations. This gate adds no scenario row.
+
+The enforced fullPreset budget now passes at **95.9 KiB gzip / 96 KiB**,
+including the repaired immediate remote-upload callback. The earlier 98.8 KiB
+report remains historical; the core 51 KiB target stays informational. Remaining
+register/architecture-to-target proof, B-HTML and whole-library readiness remain
+separate obligations.

@@ -1,8 +1,9 @@
 # Prepared rich fields and complete structural paths
 
-The implementation and isolated C09/T15 evidence are ready for final integration.
-Whole-audit acceptance and the 209-scenario register remain open. No scenario is
-accepted by this performance checkpoint alone.
+The measured C09/T15 structural proof is accepted in the recorded Windows/Chrome
+scope after the complete unchanged-source integration on `e3cbb0d5`.
+Whole-audit acceptance and the remaining register stay open. This architectural
+checkpoint adds no scenario row.
 
 `20afc8da` reuses derived normalization and placeholder counts inside the existing
 block projection state. Keys include the exact author string and sidecar key set;
@@ -81,4 +82,22 @@ synchronous IME interval and then a strict improvement in every sub-metric;
 those failures remain separate. No runtime, fixture, raw measurement or expected
 author content was changed to hide them.
 
-Final common integration remains pending the corrected HTML-ready observations.
+Final common integration `test-results/run-PC0mTs/manifest.json` passes all 17
+gates on clean `e3cbb0d5306c58b9860d07345e341901dc5f536b`, source identity
+`05c5a791870e208042d78005bd67fde5b468e7dfec7b8166d832b3fe44c0bd00`,
+2026-11-02 20:13:42-20:43:20 UTC. Core runtime bytes remain those of `906e3dbf`;
+the later readiness correction changes test observations only. Node has 2192
+passes / three platform skips; both typechecks, all 45 ordinary browser pages,
+the complete native matrix, package, site, heap, navigation, responsive and
+deferred-loading gates pass. The enforced fullPreset budget reports 95.9 KiB
+gzip against the unchanged 96 KiB limit. The core target remains informational.
+
+The canonical reviewer SHA-256 is
+`d1e191ad2c53f54b047fbe29b1532e96c1cfef78006e890181d43d9ad6606528`.
+Four fresh controls against this reviewer and isolated graph reject a wrong
+candidate, stale quantile, retained released object and changed source digest;
+local results are in `structural-canonical-evidence-controls/`. The final raw
+benchmark SHA-256 is
+`9e3984590d5bdf0691fbae6845f5017d8207174eb1fc22cbf646462107152467`.
+Earlier failed integration runs retain their failures. Other platforms and
+future structural changes require their own evidence.

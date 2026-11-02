@@ -1,6 +1,31 @@
 # Rector v2 audit closeout — active work
 
-## Resumed — 2026-11-02
+## Accepted integration — 2026-11-02
+
+`run-PC0mTs` passes all **17 gates** on clean, unchanged
+`e3cbb0d5306c58b9860d07345e341901dc5f536b`, 20:13:42–20:43:20 UTC.
+This accepts `RENDERER_ERRORS`: **67/209 accepted, 142 open**. The complete
+348-case comparison and independent review repeat 6918 observations per source,
+with zero current/specification/parent failures and all 3636 v1 differences
+retained. C09/T15 measured structural proof is also accepted in this environment;
+it adds no register row. The isolated core comparison, source/trace/GC review
+and four fresh canonical corruption controls pass. Slower sub-metrics remain
+documented in the checkpoint.
+
+All 2192 Node tests pass with three platform skips; both typechecks, 45 ordinary
+pages, the complete native matrix, glyphs, navigation, deferred loading,
+responsive content, enforced bundle, heap/history, docs, installed package and
+site/demo pass. FullPreset reports **95.9 KiB gzip / 96 KiB**; the core target
+stays informational. Every command records unchanged source. Earlier failed
+integrations remain failed and are not relabelled.
+
+The next B-HTML probe demonstrates a distinct resource leak when the actual
+public owner retires inside browser resource construction/observation. A
+prepared repair passes 60 public-surface regressions, including falsy partial
+failures, real resource release and fresh valid output. It still requires
+production integration and affected checks; B-HTML remains open. No push/release.
+
+## Prior implementation checkpoint — 2026-11-02, before final integration
 
 Latest implementation is `906e3dbf`; `68b7c913` changes only two HTML-ready
 observations. Remote was fetched again and remains `3fcfa866` (no incoming
