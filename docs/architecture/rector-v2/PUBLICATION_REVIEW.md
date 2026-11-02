@@ -927,3 +927,51 @@ Accept **`BLOCK_CODE_HIGHLIGHT_COPY`** on immutable local `40bab78db6631f7ae3b29
 The candidate has zero failures, runtime errors or exceptions. Historical failures remain 21/4/2 and raw exit 1. An independent browser clipboard write/read establishes native newline representation before seeding a distinct sentinel; product readback must match the reference exactly, and native paste must preserve literal LF source. Product output is never normalized. Root reviewed the existing literal corpus and its historical independent review. Fresh review recomputes 2,292 verdicts, verifies 628 module records, 63 dependencies, 194 highlighter inputs and both Git fixture hashes; four deliberate evidence corruptions are rejected. Earlier failed CRLF fixture/clipboard attempts remain retained.
 
 The register becomes **209 unique IDs, 66 accepted / 143 open**. This comparison retains its own immutable source identity and does not claim full integration for subsequent Raw changes or completion of HTML/style, renderer errors, performance or other rows.
+
+## Inline style boundary acceptance — 2026-11-02 {#inline-style-boundary-2026-11-02}
+
+Close **B-STYLE for the selected C06 contract** on immutable
+`7a77b7aa8647f02e02544c90108b45a120b7933b`, Windows / Chrome 156.0.8078.79,
+Node 24.9.0. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-02/inline-content-styles/README.md)
+records explicit application `contentStyles`, canonical HTML class retention,
+namespaced live author classes and native CSSOM scoping to actual rich/derived
+content, excluding independent controls, editing islands and widget UI. Parent
+class rules do not activate through author class names. Private presentation
+markers grant no command rights; scopes reuse existing document style ownership.
+Generated selectors ignore application default namespaces, and allowed foreign
+inline local names keep their visible canonical HTML meaning. No clipping
+wrapper, class allowlist, size cap or document trust flag is introduced.
+
+Frozen `test-results/run-uxve4N/manifest.json` passes all eleven gates with
+unchanged source: build, 2192 Node tests / three skips, both typechecks, 45
+ordinary browser pages, all 50 native groups / 2757 cases, exact native glyphs,
+72 navigation comparisons, heap/history (23 sentinels, zero retained), docs,
+installed package / 22 CSS assets and 127-page site/demo. The 33 style cases
+include native input/history, literal/widget collision, sixteen selector
+comparisons, variables/conditions, actual animation and loaded self-hosted font,
+manual/automatic leases, independent realms, partial acquisition failure and
+retired-output cleanup. Real editor/renderer 201px italic-glyph PNGs exactly
+match the independent native control; the hostile native control covers the
+real host button while both product surfaces preserve trusted activation.
+
+The exact Git-byte typography comparison executes all eleven FONT/class cases
+and 528 observations per source against v1, specification baseline and this
+candidate. Baseline/candidate have zero failures; v1 retains its 22 exact Undo/
+Redo neighbor-remount defects without relabelling. Review recomputes all 1584
+verdicts, verifies 471 production-module records and PNG bytes, checks complete
+native/navigation results and rejects a wrong candidate and a consistently
+altered typography oracle. The reproduction/review sources are in the checkpoint;
+generated logs remain in ignored `test-results/`.
+
+Migrate relevant page rules with equivalent specificity into `contentStyles`.
+Observe live author classes with namespace-aware attribute selectors; saved HTML
+retains ordinary class spelling. String APIs remain canonical HTML, and custom
+live insertion must use the managed DOM helpers or own its content boundary.
+The paired styling guides document this current-only representation.
+
+This closes the style design/implementation gate, adds no register row and
+retains **66/209 accepted, 143 open**. B-HTML, remaining detailed tools/extensions,
+renderer errors and full C09/T15 remain open. FullPreset currently reports
+98.8 KiB gzip against its enforced 96 KiB budget; bundle reporting without
+`--enforce` is not a passing budget gate. Other platform/device/context-menu
+behavior and whole-library release readiness are not claimed.

@@ -1,7 +1,8 @@
 # Explicit application styles for inline author content
 
-Status: current-only C06 representation selected for integration; **B-STYLE and
-whole-audit acceptance remain open**. The user selected explicit application
+Status: **B-STYLE accepted for the selected C06 contract** on immutable
+`7a77b7aa8647f02e02544c90108b45a120b7933b`, Windows / Chrome 156.0.8078.79,
+2026-11-02. **Whole-audit acceptance remains open**. The user selected explicit application
 content styles and page-window viewport units. No new trust flag, class
 allowlist, size cap, document representation or stylesheet manager is added.
 
@@ -126,7 +127,39 @@ The CSS font resource test now uses VitePress's locked, self-hosted
 font readiness. It no longer depends on a Windows-installed font. The font
 resource is used only by browser tests, not added to the Rector package.
 
-Remaining: fresh frozen checks for these later runtime repairs,
-exact Git-source differential replay, broader native authoring/clipboard and
-extension integration, and the remaining audit obligations. No new preservation
-row is accepted by this initial integration checkpoint.
+## Selected boundary acceptance
+
+`test-results/run-uxve4N/manifest.json` passes all eleven gates on the unchanged,
+clean `7a77b7aa` source: build, Node (2192 PASS / three skips), both typechecks,
+45 ordinary pages, full native (50 groups / 2757 cases and the original physical
+editing scenarios), glyph, 72 navigation comparisons, heap/history (23 sentinels,
+zero retained), documentation contracts, installed package/22 CSS assets and
+127-page site/demo. The CSS page has all 33 cases on this snapshot.
+
+The fresh exact-Git FONT/class differential completes eleven cases and 528
+observations per source; v1 retains 22 precisely classified history remount
+differences, baseline/candidate have zero failures. Review recomputes all 1584
+verdicts, verifies 471 module records, native/navigation completeness and actual
+PNG bytes. The reviewer rejects a wrong candidate and an oracle whose expected
+and actual size were consistently changed together. Source and verdict failures
+are not relabelled. Reproduction:
+
+```powershell
+node scripts/parity/checkpoints/2026-11-02/inline-content-styles/review.mjs test-results/run-uxve4N test-results/audit-closeout-2026-11-01/inline-content-boundaries-presentation-immutable.json 7a77b7aa
+```
+
+Review output: `inline-content-review.json`; negative controls:
+`inline-content-review-wrong-candidate.log` and
+`inline-content-review-altered-oracle.log`. FONT replay:
+`inline-content-boundaries-presentation-immutable.json`. All are in the ignored
+dated closeout directory. Runtime, Node and dependency versions are retained
+with their original run metadata. Headless Chrome primary/auxiliary navigation
+does not claim browser context-menu UI or broad engine/device coverage.
+
+Close only the selected B-STYLE design/implementation gate; existing FONT/class
+register acceptance is maintained, with **66/209 accepted, 143 open**. B-HTML,
+renderer error completeness, remaining scenarios and full C09/T15 are separate.
+The fresh bundle report measures fullPreset at 98.8 KiB gzip against 96 KiB;
+the actual `--enforce` run exits 1. Core is 128.7 KiB against an informational
+51 KiB target. These are open performance/packaging obligations, not a passing
+budget check or a reason to remove preserved functionality.

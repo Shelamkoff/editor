@@ -1,5 +1,12 @@
 # Functional preservation register
 
+The selected application-owned inline styling boundary closes the bounded
+B-STYLE gate on `7a77b7aa`, 2026-11-02. See the
+[style-boundary acceptance](/architecture/rector-v2/PUBLICATION_REVIEW#inline-style-boundary-2026-11-02)
+for explicit CSS/DOM observation migration and current proof. Existing FONT/class
+rows retain their acceptance; this architectural gate adds no scenario row.
+The register remains **66 accepted / 143 open**.
+
 This is the 209-scenario publication register derived from the recovery/read-boundary review. It is verification guidance; [the repository specification](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md) owns semantics. All 199 preceding scenario IDs and the ten recovery/read-boundary IDs are retained. Repeated boilerplate has been factored into the rules below; this is not a new runtime or compatibility format.
 
 **Current accepted status, 2026-11-01: 66 scenarios accepted within their recorded scopes; 143 remain open.** The [Code highlight/copy review](/architecture/rector-v2/PUBLICATION_REVIEW#code-highlight-copy-acceptance-2026-11-01) accepts `BLOCK_CODE_HIGHLIGHT_COPY` on `40bab78d`: 28 complete cases / 573 observations per source, including real clipboard allow/deny, provider failures and obsolete completion. The exact-inventory/verdict/source review passes; historical failures remain raw. Renderer registration acceptance remains in force; `RENDERER_ERRORS` stays open.

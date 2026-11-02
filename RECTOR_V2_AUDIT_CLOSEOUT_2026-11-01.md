@@ -2,6 +2,17 @@
 
 ## Resumed — 2026-11-02
 
+The selected C06 style boundary is now accepted on immutable `7a77b7aa`:
+`run-uxve4N` passes all eleven gates with unchanged source, including 2757
+native cases / 50 groups, 33 style cases, 72 navigation comparisons, heap,
+installed package and site. Git-byte FONT replay has no unexpected differences;
+review verifies 1584 observations and 471 module records, plus two rejected
+evidence corruptions. **B-STYLE closes only for this selected contract/scope.**
+Register acceptance remains **66/209, 143 open**. B-HTML and full C09/T15 remain
+open. Current bundle reporting measures fullPreset at 98.8 KiB gzip versus its
+96 KiB enforced budget; the informational core target is also unmet. Preserve
+features while addressing measured work/bundle issues. No push/release.
+
 The user asked to continue after the requested stop below. Remote is fetched
 again and remains `3fcfa866`. The saved inline CSS experiment is restored; its
 stash and exact backup remain intact. C06 selects the explicit application CSS

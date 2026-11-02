@@ -1,6 +1,6 @@
 # Rector v2 — contract and boundary refactoring specification
 
-**Readiness: mixed, not release-approved.** C01–C04, the independently described C07 repairs, C08–C11, and non-destructive preservation work in C06 have settled targets. The production replacement in C05 is blocked by `B-HTML`; new destructive presentation policies in C06 are blocked by `B-STYLE`. C12 now has the settled field-local recovery contract in §16.5; adoption requires its complete entrypoint and preservation proof. Optional-instance and standalone repairs must remain within those existing recovery owners. Whole-library acceptance additionally requires fresh v1/current/candidate differential evidence.
+**Readiness: mixed, not release-approved.** C01–C04, the independently described C07 repairs and C08–C11 have settled targets. The selected C06 application-style boundary closes `B-STYLE` in the recorded Chrome/Windows scope on 2026-11-02; it does not approve other destructive presentation policies. The production replacement in C05 remains subject to `B-HTML` full-surface proof. C12 has the settled field-local recovery contract in §16.5; adoption requires its complete entrypoint and preservation proof. Optional-instance and standalone repairs must remain within those existing recovery owners. Whole-library acceptance additionally requires the remaining register, structural/performance and differential evidence.
 
 **Checked source:** `Shelamkoff/editor`, branch `refactor/rector-v2-architecture`, commit `e981ff308000c1d92d7e820df95113c1e19bcee8`. The pinned v1 reference is `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340`, package 1.0.5. A reference commit is not a claim that all historical v1 releases were executed.
 
@@ -205,7 +205,7 @@ DOMPurify maintenance is separable only after current official version/advisory 
 
 ## 10. C06 — presentation-preserving inline safety
 
-**Owner:** shared inline sanitizer/normalizer. Preservation is settled. The application-style class representation below is selected for integration; B-STYLE acceptance remains open.
+**Owner:** shared inline sanitizer/normalizer. Preservation is settled. The selected application-style class representation closes **B-STYLE** on immutable `7a77b7aa8647f02e02544c90108b45a120b7933b`, Chrome 156.0.8078.79 / Windows, 2026-11-02. This is a bounded presentation contract acceptance, not closure of other tool, extension, platform, performance or library obligations.
 
 **Contract selected 2026-11-02:** reuse the explicit application-owned `contentStyles` input selected for C05. Canonical span/code class values remain ordinary HTML in persisted data. Before author nodes enter a live projection, their class attribute uses the presentation-only namespace `urn:rector:author-class`; ordinary page class selectors therefore cannot activate host UI rules. Keep flat editable DOM and native selections; no paint clipping, wrapper, class allowlist, trust flag or alternative wire spelling is introduced.
 
@@ -213,7 +213,7 @@ Compile the application's CSS with the owning realm's native CSSOM. Rewrite clas
 
 Direct DOM sinks retain the canonical string API's HTML meaning. After rejecting an unsupported foreign root, admitted inline local names such as SVG `a`/`mark` must become HTML elements before publication, with their already-filtered attributes. Do not publish invisible foreign DOM where the former HTML serialize/reparse path displayed supported text and links. Raw's separate full-HTML/SVG sanitizer is unchanged.
 
-The initial public proof includes actual editor/renderer input and history, sixteen independent native selector comparisons, native CSS grouping/variables/keyframes/font loading, an exact 201px italic-glyph PNG comparison and a hostile native control that covers the real host action. The source FONT/class corpus retains its positive expectations through explicit application CSS with equivalent specificity. See `scripts/parity/checkpoints/2026-11-02/inline-content-styles/README.md`. This selects the current-only representation, not whole-surface, navigation, differential, performance or B-STYLE acceptance.
+The public proof includes actual editor/renderer input and history, sixteen independent native selector comparisons, native CSS grouping/variables/keyframes/font loading, an exact 201px italic-glyph PNG comparison and a hostile native control that covers the real host action. The source FONT/class corpus retains its positive expectations through explicit application CSS with equivalent specificity. Frozen `run-uxve4N` passes eleven gates on unchanged source, including all 50 native groups / 2757 cases, 33 style-boundary cases, 72 actual target/modifier comparisons, installed package, heap and site. Exact Git-source typography replay retains 528 observations per source without unexpected differences. The independent artifact review verifies 471 production-module records and rejects candidate/oracle corruption. See `scripts/parity/checkpoints/2026-11-02/inline-content-styles/README.md`. Existing FONT/class register rows remain accepted; no unrelated register row is added by closing this design gate.
 
 Keep supported inline properties color, background-color and font-size, URL protections, required rel handling, code lang/highlighting and sidecar/token boundaries. Do not add arbitrary new CSS properties. Validate using the owning realm and preserve neighboring legitimate text/marks when rejecting unsafe attributes.
 
@@ -221,7 +221,7 @@ Do not blanket-strip span/code classes, force all targets to self/blank, restric
 
 Case-insensitive checks are not a replacement for CSS grammar and must not reject arbitrary benign identifiers. Do not weaken JSON ownership, sidecar identity or parent CSP in the name of preservation.
 
-**E-STYLE investigation:** compare benign theme/class/target/typography and malicious host-class collisions. A generic sanitizer cannot infer the host's semantic class vocabulary. Determine whether existing configuration supplies a justified trust input before inventing a public option. No default allowlist, numeric cap or content-controlled trust switch is assumed. Settle one policy preserving positive cases and blocking the demonstrated threat, then amend C06. Independent non-destructive defect fixes do not wait for this decision.
+**E-STYLE disposition:** the C05 application-owned input supplies the justified style source. The selected namespace representation preserves the tested positive typography, theme, class and native target behavior while blocking activation of ordinary host interface class rules. No default class allowlist, numeric cap, content-controlled trust switch or unsafe fallback is introduced. Broad platform and context-menu behavior are not inferred from headless primary/auxiliary-input evidence. Other unresolved obligations retain their separate acceptance requirements.
 
 ## 11. C07 — phases, scopes, recovery and publication
 
@@ -542,7 +542,7 @@ Verified project gate commands are npm run typecheck, npm test, npm run build, n
 | shared/documentTypes.d.ts, shared/blockSchemas, renderer/types.d.ts, plugins/async.js, scripts/generate-declarations.mjs | Neutral canonical vocabulary and generated ownership. |
 | renderer/index.js | Retain public class/subclass capability; remove forwarding createEditorRenderer and migrate callers. |
 | renderer/async.js, package exports | Remove exact forwarder only after all callers use renderer/renderers/async. |
-| Raw/Carousel editor and renderer, shared/sanitize | Required confinement/preservation outcomes; no topology selected until B-HTML/B-STYLE close. |
+| Raw/Carousel editor and renderer, shared/sanitize | Owned-frame C05 and inline-namespace C06 contracts are selected. C06 closes the bounded B-STYLE gate; B-HTML full-surface proof remains open. |
 | core/HistoryStore.js, editor configuration types/composition | Optional byte budget; no new history engine. |
 | core/TransactionEngine.js, publication/public query ownership | Typed phases and measured immutable-sharing improvements, not protocol rewrite. |
 | scripts/plugin-source-audit.mjs and related tests | Classify actual effects/type directions; keep pure codec positive and forbidden-owner negative cases. |
@@ -567,7 +567,7 @@ Every slice changes canonical sources first, adds an observable regression/contr
 | S02 Script | S01 contracts; C03/R03 | Existing panel context throughout mode action; T06 and Link controls. No toolbar-wide rewrite. |
 | S03 focus | S00; C01/R01 | Interaction intent/root acknowledgment/current publication; T01–T03 including hidden fields, numeric behavior and successors. |
 | S04 HTML decision | C05 | E-HTML only until blockers close; then derive a separate coherent production slice from the amended target. |
-| S05 inline presentation | C06 | Ready preservation/non-destructive tests; E-STYLE for new policy. No px cap/class deletion hidden in cleanup. |
+| S05 inline presentation | C06 | Selected B-STYLE boundary verified on 2026-11-02; retain register/platform limits. No px cap/class deletion hidden in cleanup. |
 | S06 value/type boundaries | S00; C04/R06 | Narrow ports, neutral types, effect-based source check; T10/T13 strict consumers and current-draft composition. No change of prepared edit semantics. |
 | S07 API cutover | S06; C08/R07 | Retain class, migrate exact forwarding routes/types/callers, regenerate declarations. T11/T20 installed consumers and negative removed imports; no shim. |
 | S08 copies/performance | S06; C07/C09/R08/R12 | Measure then reduce demonstrated repeated work and type phases. T12/T13/T15 protect external data, history and events. |
@@ -587,7 +587,7 @@ P00–P14 and I01–I10 are cross-cutting acceptance conditions, not a subset se
 
 Classify convergence findings as missing, partial, contradicts or unrequested. Fix implementation drift at its owner; amend a genuinely wrong target before dependent work; remove unrequested managers/aliases/format changes rather than documenting them after the fact. No material unresolved finding remains at completion.
 
-B-HTML, B-STYLE, incomplete implementation proof for the settled B-PRESENTATION contract, and missing differential evidence prevent whole-library acceptance. Ready subsets remain useful and executable within their explicit bounds. This specification neither approves the old security defect nor permits removing functionality to close it. No production fix or zero-regression claim is made by publishing this document.
+B-HTML, incomplete implementation proof for the settled B-PRESENTATION contract, remaining register obligations, performance and missing differential evidence prevent whole-library acceptance. The selected B-STYLE gate is closed within its recorded evidence scope. Ready subsets remain useful and executable within their explicit bounds. This specification neither approves the old security defect nor permits removing functionality to close it. Whole-library zero-regression or release readiness is not inferred from publishing this document.
 
 ## 21. Sources and provenance
 
