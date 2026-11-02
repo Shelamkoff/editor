@@ -5,12 +5,14 @@
 <script type="module">
 import { EditorRenderer } from '../../renderer/index.js'
 import { runRendererLifetimeParity } from './renderer-lifetime-parity-fixture.js'
+import { runRendererErrorParity } from './renderer-error-parity-fixture.js'
 import { runRendererPublicationOwnership } from './renderer-publication-ownership.js'
 import { runRendererSuccessorDisposal } from './renderer-successor-disposal.js'
 import { runAttachesArchiveOwnership } from './attaches-archive-ownership.js'
 try {
   const cases = [
     ...runRendererLifetimeParity({ EditorRenderer }),
+    ...await runRendererErrorParity({ EditorRenderer }),
     ...runRendererPublicationOwnership({ EditorRenderer }),
     ...runRendererSuccessorDisposal({ EditorRenderer }),
     ...await runAttachesArchiveOwnership(),
