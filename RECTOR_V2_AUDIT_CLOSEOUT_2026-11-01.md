@@ -1,4 +1,27 @@
-# Rector v2 audit closeout — active work
+# Rector v2 audit closeout — paused at user request
+
+## Requested stop — 2026-11-02
+
+The user requested finishing the current checkpoint, reporting readiness and
+stopping. Work is paused, not complete: **66/209 accepted, 143 open**.
+See `RECTOR_V2_READINESS_2026-11-02.md` for the current status and restart data.
+
+Clean candidate `2c10547213ab4973a656ac93a52f1986931be605` passes all eight
+scoped final gates in `test-results/run-LWJSnt/`: build, 2191 passing Node tests
+with three skips, both typechecks, all 45 ordinary browser pages, 28 native HTML
+cases, 62 native source-mode cases, heap/history (23 sentinels, zero retained)
+and documentation contracts. The source identity is unchanged throughout.
+This is not a full native, package/site or whole-audit acceptance run.
+
+Unaccepted inline CSS implementation is preserved outside the working tree in
+stash `bd26ff6e7ac59db70ce76534405f21ab459613ca`. All 14 original file hashes
+also match the separate copies in
+`test-results/audit-closeout-2026-11-01/paused-inline-css/`. Its 14 Node failures
+and earlier two-case native pass remain experimental evidence; no C06 adoption
+or B-STYLE closure is claimed. No push or release has been performed.
+Do not resume audit work without a new user instruction.
+
+## Earlier execution log
 
 User instruction: continue until the complete current audit is closed; preserve
 improved v2 behavior rather than reproducing inferior v1 behavior.
