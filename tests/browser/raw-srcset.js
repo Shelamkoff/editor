@@ -5,6 +5,7 @@ import { createCarouselPlugin } from '../../plugins/carousel/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import { srcsetCases, srcsetDefinition, observeSrcset } from './raw-srcset-fixture.js'
 import { test, equal, assert, run } from './regressions/harness.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 
 for (const name of srcsetCases) test('Raw responsive source preservation: ' + name, async () => {
   const result = await observeSrcset({ name, sanitizer })
@@ -97,18 +98,21 @@ test('Raw and Carousel views preserve responsive source data through projection 
     editor = createEditor({ holder, readOnly: true, injectStyles: false,
       plugins: [createRawPlugin({ injectStyles: false }), createCarouselPlugin({ injectStyles: false })], data: input })
     const preview = holder.querySelector('.oe-raw__preview iframe')
-    equal(preview.srcdoc, html)
-    equal(preview.getAttribute('sandbox'), '')
-    const image = holder.querySelector('.oe-carousel-block img')
+    const previewDocument = await waitForEmbeddedDocument(preview, document => document.querySelector('img'))
+    equal(previewDocument.querySelector('img').getAttribute('srcset'), expected.input)
+    const slideDocument = await waitForEmbeddedDocument(holder.querySelector('.oe-carousel-block iframe'), document => document.querySelector('img'))
+    const image = slideDocument.querySelector('img')
     await image.decode()
     equal(image.currentSrc, expected.expectedCurrentSrc)
     equal(editor.save().blocks.map(block => block.type === 'raw' ? block.data.html : block.data.slides[0].html), [html, html])
     equal(editor.canUndo, false)
     equal(editor.canRedo, false)
     renderer.renderTo(input, output)
-    const images = [...output.querySelectorAll('img')]
-    equal(images.length, 2)
-    for (const rendered of images) {
+    const frames = [...output.querySelectorAll('iframe')]
+    equal(frames.length, 2)
+    for (const frame of frames) {
+      const document = await waitForEmbeddedDocument(frame, document => document.querySelector('img'))
+      const rendered = document.querySelector('img')
       await rendered.decode()
       equal(rendered.currentSrc, expected.expectedCurrentSrc)
       equal(rendered.alt, 'Responsive sample')
@@ -126,7 +130,7 @@ test('Raw and Carousel views preserve responsive source data through projection 
   }
 })
 
-test('Raw preview update and Undo/Redo retain original authored source and responsive selection metadata', () => {
+test('Raw preview update and Undo/Redo retain original authored source and responsive selection metadata', async () => {
   const first = srcsetDefinition('comma-url')
   const second = srcsetDefinition('exponent-density')
   const html = `<img srcset="${first.input}" alt="First">`
@@ -138,22 +142,28 @@ test('Raw preview update and Undo/Redo retain original authored source and respo
   try {
     holder.querySelector('.oe-raw__toggle').click()
     const preview = () => holder.querySelector('.oe-raw__preview iframe')
-    equal(preview().srcdoc, html)
+    const check = async (source, alt) => {
+      const document = await waitForEmbeddedDocument(preview(), document => document.querySelector('img'))
+      const image = document.querySelector('img'); await image.decode()
+      equal(image.getAttribute('srcset'), source.input)
+      equal(image.currentSrc, source.expectedCurrentSrc); equal(image.alt, alt)
+    }
+    await check(first, 'First')
     const old = preview()
     editor.blocks.update('raw', block => ({ data: { ...block.data, html: changed } }))
     assert(preview() !== old && !old.isConnected)
     equal(editor.save().blocks[0].data.html, changed)
-    equal(preview().srcdoc, changed)
+    await check(second, 'Second')
     equal(editor.canUndo, true)
     equal(editor.canRedo, false)
     editor.undo()
     equal(editor.save().blocks[0].data.html, html)
-    equal(preview().srcdoc, html)
+    await check(first, 'First')
     equal(editor.canUndo, false)
     equal(editor.canRedo, true)
     editor.redo()
     equal(editor.save().blocks[0].data.html, changed)
-    equal(preview().srcdoc, changed)
+    await check(second, 'Second')
     equal(editor.canUndo, true)
     equal(editor.canRedo, false)
   } finally {

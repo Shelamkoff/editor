@@ -39,7 +39,7 @@ The registered block type is `carousel`. Its factory is also exported by the com
 | --- | --- | --- |
 | `slides` | yes | Array, empty by default. Every slide needs a non-empty unique `id` and a `type` of `image`, `video`, or `html`. |
 | `slides[].src` | image/video | Canonical media URL. Image and video slides cannot omit it. |
-| `slides[].html` | HTML | HTML string; an empty string is valid. It is sanitized during normalization and rendering. |
+| `slides[].html` | HTML | HTML source string; an empty string is valid. Display uses the HTML sanitizer; source actions also validate their input. |
 | `slides[].poster` | no | Optional media-policy poster URL for a video. |
 | `slides[].alt`, `slides[].caption` | no | Optional strings. `alt` applies to media alternatives; `caption` is visible slide text. |
 | `options.loop`, `options.autoplay`, `options.navigation`, `options.pagination`, `options.thumbnails` | yes | Boolean behavior controls. Defaults are respectively `false`, `false`, `true`, `true`, and `false`. |
@@ -51,6 +51,8 @@ Every slide requires a stable `id` and a `type` of `image`, `video`, or `html`. 
 ## Configuration
 
 Every built-in block plugin accepts two style ownership options: `injectStyles?: boolean` defaults to `true`; set it to `false` when the host bundles that plugin's CSS. `css?: string` adds one host-provided stylesheet URL after the plugin default, or acts as the replacement URL when default injection is disabled.
+
+HTML slides in editor and output use scriptless content documents. Supply their theme and classes through the editor and renderer's application-owned `contentStyles` CSS-text array. Page stylesheets are not copied. Explicit content styles remain available with `injectStyles:false`, and viewport lengths refer to the containing page window.
 
 `uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string; poster?: string }>` persists image or video files. `actions?: Array<{ icon?; label; handler({ signal }): Promise<CarouselSlide[] | null> }>` adds application-provided slide sources. Both callbacks must respect the supplied abort signal.
 

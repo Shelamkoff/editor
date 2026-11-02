@@ -4,8 +4,10 @@ import person from '../renderers/person/locale/ru.js'
 import spoiler from '../renderers/spoiler/locale/ru.js'
 
 export default {
+  'renderer.raw.content': 'HTML-содержимое',
   'renderer.carousel.label': 'Карусель материалов',
   'renderer.carousel.video': 'Видеослайд',
+  'renderer.carousel.html': 'HTML-слайд',
   'renderer.carousel.previous': 'Предыдущий слайд',
   'renderer.carousel.next': 'Следующий слайд',
   'renderer.carousel.page': 'Перейти к странице',

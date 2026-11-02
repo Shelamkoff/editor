@@ -37,6 +37,12 @@ const editor = createEditor({
 
 In manual mode Rector acquires neither core nor definition styles. Import the required files in the host bundle. Built-in factories that expose their own `injectStyles` option can suppress their definition-specific URL as well.
 
+## Embedded HTML content
+
+Pass `contentStyles: readonly string[]` to `createEditor()` and `EditorRenderer` to supply self-contained, application-owned CSS text for Raw and HTML Carousel content. For example, `contentStyles: ['body { font: 20px sans-serif; } .article-accent { color: #12549c; }']`. These styles apply even with `injectStyles:false`; the option controls automatic UI styles.
+
+Content uses its own scriptless document and follows the available width and natural content height. Page stylesheets and classes are not copied automatically. Move the relevant content rules into `contentStyles` when migrating a theme. Viewport lengths refer to the containing page, and explicit content scrollers remain usable. The original HTML stays in the author record.
+
 ## Extension styles
 
 A custom block definition publishes immutable style URLs:
@@ -57,7 +63,7 @@ export function createCalloutPlugin() {
 }
 ```
 
-Do not expose raw CSS strings as runtime configuration. Do not read private factory state from core. The definition itself is the declarative contract.
+Extension UI styles use the definition's published URLs; core does not read private factory state. The separate `contentStyles` input above supplies trusted content CSS and is never read from persisted HTML or sandbox flags.
 
 ## Stable selectors
 

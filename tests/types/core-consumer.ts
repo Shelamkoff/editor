@@ -94,6 +94,7 @@ const config: EditorConfig = {
   holder,
   plugins: [customPlugin],
   historyMaxBytes: 1024,
+  contentStyles: ['.article-accent { color: #12549c; }'] as const,
 }
 
 const editor: IEditor = createEditor(config)

@@ -36,6 +36,8 @@ export type InlineParser = (text: string) => DocumentFragment
 export interface RendererContext {
     /** Document that owns the render target and all DOM created for it. */
     readonly ownerDocument: Document
+    /** Configured application-owned CSS text; optional for standalone renderer-factory calls. */
+    readonly contentStyles?: readonly string[]
 }
 
 export interface BlockRenderer<T extends EditorBlockData = EditorBlockData> {
@@ -55,6 +57,8 @@ export interface BlockRendererDefinition<T extends EditorBlockData = EditorBlock
 export interface RendererConfig {
     /** Automatically load base and registered-renderer styles on first render. Default: true. */
     injectStyles?: boolean
+    /** Explicit application-owned CSS text for document content; independent of automatic UI styles. */
+    contentStyles?: readonly string[]
     /** Namespace used by generated renderer classes. Default: 'editor'. */
     classPrefix?: string
     /** Throw for an unregistered block instead of rendering a placeholder. Default: true. */

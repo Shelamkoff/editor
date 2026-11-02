@@ -29,6 +29,7 @@ renderer.destroy()
 ```ts
 interface RendererConfig {
   injectStyles?: boolean
+  contentStyles?: readonly string[]
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
@@ -46,6 +47,7 @@ interface RendererConfig {
 | Параметр | Значение по умолчанию | Назначение |
 | --- | --- | --- |
 | `injectStyles` | `true` | автоматически загрузить базовые стили и стили зарегистрированных рендереров при первом отображении |
+| `contentStyles` | `[]` | скопированный CSS-текст приложения для Raw и HTML-слайдов Carousel; не зависит от автоматических стилей интерфейса |
 | `classPrefix` | `editor` | пространство имён классов результата |
 | `throwOnUnknown` | `true` | выбросить исключение для незарегистрированного блока вместо вывода заглушки |
 | `theme` | `dark` | тема рендерера |

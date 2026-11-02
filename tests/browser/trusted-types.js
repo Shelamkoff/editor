@@ -3,6 +3,7 @@ import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { createHeadingPlugin, createListPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import { sanitizeRawHtml, sanitizeRawHtmlForSink, setSanitizedRawHtml } from '../../shared/sanitize/sanitizeRawHtml.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 
 const results = []
 function assert(value, message) { if (!value) throw new Error(message) }
@@ -158,8 +159,9 @@ await test('Raw preview assigns TrustedHTML under require-trusted-types-for', as
   try {
     const frame = holder.querySelector('.oe-raw__preview iframe')
     assert(frame, 'Raw preview iframe missing')
-    assert(frame.srcdoc.includes('safe'), 'safe Raw content missing from preview')
-    assert(!/onclick|<script/i.test(frame.srcdoc), 'unsafe Raw content survived preview sanitization')
+    const content = await waitForEmbeddedDocument(frame, document => document.querySelector('p'))
+    assert(content.querySelector('p').textContent === 'safe', 'safe Raw content missing from preview')
+    assert(!/onclick|<script/i.test(content.body.innerHTML), 'unsafe Raw content survived preview sanitization')
   } finally {
     editor.destroy()
     holder.remove()
@@ -175,7 +177,7 @@ await test('multiple Rector module instances share one Trusted Types policy per 
   assert(String(secondValue) === '<strong>two</strong>', 'second duplicated module could not reuse the Rector policy')
 })
 
-await test('Raw HTML preserves its benign corpus and rejects active markup in the owning Trusted Types realm', () => {
+await test('Raw HTML preserves its benign corpus and rejects active markup in the owning Trusted Types realm', async () => {
   const frame = document.createElement('iframe')
   document.querySelector('#sandbox').appendChild(frame)
   const childDocument = frame.contentDocument
@@ -230,7 +232,9 @@ await test('Raw HTML preserves its benign corpus and rejects active markup in th
         const before = JSON.stringify(input)
         const output = renderer.render(input)
         host.replaceChildren(output)
-        verify(output, ownerDocument)
+        assert(output.ownerDocument === ownerDocument, 'the renderer wrapper did not follow its explicit mount realm')
+        const content = await waitForEmbeddedDocument(output.querySelector('iframe'), document => document.querySelector('#raw-text'))
+        verify(content.body, content)
         assert(JSON.stringify(input) === before, 'rendering rewrote caller data')
       } finally {
         renderer?.destroy()

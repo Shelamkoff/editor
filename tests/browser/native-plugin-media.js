@@ -5,6 +5,7 @@ import './regressions/carousel-caption-native.js'
 import './regressions/native-derived-owner.js'
 import { test, make, editorRoot, blockElement, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, waitForStyles } from './native-input-helpers.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 import { createParagraphPlugin, createEmbedPlugin, createImagePlugin, createGalleryPlugin, createCarouselPlugin, createAttachesPlugin, createTogglePlugin, createSpoilerPlugin } from '../../plugins/index.js'
 import { pixel } from './plugin-parity-fixtures.js'
 import en from '../../locale/en.js'
@@ -263,9 +264,15 @@ for (const [kind, value, selector] of [['HTML', '<h3>Authored HTML slide</h3>', 
     await enterText(surface.querySelector('input,textarea'), value)
     await clickNative(surface.querySelector('button[type="submit"]'))
     const after = editor.save().blocks
-    assert(blockElement(editor, 'a').querySelector(selector), 'Authored media is absent from the visible stage')
-    if (kind === 'HTML') equal(after[0].data.slides[0].html, value)
+    if (kind === 'HTML') {
+      const frame = blockElement(editor, 'a').querySelector('.oe-carousel-block__html iframe')
+      const child = await waitForEmbeddedDocument(frame, document => document.querySelector('h3'))
+      equal(child.querySelector('h3').textContent, 'Authored HTML slide')
+      assert(frame.getBoundingClientRect().height > 0, 'Authored HTML is absent from the visible stage')
+      equal(after[0].data.slides[0].html, value)
+    }
     else { equal(after[0].data.slides[0].type, 'video'); equal(after[0].data.slides[0].src, value) }
+    if (kind !== 'HTML') assert(blockElement(editor, 'a').querySelector(selector), 'Authored media is absent from the visible stage')
     await history(editor, before, after)
   })
 }

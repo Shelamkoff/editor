@@ -29,6 +29,7 @@ The renderer accepts the current document returned by `editor.save()` directly. 
 ```ts
 interface RendererConfig {
   injectStyles?: boolean
+  contentStyles?: readonly string[]
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
@@ -46,6 +47,7 @@ interface RendererConfig {
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `injectStyles` | `true` | automatically load base and registered-renderer styles on first render |
+| `contentStyles` | `[]` | copied application-owned CSS text for Raw and HTML Carousel content; independent of automatic UI styles |
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |

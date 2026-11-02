@@ -307,6 +307,25 @@ function authoredMarkup(field) {
   return markupMeaning(copy.innerHTML)
 }
 
+// Author content inside the admitted document is observable only after mount.
+// Historical same-document renderer output retains its original observation.
+function embeddedMarkup(root) {
+  const frame = root.querySelector(':scope > iframe[sandbox="allow-same-origin"]')
+  if (!frame) return authoredMarkup(root)
+  if (!frame.contentDocument?.body) throw new Error('HTML content was inspected before its first mounted document')
+  return authoredMarkup(frame.contentDocument.body)
+}
+
+async function embeddedReady(root) {
+  for (const frame of root.querySelectorAll('iframe[sandbox="allow-same-origin"][srcdoc]')) {
+    const deadline = performance.now() + 3000
+    while (!frame.contentDocument?.URL.startsWith('about:srcdoc') || frame.contentDocument.readyState !== 'complete') {
+      if (performance.now() > deadline) throw new Error('Mounted HTML content did not load')
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  }
+}
+
 function logicalLength(html) {
   const template = document.createElement('template')
   template.innerHTML = html.replace(/\{\{[\w-]+\}\}/g, '\uFFFC')
@@ -629,7 +648,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           ...(media.tagName === 'IMG' ? { src: media.getAttribute('src'), alt: media.alt, loading: media.loading }
             : media.tagName === 'VIDEO' ? { src: media.getAttribute('src'), poster: media.getAttribute('poster'),
               controls: media.controls, preload: media.preload, label: media.getAttribute('aria-label') }
-              : { html: authoredMarkup(media) }),
+              : { html: embeddedMarkup(media) }),
           caption: caption ? authoredMarkup(caption) : null }
       }),
       navigation: [...root.querySelectorAll('.carousel__arrow')].map(button => ({ label: button.getAttribute('aria-label'), tag: button.tagName })),
@@ -761,7 +780,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         ? [...element.querySelector('.editor-quote__body').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
       : element.dataset.blockType === 'warning'
         ? [...element.querySelector('.editor-warning__content').children].map(child => ({ tag: child.tagName, markup: authoredMarkup(child) }))
-      : authoredMarkup(element)
+      : element.dataset.blockType === 'raw' ? embeddedMarkup(element) : authoredMarkup(element)
     const expectedTableRendererMarkup = block => {
       const rows = legacy ? block.data.content : block.data.rows.map(row => row.cells.map(cell => cell.text))
       const renderedRows = (sourceRows, tag) => sourceRows.map(cells => ({ tag: 'TR', cells: cells.map(text => ({ tag, markup: markupMeaning(text) })) }))
@@ -816,21 +835,27 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
       const sourceBefore = JSON.stringify(saved)
       const detached = renderer.render(saved)
       check(phase, 'detachedOutputOwnership', { connected: detached.isConnected, parent: detached.parentNode === null }, { connected: false, parent: true })
-      const inspectOutput = (root, name) => {
+      const inspectOutput = (root, name, contentReady = true) => {
         const blocks = [...root.querySelectorAll('[data-block-id][data-block-type]')]
         check(phase, name + 'BlockCount', blocks.length, expected.length)
         check(phase, name + 'BlockOrderAndTags', blocks.map(element => ({ id: element.dataset.blockId,
           type: element.dataset.blockType, tag: element.tagName })), expected.map(block => ({ id: block.id, type: block.type, tag: expectedTag(block) })))
-        check(phase, name + 'AuthoredMarkup', blocks.map(rendererMarkup), expected.map(expectedRendererMarkup))
+        // An unmounted owned frame has no author Document yet. Preserve its
+        // structural checks here, then inspect every author node after mount.
+        const observable = contentReady ? blocks : blocks.filter(element => !element.querySelector('iframe[sandbox="allow-same-origin"][srcdoc]'))
+        const observableIds = new Set(observable.map(element => element.dataset.blockId))
+        check(phase, name + 'AuthoredMarkup', observable.map(rendererMarkup), expected.filter(block => observableIds.has(block.id)).map(expectedRendererMarkup))
         check(phase, name + 'Widgets', widgets(root), specification.type === 'gallery' ? [] : expectedWidgets)
         if (specification.type === 'code' && specification.populated) check(phase, name + 'CodeLanguage',
           blocks.find(element => element.dataset.blockId === id).querySelector('.editor-code__content').classList.contains('language-javascript'), true)
       }
-      inspectOutput(detached, 'detached')
+      inspectOutput(detached, 'detached', false)
       detachedMount.append(detached)
+      await embeddedReady(detached)
       inspectOutput(detached, 'attachedDetached')
       renderer.renderTo(saved, mounted)
       await settled()
+      await embeddedReady(mounted)
       inspectOutput(mounted, 'mounted')
       if (specification.type === 'image' && specification.populated) {
         const picture = mounted.querySelector('.editor-image__picture')
@@ -927,9 +952,12 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           previewVisible: getComputedStyle(preview).display !== 'none',
           pressed: control.getAttribute('aria-pressed'), frames: frames.length,
         }, { sourceHidden: true, previewVisible: true, pressed: 'true', frames: 1 })
+        await embeddedReady(preview)
         for (const frame of frames) check(phase, 'rawBenignPreview', {
-          sandbox: frame.getAttribute('sandbox'), title: frame.title, markup: markupMeaning(frame.srcdoc),
-        }, { sandbox: '', title: 'HTML preview', markup: markupMeaning(text) })
+          sandbox: { present: frame.hasAttribute('sandbox'), extraPermissions: [...frame.sandbox].filter(token => token !== 'allow-same-origin') },
+          title: frame.title, markup: frame.getAttribute('sandbox') === 'allow-same-origin'
+            ? authoredMarkup(frame.contentDocument.body) : markupMeaning(frame.srcdoc),
+        }, { sandbox: { present: true, extraPermissions: [] }, title: 'HTML preview', markup: markupMeaning(text) })
       }
       if (noEditableField) {
         const rule = shell(id).querySelector('.oe-delimiter')
@@ -1333,6 +1361,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
         const wrapper = shell(id).querySelector('.oe-carousel-block')
         const media = wrapper.querySelector('.oe-carousel-block__media').firstElementChild
         const slide = baseData.slides[index]
+        if (slide.type === 'html') await embeddedReady(media)
         let videoSize = null
         if (slide.type === 'video') {
           let timer
@@ -1351,7 +1380,7 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
           trustedClick: trusted.filter(event => event.type === 'mousedown' && event.trusted).length === trustedBefore + 1,
           counter: wrapper.querySelector('.oe-carousel-block__counter').textContent,
           tag: media.tagName, caption: authoredMarkup(field()),
-          videoSize, html: slide.type === 'html' ? authoredMarkup(media) : null,
+          videoSize, html: slide.type === 'html' ? embeddedMarkup(media) : null,
           dataUnchanged: JSON.stringify(editor.save().blocks) === JSON.stringify(beforeNavigation),
           history: { canUndo: editor.canUndo, canRedo: editor.canRedo },
         }, {

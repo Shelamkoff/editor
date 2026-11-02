@@ -5,6 +5,7 @@ import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { captureInstanceDestroy } from './instanceMethods.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
+import { EMPTY_CONTENT_STYLES } from '../shared/contentStyles.js'
 
 function assertDenseArray(value, label, { allowEmpty = true } = {}) {
   if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
@@ -442,6 +443,7 @@ export class ExtensionRegistry {
 
     this.#ownerDocument = ownerDocument
     const acquireStyles = options.acquireStyles !== false
+    const contentStyles = options.contentStyles ?? EMPTY_CONTENT_STYLES
     const translate = typeof options.translate === 'function'
       ? options.translate
       : (_key, fallback = '') => fallback
@@ -501,6 +503,7 @@ export class ExtensionRegistry {
             signal: this.#abortController.signal,
             isDefaultBlock: definition.type === defaultBlock,
             editorPlaceholder: definition.type === defaultBlock ? options.placeholder : undefined,
+            contentStyles,
             t: (key, fallback = '', params = undefined) => translate(`plugin.${definition.type}.${key}`, fallback, params),
           })
           destroySource = captureInstanceDestroy(runtimeSource)

@@ -157,6 +157,8 @@ export interface EditorConfig {
   readOnly?: boolean
   autofocus?: boolean
   injectStyles?: boolean
+  /** Explicit application-owned CSS text for document content; independent of automatic UI styles. */
+  contentStyles?: readonly string[]
   theme?: string
   minHeight?: number
   locale?: Record<string, unknown>

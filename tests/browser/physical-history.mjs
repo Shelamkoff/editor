@@ -137,11 +137,14 @@ async function waitForNativeInput() {
 
 async function waitForHistoryMatrix(client) {
   const deadline = Date.now() + 120_000
+  let latest
   while (Date.now() < deadline) {
     const result = await evaluate(client, `({
       status: document.body?.dataset.status ?? 'loading',
       summary: document.querySelector('#result')?.textContent ?? '',
+      progress: window.__auditProgress ?? null,
     })`)
+    latest = result
     if (result.status === 'pass') {
       await waitForNativeInput()
       return result.summary
@@ -149,7 +152,7 @@ async function waitForHistoryMatrix(client) {
     if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
     await delay(100)
   }
-  throw new Error('Timed out waiting for history matrix')
+  throw new Error('Timed out waiting for history matrix: ' + JSON.stringify(latest))
 }
 
 async function click(client, selector) {
@@ -249,6 +252,9 @@ async function installNativeInput(client) {
         })()
       : request.method === 'Input.hover'
       ? client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...request.params })
+      : request.method === 'Input.wheel'
+      ? client.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: request.params.x, y: request.params.y,
+          deltaX: request.params.deltaX ?? 0, deltaY: request.params.deltaY ?? 0 })
       : request.method === 'Viewport.set'
       ? client.send('Emulation.setDeviceMetricsOverride', { ...request.params, deviceScaleFactor: 1, mobile: false })
       : request.method === 'Viewport.reset'
@@ -479,6 +485,7 @@ try {
   }
   const nativeTextInput = JSON.parse(await waitForHistoryMatrix(client))
   const nativeAttachesDownloads = await runNativePage(client, pageUrl, 'native-attaches-downloads.html')
+  const nativeHtmlContent = await runNativePage(client, pageUrl, 'native-html-content.html')
 
   await client.send('Page.navigate', { url: new URL('/tests/browser/native-tools.html', pageUrl).href })
   const toolsDeadline = Date.now() + 20_000
@@ -576,6 +583,7 @@ try {
     historyMatrix: JSON.parse(historyMatrix),
     nativeTextInput,
     nativeAttachesDownloads,
+    nativeHtmlContent,
     nativeTools,
     nativeClipboard,
     nativeIme,

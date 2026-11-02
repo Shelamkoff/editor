@@ -10,7 +10,7 @@ import {
   createSwipe,
   createThumbnails,
 } from '@shelamkoff/carousel'
-import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
+import { mountEmbeddedHtml } from '../../../shared/embeddedHtml.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { requiresTrustedHtml } from '../../../shared/sanitize/trustedHtml.js'
 import { localeText } from '../locale.js'
@@ -25,7 +25,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  */
 export function createCarouselRenderer(classPrefix, locale) {
   const p = `${classPrefix}-carousel-block`
-  /** @type {WeakMap<HTMLElement, Carousel>} */
+  /** @type {WeakMap<HTMLElement, {carousel:Carousel|null, html:Set<{destroy():void}>}>} */
   const instances = new WeakMap()
   /** @param {string} key @param {string} fallback */
   const t = (key, fallback) => localeText(locale, `renderer.carousel.${key}`, fallback)
@@ -37,6 +37,8 @@ export function createCarouselRenderer(classPrefix, locale) {
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const data = block.data
       const root = context.ownerDocument.createElement('div')
+      const resources = { carousel: null, html: new Set() }
+      instances.set(root, resources)
       root.className = p
       root.setAttribute('aria-label', t('label', 'Content carousel'))
       if (data.options.aspectRatio && data.options.aspectRatio !== 'auto') {
@@ -65,7 +67,10 @@ export function createCarouselRenderer(classPrefix, locale) {
           } else {
             const html = context.ownerDocument.createElement('div')
             html.className = `${p}__html`
-            setSanitizedRawHtml(html, slide.html || '')
+            resources.html.add(mountEmbeddedHtml(html, slide.html || '', {
+              contentStyles: context.contentStyles,
+              title: t('html', 'HTML slide'),
+            }))
             figure.appendChild(html)
           }
           if (slide.caption) {
@@ -117,7 +122,7 @@ export function createCarouselRenderer(classPrefix, locale) {
       if (data.options.autoplay) plugins.push(createAutoplay({ interval: data.options.autoplayDelay }))
 
       const instance = new Carousel(root, slides, { loop: data.options.loop, plugins })
-      instances.set(root, instance)
+      resources.carousel = instance
       root.querySelector('.carousel__arrow--prev')?.setAttribute('aria-label', t('previous', 'Previous slide'))
       root.querySelector('.carousel__arrow--next')?.setAttribute('aria-label', t('next', 'Next slide'))
       root.querySelectorAll('.carousel__dot').forEach((dot, index) => dot.setAttribute('aria-label', `${t('page', 'Go to page')} ${index + 1}`))
@@ -125,8 +130,15 @@ export function createCarouselRenderer(classPrefix, locale) {
       return root
     },
     destroy(element) {
-      instances.get(element)?.destroy()
+      const resources = instances.get(element)
       instances.delete(element)
+      if (!resources) return
+      let failed = false, failure
+      const dispose = operation => { try { operation() } catch (error) { if (!failed) { failed = true; failure = error } } }
+      dispose(() => resources.carousel?.destroy())
+      for (const html of resources.html) dispose(() => html.destroy())
+      resources.html.clear()
+      if (failed) throw failure
     },
   }
 }

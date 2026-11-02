@@ -30,13 +30,15 @@ The registered block type is `raw`. Its factory is also exported by the complete
 
 | Field | Required | Meaning and constraints |
 | --- | --- | --- |
-| `html` | yes | Non-blank HTML source string. |
+| `html` | yes | HTML source string; empty drafts are valid. |
 
-HTML stays inert in the source editor. Tab indents the selected lines and Shift+Tab removes one leading tab or up to two leading spaces; each indentation action is one history step. The preview is shown automatically in read-only mode and can be toggled while editing. Returning from preview focuses the source input and preserves its caret or selection, so the next keystroke continues editing at that position. Switching modes does not change the document or history. Both the editor preview and the matching renderer sanitize the source before mounting it. The editor preview additionally uses a sandboxed iframe without script permissions. Active elements, unsafe URLs, event attributes, and unsafe CSS are removed, but allowed remote images and other safe resources can still cause browser requests, so the host remains responsible for its network and content policy. An empty draft does not pass strict persisted-data validation.
+HTML stays inert in the source editor. Tab indents the selected lines and Shift+Tab removes one leading tab or up to two leading spaces; each indentation action is one history step. The preview is shown automatically in read-only mode and can be toggled while editing. Returning from preview focuses the source input and preserves its caret or selection, so the next keystroke continues editing at that position. Switching modes does not change the document or history. Both preview and document output sanitize the source and use scriptless content frames, without rewriting the original HTML. Active elements, unsafe URLs, event attributes, and unsafe CSS are removed, but allowed remote images and other safe resources can still cause browser requests, so the host remains responsible for its network and content policy.
 
 ## Configuration
 
 Every built-in block plugin accepts two style ownership options: `injectStyles?: boolean` defaults to `true`; set it to `false` when the host bundles that plugin's CSS. `css?: string` adds one host-provided stylesheet URL after the plugin default, or acts as the replacement URL when default injection is disabled.
+
+For content typography and classes, pass application-owned CSS text in the editor and renderer's `contentStyles` array, for example `contentStyles: ['body { font: 20px sans-serif; }']`. Page stylesheets are not copied into content. Explicit content styles apply even with `injectStyles:false`; that switch controls automatic interface styles. Preview follows its available width and natural content height, with viewport lengths referenced to the page window.
 
 ## Capabilities
 

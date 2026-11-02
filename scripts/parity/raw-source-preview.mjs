@@ -14,9 +14,11 @@ const headBefore = git('rev-parse', 'HEAD').toString().trim(), startedAt = new D
 const candidate = git('rev-parse', process.env.EDITOR_CANDIDATE_SHA ?? headBefore).toString().trim()
 const fixturePath = 'tests/browser/raw-source-parity-fixture.js'
 const fixture = git('show', `${headBefore}:${fixturePath}`)
+const fixtureWorktree = await readFile(join(repo, fixturePath))
 const runnerPath = fileURLToPath(import.meta.url), runnerBytes = await readFile(runnerPath)
-assert.deepEqual(fixture, await readFile(join(repo, fixturePath)), 'Fixture differs from committed source')
-assert.deepEqual(git('show', `${headBefore}:scripts/parity/raw-source-preview.mjs`), runnerBytes, 'Runner differs from committed source')
+const checkoutText = bytes => bytes.toString('utf8').replace(/\r\n/g, '\n')
+assert.equal(checkoutText(fixture), checkoutText(fixtureWorktree), 'Fixture differs from committed source beyond checkout newline conversion')
+assert.equal(checkoutText(git('show', `${headBefore}:scripts/parity/raw-source-preview.mjs`)), checkoutText(runnerBytes), 'Runner differs from committed source beyond checkout newline conversion')
 assert.equal(git('diff', '--name-only', 'HEAD').toString().trim(), '', 'Tracked source is not clean')
 const dependencyRoot = resolve(process.env.EDITOR_DEPENDENCIES_ROOT ?? join(repo, 'node_modules'))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
@@ -104,7 +106,7 @@ try {
   assert.equal(headAfter, headBefore, 'Source HEAD changed during comparison')
   assert.equal(changedTracked, '', 'Tracked source changed during comparison')
   assert.deepEqual(await readFile(runnerPath), runnerBytes, 'Runner bytes changed during comparison')
-  assert.deepEqual(await readFile(join(repo, fixturePath)), fixture, 'Fixture bytes changed during comparison')
+  assert.deepEqual(await readFile(join(repo, fixturePath)), fixtureWorktree, 'Fixture bytes changed during comparison')
   const passed = result => result.cases.length > 0 && !result.errors.length && !result.failures.length && !result.incompleteCases.length
     && (result.source !== 'candidate' || !result.cases.some(entry => entry.unsupported))
   const current = results.find(result => result.source === 'candidate')
@@ -112,6 +114,7 @@ try {
   console.log(JSON.stringify({ startedAt, completedAt: new Date().toISOString(), node: process.version,
     browser: browser.version(), platform: `${process.platform} ${process.arch}`, filter,
     runnerSha256: digest(runnerBytes), fixtureSha256: digest(fixture), fixtureSource: headBefore,
+    fixtureBytes: 'Served unchanged from Git; checkout equivalence allows only CRLF/LF conversion.',
     headBefore, headAfter, sourceUnchanged: true, sources, dependencyVersions, dependencyFiles, serverErrors, results,
     candidatePass,
     note: 'Bounded Raw source/preview differential. Historical failures retain their raw status. No classifier, candidate exception, fabricated legacy API or B-HTML/B-STYLE topology decision is used.',

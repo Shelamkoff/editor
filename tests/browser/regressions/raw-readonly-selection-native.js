@@ -1,6 +1,7 @@
 import { createParagraphPlugin, createRawPlugin } from '../../../plugins/index.js'
 import { test, make, para, blockElement, equal } from './harness.js'
 import { clickNative, dispatchKey, printable } from '../native-input-helpers.js'
+import { waitForEmbeddedDocument } from '../embedded-html-helpers.js'
 
 test('Raw read-only round trip retains a backward literal source range for native editing', async () => {
   const source = '<p>Alpha &amp; Beta</p>\n<p>Bravo</p>'
@@ -14,7 +15,8 @@ test('Raw read-only round trip retains a backward literal source range for nativ
   equal([field().selectionStart, field().selectionEnd, field().selectionDirection], [3, 8, 'backward'])
 
   editor.setReadOnly(true)
-  equal(blockElement(editor, 'raw').querySelector('iframe')?.srcdoc, source)
+  const preview = await waitForEmbeddedDocument(blockElement(editor, 'raw').querySelector('iframe'), document => document.querySelector('p'))
+  equal(preview.body.innerHTML, source)
   editor.setReadOnly(false)
   await clickNative(blockElement(editor, 'raw').querySelector('.oe-raw__toggle'))
 

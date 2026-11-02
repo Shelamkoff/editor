@@ -103,12 +103,26 @@ export async function runRawSourceCase(specification, { sourceBase = '../../', l
         history: { canUndo: editor.canUndo, canRedo: editor.canRedo } })
       completed()
     }
-    const checkPreview = text => {
+    const checkPreview = async text => {
       check('sourceHidden', shown(), true)
       check('previewVisible', preview().style.display, '')
       check('previewFrameCount', preview().querySelectorAll('iframe').length, 1)
-      check('previewMarkup', preview().querySelector('iframe')?.srcdoc, text)
-      check('previewSandbox', preview().querySelector('iframe')?.getAttribute('sandbox'), '')
+      const frame = preview().querySelector('iframe')
+      if (frame?.getAttribute('sandbox') === 'allow-same-origin') {
+        const deadline = performance.now() + 3000
+        while (!frame.contentDocument?.URL.startsWith('about:srcdoc') || frame.contentDocument.readyState !== 'complete') {
+          if (performance.now() > deadline) throw new Error('Owned Raw content did not load')
+          await pause()
+        }
+        check('previewMarkup', frame.contentDocument.body.innerHTML, text)
+      } else {
+        // Historical opaque frames expose no Document. This fixed benign
+        // corpus can inspect their literal source; it is not a security proof.
+        check('previewMarkup', frame?.srcdoc, text)
+      }
+      check('previewSandbox', { present: frame?.hasAttribute('sandbox'),
+        extraPermissions: frame ? [...frame.sandbox].filter(token => token !== 'allow-same-origin') : null },
+      { present: true, extraPermissions: [] })
       check('togglePressed', toggle().getAttribute('aria-pressed'), 'true')
     }
     const checkSource = () => {
@@ -178,14 +192,14 @@ export async function runRawSourceCase(specification, { sourceBase = '../../', l
         capture('input', specification.source + 'X', true, false, 1, range(50))
         phase = 'preview'; await activate()
         capture('preview', specification.source + 'X', true, false, 1)
-        checkPreview(specification.source + 'X')
+        await checkPreview(specification.source + 'X')
       } else {
         phase = 'preview'
         if (specification.readOnlyRoundTrip) editor.setReadOnly(true)
         else if (!specification.initialReadOnly) await activate(specification.activation)
         await pause()
         capture('preview', specification.source, false, false, 0)
-        checkPreview(specification.source)
+        await checkPreview(specification.source)
         if (specification.readOnlyRoundTrip || specification.initialReadOnly) {
           check('readOnlySource', field().readOnly, true)
           check('readOnlyControl', { hidden: toggle().hidden, disabled: toggle().disabled }, { hidden: true, disabled: true })

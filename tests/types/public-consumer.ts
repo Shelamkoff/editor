@@ -81,7 +81,7 @@ const configuredPlugins = [
   }),
 ] satisfies BlockPluginDefinition[]
 
-const renderer: EditorRenderer = new EditorRenderer()
+const renderer: EditorRenderer = new EditorRenderer({ contentStyles: ['.article-accent { color: #12549c; }'] as const })
 const customSchema = {
   currentVersion: 1,
   createDefault: () => ({ text: '' }),

@@ -12,7 +12,8 @@ import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { normalizeCarouselAspectRatio } from '../../shared/carouselData.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
-import { sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/index.js'
+import { sanitizeRawHtml } from '../../shared/sanitize/index.js'
+import { mountEmbeddedHtml } from '../../shared/embeddedHtml.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
@@ -616,7 +617,11 @@ export function createCarouselPlugin(config={}){
             }else{
               const html=document.createElement('div')
               html.className='oe-carousel-block__html'
-              setSanitizedRawHtml(html,slide.html||'')
+              mountEmbeddedHtml(html,slide.html||'',{
+                contentStyles:runtimeContext.contentStyles,
+                title:runtimeContext.t('htmlContent','HTML slide'),
+                signal:viewController.signal,
+              })
               media.appendChild(html)
             }
             stage.appendChild(media)

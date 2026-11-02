@@ -2,12 +2,12 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { rebaseViewportUnits } from './html-viewport-units.js'
 
-const viewport = { width: 1100, height: 800, vertical: false }
+const viewport = { width: 1100, height: 800, nativeWidth: 1100, nativeHeight: 800 }
 for (const [input, expected] of [
   ['calc(100vh + 20px)', 'calc(800px + 20px)'],
   ['min(50vw, 20vmin)', 'min(550px, 160px)'],
   ['1svh 1lvw 1dvh 1vmax', '8px 11px 8px 11px'],
-  ['1vi 1vb', '11px 8px'],
+  ['1vi 1vb', '1vi 1vb'],
   ['-.5vw +2VH 1e1vh', '-5.5px 16px 80px'],
   ['var(--10vh, calc(2vw + 1px))', 'var(--10vh, calc(22px + 1px))'],
   ['url(https://example.test/10vh.png) 20vh', 'url(https://example.test/10vh.png) 160px'],
@@ -24,8 +24,14 @@ for (const [input, expected] of [
   assert.equal(rebaseViewportUnits(input, viewport), expected)
 })
 
-test('logical viewport units follow the content root writing mode', () => {
-  assert.equal(rebaseViewportUnits('10vi 10vb', { ...viewport, vertical: true }), '80px 110px')
+test('logical viewport units retain native consumer resolution when both viewports match', () => {
+  assert.equal(rebaseViewportUnits('10vi 10vb', viewport), '10vi 10vb')
+  assert.equal(rebaseViewportUnits('10v\\69  10vb', viewport), '10v\\69  10vb')
+})
+
+test('logical viewport rebasing keeps native units for each consumer writing mode', () => {
+  assert.equal(rebaseViewportUnits('10vi 10vb', { width: 1400, height: 800, nativeWidth: 600, nativeHeight: 100 }),
+    'calc(10 * (1.2vi + 6.8px)) calc(10 * (1.2vb + 6.8px))')
 })
 
 test('ordinary units, identifiers, custom-property names and quoted escapes remain literal', () => {

@@ -9,6 +9,7 @@ import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 import { documentValidationIssue, markDocumentValidationFailure } from '../shared/documentValidationIssue.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
+import { EMPTY_CONTENT_STYLES } from '../shared/contentStyles.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
@@ -92,7 +93,7 @@ function stableJsonSignature(value) {
  * Renders Rector document blocks to DOM elements.
  */
 export class EditorRenderer {
-  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', onValidationError?: (issue: import('../shared/documentTypes').DocumentValidationIssue & {type:string}) => void | Promise<void> }} */
+  /** @type {{ injectStyles: boolean, contentStyles: readonly string[], classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', onValidationError?: (issue: import('../shared/documentTypes').DocumentValidationIssue & {type:string}) => void | Promise<void> }} */
   #config
   /** @type {Map<string, import('./types').BlockRendererDefinition>} */
   #renderers
@@ -145,6 +146,7 @@ export class EditorRenderer {
     }
     this.#config = {
       injectStyles: config.injectStyles ?? true,
+      contentStyles: config.contentStyles ?? EMPTY_CONTENT_STYLES,
       classPrefix: config.classPrefix ?? 'editor',
       throwOnUnknown: config.throwOnUnknown ?? true,
       theme: config.theme ?? 'dark',
@@ -354,7 +356,7 @@ export class EditorRenderer {
     const inlineParser = renderableBlock.inline && this.#inlineRenderers.size > 0
       ? html => renderInlineWidgets(baseParser(html), renderableBlock.inline, this.#inlineRenderers, ownerDocument)
       : baseParser
-    const element = synchronousResult(renderer.render(renderableBlock, inlineParser, { ownerDocument }))
+    const element = synchronousResult(renderer.render(renderableBlock, inlineParser, { ownerDocument, contentStyles: this.#config.contentStyles }))
     const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
       ?? ownerDocument.defaultView?.HTMLElement
       ?? globalThis.HTMLElement

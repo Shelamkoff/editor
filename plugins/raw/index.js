@@ -3,7 +3,7 @@ import { definitionStyles } from '../shared/definitionStyles.js'
 import { dedentTextarea } from '../shared/dedentTextarea.js'
 import { indentTextarea } from '../shared/indentTextarea.js'
 import { rawDataSchema } from '../../shared/blockSchemas/raw.js'
-import { sanitizeRawHtmlForSink } from '../../shared/sanitize/sanitizeRawHtml.js'
+import { mountEmbeddedHtml } from '../../shared/embeddedHtml.js'
 
 const editorStyles = new URL('./raw.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16v-8l2 5l2-5v8"/><path d="M1 16v-8"/><path d="M5 8v8"/><path d="M1 12h4"/><path d="M7 8h4"/><path d="M9 8v8"/><path d="M20 8v8h3"/></svg>'
@@ -75,37 +75,32 @@ export function createRawPlugin(config = {}) {
           let readOnly = context.isReadOnly()
           let showPreview = readOnly
           let instanceDestroyed = false
+          let previewProjection = null
 
           const resize = () => {
+            if (instanceDestroyed || context.signal.aborted) return
             textarea.style.height = 'auto'
             textarea.style.height = textarea.scrollHeight + 'px'
           }
 
           const renderPreview = () => {
+            if (instanceDestroyed) return
             toggle.setAttribute('aria-pressed', String(showPreview))
             toggle.classList.toggle('oe-raw__toggle--active', showPreview)
             textarea.style.display = showPreview ? 'none' : ''
             preview.style.display = showPreview ? '' : 'none'
-            preview.replaceChildren()
+            previewProjection?.destroy()
+            previewProjection = null
             if (!showPreview) {
               runtimeContext.ownerDocument.defaultView?.requestAnimationFrame(resize)
               return
             }
-            const iframe = document.createElement('iframe')
-            iframe.sandbox = ''
-            iframe.title = runtimeContext.t('previewFrame', 'HTML preview')
-            iframe.style.cssText = 'width:100%;border:none;min-height:100px'
-            iframe.srcdoc = /** @type {any} */ (sanitizeRawHtmlForSink(textarea.value, document))
-            preview.appendChild(iframe)
-            const resizeFrame = () => {
-              if (instanceDestroyed || !iframe.isConnected) return
-              try {
-                const height = iframe.contentDocument?.documentElement?.scrollHeight
-                if (height) iframe.style.height = height + 'px'
-              } catch { /* Opaque sandbox origins retain the safe minimum height. */ }
-            }
-            iframe.addEventListener('load', resizeFrame, { signal: context.signal })
-            document.defaultView?.requestAnimationFrame(resizeFrame)
+            previewProjection = mountEmbeddedHtml(preview, textarea.value, {
+              contentStyles: runtimeContext.contentStyles,
+              minimumHeight: 100,
+              title: runtimeContext.t('previewFrame', 'HTML preview'),
+              signal: context.signal,
+            })
           }
 
           toggle.addEventListener('mousedown', event => event.preventDefault(), { signal: context.signal })
@@ -169,7 +164,8 @@ export function createRawPlugin(config = {}) {
             },
             destroy() {
               instanceDestroyed = true
-              preview.replaceChildren()
+              previewProjection?.destroy()
+              previewProjection = null
             },
           }
         },

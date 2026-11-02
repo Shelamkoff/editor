@@ -2,6 +2,7 @@ export default {
   'plugin.carousel.insert': 'Insert',
   'plugin.carousel.cancel': 'Cancel',
   'plugin.carousel.title': 'Carousel',
+  'plugin.carousel.htmlContent': 'HTML slide',
   'plugin.carousel.addMedia': 'Add media',
   'plugin.carousel.addUrl': 'Add URL',
   'plugin.carousel.addHtml': 'Add HTML',

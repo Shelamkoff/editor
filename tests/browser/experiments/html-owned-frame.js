@@ -47,7 +47,7 @@ export function mountHtmlExperiment(container, html, contentStyles = []) {
     // viewport. Keep that reference independent of the auto-sized outer frame.
     accepted.documentElement.style.setProperty('height', parent.innerHeight + 'px', 'important')
     const viewport = { width: parent.innerWidth, height: parent.innerHeight,
-      vertical: accepted.defaultView.getComputedStyle(accepted.documentElement).writingMode.startsWith('vertical') }
+      nativeWidth: accepted.defaultView.innerWidth, nativeHeight: accepted.defaultView.innerHeight }
     for (const [element, source] of sources) element.style.cssText = rebaseViewportUnits(source, viewport)
     const media = cssRules => {
       for (const rule of cssRules) {

@@ -21,6 +21,208 @@ contract before production work. The decision checkpoint is
 Decision-only fixtures pass 13 native cases plus 12 independent native-link
 comparisons. Production integration, all four surfaces and C06 remain open.
 
+## In-flight implementation after `9913eb1e` (do not call accepted)
+
+`9913eb1e` commits the C05 selection and isolated evidence. The current dirty
+patch introduces `contentStyles` snapshots/types and passes them through the
+existing ExtensionRegistry/renderer contexts. `shared/embeddedHtml.js` is now
+used by Raw editor/renderer and Carousel editor/renderer. Carousel output's
+existing resource map co-owns frames; its view controller retires editor HTML.
+Canonical data is unchanged. The old experiment's token module temporarily
+re-exports `shared/rebaseContentViewport.js`; both are tracked by Git/diff.
+
+`tests/browser/content-styles.html` is registered as ordinary page 45. Nine
+public cases pass in `html-initial-admission-green.log`: validation, immutable
+one-read styles, all output routes/realms, all four surfaces, Raw update/replay,
+actual first-mount adoption and rejection of initial-document substitution.
+The tenth case (`html-vertical-viewport-red.log`) originally failed correctly:
+logical viewport units must use the consuming element's writing mode, not the
+root's previous/default mode. The later affine correction below supersedes that
+implementation; do not substitute a second root-style pass for consumer semantics.
+
+Initial admission now requires the exact static srcdoc and `about:srcdoc`,
+then binds to the actual first mounting Document. Only that admitted child is
+accepted thereafter. Original source adoption from a detached render into a
+different Window must continue to work. The nine-case pass proves this.
+
+The first 45-page run stopped at security's old blanket iframe ban. Security
+and Trusted Types tests now admit only the exact owned frame and inspect every
+author child node/attribute in its actual Document. Both focused pages pass.
+Both srcset pages also pass after observing decoded images inside all four
+frames, with exact currentSrc/metadata and canonical/history assertions.
+These fixture migrations do not whitelist author iframes or skip sanitization.
+Later broad checks are recorded below; full native/package/docs proof remains pending.
+
+New `native-html-content.html` / `regressions/html-content-native.js` is now
+registered in the full native aggregate (not yet executed in full). `Input.wheel` was added to the
+existing physical driver's narrow bridge. Original wheel attempts with an
+unsupported method (and an early source shadowing correction) are harness
+failures. The valid RED `html-short-wheel-valid-red.log` shows all four surfaces
+scrolling readable short HTML into 250px of artificial blank root overflow.
+Production now gives root `overflow-y:hidden`, retains the original 100px
+minimum preview height and uses setAttribute for sandbox. Its first replay
+could no longer deliver wheel to the non-scrollable child: Chrome can chain it
+to the parent. The fixture now requires a trusted move inside the child plus a
+trusted wheel in child/parent, and unchanged child scroll/content positions.
+The corrected telemetry subsequently passes alongside the intentional scroller.
+
+Four further native tests correctly fail in `html-body-scroller-red.log` because
+measure uses an intentionally scrollable body's internal scrollHeight as outer
+height. Respect body overflow: the body border-box determines outer flow when
+it owns scrolling/clipping; visible overflow still contributes natural extent.
+The production measure now makes that distinction; actual trusted wheel keeps
+that body scroller usable on all four surfaces.
+
+Important CSS research before further implementation: W3C CSS Values 4
+https://www.w3.org/TR/css-values-4/#viewport-relative-lengths says logical vi/vb
+resolve using the element's computed writing mode, with initial mode for media
+queries. Raw/custom-property/animation consumers can have different modes.
+Rewriting all logical tokens to one root-dependent px value is incorrect.
+One viable direction to test is affine native-unit rebasing: for native frame
+viewport Wn/Hn and selected parent Wp/Hp, a=(Wp-Hp)/(Wn-Hn), b=(Hp-a*Hn)/100.
+Replace n*vi/vb with calc(n*(a*vi/vb + b*px)); native vi/vb retain per-element and
+custom-property semantics. Recompute coefficients atomically after frame height
+changes so body meaning remains independent of that height. Resolve original
+media conditions via parent.matchMedia before token conversion. A square native
+viewport needs an explicit numerical/geometry treatment (one extra pixel of
+unclipped flow is a candidate, not an accepted cap or glyph-clipping fix).
+Prove this against an independent full-page native CSS control, including
+opposite element writing modes, inherited custom properties and near-square
+dimensions before adopting it. Parent unit bases should eventually come from
+native CSS measurements, including small/large/dynamic families, not an assumed
+single innerHeight for every family.
+
+An alternative reciprocal iframe/root-transform experiment is preserved only
+in ignored `html-viewport-transform-decision.mjs`, its JSON and PNGs. It uses a
+fixed page-sized native viewport and compensating transforms to show natural
+flow. Geometry and visible text are present; screenshots were inspected.
+Compared with an ordinary iframe it changes LCD/grayscale antialiasing. No
+production adoption or failure conclusion is made. Top-layer/native control
+effects and numerical/paint quality remain unverified. Do not silently replace
+the current boundary with this experiment or ship two geometry modes.
+
+Fixture corrections retained in logs include renderTo argument order, the
+blocks.update record-to-patch shape, and volatile save.time exclusion. They are
+not product defects or valid RED evidence. Broader native/differential fixtures
+still observing literal preview.srcdoc or same-document HTML descendants need
+semantic migration to actual child content. Known files: raw-source-parity,
+block-roundtrip-fixture, native-plugin-parity, native-plugin-media and
+regressions/raw-readonly-selection-native. Keep historical FAIL raw and serve
+immutable version sources when rerunning comparisons.
+
+### Latest implementation checks (continuation 2026-11-02)
+
+Affine logical-unit rebasing is implemented in `shared/rebaseContentViewport.js`.
+It retains native vi/vb terms until consumption, including inherited custom
+properties and dynamic per-element writing modes. An independent native CSS
+reference at 1400x800 matches all 96 field comparisons across six native frame
+heights in ignored `html-logical-affine-decision.json`. Natural square-axis
+results receive one unclipped CSS pixel of additional flow; coefficients update
+after height changes. The eleventh public test verifies actual square flow,
+both consumer modes and a later mode change without reprojection. All 11 public
+tests pass (`html-square-consumer-green.log`). The reciprocal-transform design
+is not adopted; production retains one ordinary frame geometry.
+
+Build passes with 288 declarations/zero source diagnostics; full Node passes
+2,191 tests with three platform skips; all 45 ordinary browser pages pass;
+both typecheck projects pass. These are separate WIP runs, before the final
+activation-lifetime correction and paired documentation changes below, not a
+new combined immutable acceptance (`html-wip-*.log`, `html-affine-types.log`).
+
+Four native parent-observer retirement cases then reproduced stale navigation:
+even a passive parent click listener could destroy the frame, after which its
+delegated anchor still navigated. The corrected RED is
+`html-activation-retirement-corrected-red.log`. Destroy now strips the exact
+pending owned anchor's href before default activation and removes it only from
+its original parent. This works in passive observers without stopping event
+fan-out. An intermediate null-guard mistake remains a failed implementation
+attempt; it was corrected before the final replay. The final native page passes
+all **16** cases: four short-scroll controls, four intentional scrollers, four
+retired activations and four live requested-parent destinations. Evidence:
+`html-native-live-retired-final.log`. Native input trust is observed at child
+Window capture, before disposal can discard target-phase callbacks.
+
+Paired EN/RU Raw/Carousel/renderer/style/config guides now document explicit
+contentStyles and migration, and correct the inherited false claim that empty
+Raw drafts fail persistence. Readonly-array public type consumers are added.
+Next: finish current combined gates, update the implementation checkpoint,
+commit the tested source for immutable comparison; migrate remaining native
+and differential fixture DOM assumptions; verify actual links/download/media,
+mixed/fixed-ratio Carousel, failure/realm/resource lifetime; complete C06 and
+the other open rows. No additional preservation row is accepted yet.
+
+### 2026-11-02 integration follow-up
+
+Frozen runs `run-97d5ef` and `run-YUkVdZ` retain failed overall results and
+unchanged source identities. The first passes build/types/45 browser pages/
+16 native HTML/heap/package, but Node/docs/site reject incomplete new docs.
+The second passes actual logical CSS (96 dimensions/48 modes), but rejects
+untranslated viewport prose and a stale built README. Translation/config docs
+are corrected; the next build refreshes package docs before validation.
+
+Native tests reproduced the needless 100px floor in reader/Carousel HTML. Only
+Raw editor preview now retains that affordance. The final 20-case native page
+passes; a 20px font/20px line-height intermediate fixture exposed legitimate
+one-pixel ink overflow and is retained separately from the final 16px font
+reference. No glyph clipping or blanket containment was introduced.
+
+New actual-product responsive CSS comparison reproduced 16/20 mismatches:
+logical lengths inside media conditions were rebased against child geometry,
+and preference changes without resize stayed stale. Original media queries
+now resolve in the parent before rebasing declarations; their change listeners
+belong to the existing abortable view. All 20 native-CSS comparisons pass on
+all four public surfaces. Real navigation also passes all 48 comparisons
+against independent bare anchors (12 target/modifier routes per surface).
+Eleven public style cases, five Raw source/history/control native cases and
+the native Carousel HTML source/history case pass on the new runtime bytes.
+
+Remaining source/native/differential fixtures now observe admitted author
+Documents. Fixed benign historical opaque previews explicitly retain literal
+srcdoc observation; unmounted output defers only unavailable author-content
+checks until first mount while retaining structure checks. Those comparative
+edits need immutable execution. No new row accepted: still 66/209, 143 open.
+Next run the complete frozen integration matrix, commit tested source, replay
+adapted comparisons, finish C05 resources/media/failure/CSS-family/accessibility
+proof and the separately unresolved C06 inline boundary.
+
+### Frozen run and disposal follow-up, 2026-11-02
+
+`run-HfVO99` completes with unchanged source and **failed** overall status:
+eleven of twelve gates pass, including 2,191 Node/three skips, 45 browser pages,
+all CSS/navigation corpora, heap23/zero, package and 127-page site/demo. Full
+native execution times out on `native-retained-tools.html`; isolated replay
+passes its64 cases. The native harness now records active/completed/total case
+progress on timeout, without changing deadlines or assertions. A diagnostic
+copy with a longer external deadline also passes64, but is not an acceptance
+runner. Do not report the full native matrix as passed.
+
+Controlled observer-disconnect failure then reproduces active media-query
+subscriptions after disposal on all four surfaces. Four permanent public tests
+fail first, then all15 content-style cases pass after best-effort independent
+cleanup and local automatic-retirement failure reporting. Explicit disposal
+preserves its first thrown value; abort listener failures do not escape globally.
+The next frozen run must cover these later runtime bytes. Raw immutable fixture
+checkout verification now permits only CRLF/LF; served Git bytes are unchanged.
+Publication review's top current count is fixed to66/143, matching its existing
+Code acceptance. No new row is accepted.
+
+Ignored C06 decision scripts `inline-class-public-decision.mjs` and the three
+raw outputs (original selector-observation failure, corrected observer, glyph
+comparison) retain their own distinction. A public Paragraph editor/renderer
+with proposed server-only namespace transforms preserves native input/Undo/Redo,
+canonical source/sidecar and one true mention alongside a colliding literal.
+The hostile native class control blocks a real host click; the namespaced
+proposal restores it. Its201px italic glyph PNG equals the benign control byte
+for byte. Production inline files remain unchanged; do not call this C06 proof.
+`canonicalizeRichTextSubtree` runs on a detached serializer clone, so its class
+namespace loss there is not by itself a live-DOM failure. Core's separate
+template replacement path does need presentation namespacing before insertion.
+
+Next: complete current packet verification and commit; replay Raw and Raw/
+Carousel ROUNDTRIP immutable comparisons; finish actual media/download/control,
+resources/CSS-family/accessibility proof; implement and verify the separately
+selected inline class mechanism only after its complete CSS/lifetime decision.
+
 ## Accepted user decision
 
 On 2026-11-01 the user selected **explicit application-owned content styles and

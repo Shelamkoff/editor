@@ -86,7 +86,11 @@ export const texts = editor => editor.save().blocks.map(block => block.data.text
 export async function run() {
   const results = []
   const filter = new URL(location.href).searchParams.get('test-filter')
-  for (const { name, run } of cases.filter(entry => !filter || entry.name.includes(filter))) {
+  const selected = cases.filter(entry => !filter || entry.name.includes(filter))
+  const progress = { total: selected.length, completed: 0, active: null, caseStartedAt: null }
+  window.__auditProgress = progress
+  for (const { name, run } of selected) {
+    progress.active = name; progress.caseStartedAt = Date.now()
     const errors = { expected: [], unexpected: [] }
     activeErrors = errors
     const capture = (event) => {
@@ -138,6 +142,7 @@ export async function run() {
     results.push(failures.length
       ? { name, status: 'FAIL', error: failures.join('\n') }
       : { name, status: 'PASS' })
+    progress.completed = results.length; progress.active = null
   }
   window.__auditResults = results
   const failed = results.filter(result => result.status !== 'PASS')

@@ -16,6 +16,7 @@ import './regressions/gallery-native-drag-history.js'
 import './gallery-caption-order-native.js'
 import { test, make, para, editorRoot, blockElement, editableField, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createChecklistPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { pluginParityFixtures, readPath, writePath, pixel } from './plugin-parity-fixtures.js'
@@ -1091,8 +1092,8 @@ test('Raw preview preserves the source and permits native history from its previ
   const after=editor.save().blocks
   await clickNative(blockElement(editor,'a').querySelector('.oe-raw__toggle'))
   const frame=blockElement(editor,'a').querySelector('iframe')
-  assert(frame&&frame.getAttribute('sandbox')==='','Raw preview lost its iframe')
-  equal(frame.srcdoc,'AlphaX')
+  const child = await waitForEmbeddedDocument(frame, document => document.body?.textContent === 'AlphaX')
+  equal(child.body.textContent,'AlphaX')
   assert(frame.getBoundingClientRect().height>=100,'Preview lost its visible height')
   equal(editor.save().blocks,after)
   await dispatchKey('z','KeyZ',90,2)

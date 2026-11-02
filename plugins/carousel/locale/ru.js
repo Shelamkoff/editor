@@ -2,6 +2,7 @@ export default {
   'plugin.carousel.insert': 'Вставить',
   'plugin.carousel.cancel': 'Отмена',
   'plugin.carousel.title': 'Карусель',
+  'plugin.carousel.htmlContent': 'HTML-слайд',
   'plugin.carousel.addMedia': 'Добавить медиафайлы',
   'plugin.carousel.addUrl': 'Добавить URL',
   'plugin.carousel.addHtml': 'Добавить HTML',

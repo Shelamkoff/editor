@@ -38,6 +38,8 @@ export interface BlockPluginRuntimeContext {
   readonly signal: AbortSignal
   readonly isDefaultBlock: boolean
   readonly editorPlaceholder?: string
+  /** Immutable application-owned CSS text for embedded document content. */
+  readonly contentStyles?: readonly string[]
   t(key: string, fallback?: string, params?: Record<string, string | number>): string
 }
 

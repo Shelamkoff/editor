@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **65 / 209 obligations**, with **144 open**; see the [renderer registration acceptance](#renderer-registration-acceptance-2026-11-01). Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **66 / 209 obligations**, with **143 open**; see the [Code highlight/copy acceptance](#code-highlight-copy-acceptance-2026-11-01) and [renderer registration acceptance](#renderer-registration-acceptance-2026-11-01). Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 

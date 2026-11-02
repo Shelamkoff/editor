@@ -8,6 +8,7 @@ import {
 import { EditorRenderer } from '../../renderer/index.js'
 import { sanitizeHtml, sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/index.js'
 import { normalizeRichText } from '../../shared/richTextCodec.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 
 const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 
@@ -15,8 +16,9 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
-function assertNoActiveMarkup(root, label) {
-  assert(!root.querySelector('script, iframe, object, embed, form, meta, link, base'), `${label} kept an active element`)
+function assertNoActiveMarkup(root, label, permittedFrames = new Set()) {
+  assert([...root.querySelectorAll('script, iframe, object, embed, form, meta, link, base')]
+    .every(element => permittedFrames.has(element)), `${label} kept an active element`)
   assert(![...root.querySelectorAll('*')].some(element => [...element.attributes].some(attr => attr.name.startsWith('on'))), `${label} kept an event handler`)
 }
 
@@ -197,6 +199,8 @@ async function run() {
   const rawFrame = rawHolder.querySelector('.oe-raw__preview iframe')
   assert(rawFrame instanceof HTMLIFrameElement, 'read-only Raw did not create its preview')
   assert(!/script|javascript|svg\+xml/i.test(rawFrame.srcdoc), 'Raw preview bypassed sanitizer')
+  const previewDocument = await waitForEmbeddedDocument(rawFrame, document => document.querySelector('#safe-srcset'))
+  assertNoActiveMarkup(previewDocument.body, 'Raw preview child')
   const rawToggle = rawHolder.querySelector('.oe-raw__toggle')
   assert(rawToggle instanceof HTMLButtonElement && rawToggle.hidden && rawToggle.disabled, 'read-only Raw exposed editing toggle')
   rawEditor.destroy()
@@ -618,7 +622,10 @@ async function run() {
       { id: 'render-raw', type: 'raw', dataVersion: 1, data: { html: unsafeRaw } },
     ],
   }, rendererContainer)
-  assertNoActiveMarkup(rendererContainer, 'renderer')
+  const contentFrame = rendererContainer.querySelector('.editor-raw > iframe')
+  const contentDocument = await waitForEmbeddedDocument(contentFrame, document => document.querySelector('#safe-srcset'))
+  assertNoActiveMarkup(rendererContainer, 'renderer', new Set([contentFrame]))
+  assertNoActiveMarkup(contentDocument.body, 'renderer Raw child')
   assert(window.__editorSecurityProbe === 0, 'renderer executed untrusted markup')
   renderer.destroy(rendererContainer)
   renderer.destroy()

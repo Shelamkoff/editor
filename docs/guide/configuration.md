@@ -16,6 +16,7 @@ interface EditorConfig {
   readOnly?: boolean
   autofocus?: boolean
   injectStyles?: boolean
+  contentStyles?: readonly string[]
   theme?: string
   minHeight?: number
   locale?: Record<string, unknown>
@@ -51,6 +52,7 @@ interface EditorConfig {
 | `readOnly` | no | `false` | Initial interaction authority. User/native/clipboard/plugin persistence and undo/redo are disabled; host document commands remain available. |
 | `autofocus` | no | `false` | Focus the first editable field after successful creation. |
 | `injectStyles` | no | `true` | Acquire core and registered definition styles through the shared style registry. |
+| `contentStyles` | no | `[]` | Application-owned CSS text for Raw and HTML Carousel content. Copied once; independent of automatic UI style injection. |
 | `theme` | no | `dark` | Non-empty theme identifier. `light` and `dark` are built in; custom `oe-theme-*` classes may be styled by the host. |
 | `minHeight` | no | CSS default | Finite non-negative minimum editor height in pixels. |
 | `locale` | no | built-in English | Flat message dictionary used by core and definitions. |

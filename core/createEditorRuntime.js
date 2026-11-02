@@ -1,6 +1,7 @@
 // @ts-check
 import { EventBus } from '@shelamkoff/event-bus'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { snapshotContentStyles } from '../shared/contentStyles.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { uid } from '../shared/uid.js'
@@ -88,6 +89,7 @@ function snapshotEditorConfig(input){
   config.plugins=snapshotDenseArray(config.plugins,'plugins',{required:true})
   config.inlinePlugins=snapshotDenseArray(config.inlinePlugins,'inlinePlugins')
   config.inlineTools=snapshotDenseArray(config.inlineTools,'inlineTools')
+  config.contentStyles=snapshotContentStyles(config.contentStyles,'createEditor() contentStyles')
   for(const removed of ['validationMode','documentVersionPolicy','migrations']){
     if(Object.hasOwn(config,removed))throw new TypeError(`createEditor() ${removed} is no longer supported`)
   }
@@ -158,6 +160,7 @@ function snapshotEditorConfig(input){
  *   readOnly?: boolean,
  *   autofocus?: boolean,
  *   injectStyles?: boolean,
+ *   contentStyles?: readonly string[],
  *   theme?: string,
  *   minHeight?: number,
  *   locale?: Record<string, any>,
@@ -256,6 +259,7 @@ export function createEditorRuntime(input){
     defaultBlock:config.defaultBlock,
     placeholder:config.placeholder,
     acquireStyles:config.injectStyles!==false,
+    contentStyles:config.contentStyles,
     translate:(key,fallback='',params=undefined)=>{
       const translated=i18n.t(key,params)
       return translated===key?fallback:translated

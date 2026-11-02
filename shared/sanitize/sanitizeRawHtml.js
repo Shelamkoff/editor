@@ -4,6 +4,7 @@ import { getTrustedHtmlPolicy } from './trustedHtml.js'
 
 const RAW_HTML_CONFIG = {
   USE_PROFILES: { html: true },
+  ADD_ATTR: ['target'],
   FORBID_TAGS: [
     'script',
     'style',
@@ -130,6 +131,10 @@ function hardenRawFragment(fragment) {
       const safe = sanitizeUrl(href, { policy, fallback: '' })
       if (safe) element.setAttribute('href', safe)
       else element.removeAttribute('href')
+    }
+
+    if (element.localName === 'a' || element.localName === 'area') {
+      element.setAttribute('rel', 'noopener noreferrer')
     }
 
     for (const attribute of ['src', 'poster']) {

@@ -3,6 +3,7 @@ import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './
 import { snapshotCurrentBlockEnvelope, snapshotCurrentDocumentEnvelope } from '../shared/DocumentSchema.js'
 import { snapshotPollRendererConfig } from './pollConfigSnapshot.js'
 import { snapshotDataSchema } from '../shared/snapshotDataSchema.js'
+import { snapshotContentStyles } from '../shared/contentStyles.js'
 
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 
@@ -24,6 +25,7 @@ function assertDenseArray(value, label) {
 
 /** @param {import('./types').RendererConfig} config @returns {void} */
 function validateRendererConfig(config) {
+  config.contentStyles = snapshotContentStyles(config.contentStyles, 'EditorRenderer contentStyles')
   if(Object.hasOwn(config,'validationMode')){
     throw new TypeError('EditorRenderer validationMode is no longer supported')
   }

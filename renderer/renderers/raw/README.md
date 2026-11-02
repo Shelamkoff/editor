@@ -26,7 +26,7 @@ rendererStyles.destroy()
 { "html": "<section>Content</section>" }
 ```
 
-The `html` field uses the dedicated raw-HTML sanitizer; the inline parser is intentionally not used. The renderer creates no listeners or external instances and declares no stylesheet.
+The `html` field uses the dedicated raw-HTML sanitizer and a scriptless content document; the inline parser is intentionally not used. The output owns its frame, measurement and permitted-link listeners and releases them in `destroy()`. It declares no automatic stylesheet. Supply application content CSS through `EditorRenderer({ contentStyles: ['body { font: 20px sans-serif; }'] })`; page stylesheets are not inherited automatically. The frame follows content height, while viewport lengths refer to the containing page. Rendering never rewrites the original HTML record.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
 
