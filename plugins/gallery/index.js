@@ -8,11 +8,9 @@ import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
-import { GalleryUploader } from './uploader.js'
 import { CSS } from './css.js'
 import { ICON, LAYOUT_ICONS, ICON_SETTINGS, ICON_ADD_IMAGE, ICON_CHEVRON_RIGHT, ICON_BACK, ICON_UPLOAD, ICON_URL } from './icons.js'
 import { gallerySlotCount, autoGalleryLayout, galleryOrientation } from '../../shared/galleryLayout.js'
-import { mountGalleryMasonry } from '../../shared/galleryMasonry.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
@@ -192,6 +190,8 @@ export function createGalleryPlugin(config={}){
       accepts(input){return input.kind==='file'&&isSupportedImageFile(input.file)},
       async resolve(input,context){
         if(input.kind!=='file'||!isSupportedImageFile(input.file))return null
+        if(context.signal.aborted)return null
+        const {GalleryUploader}=await import('./uploader.js')
         const uploader=new GalleryUploader(snapshot)
         const box={images:/** @type {Array<{url:string,caption:string}>} */([])}
         await uploader.handle([input.file],images=>{box.images=images},context.signal,context.ownerDocument)
@@ -220,7 +220,6 @@ export function createGalleryPlugin(config={}){
     capabilities,
     setup(runtimeContext){
       let destroyed=false
-      const uploader=new GalleryUploader(snapshot)
       return {
         create(initial,context){
           if(destroyed)throw new Error('Gallery runtime is destroyed')
@@ -323,6 +322,8 @@ export function createGalleryPlugin(config={}){
             if(!accepted.length)return
             const task=beginTask()
             try{
+              const {GalleryUploader}=await import('./uploader.js')
+              const uploader=new GalleryUploader(snapshot)
               await uploader.handle(accepted,images=>{
                 if(!task.signal.aborted)addImages(images,task)
               },task.signal,document)
@@ -544,7 +545,15 @@ export function createGalleryPlugin(config={}){
             if(data.styles.height)grid.style.height=data.styles.height
             for(const slot of slots)if(data.styles.borderRadius)slot.style.borderRadius=data.styles.borderRadius
             wrapper.appendChild(grid)
-            if(data.layout==='masonry')mountGalleryMasonry(grid,slots,{signal:viewController.signal})
+            if(data.layout==='masonry'){
+              // Layout already waits for connected, measurable output. Load it
+              // within this view's existing lease; a retired grid cannot start.
+              void import('../../shared/galleryMasonry.js').then(({mountGalleryMasonry})=>{
+                if(!viewSignal.aborted)mountGalleryMasonry(grid,slots,{signal:viewSignal})
+              }).catch(()=>{
+                if(!viewSignal.aborted)grid.classList.add('eg--masonry-fallback')
+              })
+            }
             if(data.layout==='auto'&&visible.length>2){
               const orientations=new Array(visible.length)
               let loaded=0

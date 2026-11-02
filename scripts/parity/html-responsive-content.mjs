@@ -11,7 +11,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
   ? pathToFileURL(resolve(process.env.EDITOR_PLAYWRIGHT_PATH)).href : 'playwright')
 const digest = bytes => createHash('sha256').update(bytes).digest('hex')
-const paths = ['scripts/parity/html-responsive-content.mjs', 'shared/embeddedHtml.js',
+const paths = ['scripts/parity/html-responsive-content.mjs', 'shared/embeddedHtml.js', 'shared/embeddedHtmlDocument.js',
   'shared/rebaseContentViewport.js', 'shared/contentStyles.js', 'core/createEditorRuntime.js',
   'plugins/raw/index.js', 'plugins/carousel/index.js', 'renderer/EditorRenderer.js',
   'renderer/renderers/raw/index.js', 'renderer/renderers/carousel/index.js',
