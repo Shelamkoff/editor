@@ -133,8 +133,8 @@ export class InlineProjectionRuntime {
       const retained=new Map()
       const previousByElement=new Map(presentationFields?.map(field=>[field.element,field])??[])
       try{
+        const preparedFields=this.#prepareFields(state,record,definition)
         if(presentationFields){
-          const canonical=richTextFieldMap(definition,record.data)
           const same=(left,right)=>left?.key===right.key&&left?.mode===right.mode
           const knownByElement=new Map(knownPresentationFields?.map(field=>[field.element,field])??[])
           let ownershipFailed=false
@@ -146,13 +146,13 @@ export class InlineProjectionRuntime {
             if(!same(previousByElement.get(field.element),field))continue
             if(field.mode!=='rich-text'){retained.set(field.key,field);continue}
             const authored=this.#readSafeAuthoredField(blockId,field.key,field.element,state)
-            if(authored!==null&&(authored===normalizeRichText(canonical.get(field.key)??'',this.#ownerDocument)
+            if(authored!==null&&(authored===(preparedFields.fields.get(field.key)?.normalized??'')
               ||this.#preservePendingField(blockId,field.key,field.element)))retained.set(field.key,field)
           }
           if(ownershipFailed)throw new Error('Presentation field left its accepted ownership boundary')
         }
         const affected=this.#projectState(blockId,state,record,definition,fields,baseContext,{
-          preserveSourceProjection,projectionRoot,retained,
+          preserveSourceProjection,projectionRoot,retained,preparedFields,
           canProjectField:canRetainField,trackAffected:typeof completeField==='function',
         })
         if(this.#destroyed||this.#blocks.get(blockId)!==state){
@@ -685,7 +685,35 @@ export class InlineProjectionRuntime {
     this.#pendingPreparations.clear()
   }
 
-  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,retained=new Map(),canProjectField=null,trackAffected=false}={}){
+  /** Cache only derived strings/counts in the existing block projection owner.
+   * Exact source spelling and the sidecar key set determine placeholder analysis;
+   * sidecar values still pass every schema, ownership and hydration check.
+   */
+  #prepareFields(state,record,definition){
+    const canonical=richTextFieldMap(definition,record.data)
+    const inline=object(record.inline)
+    const inlineKeys=JSON.stringify(Object.keys(inline).sort())
+    const cache=state.preparedFields??=new Map()
+    for(const key of cache.keys())if(!canonical.has(key))cache.delete(key)
+    const fields=new Map(),counts=new Map(),canonicalOwners=new Map()
+    for(const [key,html] of canonical){
+      let prepared=cache.get(key)
+      if(!prepared||prepared.source!==html||prepared.inlineKeys!==inlineKeys){
+        prepared={source:html,inlineKeys,
+          normalized:prepared?.source===html?prepared.normalized:normalizeRichText(html,this.#ownerDocument),
+          occurrences:scanRichTextPlaceholders(html,inline,this.#ownerDocument).occurrences}
+        cache.set(key,prepared)
+      }
+      fields.set(key,prepared)
+      for(const [id,count] of prepared.occurrences){
+        counts.set(id,(counts.get(id)??0)+count)
+        if(!canonicalOwners.has(id))canonicalOwners.set(id,key)
+      }
+    }
+    return {canonical,inline,fields,counts,canonicalOwners}
+  }
+
+  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false,projectionRoot=null,retained=new Map(),canProjectField=null,trackAffected=false,preparedFields=null}={}){
     const affected=trackAffected?new Set():null
     const projectionParent=projectionRoot?.parentNode
     const assertFieldBoundary=(fieldKey,field)=>{
@@ -696,17 +724,9 @@ export class InlineProjectionRuntime {
         throw new Error('Inline projection root or field left its block boundary')
       }
     }
-    const canonical=richTextFieldMap(definition,record.data)
+    const prepared=preparedFields??this.#prepareFields(state,record,definition)
+    const {canonical,inline,counts,canonicalOwners}=prepared
     const richFields=mountedRichFields(fields,canonical)
-    const inline=object(record.inline)
-    const counts=new Map()
-    const canonicalOwners=new Map()
-    for(const [fieldKey,html] of canonical){
-      for(const [id,count] of scanRichTextPlaceholders(html,inline,this.#ownerDocument).occurrences){
-        counts.set(id,(counts.get(id)??0)+count)
-        if(!canonicalOwners.has(id))canonicalOwners.set(id,fieldKey)
-      }
-    }
     const live=new Set()
     const liveOpaque=new Set()
     for(const [id,entry] of state.widgets)if(retained.get(entry.fieldKey)?.element===entry.fieldElement)live.add(id)
@@ -732,7 +752,7 @@ export class InlineProjectionRuntime {
       let decodedWidgets=null
       let retainedHtml=null
       if(!preserveSourceProjection){
-        const normalized=normalizeRichText(html,this.#ownerDocument)
+        const normalized=prepared.fields.get(fieldKey).normalized
         // A block plugin can retain an unchanged rich field while updating a
         // sibling or presentation option. Replacing its identical children
         // collapses a genuine native caret/range even though the accepted
@@ -1218,6 +1238,7 @@ export class InlineProjectionRuntime {
 
   #destroyState(state){
     if(!state)return
+    state.preparedFields?.clear()
     // Revoke all widget claims before calling potentially reentrant destroy().
     const owned=[...state.widgets.values()]
     state.widgets.clear()

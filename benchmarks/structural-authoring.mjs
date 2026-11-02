@@ -4,12 +4,13 @@ import { execFileSync } from 'node:child_process'
 import { createServer } from 'node:http'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { cpus, loadavg, release, totalmem } from 'node:os'
-import { extname, join, resolve } from 'node:path'
+import { extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { gzipSync } from 'node:zlib'
 
-// Two immutable source checkouts, one identical fixture and dependency set.
+// Two immutable Git revisions or source checkouts; identical fixture/dependencies.
 // node benchmarks/structural-authoring.mjs BASELINE CANDIDATE OUTPUT_DIRECTORY
+// Use git:REF to serve exact Git bytes without another checkout.
 // Controls also run in the registered native-core-behavior browser page.
 const [baseline, candidate, destination] = process.argv.slice(2)
 assert(baseline && candidate && destination, 'Provide baseline, candidate and an empty output directory')
@@ -18,10 +19,12 @@ const output = resolve(destination)
 await mkdir(output, { recursive: false })
 const hash = value => createHash('sha256').update(value).digest('hex')
 const git = (root, ...args) => execFileSync('git', args, { cwd: root, maxBuffer: 64 * 1024 * 1024 })
-const sources = [baseline, candidate].map((root, index) => ({
-  label: index ? 'candidate' : 'baseline', root: resolve(root),
-  sha: git(root, 'rev-parse', 'HEAD').toString().trim(), files: {},
-}))
+const sources = [baseline, candidate].map((input, index) => {
+  const object = input.startsWith('git:'), root = object ? resolve(repo) : resolve(input)
+  if (!object) assert.equal(resolve(git(root, 'rev-parse', '--show-toplevel').toString().trim()), root, 'Use a checkout root or git:REF')
+  return { label: index ? 'candidate' : 'baseline', root, storage: object ? 'git-object' : 'checkout',
+    sha: git(root, 'rev-parse', object ? input.slice(4) + '^{commit}' : 'HEAD').toString().trim(), files: {} }
+})
 const fixturePath = join(repo, 'tests/browser/structural-authoring-fixture.js')
 const fixture = await readFile(fixturePath)
 const dependencyRoot = resolve(process.env.EDITOR_DEPENDENCIES_ROOT ?? join(repo, 'node_modules'))
@@ -59,13 +62,18 @@ const server = createServer(async (request, response) => {
       assert(source || path.startsWith('/dependencies/'), 'Unexpected URL: ' + path)
       const relative = path.slice(source ? source.label.length + 2 : '/dependencies/'.length)
       const root = source?.root ?? dependencyRoot, filename = resolve(root, relative)
-      assert(filename.startsWith(root + '/'), 'Path escaped fixture root')
-      const bytes = await readFile(filename)
+      assert(filename.startsWith(root + sep), 'Path escaped fixture root')
+      let original = null, bytes
       if (source) {
-        assert.deepEqual(bytes, git(root, 'show', `${source.sha}:${relative}`), `${source.label}/${relative} is not the pinned source`)
+        bytes = git(root, 'show', source.sha + ':' + relative)
+        if (source.storage === 'checkout') {
+          original = await readFile(filename)
+          const checkoutText = /\.(?:js|mjs|css)$/.test(relative)
+          assert(checkoutText ? original.toString().replace(/\r\n/g, '\n') === bytes.toString().replace(/\r\n/g, '\n') : original.equals(bytes), source.label + '/' + relative + ' differs from its pinned source')
+        }
         source.files[relative] = hash(bytes)
-      } else dependencyFiles[relative] = hash(bytes)
-      loaded.set(path, { bytes, filename })
+      } else { bytes = await readFile(filename); original = bytes; dependencyFiles[relative] = hash(bytes) }
+      loaded.set(path, { bytes, filename, original, source, relative })
     }
     response.end(loaded.get(path).bytes)
   } catch (error) { serverErrors.push(error.stack ?? String(error)); response.writeHead(500); response.end(String(error)) }
@@ -240,7 +248,10 @@ finally {
   results.sources = sources
   results.dependencies = { root: dependencyRoot, versions: dependencyVersions, files: dependencyFiles }
   results.sourceUnchanged = true
-  for (const { bytes, filename } of loaded.values()) if (!bytes.equals(await readFile(filename))) results.sourceUnchanged = false
+  for (const { bytes, filename, original, source, relative } of loaded.values()) {
+    if (original && !original.equals(await readFile(filename))) results.sourceUnchanged = false
+    if (source && !bytes.equals(git(source.root, 'show', source.sha + ':' + relative))) results.sourceUnchanged = false
+  }
   if (!fixture.equals(await readFile(fixturePath))) results.sourceUnchanged = false
   if (!results.sourceUnchanged) { results.outcome = 'failed'; process.exitCode = 1 }
   results.finishedAt = new Date().toISOString(); results.environment.loadAfter = loadavg()
