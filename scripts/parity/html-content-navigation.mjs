@@ -99,13 +99,23 @@ try {
       },{kind,...specification})
       const targetFrame=kind==='platform-control'?owner:owner.childFrames()[0]
       await targetFrame.locator('#subject').click({ ...(specification.modifiers?{modifiers:specification.modifiers}:{}), ...(specification.button?{button:specification.button}:{}) })
-      await page.waitForTimeout(250)
+      // Observe the requested native outcome, rather than assuming a fixed
+      // sleep covers a browser's navigation/IPC scheduling under load.
+      const wanted=specification.expectedPage??'/boundary-destination?case='+specification.name
+      const settled=()=>{
+        if(specification.target==='_self'&&!specification.modifiers&&!specification.button) return !owner.isDetached()&&owner.url().replace(origin,'')===wanted
+        if(['_parent','_top'].includes(specification.target))return page.url().replace(origin,'')===wanted
+        return context.pages().some(opened=>opened.url().replace(origin,'')===wanted)
+      }
+      const deadline=Date.now()+5000
+      while(!settled()&&Date.now()<deadline)await page.waitForTimeout(25)
       const pages=[]
       for(const opened of context.pages()) {
         await opened.waitForLoadState('domcontentloaded').catch(()=>{})
         pages.push({url:opened.url().replace(origin,''),openerIsNull:await opened.evaluate(()=>opener===null)})
       }
-      const actual={pages,ownerUrl:owner.isDetached()?'detached':owner.url().replace(origin,''),requests:requests.slice(start),errors}
+      if(!owner.isDetached())await owner.waitForLoadState('domcontentloaded').catch(()=>{})
+      const actual={pages,ownerUrl:owner.isDetached()?'detached':owner.url().replace(origin,''),requests:requests.slice(start),errors,settled:settled()}
       variants.push({kind,actual})
       await context.close()
     }
@@ -113,7 +123,7 @@ try {
     const navigation=specification.expectedPage
       ? control.actual.pages.some(page=>page.url===specification.expectedPage)
       : control.actual.requests.some(request=>request.url==='/boundary-destination?case='+specification.name)
-    assert(navigation,'The independent native control did not navigate: '+specification.name)
+    assert(navigation&&control.actual.settled,'The independent native control did not navigate: '+specification.name)
     for(const candidate of candidates) {
       let failure=null
       try { assert.deepEqual(candidate.actual,control.actual) } catch(error) {failure=String(error)}

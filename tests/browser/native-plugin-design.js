@@ -1,5 +1,6 @@
 import { test, make, blockElement, editorRoot, editorHolder, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable, waitForStyles } from './native-input-helpers.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 import { createParagraphPlugin } from '../../plugins/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { pluginParityFixtures, pixel } from './plugin-parity-fixtures.js'
@@ -37,7 +38,7 @@ const selectors = {
   Gallery: '.oe-gallery', Carousel: '.oe-carousel-block', Attaches: '.oe-attaches', LinkPreview: '.oe-lp',
   Toggle: '.oe-toggle', Columns: '.oe-columns', Spoiler: '.oe-spoiler', Poll: '.oe-poll', Person: '.oe-person',
 }
-function designContract(editor, fixture, theme, state) {
+async function designContract(editor, fixture, theme, state) {
   const block = blockElement(editor, 'a')
   const host = block.querySelector(selectors[fixture.name])
   assert(host, 'Plugin markup lost its v1 stylesheet selector')
@@ -89,7 +90,8 @@ function designContract(editor, fixture, theme, state) {
   if (!state.startsWith('empty')) {
     if (fixture.name === 'Raw' && state === 'readOnly') {
       const frame = host.querySelector('iframe')
-      equal(frame.getAttribute('sandbox'), '', 'Raw preview lost its opaque sandbox')
+      const child = await waitForEmbeddedDocument(frame)
+      equal(child.body.textContent, 'Alpha', 'Raw preview lost its actual readable author content')
       equal(getComputedStyle(frame).backgroundColor, 'rgb(255, 255, 255)', 'Unstyled Raw HTML has no readable preview canvas')
       equal(getComputedStyle(frame).colorScheme, 'light')
     }
@@ -189,7 +191,7 @@ if (new URL(location.href).searchParams.has('visual')) {
           const before = editor.save().blocks
           await waitForStyles(document)
           await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-          designContract(editor, fixture, theme, state)
+          await designContract(editor, fixture, theme, state)
           equal(editor.save().blocks, before, 'Rendering a theme/state changed authoring data')
           equal(editor.canUndo, false)
           if (fixture.name === 'Table' && width === 288 && state === 'empty') await editLastTableCell(editor)

@@ -199,3 +199,22 @@ Raw replay artifacts: `raw-source-preview-0bedf9a4.json` and
 closeout directory and retain their actual runner/fixture/runtime identities.
 The following integration run must include these new fixture/oracle bytes.
 No additional preservation row or B-HTML/B-STYLE closure is claimed.
+
+The next frozen `99beda44` run (`run-MH9A9I`) also remains failed. Node discovers
+tests in the just-extracted historical archives; those archives are now under
+the same ignored immutable directory's `node_modules`, outside current test
+discovery. Windows System events confirm sleep at 02:47:56 and resume at
+11:14:29; native execution loses CDP after the completed source-indentation
+group. Retained tools does pass its 64 cases in this run. Navigation has one
+missed first self destination at its former fixed 250ms observation. No failed
+gate is relabelled and no full native pass is claimed.
+
+The post-resume Source Modes replay exposes 27 old empty-sandbox expectations
+among 62 cases. Source Modes and Raw design now inspect the exact selected
+boundary and actual child text while retaining native source/range/history and
+readable-canvas checks. Navigation now waits for the actual requested native
+destination/topology, bounded at five seconds, and requires a positive settled
+bare control. Frozen follow-up `run-a0RspD` passes all four gates with unchanged
+source: **2,191 Node/three skips**, **62 source-mode cases**, **four Raw design
+cases across 16 states**, and **48 navigation comparisons**. These remain scoped
+follow-up results rather than an invented successful twelve-gate run.

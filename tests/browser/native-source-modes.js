@@ -3,6 +3,7 @@ import en from '../../locale/en.js'
 import ru from '../../locale/ru.js'
 import { test, make, para, blockElement, assert, equal, run } from './regressions/harness.js'
 import { dispatchKey, printable, clickNative } from './native-input-helpers.js'
+import { waitForEmbeddedDocument } from './embedded-html-helpers.js'
 import './regressions/raw-readonly-selection-native.js'
 
 const variants = [
@@ -48,12 +49,15 @@ async function activate(control, activation) {
     await dispatchKey(' ', 'Space', 32, 0, ' ')
   }
 }
-function assertPreview(editor, variant, active) {
+async function assertPreview(editor, variant, active) {
   const block = blockElement(editor, 'a')
   if (variant.name === 'Raw') {
     equal(block.querySelector(variant.toggle).getAttribute('aria-pressed'), String(active))
     equal(Boolean(block.querySelector('iframe')), active, 'Raw mode lost/retained its preview iframe')
-    if (active) equal(block.querySelector('iframe').getAttribute('sandbox'), '')
+    if (active) {
+      const child = await waitForEmbeddedDocument(block.querySelector('iframe'))
+      equal(child.body.textContent, source, 'The actual Raw preview lost its authored source')
+    }
   } else equal(block.querySelector('.oe-code-wrap').classList.contains('oe-code-wrap--editing'), !active)
 }
 async function assertContinuation(editor, variant, range, backwards, before) {
@@ -80,9 +84,9 @@ test('Raw returning from preview resumes native input at the retained selection'
   const before = editor.save().blocks
   await selectNative(editor, variant, range, false)
   await activate(blockElement(editor, 'a').querySelector(variant.toggle), 'mouse')
-  assertPreview(editor, variant, true)
+  await assertPreview(editor, variant, true)
   await activate(blockElement(editor, 'a').querySelector(variant.toggle), 'mouse')
-  assertPreview(editor, variant, false)
+  await assertPreview(editor, variant, false)
   await assertContinuation(editor, variant, range, false, before)
 })
 
@@ -92,9 +96,9 @@ for (const variant of variants) for (const locale of locales) for (const activat
     await selectNative(editor, variant, range, backwards)
     const toggle = blockElement(editor, 'a').querySelector(variant.toggle)
     await activate(toggle, activation)
-    assertPreview(editor, variant, true)
+    await assertPreview(editor, variant, true)
     await activate(toggle, activation)
-    assertPreview(editor, variant, false)
+    await assertPreview(editor, variant, false)
     await assertContinuation(editor, variant, range, backwards, before)
   })
 }
@@ -105,9 +109,9 @@ for (const exit of ['Escape', 'Ctrl+Enter']) for (const reopen of ['button', 'hi
     const before = editor.save().blocks
     await selectNative(editor, variant, range, backwards)
     await dispatchKey(exit === 'Escape' ? 'Escape' : 'Enter', exit === 'Escape' ? 'Escape' : 'Enter', exit === 'Escape' ? 27 : 13, exit === 'Escape' ? 0 : 2)
-    assertPreview(editor, variant, true)
+    await assertPreview(editor, variant, true)
     await clickNative(blockElement(editor, 'a').querySelector(reopen === 'button' ? variant.toggle : '.oe-code-pre'))
-    assertPreview(editor, variant, false)
+    await assertPreview(editor, variant, false)
     await assertContinuation(editor, variant, range, backwards, before)
   })
 }
@@ -117,13 +121,13 @@ for (const variant of variants) for (const locale of locales) {
     const editor = mount(variant, locale), before = editor.save().blocks
     await selectNative(editor, variant, ranges[3], true)
     editor.setReadOnly(true)
-    assertPreview(editor, variant, true)
+    await assertPreview(editor, variant, true)
     const toggle = blockElement(editor, 'a').querySelector(variant.toggle)
     assert(toggle.hidden && toggle.disabled, 'Read-only view left its authoring toggle active')
     equal(editor.save().blocks, before)
     editor.setReadOnly(false)
     await activate(toggle, 'mouse')
-    assertPreview(editor, variant, false)
+    await assertPreview(editor, variant, false)
     editor.blocks.focus('a', { fieldKey: variant.key, offset: 7 })
     await assertContinuation(editor, variant, ranges[1], false, before)
   })

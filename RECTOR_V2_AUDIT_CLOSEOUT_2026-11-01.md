@@ -256,6 +256,48 @@ C05 fixed-ratio/mixed controls, resources/credentials, CSS-family/realm/failure/
 accessibility proof and C06 selector/style-lifetime integration. Still66/209
 accepted and143 open; the complete audit goal remains active.
 
+### 99beda44 integration: actual failures and continuation
+
+`run-MH9A9I` retains failed overall status and unchanged source. Build, types,
+45 browser pages, logical/responsive CSS, heap, docs, package and site pass.
+Node accidentally discovers tests in the newly extracted historical archives;
+the archives are now inside the same ignored immutable directory's node_modules,
+with no production source change. Repeat current Node independently.
+
+Windows System events confirm sleep at02:47:56 (Kernel-Power42) and resume
+at11:14:29 (Power-Troubleshooter1). The native run, begun before sleep, loses
+CDP after the following completed named groups: Attaches downloads13, HTML28,
+conversion grouping88, conversion preservation53, interaction39, retained tools64,
+conversion continuations65, font58, background36, link36, panel36, source
+indentation54. Other manually recorded earlier pages are in that run's own
+output/runner; do not invent their counts or call the full matrix passed.
+
+An independent post-resume Source Modes execution has62 cases,35PASS/27FAIL.
+All27 failures are old exact empty-sandbox expectations, before continuation
+checks can execute. Source Modes and Raw design fixtures are now migrated to
+the selected exact scriptless boundary and actual child text, retaining all
+caret/range/input/history and canvas checks. The next focused replay is pending.
+
+The navigation gate also records one failed Raw-editor self destination: its
+fixed250ms observation saw no request. The new oracle waits up to5s for the
+actual requested native destination/topology and requires a positive settled
+state for the independent bare control. Comparison remains exact; this is
+functional waiting, not accepting a missing transition. Fresh replay pending.
+No production change, new accepted row or full integration pass is claimed.
+
+Ignored inline research now includes a16-case selector-token prototype and a
+native CSSOM comparison script prepared but not yet run. The actual public
+201px glyph/input/mention decision remains separate from a complete compiler
+or adopted inline policy. Reuse the selected explicit contentStyles input;
+do not invent a trust flag, classname allowlist, paint clipping or wire alias.
+
+Post-resume frozen follow-up `run-a0RspD` passes all four gates with unchanged
+source:2191 Node/three skips, all62 Source Modes cases, four Raw design cases
+(16 state/theme/width combinations), all48 native navigation comparisons.
+The selector-token prototype's native CSSOM decision replay also passes16/16,
+with zero page errors and no production inline change. All past failed runs
+retain their own results. Full native and whole-audit acceptance remain open.
+
 ## Accepted user decision
 
 On 2026-11-01 the user selected **explicit application-owned content styles and
