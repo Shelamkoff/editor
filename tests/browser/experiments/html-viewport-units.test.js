@@ -44,3 +44,24 @@ test('each parent resize uses the source value without cumulative scaling', () =
   assert.equal(rebaseViewportUnits(input, { ...viewport, height: 500 }), 'calc(500px + 20px)')
   assert.equal(rebaseViewportUnits(input, { ...viewport, height: 700 }), 'calc(700px + 20px)')
 })
+
+test('CSS feature tests retain their original dimensions while their declarations use the page viewport', () => {
+  const source = '@supports (width:10vw) { @media(min-width:1px) { .proof { width:10vw;height:10vh } } }'
+  const expected = '@supports (width:10vw) { @media(min-width:1px) { .proof { width:110px;height:80px } } }'
+  assert.equal(rebaseViewportUnits(source, viewport), expected)
+})
+
+for (const [source, expected] of [
+  ['@supports selector([data-name="{"]) {.proof{width:10vw}}.other{height:10vh}',
+    '@supports selector([data-name="{"]) {.proof{width:110px}}.other{height:80px}'],
+  ['@supports (--payload:{length:10vh}) {.proof{width:10vw}}',
+    '@supports (--payload:{length:10vh}) {.proof{width:110px}}'],
+  ['@\\73 upports (height:10vh){.proof{width:10vw}}',
+    '@\\73 upports (height:10vh){.proof{width:110px}}'],
+  ['@supports/* { comment */(width:calc(10vw + 1px)){.proof{height:10vh}}',
+    '@supports/* { comment */(width:calc(10vw + 1px)){.proof{height:80px}}'],
+  ['@supports(width:10vw);.proof{height:10vh}',
+    '@supports(width:10vw);.proof{height:80px}'],
+]) test(`CSS feature prelude boundaries: ${source}`, () => {
+  assert.equal(rebaseViewportUnits(source, viewport), expected)
+})

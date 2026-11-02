@@ -1,5 +1,23 @@
 # Rector v2 audit closeout — active work
 
+## Resource follow-up — 2026-11-03 local date
+
+Remote was fetched again and remains `3fcfa866`; no incoming commits, push or
+release. The register remains **67/209 accepted, 142 open**. Current follow-up
+repairs font-resource churn, restrictive author referrer policy and a real
+Person FileReader-construction retirement defect. The
+[HTML checkpoint](scripts/parity/checkpoints/2026-11-02/html-boundary-integration/README.md)
+records actual native controls, immutable preceding-source failures and scope.
+
+`run-HKjDx0` on unchanged `5c73e176` passes fifteen of sixteen gates; its site
+gate fails on unquoted technical terms in the Russian review. The prose is
+corrected. That run remains failed. Current pre-commit checks pass all 45 browser
+pages, both typechecks, the expanded 52-case loading probe, 24 real HTTP/CSS
+comparisons and 24 viewport-token tests. The enforced fullPreset budget now
+passes at **95.5 KiB gzip / 96 KiB**, with byte-identical shared SVG artwork.
+A fresh combined immutable run is still required; B-HTML and full readiness
+are not claimed. Earlier source-specific acceptance below remains in force.
+
 ## Accepted integration — 2026-11-02
 
 `run-PC0mTs` passes all **17 gates** on clean, unchanged

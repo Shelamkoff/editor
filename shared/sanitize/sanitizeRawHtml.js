@@ -4,7 +4,7 @@ import { getTrustedHtmlPolicy } from './trustedHtml.js'
 
 const RAW_HTML_CONFIG = {
   USE_PROFILES: { html: true },
-  ADD_ATTR: ['target'],
+  ADD_ATTR: ['target', 'referrerpolicy'],
   FORBID_TAGS: [
     'script',
     'style',
@@ -125,6 +125,9 @@ function sanitizeRawStyle(value, ownerDocument) {
 /** @param {DocumentFragment} fragment */
 function hardenRawFragment(fragment) {
   for (const element of fragment.querySelectorAll('*')) {
+    // Author content may reduce referrer exposure, never increase it.
+    const referrerPolicy = element.getAttribute('referrerpolicy')
+    if (referrerPolicy !== null && referrerPolicy.toLowerCase() !== 'no-referrer') element.removeAttribute('referrerpolicy')
     const href = element.getAttribute('href')
     if (href !== null) {
       const policy = element.hasAttribute('download') ? 'download' : 'link'

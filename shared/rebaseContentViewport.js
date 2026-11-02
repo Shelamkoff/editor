@@ -62,6 +62,28 @@ export function rebaseViewportUnits(css, viewport) {
       result += css.slice(start, position)
       continue
     }
+    if (character === '@' && name(position + 1).value.toLowerCase() === 'supports') {
+      // Feature queries inspect CSS grammar, not geometry. Preserve their
+      // original tokens while still rebasing declarations inside the block.
+      position = name(position + 1).end
+      let depth = 0
+      while (position < css.length) {
+        const current = css[position]
+        if (current === '"' || current === "'") position = stringEnd(position)
+        else if (current === '/' && css[position + 1] === '*') {
+          const close = css.indexOf('*/', position + 2)
+          position = close < 0 ? css.length : close + 2
+        } else if (validEscape(position)) position = escaped(position).end
+        else {
+          if (!depth && (current === '{' || current === ';')) break
+          if (current === '(' || current === '[') depth++
+          else if (current === ')' || current === ']') depth--
+          position++
+        }
+      }
+      result += css.slice(start, position)
+      continue
+    }
     if (character === '#' && (nameCharacter(css[position + 1]) || validEscape(position + 1))) {
       position = name(position + 1).end
       result += css.slice(start, position)

@@ -22,7 +22,7 @@ export function initializeEmbeddedDocument(context) {
   let activationLink = null
   /** @type {Map<HTMLElement,string>} */
   const inlineStyles = new Map()
-  /** @type {{sheet:CSSStyleSheet,queries:{rule:CSSMediaRule,query:MediaQueryList}[]}[]} */
+  /** @type {{sheet:CSSStyleSheet,queries:{rule:CSSMediaRule,query:MediaQueryList}[],projected:CSSStyleSheet|null,text:string|null}[]} */
   let styles = []
   const cleanup = () => {
     let failed = false, failure
@@ -66,6 +66,41 @@ export function initializeEmbeddedDocument(context) {
     if (!owns() || measureTimer !== null) return
     measureTimer = parent.setTimeout(() => { measureTimer = null; measure() }, 0)
   }
+  // Preserve unchanged native rules (especially FontFace ownership) while
+  // viewport-dependent declarations change. Both trees are native CSSOM from
+  // the same immutable application source, never application-owned DOM.
+  const reconcileRules = (target, next) => {
+    const headerKeys = ['conditionText', 'name', 'selectorText', 'keyText', 'start', 'end']
+    for (let index = 0; index < next.cssRules.length; index++) {
+      if (!owns()) return
+      const incoming = next.cssRules[index], previous = target.cssRules[index]
+      if (previous?.cssText === incoming.cssText) continue
+      if (previous?.type === incoming.type) {
+        const media = Reflect.get(previous, 'media'), nextMedia = Reflect.get(incoming, 'media')
+        if (media && nextMedia && media.mediaText !== nextMedia.mediaText) media.mediaText = nextMedia.mediaText
+        if (!owns()) return
+        const matchingHeader = headerKeys.every(key => Reflect.get(previous, key) === Reflect.get(incoming, key))
+          && (headerKeys.some(key => Reflect.get(previous, key) !== undefined) || Reflect.has(previous, 'style') || previous.constructor.name === 'CSSStartingStyleRule')
+        if (matchingHeader) {
+          const style = Reflect.get(previous, 'style'), nextStyle = Reflect.get(incoming, 'style')
+          const rules = Reflect.get(previous, 'cssRules'), nextRules = Reflect.get(incoming, 'cssRules')
+          if (style && nextStyle && style.cssText !== nextStyle.cssText) style.cssText = nextStyle.cssText
+          if (!owns()) return
+          const indexed = typeof Reflect.get(previous, 'insertRule') === 'function'
+          const matchingKeyframes = rules && nextRules && rules.length === nextRules.length
+            && Array.from(/** @type {CSSRuleList} */ (rules)).every((rule, at) => Reflect.get(rule, 'keyText') === Reflect.get(nextRules[at], 'keyText'))
+          if (rules && nextRules && (indexed || matchingKeyframes)) { reconcileRules(previous, incoming); continue }
+          if (style && nextStyle) continue
+        }
+      }
+      // A changed immutable prelude needs its native parser. Keep unrelated
+      // rules intact instead of republishing an entire sheet and its resources.
+      if (previous) target.deleteRule(index)
+      if (!owns()) return
+      target.insertRule(incoming.cssText, index)
+    }
+    while (owns() && target.cssRules.length > next.cssRules.length) target.deleteRule(target.cssRules.length - 1)
+  }
   const refresh = () => {
     if (!owns()) return
     accepted.documentElement.style.setProperty('height', parent.innerHeight + 'px', 'important')
@@ -85,20 +120,31 @@ export function initializeEmbeddedDocument(context) {
       element.style.cssText = rebaseViewportUnits(source, viewport)
     }
     const preparedSheets = []
-    for (const { sheet: source, queries } of styles) {
+    for (const entry of styles) {
+      const { sheet: source, queries } = entry
       if (!owns()) return
       // Resolve the original condition in the containing page before rebasing
       // declaration lengths. A transformed vi/vb expression belongs to the
       // child geometry and cannot be evaluated as a parent media condition.
       for (const { rule, query } of queries) rule.media.mediaText = query.matches ? 'all' : 'not all'
-      const sheet = new accepted.defaultView.CSSStyleSheet()
-      if (!owns()) return
-      sheet.replaceSync(rebaseViewportUnits(Array.from(source.cssRules, rule => rule.cssText).join('\n'), viewport))
-      if (!owns()) return
-      preparedSheets.push(sheet)
+      const text = rebaseViewportUnits(Array.from(source.cssRules, rule => rule.cssText).join('\n'), viewport)
+      if (entry.text !== text) {
+        const sheet = new accepted.defaultView.CSSStyleSheet()
+        if (!owns()) return
+        sheet.replaceSync(text)
+        if (!owns()) return
+        if (entry.projected) reconcileRules(entry.projected, sheet)
+        else entry.projected = sheet
+        if (!owns()) return
+        entry.text = text
+      }
+      if (entry.projected) preparedSheets.push(entry.projected)
     }
     if (!owns()) return
-    accepted.adoptedStyleSheets = preparedSheets
+    const adopted = accepted.adoptedStyleSheets
+    if (adopted.length !== preparedSheets.length || preparedSheets.some((sheet, index) => sheet !== adopted[index])) {
+      accepted.adoptedStyleSheets = preparedSheets
+    }
     if (owns()) requestMeasure()
   }
   /** @param {MouseEvent} event */
@@ -166,7 +212,7 @@ export function initializeEmbeddedDocument(context) {
     }
     collect(sheet.cssRules)
     if (!owns()) return
-    styles.push({ sheet, queries })
+    styles.push({ sheet, queries, projected: null, text: null })
   }
   if (!owns()) return
   setSanitizedRawHtml(accepted.body, html)

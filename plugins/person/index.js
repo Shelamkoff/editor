@@ -214,16 +214,10 @@ export function createPersonPlugin(config={}){
           }
 
           const readAvatar=async(file,signal)=>{
-            const FileReaderCtor=document.defaultView?.FileReader??FileReader
-            return await new Promise((resolve,reject)=>{
-              const reader=new FileReaderCtor()
-              const abort=()=>reader.abort()
-              signal.addEventListener('abort',abort,{once:true})
-              reader.onload=()=>resolve(typeof reader.result==='string'?reader.result:'')
-              reader.onerror=()=>reject(reader.error??new Error('Failed to read avatar'))
-              reader.onabort=()=>reject(signal.reason??new DOMException('Avatar read aborted','AbortError'))
-              reader.readAsDataURL(file)
-            })
+            const {readImageDataUrl}=await import('../shared/readImageDataUrl.js')
+            let url=''
+            await readImageDataUrl(file,result=>{url=result.url},signal,document)
+            return url
           }
 
           const selectAvatar=personId=>{

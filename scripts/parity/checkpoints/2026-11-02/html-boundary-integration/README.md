@@ -270,3 +270,63 @@ addition to the original 37 HTML/Gallery cases. Existing Image uploader tests
 pass without changed expectations. The actual enforced package build reports
 95.9 KiB gzip against the unchanged 96 KiB fullPreset limit. The earlier failed
 budget runs are not converted to passes.
+
+## Resource effects and shared local reads — 2026-11-03 local date
+
+The unchanged-source follow-up on `5c73e176` is `run-HKjDx0`: fifteen of sixteen
+gates pass, including all four selected native pages, Node/types, 45 ordinary
+pages, navigation, deferred loading, responsive content, enforced budget, heap
+and installed package. The site build fails solely on unquoted technical terms
+in the new Russian review. Those prose defects are corrected; the failed run is
+retained and is not described as a complete passing integration.
+
+Further real HTTP observation found repeated font requests (up to nineteen in
+the short controlled observation) and lost author `no-referrer` on every HTML
+surface. Unchanged native rules and constructed sheets now survive measurement
+and resize; only changed CSS declarations/rules are updated. Original feature
+query tokens in `@supports` remain feature tests, while declarations still use
+the selected page viewport. This also avoids replacing a nested font definition
+when only viewport-dependent geometry changes. No alternative CSS renderer,
+source rewrite, height cap or second style owner is introduced.
+
+Sanitization preserves the restrictive `referrerpolicy="no-referrer"` value.
+Other author policies remain removed, so author HTML cannot increase referrer
+exposure. The input HTML itself remains unchanged.
+
+`scripts/parity/html-resource-effects.mjs` runs 24 cases: four public surfaces,
+bare native and native CSSOM controls, same/cross-origin HTTP resources and
+plain/nested supports/media styles, before/after actual viewport resize. It
+compares real requests, controlled HttpOnly cookies, CORS font credentials,
+referrers, selected srcset, decoded images/video, typography and animation.
+`no-store` fonts must load once; forbidden/fallback/retina resources must not be
+requested. An attempted author `unsafe-url` policy must retain the native
+default. Native keyframe mutation independently demonstrates Chrome's replacement
+of FontFace objects without another request; object observations remain raw,
+and loaded state, traffic and animation continuity remain required. The earlier
+unconditional FontFace-identity assumption is retained as a failed diagnostic.
+
+An optional commit argument (or `EDITOR_RESOURCE_REF=EXACT_COMMIT`) serves all loaded production
+modules from their exact Git objects through ordinary Vite compilation. Runner,
+assets, dependency/lock and loaded-module bytes are checked unchanged. The
+immutable `5c73e176` replay completes all 24 cases with 174 production modules:
+all eight native controls pass and all sixteen product cases fail. Current
+pre-commit cases pass without changing expected resource effects. Earlier
+exploratory/native-fixture failures retain their own source and meaning.
+
+Person's local avatar path now reuses the existing Image reader through an
+optional module. This fixes actual native FileReader construction retiring the
+editor: the old source starts one late read and retains its handlers; current
+source starts none and clears them. Six new loading cases cover actual picker,
+success, module failure, retirement, constructor retirement and immediate remote
+uploads. The 52-case loading probe passes. Image's original reader tests keep
+their expectations; the redundant private upload forwarder is removed. Tasks
+remain owned by their existing plugin instances. Cropper and the full detailed
+Person avatar row retain separate acceptance obligations.
+
+Six identical Image/Gallery action SVG constants share one source. All eleven
+Image and ten Gallery exports, including layout thumbnails, compare byte exact
+with `5c73e176`. No artwork, source-editor preloading or functionality is removed.
+The actual enforced fullPreset build reports **95.5 KiB gzip / 96 KiB**; earlier
+failed budget probes remain failed. A fresh immutable integration is required
+for this combined follow-up. B-HTML and whole-audit acceptance remain open;
+the register stays **67/209 accepted, 142 open**.

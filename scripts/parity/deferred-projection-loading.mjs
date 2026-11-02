@@ -15,6 +15,7 @@ const paths = ['scripts/parity/deferred-projection-loading.mjs', 'shared/embedde
   'shared/embeddedHtmlDocument.js', 'shared/rebaseContentViewport.js', 'shared/galleryMasonry.js',
   'shared/sanitize/sanitizeRawHtml.js', 'plugins/gallery/index.js', 'plugins/gallery/uploader.js', 'plugins/gallery/remoteUpload.js',
   'plugins/image/index.js', 'plugins/image/uploader.js', 'plugins/image/remoteUpload.js',
+  'plugins/person/index.js', 'plugins/shared/readImageDataUrl.js',
   'plugins/raw/index.js', 'plugins/carousel/index.js', 'renderer/EditorRenderer.js', 'package-lock.json']
 const sourceHashes = Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(resolve(root, path)))])))
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim()
@@ -377,6 +378,72 @@ try {
       }
       assert.equal(requestCount(), 0, 'Remote Image upload acquired optional FileReader code')
     } finally { await page.close() }
+  }
+  for (const action of ['live', 'retire', 'fail', 'constructor-retire', 'remote', 'remote-retire']) {
+    const { page, release, request, requestCount } = await heldPage('plugins/shared/readImageDataUrl.js')
+    const remote = action.startsWith('remote')
+    if (remote) release('fail')
+    try {
+      await page.evaluate(async action => {
+        const { createEditor } = await import('/core/index.js')
+        const { createPersonPlugin } = await import('/plugins/person/index.js')
+        const holder = document.createElement('section'); document.body.append(holder)
+        let editor, retired = false, snapshot, calls = 0, finish, signal, reads = 0, lateReads = 0
+        const readers = [], Reader = window.FileReader
+        const destroy = () => { snapshot ??= editor.save().blocks; retired = true; editor.destroy() }
+        window.FileReader = class extends Reader {
+          constructor() { super(); readers.push(this); if (action === 'constructor-retire') destroy() }
+          readAsDataURL(file) { reads++; if (retired) lateReads++; return super.readAsDataURL(file) }
+        }
+        const config = action.startsWith('remote') ? { uploadFile: (_file, context) => {
+          calls++; signal = context.signal
+          const result = { url: '/person-avatar.gif' }
+          return action === 'remote-retire' ? new Promise(resolve => { finish = () => resolve(result) }) : Promise.resolve(result)
+        } } : {}
+        const input = { version: '2.0.0', blocks: [{ id: 'person', type: 'person', dataVersion: 2,
+          data: { persons: [{ id: 'profile', avatar: '', name: 'Readable person', role: '', bio: '', links: [] }] } }] }
+        const before = JSON.stringify(input)
+        editor = createEditor({ holder, plugins: [createPersonPlugin(config)], data: input })
+        window.probe = { editor, holder, input, before, destroy, finish: () => finish(),
+          counts: () => ({ calls, readers: readers.length, reads, lateReads }),
+          aborted: () => signal?.aborted ?? false, retired: () => retired,
+          data: () => snapshot ?? editor.save().blocks,
+          callbacks: () => readers.filter(reader => reader.onload || reader.onerror || reader.onabort).length }
+      }, action)
+      const chosen = page.waitForEvent('filechooser')
+      await page.locator('.oe-person__avatar-upload').first().click()
+      await (await chosen).setFiles({ name: 'avatar.gif', mimeType: 'image/gif',
+        buffer: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') })
+      if (remote) {
+        assert.equal(await page.evaluate(() => window.probe.counts().calls), 1, 'Person provider was deferred behind local-file code')
+        if (action === 'remote-retire') await page.evaluate(() => { window.probe.destroy(); window.probe.finish() })
+      } else {
+        await Promise.race([request, new Promise((_, reject) => setTimeout(() => reject(Error('Person local reader module was not requested')), 5000))])
+        assert.equal(await page.evaluate(() => window.probe.counts().readers), 0)
+        if (action === 'retire') await page.evaluate(() => window.probe.destroy())
+        release(action === 'fail' ? 'fail' : 'load')
+      }
+      if (action === 'live' || action === 'remote') await page.waitForFunction(() => window.probe.data()[0].data.persons[0].avatar)
+      else if (action === 'constructor-retire') await page.waitForFunction(() => window.probe.retired())
+      await page.waitForTimeout(100)
+      const observation = await page.evaluate(() => {
+        const p = window.probe, result = { ...p.counts(), callbacks: p.callbacks(),
+          avatar: p.data()[0].data.persons[0].avatar, inputUnchanged: p.before === JSON.stringify(p.input), aborted: p.aborted() }
+        if (!p.retired()) p.destroy()
+        return result
+      })
+      assert.equal(observation.lateReads, 0)
+      assert.equal(observation.callbacks, 0)
+      assert.equal(observation.inputUnchanged, true)
+      assert.equal(observation.readers, action === 'live' || action === 'constructor-retire' ? 1 : 0)
+      assert.equal(observation.reads, action === 'live' ? 1 : 0)
+      assert.equal(observation.calls, remote ? 1 : 0)
+      assert.equal(observation.aborted, action === 'remote-retire')
+      assert.equal(observation.avatar, action === 'live' ? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+        : action === 'remote' ? '/person-avatar.gif' : '')
+      if (remote) assert.equal(requestCount(), 0)
+      results.push({ type: 'person-avatar', action, observation, status: 'PASS' })
+    } finally { release('load'); await page.close() }
   }
   for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(hash(await readFile(resolve(root, path))), expected, 'Source changed: ' + path)
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim(), head)
