@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "candidate": "442c88252fd29c080484c7832a451786745375d6",
+  "rawSha256": "a9bd184cdae6c736a0edcae6350dfababa3701da2308eb09b9fff293c96dca01",
+  "scriptSha256": "63de3ba1fd252c9a968255a7fe4308b1093dc49ff5da5cf9e79ef673a04d00e7",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "integrationManifestSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09",
+  "byteIdenticalRuntime": true,
+  "unobservedBrowserPages": 46,
+  "unobservedBrowserCases": 22,
+  "browserSha256": "7091814a17370dee8709c7fc9e3f13acd13abd44923994b9836a7c01aace8390",
+  "rows": [
+    "CONTRACT_BLOCK_INLINE_CONTINUATION",
+    "CONTRACT_ASYNC_OBSERVER_ADMISSION",
+    "CONTRACT_DEFERRED_DIAGNOSTIC"
+  ],
+  "manualCases": 22,
+  "manualCandidateChecks": 230,
+  "rawObservationsReviewed": 436,
+  "productionModulesVerified": 275,
+  "dependencyFilesVerified": 6,
+  "summaries": [
+    {
+      "source": "spec-baseline",
+      "cases": 22,
+      "passed": 17,
+      "observations": 206,
+      "manualMismatches": 5
+    },
+    {
+      "source": "candidate",
+      "cases": 22,
+      "passed": 22,
+      "observations": 230,
+      "manualMismatches": 0
+    }
+  ],
+  "scope": "Independent manual canonical/history, callback-phase, signal and deferred-diagnostic model. Author verification, not a separate-agent review. Only the three named continuation/history rows are covered."
+}

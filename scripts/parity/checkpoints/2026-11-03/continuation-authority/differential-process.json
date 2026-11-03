@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Specification-baseline failures retain raw exit 1; candidate and independent review separately pass. v1 has its real control and an explicit current-only declaration."
+}

@@ -1,0 +1,40 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-candidate",
+      "mutation": "Replace the candidate source with the specification baseline.",
+      "exitCode": 1,
+      "sha256": "8ef93c6b74e2d4c8171de3cc54e204a89512b86ddd941eb1f6a2011bd4ba9956",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 196, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 111, in main\r\n    assert {source['label']: source['sha'] for source in raw['sources']} == expected_sources\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "consistent-wrong-undo",
+      "mutation": "Retain the completed URL in actual and expected after a supposedly grouped Undo.",
+      "exitCode": 1,
+      "sha256": "9eb21071d54c68e93605d716ee9043b93f49347e37efb741444534d402d74780",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 196, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 183, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('block completion history eligible preserves data and qualified grouping', 5, {'kind': 'equal', 'actual': [{'id': 'a', 'type': 'continuation-block', 'dataVersion': 1, 'data': {'text': '{{ref}}', 'url': 'https://after.example', 'title': ''}, 'inline': {'ref': {'type': 'continuation-inline', 'dataVersion': 1, 'data': {'url': 'https://before.example', 'title': ''}}}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Bravo'}}], 'expected': [{'id': 'a', 'type': 'continuation-block', 'dataVersion': 1, 'data': {'text': '{{ref}}', 'url': 'https://after.example', 'title': ''}, 'inline': {'ref': {'type': 'continuation-inline', 'dataVersion': 1, 'data': {'url': 'https://before.example', 'title': ''}}}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Bravo'}}], 'message': ''}, [{'id': 'a', 'type': 'continuation-block', 'dataVersion': 1, 'data': {'text': '{{ref}}', 'url': 'https://before.example', 'title': ''}, 'inline': {'ref': {'type': 'continuation-inline', 'dataVersion': 1, 'data': {'url': 'https://before.example', 'title': ''}}}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Bravo'}}])\r\n"
+    },
+    {
+      "name": "nested-publication-producer",
+      "mutation": "Claim a synchronous nested producer ran, changing actual and expected counts together.",
+      "exitCode": 1,
+      "sha256": "c8479a2d8a4d5f36694215b976c57aaef286e37069d9f94459395b629eb5f6a1",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 196, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 183, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('publication continuation live admits only later live host commands', 0, {'kind': 'equal', 'actual': [1, 0, 0], 'expected': [1, 0, 0], 'message': ''}, [0, 0, 1])\r\n"
+    },
+    {
+      "name": "early-diagnostic-delivery",
+      "mutation": "Deliver the queued diagnostic command during metadata collection in both actual and expected.",
+      "exitCode": 1,
+      "sha256": "bf6dfbfb6cf610eb94c1cbfacb7d8d8b682ece87303d8c5ed19735019500abd0",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 196, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 183, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('diagnostic continuation live guards metadata and admits only later live host commands', 1, {'kind': 'equal', 'actual': [2, 0, 1, 1], 'expected': [2, 0, 1, 1], 'message': ''}, [2, 0, 0, 0])\r\n"
+    },
+    {
+      "name": "missing-destroyed-continuation",
+      "mutation": "Delete the destroyed-editor continuation and its trace, leaving other PASS verdicts.",
+      "exitCode": 1,
+      "sha256": "c7499cb020bd61c6c4d8059933c638f9465b42053507f47e470833e375511762",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 196, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\continuation-authority\\review.py\", line 166, in main\r\n    assert [case['name'] for case in row['cases']] == list(models)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

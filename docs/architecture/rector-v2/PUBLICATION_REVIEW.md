@@ -2,9 +2,50 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **82 / 209 obligations**, with **127 open**; see the [public mode-recovery acceptance](#public-mode-recovery-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **85 / 209 obligations**, with **124 open**; see the [continuation/history acceptance](#continuation-history-and-deferred-callbacks-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Continuation history and deferred callbacks — 2026-11-03
+
+Three rows are accepted on immutable `442c88252fd29c080484c7832a451786745375d6`,
+Windows x64 / Chrome 156.0.8078.79: `CONTRACT_BLOCK_INLINE_CONTINUATION`,
+`CONTRACT_ASYNC_OBSERVER_ADMISSION` and `CONTRACT_DEFERRED_DIAGNOSTIC`.
+The register becomes **85 accepted / 124 open**. No production change was needed.
+
+The 22-case matrix passes all 230 manually reconstructed expectations. Paired
+URL/title work verifies eligible block grouping and independent inline actions,
+host-origin/intervening/changed-field/wrong-field and query/no-op controls,
+exact labels/data/command origins and complete Undo/Redo. A host inline patch
+is explicitly rejected; the still-live task then works through its real inline
+context. Unsupported host composition is not introduced to manufacture parity.
+
+Publication denies synchronous reentry before the nested producer; a controlled
+await admits a later live host command as its own action. Read-only round trips
+and destruction cannot revive scoped tasks or their input getters. Diagnostic
+error-name capture is protected, while frozen content-free delivery later
+permits an independent live command. Error and falsy Promise rejections preserve
+the accepted action/history without unhandled rejection or retrospective retry.
+
+All five gates in clean unchanged `run-zzJNsr` pass: types, all **46 ordinary
+browser pages**, exact Git comparison plus independent model, five negative
+evidence controls and docs. The model verifies 436 v2 observations, 275 production
+modules, six dependency files and eight versions. It rejects wrong source,
+consistently false grouped Undo, a nested publication producer, premature
+diagnostic delivery and a missing destroyed-continuation case. Runtime paths
+and loaded modules are byte identical to `f2070510`, whose separate original
+21-gate integration passes. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/continuation-authority/README.md)
+retains complete raw data, both manifests, verifier bytes, controls and hashes.
+This is author verification with a separate manual model, not another agent's review.
+
+The specification baseline retains 17 passing and five failed/incomplete cases,
+206 observations and raw exit 1; candidate/source/model review exits 0. v1's
+actual `save.slow` callback runs synchronously and its controlled continuation
+successfully calls public `render`, preserving saved and visible text. Its
+diagnostic capability is not labelled absent or replaced with v2 task emulation.
+Current queued delivery and task/history rules remain. The initial wrong
+transaction name and unsupported host inline examples remain fixture diagnostics,
+not product RED. Other C07/C12 rows, B-HTML and full-library readiness stay open.
 
 ## Public mode recovery acceptance — 2026-11-03
 

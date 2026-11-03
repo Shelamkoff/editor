@@ -1,8 +1,24 @@
 # Rector v2 audit closeout — active work
 
+## Continuation/history acceptance — 2026-11-03
+
+The current register is **85/209 accepted, 124 open**. Three named
+continuation/history contracts are accepted on clean unchanged `442c8825`:
+22 cases / 230 independent manual expectations, 275 verified production
+modules and all five affected gates in `run-zzJNsr`, including **all 46 ordinary
+browser pages**. Five corruptions are rejected. The
+[checkpoint](scripts/parity/checkpoints/2026-11-03/continuation-authority/README.md)
+retains both original manifests, complete raw results and verifier bytes.
+Runtime paths are byte identical to separately integrated `f2070510`.
+v1's actual diagnostic callback and later public render are explicitly executed;
+current deferred delivery and instance task/history improvements remain.
+Comparison exit 1 and review exit 0 remain distinct. Remote was fetched again:
+still `3fcfa866`, no incoming commits, push or publication. Optional inline
+update/projection obligations are next; full readiness remains open.
+
 ## Public mode-recovery acceptance — 2026-11-03
 
-The current register is **82/209 accepted, 127 open**. Four named mode/disposal
+At this checkpoint the register became **82/209 accepted, 127 open**. Four named mode/disposal
 contracts are accepted on clean unchanged `4c23285d`: 58 public block/inline
 cases / 762 manual expectations, 275 verified production modules and all six
 affected gates in `run-Rwj0PO`. Both ordinary browser pages pass, including
@@ -13,7 +29,7 @@ to the separately integrated `f2070510`. v1's real public mode round trip
 retains native editability/text and its two reconstructions; current useful
 instance preservation remains. Historical comparison exit 1 and independent
 review exit 0 remain distinct. Callback continuation and completion history
-are next; full readiness remains open.
+follow above; full readiness remains open.
 
 ## Public task/read acceptance — 2026-11-03
 
