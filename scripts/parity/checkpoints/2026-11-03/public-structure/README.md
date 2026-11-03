@@ -1,0 +1,5 @@
+# Public block structure — pending acceptance
+
+Twenty-nine variants in editable/read-only host-control mode cover insertion positions/defaults/rich payloads, updates to text/tunes/nested Table rows, tune reset, semantic no-ops, move/remove, final known/opaque default replacement, strict invalid input and nested draft commands. Caller-owned inputs remain detached; exact replay preserves IDs, data and one-action boundaries. A caught nested command failure must poison the complete outer transaction. No-op/error retains the seeded Redo branch.
+
+Host API commands remain admitted in read-only mode; user authoring and history availability are distinct. Return to editable mode reveals and replays history. Legacy public indexed operations execute without fabricating absent producer/missing-ID APIs or the current atomic default behavior. Production is unchanged from separately integrated `efc619d2`; the row stays open until the frozen full corpus, independent model, corruption controls and ordinary browser suite pass.
