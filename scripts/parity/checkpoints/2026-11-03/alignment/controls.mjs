@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { spawnSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -7,10 +7,12 @@ import { fileURLToPath } from 'node:url'
 const [rawPath, candidate, runDirectory, output] = process.argv.slice(2)
 assert.ok(rawPath && candidate && runDirectory && output && process.env.EDITOR_PYTHON_PATH)
 const root = fileURLToPath(new URL('./', import.meta.url))
+const reviewSource = execFileSync('git', ['rev-parse', 'HEAD']).toString().trim()
 const raw = JSON.parse(readFileSync(rawPath))
 mkdirSync(output, { recursive: true })
 const review = (path, name) => {
   const args = [join(root, 'review.py'), '--raw', path, '--candidate', candidate,
+    '--review-source', reviewSource,
     '--browser', join(runDirectory, 'browser-all.log'), '--output', join(output, name + '-review.json')]
   for (const value of ['left', 'center', 'right', 'justify']) args.push('--native-' + value, join(runDirectory, 'native-' + value + '.log'))
   const result = spawnSync(process.env.EDITOR_PYTHON_PATH, args, { encoding: 'utf8', windowsHide: true, maxBuffer: 8 * 1024 * 1024 })

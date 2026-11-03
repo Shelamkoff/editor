@@ -198,6 +198,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--raw', type=Path, required=True)
     parser.add_argument('--candidate', required=True)
+    parser.add_argument('--review-source')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--exploratory', action='store_true')
     parser.add_argument('--browser', type=Path)
@@ -217,8 +218,11 @@ def main():
     queries = [s['sha'] + ':' + path for s in data['sources'] for path in s['loaded']]
     queries += [INTEGRATION + ':' + path for path in data['sources'][2]['loaded']]
     if not opts.exploratory:
-        own = ['scripts/parity/alignment.mjs', 'tests/browser/alignment-parity-fixture.js', 'scripts/parity/checkpoints/2026-11-03/alignment/review.py']
+        own = ['scripts/parity/alignment.mjs', 'tests/browser/alignment-parity-fixture.js']
         queries += [opts.candidate + ':' + path for path in own]
+        reviewer = 'scripts/parity/checkpoints/2026-11-03/alignment/review.py'
+        review_source = opts.review_source or opts.candidate
+        queries.append(review_source + ':' + reviewer)
         native_sources = ['tests/browser/native-alignment.js', 'tests/browser/native-input-driver.js', 'tests/browser/regressions/harness.js', 'tests/browser/physical-history.mjs'] + ['tests/browser/native-alignment-' + mode + '.html' for mode in VALUES]
         queries += [opts.candidate + ':' + path for path in native_sources]
     blobs = git_blobs(queries)
@@ -228,11 +232,13 @@ def main():
     for path in data['sources'][2]['loaded']: assert blobs[opts.candidate + ':' + path] == blobs[INTEGRATION + ':' + path]
     if not opts.exploratory:
         for path in own: assert Path(path).read_bytes() == blobs[opts.candidate + ':' + path]
+        assert Path(__file__).read_bytes() == blobs[review_source + ':' + reviewer]
         assert data['runnerSha256'] == digest(blobs[opts.candidate + ':' + own[0]])
         assert data['fixtureSha256'] == digest(blobs[opts.candidate + ':' + own[1]])
         for path in native_sources: assert Path(path).read_bytes().replace(b'\r\n', b'\n') == blobs[opts.candidate + ':' + path]
         runtime_paths = ['core', 'shared', 'plugins', 'plugin-kit', 'inline-tools', 'inline-plugins', 'renderer', 'preset', 'locale', 'index.js', 'index.d.ts', 'types.d.ts', 'package.json', 'package-lock.json']
         assert subprocess.check_output(['git', 'diff', '--name-only', INTEGRATION, opts.candidate, '--', *runtime_paths]) == b''
+        assert subprocess.check_output(['git', 'diff', '--name-only', opts.candidate, review_source, '--', *runtime_paths, *own, *native_sources]) == b''
         integrated_bytes = read(Path(__file__).parent / 'integration-manifest.json.gz')
         assert digest(integrated_bytes) == INTEGRATION_SHA
         integrated = json.loads(integrated_bytes)
@@ -244,9 +250,19 @@ def main():
         assert environment['product'] == 'Chrome/' + data['browser']
         pages = re.findall(r'^([-a-z0-9]+\.(?:html|htm)): ', browser, re.M)
         assert len(pages) == len(set(pages)) == 48
-        for page in pages:
-            records = json.JSONDecoder().raw_decode(browser.split(page + ': ', 1)[1].lstrip())[0]
-            assert records and all(row['status'] == 'PASS' for row in records)
+        harness = json.JSONDecoder().raw_decode(browser.split('harness-contract.html: ', 1)[1].lstrip())[0]
+        assert harness['correct'] is True
+        assert [row['status'] for row in harness['outcomes']] == harness['want'] == ['FAIL', 'FAIL', 'FAIL', 'PASS', 'FAIL', 'FAIL', 'FAIL', 'PASS']
+        # Legacy pages have several documented report shapes, including plain
+        # text. The browser driver only returns after data-status=pass. Bind
+        # that completed command/source record instead of inventing a common
+        # per-case JSON format for unrelated pages.
+        browser_manifest = json.loads((opts.browser.parent / 'manifest.json').read_bytes())
+        assert browser_manifest['source']['head'] == opts.candidate and browser_manifest['source']['dirty'] is False
+        for name in ['types', 'browser-all', *['native-' + mode for mode in VALUES], 'docs']:
+            gate = browser_manifest['gates'][name]
+            assert gate['outcome'] == 'passed' and gate['sourceUnchanged'] is True
+            assert gate['sourceBefore']['identity'] == gate['sourceAfter']['identity'] == browser_manifest['source']['identity']
         native_hashes = {}
         for mode in VALUES:
             native_bytes = read(getattr(opts, 'native_' + mode)); native = json.loads(native_bytes.decode().splitlines()[-1])['native-alignment-' + mode + '.html']
@@ -263,7 +279,7 @@ def main():
                   dependencyFiles=len(data['dependencyFiles']), dependencyVersions=versions,
                   history=[dict(source=r['source'], observations=sum(len(c['observations']) for c in r['cases']), failed=sum(o['status'] == 'FAIL' for c in r['cases'] for o in c['observations']),
                                 incomplete=sum(bool(c['error']) or c['planned'] != c['completedPhases'] for c in r['cases'])) for r in data['results']])
-    if not opts.exploratory: result.update(integratedRuntime=INTEGRATION, integrationManifestSha256=INTEGRATION_SHA, browserSha256=digest(read(opts.browser)), nativeSha256=native_hashes)
+    if not opts.exploratory: result.update(reviewSource=review_source, integratedRuntime=INTEGRATION, integrationManifestSha256=INTEGRATION_SHA, browserSha256=digest(read(opts.browser)), browserRunSha256=digest((opts.browser.parent / 'manifest.json').read_bytes()), nativeSha256=native_hashes)
     opts.output.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(result))
 
