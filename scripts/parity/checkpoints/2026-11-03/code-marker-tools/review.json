@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "reviewedSource": "d4f026f8b25ca178c1b3c14e6a1526afa84d0176",
+  "rawSha256": "70277953d2bbcac8e6c7d64a796dcfa0ab3ffab96177fb71325c846882b047b8",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "integratedRuntime": "13b79cc62ceb29fe7a73b5d5dca9d3cde1c37b9e",
+  "integrationManifestSha256": "89b6477f25f5479e7e59a962f4427fad2894a4fec21e0dd82e968610dc48da2b",
+  "byteIdenticalRuntime": true,
+  "nativeCases": 64,
+  "nativeSha256": "bc5f2f70915ce3f681643b6d854044a4d12c6b53901aad73e3de6ae563ba9305",
+  "nativeSourceHashes": {
+    "tests/browser/native-code-marker.html": "1ace0d58ee38ffe51dc3ea6379c86387059d3d8c240ff5a1b669f9e1f4f6a2fe",
+    "tests/browser/native-code-marker.js": "774216d5e22fd9b2c7667dfd35a9ceb8246af911a74e9d03e9697d5d01ff8619",
+    "tests/browser/physical-history.mjs": "096a97b4fc45668c0243751208aa19c7af1132a6bc8b2cfe1732b083480a1ffa",
+    "tests/browser/native-input-driver.js": "8be2f4b6123667ddf212ecd6bc6348d1687003bcbd2d45e9d1bc5883f43ac4bc",
+    "tests/browser/regressions/harness.js": "90dff153395399bde3aeaf4c47fa78962486f117b3e9513cf3e90a97627d29f3"
+  },
+  "scriptSha256": "ec0328cb61fe609386255d27e118ebd874ccfe97dc7273b703954059204d19c0",
+  "sourceFilesChecked": 349,
+  "dependencyFilesChecked": 7,
+  "dependencyVersionsChecked": 8,
+  "rawVerdictsRecomputed": 8626,
+  "independentlyRebuiltOracleChecks": 1740,
+  "summaries": [
+    {
+      "source": "v1",
+      "cases": 64,
+      "observations": 2634,
+      "failed": 272,
+      "incomplete": [
+        "code/noop/atomic/forward",
+        "code/noop/atomic/backward",
+        "marker/noop/atomic/forward",
+        "marker/noop/atomic/backward"
+      ],
+      "failuresByProperty": {
+        "selection": 168,
+        "visibleWidgets": 30,
+        "liveWidgetIdentity": 24,
+        "liveWidgetPayloadAndMarkup": 24,
+        "intendedTextAndMarks": 8,
+        "visibleTextAndMarks": 14,
+        "retainedButtonCannotMoveSelection": 2,
+        "liveCapabilityStillWorks": 2
+      }
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 64,
+      "observations": 2996,
+      "failed": 336,
+      "incomplete": [],
+      "failuresByProperty": {
+        "intendedTextAndMarks": 56,
+        "visibleTextAndMarks": 84,
+        "completedActions": 28,
+        "exactCanonicalDocument": 28,
+        "selection": 56,
+        "history": 56,
+        "exactCompletedActions": 28
+      }
+    },
+    {
+      "source": "candidate",
+      "cases": 64,
+      "observations": 2996,
+      "failed": 0,
+      "incomplete": [],
+      "failuresByProperty": {}
+    }
+  ],
+  "missingVisibleOracleCases": [],
+  "reviewScope": "Separate manual character/mark model extended from the frozen basic-mark verifier to Code/Marker; no production toggle, normalizer or browser fixture import. Author verification, not a separate-agent review."
+}

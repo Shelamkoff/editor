@@ -1,9 +1,30 @@
 # Rector v2 audit closeout — active work
 
+## Inline Code/Marker acceptance — 2026-11-03
+
+The current register is **69/209 accepted, 140 open**. Only `TOOL_CODE_ACTION`
+and `TOOL_MARKER_ACTION` are newly accepted on `d4f026f8`: 64 complete cases /
+2996 observations across both tools, independent manual/source review and six
+unchanged-source affected gates in `run-02FJXq`. The original 96 basic-mark
+native cases also pass. All production paths and loaded modules are byte
+identical to the separately integrated `13b79cc6`; no tool behavior was changed.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/code-marker-tools/README.md)
+retains exact observations, manifests and three rejected evidence corruptions.
+Legacy/specification-baseline failures retain raw exit 1; current improvements
+remain intact. Full audit readiness is not claimed.
+
+The next confirmed HTML defect is an opened native popover styled by the
+application with `position:absolute`. On exact `d4f026f8` the native control
+passes, while all four public surfaces clip the box. Its source-attributed
+RED is `test-results/audit-closeout-2026-11-01/html-absolute-popover-red.json`.
+This repair is active work. Context-menu/fullscreen UI remains unverified after
+the computer-use URL-detection stop.
+
 ## Resource follow-up — 2026-11-03 local date
 
 Remote was fetched again and remains `3fcfa866`; no incoming commits, push or
-release. The register remains **67/209 accepted, 142 open**. Current follow-up
+release. Before Code/Marker acceptance, the register was **67/209 accepted,
+142 open**. This follow-up
 repairs font-resource churn, restrictive author referrer policy and a real
 Person FileReader-construction retirement defect. The
 [HTML checkpoint](scripts/parity/checkpoints/2026-11-02/html-boundary-integration/README.md)
@@ -28,8 +49,7 @@ all 60 public/native layer cases. Exact preceding `a008b32f` fails 28 of them
 while all twelve native controls pass. The final actual bundle is **95.5 KiB
 gzip / 96 KiB**. Native context-menu/fullscreen UI remains unverified because
 computer-use stopped when it could not confidently identify the current URL.
-The next active proof covers inline Code and Marker; its exploratory candidate
-cases pass, while committed-fixture verification and row acceptance are pending.
+The completed separate Code/Marker proof is recorded above.
 Earlier source-specific acceptance remains in force.
 
 ## Accepted integration — 2026-11-02

@@ -1,0 +1,67 @@
+{
+  "candidate": "d4f026f8b25ca178c1b3c14e6a1526afa84d0176",
+  "tree": "3e14b9c801555183a1328d59fa6125641b92a23e",
+  "integratedRuntime": "13b79cc62ceb29fe7a73b5d5dca9d3cde1c37b9e",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T00:33:01.954Z",
+    "finishedAt": "2026-11-03T00:37:41.414Z",
+    "identity": "c6bbfe4d268d9fcfc061766d3e4319471fdb73784f39af2a099032bc3f6c1abd",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-basic-preservation": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-code-marker": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "code-marker-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "code-marker-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78",
+      "loadedModules": 109
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc",
+      "loadedModules": 118
+    },
+    {
+      "label": "candidate",
+      "sha": "d4f026f8b25ca178c1b3c14e6a1526afa84d0176",
+      "tree": "3e14b9c801555183a1328d59fa6125641b92a23e",
+      "loadedModules": 122
+    }
+  ],
+  "registerBefore": {
+    "accepted": 67,
+    "open": 142
+  },
+  "proposedRows": [
+    "TOOL_CODE_ACTION",
+    "TOOL_MARKER_ACTION"
+  ],
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}

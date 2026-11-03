@@ -1,0 +1,26 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-candidate",
+      "mutation": "Replace the candidate production source with the specification baseline.",
+      "exitCode": 1,
+      "sha256": "d8bd4983e3657e0ace57792b2dd7d2fa6c9a05629344687e3394a01f89eb7b14",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\code-marker-tools\\review.py\", line 385, in <module>\r\n    main()\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\code-marker-tools\\review.py\", line 213, in main\r\n    assert {entry['label']: entry['sha'] for entry in data['sources']} == expected_sources\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "consistent-wrong-oracle",
+      "mutation": "Change both actual and expected text while keeping its PASS verdict.",
+      "exitCode": 1,
+      "sha256": "246f97463125943e2ff12b308c2adabaf9e75b85c2da6679c5e577d6acd5c61d",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\code-marker-tools\\review.py\", line 385, in <module>\r\n    main()\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\code-marker-tools\\review.py\", line 328, in main\r\n    assert exact(observation['actual'], expected), (case['id'], phase, property_name, observation['actual'], expected)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('code/apply/single/Text/forward', 'apply', 'intendedTextAndMarks', [[{'kind': 'text', 'text': 'Corrupted', 'marks': []}, {'kind': 'text', 'text': 'Al', 'marks': ['b']}, {'kind': 'text', 'text': 'pha', 'marks': ['b', 'code']}, {'kind': 'text', 'text': ' Plain ', 'marks': ['code']}, {'kind': 'text', 'text': 'MiXeD & tail', 'marks': ['code', 's', 'style(color:rgb(128, 0, 0))']}, {'kind': 'break', 'text': '\\n', 'marks': []}, {'kind': 'text', 'text': 'Link', 'marks': ['a[[\"href\",\"/kept\"],[\"rel\",\"noopener noreferrer\"]]', 'b', 'code']}, {'kind': 'text', 'text': ' ', 'marks': ['code']}, {'kind': 'widget', 'text': '{{swatch}}', 'marks': []}, {'kind': 'text', 'text': ' ', 'marks': ['code']}, {'kind': 'widget', 'text': '{{mention}}', 'marks': []}, {'kind': 'text', 'text': ' ', 'marks': ['code']}, {'kind': 'text', 'text': 'Bra', 'marks': ['b', 'code']}, {'kind': 'text', 'text': 'vo', 'marks': ['b']}, {'kind': 'text', 'text': ' rest', 'marks': []}]], [[{'kind': 'text', 'text': 'Xun', 'marks': []}, {'kind': 'text', 'text': 'Al', 'marks': ['b']}, {'kind': 'text', 'text': 'pha', 'marks': ['b', 'code']}, {'kind': 'text', 'text': ' Plain ', 'marks': ['code']}, {'kind': 'text', 'text': 'MiXeD & tail', 'marks': ['code', 's', 'style(color:rgb(128, 0, 0))']}, {'kind': 'break', 'text': '\\n', 'marks': []}, {'kind': 'text', 'text': 'Link', 'marks': ['a[[\"href\",\"/kept\"],[\"rel\",\"noopener noreferrer\"]]', 'b', 'code']}, {'kind': 'text', 'text': ' ', 'marks': ['code']}, {'kind': 'widget', 'text': '{{swatch}}', 'marks': []}, {'kind': 'text', 'text': ' ', 'marks': ['code']}, {'kind': 'widget', 'text': '{{mention}}', 'marks': []}, {'kind': 'text', 'text': ' ', 'marks': ['code']}, {'kind': 'text', 'text': 'Bra', 'marks': ['b', 'code']}, {'kind': 'text', 'text': 'vo', 'marks': ['b']}, {'kind': 'text', 'text': ' rest', 'marks': []}]])\r\n"
+    },
+    {
+      "name": "missing-trusted-input",
+      "mutation": "Retain content verdicts but revoke the recorded native input.",
+      "exitCode": 1,
+      "sha256": "6a3c3c32223285692c89cddbde5484537d1b58c4cb5beb676f5d715bb5d229cf",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\code-marker-tools\\review.py\", line 385, in <module>\r\n    main()\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\code-marker-tools\\review.py\", line 295, in main\r\n    assert case['trusted'] == expected_input + [dict(type='keydown', key='z', trusted=True)] * key_count\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

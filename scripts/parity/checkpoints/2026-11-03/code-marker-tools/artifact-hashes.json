@@ -1,0 +1,55 @@
+{
+  "affected-integration-manifest.json.gz": {
+    "bytes": 1212,
+    "sha256": "a75111c665a6e1579695abde1b769aaf98d9d2ba0d7c68eff662cab74ebc9e0f",
+    "decodedBytes": 12197,
+    "decodedSha256": "214fc7676cdb2c833307dfa0b58fa6c551140de9ecbd7ccf72fe8628ab2365f9"
+  },
+  "final-differential.json.gz": {
+    "bytes": 416703,
+    "sha256": "331103b3ebcf694cc1cd20cb5b559bebc0956cc329bf90987919f91ec789c3c5",
+    "decodedBytes": 15328324,
+    "decodedSha256": "70277953d2bbcac8e6c7d64a796dcfa0ab3ffab96177fb71325c846882b047b8"
+  },
+  "final-differential.stderr.gz": {
+    "bytes": 20,
+    "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "decodedBytes": 0,
+    "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native-final.log.gz": {
+    "bytes": 389,
+    "sha256": "acf70df8b3c77fb3fdd90631b88dafaebd76f82526049846624ce9b9a96d5444",
+    "decodedBytes": 5114,
+    "decodedSha256": "bc5f2f70915ce3f681643b6d854044a4d12c6b53901aad73e3de6ae563ba9305"
+  },
+  "basic-marks-preserved.log.gz": {
+    "bytes": 503,
+    "sha256": "1e758b8b7beb1c8af21a68edadcbfa5ba3e4c0ea273fdef31b3d7b285f7db83a",
+    "decodedBytes": 7783,
+    "decodedSha256": "00e1f6fa722ae4f0d7296ca390b4c1e765e40faf5709c3bda5b456d687fde9ab"
+  },
+  "review.json": {
+    "bytes": 2932,
+    "sha256": "e69cb85b758c0cceae13a6a50395e3298e85e03dfb608bd5897c9e30d1b1a9dd"
+  },
+  "controls-results.json": {
+    "bytes": 3946,
+    "sha256": "b3e377796bfaa8c5ff5e6a61986cdc254775ebad8e66f64cc77f29cb495519f9"
+  },
+  "differential-process.json": {
+    "bytes": 189,
+    "sha256": "ed1fa1a4417d007117e061b40acb3455f149561a055460f392ebba7eb0a5997a"
+  },
+  "executed-review.py.gz": {
+    "bytes": 6518,
+    "sha256": "0d80028ad5ce14a2555645fb1c6bd10d8ea906bcc6a5f22d808f444ca0e7f4f3",
+    "decodedSha256": "ec0328cb61fe609386255d27e118ebd874ccfe97dc7273b703954059204d19c0"
+  },
+  "manifest.json": {
+    "sha256": "80e7ba723f1f6b07b5ee88ebf3938416675e642d22aeb0558737b303b42081bd"
+  },
+  "reproduced-controls-results.json": {
+    "sha256": "5b559c55b928ac36805dde0b80fd6a5fe64b5b01008702d1d42ec5ee40b81a20"
+  }
+}

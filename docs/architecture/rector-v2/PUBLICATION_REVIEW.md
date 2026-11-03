@@ -2,9 +2,42 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **67 / 209 obligations**, with **142 open**; see the [renderer-error acceptance](#renderer-errors-acceptance-2026-11-02). The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **69 / 209 obligations**, with **140 open**; see the [inline Code/Marker acceptance](#inline-code-and-marker-acceptance-2026-11-03). Renderer-error acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Inline Code and Marker acceptance — 2026-11-03
+
+Only `TOOL_CODE_ACTION` and `TOOL_MARKER_ACTION` are accepted on immutable
+`d4f026f8b25ca178c1b3c14e6a1526afa84d0176`, Windows x64 / Chrome 156.0.8078.79.
+Each tool completes 32 cases and 1498 passing observations through the actual
+public editor: apply/mixed/nested removal, text/element endpoints in both
+directions, cross-Paragraph/Quote fields, native input, real Color/Mention
+widgets, separate action/input Undo/Redo, atomic no-op with a retained Redo
+branch, and read-only/destroyed UI with a live successor control. Installed
+valid DOM ranges are explicit; this is not a claim of physical drag selection.
+
+The unchanged-source six-gate `run-02FJXq` passes types, all 96 preceding mark
+cases, 64 new native cases, the three-source comparison and independent review,
+three negative controls and docs contracts. Its candidate runtime paths and
+loaded modules are byte identical to `13b79cc6`, whose separate twenty-gate
+`run-DLyD1O` passes. The two source identities and runs remain distinct. No
+production tool change was required. The register is **69 accepted / 140 open**.
+
+The manual character/mark verifier rebuilds 8626 verdicts and 1740 semantic
+checks, verifies 349 production modules, seven dependency files and eight
+versions, and independently checks live/canonical meaning, widgets, exact
+selection/direction, transaction sequence and history snapshots. Wrong source,
+matching false actual/expected values and missing trusted input all fail.
+This is author verification with an independently written model, not an agent
+peer review. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/code-marker-tools/README.md)
+preserves raw observations, original manifests, hashes and reproduction.
+
+v1 retains 272 failed observations and four absent atomic-only toolbar actions;
+the specification baseline retains 336 failures. The raw comparison exits 1,
+while the separate candidate/source/oracle review exits 0. Historical widget,
+selection and history defects are retained as evidence; current improvements
+remain. Other tool/inline rows, B-HTML and complete library readiness stay open.
 
 ## Scope and source identity
 

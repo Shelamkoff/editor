@@ -1,0 +1,4 @@
+scripts/parity/basic-mark-tools.mjs text eol=lf
+tests/browser/basic-mark-tools-parity-fixture.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/code-marker-tools/*.json -text
+scripts/parity/checkpoints/2026-11-03/code-marker-tools/*.gz -text

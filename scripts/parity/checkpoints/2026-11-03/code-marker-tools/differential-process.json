@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Retained v1/specification-baseline failures; candidate and full source/oracle verification must separately pass"
+}
