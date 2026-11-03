@@ -104,3 +104,11 @@ scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/controls.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/*.json -text
 scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/*.gz -text
+
+scripts/parity/bgcolor-realm.mjs text eol=lf
+tests/browser/bgcolor-realm-fixture.js text eol=lf
+tests/browser/native-bgcolor-realm.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.json -text
+scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.gz -text
