@@ -90,3 +90,10 @@ scripts/parity/checkpoints/2026-11-03/public-destroy/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-destroy/controls.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-destroy/*.json -text
 scripts/parity/checkpoints/2026-11-03/public-destroy/*.gz -text
+scripts/parity/public-events.mjs text eol=lf
+tests/browser/public-events-fixture.js text eol=lf
+tests/browser/public-events.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-events/review.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-events/controls.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-events/*.json -text
+scripts/parity/checkpoints/2026-11-03/public-events/*.gz -text

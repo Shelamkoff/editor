@@ -169,6 +169,7 @@ labels.push('document-lifecycle.html')
 labels.push('public-selection.html')
 labels.push('public-structure.html')
 labels.push('public-destroy.html')
+labels.push('public-events.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()

@@ -1,0 +1,5 @@
+# Public editor events — pending acceptance
+
+The 122 cases cover all eight current fact types, clean delivery, synchronous throw and rejected Promise with six falsy causes plus Error, and unsubscribe before/after first delivery. Two independent subscribers surround the faulting one. Exact immutable payloads, graph/order/replay, ready hook liveness, content-free frozen diagnostics and no unhandled rejection are required. Failure must not roll back accepted data or suppress independent notifications.
+
+Legacy real topic names/native payloads, synchronous ready timing and actual render/replay controls execute without a fabricated typed transaction graph or producer API. Its own per-topic payload/fan-out sequences are checked independently; cross-topic legacy timing stays raw. Comparable historical controls and the modern typed contract all pass, so the raw comparison is expected to exit 0. No row is accepted before the frozen full corpus, independent model, corruption controls and all ordinary pages pass. Runtime is unchanged from separately integrated `efc619d2`.
