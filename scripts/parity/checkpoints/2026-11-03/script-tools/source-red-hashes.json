@@ -1,0 +1,18 @@
+{
+  "source-red.json.gz": {
+    "sha256": "0211aaab6b026dad755070ef167eac44f6e013a821c757f359a2240dac01756a",
+    "decodedSha256": "51e6c247cb309a98b5e8987c3f36b494e73a1fee55dfa4032dc76b2d2b4e2601"
+  },
+  "source-red.stderr.gz": {
+    "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "source-red-review.json.gz": {
+    "sha256": "b58974a16662a07bb3076abc92d6ce6d41559d84cbe3eacfa7ab5cf8fb48f76c",
+    "decodedSha256": "fc0ffd5ef30ce8cf2d278fc87f6a33877ed55cfb593736cba3d506bd2cb7bf1f"
+  },
+  "source-red-verifier.py.gz": {
+    "sha256": "c9359658d6600f9cfae782199ba8511e1d20d74a6934ac016ad4c43dd1a02839",
+    "decodedSha256": "4905212adf45368d97dbf65d424d39177f8acc3c5f7e8db3c397fa2ee0df3ea8"
+  }
+}

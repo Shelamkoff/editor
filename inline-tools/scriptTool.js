@@ -2,6 +2,7 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { editSelectedAncestors } from './selectedAncestors.js'
 import {
   createSelectionPortBinding,
+  collectTextTargets,
   toggleTag,
   removeEmptyInlineTags,
   createBackButton,
@@ -21,7 +22,9 @@ const ICON_NONE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16
  * @returns {'sup' | 'sub' | 'none'}
  */
 function getCurrentScript(range = null, ownerDocument = range?.startContainer?.ownerDocument ?? null) {
-  const anchorNode = range?.startContainer ?? ownerDocument?.defaultView?.getSelection?.()?.anchorNode ?? null
+  const root = range && !range.collapsed ? getWalkRoot(range) : null
+  const selectedText = root ? collectTextTargets(root, range)[0]?.node : null
+  const anchorNode = selectedText ?? range?.startContainer ?? ownerDocument?.defaultView?.getSelection?.()?.anchorNode ?? null
   if (!anchorNode) return 'none'
   const node = anchorNode.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (anchorNode)

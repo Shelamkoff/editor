@@ -141,4 +141,34 @@ test('Normal on unformatted text closes its accepted panel without manufacturing
   assert(!panel.isConnected)
 })
 
+for (const mode of ['sup', 'sub']) for (const boundary of ['Text', 'Element']) {
+  test(`Script ${mode} removes the same Alpha selection through ${boundary} boundaries`, async () => {
+    const initial = `<i><${mode}>Alpha</${mode}></i> rest`
+    const editor = makeScriptEditor([para('a', initial)])
+    const before = editor.save().blocks, events = []
+    editor.on('transaction:committed', event => events.push(event))
+    const field = fields(editor)[0], wrapper = field.querySelector('i'), text = textLeaf(wrapper)
+    const node = boundary === 'Element' ? wrapper : text
+    field.focus()
+    window.getSelection().setBaseAndExtent(node, 0, node, boundary === 'Element' ? wrapper.childNodes.length : text.length)
+    document.dispatchEvent(new Event('selectionchange'))
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+    editorHolder(editor).querySelector('[data-tool="script"]').click()
+    const panel = editorHolder(editor).querySelector('.oe-inline-toolbar__script-panel')
+    assert(panel, 'Script panel did not open for the equivalent interval')
+    modeButton(panel, mode).click()
+    equal(editor.save().blocks[0].data.text, '<i>Alpha</i> rest')
+    equal(events.length, 1)
+    equal(selectionPorts.get(editor)()?.toString(), 'Alpha')
+    equal(editor.undo(), true)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+    equal(editor.redo(), true)
+    equal(editor.save().blocks[0].data.text, '<i>Alpha</i> rest')
+    equal(selectionPorts.get(editor)()?.toString(), 'Alpha')
+  })
+}
+
 await run()

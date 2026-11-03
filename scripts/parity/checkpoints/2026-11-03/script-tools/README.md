@@ -23,3 +23,26 @@ selection reapplied sup. That probe's filter metadata was incomplete, so it
 is diagnostic only. The committed-source comparison must supply attributed
 RED before the production repair and complete manual/native/integration proof
 before accepting either row. Historical v1/baseline differences remain failures.
+
+## Attributed failure and local repair
+
+Exact clean source `bf2ad7a52118bbff059d70c8c5841cebf038e2d7` executes the
+32-case Superscript slice, with correct group/filter metadata and Git-source
+fixture/runner identities. All 32 cases complete 1,594 observations; six
+mixed Element-boundary cases produce 24 real failed observations across local,
+cross-block and Quote fields, both directions. The independent character/mark
+model verifies the intended removal and the 26 passing controls; all 349
+loaded production modules are checked against their source objects.
+Raw SHA-256:
+`51e6c247cb309a98b5e8987c3f36b494e73a1fee55dfa4032dc76b2d2b4e2601`.
+Original corpus, empty stderr, author verification and hashes are retained as
+`source-red*`; raw exit 1 is not relabelled as a passing run.
+
+The local repair resolves mode from the first eligible selected author text
+using the existing shared range traversal. It preserves collapsed-range
+fallback, panel mutation/restore ownership and unknown/atomic widget exclusion.
+Before the full frozen run, all 32 native Superscript cases, five panel unit
+checks, both typechecks and the ordinary Script suite pass. Four additional
+ordinary cases select the exact same Alpha through Text/Element boundaries
+for sup/sub and verify one action and exact replay. Full integration and the
+complete 104-case three-source/manual proof remain required; no row is accepted.
