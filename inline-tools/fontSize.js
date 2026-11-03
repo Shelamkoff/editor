@@ -118,7 +118,7 @@ function wrapRangeWithFontSize(range, fontSize) {
     /** @type {HTMLElement} */
     let currentSpan
     const parentEl = targetNode.parentElement
-    if (parentEl?.tagName === 'SPAN' && parentEl.style.fontSize
+    if (parentEl?.tagName === 'SPAN' && !parentEl.hasAttribute('contenteditable') && parentEl.style.fontSize
         && parentEl.childNodes.length === 1 && parentEl.firstChild === targetNode) {
       parentEl.style.fontSize = fontSize
       currentSpan = parentEl
