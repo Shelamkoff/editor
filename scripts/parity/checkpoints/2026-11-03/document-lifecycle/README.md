@@ -1,0 +1,7 @@
+# Public document lifecycle — pending acceptance
+
+Thirty-four fixed public API cases cover changed/equal/empty render, clear and clear of an already empty document, known and opaque data, both modes, and four rejected current-wire inputs with or without a typed validation callback. Paragraph and Color factories are observed through their public setup/create interfaces. Old block/inline tasks and intermediate history owners must retire before options/producers; fresh no-op tasks remain admitted without changing canonical data or history. Caller input must remain unchanged.
+
+Validation callbacks and diagnostics are independent. Diagnostics are delivered asynchronously and are observed before disposal; they are not read immediately after the synchronous exception. Expected errors are classified explicitly, with immutable public validation issues, content-free diagnostic fields and unchanged live rights. Legacy current-version validation is declared non-equivalent: its real render result is recorded, while regular legacy render/clear/history controls still execute. No current task/event contract is emulated for v1.
+
+This is test-only work. Production is unchanged from `efc619d2`, whose separate 13-gate integration passes, and from iterator fix `05eeb141`. The inherited integration manifest is retained. No preservation row is accepted until the frozen corpus, independent model, corruption controls and ordinary browser suite pass.

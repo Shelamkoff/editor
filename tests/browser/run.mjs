@@ -165,6 +165,7 @@ labels.push('continuation-authority.html')
 labels.push('decode-authority.html')
 labels.push('presentation-authority.html')
 labels.push('public-snapshots.html')
+labels.push('document-lifecycle.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()

@@ -62,3 +62,10 @@ scripts/parity/checkpoints/2026-11-03/public-snapshots/*.json -text
 scripts/parity/checkpoints/2026-11-03/public-snapshots/*.gz -text
 scripts/parity/checkpoints/2026-11-03/public-snapshots/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-snapshots/controls.mjs text eol=lf
+scripts/parity/document-lifecycle.mjs text eol=lf
+tests/browser/document-lifecycle-fixture.js text eol=lf
+tests/browser/document-lifecycle.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/document-lifecycle/review.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/document-lifecycle/controls.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/document-lifecycle/*.json -text
+scripts/parity/checkpoints/2026-11-03/document-lifecycle/*.gz -text
