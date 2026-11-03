@@ -186,3 +186,12 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-03/delimiter-structure/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-03/delimiter-structure/**/*.json -text
 /scripts/parity/checkpoints/2026-11-03/delimiter-structure/**/*.gz -text
+
+# LinkPreview public/native template and menu lifetime proof
+/tests/browser/link-preview-templates-fixture.js text eol=lf
+/tests/browser/native-link-preview-templates* text eol=lf
+/scripts/parity/link-preview-templates.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-03/link-preview-templates/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-03/link-preview-templates/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-03/link-preview-templates/**/*.json -text
+/scripts/parity/checkpoints/2026-11-03/link-preview-templates/**/*.gz -text
