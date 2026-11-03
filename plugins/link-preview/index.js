@@ -5,6 +5,7 @@ import { LINK_PREVIEW_TEMPLATES } from '../../shared/blockOptions.js'
 import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { TEMPLATE_ICONS } from './templateIcons.js'
+import { createPluginLayer } from '../shared/layer.js'
 
 const editorStyles=new URL('./link-preview.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l.463-.536a5 5 0 0 1 7.071 7.072L18 13"/><path d="M13 18l-.397.534a5.068 5.068 0 0 1-7.127 0 4.972 4.972 0 0 1 0-7.071L6 11"/></svg>'
@@ -138,6 +139,7 @@ export function createLinkPreviewPlugin(config={}){
           actions.className='oe-lp__actions'
           const dropdown=document.createElement('div')
           dropdown.className='oe-lp__dropdown'
+          const dropdownLayer=createPluginLayer(wrapper,context.signal)
           const settings=document.createElement('button')
           settings.type='button'
           settings.className='oe-lp__action-btn'
@@ -310,6 +312,8 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const setOpen=open=>{
+            if(open)dropdownLayer.open()
+            else dropdownLayer.close()
             dropdown.classList.toggle('oe-lp__dropdown--open',open)
             settings.setAttribute('aria-expanded',String(open))
           }
@@ -381,14 +385,14 @@ export function createLinkPreviewPlugin(config={}){
             update(next,previous){if(!dead)project(next,previous)},
             editableFields:()=>Object.freeze([Object.freeze({key:'url',element:input,mode:/** @type {'plain-text'} */('plain-text')})]),
             setReadOnly(value){
-              if(value)composing=false
+              if(value){composing=false;setOpen(false)}
               readOnly=value
               // Native URL input may have committed without updating this
               // instance while the browser input selection was preserved.
               project(context.getData())
             },
             focus(){if(!dead&&!readOnly)input.focus()},
-            destroy(){dead=true;composing=false;clearInputTimer();currentTask?.cancel();currentTask=null},
+            destroy(){dead=true;composing=false;clearInputTimer();dropdownLayer.close();currentTask?.cancel();currentTask=null},
           }
         },
         destroy(){destroyed=true},
