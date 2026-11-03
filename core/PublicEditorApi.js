@@ -141,9 +141,12 @@ export class EditorBlocksApi {
     this.#assertLive()
     // Iterators can be retained and resumed after editor.destroy(). Recheck
     // ownership before every yielded snapshot and at normal exhaustion.
-    for (const record of this.#runtime.list()) {
+    // Capture activation with the detached data. Later document changes must
+    // not relabel a payload retained by this already-started iterator.
+    const records = this.#runtime.list().map(record => snapshot(this.#runtime, record))
+    for (const record of records) {
       this.#assertLive()
-      yield snapshot(this.#runtime, record)
+      yield record
     }
     this.#assertLive()
   }

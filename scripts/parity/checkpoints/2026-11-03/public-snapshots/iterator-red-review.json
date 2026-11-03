@@ -1,0 +1,10 @@
+{
+  "source": "05b286fa1f325ae010521f6a576742fecb0d9dbe",
+  "rawSha256": "72e05c4dcf2be996b5b78a6a1c9b6442b7ed12ecbf2b388574f6308d19140ed9",
+  "cases": 26,
+  "observations": 333,
+  "failedObservations": 2,
+  "incomplete": 0,
+  "positiveControls": 24,
+  "status": "ATTRIBUTED_REGRESSION"
+}

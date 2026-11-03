@@ -1,0 +1,20 @@
+{
+  "iterator-red.json.gz": {
+    "sha256": "31ce5ebc1463044d9d1e10e52282d3b878487044c75836ecf38df9360a0499ed",
+    "decodedSha256": "72e05c4dcf2be996b5b78a6a1c9b6442b7ed12ecbf2b388574f6308d19140ed9",
+    "bytes": 43718,
+    "decodedBytes": 2028683
+  },
+  "iterator-red-unit.log.gz": {
+    "sha256": "51bda07aa2b6afb0c9ec92d95b346157782b28bcb4f14838011dfb9ff6a0f41e",
+    "decodedSha256": "195cab7d6f7ac18301b50333bf8b5a222bf5b796c7a1fac283955d81eff484ff",
+    "bytes": 632,
+    "decodedBytes": 2098
+  },
+  "iterator-red-provenance.mjs.gz": {
+    "sha256": "8dce8c54bf18252e15772ab7a7c2939fc15dc88742408f626a6897d4a8462511",
+    "decodedSha256": "5b796700231441cadcecbe8218f4bed94524715efa5a0acd89bbb5d76b3c1be6",
+    "bytes": 1174,
+    "decodedBytes": 2750
+  }
+}
