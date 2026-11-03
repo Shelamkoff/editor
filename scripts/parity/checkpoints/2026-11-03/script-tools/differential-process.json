@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical v1/baseline errors and failed observations retain raw exit 1; fixed candidate/source/manual review separately passes."
+}

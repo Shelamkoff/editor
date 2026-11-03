@@ -1,8 +1,9 @@
-# Script panel action parity — pending
+# Script panel action parity — accepted 2026-11-03
 
 The target is `TOOL_SCRIPT_ACTION` and the retained auxiliary-focus defect
-`DEFECT_SCRIPT_PANEL`. The register remains **96 accepted / 113 open**.
-No current Script behavior is accepted by this pending checkpoint.
+`DEFECT_SCRIPT_PANEL`. Final committed-source verification accepts these two
+rows: **98 accepted / 111 open**. Earlier pending records below retain their
+original sources and scope.
 
 The unchanged common 96 basic-mark and 64 Code/Marker inventories gain a
 conditional Script profile. Superscript and Subscript have 32 cases each;
@@ -10,8 +11,10 @@ Normal has 20 each from existing sup/sub markup, 104 total. The matrix includes
 mixed/nested marks, Text/Element boundaries, both directions, Paragraph/Quote
 cross-field selection, real Color/Mention widgets, exact native input and
 separate history actions, atomic no-op preserving Redo, and retained read-only/
-destroyed UI with an independent live successor. Actual Tab enters the Script
-panel before a trusted mouse action; producer observation wraps only the
+destroyed UI with an independent live successor. The toolbar action opens the
+panel and focuses its first button. The matrix checks that panel-owned focus
+before a trusted mode click, using real Tab traversal only if needed to reach
+the panel. Producer observation wraps only the
 extension's public panel mutation callback. No core method is replaced.
 
 Three new native pages partition 32/32/40 cases within the existing per-page
@@ -89,3 +92,63 @@ before the new frozen run. The existing 104 cases retain their inventory and
 expectations; the complete matrix is now 128 cases / 6,400 observations. Both
 rows remain open until the latest integration and full three-source/manual
 proof pass. The earlier 27-gate result is retained with its original scope.
+
+## Immutable acceptance
+
+Clean unchanged `e2053f58258dcea153d16faae42e9d03c644e795` passes all **28
+integration gates** in `run-vCAX7O`, UTC 2026-11-03 12:17:05.114–12:34:23.027.
+Source identity:
+`975450611c65247bcff316b549e0259f3a71af6577a3f93a478f75926ff50e91`.
+This includes all 48 ordinary pages / 21 Script panel cases, 2,198 passing
+Node tests / three platform skips, 265 old native tool cases, the four Script
+pages (32/32/40/24), both C12 native groups, all preceding HTML/resource gates,
+heap, package and site. The actual enforced fullPreset size is **95.6 KiB
+gzip / 96 KiB**, separate from the earlier 27-gate source's 95.4 KiB.
+Original full manifest SHA-256:
+`e030e75826986a8e3c6c8d0b75d657caa6815be632a8bbcb178f8fc79c11bc8e`.
+
+The later test-only candidate `2c6fd5f4ed79d044bd331c14a29e908793a4b0bd`, tree
+`b25dcd85c104d4c2a394fa7f930df539637dcc34`, passes all four frozen proof gates
+in `run-IVwEy6`: types, the complete 128-case three-source comparison plus
+manual/source review, nine rejected evidence corruptions, and docs. All loaded
+candidate production modules and the unobserved native/ordinary fixture sources
+are byte identical to the separately integrated runtime. UTC interval:
+12:37:16.793–12:40:14.725; source identity:
+`ee23d6d9ada68353def5dd97e6e0bd7c06e5a26e6571fd6c6e372e02240e4bdc`.
+The four-gate proof and original 28-gate integration are separate actual runs.
+
+All **128 candidate cases / 6,400 observations** pass with zero incomplete
+phase, exception, failed observation or unsupported case. The separate Python
+character/mark/canonical/range/history model rebuilds **5,148 semantic checks**,
+recomputes all recorded verdicts, and verifies 349 loaded production modules,
+seven dependency files and eight versions. It revalidates both original RED
+corpora with its self-contained committed model. The original 96 basic-mark
+and 64 Code/Marker inventories/expectations remain; their separate native
+regression groups pass in the full integration.
+
+v1 retains 5,652 observations / 1,092 failed observations and eight incomplete
+atomic-only actions. Its 128 absent current event/producer-counter observations
+are declared separately from those eight unavailable toolbar actions; useful
+legacy formatting/history executes directly. The specification baseline retains
+3,972 observations / 504 failed observations and 64 incomplete cases. Historical
+failures remain raw comparison exit 1; candidate/manual review exits 0.
+
+Nine matching-operand corruptions or missing evidence are rejected: wrong
+source, wrong marks, untrusted click, lost panel focus, wrong Undo, extra history,
+lost widget owner, missing Normal and changed application boundary. This is
+author verification by an independent model, not a separate-agent review.
+Each case asserts actual panel focus; Tab traversal depends on initial focus.
+Other tools, B-HTML and full audit
+readiness remain open.
+
+Final raw SHA-256:
+`5b9903f342317a58286818b430538a377c2aa531dcece7689350ea76b38593ac`.
+Executed verifier SHA-256:
+`6fa1fa76eacde67330be8d3f56e20d736de4bdef37967e01da910ce468926fa2`.
+All primary logs, both complete integrations, the proof manifest, corpora,
+executed verifier and rejected evidence are retained with hashes.
+
+The acceptance site's first prose smoke run failed on unquoted Script/Alpha
+terms in the Russian report. The original failure log is retained separately;
+corrected docs, all 127 site pages and the browser UI smoke pass. This was a
+documentation formatting issue, not production RED or a failed frozen code run.

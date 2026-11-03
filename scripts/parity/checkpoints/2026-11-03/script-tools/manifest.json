@@ -1,0 +1,78 @@
+{
+  "candidate": "2c6fd5f4ed79d044bd331c14a29e908793a4b0bd",
+  "tree": "b25dcd85c104d4c2a394fa7f930df539637dcc34",
+  "integratedRuntime": "e2053f58258dcea153d16faae42e9d03c644e795",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T12:37:16.793Z",
+    "finishedAt": "2026-11-03T12:40:14.725Z",
+    "identity": "ee23d6d9ada68353def5dd97e6e0bd7c06e5a26e6571fd6c6e372e02240e4bdc",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "script-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "script-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "integratedRun": {
+    "startedAt": "2026-11-03T12:17:05.114Z",
+    "finishedAt": "2026-11-03T12:34:23.027Z",
+    "identity": "975450611c65247bcff316b549e0259f3a71af6577a3f93a478f75926ff50e91",
+    "gates": 28
+  },
+  "registerBefore": {
+    "accepted": 96,
+    "open": 113
+  },
+  "acceptedRows": [
+    "TOOL_SCRIPT_ACTION",
+    "DEFECT_SCRIPT_PANEL"
+  ],
+  "registerAfter": {
+    "accepted": 98,
+    "open": 111
+  },
+  "nativeCases": 128,
+  "manualCandidateObservations": 6400,
+  "manuallyRebuiltSemanticChecks": 5148,
+  "rawComparisonExit": 1,
+  "reviewExit": 0,
+  "firstIntegration": {
+    "source": "301f84eb0c4f5e6fbae4030a341b6c07943993e2",
+    "outcome": "passed",
+    "gates": 27
+  },
+  "sourceRed": {
+    "source": "bf2ad7a52118bbff059d70c8c5841cebf038e2d7",
+    "rawSha256": "51e6c247cb309a98b5e8987c3f36b494e73a1fee55dfa4032dc76b2d2b4e2601",
+    "cases": 32,
+    "failedObservations": 24,
+    "failedCases": [
+      "script/sup/sup/mixed/single/Element/forward",
+      "script/sup/sup/mixed/single/Element/backward",
+      "script/sup/sup/mixed/cross/Element/forward",
+      "script/sup/sup/mixed/cross/Element/backward",
+      "script/sup/sup/mixed/fields/Element/forward",
+      "script/sup/sup/mixed/fields/Element/backward"
+    ]
+  },
+  "hostRed": {
+    "source": "369a52be147390398da02ec7f0753ea21593b539",
+    "rawSha256": "f7989b04791f9932d1947bc1a1afccdb2e26527343118939d585f299d12daa06",
+    "cases": 24,
+    "failedCases": 24,
+    "failedObservations": 288
+  }
+}

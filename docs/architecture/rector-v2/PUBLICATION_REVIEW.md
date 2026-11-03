@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **96 / 209 obligations**, with **113 open**; see the [standalone presentation acceptance](#standalone-presentation-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **98 / 209 obligations**, with **111 open**; see the [Script panel acceptance](#script-panel-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
@@ -16,6 +16,61 @@ and are corrected; original data, hashes, sources and outcomes are unchanged.
 The [environment checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves all three original logs/manifests and the observed product/revision.
 This adds no accepted row or new test execution; the register remains 92/117.
+
+## Script panel acceptance — 2026-11-03
+
+Two rows are accepted on immutable `2c6fd5f4ed79d044bd331c14a29e908793a4b0bd`,
+Windows x64 / Chrome 156.0.8078.80: `TOOL_SCRIPT_ACTION` and
+`DEFECT_SCRIPT_PANEL`. The register becomes **98 accepted / 111 open**.
+
+The matrix passes 128 native cases / 6,400 observations: 32 Superscript,
+32 Subscript, 40 Normal and 24 external-host controls. It covers mixed/nested
+marks, both Text/Element directions, Paragraph/Quote cross-field ranges,
+actual Color/Mention widgets, native input and exact separate history actions,
+atomic no-op preserving Redo, and retired read-only/destroyed UI with a live
+successor. The real toolbar action focuses a panel button before the trusted
+mode click; Tab traversal is conditional on the initial panel focus. Current
+panel-owned focus is asserted directly. The 21 ordinary Script cases also
+retain stale-panel controls and add four identical-Alpha Text/Element cases.
+
+Two source-attributed defects are repaired. On `bf2ad7a5`, six mixed
+Element-boundary cases produce 24 failed observations. Mode detection now
+starts from the first eligible selected author text. On `369a52be`, all 24
+external sup/sub controls produce 288 failed observations: the action borrows
+application presentation and fails to author its own mark. Detection now stays
+inside the editable field and excludes the field root. Existing sup-before-sub
+precedence within author markup remains. Both original RED corpora are retained
+and independently revalidated; older useful behavior is preserved.
+
+Clean unchanged production `e2053f58` passes all 28 gates in `run-vCAX7O`:
+2,198 Node tests / three platform skips, types, all 48 ordinary pages, 265 old
+native tool cases, all 128 new Script cases, both recent C12 native groups,
+the preceding HTML/resource/navigation/layer controls, heap, bundle, docs,
+installed package and site. Actual fullPreset size is **95.6 KiB gzip / 96 KiB**.
+The earlier `301f84eb` 27-gate result remains successful for its recorded scope;
+its 95.4 KiB result is kept separately from the new source.
+
+The later clean unchanged `run-IVwEy6` passes four proof gates: types,
+three-source comparison plus independent review, nine negative evidence controls
+and docs. Loaded production modules and native/ordinary fixture sources are
+byte identical to the separate 28-gate runtime. The Python character/mark,
+canonical replay, range, history, native-input and owner model rebuilds 5,148
+semantic checks, recomputes all verdicts, and verifies 349 production modules,
+seven dependency files and eight versions. The original 96 basic-mark and
+64 Code/Marker inventories/assertions remain, and their native regressions pass.
+
+v1 retains 5,652 observations / 1,092 failed observations and eight unavailable
+atomic-only toolbar actions. Its missing current event/producer-counter
+observation port is declared separately; real legacy formatting and history
+execute. The specification baseline retains 3,972 observations / 504 failures
+and 64 incomplete cases. Candidate exceptions, incomplete phases, failed
+observations and unsupported cases are all zero. Raw comparison exit 1 and
+candidate/manual-review exit 0 remain distinct. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/script-tools/README.md)
+preserves full logs/manifests, both REDs, final corpus, executed verifier,
+nine rejected corruptions and hashes. This is author verification with an
+independent model, not another agent's review. Other tools, B-HTML and
+whole-library readiness remain open.
 
 ## Standalone presentation acceptance — 2026-11-03
 

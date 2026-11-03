@@ -6,9 +6,31 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Script panel acceptance — 2026-11-03
+
+The current register is **98/209 accepted, 111 open**. Two Script/panel rows
+are accepted on clean unchanged `2c6fd5f4`: 128 native cases / 6,400 passing
+observations and 5,148 independent semantic checks. Nine corruptions are rejected;
+all four frozen proof gates pass in `run-IVwEy6`. Runtime and native fixtures
+are byte identical to `e2053f58`, whose separate **28-gate integration passes**
+in `run-vCAX7O`, including all 48 ordinary pages, 265 old native tool cases,
+all 128 Script cases, recent C12 groups and earlier HTML/resource/package gates.
+Actual enforced fullPreset size is **95.6 KiB gzip / 96 KiB**.
+
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/script-tools/README.md)
+retains two immutable REDs and both complete integrations. Script mode now
+uses selected author text and stays inside its field; outer application sup/sub
+cannot suppress an authored action. Panel focus, exact native history/ranges,
+widgets, no-op Redo and retired UI remain protected. The successful earlier
+27-gate source retains its own 95.4 KiB result. Raw comparison exit 1 and manual
+review exit 0 remain distinct. Verification is by the author with an independent
+model. Remote was fetched again: still `3fcfa866`, no incoming changes or push.
+Other tools and remaining functional rows follow; B-HTML and full readiness
+remain open.
+
 ## Standalone presentation acceptance — 2026-11-03
 
-The current register is **96/209 accepted, 113 open**. Two field-local rows are
+At this checkpoint the register became **96/209 accepted, 113 open**. Two field-local rows are
 accepted on clean unchanged `4501d0cd`: 20 public and 14 native cases / 295
 manual expectations, genuine IME/pending trusted input, backward/foreign ranges
 and healthy tasks. All six gates in `run-ajbeH2` pass, including all 48 ordinary
