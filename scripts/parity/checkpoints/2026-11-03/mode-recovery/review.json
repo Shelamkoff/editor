@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "candidate": "4c23285dac1b6048e8e2395dbcc07408aca29b13",
+  "rawSha256": "8fe7b240b0b891752899386973bcfc84ca62b4d2a4d9be3da86b96293362d7d2",
+  "scriptSha256": "4c4402ba5ff2fe6cee1351d98c6efa40c361fd2127a408c843d6c60282f80aae",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "integrationManifestSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09",
+  "byteIdenticalRuntime": true,
+  "unobservedBrowserCases": 58,
+  "browserSha256": "9a3145386bdddf8f326598cbda440a84b4a621a5f7dc40a5b4842e1989aedf12",
+  "rows": [
+    "CONTRACT_FAILED_MODE_DISPOSAL",
+    "CONTRACT_MODE_FALSY_RECOVERY",
+    "CONTRACT_MODE_RECOVERY_CONTROLS",
+    "CONTRACT_MODE_RECOVERY_TERMINAL_DISPOSAL"
+  ],
+  "manualCases": 58,
+  "manualCandidateChecks": 762,
+  "rawObservationsReviewed": 1201,
+  "productionModulesVerified": 275,
+  "dependencyFilesVerified": 6,
+  "summaries": [
+    {
+      "source": "spec-baseline",
+      "cases": 58,
+      "passed": 29,
+      "observations": 439,
+      "manualMismatches": 29
+    },
+    {
+      "source": "candidate",
+      "cases": 58,
+      "passed": 58,
+      "observations": 762,
+      "manualMismatches": 0
+    }
+  ],
+  "scope": "Independent manual public/native mode, failure identity, scope, history and disposal model. Author verification, not a separate-agent review. Only the four named current mode/recovery rows are covered."
+}

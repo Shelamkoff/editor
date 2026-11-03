@@ -1,8 +1,23 @@
 # Rector v2 audit closeout — active work
 
+## Public mode-recovery acceptance — 2026-11-03
+
+The current register is **82/209 accepted, 127 open**. Four named mode/disposal
+contracts are accepted on clean unchanged `4c23285d`: 58 public block/inline
+cases / 762 manual expectations, 275 verified production modules and all six
+affected gates in `run-Rwj0PO`. Both ordinary browser pages pass, including
+the earlier 34 task cases. Five evidence corruptions are rejected. The
+[checkpoint](scripts/parity/checkpoints/2026-11-03/mode-recovery/README.md)
+retains original results and both manifests; runtime paths are byte identical
+to the separately integrated `f2070510`. v1's real public mode round trip
+retains native editability/text and its two reconstructions; current useful
+instance preservation remains. Historical comparison exit 1 and independent
+review exit 0 remain distinct. Callback continuation and completion history
+are next; full readiness remains open.
+
 ## Public task/read acceptance — 2026-11-03
 
-The current register is **78/209 accepted, 131 open**. Nine named public
+At this checkpoint the register became **78/209 accepted, 131 open**. Nine named public
 task/read/disposal contracts are accepted on clean unchanged `61ec543e`:
 34 cases / 333 independent manual expectations, 275 verified production
 modules and all five affected gates in `run-jV7549`. The plain browser page
@@ -12,7 +27,7 @@ retains source identities, full data, checker bytes and reproduction. Runtime
 paths are byte identical to separately integrated `f2070510`, whose original
 21-gate manifest is preserved. Historical raw comparison exit 1 is retained;
 candidate/model review is 0. No production behavior was changed. Other C07/C12
-obligations and full readiness remain open. Mode recovery is the next family.
+obligations and full readiness remained open; mode recovery follows above.
 
 ## Inline Code/Marker acceptance — 2026-11-03
 

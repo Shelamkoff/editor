@@ -2,9 +2,45 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **78 / 209 obligations**, with **131 open**; see the [public task/read acceptance](#public-task-and-read-authority-acceptance-2026-11-03). Renderer-error and Code/Marker acceptance remain in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **82 / 209 obligations**, with **127 open**; see the [public mode-recovery acceptance](#public-mode-recovery-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public mode recovery acceptance — 2026-11-03
+
+Four rows are accepted on immutable `4c23285dac1b6048e8e2395dbcc07408aca29b13`,
+Windows x64 / Chrome 156.0.8078.79: `CONTRACT_FAILED_MODE_DISPOSAL`,
+`CONTRACT_MODE_FALSY_RECOVERY`, `CONTRACT_MODE_RECOVERY_CONTROLS` and
+`CONTRACT_MODE_RECOVERY_TERMINAL_DISPOSAL`. The register becomes
+**82 accepted / 127 open**. No production behavior changes in this proof.
+
+The public matrix contains 58 cases and 762 independent manual expectations,
+pairing block and inline instances, both starting modes, all six falsy thrown
+values and Error. It checks exact forward failure identity, coherent native
+disabled controls after reconstruction, ordered secondary failures, retired
+tasks, unchanged data/history, successful reversal without replacement and
+ordinary successful transitions without remount. Terminal failure denies new
+producers but preserves readable accepted data and exact idempotent disposal,
+holder reuse and successor ownership. The earlier 34 task/read cases also pass.
+
+`run-Rwj0PO` passes all six affected gates on clean unchanged source: types,
+both ordinary browser pages, Git comparison plus independent manual model,
+five negative evidence controls and docs. The model verifies 1201 recorded v2
+observations, 275 production modules, six dependency files and eight versions.
+It rejects wrong source, matching false native modes, a missing recovery error,
+a deleted successful control and revived old-task admission. Runtime paths and
+loaded modules are byte identical to `f2070510`, whose separate original
+21-gate integration passes. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/mode-recovery/README.md)
+retains raw corpora, both manifests, verifier bytes and hashes. This is author
+verification with a separate manual model, not another agent's review.
+
+The specification baseline retains 29 passing and 29 failed/incomplete cases
+with 439 observations and raw comparison exit 1. v1 explicitly executes its
+public false/true/false mode control: native editability and saved text remain
+correct while the document is reconstructed twice. The absent v2 instance
+hook/scope-recovery contract is not emulated there. Current successful mode
+transitions keep their useful instance-preserving behavior. Candidate/model
+review exits 0. Other C07/C12 rows, B-HTML and whole-library readiness stay open.
 
 ## Public task and read authority acceptance — 2026-11-03
 
