@@ -152,3 +152,11 @@ scripts/parity/checkpoints/2026-11-03/public-readonly/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-readonly/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-readonly/*.json -text
 scripts/parity/checkpoints/2026-11-03/public-readonly/*.gz -text
+
+scripts/parity/disclosure-state.mjs text eol=lf
+tests/browser/disclosure-state-fixture.js text eol=lf
+tests/browser/native-disclosure-state.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/disclosure-state/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/disclosure-state/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/disclosure-state/*.json -text
+scripts/parity/checkpoints/2026-11-03/disclosure-state/*.gz -text

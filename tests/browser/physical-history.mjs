@@ -589,6 +589,7 @@ try {
     'native-fontsize-tools.html', 'native-fontsize-tools-trusted.html',
     'native-fontsize-imported.html', 'native-fontsize-imported-trusted.html',
     'native-public-readonly.html', 'native-public-readonly-trusted.html',
+    'native-disclosure-state.html', 'native-disclosure-state-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
