@@ -1,0 +1,6 @@
+{
+  "exitCode": 0,
+  "signal": null,
+  "expectedExitCode": 0,
+  "reason": "All current/native and three-source target actions match their independently observed native control."
+}

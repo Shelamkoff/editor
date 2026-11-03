@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "candidate": "54fc4f943ea5a95b68c2d7bdfb97638589f296a7",
+  "nativeControlComparisons": 72,
+  "threeSourceComparisons": 36,
+  "comparisonsPerSource": 12,
+  "servedModuleIdentities": 452,
+  "preparedSourceFiles": 1745,
+  "dependencyFiles": 1428,
+  "dependencyVersions": {
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "dompurify": "3.4.17",
+    "highlight.js": "11.11.1",
+    "jszip": "3.10.1",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "navigationSha256": "8e7bfcebee4e0d71fc3d7bcb1569b665516d1de4d1504921769f70653fb775d8",
+  "comparisonSha256": "c0ba0ec87032c492098007b26c63a266e50d13e51a8790746d37d50bf29d2105",
+  "reviewerSha256": "f3463b9974ee91adf7b2b5ad07fb461cfcccf445915a6e96c52ff8dc547a3c34",
+  "nativeCases": 28,
+  "nativeLogSha256": "78c0b72989c3a6a89f3e862a0f60eb657bc5c26639a7affc968f478db3a86591"
+}

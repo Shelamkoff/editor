@@ -1,0 +1,70 @@
+{
+  "candidate": "54fc4f943ea5a95b68c2d7bdfb97638589f296a7",
+  "tree": "b390812857eb6c729110629f19e0e638bd26902e",
+  "sourceIdentity": "1583b83e7acd0596181c4d8a42dcbaa6a7fc3ae41f21f5573a4c88b317476a8e",
+  "firstRun": {
+    "directory": "run-G5WnhK",
+    "outcome": "not-run",
+    "successfulGates": 4,
+    "unexecutedGates": [
+      "targets-proof",
+      "targets-controls"
+    ],
+    "reason": "The supervisor supplied three --require options; the verification CLI supports one. Review never started and its dependent controls were not run.",
+    "startedAt": "2026-11-03T20:21:47.807Z",
+    "finishedAt": "2026-11-03T20:24:08.186Z"
+  },
+  "followup": {
+    "directory": "run-hvObX3",
+    "outcome": "passed",
+    "gates": 2,
+    "identity": "1583b83e7acd0596181c4d8a42dcbaa6a7fc3ae41f21f5573a4c88b317476a8e",
+    "startedAt": "2026-11-03T20:24:41.860Z",
+    "finishedAt": "2026-11-03T20:24:53.689Z"
+  },
+  "productionBasis": "4e153854221027141a2b7152f4f067be9d74f228",
+  "productionDelta": [],
+  "nativeControlComparisons": 72,
+  "threeSourceComparisons": 36,
+  "comparisonsPerSource": 12,
+  "nativeHtmlCases": 28,
+  "servedSourceStyleFiles": 452,
+  "preparedSourceFiles": 1745,
+  "dependencyFiles": 1428,
+  "dependencyVersions": {
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "dompurify": "3.4.17",
+    "highlight.js": "11.11.1",
+    "jszip": "3.10.1",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "corruptionsRejected": 13,
+  "registerBefore": {
+    "accepted": 111,
+    "open": 98
+  },
+  "registerAfter": {
+    "accepted": 116,
+    "open": 93
+  },
+  "acceptedRows": [
+    "PRESENTATION_VALUES_TARGET_SELF",
+    "PRESENTATION_VALUES_TARGET_BLANK",
+    "PRESENTATION_VALUES_TARGET_PARENT",
+    "PRESENTATION_VALUES_TARGET_TOP",
+    "PRESENTATION_VALUES_TARGET_ARTICLEPREVIEW"
+  ],
+  "register": {
+    "accepted": 116,
+    "open": 93
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

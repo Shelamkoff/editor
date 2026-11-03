@@ -1,0 +1,95 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "navigationSha256": "5a0a9fd58b46ac6f1b1b236a9f390bf4ad38570f2587236a1fceb5fdecb681ef",
+      "comparisonSha256": "566f088d72a8608dbfe3831a32d6e09934d651731a912608091c40627f33ea63",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 94, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 55, in main\r\n    assert primary['head']==comparison['head']==a.candidate\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "parent-forced-to-top",
+      "exitCode": 1,
+      "navigationSha256": "5520557a9fd977f89e805097bfe0f6caeb84843f952e0c11632efea404074065",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "6, in verify_rows\r\n    for role in ['control','candidate']:assert same(row[role]['actual'],wanted),(row.get('source'),row['name'],row['surface'],role,row[role]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, '_parent', 'raw-editor', 'control', {'pages': [{'url': '/boundary-destination?case=_parent', 'openerIsNull': True}], 'middleUrl': 'detached', 'ownerUrl': 'detached', 'requests': [{'url': '/boundary-destination?case=_parent', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_parent', 'sameOrigin': True, 'target': '_parent', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}], 'middleUrl': '/boundary-destination?case=_parent', 'ownerUrl': 'detached', 'requests': [{'url': '/boundary-destination?case=_parent', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_parent', 'sameOrigin': True, 'target': '_parent', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "top-confined-to-parent",
+      "exitCode": 1,
+      "navigationSha256": "4d16de9e1da1ade8ed6c6d14f7e80d97da168512ff26dba0d03e0403bb3ffe72",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "-targets\\review.py\", line 36, in verify_rows\r\n    for role in ['control','candidate']:assert same(row[role]['actual'],wanted),(row.get('source'),row['name'],row['surface'],role,row[role]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, '_top', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}], 'middleUrl': '/boundary-destination?case=_top', 'ownerUrl': 'detached', 'requests': [{'url': '/boundary-destination?case=_top', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_top', 'sameOrigin': True, 'target': '_top', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-destination?case=_top', 'openerIsNull': True}], 'middleUrl': 'detached', 'ownerUrl': 'detached', 'requests': [{'url': '/boundary-destination?case=_top', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_top', 'sameOrigin': True, 'target': '_top', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "blank-opener-restored",
+      "exitCode": 1,
+      "navigationSha256": "03ff9953cd8b7efeecd0b738e2cfb26d521a2f6457361e21c24d260864ae82ce",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "e'),row['name'],row['surface'],role,row[role]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, '_blank', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=_blank', 'openerIsNull': False}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=_blank', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_blank', 'sameOrigin': True, 'target': '_blank', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=_blank', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=_blank', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_blank', 'sameOrigin': True, 'target': '_blank', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "named-target-coerced",
+      "exitCode": 1,
+      "navigationSha256": "0df00d2b70d6ed1fca97db2bda4273a171e0901738ce6e3fe866e976da0e014b",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, 'articlePreview', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=articlePreview', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=articlePreview', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=articlePreview', 'sameOrigin': True, 'target': '_blank', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=articlePreview', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=articlePreview', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=articlePreview', 'sameOrigin': True, 'target': 'articlePreview', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "navigation-suppressed",
+      "exitCode": 1,
+      "navigationSha256": "4825c072d6e47280ad806d4bd1f1ed8db93667da09d1fe3babb4ba9191a43240",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 36, in verify_rows\r\n    for role in ['control','candidate']:assert same(row[role]['actual'],wanted),(row.get('source'),row['name'],row['surface'],role,row[role]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, '_self', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [], 'errors': [], 'settled': False, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_self', 'sameOrigin': True, 'target': '_self', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-destination?case=_self', 'requests': [{'url': '/boundary-destination?case=_self', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_self', 'sameOrigin': True, 'target': '_self', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "activation-untrusted",
+      "exitCode": 1,
+      "navigationSha256": "4ee770ec56ddcbac291f6b9c827d88db3469c5e139270600b69fbe7efe7cb567",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": " verify_rows\r\n    for role in ['control','candidate']:assert same(row[role]['actual'],wanted),(row.get('source'),row['name'],row['surface'],role,row[role]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, '_self', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-destination?case=_self', 'requests': [{'url': '/boundary-destination?case=_self', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_self', 'sameOrigin': True, 'target': '_self', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': False, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-destination?case=_self', 'requests': [{'url': '/boundary-destination?case=_self', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_self', 'sameOrigin': True, 'target': '_self', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "middle-button-lost",
+      "exitCode": 1,
+      "navigationSha256": "69a47690870f898a53cfbcf352822d5f3cfcbb1605106b1763ad1d732b67567b",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "le]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, 'middle-click', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=middle-click', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=middle-click', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=middle-click', 'sameOrigin': True, 'target': '_self', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=middle-click', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=middle-click', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=middle-click', 'sameOrigin': True, 'target': '_self', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'auxclick', 'trusted': True, 'button': 1, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "policy-not-enforced",
+      "exitCode": 1,
+      "navigationSha256": "c82a45b995359b468d476b39e1c757773da0ba18ff04612cb74dba6fc554fb7d",
+      "comparisonSha256": "b48e0485ab5aa5ad354c1c9198624236acf0db342295118998903bc43b691f58",
+      "stderr": "e'),row['name'],row['surface'],role,row[role]['actual'],wanted)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: (None, '_blank', 'raw-editor', 'control', {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=_blank', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=_blank', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': False, 'inspected': {'href': '/boundary-destination?case=_blank', 'sameOrigin': True, 'target': '_blank', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]}, {'pages': [{'url': '/boundary-host', 'openerIsNull': True}, {'url': '/boundary-destination?case=_blank', 'openerIsNull': True}], 'middleUrl': '/boundary-middle', 'ownerUrl': '/boundary-owner', 'requests': [{'url': '/boundary-destination?case=_blank', 'referer': ''}], 'errors': [], 'settled': True, 'policyEnforced': True, 'inspected': {'href': '/boundary-destination?case=_blank', 'sameOrigin': True, 'target': '_blank', 'rel': ['noopener', 'noreferrer']}, 'activations': [{'type': 'click', 'trusted': True, 'button': 0, 'ctrlKey': False, 'shiftKey': False, 'altKey': False, 'metaKey': False}]})\r\n"
+    },
+    {
+      "name": "dependency-bytes-changed",
+      "exitCode": 1,
+      "navigationSha256": "de23b3a2bdcff4e0c64fc72f6535141404fe1bd15da8cfa4ecb6c49838108e27",
+      "comparisonSha256": "ecdccc3eceb31bb484bc26bd1118719e0cfd8def7071d3a266aeabd9408adbab",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 94, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 58, in main\r\n    dep=dependencies();assert same(primary['dependencies'],dep) and same(comparison['dependencies'],dep)\r\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "immutable-module-changed",
+      "exitCode": 1,
+      "navigationSha256": "d77be75a27e6fc786dd82d9e9beb1b9f5829ff79a0e1aeee1b0f438b12203521",
+      "comparisonSha256": "fbc35f5ac91aacf05fe60516b31482389b9698825a8c8af7835477557a971f50",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 94, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 74, in main\r\n    for path,h in source['files'].items():assert sha(blobs[source['sha']+':'+path])==h\r\n                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-historical-parent",
+      "exitCode": 1,
+      "navigationSha256": "d77be75a27e6fc786dd82d9e9beb1b9f5829ff79a0e1aeee1b0f438b12203521",
+      "comparisonSha256": "3bbd6cced36134cc5e4105787aea9c4b510bdd8612ed5191387aab0ea4b43ea5",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 94, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 56, in main\r\n    assert verify_rows(primary)==72 and verify_rows(comparison,True)==36\r\n                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 32, in verify_rows\r\n    assert [(row.get('source'),row['name'],row['surface']) for row in data['results']]==keys\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "retired-navigation-ignored",
+      "exitCode": 1,
+      "nativeSha256": "ba8238e253000c241a2097a8ccdff6d33b4691f3f337ba0b72aa561d5fa445a0",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 94, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\html-targets\\review.py\", line 86, in main\r\n    assert [row['name'] for row in native]==names and all(row['status']=='PASS' for row in native)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}
