@@ -588,6 +588,7 @@ try {
     'native-fontsize-reset-boundary.html', 'native-fontsize-reset-boundary-trusted.html',
     'native-fontsize-tools.html', 'native-fontsize-tools-trusted.html',
     'native-fontsize-imported.html', 'native-fontsize-imported-trusted.html',
+    'native-public-readonly.html', 'native-public-readonly-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
