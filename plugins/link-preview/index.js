@@ -186,6 +186,11 @@ export function createLinkPreviewPlugin(config={}){
           const metaRevisions=Object.create(null)
           for(const key of META_FIELDS)metaRevisions[key]=0
           let readOnly=context.isReadOnly()
+          const onCardActivate=event=>{
+            if(!readOnly)event.preventDefault()
+          }
+          card.addEventListener('click',onCardActivate,{signal:context.signal})
+          card.addEventListener('auxclick',onCardActivate,{signal:context.signal})
           let dead=false
           let currentTask=null
           let generation=0
