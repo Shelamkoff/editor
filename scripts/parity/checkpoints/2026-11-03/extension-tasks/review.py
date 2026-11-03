@@ -115,7 +115,7 @@ def main():
  history=continuation(c);assert summaries['candidate']['observations']==1116 and len(summaries['spec-baseline']['differences'])==57
  browser=a.browser.read_bytes();text=browser.decode();pages=re.findall(r'^[-a-z0-9]+\.(?:html|htm): ',text,re.M);assert len(pages)==len(set(pages))==55
  for page,names in [('extension-tasks.html',['Public extension task '+s['id'] for s in specs()]),('continuation-authority.html',list(exec_model()))]:
-  cases=json.loads(text.split(page+': ',1)[1].split('\n',1)[0]);assert [case['name'] for case in cases]==names and all(case['status']=='PASS' for case in cases)
+  cases,_=json.JSONDecoder().raw_decode(text.split(page+': ',1)[1].lstrip());assert [case['name'] for case in cases]==names and all(case['status']=='PASS' for case in cases)
  runtime=['core','shared','plugins','plugin-kit','inline-tools','inline-plugins','renderer','preset','locale','index.js','index.d.ts','types.d.ts','package.json','package-lock.json'];assert subprocess.check_output(['git','diff','--name-only','4e153854221027141a2b7152f4f067be9d74f228',a.candidate,'--',*runtime])==b''
  report=dict(status='PASS',candidate=a.candidate,taskResults=summaries,continuation=history,currentCases=46,currentObservations=1346,ordinaryPages=55,productionModulesVerified=modules,rawSha256=sha(raw),continuationRawSha256=sha(cont),browserSha256=sha(browser),reviewerSha256=sha(Path(__file__).read_bytes()),runtimeBasis='4e153854221027141a2b7152f4f067be9d74f228',productionUnchanged=True)
  a.output.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8');print(json.dumps(report))
