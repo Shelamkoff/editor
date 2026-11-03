@@ -1,0 +1,20 @@
+{
+  "source": "529c1ed8cefc50dd82b38fab9b4247ac352ba585",
+  "tree": "89cd610231fc36872e85dec8d70afdc8d7406799",
+  "productionDelta": [
+    "inline-tools/fontSize.js"
+  ],
+  "cases": 6,
+  "observationsPerSource": 126,
+  "failures": {
+    "v1": 0,
+    "spec-baseline": 6,
+    "candidate": 0
+  },
+  "affectedIntegration": "pending",
+  "register": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptedRows": []
+}
