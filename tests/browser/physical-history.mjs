@@ -560,6 +560,10 @@ try {
   const nativeScriptSub = await runNativePage(client, pageUrl, 'native-script-tools-sub.html')
   const nativeScriptNone = await runNativePage(client, pageUrl, 'native-script-tools-none.html')
   const nativeScriptHost = await runNativePage(client, pageUrl, 'native-script-host.html')
+  const nativeAlignmentLeft = await runNativePage(client, pageUrl, 'native-alignment-left.html')
+  const nativeAlignmentCenter = await runNativePage(client, pageUrl, 'native-alignment-center.html')
+  const nativeAlignmentRight = await runNativePage(client, pageUrl, 'native-alignment-right.html')
+  const nativeAlignmentJustify = await runNativePage(client, pageUrl, 'native-alignment-justify.html')
   const nativeOptionalInline = await runNativePage(client, pageUrl, 'native-optional-inline-update.html')
   const nativePersonModes = await runNativePage(client, pageUrl, 'native-person-modes.html')
   const nativeTableKeyboard = await runNativePage(client, pageUrl, 'native-table-keyboard.html')
@@ -630,6 +634,10 @@ try {
     nativeScriptSub,
     nativeScriptNone,
     nativeScriptHost,
+    nativeAlignmentLeft,
+    nativeAlignmentCenter,
+    nativeAlignmentRight,
+    nativeAlignmentJustify,
     nativeOptionalInline,
     nativePersonModes,
     nativeTableKeyboard,

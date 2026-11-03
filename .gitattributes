@@ -39,3 +39,10 @@ tests/browser/native-script-tools.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/script-tools/*.json -text
 scripts/parity/checkpoints/2026-11-03/script-tools/*.gz -text
 scripts/parity/checkpoints/2026-11-03/script-tools/review.py text eol=lf
+scripts/parity/alignment.mjs text eol=lf
+tests/browser/alignment-parity-fixture.js text eol=lf
+tests/browser/native-alignment.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/alignment/review.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/alignment/controls.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/alignment/*.json -text
+scripts/parity/checkpoints/2026-11-03/alignment/*.gz -text
