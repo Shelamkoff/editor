@@ -1,0 +1,1427 @@
+{
+  "basisCandidate": "ce0192ef3ad690c3a74fcac916f173e24998e339",
+  "rawSha256": "9418af5941c908924c81893e65422007efffc734b70d5062aa59b05087f6f478",
+  "purpose": "Reviewed historical observations, not normative behavior. Current meaning is rebuilt independently from literal author units.",
+  "sources": {
+    "v1": {
+      "apply/single/Text/forward": {
+        "sha256": "b0e5f2cc1a96547566606f785ce71e7e8804a6de42a44bfc95996e7618bae824",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "apply/single/Text/backward": {
+        "sha256": "0b33eaeae30684506ecb8d7c6a61dc55184425d3b2dced7d6588ddf67ad0feda",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/single/Element/forward": {
+        "sha256": "3067c0398a5288296bb7234eea35798318e6a0a4d344f171f4f02010ee6274e2",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "apply/single/Element/backward": {
+        "sha256": "351887ef9f26f1369c14a12caeda1e7c513cda1f1377510c3865afc58cde9e01",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/cross/Text/forward": {
+        "sha256": "5807194962c21defeb54b24050bde6ef435f6eec0b688e39258d5141533d68b9",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "apply/cross/Text/backward": {
+        "sha256": "48980e2cf5d5eddebbd6f509198885b010aa98f8c338317056b95f3d60d4fa7e",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/cross/Element/forward": {
+        "sha256": "ff3c103d77d253cbf4158a1b03dab9c77353d32a97a09c68acbfad0bd8122124",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "apply/cross/Element/backward": {
+        "sha256": "462ed638acdcb8005142f13f76b867d4100d60ae022bcbb02ed508fb9d6e5d92",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/fields/Text/forward": {
+        "sha256": "d0643ec4051ad624de5a724b3ee15d999938763691c0a1fa79bc85aba8e88001",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/fields/Text/backward": {
+        "sha256": "5c1e07989c19bbbf9fc730606569b39f723a61ebf60c03fee2a856667963983b",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/fields/Element/forward": {
+        "sha256": "118c937f7573e1d25fea5d4077842f9e591af08997b9f3c9f1d7bd03c07c7c08",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "apply/fields/Element/backward": {
+        "sha256": "4eef4f282577fb563bb60a0b85ffe387857fc6cec0f479040496d9cf824534f7",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/single/Text/forward": {
+        "sha256": "f06427bc9e23e0e4f12a462d212d76920481b6fafc59930b60fe1bc93c610e29",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "enter/single/Text/backward": {
+        "sha256": "296c47ff092cb80d59fa1a47af5e01857b4ad300027ac87464595a82e120d86b",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/single/Element/forward": {
+        "sha256": "9ef5179e41a688e822082fa08c0b0336eec843e9838e5ff15dcbd9de26e40c95",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "enter/single/Element/backward": {
+        "sha256": "41ac426aef1415260d0a93cc44768027f86ced132cce053883c27d6bcc073209",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/cross/Text/forward": {
+        "sha256": "fb679ba2d77b4612ad8c5b7433f463fa9a9fd9fa9fd73fb06acaa83b43fbbea2",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "enter/cross/Text/backward": {
+        "sha256": "f6332dede7a50c0c8817f954c4e14d825eb21ba23fc676f3b556ac4e11372675",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/cross/Element/forward": {
+        "sha256": "fb115bae86c8cf88e8a31ba5244fffa4dc422069bab018634e935b415985657e",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "enter/cross/Element/backward": {
+        "sha256": "d31dcb4e5b9cd82152c6fcbcf9bc79759f2d9bd5f2f96bbae2632a7a87e37105",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/fields/Text/forward": {
+        "sha256": "c4a52c5d2f5536c80ad4ae5bbcc59d17fe52e9f8c533c0f9cd1cc486b90f1c6b",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/fields/Text/backward": {
+        "sha256": "4039bb1d4b08add5dc92df066892c3953cf72811709fe0f256a7a6397882bc37",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/fields/Element/forward": {
+        "sha256": "3d0cd449d07bb0777d365eb9e7be42d79091977353ab78e3f0ffa6b55202eee9",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "enter/fields/Element/backward": {
+        "sha256": "c37a3eec8682f7e658ddd8e47067bf52822181379f29ae07dfcc9fab81a0f13e",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "reset/single/Text/forward": {
+        "sha256": "ca7105aa8a5685c48f7b55856b0ac891d9bcff5c48128c1c0ac1459ad0d6e2ec",
+        "complete": true,
+        "observations": 53,
+        "failures": 5
+      },
+      "reset/single/Text/backward": {
+        "sha256": "270522984ed4b78f18b8d20d64b30d243dbf53f3e197cbeff53a679ee074b4c9",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/single/Element/forward": {
+        "sha256": "8330359f4efc58643b0e6187b0d1125981cdf5da22ee86e9a21739b0ace2fa4d",
+        "complete": true,
+        "observations": 53,
+        "failures": 5
+      },
+      "reset/single/Element/backward": {
+        "sha256": "dac4ce368ee58a5a601e9ffefb2ec57e7a73eac9d836f95c51651fb278ffd788",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/cross/Text/forward": {
+        "sha256": "14655630c5e2d38276c3d70c845450d8562a142fea4448618bc3cde4fd445320",
+        "complete": true,
+        "observations": 53,
+        "failures": 5
+      },
+      "reset/cross/Text/backward": {
+        "sha256": "da05eb8c80d4d7fd0fb88119400e082dbc0574500b21b2e32d2e2f9e5ff4575e",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/cross/Element/forward": {
+        "sha256": "a5d8df3665cb0ca9bba1e42ab587e3f5cbfe4b33f3a3dd997f06d377414c6e15",
+        "complete": true,
+        "observations": 53,
+        "failures": 5
+      },
+      "reset/cross/Element/backward": {
+        "sha256": "73435d33df9f64109d125b7feec456bf053d4557b2d02a119445603249605bef",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/fields/Text/forward": {
+        "sha256": "e71316ea6c980c9b7842ab1466d34d85f7ad9d87c7b78f6f67d7158efd746117",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/fields/Text/backward": {
+        "sha256": "ca963d7f7ce82d9f7c27d721374e80219d875ccbed98dfc1ed91efaed06effa2",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/fields/Element/forward": {
+        "sha256": "8a2f5d3517fa9406a66807ddefdc2266b5edaaf3385142b9baaf898610ffabc3",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "reset/fields/Element/backward": {
+        "sha256": "a308a867f294e7ee6b194e89430d24c74fb956f79cea08a0f3c66be5e76e0f5a",
+        "complete": true,
+        "observations": 53,
+        "failures": 6
+      },
+      "partial/apply/Text/forward": {
+        "sha256": "e814a49c330103a35a3701b84bb956bfd7281c212bf276fc535565d97d987f72",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "partial/apply/Text/backward": {
+        "sha256": "9dd3c19f86a3485be53daa98e470d32693a2e976f06dd754856cbbe07044b3d7",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "partial/apply/Element/forward": {
+        "sha256": "8dc4378abc59376e70a1bac77e1ad407d69f55a50528195cbf169989a1f825f4",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "partial/apply/Element/backward": {
+        "sha256": "7c22f748f28ab43f3b31643296600de00e58b8e306eb1670fbe09aedaf6d029a",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "partial/reset/Text/forward": {
+        "sha256": "4e343786a92c82aad8cb856913d12d21dce318619a66f39acce81c0bdd83d363",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "partial/reset/Text/backward": {
+        "sha256": "78b89109277e78638054a535f3ef4ac413220307ac1cc2db0bde8593dbf6fe0b",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "partial/reset/Element/forward": {
+        "sha256": "0267ca3233d4901559026440aec6142e6339141176e0db269c41c53d6620d537",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "partial/reset/Element/backward": {
+        "sha256": "ded1ab4a1b90097d1825fe66a04a905e693534df577bcc008c1d2f2a794b0686",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "noop/plain-reset/forward": {
+        "sha256": "ec00e15d791841a0684d0fdb4f0d0c13e7901413391dbe27973945b9cc7d96a0",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "noop/plain-reset/backward": {
+        "sha256": "f00a1d2a7b814ab4dcdffc35f2ef25ef92ba25d2e409a363c9c282779223f9d4",
+        "complete": true,
+        "observations": 46,
+        "failures": 1
+      },
+      "noop/atomic-apply/forward": {
+        "sha256": "7330d37a58d78367312331081778df5ffd254496ad3423ccb491ccbf5a4c447a",
+        "complete": false,
+        "observations": 15,
+        "failures": 0
+      },
+      "noop/atomic-apply/backward": {
+        "sha256": "811e6035d53c2a68f1e37c77e5b1d67eec3beea392d5d3ab3173df6c4e2e7974",
+        "complete": false,
+        "observations": 15,
+        "failures": 0
+      },
+      "noop/atomic-reset/forward": {
+        "sha256": "939f2aba0aaa7d6b08976e8368e4f07d13a795f84a70330ce698ca30cde3326b",
+        "complete": false,
+        "observations": 15,
+        "failures": 0
+      },
+      "noop/atomic-reset/backward": {
+        "sha256": "c16ebe659f61e1cc83a8e3504ba2a4ee10cfd4c473c4a75fec5d3c7073935f54",
+        "complete": false,
+        "observations": 15,
+        "failures": 0
+      },
+      "cancel/escape/Text/forward": {
+        "sha256": "4c671f85e8547fb5f24ceb438f13d24aaa0056bf79a9b6afdb0e50d2353e68b1",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "cancel/escape/Text/backward": {
+        "sha256": "566ea8fbcdfe46414c5d1fd78a508abe0562cf3f1ed519d8cac9d6ecd04aa3f9",
+        "complete": true,
+        "observations": 46,
+        "failures": 1
+      },
+      "cancel/escape/Element/forward": {
+        "sha256": "e72f70242106d783869eec2597fd9850d4b06ba7f279e2957a8f1691dbdb493a",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "cancel/escape/Element/backward": {
+        "sha256": "825b7176f711e38eda1b3fdd0ee3c4792fe07ea78633a917843d2134c9116125",
+        "complete": true,
+        "observations": 46,
+        "failures": 1
+      },
+      "cancel/outside/Text/forward": {
+        "sha256": "7a558411b2b612e46a2ac7ecb4c5ddd12c5f3c4b057db1d6140bc7466b31a391",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "cancel/outside/Text/backward": {
+        "sha256": "889258c45187a98ae1068e520155c2216600c2afecfc00285c7a2e8619ab75b5",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "cancel/outside/Element/forward": {
+        "sha256": "7b4ffeccf58a5a4530a35a6e67a0a05a883c39614e8746228488765a56d8f8cb",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "cancel/outside/Element/backward": {
+        "sha256": "a2b7b2961061a5db6e1d8149c61c6a44df82d66a1e20593b7feed9a901c1b95b",
+        "complete": true,
+        "observations": 46,
+        "failures": 0
+      },
+      "lifetime/read-only": {
+        "sha256": "14c02f6cd922b02f9ff5f89b9c25f11fde4c886a813ba548e0bdfefe2eece112",
+        "complete": true,
+        "observations": 20,
+        "failures": 1
+      },
+      "lifetime/destroy": {
+        "sha256": "c5f9ed8dffbdc55d7d87ed7f4ac00c5ba6df886b9e0e622a3caa01fe25237ca1",
+        "complete": true,
+        "observations": 19,
+        "failures": 1
+      },
+      "lifetime/render": {
+        "sha256": "afad4c4b35458a702c5086b3fc25a82ddd96560820b0062ef96e0b7ccd56d61d",
+        "complete": true,
+        "observations": 19,
+        "failures": 1
+      },
+      "preset/12": {
+        "sha256": "c82d0e91b18cb8f39d2fa4541ce020e3494a6afd316d52c49bd48936ea39c653",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/14": {
+        "sha256": "89b6d6724b4a32e9a5420b637489278f53f8e668ca6a30a26c1eb37efd35615c",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/16": {
+        "sha256": "545be9295ae12c2f27ca693e557c914d15045355694317b5d59845160a16faec",
+        "complete": true,
+        "observations": 53,
+        "failures": 5
+      },
+      "preset/18": {
+        "sha256": "e753f7d7af4616225b3d1c3d2c71be53f2c6d4787afa84c0e01c7b0dee5486bf",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/20": {
+        "sha256": "7106b925b81fb21f4787003134c50b011358577df42a5bd8c3d5178bd150c51a",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/24": {
+        "sha256": "65db4e9f1847fd0657fcaaf8c56e32271b676f2ee55f4defc4e77b557a1d5a26",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/28": {
+        "sha256": "f91e7c42eeeecbebb74d338faa44742a33607411ce8c8572d731f267125fca13",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/32": {
+        "sha256": "e33cab1b7213b54d7be342da97e74bcad9bd214902fb120d714a691c754e26c9",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/40": {
+        "sha256": "2c4afe74c884aa5c24104e78e85c11e3e76d26fcbbd8834162af4f88659e8143",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/48": {
+        "sha256": "ac2ff49394e02f2e46f07fced8bcb38ce24ef1bfa007f719cc2a14ce3206bd77",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "preset/64": {
+        "sha256": "dac7d981da12eb29b69347ffc4e11e4277878acff49398cbac742c3c8355ebbe",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "custom/1": {
+        "sha256": "70bb11c1107971d6c2018b0004a5cef2a51e2fae3602a72667ae5e4d10b6007f",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "custom/200": {
+        "sha256": "09f1426d11440cdee2c7abf6f79f3e8ef9dbf388ae3275a6bf10654602f7c4dc",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "invalid/0": {
+        "sha256": "adb4553383fa163f20d88345b3a071af88f774d27ba5339da1400492016f4f0b",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "invalid/1.5": {
+        "sha256": "d936767950443031cb0857b855e919560b64ed4f70cbd7c304ca01dc7bbc2714",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "invalid/201": {
+        "sha256": "60f4d31ef2ed509006677c6f143c32fdc11e9c1f82f789834cdcf6539337469d",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "imported/16px/Text/forward": {
+        "sha256": "4a10c5e5eaebdf83a056eef24eab0eb5453e52a1854c39ac32610f1b1deaefaa",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/16px/Text/backward": {
+        "sha256": "5dc65882b5df00a6365e28704636abc8abf462a88c2edc73994119d1251b9f8a",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/16px/Element/forward": {
+        "sha256": "a3bd88d96c038410773d9e12e4f29fd9f3d6b296aeaa8d262b1787418c015d39",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/16px/Element/backward": {
+        "sha256": "732bd066822e6499959ae1c9aec6fca6f594f10f74121191899c150890a99ee3",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/16.5px/Text/forward": {
+        "sha256": "3eb8fee57473d5625fd28bf6b57735fc3ab61c5bf85726d8436cae906df6fa69",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/16.5px/Text/backward": {
+        "sha256": "9f0c8419ae1f4e16a00cd37346d2d96ab778753d189ce8f4ccee6a31be822405",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/16.5px/Element/forward": {
+        "sha256": "3402dc09ed90c49ce91df27c87a8367cebb052644080a1a1c298b3bc77454b25",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/16.5px/Element/backward": {
+        "sha256": "0a4003d2d3736ac84043a354fce828de9c4fa77504872ac0241dd85be166f2ec",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/1.5em/Text/forward": {
+        "sha256": "3ffbdc0a427ad99e91d3e422149b2a739718d5c5cc56485140958158714fea19",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/1.5em/Text/backward": {
+        "sha256": "ffd74a4d294a22760e1dd7fc970475c67f3f2f49f418ffb357cd8bf28f309ab4",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/1.5em/Element/forward": {
+        "sha256": "e391f97b07f47d4f0fbc1ff87c6848a7c59fdd8efb52045e07139e8a6ec8df05",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/1.5em/Element/backward": {
+        "sha256": "dc9a46b3940861ad79717fef98aa6d1927157c21117c03b90ed9cf056df16831",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/150%/Text/forward": {
+        "sha256": "3e55012c684c285ddae65d4593b21a14f3083df3d6049611e9c47d355971fff1",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/150%/Text/backward": {
+        "sha256": "2e108ba8b199a0904f061cd6bb482deb0c3fbeb491ae09d176c771cd6a8f3ad8",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/150%/Element/forward": {
+        "sha256": "dd4cdd175d1a60d3a9fa3a1b8ddf997abf5a89d2f98f103288b476d29736089a",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/150%/Element/backward": {
+        "sha256": "3d63fe5b4dc3403e20b303552cf5c2ca97f551290d4a8fa510f74f794ce4987e",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/1.5rem/Text/forward": {
+        "sha256": "1ae537feaeaae03db56ac7b65371d5ab75e04d88e2c16263835421e3d207e401",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/1.5rem/Text/backward": {
+        "sha256": "a544795926a50e7fdfbe56135351299462173346e46c575d42835f9a9dfe8548",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/1.5rem/Element/forward": {
+        "sha256": "cf8269c6538c50a4093eb8eca1a614b5e763be9e0a255a6bd562934054ae4353",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/1.5rem/Element/backward": {
+        "sha256": "e23f4e91cc6541e0174e3f62071cc8f85376645e297e535c0ba07f3486d903e3",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/calc(10px + 1em)/Text/forward": {
+        "sha256": "3df6b841e903de8f992f655bfc99b1d9f5b0406991568c7b3c9c80a8b762b6b0",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/calc(10px + 1em)/Text/backward": {
+        "sha256": "081424a607e5477d6a18d95510ebfcee7700f9529828292d660e99171f7a67fd",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/calc(10px + 1em)/Element/forward": {
+        "sha256": "7a1e335fee7b96056989e6a6e78e6fd7d6e9c2b3c11eb2bb4d8be0474aef0d26",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/calc(10px + 1em)/Element/backward": {
+        "sha256": "c8fd501e796a98fb98d643c4d3e6ad0bbffb11ec428a7a32c51d3f1362441646",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/201px/Text/forward": {
+        "sha256": "a2270c719ffb88b5bcfd24eceb5eb8ff9f74ceca16201e4f4876442ce3cbf310",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/201px/Text/backward": {
+        "sha256": "242f140d8e2eecadf2f5c9189386b4479d216788a2e2cc403214bd1082bc8701",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/201px/Element/forward": {
+        "sha256": "47bae426fa5a286146401bcdad9c8ef9f21e3be6e8672a49c2976cf115892d6f",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/201px/Element/backward": {
+        "sha256": "9896322d83e7c8b67c29e1d16692bccb770bd4b8713738542ecf481c12b8b81c",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/250px/Text/forward": {
+        "sha256": "e866189fa744b3c356f4f2776dcdb32451d3786b8b768d7de3e4b5aab11f7f17",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/250px/Text/backward": {
+        "sha256": "d16146939791caa876e3cee8854ca1e852150b2e87c011b7a50d380e44776a5c",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/250px/Element/forward": {
+        "sha256": "fb6ac3b4ee5ea43e9866fb748e71a2932a52004185542c602f2bc5bd51b80a60",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/250px/Element/backward": {
+        "sha256": "84e124c3de4d26caed116960e1108e7ccc99ec957e0bd686392a9fec7ebde229",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/inherit/Text/forward": {
+        "sha256": "3a7592047e31417d71f87f778acdaee08addc0a93f4669912d6727d3676eeebb",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/inherit/Text/backward": {
+        "sha256": "05554ca137c349463d168278b4cee27250f4f59b5460a8d11588be832766f2e6",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/inherit/Element/forward": {
+        "sha256": "550168bd09de45e061fa7b6c59ec4c25d63615cbd9a0e7a85fd2f8d1e38d22e5",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/inherit/Element/backward": {
+        "sha256": "294f9b93900745bc75715fafd4cc4ade49ec32fc4d4e2ea3545609465799c1b0",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/0.75em/Text/forward": {
+        "sha256": "4cf7789bea3c973ab91054eb46d730cce8b7b5343c817cb618a16690c6b4aae4",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/0.75em/Text/backward": {
+        "sha256": "f9f232e7f24799f06b33a8b1fb9cfe48b62b71020da565de8125809415390ed2",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      },
+      "imported/0.75em/Element/forward": {
+        "sha256": "7f351ea7bb8204b9c84ed06b50e47b18ec96c9389b7640432455cf9cc5308561",
+        "complete": true,
+        "observations": 53,
+        "failures": 2
+      },
+      "imported/0.75em/Element/backward": {
+        "sha256": "f98ab523b5dde1f92c08333130be9688df5c48e4ffc5abaa52d41733cd3c6ac1",
+        "complete": true,
+        "observations": 53,
+        "failures": 3
+      }
+    },
+    "spec-baseline": {
+      "apply/single/Text/forward": {
+        "sha256": "cf04c002ab0b3fe280b799d875ad0a1609f0d7621969e7b0cdb88f2faa72d672",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "apply/single/Text/backward": {
+        "sha256": "2ee1abc799df9e25fc9d9ee26d5a359d74019582573b3f079054d48c788ef3cd",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "apply/single/Element/forward": {
+        "sha256": "1dedf461b6751abbc083437e05de03a4e1f83c83b64867325d06f2c83b7f23a5",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "apply/single/Element/backward": {
+        "sha256": "c941005877f4a8162976dd92b3999b246d4978cfe99ec96d4cd37d32678ce582",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "apply/cross/Text/forward": {
+        "sha256": "fd6b456305b60df37ce4836ab6f5709d8f80851c3fd55ee746892eaedd2e8e59",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "apply/cross/Text/backward": {
+        "sha256": "a71905dd3b5eaf0088c893ca4165380d2350e63af5c537bdd76d4cdbeca4f324",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "apply/cross/Element/forward": {
+        "sha256": "3040eb4ab1d933db1d651c1ef5928871a2ca6af82214f47954e8629fcb88ae91",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "apply/cross/Element/backward": {
+        "sha256": "3d6d66be969f1879f9efecc21d0a0bd6bb20fa25dfdf4b74d9061cb7c9fd9894",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "apply/fields/Text/forward": {
+        "sha256": "4db65a65bfb5e0b81b201970b37e01dae340f695b42889b0622c3eb949931fac",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "apply/fields/Text/backward": {
+        "sha256": "8597f5c49b4276b903a8efc4792e5e83d96a45e432df37b1ae78b8e4dc2ed10d",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "apply/fields/Element/forward": {
+        "sha256": "47b78e43982c817c711a0d378f3ea830badfb66dca6cfa149723c87a11f353e1",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "apply/fields/Element/backward": {
+        "sha256": "438d45321c7d2d8d2ac63a3495ef823788f3cf375881a9cd183a61121b1292a8",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "enter/single/Text/forward": {
+        "sha256": "a45c53e4c63adb77d19c292e85c27875196d9bcd7d17cffba46ef6c7ac30aa21",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "enter/single/Text/backward": {
+        "sha256": "0f367f57c1081347a2aa976dd448a61e1d09ba290ef1b25c7a2c6df9e972d94d",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "enter/single/Element/forward": {
+        "sha256": "39016664d597587de0ee37e3fcd445d9cae9818127b2c6ec0fd7b7d1fe73b342",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "enter/single/Element/backward": {
+        "sha256": "cb83fdc405e6253f225669897dc12d8abccb2d257a67ac96dabb07a4f26271ad",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "enter/cross/Text/forward": {
+        "sha256": "1fbc07bf83ea6fdfd2fbfd21dde4eb733ceee0cd89025a6c0dba51c773bbef39",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "enter/cross/Text/backward": {
+        "sha256": "bb89090a8583cfad30cc690ceee7ac1c8fe26cb2e00cbaac94b7ec57bc4a1dfe",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "enter/cross/Element/forward": {
+        "sha256": "56deae27f5078194b9d2648516681ff7e392abc68bd2eea46e075a16ec26db44",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "enter/cross/Element/backward": {
+        "sha256": "2dc51420e1a8707d24cb2ec47324932e8c4cb1ca1974bb409ba13703bdcce583",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "enter/fields/Text/forward": {
+        "sha256": "01eddbdc952733aeb0ac85f56eb42fb2eb4a4871e97c469b8f18a0aa8f878484",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "enter/fields/Text/backward": {
+        "sha256": "a8283a541da016b48ad0cf433c8be74686e597dbf5c88a80b77089f23204bec3",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "enter/fields/Element/forward": {
+        "sha256": "bc442122d4d0552c4ff39d36b3052a9565b3b75ade378441d04faa35b81d2521",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "enter/fields/Element/backward": {
+        "sha256": "a4ba8a8d2c13ebedff101cda6f035ae93a261552874f9d5e62ee71e78a4588ea",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "reset/single/Text/forward": {
+        "sha256": "3b0c433ed12d1308aead831c7f5d21cdae5d97a5539d58152e0bbd7c9464da80",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "reset/single/Text/backward": {
+        "sha256": "946cc00b06826eafa4d5053834e9d063a53d93e9d731296357357d04930c85a4",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "reset/single/Element/forward": {
+        "sha256": "4321905d1df8f48daad13ffeb77fbc201a992fd2262e487410eae1eefdb99d3a",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "reset/single/Element/backward": {
+        "sha256": "730e3b5ee89a7ebb86e1be2ca0da41581c1b1ba39f95c83e22424819c6f39362",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "reset/cross/Text/forward": {
+        "sha256": "aa5f0daa01b7ec7652e49ce4263f41452fa2536c33808b524a5d50e75d05a2c7",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "reset/cross/Text/backward": {
+        "sha256": "8ff87b8dd3062daeb760bdc1516eba609f4d1957e606bb4fa7b55d779b0f63de",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "reset/cross/Element/forward": {
+        "sha256": "abce2c7665a229b5d53737da5941cfd9ea4c9068462d616361fe4321e96fb750",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "reset/cross/Element/backward": {
+        "sha256": "e6151c9e2b4ba3ebbc0be9d04a57216d8da1913de88853beed800a6d9770f6a4",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "reset/fields/Text/forward": {
+        "sha256": "ceb4fb9e3bcb775add6026b2594a89f9ff75e2568c272d9040e634454d87b493",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "reset/fields/Text/backward": {
+        "sha256": "0d5499f4558609b8bed4a4e3b706ae74eba371a1dab27b2a2a4cee860a08211c",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "reset/fields/Element/forward": {
+        "sha256": "c8af24b6d294ef3a518be3d740c0ec094fe58eb27ece0b35e29a60e292d00c75",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "reset/fields/Element/backward": {
+        "sha256": "b0000b5627ea7639da0990876d06bd54bbc93ad2ee468d4f20f2c55e3132ae26",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/apply/Text/forward": {
+        "sha256": "172e9efc6415995ff7c78a9eaab79f5b59a4a2ebbddbc95cfc666c5520f1c46f",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/apply/Text/backward": {
+        "sha256": "51ee6e6c3a771a65ed14c1a91429652cb33306e4b90ec34ed845bd82569dff23",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/apply/Element/forward": {
+        "sha256": "577515f7d5b1c42868aaa391880d90fe91abe764f69c27c7f6d6aa3bf5c65b5e",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/apply/Element/backward": {
+        "sha256": "d8a1d3d01353a9fbd79bcbe05a59d5bb0531b520d1aa76865fcd4d4fe305fabc",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/reset/Text/forward": {
+        "sha256": "ee8c9a5e0aa4f92ea2bbf2a1dfdb470939f537d81f89b60bb6c56c3870002c62",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/reset/Text/backward": {
+        "sha256": "4b61f964fc0b712dead9861f4bb1d8f015199793a5921c88c90f8fcb28a4aa6d",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/reset/Element/forward": {
+        "sha256": "699f3f275e6828bb3231f277f77ca3760f1d24e1628a53629981a91826f068eb",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "partial/reset/Element/backward": {
+        "sha256": "9978eb552fa96476480d19691b206f08bfed76c5e106158266f247930536fb18",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "noop/plain-reset/forward": {
+        "sha256": "f5122348e6e064868eb5f724e22fd2a84e0c82d2225a696958286ec80a666bb7",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "noop/plain-reset/backward": {
+        "sha256": "ee2ca65a23c2ef3550e92f334527468b4f6d301c1b41e67bc8cf23cdc1da2270",
+        "complete": true,
+        "observations": 50,
+        "failures": 7
+      },
+      "noop/atomic-apply/forward": {
+        "sha256": "389986437dcbdfa452c469c2bc3d115e5c37d015a0e2de143859731444f3f3f3",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "noop/atomic-apply/backward": {
+        "sha256": "8ed84f23b259f1560e6694ed234ed51c112348c46c842190b06293c9cfa8a87d",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "noop/atomic-reset/forward": {
+        "sha256": "c9172ad27a864883b5a1bdcf8d3b261e05c5ded3427c1abe82d9de152a64330d",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "noop/atomic-reset/backward": {
+        "sha256": "b071ba816bb4f8db70fb1e9044e668360441da985c8f7cc6db4b4d8d3b8c7863",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "cancel/escape/Text/forward": {
+        "sha256": "7ae8f3cfde51b232df8edc7f4d03d6d06f4265221f0051885a36cf5636c4f1c7",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "cancel/escape/Text/backward": {
+        "sha256": "1b3f73376f425ac1b7fd1e82d6ec9cb51180cfb022c6e92785789b7a16b872ab",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "cancel/escape/Element/forward": {
+        "sha256": "d957766aa1347c36bc833e4d04314e4d9f0f5ef28fa04b022ed6745902e2b6ab",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "cancel/escape/Element/backward": {
+        "sha256": "c202ebe632421d72338d0d5226b0ca8a8678b55b9cc430d025d69a851ca53a2f",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "cancel/outside/Text/forward": {
+        "sha256": "fce1c9b29a194a025c2d52951eeda549b205e80056f2d1416e2fc3b6db0213d1",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "cancel/outside/Text/backward": {
+        "sha256": "ce0a5f6f79ae4119090de07f551c2c93c476b58dcdac0efb8e1a34f99b4bd4b7",
+        "complete": true,
+        "observations": 50,
+        "failures": 0
+      },
+      "cancel/outside/Element/forward": {
+        "sha256": "b3809f16afd4a72a6c54c0a31c7b381ec32ff9999537c81a5a70b7502ad8ae7c",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "cancel/outside/Element/backward": {
+        "sha256": "96d27521443fe85118dc5675ac1e013c01bb0ea3154ad06f74e8b79d88d142d8",
+        "complete": false,
+        "observations": 17,
+        "failures": 0
+      },
+      "lifetime/read-only": {
+        "sha256": "aba4f2835955f24d43467038b97a700b6b23b12265faed1b23f82e7c6d83b821",
+        "complete": true,
+        "observations": 25,
+        "failures": 4
+      },
+      "lifetime/destroy": {
+        "sha256": "665a45497e2262678f2df2381de755ff30e7923d7ab593d653ae099ea7e63526",
+        "complete": true,
+        "observations": 24,
+        "failures": 4
+      },
+      "lifetime/render": {
+        "sha256": "f69e0596555773ce36fcfaf7e6c247609368a0cd84514112af4250bb974e8f00",
+        "complete": true,
+        "observations": 24,
+        "failures": 3
+      },
+      "preset/12": {
+        "sha256": "a710fcb525beb79a1ad4e14e5c53eafbf34ead0d661d4b487e8b2b9428c74b43",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/14": {
+        "sha256": "1258b66cf5e1a1ed8eb0264a818283870324468830103404bd830b352a872167",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/16": {
+        "sha256": "683dba7b3a1ddd34e1609fe477d390a69e5151b254a4e55fe55ebef6f5107c83",
+        "complete": true,
+        "observations": 58,
+        "failures": 15
+      },
+      "preset/18": {
+        "sha256": "a1e055c60ea06234a911e47a01b4ecc1cf8926d590a9b7e2d4474f48a26e010c",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/20": {
+        "sha256": "98f32181a6195315cf60e8e5b36761ca47aa1c4ac74c58328b2e3bfbe83b6267",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/24": {
+        "sha256": "6f2d3aa3add1218856d867b80429fe046fdad5cc2e0680a2ddc0990103010a09",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/28": {
+        "sha256": "866f65203b15a5622f368e03a19433231ad74245a042844b3e84de6029d4c713",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/32": {
+        "sha256": "346b138efd0ef1a9aec56e66ebab6326d86e790d6e21b8f9bac427d20b373242",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/40": {
+        "sha256": "2a328a701435c62c66eb8658106fb3c42e70fb6e5993e9f8010aaea4e0f7a497",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/48": {
+        "sha256": "664b2f843dbb2d18605935694be0351961822941aec16579f9ed598d3bf0cf3d",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "preset/64": {
+        "sha256": "e43703a7eff8c7868ecaf3568305280c69764c69954dc5f9990a2aeee17beb08",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "custom/1": {
+        "sha256": "f70ccf20597c59a326f2eaaca23ee83643a4b52334d9947997a7a0afee4fb08c",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "custom/200": {
+        "sha256": "99e977ea428154e36e84de9f1efe36cf245cda77e5cec03e82410b60b9aa1383",
+        "complete": true,
+        "observations": 58,
+        "failures": 0
+      },
+      "invalid/0": {
+        "sha256": "6ed50a8e6cb19d10539f36ea7488dda4bed864cfde841a2570330cc5475144cf",
+        "complete": true,
+        "observations": 54,
+        "failures": 0
+      },
+      "invalid/1.5": {
+        "sha256": "59d98c76c59ecd58461a89bceddb9ec48b4c12909c01d1b6380e5d25aea780b8",
+        "complete": true,
+        "observations": 54,
+        "failures": 0
+      },
+      "invalid/201": {
+        "sha256": "04b56184ae3f0eb044b35b0ace9b6d350f0c0edfb5324f51ee4af8343561fd75",
+        "complete": true,
+        "observations": 54,
+        "failures": 0
+      },
+      "imported/16px/Text/forward": {
+        "sha256": "635f71c043f97a354b74281c11aaedc979de50a6b287bae0a6dc37eb6f87b165",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16px/Text/backward": {
+        "sha256": "e4cc72a7385d4d25caf35b296e385d768b81cbc5f0c09e8dd5ba519f927838e7",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16px/Element/forward": {
+        "sha256": "1747278076da203d25f5867b21d0bebed8977580f30d53a4a0a26f24529f8bb6",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16px/Element/backward": {
+        "sha256": "50da950cc280b3fc875b235a48e468d28b9fb52d46e2327e1131497274c45c49",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16.5px/Text/forward": {
+        "sha256": "b4b8ace95539e03643e499e1273515b6b3062147a304e16f98af36b15e0231b6",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16.5px/Text/backward": {
+        "sha256": "7a31877713a31f4cc686349044f439833782616ba17cd840a741ecc2f2211e3c",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16.5px/Element/forward": {
+        "sha256": "fa52cad3dff59f5fb23c964332cd2b3deece0dc3dc6fbbeaf5225ed0b6a8ad0c",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/16.5px/Element/backward": {
+        "sha256": "9b7de9bf2ad38adca61f72b9d3554453addb259c6e0253761df3d8a924c5cd0f",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5em/Text/forward": {
+        "sha256": "e7b9b6a01f853d92dd13ba67d7ae8abed05825ef735a64bcfd2537559f36c677",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5em/Text/backward": {
+        "sha256": "72a2c3ae92e6544218624c10fb90bc59e212b5ec4bb9e2212e4982a095e4c98f",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5em/Element/forward": {
+        "sha256": "dddaa3709e744f4726f312339f3df6025e8c9a605fcc8d3169493fadf8ab577b",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5em/Element/backward": {
+        "sha256": "626baa5a705104e1561256ce167c6024ec977774048fe9c8916cc380e0c048f4",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/150%/Text/forward": {
+        "sha256": "11e858ced6e7baaeedfac6b82644f8260ff2e5d95cdf462ab9a62c4b0061651b",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/150%/Text/backward": {
+        "sha256": "5856b72db888ed42a6ec9cd8eb8124df3b488d55467a04ab04a0d0528ef87b5f",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/150%/Element/forward": {
+        "sha256": "90290f76ee16799f4b7f158828204f24d2acea8faa71cb46ac8d79eed84558ca",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/150%/Element/backward": {
+        "sha256": "32a5f6b52681611d36737b9a07c5f892340ae882ab5d6fb46dff57e0a2a87383",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5rem/Text/forward": {
+        "sha256": "b5a60aa96fa6f87b1e140a79d61b0b7cfce57ac157dd555c09ccb67465ac2048",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5rem/Text/backward": {
+        "sha256": "867ab99d4cc507364bad4071d7e1a981c8bdfb34e13213a97231ab62714ab168",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5rem/Element/forward": {
+        "sha256": "3a639d5830c2bf354a265621198a4ea850abbdb893ae29b7c57e88cc95ae2c96",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/1.5rem/Element/backward": {
+        "sha256": "508344a5ee24cb921905cbb8e0df321470d7d0d7e3194b8a3f668fd4901da93c",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/calc(10px + 1em)/Text/forward": {
+        "sha256": "e35a0c047312ace5ed1929710efb84dd7786b4f6be13c943dae749f52d150e43",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/calc(10px + 1em)/Text/backward": {
+        "sha256": "0067c9577ac420ecc7b64165dedfcd420ed9467cffbcbde231f07bde650acadd",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/calc(10px + 1em)/Element/forward": {
+        "sha256": "429dea048d749305e03266f73e9cc97f6b6069bfa54f2b23ec3d3d0102ea7f07",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/calc(10px + 1em)/Element/backward": {
+        "sha256": "b7d85fe354c3068b286923ebe1d5416598f91073ce7044b671fb15a785c74bcd",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/201px/Text/forward": {
+        "sha256": "afbf953e6c94575864d41813334272a303951fc2b0cb315b34925aebb6bd3234",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/201px/Text/backward": {
+        "sha256": "e9f8e74fba015f957cade03bfa0837049cee5561cbb6f1aaae186d0ef5053d19",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/201px/Element/forward": {
+        "sha256": "8fb3fa3a1a8e3697712b457b2383944109139d9aa9393166a0d8851465054ddf",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/201px/Element/backward": {
+        "sha256": "f4558fcce95d31bdb13afd2634e57e95c512322064de502c8067656e8f3bda52",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/250px/Text/forward": {
+        "sha256": "d6adc415de2965ab93c9240b716a4aae6e2649b85ac0d93c9b1211ed760e474f",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/250px/Text/backward": {
+        "sha256": "47fd8d756c9ca8b8645f51db190c0c554fb2454dce0bab05910199a7a7ee01ad",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/250px/Element/forward": {
+        "sha256": "656a2b6a558378486114a435bf9fe493255ea8b1f541fe065c039eae3a7bbdd5",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/250px/Element/backward": {
+        "sha256": "16cf8e61c258cef0dc2efb6a1ed5f7dba0700a36c82563bd65314b7f101f6b4c",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/inherit/Text/forward": {
+        "sha256": "260727ec606cc05c1042288be2bc430a44e4ae8436d3c89bad6b0e9486c625a7",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/inherit/Text/backward": {
+        "sha256": "7c47e9d930985abf27c0ea13ef435eb59f371df2d7f807be6a76821b088a3945",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/inherit/Element/forward": {
+        "sha256": "0ae1d068ce0814bd8b7642c45791e5240e1853ffaa21edf33f2c3b8d78da1613",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/inherit/Element/backward": {
+        "sha256": "d298a81da5adceb2108cd15181924a7f3d7c7d992deb9f41946720c6af6ce6e3",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/0.75em/Text/forward": {
+        "sha256": "e8a1234de9239ad4ad37c09f3167cd8d674dace64a92d60a0f2d2fa61aafeb0f",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/0.75em/Text/backward": {
+        "sha256": "e02d0dfe38a34dbe6271918b4fc5c04aca31406f4aad72de1f1fe86d01709249",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/0.75em/Element/forward": {
+        "sha256": "162d0ffb59cab562bca7639c00219c7277735f9bcbc6046b6ff0a72dbaef12cd",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      },
+      "imported/0.75em/Element/backward": {
+        "sha256": "895a762518eeb4578a1b6cf38abeee6c2629e1a075b650e63ec8709c5956649b",
+        "complete": false,
+        "observations": 13,
+        "failures": 0
+      }
+    }
+  },
+  "pageErrors": {
+    "v1": [],
+    "spec-baseline": [
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)",
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)",
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)",
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)",
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)",
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)",
+      "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:PORT/fixture.js:144:78\n    at http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:PORT/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:PORT/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:PORT/fixture.js:144:22)\n    at mutate (http://127.0.0.1:PORT/spec-baseline/inline-tools/fontSize.js:185:15)"
+    ]
+  }
+}

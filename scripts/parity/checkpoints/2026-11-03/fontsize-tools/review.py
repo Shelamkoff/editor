@@ -171,22 +171,36 @@ def main():
  p=argparse.ArgumentParser();p.add_argument('--raw',type=Path,required=True);p.add_argument('--candidate',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
  raw=a.raw.read_bytes();d=json.loads(raw);assert d['headBefore']==d['headAfter']==a.candidate and d['candidatePass'] is True and d['filter']=='' and d['serverErrors']==[]
  assert {s['label']:s['sha'] for s in d['sources']}==dict(v1=V1,**{'spec-baseline':BASELINE,'candidate':a.candidate})
- for row in d['results']:assert row['pageErrors']==row['inputErrors']==[] and [c['spec'] for c in row['cases']]==specs()
+ for row in d['results']:
+  assert row['inputErrors']==[] and [c['spec'] for c in row['cases']]==specs()
+  if row['source']=='spec-baseline':
+   assert len(row['pageErrors'])==7
+   for error in row['pageErrors']:assert error.split('\n')[0]=='Error: Font-size reset selection is unavailable' and '/spec-baseline/inline-tools/fontSize.js:331:' in error
+  else:assert row['pageErrors']==[]
  current=next(row for row in d['results'] if row['source']=='candidate');count=sum(verify_candidate(c) for c in current['cases'])
  # Historical actions remain fully visible, including missing panel activation.
  # Their exact observed graphs are additionally bound by the reviewed corpus hash.
  historical={}
+ goldens=json.loads(Path(__file__).with_name('historical-goldens.json').read_bytes())
+ assert goldens['basisCandidate']=='ce0192ef3ad690c3a74fcac916f173e24998e339' and goldens['rawSha256']=='9418af5941c908924c81893e65422007efffc734b70d5062aa59b05087f6f478'
+ assert set(goldens['sources'])==set(goldens['pageErrors'])=={'v1','spec-baseline'}
  for row in d['results']:
   if row['source']=='candidate':continue
   failures=[];incomplete=[]
+  assert set(goldens['sources'][row['source']])=={c['id'] for c in row['cases']}
+  assert [re.sub(r'http://127\.0\.0\.1:\d+/', 'http://127.0.0.1:PORT/',e) for e in row['pageErrors']]==goldens['pageErrors'][row['source']]
   for case in row['cases']:
+   graph={k:case.get(k,[] if k in ['diagnostics','transactions','trusted','unsupported'] else None) for k in ['id','spec','planned','completedPhases','phase','diagnostics','transactions','trusted','unsupported','observations']}
+   graph['error']=case['error'].split('\n')[0] if case['error'] else None
+   graphHash=sha(json.dumps(graph,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode())
+   assert graphHash==goldens['sources'][row['source']][case['id']]['sha256'],(row['source'],case['id'],'historical graph changed')
    if case['error']:incomplete.append(dict(id=case['id'],phase=case['phase'],completedPhases=case['completedPhases'],error=case['error'].split('\n')[0]))
    for o in case['observations']:
     assert o['status']==('PASS' if same(o['actual'],o['expected']) else 'FAIL')
     if o['status']=='FAIL':failures.append(dict(id=case['id'],phase=o['phase'],property=o['property']))
-  historical[row['source']]=dict(cases=len(row['cases']),complete=len(row['cases'])-len(incomplete),observations=sum(len(c['observations']) for c in row['cases']),failures=failures,incomplete=incomplete)
+  historical[row['source']]=dict(pageErrors=row['pageErrors'],cases=len(row['cases']),complete=len(row['cases'])-len(incomplete),observations=sum(len(c['observations']) for c in row['cases']),failures=failures,incomplete=incomplete)
  assert d['group']=='fontsize-tools'
- own=['scripts/parity/fontsize-tools.mjs','tests/browser/fontsize-tools-fixture.js']
+ own=['scripts/parity/fontsize-tools.mjs','tests/browser/fontsize-tools-fixture.js','scripts/parity/checkpoints/2026-11-03/fontsize-tools/review.py','scripts/parity/checkpoints/2026-11-03/fontsize-tools/historical-goldens.json']
  queries=[s['sha']+':'+path for s in d['sources'] for path in s['loaded']]+[a.candidate+':'+path for path in own];blobs=git_blobs(queries)
  for source in d['sources']:
   assert len(source['loaded'])>=100 and source['tree']==subprocess.check_output(['git','rev-parse',source['sha']+'^{tree}']).decode().strip()
