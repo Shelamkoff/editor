@@ -112,3 +112,11 @@ scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.json -text
 scripts/parity/checkpoints/2026-11-03/bgcolor-realm/*.gz -text
+
+scripts/parity/bgcolor-tools.mjs text eol=lf
+tests/browser/bgcolor-tools-fixture.js text eol=lf
+tests/browser/native-bgcolor-tools.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.json -text
+scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.gz -text
