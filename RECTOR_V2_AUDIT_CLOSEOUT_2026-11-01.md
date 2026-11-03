@@ -6,9 +6,23 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Exact Bold range acceptance — 2026-11-03
+
+The current register is **100/209 accepted, 109 open**. `DEFECT_ELEMENT_RANGE`
+is accepted on `d39b0d8d`: 20 cases / 324 observations, 364 independent checks
+and eight rejected evidence corruptions. Text/selectNodeContents endpoints
+select the same lowercase alpha for trusted Bold apply/remove and exact native
+replay in both directions. Foreign selection, read-only and destroyed-owner
+denial retain live positive controls. All five frozen `run-VD5AD9` gates pass.
+Production remains byte identical to separately integrated `e2053f58`; the
+48-page ordinary run is reused only after proving its sources unchanged.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/element-range/README.md)
+contains complete logs, the corpus, executed model, corruptions and source
+bindings. Other tool rows and whole-library readiness remain open.
+
 ## Alignment action acceptance — 2026-11-03
 
-The current register is **99/209 accepted, 110 open**. `TOOL_ALIGN_ACTION`
+At that checkpoint the register was **99/209 accepted, 110 open**. `TOOL_ALIGN_ACTION`
 passes 80 cases / 2,520 observations and 2,680 independently rebuilt checks.
 All four alignments, mixed state, range direction/boundaries, rich fields,
 widgets, exact native history, no-op Redo and retired panel ports pass. Nine

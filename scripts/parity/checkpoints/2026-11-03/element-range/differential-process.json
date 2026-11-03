@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical failed observations retain raw exit 1; current actions and manual contract review pass separately."
+}

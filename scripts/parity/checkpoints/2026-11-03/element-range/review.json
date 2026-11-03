@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "candidate": "d39b0d8d85ec960e16eaf4d3560121f1faccdad9",
+  "cases": 20,
+  "observations": 324,
+  "semanticChecks": 364,
+  "rawSha256": "c3a5e175652b5a8ddf3101223e8f06af4587a40013dc02f49c3ab43e5c426bf2",
+  "reviewerSha256": "954e3549299a8a559407884fe1e0639cba693c9916fdb511adf1f2b5b9d179d5",
+  "nativeSha256": "2c2defdc3e786a79b266bf37b03b65918c3c50037a5ffa5603e193c5aa5e4267",
+  "productionModuleIdentities": 321,
+  "dependencyFiles": 6,
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "integratedRuntime": "e2053f58258dcea153d16faae42e9d03c644e795",
+  "ordinarySource": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+  "history": [
+    {
+      "source": "v1",
+      "observations": 324,
+      "failures": 86,
+      "incomplete": 0
+    },
+    {
+      "source": "spec-baseline",
+      "observations": 324,
+      "failures": 50,
+      "incomplete": 0
+    },
+    {
+      "source": "candidate",
+      "observations": 324,
+      "failures": 0,
+      "incomplete": 0
+    }
+  ]
+}

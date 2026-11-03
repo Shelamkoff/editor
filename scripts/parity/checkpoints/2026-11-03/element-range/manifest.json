@@ -1,0 +1,50 @@
+{
+  "candidate": "d39b0d8d85ec960e16eaf4d3560121f1faccdad9",
+  "tree": "2c06601b5acc2eb70bf535653a3f0f7ae69db29b",
+  "integratedRuntime": "e2053f58258dcea153d16faae42e9d03c644e795",
+  "runtimeByteIdentical": true,
+  "ordinarySource": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+  "affectedRun": {
+    "startedAt": "2026-11-03T13:40:30.367Z",
+    "finishedAt": "2026-11-03T13:41:43.581Z",
+    "identity": "360204e3fcb6aa1d0d67800803bee1c50cbe5580688416369665a84653709cf3",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "element-range-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "element-range-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 99,
+    "open": 110
+  },
+  "acceptedRows": [
+    "DEFECT_ELEMENT_RANGE"
+  ],
+  "registerAfter": {
+    "accepted": 100,
+    "open": 109
+  },
+  "cases": 20,
+  "observations": 324,
+  "semanticChecks": 364,
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}

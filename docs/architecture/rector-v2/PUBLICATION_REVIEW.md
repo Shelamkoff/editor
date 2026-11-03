@@ -2,9 +2,48 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **99 / 209 obligations**, with **110 open**; see the [alignment action acceptance](#alignment-action-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **100 / 209 obligations**, with **109 open**; see the [exact Bold range acceptance](#exact-bold-range-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Exact Bold range acceptance — 2026-11-03
+
+`DEFECT_ELEMENT_RANGE` is accepted on immutable `d39b0d8d85ec960e16eaf4d3560121f1faccdad9`:
+**20 cases / 324 passing observations**, 364 independent checks and eight
+rejected corruptions. The register becomes **100 accepted / 109 open**.
+
+The fixed common fixture selects exactly lowercase `alpha` through Text offsets
+or `Range.selectNodeContents(i)`, forward/backward, and uses trusted Bold to
+apply/remove the same mark. It checks exact canonical data, neighboring author
+text, the same native interval/direction and separate Undo/Redo. Foreign editor
+selection and a destroyed owner's retained button cannot author; a current
+live successor still works. Read-only blocks authoring, then explicit fresh
+selection after returning to editable mode admits the positive action. Persistent
+main toolbar controls may act on a valid current author range; the test does not
+invent panel retirement semantics for every retained main-button reference.
+
+All five clean unchanged gates pass in `run-VD5AD9`: types, 20 native cases,
+three-source comparison with manual model, eight negative evidence controls
+and docs. The model rebuilds exact documents, ranges, complete event/history
+and trusted keyboard/click expectations, recomputes every raw verdict and checks
+321 production module identities, six dependency files and eight versions.
+v1 keeps 324 observations / 86 failures; the specification baseline keeps
+324 observations / 50 failures. All 20 cases complete on every source. v1's
+missing current transaction event observation is declared separately, not
+counted as an unavailable Bold action. Current exceptions, incomplete phases,
+failed observations and unsupported cases are zero. Raw exit 1 and model exit 0
+remain distinct.
+
+No production change was needed. Runtime is byte identical to `e2053f58`, whose
+separate 28-gate integration passes at 95.6 KiB gzip / 96 KiB. The original
+48-page ordinary run on `247b4a42` is reused after proving that all existing
+ordinary browser sources and runtime remain unchanged; only the new Bold
+fixture/page/native entry and additive native registry changed. That first
+run's unrelated verifier-format failure remains failed. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/element-range/README.md)
+retains the complete new run, corpus, executed independent model, corruptions,
+source bindings and historical integrations. This is author verification,
+not peer review. Detailed tool rows, B-HTML and full readiness remain open.
 
 ## Alignment action acceptance — 2026-11-03
 
