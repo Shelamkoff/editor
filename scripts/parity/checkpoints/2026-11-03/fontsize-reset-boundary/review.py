@@ -46,7 +46,7 @@ def verify(case,label,mode):
   wanted={key:value for key,value in wanted.items() if key[0] in ['load','selection'] or key in [('reset','trustedOpen'),('reset','prefill')]};canons={}
  else:assert case['error'] is None and case['completedPhases']==case['planned']
  actual=copy.deepcopy(wanted)
- if incomplete:actual[('reset','prefill')]='16'
+ if incomplete:actual[('reset','prefill')]=''
  if not incomplete and legacy:actual[('reset','selection')]=dict(anchor=dict(field=0,offset=0),focus=dict(field=1,offset=0),collapsed=False)
  if broken and spec['styled'] and spec['tag']=='span' and not incomplete:
   for phase in (['reset'] if legacy else ['reset','undo','redo']):actual[(phase,'fieldStyles')]=['','']
