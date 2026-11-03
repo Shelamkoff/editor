@@ -52,6 +52,20 @@ export function initializeEmbeddedDocument(context) {
     const style = accepted.defaultView.getComputedStyle(body)
     const bottom = style.overflowY === 'visible' ? Math.max(body.scrollHeight + rect.top, rect.bottom) : rect.bottom
     let height = Math.max(minimumHeight, Math.ceil(bottom + (parseFloat(style.marginBottom) || 0)))
+    // A viewport-fixed box (including the native popover top layer) has no
+    // contribution to body flow. Give its native positioning a page viewport
+    // to work in while keeping taller flow and the iframe boundary intact.
+    // Fixed descendants of a local containing block already belong to that
+    // block's layout and must not introduce a blank page of extra space.
+    for (const element of accepted.querySelectorAll('*')) {
+      if (!owns()) return
+      if (!element.getClientRects().length) continue
+      const computed = accepted.defaultView.getComputedStyle(element)
+      if (computed.position === 'fixed' && computed.visibility === 'visible' && Reflect.get(element, 'offsetParent') === null) {
+        height = Math.max(height, parent.innerHeight)
+        break
+      }
+    }
     const width = accepted.defaultView.innerWidth
     // Distinct native axes let vi/vb retain per-consumer CSS resolution. A
     // square natural result gets one un-clipped CSS pixel of additional flow.
@@ -149,6 +163,7 @@ export function initializeEmbeddedDocument(context) {
   }
   /** @param {MouseEvent} event */
   const activate = event => {
+    requestMeasure()
     const link = /** @type {Element} */ (event.target)?.closest?.('a[href],area[href]')
     if (!link) return
     event.preventDefault()
@@ -223,7 +238,9 @@ export function initializeEmbeddedDocument(context) {
   accepted.addEventListener('auxclick', event => {
     if (event.button === 1 && (!owns() || !event.isTrusted || !parent.navigator.userActivation.isActive)) event.preventDefault()
   }, { capture: true, signal: controller.signal })
-  accepted.addEventListener('load', requestMeasure, { capture: true, signal: controller.signal })
+  for (const type of ['load', 'toggle', 'input', 'change', 'pointerover', 'pointerout', 'focusin', 'focusout']) {
+    accepted.addEventListener(type, requestMeasure, { capture: true, signal: controller.signal })
+  }
   // Observation can retire the owner before returning or failing. Only publish
   // a live acquisition; release a provisional observer even on a falsy throw.
   const observer = new parent.ResizeObserver(requestMeasure)

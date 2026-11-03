@@ -327,6 +327,73 @@ Six identical Image/Gallery action SVG constants share one source. All eleven
 Image and ten Gallery exports, including layout thumbnails, compare byte exact
 with `5c73e176`. No artwork, source-editor preloading or functionality is removed.
 The actual enforced fullPreset build reports **95.5 KiB gzip / 96 KiB**; earlier
-failed budget probes remain failed. A fresh immutable integration is required
-for this combined follow-up. B-HTML and whole-audit acceptance remain open;
+failed budget probes remain failed. The fresh immutable integration is recorded
+below. B-HTML and whole-audit acceptance remain open;
 the register stays **67/209 accepted, 142 open**.
+
+### Completed resource integration
+
+`test-results/run-A9Taxq/manifest.json` passes all **19 gates** on clean unchanged
+`a008b32ff6ac10b05234c4d60876a88d3501c6d3`, tree
+`eba7d86c8bca1f7ff450b91571681ac3791bbffe`, identity
+`61e34913fec594ffd4e2d5487bbd32e236547b5b45aee9bc03147e049ab80c93`.
+Started 2026-11-02T23:07:25.686Z; finished 2026-11-02T23:19:08.099Z (November 3
+local date). The manifest SHA-256 is
+`bee8de5ab8986390660877d7a9db3f591e5dee31ee390b2eaac3d4daa14fd6c6`.
+Every gate records unchanged source and Node **24.22.2**; earlier runs retain
+their original Node versions. Gates cover build, 2198 passing Node tests / three
+platform skips, both typechecks, 45 ordinary pages, five selected native groups,
+navigation, deferred loading, responsive content, real resource effects, glyphs,
+enforced bundle budget, heap, docs, installed package and site. The final actual
+fullPreset measurement is **95.6 KiB gzip / 96 KiB**, without relaxing the limit.
+The preceding sixteen-gate site failure remains failed. No additional scenario
+row is accepted by this resource integration.
+
+## Confined native layers — 2026-11-03
+
+The body-flow measurement omitted viewport-fixed authored boxes and the native
+popover top layer. Pure fixed content collapsed to zero height in renderer and
+Carousel output; Raw editor retained only its 100px preview affordance. Opened
+native popovers and their lower controls were similarly clipped. Focus- and
+hover-revealed layers required owned post-default measurement as well.
+
+An active visible viewport-fixed box now has at least the containing page's
+viewport height available for native layout. Taller ordinary flow still grows
+the frame. Native `offsetParent` distinguishes a local fixed containing block
+from the viewport, following the [CSSOM View algorithm](https://drafts.csswg.org/cssom-view/#dom-htmlelement-offsetparent).
+The root body is included; invisible boxes and closed popovers add no blank
+viewport. All content stays in the existing frame. Positioning, canonical HTML,
+sandbox flags and application styles retain their original owners. Toggle,
+pointer and focus transitions request the existing coalesced measurement and
+retire through its existing AbortSignal.
+
+`scripts/parity/html-native-layers.mjs [EXACT_COMMIT]` executes **60 cases**:
+twelve native controls and four public surfaces for fixed top/bottom/center,
+root body, popover, hover/focus revelation, hidden fixed boxes, local containing
+blocks, ordinary/body-scrolling flow and tall content. It uses trusted pointer,
+wheel and keyboard input under CSP/Trusted Types. Actual lower actions, native
+popover close and Escape, parent UI access, source preservation and removal of
+inactive-layer space are required before and after viewport resize. All 174
+loaded production modules are fingerprinted and rechecked; an optional commit
+serves exact Git bytes through ordinary Vite compilation.
+
+The final preceding-source replay
+`html-native-layers-complete-final-baseline.json` has **28 product failures**
+on exact `a008b32f`, with all twelve native controls passing. The final working
+repair `html-native-layers-complete-final-working.json` passes all **60** cases
+with unchanged source. Both are retained in ignored audit output. Earlier
+readiness-null errors, native wrapper-margin interference and child-only
+scrollIntoView failures remain fixture diagnostics, rather than product RED or
+successful final results. A temporary invisible-box sizing regression is also
+retained and is covered by the final negative control.
+
+The resource baseline was rerun with the final privacy fixture:
+`html-resource-effects-final-fixture-baseline-red.json` serves exact `5c73e176`
+with 174 modules, all eight native controls passing and sixteen product cases
+failing. Its preceding-source failures retain their original meaning.
+
+Native Windows UI inspection was stopped by computer-use because it could not
+confidently determine the current browser URL. Context-menu UI and actual
+native fullscreen UI therefore remain unverified. No preservation count or
+whole B-HTML acceptance changes. Frozen combined integration follows this
+repair; prior successful integrations retain their earlier source identity.

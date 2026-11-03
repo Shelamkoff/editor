@@ -15,8 +15,18 @@ corrected. That run remains failed. Current pre-commit checks pass all 45 browse
 pages, both typechecks, the expanded 52-case loading probe, 24 real HTTP/CSS
 comparisons and 24 viewport-token tests. The enforced fullPreset budget now
 passes at **95.5 KiB gzip / 96 KiB**, with byte-identical shared SVG artwork.
-A fresh combined immutable run is still required; B-HTML and full readiness
-are not claimed. Earlier source-specific acceptance below remains in force.
+The fresh combined run `run-A9Taxq` passes **all 19 gates** on clean, unchanged
+`a008b32ff6ac10b05234c4d60876a88d3501c6d3` (23:07:25–23:19:08 UTC on
+2026-11-02; 2026-11-03 local date). This run uses Node **24.22.2**, independently
+of preceding Node 24.9.0 evidence. Its actual enforced bundle result is
+**95.6 KiB gzip / 96 KiB**. All 2198 Node tests pass, with three platform skips;
+all 45 ordinary browser pages and the five selected native groups pass.
+B-HTML and full readiness are not claimed. A subsequent native probe reproduces
+clipped fixed elements and opened popovers in all four HTML surfaces. The repair
+passes all 60 public/native layer cases before commit; exact preceding
+`a008b32f` fails 28 of them while all twelve native controls pass. Frozen
+integration of this follow-up is the next step. Earlier source-specific
+acceptance remains in force.
 
 ## Accepted integration — 2026-11-02
 
