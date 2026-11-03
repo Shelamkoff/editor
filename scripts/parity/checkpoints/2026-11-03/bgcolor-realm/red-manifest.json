@@ -1,0 +1,13 @@
+{
+  "source": "fff2caed0241768a08da302d467ec3a6269c6b0e",
+  "tree": "a0c4cc624b5b661b418833f9fee474373958648f",
+  "processExit": 1,
+  "redModelExit": 0,
+  "cases": 12,
+  "observations": 334,
+  "attributedFailures": 4,
+  "positiveCases": 10,
+  "rawSha256": "da4e83a2cc86e5e836c56a5a8e792839d3b3e4148fe16a1e0491f24a9b32f9f6",
+  "broaderRow": "TOOL_BGCOLOR_ACTION",
+  "broaderRowAccepted": false
+}
