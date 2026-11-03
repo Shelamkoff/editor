@@ -7,7 +7,7 @@ function authorMeaning(html) {
   return { text: html.replace(/<[^>]*>/g, ''), sizes: [...html.matchAll(/font-size:\s*([^;"<>]+)/g)].map(m => m[1].trim()),
     colors: [...html.matchAll(/(?:^|[;"\s])color:\s*([^;"<>]+)/g)].map(m => /^(?:#800000|rgb\(128,\s*0,\s*0\))$/.test(m[1].trim()) ? '#800000' : m[1].trim()) }
 }
-export async function runFontSizeResetBoundaryCase({ sourceBase, legacy, spec, nativeInput }) {
+export async function runFontSizeResetBoundaryCase({ sourceBase = '../../', legacy, spec, nativeInput }) {
   const base = new URL(sourceBase, import.meta.url), [core, paragraph, kit, defaults] = await Promise.all([
     'core/index.js', 'plugins/paragraph/index.js', ...(!legacy ? ['plugin-kit/index.js', 'inline-tools/defaults.js'] : []),
   ].map(path => import(new URL(path, base))))
