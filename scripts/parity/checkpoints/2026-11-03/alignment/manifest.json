@@ -1,0 +1,92 @@
+{
+  "candidate": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+  "reviewSource": "b18457a24c5dd3944f0c15c22a6417e1c6fdc9bd",
+  "integratedRuntime": "e2053f58258dcea153d16faae42e9d03c644e795",
+  "runtimeByteIdentical": true,
+  "firstRun": {
+    "startedAt": "2026-11-03T13:24:13.988Z",
+    "finishedAt": "2026-11-03T13:29:20.402Z",
+    "outcome": "failed",
+    "sourceUnchanged": true,
+    "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+    "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+    "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser-all": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-left": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-center": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-right": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-justify": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "alignment-proof": {
+        "outcome": "failed",
+        "sourceUnchanged": true
+      },
+      "alignment-controls": {
+        "outcome": "not-run",
+        "sourceUnchanged": null
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "proofRun": {
+    "startedAt": "2026-11-03T13:31:55.919Z",
+    "finishedAt": "2026-11-03T13:32:09.422Z",
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "head": "b18457a24c5dd3944f0c15c22a6417e1c6fdc9bd",
+    "tree": "2d357ff8803cc0f7468b21e986b15a658b5fca5d",
+    "identity": "d326b84453c5055c028d8938c8d80de3a7728601caa91bd802744de75c001808",
+    "gates": {
+      "alignment-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "alignment-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 98,
+    "open": 111
+  },
+  "acceptedRows": [
+    "TOOL_ALIGN_ACTION"
+  ],
+  "registerAfter": {
+    "accepted": 99,
+    "open": 110
+  },
+  "cases": 80,
+  "observations": 2520,
+  "independentSemanticChecks": 2680,
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}

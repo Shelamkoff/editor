@@ -2,9 +2,50 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **98 / 209 obligations**, with **111 open**; see the [Script panel acceptance](#script-panel-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **99 / 209 obligations**, with **110 open**; see the [alignment action acceptance](#alignment-action-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Alignment action acceptance — 2026-11-03
+
+`TOOL_ALIGN_ACTION` is accepted on fixed fixture/runner source `247b4a42`,
+with the corrected author verifier on `b18457a2`: **80 cases / 2,520 passing
+observations**, 2,680 independently rebuilt semantic checks and nine rejected
+evidence corruptions. The register is **99 accepted / 110 open**.
+
+The real public toolbar covers all four alignments, mixed state, Text and
+Element boundaries in both directions, Paragraph/Quote cross-field and
+cross-block ranges, atomic widget selections, no-op preserving Redo and retained
+panel controls after read-only/destroy transitions. Exact canonical tunes,
+computed field alignment, unchanged rich author markup, Color/Mention owners,
+selection, separate native input/action history and scalar-port replies pass.
+Alignment stays in block tunes; v1's duplicate Paragraph `data.align` is adapted
+as wire spelling, not restored in v2. Panel focus is observed after autofocus;
+physical dragging or a Tab press in every case is not claimed.
+
+The first clean `run-rwO0s2` passes seven gates: types, all 48 ordinary pages,
+four native pages of 20 cases each and docs. Its overall outcome remains failed:
+the verifier wrongly treated every unrelated browser report as one JSON list,
+including the harness's deliberate negative outcomes. The complete raw corpus
+already has zero current failed observations, exceptions or incomplete cases.
+The later clean unchanged `run-QAfWYn` passes all three proof/model, negative
+control and docs gates. Evidence/reviewer revisions are named separately;
+runtime, runner, common fixture and all native sources must be byte identical
+between them. The test-only verifier repair does not repeat unchanged browser
+actions or relabel the first failed run.
+
+The independent Python model rebuilds canonical data, range offsets, field
+styles, history/trusted input, owner-preserving rich meaning and public ports,
+and verifies 349 production module identities, seven dependency files and eight
+versions. v1 retains 2,152 observations / 128 failures and eight incomplete
+atomic cases; the specification baseline retains 1,720 observations and 32
+incomplete cases. Raw exit 1 and manual review exit 0 remain separate.
+Production stays byte identical to `e2053f58`, whose separate full 28-gate
+integration passes at 95.6 KiB gzip / 96 KiB. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/alignment/README.md)
+retains both manifests, full logs, original failed verifier, final corpus,
+executed model and corruptions. This is author verification, not peer review.
+Other tools, B-HTML and full library readiness remain open.
 
 ## Browser environment attribution — 2026-11-03
 

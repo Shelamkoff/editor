@@ -6,9 +6,24 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Alignment action acceptance — 2026-11-03
+
+The current register is **99/209 accepted, 110 open**. `TOOL_ALIGN_ACTION`
+passes 80 cases / 2,520 observations and 2,680 independently rebuilt checks.
+All four alignments, mixed state, range direction/boundaries, rich fields,
+widgets, exact native history, no-op Redo and retired panel ports pass. Nine
+evidence corruptions are rejected. The first run `run-rwO0s2` retains its
+verifier-format failure and seven successful gates (types, all 48 ordinary
+pages, four native groups and docs); the separate corrected three-gate proof
+`run-QAfWYn` passes on `b18457a2`. Corpus source is `247b4a42`; runtime remains
+byte identical to separately integrated `e2053f58` (28 gates, 95.6/96 KiB gzip).
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/alignment/README.md)
+retains both source identities, full logs, failed and corrected verifiers,
+corpus and hashes. Other tool rows and full readiness remain open.
+
 ## Script panel acceptance — 2026-11-03
 
-The current register is **98/209 accepted, 111 open**. Two Script/panel rows
+At that checkpoint the register was **98/209 accepted, 111 open**. Two Script/panel rows
 are accepted on clean unchanged `2c6fd5f4`: 128 native cases / 6,400 passing
 observations and 5,148 independent semantic checks. Nine corruptions are rejected;
 all four frozen proof gates pass in `run-IVwEy6`. Runtime and native fixtures

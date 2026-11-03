@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 1,
+  "cwd": "C:\\OSPanel\\domains\\editor",
+  "startedAt": "2026-11-03T13:24:13.988Z",
+  "finishedAt": "2026-11-03T13:29:20.402Z",
+  "outcome": "failed",
+  "source": {
+    "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+    "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+    "untracked": [],
+    "dirty": false,
+    "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+  },
+  "environment": {
+    "node": "v24.22.2",
+    "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+    "npm": "11.2.0",
+    "platform": "win32",
+    "architecture": "x64",
+    "release": "10.0.19045",
+    "runner": {},
+    "selection": {
+      "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    }
+  },
+  "context": {},
+  "gates": {
+    "types": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:24:15.296Z",
+      "finishedAt": "2026-11-03T13:24:23.138Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/s",
+        "/c",
+        "npm run typecheck"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 7838.0797999999995,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "browser-all": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:24:24.083Z",
+      "finishedAt": "2026-11-03T13:25:40.989Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "tests/browser/run.mjs"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 76902.8442,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "native-left": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:25:42.037Z",
+      "finishedAt": "2026-11-03T13:26:02.756Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "test-results/audit-closeout-2026-11-01/run-alignment-native.mjs",
+        "left"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 20714.306999999997,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "native-center": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:26:03.738Z",
+      "finishedAt": "2026-11-03T13:26:24.367Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "test-results/audit-closeout-2026-11-01/run-alignment-native.mjs",
+        "center"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 20625.293100000003,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "native-right": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:26:25.402Z",
+      "finishedAt": "2026-11-03T13:26:46.230Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "test-results/audit-closeout-2026-11-01/run-alignment-native.mjs",
+        "right"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 20824.168700000002,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "native-justify": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:26:47.193Z",
+      "finishedAt": "2026-11-03T13:27:07.864Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "test-results/audit-closeout-2026-11-01/run-alignment-native.mjs",
+        "justify"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 20666.788800000002,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "alignment-proof": {
+      "outcome": "failed",
+      "startedAt": "2026-11-03T13:27:08.846Z",
+      "finishedAt": "2026-11-03T13:29:12.446Z",
+      "exitCode": 1,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "test-results/audit-closeout-2026-11-01/run-alignment-proof.mjs"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 123595.06559999999,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    },
+    "alignment-controls": {
+      "outcome": "not-run",
+      "startedAt": null,
+      "finishedAt": null,
+      "exitCode": null,
+      "signal": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "test-results/audit-closeout-2026-11-01/run-alignment-controls.mjs"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "reason": "Prerequisite alignment-proof is failed"
+    },
+    "docs": {
+      "outcome": "passed",
+      "startedAt": "2026-11-03T13:29:14.305Z",
+      "finishedAt": "2026-11-03T13:29:19.690Z",
+      "exitCode": 0,
+      "signal": null,
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/s",
+        "/c",
+        "npm run test:docs"
+      ],
+      "cwd": "C:\\OSPanel\\domains\\editor",
+      "environment": {
+        "node": "v24.22.2",
+        "nodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+        "npm": "11.2.0",
+        "platform": "win32",
+        "architecture": "x64",
+        "release": "10.0.19045",
+        "runner": {},
+        "selection": {
+          "EDITOR_CHROME_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        }
+      },
+      "sourceBefore": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "elapsedMs": 5379.993799999999,
+      "sourceAfter": {
+        "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+        "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+        "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+        "untracked": [],
+        "dirty": false,
+        "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "sourceAfter": {
+    "head": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+    "tree": "4d202d22772b6a91e9b00fbdf77b2dcb729d0fc8",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lockSha256": "9d11d94fd8f4b44aa92aeb0b67108f8edd264036b57ebb60aa0f7b12c3a8ce26",
+    "untracked": [],
+    "dirty": false,
+    "identity": "6aba2f444d2f912ab9a03194a00385d8bbf26bd72ce206bf245753d37ff15464"
+  },
+  "sourceUnchanged": true
+}

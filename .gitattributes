@@ -46,3 +46,5 @@ scripts/parity/checkpoints/2026-11-03/alignment/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/alignment/controls.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/alignment/*.json -text
 scripts/parity/checkpoints/2026-11-03/alignment/*.gz -text
+scripts/parity/checkpoints/2026-11-03/alignment/runs/*/*.json -text
+scripts/parity/checkpoints/2026-11-03/alignment/runs/*/*.gz -text

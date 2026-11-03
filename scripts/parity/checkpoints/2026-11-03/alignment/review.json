@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "candidate": "247b4a42583b0d2179c52da1fd9960ad28e7ca1c",
+  "cases": 80,
+  "semanticChecks": 2680,
+  "observations": 2520,
+  "rawSha256": "e0a2ef9cd3bcb0d4d230e843f5d2787b35b2c2ee24da191b817b853586349497",
+  "reviewerSha256": "436f86e4b1acd0a7c55353879ad46dd51eaa738b325a52ba7b54f2106c47e1be",
+  "productionModuleIdentities": 349,
+  "dependencyFiles": 7,
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "history": [
+    {
+      "source": "v1",
+      "observations": 2152,
+      "failed": 128,
+      "incomplete": 8
+    },
+    {
+      "source": "spec-baseline",
+      "observations": 1720,
+      "failed": 0,
+      "incomplete": 32
+    },
+    {
+      "source": "candidate",
+      "observations": 2520,
+      "failed": 0,
+      "incomplete": 0
+    }
+  ],
+  "reviewSource": "b18457a24c5dd3944f0c15c22a6417e1c6fdc9bd",
+  "integratedRuntime": "e2053f58258dcea153d16faae42e9d03c644e795",
+  "integrationManifestSha256": "e030e75826986a8e3c6c8d0b75d657caa6815be632a8bbcb178f8fc79c11bc8e",
+  "browserSha256": "1cf67be431851d9b405e722ceaebe73fc9c4a1f84fea61e6f8749587eb78e360",
+  "browserRunSha256": "e0df422547a7da89392fceee094a0674f243f067d338dff9471efcbfa9b1acb4",
+  "nativeSha256": {
+    "left": "4f5fec8ab32bd3b2b7286163aeaf286ab720fa3408891bc6bac1223128dc4db7",
+    "center": "a89891d3002dbf18aa79dc4ef23c2d93e2e347b747b88d15fb2a750b1011aa36",
+    "right": "96e595742966c8e5ff842fa8dc47bc640bb95691ab1cb1c5ef03310baebb53a5",
+    "justify": "4eff2eab96c901d57cb68c88c18d57eb7ef203e9319ab1f853b15d656c3de9ed"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical failed observations and incomplete actions keep raw exit 1; candidate and independent contract model are evaluated separately."
+}
