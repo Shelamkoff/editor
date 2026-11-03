@@ -1,6 +1,7 @@
 """Independent public read-only mode oracle: literal documents and fact graph."""
-import argparse,hashlib,importlib.util,json,subprocess
+import argparse,hashlib,importlib.util,json,subprocess,sys
 from pathlib import Path
+sys.dont_write_bytecode=True
 V1='5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340';BASELINE='e981ff308000c1d92d7e820df95113c1e19bcee8'
 PHASES=['load','seed','read-only','denied','reader','editable','replay','author','dispose']
 def sha(b):return hashlib.sha256(b).hexdigest()
