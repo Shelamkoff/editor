@@ -1,74 +1,5 @@
-import { test, assert, equal, make, para, blockElement, pause, run } from './regressions/harness.js'
-
-function fixture({ editable = false, withUpdate = false } = {}) {
-  const flags = { failCreation: null, failUpdate: null, caret: 2 }
-  const created = []
-  const contexts = []
-  const roots = []
-  const disposed = []
-  const schema = {
-    currentVersion: 1,
-    createDefault: () => ({ label: '' }),
-    decode({ dataVersion, data }) {
-      if (dataVersion !== 1 || typeof data?.label !== 'string') throw new TypeError('Invalid badge')
-      return { dataVersion: 1, data: { label: data.label } }
-    },
-    encode(data) {
-      if (typeof data?.label !== 'string') throw new TypeError('Invalid badge')
-      return { dataVersion: 1, data: { label: data.label } }
-    },
-  }
-  const badge = {
-    type: 'static-badge', label: { key: 'badge', fallback: 'Badge' }, icon: '', schema,
-    ...(editable ? { editing: { handle() {
-      return { kind: 'update', data: { label: 'Updated' },
-        ...(Number.isInteger(flags.caret) ? { caret: flags.caret } : {}) }
-    } } } : {}),
-    setup({ ownerDocument }) {
-      return {
-        create(id, data, context) {
-          created.push(data.label)
-          if (id === 'x' && flags.failCreation) {
-            const error = flags.failCreation
-            flags.failCreation = null
-            throw error
-          }
-          contexts.push({ id, context })
-          const element = ownerDocument.createElement('span')
-          element.dataset.staticBadge = id
-          element.textContent = data.label
-          roots.push(element)
-          // update() is deliberately absent from this supported contract.
-          return {
-            element,
-            ...(withUpdate ? { update(next) {
-              element.textContent = next.label
-              if (flags.failUpdate) {
-                const error = flags.failUpdate
-                flags.failUpdate = null
-                throw error
-              }
-            } } : {}),
-            setReadOnly(value) { element.contentEditable = String(editable && !value) },
-            destroy() { disposed.push(element) },
-          }
-        },
-        destroy() {},
-      }
-    },
-  }
-  const inline = {
-    x: { type: badge.type, dataVersion: 1, data: { label: 'Original' } },
-    y: { type: badge.type, dataVersion: 1, data: { label: 'Sibling' } },
-  }
-  const editor = make([para('a', 'A {{x}} / {{y}} Z', { inline }), para('b', 'Other')], { inlinePlugins: [badge] })
-  return {
-    editor, roots, disposed, flags, created,
-    context: id => contexts.filter(entry => entry.id === id).at(-1).context,
-    root: id => blockElement(editor, 'a').querySelector(`[data-static-badge="${id}"]`),
-    data: () => editor.save().blocks,
-  }
-}
+import { test, assert, equal, blockElement, pause, run } from './regressions/harness.js'
+import { optionalInlineFixture as fixture } from './optional-inline-fixture.js'
 
 test('a widget without update reflects changed data with a new scoped occurrence and one history action', () => {
   const h = fixture()
@@ -238,5 +169,119 @@ test('missing immediate caret keeps the ordinary exterior logical completion', a
   assert(blockElement(h.editor, 'a').contains(selection.anchorNode))
   equal(h.data()[0].inline.x.data, { label: 'Updated' })
 })
+
+test('an accepted optional inline task replaces its owner once and preserves one reversible action', () => {
+  const h = fixture(), before = h.data(), context = h.context('x'), old = h.root('x'), sibling = h.root('y')
+  const task = context.beginTask(), pending = context.beginTask(), events = []
+  h.editor.on('transaction:committed', event => events.push(event.action))
+  equal(task.commit(data => ({ ...data, label: 'Task result' })), true)
+  equal(h.data()[0].inline.x.data, { label: 'Task result' }); equal(h.root('x').textContent, 'Task result')
+  assert(h.root('x') !== old && h.root('y') === sibling)
+  equal([context.signal.aborted, task.signal.aborted, pending.signal.aborted], [true, true, true])
+  equal(h.disposed.filter(element => element === old).length, 1)
+  let reads = 0, producers = 0
+  equal(pending.commit(() => { producers++; return {} }, { get mergeWithPreviousField() { reads++; return 'label' } }), false)
+  context.updateData(() => { producers++; return {} }, { get trailingText() { reads++; return '' } })
+  equal([reads, producers], [0, 0])
+  const after = h.data()
+  equal(h.editor.undo(), true); equal(h.data(), before); equal(h.editor.canUndo, false)
+  equal(h.editor.redo(), true); equal(h.data(), after); equal(events, ['commit', 'undo', 'redo'])
+})
+
+for (const payload of [undefined, null, false, 0, '', NaN, new Error('optional creation failure')]) {
+  test(`optional replacement throw ${String(payload)} recovers accepted data and retires provisional scope`, () => {
+    const h = fixture(), before = h.data(), context = h.context('x'), pending = context.beginTask(), old = h.root('x')
+    const provisional = [], events = []
+    h.editor.on('transaction:committed', event => events.push(event.action))
+    h.flags.onCreate = (id, data, candidate) => {
+      if (id === 'x' && data.label === 'Rejected') { provisional.push(candidate.signal); throw payload }
+    }
+    let failure, didThrow = false
+    try { context.updateData(() => ({ label: 'Rejected' })) } catch (error) { failure = error; didThrow = true }
+    equal([didThrow, Object.is(failure, payload)], [true, true])
+    equal(h.data(), before); equal(h.root('x').textContent, 'Original')
+    assert(h.root('x') !== old && context.signal.aborted && pending.signal.aborted)
+    equal(provisional.map(signal => signal.aborted), [true])
+    equal(h.disposed.filter(element => element === old).length, 1)
+    equal(events, []); equal(h.editor.canUndo, false)
+    let reads = 0, producers = 0
+    equal(pending.commit(() => { producers++; return {} }, { get mergeWithPreviousField() { reads++; return 'label' } }), false)
+    equal([reads, producers], [0, 0])
+    h.flags.onCreate = null
+    h.context('x').updateData(() => ({ label: 'Recovered' }))
+    equal(h.root('x').textContent, 'Recovered'); equal(events, ['commit'])
+    equal(h.editor.undo(), true); equal(h.data(), before)
+  })
+}
+
+for (const payload of [undefined, null, false, 0, '', NaN, new Error('optional update failure')]) {
+  test(`existing update throw ${String(payload)} never recreates the rejected payload`, () => {
+    const h = fixture({ withUpdate: true }), before = h.data(), context = h.context('x'), pending = context.beginTask(), old = h.root('x')
+    const events = []; h.editor.on('transaction:committed', event => events.push(event.action))
+    let calls = 0, failure, didThrow = false
+    h.flags.onUpdate = () => { calls++; h.flags.onUpdate = null; throw payload }
+    try { context.updateData(() => ({ label: 'Rejected' })) } catch (error) { failure = error; didThrow = true }
+    equal([didThrow, Object.is(failure, payload), calls], [true, true, 1])
+    equal(h.data(), before); equal(h.root('x').textContent, 'Original')
+    assert(!h.created.includes('Rejected'))
+    equal([context.signal.aborted, pending.signal.aborted], [true, true])
+    equal(h.disposed.filter(element => element === old).length, 1)
+    equal(events, []); equal(h.editor.canUndo, false)
+    const live = h.root('x')
+    h.context('x').updateData(() => ({ label: 'Accepted' }))
+    assert(h.root('x') === live); equal(live.textContent, 'Accepted')
+    equal(h.editor.undo(), true); equal(h.data(), before)
+  })
+}
+
+for (const shape of ['promise', 'thenable', 'throwing-then-getter']) {
+  test(`existing update ${shape} rejects synchronously without fallback or unhandled rejection`, async () => {
+    const h = fixture({ withUpdate: true }), before = h.data(), context = h.context('x'), old = h.root('x')
+    let gets = 0, calls = 0, receiver = false, failure, didThrow = false
+    const value = { get then() {
+      gets++
+      if (shape === 'throwing-then-getter') throw false
+      return function(resolve, reject) { calls++; receiver = this === value; reject(undefined) }
+    } }
+    h.flags.onUpdate = () => { h.flags.onUpdate = null; return shape === 'promise' ? Promise.reject(new Error('late update rejection')) : value }
+    try { context.updateData(() => ({ label: 'Rejected' })) } catch (error) { failure = error; didThrow = true }
+    equal([didThrow, shape === 'throwing-then-getter' ? failure === false : failure instanceof TypeError], [true, true])
+    await pause(0)
+    equal([gets, calls, receiver], shape === 'promise' ? [0, 0, false] : shape === 'thenable' ? [1, 1, true] : [1, 0, false])
+    equal(h.data(), before); equal(h.root('x').textContent, 'Original')
+    assert(!h.created.includes('Rejected') && context.signal.aborted)
+    equal(h.disposed.filter(element => element === old).length, 1); equal(h.editor.canUndo, false)
+    const live = h.root('x')
+    h.context('x').updateData(() => ({ label: 'Accepted' }))
+    assert(h.root('x') === live); equal(live.textContent, 'Accepted')
+    equal(h.editor.undo(), true); equal(h.data(), before)
+  })
+}
+
+test('native reconciliation opt-in without update rejects and cleans the started occurrence', () => {
+  let observed, failure
+  try { fixture({ editable: true, nativeOptIn: true, inspect: value => { observed = value } }) } catch (error) { failure = error }
+  assert(failure instanceof TypeError)
+  equal(observed.created, ['Original'])
+  equal(observed.roots.length, 1)
+  equal(observed.contexts.map(entry => entry.context.signal.aborted), [true])
+  equal(observed.disposed, observed.roots)
+  equal(observed.roots.map(element => element.isConnected), [false])
+})
+
+for (const readOnly of [false, true]) {
+  test(`native reconciliation with update remains a valid readable instance in mode ${readOnly}`, () => {
+    const h = fixture({ editable: true, withUpdate: true, nativeOptIn: true, readOnly })
+    equal(h.context('x').getData(), { label: 'Original' })
+    equal(h.editor.readOnly, readOnly)
+    equal(h.root('x').contentEditable, String(!readOnly))
+    equal(h.created, ['Original', 'Sibling']); equal(h.disposed, [])
+    const old = h.root('x')
+    if (readOnly) h.editor.setReadOnly(false)
+    h.context('x').updateData(() => ({ label: 'Accepted' }))
+    assert(h.root('x') === old); equal(old.textContent, 'Accepted')
+    equal(h.editor.undo(), true); equal(h.root('x').textContent, 'Original')
+  })
+}
 
 await run()
