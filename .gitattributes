@@ -6,3 +6,7 @@ scripts/parity/task-authority.mjs text eol=lf
 tests/browser/scoped-authority.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/task-authority/*.json -text
 scripts/parity/checkpoints/2026-11-03/task-authority/*.gz -text
+scripts/parity/mode-recovery.mjs text eol=lf
+tests/browser/mode-recovery.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/mode-recovery/*.json -text
+scripts/parity/checkpoints/2026-11-03/mode-recovery/*.gz -text
