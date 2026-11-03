@@ -1,0 +1,77 @@
+{
+  "params": {
+    "x": 89.5,
+    "y": 219.28125
+  },
+  "hit": "<i>Neighbor</i>",
+  "active": "<p class=\"oe-paragraph\" contenteditable=\"true\" style=\"\"><i>Neighbor</i></p>",
+  "scrollY": 0,
+  "rect": {
+    "x": 63,
+    "y": 202.28125,
+    "width": 53,
+    "height": 34,
+    "top": 202.28125,
+    "right": 116,
+    "bottom": 236.28125,
+    "left": 63
+  },
+  "chain": [
+    {
+      "tag": "I",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "P",
+      "class": "oe-paragraph",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-block oe-block--focused",
+      "position": "relative",
+      "zIndex": "1",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-blocks",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-editor oe-theme-dark",
+      "position": "relative",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "SECTION",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "BODY",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "HTML",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    }
+  ]
+}

@@ -1,0 +1,1254 @@
+{
+  "candidate": "666066407fe3d8c9dbe4f958e6b12ae29637011f",
+  "tree": "629d90f8825b9ea9efe4c9a792fc49c07ea2bb76",
+  "sourceIdentity": "55e5f339a1490a110a3f771f2605cfefcd3341daed31f613ec6028c46cabafb6",
+  "integrationRun": {
+    "directory": "run-C8z7Da",
+    "outcome": "failed",
+    "gates": 16,
+    "startedAt": "2026-11-03T21:39:47.525Z",
+    "finishedAt": "2026-11-03T21:48:30.431Z"
+  },
+  "productionBasis": "38119ff357e9933e4e79bb11b170c264e0e628ef",
+  "productionDeltaFromPreviousBasis": [
+    "plugins/link-preview/index.js"
+  ],
+  "redSource": "aa3da3322fb4ec8ebbe34082043cf43201fc808a",
+  "focusedGreenSource": "38119ff357e9933e4e79bb11b170c264e0e628ef",
+  "cases": 14,
+  "observations": 458,
+  "nativeCases": 14,
+  "nativeTrustedCases": 15,
+  "nativeControls": 169,
+  "nativeHtml": 28,
+  "corruptionsRejected": 16,
+  "moduleIdentities": 482,
+  "results": {
+    "final": {
+      "v1": {
+        "cases": 14,
+        "observations": 458,
+        "differences": []
+      },
+      "spec-baseline": {
+        "cases": 14,
+        "observations": 458,
+        "differences": [
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "notion/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "split/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "split/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "split/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "split/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "remount",
+            "property": "editorView"
+          }
+        ]
+      },
+      "candidate": {
+        "cases": 14,
+        "observations": 458,
+        "differences": []
+      }
+    },
+    "red": {
+      "v1": {
+        "cases": 14,
+        "observations": 458,
+        "differences": []
+      },
+      "spec-baseline": {
+        "cases": 14,
+        "observations": 458,
+        "differences": [
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "twitter/reader",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "notion/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "split/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "split/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "split/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "split/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "load",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "restored",
+            "property": "editorView"
+          },
+          {
+            "id": "split/reader",
+            "phase": "remount",
+            "property": "editorView"
+          }
+        ]
+      },
+      "candidate": {
+        "cases": 14,
+        "observations": 458,
+        "differences": [
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "horizontal/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "compact/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "large-top/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "history"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "nativeEvents"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "activeTemplate"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "choose",
+            "property": "modeHistory"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "replay",
+            "property": "undoAvailable"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "redo",
+            "property": "outputView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "canonical"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "editorView"
+          },
+          {
+            "id": "minimal/editor",
+            "phase": "remount",
+            "property": "outputView"
+          },
+          {
+            "id": "twitter/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "notion/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          },
+          {
+            "id": "split/editor",
+            "phase": "choose",
+            "property": "modeClosedPanel"
+          }
+        ]
+      }
+    }
+  },
+  "excludedInitialAttempt": {
+    "reason": "Fixture expected auto instead of the CSS reset min-height 0px, omitted Twitter image border in measured height, and expected legacy read-only settings buttons to exist. Exact initial corpus and fixture remain archived; corrected immutable RED has 59 real product mismatches in seven cases, with v1 fully passing."
+  },
+  "registerBefore": {
+    "accepted": 120,
+    "open": 89
+  },
+  "registerAfter": {
+    "accepted": 121,
+    "open": 88
+  },
+  "nodeDiscoveryFollowup": {
+    "directory": "run-85PDJs",
+    "outcome": "passed",
+    "gates": 2,
+    "source": "ea4522fc76e9fd44affa6b402752cd3d055bcd6e",
+    "sourceIdentity": "8663794cd067cf17fdbe91da35e62497ad31b0db9bc02dd782bd494533391e91",
+    "startedAt": "2026-11-03T21:49:10.238Z",
+    "finishedAt": "2026-11-03T21:50:39.611Z",
+    "canonicalTestFiles": 197,
+    "passed": 2203,
+    "skipped": 3,
+    "originalDiscovery": {
+      "tests": 9839,
+      "passed": 9762,
+      "failed": 74,
+      "skipped": 3,
+      "canonicalFailureLocations": 0,
+      "historicalFailureLocations": 74
+    },
+    "runtimeCodeUnchanged": true,
+    "packageChange": "scripts.test only"
+  },
+  "acceptedRows": [
+    "BLOCK_LINK_PREVIEW_TEMPLATES"
+  ],
+  "register": {
+    "accepted": 121,
+    "open": 88
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

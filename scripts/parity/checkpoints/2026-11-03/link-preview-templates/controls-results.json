@@ -1,0 +1,133 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "sha256": "507b9cfaa6bfa47d1ccbd9e4d09432e73062146be3fdd490225edeb273ecf7b9",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 72, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 48, in main\r\n    helper={'__name__':'accepted_identity_helper'};exec(compile(helper_bytes,'accepted-identity-helper','exec'),helper);modules=helper['identity'](d,a.candidate,'scripts/parity/link-preview-templates.mjs','tests/browser/link-preview-templates-fixture.js')\r\n                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"accepted-identity-helper\", line 68, in identity\r\nAssertionError\r\n"
+    },
+    {
+      "name": "aliased-template-layout",
+      "exitCode": 1,
+      "sha256": "32bf8f11427b856588519702f64fc5ac64e34b61ad98e4fcad59364824d02331",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, 'status': 'PASS'}, {'template': 'compact', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '48px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, {'template': 'compact', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '48px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'})\r\n"
+    },
+    {
+      "name": "lost-half-width",
+      "exitCode": 1,
+      "sha256": "6f7cb1756c42a21b995d471bdd19729b5e55f19e21fc11fc9d8ce44347a61ce8",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": " '140px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, 'status': 'PASS'}, {'template': 'split', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': 'half', 'imageHeight': None, 'minHeight': '140px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, {'template': 'split', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': 'half', 'imageHeight': None, 'minHeight': '140px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'})\r\n"
+    },
+    {
+      "name": "metadata-interpreted-as-html",
+      "exitCode": 1,
+      "sha256": "447a94effe20afd67bf6a8b79faa271e4ea4174a51a97db5955124e1556da6fa",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": ", 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, 'status': 'PASS'}, {'template': 'horizontal', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '200px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, {'template': 'horizontal', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '200px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'})\r\n"
+    },
+    {
+      "name": "lost-image-alt",
+      "exitCode": 1,
+      "sha256": "d5b2ab632b2c98e5a13a208ca1d558e0590445ad773a431ac0666232b421143a",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': ''}, 'status': 'PASS'}, {'template': 'horizontal', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '200px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, {'template': 'horizontal', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '200px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'})\r\n"
+    },
+    {
+      "name": "missing-native-choice",
+      "exitCode": 1,
+      "sha256": "62da1d6541d467311e1417ec982d63a7284381884286b70e5e0a99ea725213b7",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "s[row['source']]['differences'])==dict(legacy=0,baseline=85,red=59,current=0)[profile]\r\n                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 38, in verify\r\n    status='PASS' if same(value,observed) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value) and same(o['actual'],observed) and o['status']==status,(s['id'],phase,key,o,observed,value)\r\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('horizontal/editor', 'choose', 'nativeEvents', {'phase': 'choose', 'property': 'nativeEvents', 'actual': [{'kind': 'settings', 'trusted': True, 'onControl': True}], 'expected': [{'kind': 'settings', 'trusted': True, 'onControl': True}], 'status': 'PASS'}, [{'kind': 'settings', 'trusted': True, 'onControl': True}, {'kind': 'template', 'trusted': True, 'onControl': True}], [{'kind': 'settings', 'trusted': True, 'onControl': True}, {'kind': 'template', 'trusted': True, 'onControl': True}])\r\n"
+    },
+    {
+      "name": "menu-survived-mode-change",
+      "exitCode": 1,
+      "sha256": "fc75766899e2be5d237d4e0d61a8b724fedf32641dbf22833747cb47d36bf867",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "]=='spec-baseline' else 'red' if label=='red' else 'current';verified=[verify(case,profile) for case in row['cases']];rows[row['source']]=dict(cases=len(verified),observations=sum(n for n,_ in verified),differences=[f for _,failures in verified for f in failures]);assert rows[row['source']]['observations']==458 and len(rows[row['source']]['differences'])==dict(legacy=0,baseline=85,red=59,current=0)[profile]\r\n                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 38, in verify\r\n    status='PASS' if same(value,observed) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value) and same(o['actual'],observed) and o['status']==status,(s['id'],phase,key,o,observed,value)\r\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('horizontal/editor', 'choose', 'modeClosedPanel', {'phase': 'choose', 'property': 'modeClosedPanel', 'actual': False, 'expected': False, 'status': 'PASS'}, True, True)\r\n"
+    },
+    {
+      "name": "reader-exposes-author-actions",
+      "exitCode": 1,
+      "sha256": "992336c55656c426b375c5e21078bf4be26dfedf2a8d95097c7d5d77603d8de4",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "rce']=='spec-baseline' else 'red' if label=='red' else 'current';verified=[verify(case,profile) for case in row['cases']];rows[row['source']]=dict(cases=len(verified),observations=sum(n for n,_ in verified),differences=[f for _,failures in verified for f in failures]);assert rows[row['source']]['observations']==458 and len(rows[row['source']]['differences'])==dict(legacy=0,baseline=85,red=59,current=0)[profile]\r\n                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 38, in verify\r\n    status='PASS' if same(value,observed) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value) and same(o['actual'],observed) and o['status']==status,(s['id'],phase,key,o,observed,value)\r\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('horizontal/reader', 'choose', 'actionsHidden', {'phase': 'choose', 'property': 'actionsHidden', 'actual': False, 'expected': False, 'status': 'PASS'}, True, True)\r\n"
+    },
+    {
+      "name": "lost-redo",
+      "exitCode": 1,
+      "sha256": "e95a6aa40f4194cf08d566c0ebc344fdc52ede33315a71a99d092a38a53793fc",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "rce']=='spec-baseline' else 'red' if label=='red' else 'current';verified=[verify(case,profile) for case in row['cases']];rows[row['source']]=dict(cases=len(verified),observations=sum(n for n,_ in verified),differences=[f for _,failures in verified for f in failures]);assert rows[row['source']]['observations']==458 and len(rows[row['source']]['differences'])==dict(legacy=0,baseline=85,red=59,current=0)[profile]\r\n                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 38, in verify\r\n    status='PASS' if same(value,observed) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value) and same(o['actual'],observed) and o['status']==status,(s['id'],phase,key,o,observed,value)\r\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('horizontal/editor', 'replay', 'redoAvailable', {'phase': 'replay', 'property': 'redoAvailable', 'actual': False, 'expected': False, 'status': 'PASS'}, True, True)\r\n"
+    },
+    {
+      "name": "extra-history-action",
+      "exitCode": 1,
+      "sha256": "2fb4c831a15bc50f4eb99b068bde15166b14148236d66aa71e2f932201789744",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "eline' else 'red' if label=='red' else 'current';verified=[verify(case,profile) for case in row['cases']];rows[row['source']]=dict(cases=len(verified),observations=sum(n for n,_ in verified),differences=[f for _,failures in verified for f in failures]);assert rows[row['source']]['observations']==458 and len(rows[row['source']]['differences'])==dict(legacy=0,baseline=85,red=59,current=0)[profile]\r\n                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 38, in verify\r\n    status='PASS' if same(value,observed) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value) and same(o['actual'],observed) and o['status']==status,(s['id'],phase,key,o,observed,value)\r\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('horizontal/editor', 'undo', 'history', {'phase': 'undo', 'property': 'history', 'actual': [True, True], 'expected': [True, True], 'status': 'PASS'}, [False, True], [False, True])\r\n"
+    },
+    {
+      "name": "remount-lost-template",
+      "exitCode": 1,
+      "sha256": "8d500362e67f56ff4469dc5c4a2018f72ef214f96b8ad4a6405783bacb44752b",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "AEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'domain': 'example.test', 'template': 'notion'}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': '<i>Neighbor</i>'}}], 'status': 'PASS'}, [{'id': 'link', 'type': 'linkPreview', 'dataVersion': 1, 'data': {'url': 'https://example.test/article', 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'favicon': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'domain': 'example.test', 'template': 'split'}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': '<i>Neighbor</i>'}}], [{'id': 'link', 'type': 'linkPreview', 'dataVersion': 1, 'data': {'url': 'https://example.test/article', 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'favicon': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'domain': 'example.test', 'template': 'split'}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': '<i>Neighbor</i>'}}])\r\n"
+    },
+    {
+      "name": "hidden-baseline-alt",
+      "exitCode": 1,
+      "sha256": "6f5a28c4c54994aa271fe608528b50dac7eadd59dde3a449b88e3fe1c90b6bda",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'}, 'status': 'PASS'}, {'template': 'horizontal', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '200px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': ''}, {'template': 'horizontal', 'tag': 'A', 'href': 'https://example.test/article', 'target': '_blank', 'rel': ['noopener', 'noreferrer'], 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'domain': 'example.test', 'literalMarkup': True, 'layout': {'display': 'flex', 'direction': 'row', 'imageVisible': True, 'imageWidth': '200px', 'imageHeight': None, 'minHeight': '0px', 'borderLeft': '1px', 'domainOrder': '0', 'domainTransform': 'none', 'descriptionVisible': True, 'largeFaviconVisible': False, 'smallFaviconVisible': True}, 'imageAlt': '<b>Card title</b>'})\r\n"
+    },
+    {
+      "name": "hidden-red-defect",
+      "exitCode": 1,
+      "sha256": "f7a64acbf4d5743285e806cd291c0d8e83423b7f12d6c0805caa8cd6fae98ead",
+      "redSha256": "3fe8563aa4d3ce784954443d1d04e0fd1647ac34d756130f19c5f8d3f2f32751",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "AAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'domain': 'example.test', 'template': 'horizontal'}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': '<i>Neighbor</i>'}}], 'status': 'PASS'}, [{'id': 'link', 'type': 'linkPreview', 'dataVersion': 1, 'data': {'url': 'https://example.test/article', 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'favicon': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'domain': 'example.test', 'template': 'notion'}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': '<i>Neighbor</i>'}}], [{'id': 'link', 'type': 'linkPreview', 'dataVersion': 1, 'data': {'url': 'https://example.test/article', 'title': '<b>Card title</b>', 'description': 'Description with <i>literal text</i>', 'image': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'favicon': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=', 'domain': 'example.test', 'template': 'horizontal'}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': '<i>Neighbor</i>'}}])\r\n"
+    },
+    {
+      "name": "altered-module",
+      "exitCode": 1,
+      "sha256": "d76dedae85ebef45b90417e2c2598613e43bd89a5aba0cfc4ced1b16ed65fb6b",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 72, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 48, in main\r\n    helper={'__name__':'accepted_identity_helper'};exec(compile(helper_bytes,'accepted-identity-helper','exec'),helper);modules=helper['identity'](d,a.candidate,'scripts/parity/link-preview-templates.mjs','tests/browser/link-preview-templates-fixture.js')\r\n                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"accepted-identity-helper\", line 73, in identity\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-template-case",
+      "exitCode": 1,
+      "sha256": "a2fbbcbffe4216c10bbab49ab306535f93e55b1855c0e4941748bbdec18d8e4f",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "f6da833f2800965fddb376e4da0c5d32a705db575e5627988e99f04415c24453",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 72, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 55, in main\r\n    assert row['pageErrors']==row['inputErrors']==[] and [c['spec'] for c in row['cases']]==specs();profile='legacy' if row['source']=='v1' else 'baseline' if row['source']=='spec-baseline' else 'red' if label=='red' else 'current';verified=[verify(case,profile) for case in row['cases']];rows[row['source']]=dict(cases=len(verified),observations=sum(n for n,_ in verified),differences=[f for _,failures in verified for f in failures]);assert rows[row['source']]['observations']==458 and len(rows[row['source']]['differences'])==dict(legacy=0,baseline=85,red=59,current=0)[profile]\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-enforced-policy",
+      "exitCode": 1,
+      "sha256": "f7a64acbf4d5743285e806cd291c0d8e83423b7f12d6c0805caa8cd6fae98ead",
+      "redSha256": "736e6ef3f54ab5e3f0aefcb15f966084ac87c4ce5ca7c45e69bcc085cb7f28e9",
+      "trustedSha256": "1990812565f391022c1d37ac068f3bac070300329bfdc26dfb06e33e0bbe176e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 72, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\link-preview-templates\\review.py\", line 66, in main\r\n    assert [case['name'] for case in summary]==(['LinkPreview Trusted Types policy rejects untrusted HTML'] if policy else [])+['LinkPreview templates '+s['id'] for s in specs()] and all(case['status']=='PASS' for case in summary)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

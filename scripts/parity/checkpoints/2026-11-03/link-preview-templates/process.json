@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Eighty-five preserved baseline failures; v1 and current source must pass independently."
+}

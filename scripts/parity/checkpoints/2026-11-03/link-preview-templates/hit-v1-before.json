@@ -1,0 +1,112 @@
+{
+  "params": {
+    "x": 89.5,
+    "y": 252.28125
+  },
+  "hit": "<svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"1\" width=\"16\" height=\"18\" rx=\"1\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\"></rect><rect x=\"19\" y=\"1\" width=\"8\" height=\"18\" rx=\"1\" fill=\"currentColor\" opacity=\".3\"></rect></svg>",
+  "active": "<input class=\"oe-lp__url-input\" type=\"text\" placeholder=\"Paste a link...\">",
+  "scrollY": 0,
+  "rect": {
+    "x": 63,
+    "y": 235.28125,
+    "width": 53,
+    "height": 34,
+    "top": 235.28125,
+    "right": 116,
+    "bottom": 269.28125,
+    "left": 63
+  },
+  "chain": [
+    {
+      "tag": "svg",
+      "class": {},
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "hidden"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "oe-lp__tpl-btn",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-lp__tpl-grid",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-lp__dropdown-panel",
+      "position": "absolute",
+      "zIndex": "100",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-lp__dropdown oe-lp__dropdown--open",
+      "position": "relative",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-lp__actions",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-lp oe-lp--filled",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-block oe-block--focused",
+      "position": "relative",
+      "zIndex": "1",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-blocks",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-editor oe-theme-dark",
+      "position": "relative",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "SECTION",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "BODY",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "HTML",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    }
+  ]
+}

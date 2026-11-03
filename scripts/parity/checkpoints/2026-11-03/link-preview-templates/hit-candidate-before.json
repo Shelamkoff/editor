@@ -1,0 +1,77 @@
+{
+  "params": {
+    "x": 89.5,
+    "y": 219.28125
+  },
+  "hit": "<i>Neighbor</i>",
+  "active": "<body><section style=\"width: 680px; margin: 20px; padding: 20px;\"><div class=\"oe-editor oe-theme-dark\" tabindex=\"-1\"><div class=\"oe-blocks\"><div class=\"oe-block\" data-block-id=\"link\" data-block-type=\"linkPreview\"><div class=\"oe-lp oe-lp--filled\" contenteditable=\"false\" tabindex=\"-1\" data-template=\"notion\"><div class=\"oe-lp__url-bar\"><span class=\"oe-lp__url-icon\"><img alt=\"\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=\"></span><input type=\"text\" class=\"oe-lp__url-input\" data-oe-document-input=\"value\" placeholder=\"Paste a link...\"></div><a class=\"oe-lp__card oe-lp__card--notion\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://example.test/article\"><img class=\"oe-lp__favicon-large\" alt=\"\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=\"><div class=\"oe-lp__content\"><div class=\"oe-lp__title\">&lt;b&gt;Card title&lt;/b&gt;</div><div class=\"oe-lp__desc\">Description with &lt;i&gt;literal text&lt;/i&gt;</div><div class=\"oe-lp__domain\"><img class=\"oe-lp__favicon\" alt=\"\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=\" hidden=\"\"><span>example.test</span></div></div><div class=\"oe-lp__image\" hidden=\"\"><img alt=\"&lt;b&gt;Card title&lt;/b&gt;\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=\"></div></a><div class=\"oe-lp__actions\"><div class=\"oe-lp__dropdown oe-lp__dropdown--open\"><button type=\"button\" class=\"oe-lp__action-btn\" aria-expanded=\"true\">Settings</button><div class=\"oe-lp__dropdown-panel\" role=\"group\" aria-label=\"Template\" style=\"top: 100%;\"><div class=\"oe-lp__tpl-grid\"><button type=\"button\" class=\"oe-lp__tpl-btn\" title=\"Horizontal\" aria-label=\"Horizontal\" data-template=\"horizontal\" aria-pressed=\"false\"><svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"1\" width=\"16\" height=\"18\" rx=\"1\" fill=\"none\" stroke=\"currentColor\"></rect><rect x=\"19\" y=\"1\" width=\"8\" height=\"18\" rx=\"1\" fill=\"currentColor\" opacity=\".3\"></rect></svg></button><button type=\"button\" class=\"oe-lp__tpl-btn\" title=\"Compact\" aria-label=\"Compact\" data-template=\"compact\" aria-pressed=\"false\"><svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"4\" width=\"8\" height=\"12\" rx=\"1\" fill=\"currentColor\" opacity=\".3\"></rect><path d=\"M11 6h16M11 11h12\" stroke=\"currentColor\"></path></svg></button><button type=\"button\" class=\"oe-lp__tpl-btn\" title=\"Large top\" aria-label=\"Large top\" data-template=\"large-top\" aria-pressed=\"false\"><svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"1\" width=\"26\" height=\"10\" rx=\"1\" fill=\"currentColor\" opacity=\".3\"></rect><path d=\"M1 14h18M1 18h12\" stroke=\"currentColor\"></path></svg></button><button type=\"button\" class=\"oe-lp__tpl-btn\" title=\"Minimal\" aria-label=\"Minimal\" data-template=\"minimal\" aria-pressed=\"false\"><svg viewBox=\"0 0 28 20\"><rect x=\"4\" y=\"1\" width=\"23\" height=\"18\" rx=\"1\" fill=\"none\" stroke=\"currentColor\"></rect><rect x=\"1\" y=\"1\" width=\"2\" height=\"18\" fill=\"currentColor\"></rect></svg></button><button type=\"button\" class=\"oe-lp__tpl-btn\" title=\"Twitter\" aria-label=\"Twitter\" data-template=\"twitter\" aria-pressed=\"false\"><svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"1\" width=\"26\" height=\"9\" rx=\"1\" fill=\"currentColor\" opacity=\".3\"></rect><path d=\"M1 13h10M1 17h20\" stroke=\"currentColor\"></path></svg></button><button type=\"button\" class=\"oe-lp__tpl-btn oe-lp__tpl-btn--active\" title=\"Notion\" aria-label=\"Notion\" data-template=\"notion\" aria-pressed=\"true\"><svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"5\" width=\"7\" height=\"10\" rx=\"2\" fill=\"currentColor\" opacity=\".3\"></rect><path d=\"M10 7h16M10 12h10\" stroke=\"currentColor\"></path></svg></button><button type=\"button\" class=\"oe-lp__tpl-btn\" title=\"Split\" aria-label=\"Split\" data-template=\"split\" aria-pressed=\"false\"><svg viewBox=\"0 0 28 20\"><rect x=\"1\" y=\"1\" width=\"12\" height=\"18\" rx=\"1\" fill=\"currentColor\" opacity=\".3\"></rect><path d=\"M15 4h12M15 9h10M15 13h8\" stroke=\"currentColor\"></path></svg></button></div></div></div><button type=\"button\" class=\"oe-lp__action-btn oe-lp__action-btn--danger\">Delete</button></div></div></div><div class=\"oe-block\" data-block-id=\"b\" data-block-type=\"paragraph\"><p class=\"oe-paragraph\" contenteditable=\"true\"><i>Neighbor</i></p></div></div><div class=\"oe-click-area\"></div><ul class=\"oe-slash-menu\" role=\"menu\" style=\"display: none;\"></ul><div class=\"oe-toolbar\" style=\"display: none;\"><button type=\"button\" class=\"oe-toolbar__btn\" aria-label=\"Add block\" aria-haspopup=\"menu\" aria-expanded=\"false\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></button><button type=\"button\" class=\"oe-toolbar__btn oe-toolbar__drag\" aria-label=\"Block settings\" aria-haspopup=\"menu\" aria-expanded=\"false\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"5\" r=\"1\"></circle><circle cx=\"15\" cy=\"5\" r=\"1\"></circle><circle cx=\"9\" cy=\"12\" r=\"1\"></circle><circle cx=\"15\" cy=\"12\" r=\"1\"></circle><circle cx=\"9\" cy=\"19\" r=\"1\"></circle><circle cx=\"15\" cy=\"19\" r=\"1\"></circle></svg></button></div><ul class=\"oe-toolbox\" role=\"menu\" tabindex=\"-1\" style=\"display: none;\"><li class=\"oe-toolbox__item\" role=\"menuitem\" tabindex=\"-1\" data-plugin-type=\"paragraph\" data-search=\"paragraph\u0000text\"><span class=\"oe-toolbox__icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 4l12 0\"></path><path d=\"M12 4l0 16\"></path></svg></span><span class=\"oe-toolbox__label\">Text</span></li><li class=\"oe-toolbox__item\" role=\"menuitem\" tabindex=\"-1\" data-plugin-type=\"linkPreview\" data-search=\"linkpreview\u0000link preview\"><span class=\"oe-toolbox__icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 15l6-6\"></path><path d=\"M11 6l.463-.536a5 5 0 0 1 7.071 7.072L18 13\"></path><path d=\"M13 18l-.397.534a5.068 5.068 0 0 1-7.127 0 4.972 4.972 0 0 1 0-7.071L6 11\"></path></svg></span><span class=\"oe-toolbox__label\">Link Preview</span></li></ul><ul class=\"oe-settings-menu\" role=\"menu\" tabindex=\"-1\" style=\"display: none;\"></ul><div class=\"oe-offcanvas-backdrop\" aria-hidden=\"true\"></div><div class=\"oe-tooltip\" id=\"oe-tooltip-1\" role=\"tooltip\" style=\"display: none;\"></div><div class=\"oe-inline-toolbar\" style=\"display: none;\"><div class=\"oe-inline-toolbar__panel\"><button type=\"button\" class=\"oe-inline-toolbar__type-select\" aria-haspopup=\"menu\" aria-expanded=\"false\"><span class=\"oe-inline-toolbar__type-name\"></span><span class=\"oe-inline-toolbar__type-chevron\">▾</span></button><span class=\"oe-inline-toolbar__divider\" hidden=\"\"></span><button type=\"button\" class=\"oe-inline-toolbar__level-select\" aria-haspopup=\"menu\" aria-expanded=\"false\" hidden=\"\"><span class=\"oe-inline-toolbar__level-label\"></span><span class=\"oe-inline-toolbar__type-chevron\" aria-hidden=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9l6 6l6 -6\"></path></svg></span></button></div><ul class=\"oe-inline-toolbar__type-dropdown\" role=\"menu\" style=\"display: none;\"></ul><div class=\"oe-inline-toolbar__level-dropdown\" role=\"menu\" style=\"display: none;\"></div></div><div class=\"oe-tooltip\" id=\"oe-tooltip-2\" role=\"tooltip\" style=\"display: none;\"></div></div></section><section style=\"width: 680px; margin: 20px; padding: 20px;\"><div class=\"editor-content\"><a class=\"editor-link-preview editor-link-preview--notion\" href=\"https://example.test/article\" target=\"_blank\" rel=\"noopener noreferrer\" data-block-id=\"link\" data-block-type=\"linkPreview\"><img class=\"editor-link-preview__favicon-large\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=\" width=\"32\" height=\"32\" alt=\"\" loading=\"lazy\"><div class=\"editor-link-preview__content\"><div class=\"editor-link-preview__title\">&lt;b&gt;Card title&lt;/b&gt;</div><div class=\"editor-link-preview__desc\">Description with &lt;i&gt;literal text&lt;/i&gt;</div><div class=\"editor-link-preview__domain\"><span>example.test</span><span class=\"editor-link-preview__external\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 6h-6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6\"></path><path d=\"M11 13l9-9\"></path><path d=\"M15 4h5v5\"></path></svg></span></div></div></a><p class=\"editor-paragraph\" data-block-id=\"b\" data-block-type=\"paragraph\"><i>Neighbor</i></p></div></section></body>",
+  "scrollY": 0,
+  "rect": {
+    "x": 63,
+    "y": 202.28125,
+    "width": 53,
+    "height": 34,
+    "top": 202.28125,
+    "right": 116,
+    "bottom": 236.28125,
+    "left": 63
+  },
+  "chain": [
+    {
+      "tag": "I",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "P",
+      "class": "oe-paragraph",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-block",
+      "position": "relative",
+      "zIndex": "0",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-blocks",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "oe-editor oe-theme-dark",
+      "position": "relative",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "SECTION",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "BODY",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    },
+    {
+      "tag": "HTML",
+      "class": "",
+      "position": "static",
+      "zIndex": "auto",
+      "overflow": "visible"
+    }
+  ]
+}
