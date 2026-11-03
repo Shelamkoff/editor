@@ -1,0 +1,385 @@
+{
+  "candidate": "2bbb9c2182d3f2e47dd7ebf404554481a3a181ee",
+  "tree": "b0bdfcfc5975742644540edeede9080667d98653",
+  "sourceIdentity": "21fc40bebcdc2e1d4e98adfb4baf9223409bb17b7aa8e84e71809e6a75115e19",
+  "affectedRun": {
+    "directory": "run-u7cWZN",
+    "outcome": "failed",
+    "gates": 5,
+    "startedAt": "2026-11-03T20:57:50.839Z",
+    "finishedAt": "2026-11-03T21:01:02.516Z"
+  },
+  "productionBasis": "4e153854221027141a2b7152f4f067be9d74f228",
+  "productionDelta": [],
+  "cases": 46,
+  "observations": 1346,
+  "taskCases": 24,
+  "taskObservations": 1116,
+  "continuationCases": 22,
+  "continuationObservations": 230,
+  "corruptionsRejected": 16,
+  "productionModulesVerified": 550,
+  "results": {
+    "v1": {
+      "realControlCases": 1,
+      "realControlObservations": 9,
+      "unavailableTaskContracts": 1
+    },
+    "spec-baseline": {
+      "cases": 24,
+      "observations": 1116,
+      "differences": [
+        {
+          "id": "block/in-place/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/own-edit",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/other-edit",
+          "phase": "completion",
+          "property": "taskAborted"
+        },
+        {
+          "id": "inline/remount/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/other-edit",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "transition",
+          "property": "taskAborted"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "accepted"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "canonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "taskAborted"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "canonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "undoCanonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "other-editor",
+          "property": "firstCanonical"
+        },
+        {
+          "id": "inline/remount/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/mode",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/render",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/remove-undo",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/destroy-successor",
+          "phase": "live",
+          "property": "visible"
+        }
+      ]
+    },
+    "candidate": {
+      "cases": 24,
+      "observations": 1116,
+      "differences": []
+    }
+  },
+  "continuation": {
+    "cases": 22,
+    "observations": 230,
+    "historicalCases": 22,
+    "historicalObservations": 206,
+    "historicalFailedCases": 5,
+    "acceptedHistoricalRawSha256": "a9bd184cdae6c736a0edcae6350dfababa3701da2308eb09b9fff293c96dca01",
+    "manualModelSha256": "63de3ba1fd252c9a968255a7fe4308b1093dc49ff5da5cf9e79ef673a04d00e7"
+  },
+  "excludedAttempts": [
+    {
+      "name": "first",
+      "reason": "Incorrect inline instance ownerDocument API caused construction failures; corrected to runtime ownerDocument. Not a product RED."
+    },
+    {
+      "name": "reviewed",
+      "reason": "Equal explicit document.render is a history action. Eight candidate fixture expectation failures corrected; no runtime change."
+    },
+    {
+      "name": "supervisor-init",
+      "reason": "Invalid CLI init arguments rejected before a run was created; diagnostic retained."
+    },
+    {
+      "name": "first-review",
+      "reason": "Reviewer parsed one line of multiline ordinary browser JSON. The first manifest remains failed (types/browser/docs passed; proof failed; controls not run). A one-line reviewer-only correction passes model and all sixteen corruption controls on unchanged production and browser fixtures."
+    }
+  ],
+  "registerBefore": {
+    "accepted": 116,
+    "open": 93
+  },
+  "registerAfter": {
+    "accepted": 119,
+    "open": 90
+  },
+  "reviewFollowup": {
+    "directory": "run-Sgm6jv",
+    "outcome": "passed",
+    "gates": 2,
+    "source": "515e2d59b34c3d9e226c539c1b32d6dd3aea276d",
+    "sourceIdentity": "e531b7610ca869b42b6f88d0284c52f89b8b2e4f754719819068de90e5a3f00a",
+    "startedAt": "2026-11-03T21:02:42.076Z",
+    "finishedAt": "2026-11-03T21:02:52.911Z",
+    "delta": [
+      "scripts/parity/checkpoints/2026-11-03/extension-tasks/review.py"
+    ]
+  },
+  "acceptedRows": [
+    "EXTENSION_DATATASK",
+    "EXTENSION_LIFETIME",
+    "HISTORY_CONTINUATION"
+  ],
+  "register": {
+    "accepted": 119,
+    "open": 90
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

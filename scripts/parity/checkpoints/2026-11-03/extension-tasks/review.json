@@ -1,0 +1,326 @@
+{
+  "status": "PASS",
+  "candidate": "2bbb9c2182d3f2e47dd7ebf404554481a3a181ee",
+  "taskResults": {
+    "v1": {
+      "realControlCases": 1,
+      "realControlObservations": 9,
+      "unavailableTaskContracts": 1
+    },
+    "spec-baseline": {
+      "cases": 24,
+      "observations": 1116,
+      "differences": [
+        {
+          "id": "block/in-place/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/own-edit",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "block/remount/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "block/remount/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/in-place/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/other-edit",
+          "phase": "completion",
+          "property": "taskAborted"
+        },
+        {
+          "id": "inline/remount/other-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/other-edit",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "transition",
+          "property": "taskAborted"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "accepted"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "canonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "taskAborted"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "canonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "undoCanonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "live",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "inline/remount/own-edit",
+          "phase": "other-editor",
+          "property": "firstCanonical"
+        },
+        {
+          "id": "inline/remount/mode",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/mode",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/mode",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/render",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/render",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/render",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/remove-undo",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/remove-undo",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/remove-undo",
+          "phase": "live",
+          "property": "visible"
+        },
+        {
+          "id": "inline/remount/destroy-successor",
+          "phase": "completion",
+          "property": "callbackCounts"
+        },
+        {
+          "id": "inline/remount/destroy-successor",
+          "phase": "completion",
+          "property": "repeatCallbackCounts"
+        },
+        {
+          "id": "inline/remount/destroy-successor",
+          "phase": "live",
+          "property": "visible"
+        }
+      ]
+    },
+    "candidate": {
+      "cases": 24,
+      "observations": 1116,
+      "differences": []
+    }
+  },
+  "continuation": {
+    "cases": 22,
+    "observations": 230,
+    "historicalCases": 22,
+    "historicalObservations": 206,
+    "historicalFailedCases": 5,
+    "acceptedHistoricalRawSha256": "a9bd184cdae6c736a0edcae6350dfababa3701da2308eb09b9fff293c96dca01",
+    "manualModelSha256": "63de3ba1fd252c9a968255a7fe4308b1093dc49ff5da5cf9e79ef673a04d00e7"
+  },
+  "currentCases": 46,
+  "currentObservations": 1346,
+  "ordinaryPages": 55,
+  "productionModulesVerified": 550,
+  "rawSha256": "dee0297c597898ac1b99e7766d36a9a7f31358b4c71e4909edf58870c767b615",
+  "continuationRawSha256": "fc500e4b2b6e9940f4487e3c221ccaab8d0f89b807ff5284421a44fc71886a29",
+  "browserSha256": "ede01b0a448087c906f02dc572a03991fad7b494ad1b26fdc875f2d88dc6f94b",
+  "reviewerSha256": "6a636b99ce42abdeeac5f740b16f833b1698a47afeecf16bf5400cb850983829",
+  "runtimeBasis": "4e153854221027141a2b7152f4f067be9d74f228",
+  "productionUnchanged": true
+}

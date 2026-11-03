@@ -1,0 +1,117 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "taskSha256": "439098a5eb7b1fd42e1604eec99ea3ba27630ccdd47c0fa9649bd67956c5f8b3",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 114, in main\r\n    modules=identity(d,a.candidate,'scripts/parity/extension-tasks.mjs','tests/browser/extension-tasks-fixture.js')+identity(c,a.candidate,'scripts/parity/continuation-authority.mjs','tests/browser/continuation-authority.js',True)\r\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 68, in identity\r\n    assert {s['label']:s['sha'] for s in d['sources']}==dict(v1=V1,**{'spec-baseline':BASELINE,'candidate':candidate})\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "unrelated-task-revoked",
+      "exitCode": 1,
+      "taskSha256": "3d77e6f44b0966f74037df22017590bb11533486989f4dc5098be5ed41be9616",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'transition', 'taskAborted', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "retired-options-read",
+      "exitCode": 1,
+      "taskSha256": "d71ae8296616d8c28654afdfa8691d0829b496807cc9987be93bb8c4aeee027c",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/mode', 'completion', 'callbackCounts', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "producer-after-render",
+      "exitCode": 1,
+      "taskSha256": "a85e4362e4186cde32f9ec613b207b3de8d4854a61a53a5f6f82aa300d39cb7c",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/render', 'completion', 'callbackCounts', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "stale-widget-view",
+      "exitCode": 1,
+      "taskSha256": "2bb08a2ed2e4904714a9aa97e3dd99d05020240071cd6792c13c7971f59658a5",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('inline/remount/other-edit', 'live', 'visible', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "canonical-increment-lost",
+      "exitCode": 1,
+      "taskSha256": "8286c93020b3f49a31a36c7284ba8790646e3e2db9ff17f46f19b5b2e23aa238",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'live', 'canonical', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "cross-editor-mutation",
+      "exitCode": 1,
+      "taskSha256": "4d2b594e4654ab5f80faed730963a75e177f8d00eee2ed52fef7e0f35ceeb4a9",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'other-editor', 'firstCanonical', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "runtime-destroyed-twice",
+      "exitCode": 1,
+      "taskSha256": "a8c46553cfe5a0777b291e0b8c6c29474323d33c69249d949f1242ac0e822734",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'dispose', 'runtimesDestroyedOnce', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "old-editor-destroys-successor",
+      "exitCode": 1,
+      "taskSha256": "21458ef4cef4c6899845ff12bd0a204e20f2f8ef69efa2060467d8655b7b47d2",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/destroy-successor', 'live', 'accepted', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "lost-history-cursor",
+      "exitCode": 1,
+      "taskSha256": "5830dc67c616a9126b423825b31afe6a936bedbce86ff36784586713e8e1d38e",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 44, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(case['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'completion', 'undoHistory', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "extra-publication",
+      "exitCode": 1,
+      "taskSha256": "c38343bd483926483bac84937bdf9aedd7ea5688df76f2ffd20ca14f9e9d3222",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 48, in verify_case\r\n    assert case['events']==events(case['spec'],baseline),(case['id'],'publication graph')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'publication graph')\r\n"
+    },
+    {
+      "name": "missing-remount-case",
+      "exitCode": 1,
+      "taskSha256": "46bc3c96a7fe53a8fe34a72268815705f9e8139cc27958a9c50eac8fa6996316",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 111, in main\r\n    assert [case['spec'] for case in row['cases']]==specs()\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "hidden-historical-options-read",
+      "exitCode": 1,
+      "taskSha256": "e11c8b30ee03e70163016c79c7fab96df3650777905a2647f263c7f7a3b6687d",
+      "continuationSha256": "547a11e66c53f43116f198eb69608de58a898d1b47c03a5e3378bf06ec8a6f0f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 112, in main\r\n    verified=[verify_case(case,row['source']=='spec-baseline') for case in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 45, in verify_case\r\n    assert same(o['actual'],observed),(case['id'],phase,key,o['actual'],observed)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block/in-place/other-edit', 'completion', 'repeatCallbackCounts', [1, 1], [2, 1])\r\n"
+    },
+    {
+      "name": "wrong-continuation-grouping",
+      "exitCode": 1,
+      "taskSha256": "d76d5f706483655faabeec4198ab59e182ad402f86240a2ba1d169029c266c0b",
+      "continuationSha256": "35a7a39b3b403d05eb4aaa31128b4d89fc26856d0f4b2355dab5b8394945a4c0",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 115, in main\r\n    history=continuation(c);assert summaries['candidate']['observations']==1116 and len(summaries['spec-baseline']['differences'])==57\r\n            ^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 101, in continuation\r\n    for o,(kind,value) in zip(trace['observations'],models[trace['name']]):assert o['kind']==kind and same(o['actual'],value) and same(o['expected'],value),(trace['name'],o)\r\n                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('block completion history eligible preserves data and qualified grouping', {'kind': 'equal', 'actual': False, 'expected': False, 'message': ''})\r\n"
+    },
+    {
+      "name": "hidden-historical-continuation",
+      "exitCode": 1,
+      "taskSha256": "d76d5f706483655faabeec4198ab59e182ad402f86240a2ba1d169029c266c0b",
+      "continuationSha256": "31739d825539b2ddd8030af09f69e60526be85b81c9bd79c0aedb06cd3344ae3",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 115, in main\r\n    history=continuation(c);assert summaries['candidate']['observations']==1116 and len(summaries['spec-baseline']['differences'])==57\r\n            ^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 93, in continuation\r\n    assert normalize(d['results'][1])==normalize(prior['results'][1]),'Historical continuation graph changed'\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: Historical continuation graph changed\r\n"
+    },
+    {
+      "name": "late-rejection-rolls-back",
+      "exitCode": 1,
+      "taskSha256": "d76d5f706483655faabeec4198ab59e182ad402f86240a2ba1d169029c266c0b",
+      "continuationSha256": "6cf44d9806cfadc3455012b40e0ba5dc377d6665fe78c8453b64fd8cd0f12b3e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 126, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 115, in main\r\n    history=continuation(c);assert summaries['candidate']['observations']==1116 and len(summaries['spec-baseline']['differences'])==57\r\n            ^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\extension-tasks\\review.py\", line 101, in continuation\r\n    for o,(kind,value) in zip(trace['observations'],models[trace['name']]):assert o['kind']==kind and same(o['actual'],value) and same(o['expected'],value),(trace['name'],o)\r\n                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('publication late rejection Error: late observer error leaves the accepted action intact', {'kind': 'equal', 'actual': [], 'expected': [], 'message': ''})\r\n"
+    }
+  ]
+}
