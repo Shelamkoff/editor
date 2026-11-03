@@ -1,0 +1,6 @@
+{
+  "exitCode": 0,
+  "signal": null,
+  "expectedExitCode": 0,
+  "reason": "All actually comparable historical controls pass. Non-equivalent legacy fact/timing contracts remain declared; raw comparison and independent current review both exit 0."
+}

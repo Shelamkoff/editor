@@ -1,0 +1,49 @@
+{
+  "candidate": "09d6ddbd5104bf8f2693d8ea35ff9376adbe9726",
+  "tree": "bf6e672386d2cebf2a3966c278dd8ea5a528d4da",
+  "integratedRuntime": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T16:33:26.084Z",
+    "finishedAt": "2026-11-03T16:37:19.111Z",
+    "identity": "8a233692d266ef0661d8092a5bade672cfff4cff987a3ef3b712b7bb1b7c7744",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "events-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "events-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 105,
+    "open": 104
+  },
+  "acceptedRows": [
+    "PUBLIC_EVENTS"
+  ],
+  "registerAfter": {
+    "accepted": 106,
+    "open": 103
+  },
+  "cases": 122,
+  "observations": 3172,
+  "independentCurrentChecks": 3294,
+  "rawComparisonExit": 0,
+  "reviewExit": 0
+}

@@ -2,9 +2,49 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **105 / 209 obligations**, with **104 open**; see the [public editor destruction acceptance](#public-editor-destruction-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **106 / 209 obligations**, with **103 open**; see the [public editor events acceptance](#public-editor-events-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public editor events acceptance — 2026-11-03
+
+`PUBLIC_EVENTS` is accepted on immutable `09d6ddbd5104bf8f2693d8ea35ff9376adbe9726`:
+**122 cases / 3,172 passing observations**, 3,294 independent current checks,
+4,663 subscriber deliveries and 252 contained observer failures. Nine evidence
+corruptions are rejected. The register becomes **106 accepted / 103 open**.
+No production change was needed.
+
+All eight event types run clean, with synchronous throw and rejected Promise
+for six falsy causes plus Error. Independent subscribers surround the failing
+one. Exact global fact order, immutable nested before/after graphs and own keys,
+transaction sequence/origin/action, history availability, mode changes, ready
+hook liveness and destroyed-state facts pass. Accepted data and exact replay
+survive every observer failure. Removed listeners stay silent; unsubscribe
+before delivery and after the first notification works. Diagnostics contain
+only permitted fields and remain frozen; no rejection escapes. Existing ordinary
+lifecycle checks also retain ready-observer destruction and dead onReady suppression.
+
+All five clean unchanged affected gates pass: types, all 54 ordinary pages,
+three-source comparison/model, nine corruptions and docs. The model binds
+275 primary module identities, six dependency files and eight versions.
+Runtime is byte identical to separately integrated `efc619d2`; its original
+13-gate manifest is retained. The specification baseline also completes all
+122 cases with all 3,172 observations passing.
+
+v1 executes actual topic subscriptions, native payloads and live render/replay
+controls: 2,684 passing observations, 5,181 subscriber deliveries and independently
+checked per-topic payload/fan-out sequences. Its complete cross-topic chronology
+stays raw. Its ready fact fires synchronously before a consumer can subscribe,
+and no current transaction topic exists; failing-listener delivery is not claimed
+for those target profiles. Real old onReady remains a live positive control.
+Modern immutable graph/timing/producer contracts are declared non-equivalent,
+not fabricated. Both the raw comparison and the independent current review exit
+**0**; unsupported historical contracts are not manufactured into FAIL results.
+Current exceptions, incomplete phases, unsupported contracts and failed
+observations are zero. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/public-events/README.md)
+retains full logs/corpus, executed model, rejected inputs and source hashes.
+This is author verification with an independent model. Other public rows,
+B-HTML and full readiness remain open.
 
 ## Public editor destruction acceptance — 2026-11-03
 

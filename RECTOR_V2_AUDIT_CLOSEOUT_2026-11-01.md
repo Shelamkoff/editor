@@ -6,9 +6,22 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Public editor events acceptance — 2026-11-03
+
+The current register is **106/209 accepted, 103 open**. `PUBLIC_EVENTS`
+passes 122 cases / 3,172 observations, 3,294 independent checks, 4,663 subscriber
+deliveries and 252 contained observer failures on `09d6ddbd`. Eight event types,
+exact immutable facts/replay and unsubscribe pass with six falsy causes plus
+Error. All five frozen gates and all 54 ordinary pages pass; nine corruptions
+are rejected. Real old topic/payload/timing controls pass separately; raw
+comparison and independent current review both exit 0. Runtime remains byte
+identical to separately integrated `efc619d2`. The [checkpoint](scripts/parity/checkpoints/2026-11-03/public-events/README.md)
+retains full results, model, corruptions and hashes. Other public contracts
+and whole-library readiness remain open.
+
 ## Public editor destruction acceptance — 2026-11-03
 
-The current register is **105/209 accepted, 104 open**. `PUBLIC_DESTROY`
+At that checkpoint the register was **105/209 accepted, 104 open**. `PUBLIC_DESTROY`
 passes eight cases / 536 observations, 544 independent checks and nine rejected
 corruptions on `28ee534d`. Thirty-one retained operations stop before caller
 code, old task/context rights retire and cleanup is exact once. Repeated destroy
