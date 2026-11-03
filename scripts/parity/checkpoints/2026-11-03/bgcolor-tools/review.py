@@ -162,17 +162,25 @@ def main():
  # Historical actions remain fully visible, including missing panel activation.
  # Their exact observed graphs are additionally bound by the reviewed corpus hash.
  historical={}
+ goldens=json.loads(Path(__file__).with_name('historical-goldens.json').read_bytes())
+ assert goldens['basisCandidate']=='560e631f41e5b87a80f085423bb4906de96ee469' and goldens['rawSha256']=='be599f8bb0652f975c98dcb58b8dfe19cc27fbfdf007b62b027dc1003008dcb3'
+ assert set(goldens['sources'])=={'v1','spec-baseline'}
  for row in d['results']:
   if row['source']=='candidate':continue
   failures=[];incomplete=[]
+  assert set(goldens['sources'][row['source']])=={c['id'] for c in row['cases']}
   for case in row['cases']:
+   graph={k:case.get(k,[] if k in ['diagnostics','transactions','trusted','unsupported'] else None) for k in ['id','spec','planned','completedPhases','phase','diagnostics','transactions','trusted','unsupported','observations']}
+   graph['error']=case['error'].split('\n')[0] if case['error'] else None
+   graphHash=sha(json.dumps(graph,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode())
+   assert graphHash==goldens['sources'][row['source']][case['id']]['sha256'],(row['source'],case['id'],'historical graph changed')
    if case['error']:incomplete.append(dict(id=case['id'],phase=case['phase'],completedPhases=case['completedPhases'],error=case['error'].split('\n')[0]))
    for o in case['observations']:
     assert o['status']==('PASS' if same(o['actual'],o['expected']) else 'FAIL')
     if o['status']=='FAIL':failures.append(dict(id=case['id'],phase=o['phase'],property=o['property']))
   historical[row['source']]=dict(cases=len(row['cases']),complete=len(row['cases'])-len(incomplete),observations=sum(len(c['observations']) for c in row['cases']),failures=failures,incomplete=incomplete)
  assert d['group']=='bgcolor-tools'
- own=['scripts/parity/bgcolor-tools.mjs','tests/browser/bgcolor-tools-fixture.js']
+ own=['scripts/parity/bgcolor-tools.mjs','tests/browser/bgcolor-tools-fixture.js','scripts/parity/checkpoints/2026-11-03/bgcolor-tools/review.py','scripts/parity/checkpoints/2026-11-03/bgcolor-tools/historical-goldens.json']
  queries=[s['sha']+':'+path for s in d['sources'] for path in s['loaded']]+[a.candidate+':'+path for path in own];blobs=git_blobs(queries)
  for source in d['sources']:
   assert len(source['loaded'])>=100 and source['tree']==subprocess.check_output(['git','rev-parse',source['sha']+'^{tree}']).decode().strip()
