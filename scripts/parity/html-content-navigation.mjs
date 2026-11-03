@@ -32,13 +32,14 @@ const server = await createServer({ root, cacheDir:'test-results/html-navigation
       if (request.url.startsWith('/boundary-destination')) requests.push({ url: request.url, referer: request.headers.referer ?? '' })
       response.setHeader('content-type', 'text/html')
       response.setHeader('content-security-policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; object-src 'none'; require-trusted-types-for 'script'; trusted-types rector dompurify")
-      response.end('<!doctype html><html><head><title>Boundary decision</title><style>body{margin:0;font:20px sans-serif}#owner{width:700px;height:650px;border:0}section{width:600px;margin:40px}</style></head><body><p>Controlled destination</p></body></html>')
+      response.end('<!doctype html><html><head><title>Boundary decision</title><style>body{margin:0;font:20px sans-serif}#middle{width:900px;height:760px;border:0}#owner{width:700px;height:650px;border:0}section{width:600px;margin:40px}</style></head><body><p>Controlled destination</p></body></html>')
     })
   },
 }] })
 await server.listen()
 const origin = server.resolvedUrls.local[0].replace(/\/$/, '')
-const browser = await chromium.launch({ executablePath: findChrome(), headless: true })
+const browserExecutable = findChrome()
+const browser = await chromium.launch({ executablePath: browserExecutable, headless: true })
 const cases = [
   ...['_self','_blank','_parent','_top','articlePreview'].map(target => ({ name:target, target })),
   { name:'existing-named', target:'articlePreview', existing:true },
@@ -55,15 +56,26 @@ try {
     const variants=[]
     for (const kind of ['platform-control','raw-editor','raw-renderer','carousel-editor','carousel-renderer','paragraph-editor','paragraph-renderer']) {
       const context=await browser.newContext({ viewport:{width:1100,height:800} })
-      const page=await context.newPage(), errors=[]
+      const page=await context.newPage(), errors=[], activations=[]
       page.on('pageerror', error=>errors.push(String(error)))
+      await page.exposeFunction('__recordBoundaryActivation', value=>activations.push(value))
       const start=requests.length
       await page.goto(origin+'/boundary-host')
       await page.evaluate(url=>{
+        const frame=document.createElement('iframe');frame.id='middle';frame.name='middle';frame.src=url;document.body.replaceChildren(frame)
+      },origin+'/boundary-middle')
+      const middleElement=await page.locator('#middle').elementHandle(), middle=await middleElement.contentFrame()
+      await middle.waitForLoadState('load')
+      await middle.evaluate(url=>{
         const frame=document.createElement('iframe');frame.id='owner';frame.name='owner';frame.src=url;document.body.replaceChildren(frame)
       },origin+'/boundary-owner')
-      const element=await page.locator('#owner').elementHandle(), owner=await element.contentFrame()
+      const element=await middle.locator('#owner').elementHandle(), owner=await element.contentFrame()
       await owner.waitForLoadState('load')
+      const policyEnforced=await owner.evaluate(()=>{
+        try{document.createElement('div').innerHTML='<b>untrusted control</b>';return false}
+        catch(error){return error instanceof TypeError}
+      })
+      assert(policyEnforced,'The navigation owner did not enforce Trusted Types')
       if(specification.existing) {
         await owner.evaluate(()=>{
           const button=document.createElement('button');button.id='existing';button.textContent='Existing named window'
@@ -101,13 +113,23 @@ try {
         }
       },{kind,...specification})
       const targetFrame=kind==='platform-control'||kind.startsWith('paragraph-')?owner:owner.childFrames()[0]
-      await targetFrame.locator(kind.startsWith('paragraph-')?'#content-owner a':'#subject').click({ ...(specification.modifiers?{modifiers:specification.modifiers}:{}), ...(specification.button?{button:specification.button}:{}) })
+      const subject=targetFrame.locator(kind.startsWith('paragraph-')?'#content-owner a':'#subject')
+      const inspected=await owner.evaluate(({kind,origin})=>{
+        const holder=document.querySelector('#content-owner')
+        const anchor=kind==='platform-control'?holder.querySelector('#subject'):kind.startsWith('paragraph-')?holder.querySelector('a'):holder.querySelector('iframe').contentDocument.querySelector('#subject')
+        const record=event=>window.__recordBoundaryActivation({type:event.type,trusted:event.isTrusted,button:event.button,ctrlKey:event.ctrlKey,shiftKey:event.shiftKey,altKey:event.altKey,metaKey:event.metaKey})
+        anchor.addEventListener('click',record,{capture:true});anchor.addEventListener('auxclick',record,{capture:true})
+        const href=new URL(anchor.href)
+        return{href:href.href.replace(origin,''),sameOrigin:href.origin===origin,target:anchor.getAttribute('target'),rel:(anchor.getAttribute('rel')??'').split(/\s+/).filter(Boolean).sort()}
+      },{kind,origin})
+      await subject.click({ ...(specification.modifiers?{modifiers:specification.modifiers}:{}), ...(specification.button?{button:specification.button}:{}) })
       // Observe the requested native outcome, rather than assuming a fixed
       // sleep covers a browser's navigation/IPC scheduling under load.
       const wanted=specification.expectedPage??'/boundary-destination?case='+specification.name
       const settled=()=>{
         if(specification.target==='_self'&&!specification.modifiers&&!specification.button) return !owner.isDetached()&&owner.url().replace(origin,'')===wanted
-        if(['_parent','_top'].includes(specification.target))return page.url().replace(origin,'')===wanted
+        if(specification.target==='_parent')return !middle.isDetached()&&middle.url().replace(origin,'')===wanted
+        if(specification.target==='_top')return page.url().replace(origin,'')===wanted
         return context.pages().some(opened=>opened.url().replace(origin,'')===wanted)
       }
       const deadline=Date.now()+5000
@@ -118,7 +140,9 @@ try {
         pages.push({url:opened.url().replace(origin,''),openerIsNull:await opened.evaluate(()=>opener===null)})
       }
       if(!owner.isDetached())await owner.waitForLoadState('domcontentloaded').catch(()=>{})
-      const actual={pages,ownerUrl:owner.isDetached()?'detached':owner.url().replace(origin,''),requests:requests.slice(start),errors,settled:settled()}
+      const activationDeadline=Date.now()+3000
+      while(activations.length===0&&Date.now()<activationDeadline)await page.waitForTimeout(25)
+      const actual={pages,middleUrl:middle.isDetached()?'detached':middle.url().replace(origin,''),ownerUrl:owner.isDetached()?'detached':owner.url().replace(origin,''),requests:requests.slice(start),errors,settled:settled(),policyEnforced,inspected,activations}
       variants.push({kind,actual})
       await context.close()
     }
@@ -136,6 +160,6 @@ try {
   for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(sha256(await readFile(resolve(root, path))), expected, 'Source changed: '+path)
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim(), head, 'HEAD changed')
   const candidatePass=results.length===72&&results.every(result=>result.status==='PASS')
-  console.log(JSON.stringify({scope:'Real target/modifier navigation on six public Raw/HTML Carousel/Paragraph surfaces compared to an independent bare anchor in the same owner hierarchy and CSP',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,browser:browser.version(),sourceHashes,sourceUnchanged:true,candidatePass,results},null,2))
+  console.log(JSON.stringify({scope:'Real target/modifier navigation on six public Raw/HTML Carousel/Paragraph surfaces compared to an independent bare anchor in a three-level owner hierarchy, distinct parent/top destinations, inspected attributes, trusted input and enforcing CSP',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,platform:process.platform,architecture:process.arch,browser:browser.version(),browserExecutable,sourceHashes,sourceUnchanged:true,candidatePass,results},null,2))
   if(!candidatePass)process.exitCode=1
 } finally {await browser.close();await server.close()}
