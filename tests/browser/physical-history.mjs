@@ -564,6 +564,7 @@ try {
   const nativeAlignmentCenter = await runNativePage(client, pageUrl, 'native-alignment-center.html')
   const nativeAlignmentRight = await runNativePage(client, pageUrl, 'native-alignment-right.html')
   const nativeAlignmentJustify = await runNativePage(client, pageUrl, 'native-alignment-justify.html')
+  const nativeElementRange = await runNativePage(client, pageUrl, 'native-element-range.html')
   const nativeOptionalInline = await runNativePage(client, pageUrl, 'native-optional-inline-update.html')
   const nativePersonModes = await runNativePage(client, pageUrl, 'native-person-modes.html')
   const nativeTableKeyboard = await runNativePage(client, pageUrl, 'native-table-keyboard.html')
@@ -638,6 +639,7 @@ try {
     nativeAlignmentCenter,
     nativeAlignmentRight,
     nativeAlignmentJustify,
+    nativeElementRange,
     nativeOptionalInline,
     nativePersonModes,
     nativeTableKeyboard,

@@ -48,3 +48,10 @@ scripts/parity/checkpoints/2026-11-03/alignment/*.json -text
 scripts/parity/checkpoints/2026-11-03/alignment/*.gz -text
 scripts/parity/checkpoints/2026-11-03/alignment/runs/*/*.json -text
 scripts/parity/checkpoints/2026-11-03/alignment/runs/*/*.gz -text
+scripts/parity/element-range.mjs text eol=lf
+tests/browser/element-range-fixture.js text eol=lf
+tests/browser/native-element-range.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/element-range/review.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/element-range/controls.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/element-range/*.json -text
+scripts/parity/checkpoints/2026-11-03/element-range/*.gz -text
