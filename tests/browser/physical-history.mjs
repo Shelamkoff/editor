@@ -580,7 +580,16 @@ try {
   const nativePluginMedia = await runNativePage(client, pageUrl, 'native-plugin-media.html')
   const nativePluginDesign = await runNativePage(client, pageUrl, 'native-plugin-design.html')
 
+  const nativeFormattingBoundaries = {}
+  for (const page of [
+    'native-bgcolor-boundary.html', 'native-bgcolor-boundary-trusted.html',
+    'native-bgcolor-realm.html', 'native-bgcolor-tools.html', 'native-bgcolor-tools-trusted.html',
+    'native-fontsize-boundary.html', 'native-fontsize-boundary-trusted.html',
+    'native-fontsize-reset-boundary.html', 'native-fontsize-reset-boundary-trusted.html',
+  ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
+
   console.log(JSON.stringify({
+    nativeFormattingBoundaries,
     enterScenario: { beforeBold, afterBold, afterUndo, afterRedo, afterRemoveBold, afterUndoRemoval },
     toolboxScenario: {
       toolboxBeforeBold,
