@@ -46,3 +46,28 @@ checks, both typechecks and the ordinary Script suite pass. Four additional
 ordinary cases select the exact same Alpha through Text/Element boundaries
 for sup/sub and verify one action and exact replay. Full integration and the
 complete 104-case three-source/manual proof remain required; no row is accepted.
+
+## First complete integration and application-host follow-up
+
+Clean unchanged `301f84eb0c4f5e6fbae4030a341b6c07943993e2` passes all **27
+gates** in `run-UjbHKl`, UTC 2026-11-03 11:46:36.742–12:03:38.272. This includes
+2,198 passing Node tests / three platform skips, all 48 ordinary pages, 265
+old native tool cases, all 104 new native Script cases, both recent C12 native
+groups, original HTML/resource controls, heap, declarations, installed package
+and site. The enforced fullPreset size is 95.4 KiB gzip / 96 KiB. Manifest
+SHA-256:
+`7de7e5f6c294fec55bb044e14c038eebe74faf8fa8f8e2f723eb3e7110a98cc0`.
+The full original manifest, all 27 logs and executed supervisor are preserved
+as `first-integration-*`, with separate hashes. This successful run remains
+attributed to that source.
+
+A subsequent exploratory public-action control wraps the editor in an
+application-owned sup/sub. Both matching actions still fail to author their
+own markup: mode detection borrows the external ancestor, so Undo targets the
+preceding input. The 27-gate suite did not contain that trigger. This new
+diagnostic does not invalidate its recorded passes or accept full tool parity.
+The common profile now adds 24 external-host controls, with explicit unchanged
+application boundary, both modes/directions and all three field shapes. The
+original 104 cases and old mark inventories remain unchanged. A fourth native
+page runs the new 24 controls without changing any existing page budget.
+An attributed pre-fix run and repair verification follow; both rows stay open.

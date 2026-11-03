@@ -28,6 +28,9 @@ export const scriptToolCases = ['sup', 'sub', 'none'].flatMap(mode =>
   (mode === 'none' ? ['sup', 'sub'] : [mode]).flatMap(tag =>
     markCases(['script']).filter(spec => mode !== 'none' || spec.variant !== 'apply').map(spec => ({ ...spec,
       id: ['script', mode, tag, ...spec.id.split('/').slice(1)].join('/'), mode, tag }))))
+export const scriptHostCases = ['sup', 'sub'].flatMap(tag => markCases(['script'])
+  .filter(spec => spec.variant === 'apply').map(spec => ({ ...spec,
+    id: ['script', 'host', tag, ...spec.id.split('/').slice(1)].join('/'), mode: tag, tag, hostTag: tag })))
 const markTags = { bold: 'b', italic: 'i', strikethrough: 's', code: 'code', marker: 'mark' }
 const markTag = spec => spec.tag ?? markTags[spec.tool]
 const edgeTags = { script: 'i', bold: 'i', italic: 'b', strikethrough: 'b', code: 'b', marker: 'i' }
@@ -227,7 +230,9 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
   const check = createCheck(observations)
   const holder = document.createElement('section')
   holder.style.cssText = 'width:900px; margin:80px auto;'
-  document.body.append(holder)
+  const applicationHost = spec.hostTag ? document.createElement(spec.hostTag) : document.body
+  if (spec.hostTag) { applicationHost.dataset.scriptBoundary = 'outside'; document.body.append(applicationHost) }
+  applicationHost.append(holder)
   holder.addEventListener('input', event => trusted.push({ type: event.type, inputType: event.inputType, trusted: event.isTrusted }))
   holder.addEventListener('keydown', event => {
     if (event.key.toLowerCase() === 'z') trusted.push({ type: event.type, key: event.key, trusted: event.isTrusted })
@@ -350,6 +355,10 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
       check('apply', 'trustedPanelAction', panelAction.trusted, true)
       check('apply', 'acceptedPanelClosed', panelAction.panelClosed, true)
     }
+    if (spec.hostTag) check('apply', 'applicationHostBoundary', {
+      same: applicationHost.parentNode === document.body && holder.parentElement === applicationHost,
+      tag: applicationHost.localName, marker: applicationHost.dataset.scriptBoundary,
+    }, { same: true, tag: spec.hostTag, marker: 'outside' })
     const after = states(), afterTexts = spec.noop ? content.after : content.after.map((text, index) => (index ? '' : 'X') + text)
     check('apply', 'intendedTextAndMarks', fieldMeaning(), afterTexts.map(meaning))
     checkVisible('apply', afterTexts)
@@ -421,7 +430,7 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
       reason: 'The valid atomic-only range is recorded above, but v1 does not expose the named toolbar action for it. No operation or history equivalence is inferred.',
     })
     return { id: spec.id, spec, observations, completedPhases, planned, trusted, unsupported, diagnostics, transactions, phase, error: error.stack ?? String(error) }
-  } finally { editor?.destroy(); holder.remove() }
+  } finally { editor?.destroy(); holder.remove(); if (spec.hostTag) applicationHost.remove() }
 }
 
 async function runBasicMarkLifetimeCase({ sourceBase, legacy, spec, nativeInput }) {

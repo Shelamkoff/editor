@@ -1,9 +1,11 @@
-import { scriptToolCases, runBasicMarkCase } from './basic-mark-tools-parity-fixture.js'
+import { scriptToolCases, scriptHostCases, runBasicMarkCase } from './basic-mark-tools-parity-fixture.js'
 import { test, assert, equal, run } from './regressions/harness.js'
 
 const mode = document.body.dataset.scriptMode
-if (!['sup', 'sub', 'none'].includes(mode)) throw new Error('Unknown Script matrix mode')
-for (const spec of scriptToolCases.filter(spec => spec.mode === mode)) test(`Script action ${spec.id}`, async () => {
+const host = document.body.dataset.scriptHost === 'true'
+if (!host && !['sup', 'sub', 'none'].includes(mode)) throw new Error('Unknown Script matrix mode')
+const cases = host ? scriptHostCases : scriptToolCases.filter(spec => spec.mode === mode)
+for (const spec of cases) test(`Script action ${spec.id}`, async () => {
   const result = await runBasicMarkCase({ spec, nativeInput: (method, params) => window.__testInput(method, params) })
   ;(window.__scriptToolResults ??= []).push(result)
   assert(!result.error, result.error)

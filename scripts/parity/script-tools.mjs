@@ -97,9 +97,9 @@ try {
     })
     await page.goto(`http://127.0.0.1:${server.address().port}/`)
     const cases = JSON.parse(await page.evaluate(async source => {
-      const { scriptToolCases, runBasicMarkCase } = await import('/fixture.js')
+      const { scriptToolCases, scriptHostCases, runBasicMarkCase } = await import('/fixture.js')
       const results = []
-      const cases = scriptToolCases
+      const cases = [...scriptToolCases, ...scriptHostCases]
       for (const spec of cases.filter(value => !source.filter || value.id.includes(source.filter))) results.push(await runBasicMarkCase({ sourceBase: `/${source.label}/`,
         legacy: source.legacy, spec, nativeInput: window.__basicMarkInput }))
       return JSON.stringify(results)
