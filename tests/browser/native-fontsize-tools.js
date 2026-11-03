@@ -6,7 +6,8 @@ if (document.querySelector('meta[http-equiv="Content-Security-Policy"]')) test('
   try { document.createElement('div').innerHTML = '<b>untrusted</b>' } catch (error) { blocked = error instanceof TypeError }
   assert(blocked, 'The common font size page did not enforce its Trusted Types policy')
 })
-for (const spec of fontSizeToolCases) test(`Font size common ${spec.id}`, async () => {
+const importedSizes = document.body.dataset.fontSizeMatrix === 'imported'
+for (const spec of fontSizeToolCases.filter(spec => Boolean(spec.preserveSize) === importedSizes)) test(`Font size common ${spec.id}`, async () => {
   const result = await runFontSizeToolCase({ spec, nativeInput: (method, params) => window.__testInput(method, params) })
   ;(window.__fontSizeToolResults ??= []).push(result)
   assert(!result.error, result.error); equal(result.completedPhases, result.planned)
