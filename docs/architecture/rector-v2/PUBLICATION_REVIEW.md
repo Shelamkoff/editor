@@ -2,9 +2,50 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **101 / 209 obligations**, with **108 open**; see the [public snapshot acceptance](#public-snapshot-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **102 / 209 obligations**, with **107 open**; see the [public document lifecycle acceptance](#public-document-lifecycle-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public document lifecycle acceptance — 2026-11-03
+
+`PUBLIC_RENDER_CLEAR` is accepted on immutable `10d140987df4db0d3ad03b0829747ddafc8b550a`:
+**34 cases / 944 passing observations**, 978 independently reconstructed current
+checks and nine rejected evidence corruptions. The register becomes
+**102 accepted / 107 open**. No production change was needed.
+
+The public API corpus covers changed/equal/empty render, clear and clear of an
+already empty document, known/opaque data and editable/read-only entry. Exact
+canonical blocks and versions survive undo/redo. A default paragraph gets a
+fresh identity, which replay preserves. Inputs remain caller-owned. Equal
+replacement still creates replacement history and retires the old instances.
+Paragraph and Color factories are observed only through public setup/create
+interfaces. Old tasks stop before option getters or producers, including tasks
+from intermediate history owners; old tasks never revive. Fresh no-op tasks
+remain admitted without extra events or history.
+
+Four invalid current inputs run with and without a validation callback: missing
+document version, legacy version, wrong blocks shape and a future registered
+data version. They preserve the old document, roots, history and live tasks.
+Typed issues are frozen; the independent deferred diagnostic is content-free
+and observed after its microtask, before disposal. Legacy validation is a
+different contract: actual render/save and history execute, versionless input
+defaults to its own version, and its old block-validation callback remains a
+separate observation. No v2 task/event/validation port is fabricated for v1.
+
+All five frozen affected gates pass: types, all 50 ordinary pages, exact-Git
+three-source comparison and independent model, nine corruptions, and docs.
+The model checks 281 primary module identities, six dependency files and eight
+versions. Runtime is byte identical to separately integrated `efc619d2`; its
+13-gate manifest remains attached with its original source. The specification
+baseline completes all 34 cases with 90 stale-option observations failing;
+v1 completes all 34 with 36 opaque-data mismatches and 20 equal-render history differences. Its 50 missing
+current observation contracts are declared, not counted as unavailable actions.
+Current errors, incomplete phases, unsupported cases and failures are zero.
+Raw comparison exit 1 and current model exit 0 remain separate. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/document-lifecycle/README.md)
+retains complete logs, corpus, executed model, corruptions and source bindings.
+This is author verification with an independent model. Other public rows,
+B-HTML and whole-library readiness remain open.
 
 ## Public snapshot acceptance — 2026-11-03
 

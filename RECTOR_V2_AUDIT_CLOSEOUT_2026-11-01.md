@@ -6,9 +6,23 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Public document lifecycle acceptance — 2026-11-03
+
+The current register is **102/209 accepted, 107 open**. `PUBLIC_RENDER_CLEAR`
+passes 34 cases / 944 observations, 978 independent current checks and nine
+rejected corruptions on `10d14098`. Changed/equal/empty render and clear retain
+versions, fresh default identities and exact replay; old instance/task rights
+retire while fresh no-op tasks remain live. Strict validation rejects four
+invalid inputs without damaging the existing document or rights. All five
+frozen affected gates and all 50 ordinary pages pass. Runtime remains byte
+identical to separately integrated `efc619d2`; no production change was needed.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/document-lifecycle/README.md)
+retains complete logs, raw historical failures, model, corruptions and hashes.
+Other public contracts and whole-library readiness remain open.
+
 ## Public snapshot acceptance — 2026-11-03
 
-The current register is **101/209 accepted, 108 open**. `PUBLIC_SNAPSHOTS`
+At that checkpoint the register was **101/209 accepted, 108 open**. `PUBLIC_SNAPSHOTS`
 passes 26 cases / 333 observations, 359 independent current checks and nine
 rejected corruptions on `efc619d2`. Two attributed regressions are repaired:
 unknown-block mode transitions and old iterator payloads borrowing new status.

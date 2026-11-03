@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical stale-task and opaque-data failures retain raw exit 1; the current 34-case contract and independent model pass separately."
+}
