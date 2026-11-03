@@ -113,6 +113,10 @@ class NativeRealmColorPicker {
       options.onChange?.(this.#cssColor())
     }, { signal: this.controller.signal })
     alpha.addEventListener('input', () => {
+      // A range input can fire before the text field's blur/change commits.
+      // Read its pending RGB value before synchronizing the visible controls.
+      const pending = normalizeColor(text.value, ownerDocument)
+      if (pending) this.hex = pending.hex
       this.alpha = clampAlpha(Number(alpha.value))
       this.#syncTextAndPreview()
       options.onChange?.(this.#cssColor())
