@@ -38,3 +38,4 @@ tests/browser/basic-mark-tools-parity-fixture.js text eol=lf
 tests/browser/native-script-tools.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/script-tools/*.json -text
 scripts/parity/checkpoints/2026-11-03/script-tools/*.gz -text
+scripts/parity/checkpoints/2026-11-03/script-tools/review.py text eol=lf
