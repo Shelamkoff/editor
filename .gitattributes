@@ -128,3 +128,11 @@ scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.json -text
 scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.gz -text
+
+scripts/parity/fontsize-reset-boundary.mjs text eol=lf
+tests/browser/fontsize-reset-boundary-fixture.js text eol=lf
+tests/browser/native-fontsize-reset-boundary.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/fontsize-reset-boundary/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/fontsize-reset-boundary/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/fontsize-reset-boundary/*.json -text
+scripts/parity/checkpoints/2026-11-03/fontsize-reset-boundary/*.gz -text
