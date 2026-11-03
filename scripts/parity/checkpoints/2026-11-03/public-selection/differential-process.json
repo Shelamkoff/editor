@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Legacy selectBlocks silently accepts stale IDs; its historical raw exit remains 1 while the current 44-case contract and independent model pass separately."
+}

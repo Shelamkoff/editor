@@ -2,9 +2,46 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **102 / 209 obligations**, with **107 open**; see the [public document lifecycle acceptance](#public-document-lifecycle-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **103 / 209 obligations**, with **106 open**; see the [public block selection acceptance](#public-block-selection-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public block selection acceptance — 2026-11-03
+
+`PUBLIC_SELECTION` is accepted on immutable `455d048875372f559cae594be360c68693f6c7a0`:
+**44 cases / 1,142 passing observations**, 1,186 independently reconstructed
+current checks and nine rejected corruptions. The register becomes
+**103 accepted / 106 open**. No production change was needed.
+
+Eleven variants run in both modes with a native range in either the local field
+or a separate editor containing the same block ID. Selected IDs are deduplicated
+and reported in document order; current-block state remains distinct from
+native focus. Empty/clear, missing IDs, IDs removed or replaced by render and
+same-ID replacement execute. Invalid selection leaves the existing state intact.
+Known paragraphs and an inert block participate. Control calls leave canonical
+data, existing history, active element, exact native endpoints and the other
+editor unchanged. Only their expected current/selection facts fire. A seeded
+Redo branch then executes, followed by exact Undo. Read-only masks availability;
+returning to editable mode reveals the retained branch.
+
+All five clean unchanged affected gates pass: types, all 51 ordinary pages,
+exact-Git comparison/model, nine corruption controls and docs. Runtime remains
+byte identical to separately integrated `efc619d2`; its original 13-gate manifest
+is retained separately. The specification baseline completes all 44 cases with
+all 1,142 observations passing. v1 completes the same case containers and real
+replay controls with 1,054 observations, retaining 12 unknown-selection rejection
+differences. Its real index/selectBlocks/getSelectedBlocks methods execute.
+Twelve stale-ID setter actions have no v1 equivalent and are explicitly skipped;
+a bad-index command is not substituted. Another 44 declarations concern absent
+current fact/snapshot observation ports. These categories remain distinct.
+Current exceptions, incomplete phases, unsupported actions and failed
+observations are zero. Programmatic API calls and explicitly installed DOM
+ranges make no physical-drag or trusted-input claim.
+
+The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/public-selection/README.md)
+retains full logs, raw comparison exit 1, independent current review exit 0,
+executed model, corrupted inputs and source hashes. This is author verification
+with an independent model. Other public rows, B-HTML and full readiness remain open.
 
 ## Public document lifecycle acceptance — 2026-11-03
 
