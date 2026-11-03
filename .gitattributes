@@ -28,3 +28,8 @@ tests/browser/decode-authority.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/decode-authority/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/decode-authority/*.json -text
 scripts/parity/checkpoints/2026-11-03/decode-authority/*.gz -text
+scripts/parity/presentation-authority.mjs text eol=lf
+tests/browser/presentation-authority.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/presentation-authority/review.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/presentation-authority/*.json -text
+scripts/parity/checkpoints/2026-11-03/presentation-authority/*.gz -text
