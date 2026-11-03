@@ -40,5 +40,31 @@
   "red-manifest.json": {
     "sha256": "ce7de10b4076109528f1ee034886a98e6702aa87e76f4a1a32bd29d293ed72aa",
     "bytes": 794
+  },
+  "green-corpus.json.gz": {
+    "sha256": "dcc60deeb6e02844117364e8aba2aabdad951ca65aa6b741c08c4e4b80f08686",
+    "bytes": 21803,
+    "decodedSha256": "92464275bcd0e1c1f5f283f3c9958c4dd484d8542d9a685905e1b7ec2f376743",
+    "decodedBytes": 661809
+  },
+  "green-review.json": {
+    "sha256": "73eac783680b096baf7f6c58a8a66e13646c8af020eb8672569005245843119e",
+    "bytes": 707
+  },
+  "executed-green-review.py.gz": {
+    "sha256": "8bb3099f70ab9ea733c2bf1aee027d32b4eda574e111cf8a3e4ff54e7998ee44",
+    "bytes": 3295,
+    "decodedSha256": "6df2a82ec3b2f6e84136bb30794dc407132f0bd66fc13466c39c33e177537f56",
+    "decodedBytes": 8609
+  },
+  "production-diff.patch.gz": {
+    "sha256": "d56c6ccfac3df00a5a7a75c590d1e02bfb5cec9c12c11e80e0474dd0ca189b04",
+    "bytes": 347,
+    "decodedSha256": "0960182956589ab6101a3c053bb4583e6ec9c2619d066b4c77f2b4451c8ec4d6",
+    "decodedBytes": 624
+  },
+  "green-manifest.json": {
+    "sha256": "71059b1144974f4598d845052b49d37e8db9d25a8c8f51e4737a63051159eb68",
+    "bytes": 613
   }
 }

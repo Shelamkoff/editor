@@ -1,0 +1,31 @@
+{
+  "source": "4e153854221027141a2b7152f4f067be9d74f228",
+  "tree": "74d721b1d02d4c967252697b34f6e99bc0fe173f",
+  "productionDelta": [
+    "inline-tools/fontSize.js"
+  ],
+  "casesPerSource": 16,
+  "totals": {
+    "v1": {
+      "observations": 416,
+      "failures": 20,
+      "complete": 16
+    },
+    "spec-baseline": {
+      "observations": 256,
+      "failures": 14,
+      "complete": 8
+    },
+    "candidate": {
+      "observations": 416,
+      "failures": 0,
+      "complete": 16
+    }
+  },
+  "affectedIntegration": "pending",
+  "register": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptedRows": []
+}
