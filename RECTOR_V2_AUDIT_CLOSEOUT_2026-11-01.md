@@ -17,8 +17,10 @@ The next confirmed HTML defect is an opened native popover styled by the
 application with `position:absolute`. On exact `d4f026f8` the native control
 passes, while all four public surfaces clip the box. Its source-attributed
 RED is `test-results/audit-closeout-2026-11-01/html-absolute-popover-red.json`.
-This repair is active work. Context-menu/fullscreen UI remains unverified after
-the computer-use URL-detection stop.
+The working repair now passes all 65 native/public layer cases and both
+typechecks while retaining the application's absolute positioning. Its own
+immutable integration is next. Context-menu/fullscreen UI remains unverified
+after the computer-use URL-detection stop.
 
 ## Resource follow-up — 2026-11-03 local date
 

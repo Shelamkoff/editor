@@ -418,3 +418,26 @@ docs, package and site. The actual fullPreset measurement is **95.5 KiB gzip /
 as `integration-manifest.json.gz`; it is the original twenty-gate record,
 without a relabelled candidate or outcome. B-HTML and the register remain open
 within their separately recorded scopes.
+
+## Absolutely positioned native popovers — 2026-11-03
+
+The native top layer can contain a popover whose application stylesheet uses
+`position:absolute`. A fixed-position-only admission still clipped it in all
+four public surfaces. The exact `e9f0373d` replay has four product failures and
+a passing independent native control. Its open 170px box had only 70px visible
+in Raw editor and none in the other three views.
+
+Measurement now admits a visible, actually open native popover independently
+of its CSS position. The native capability guard avoids testing the popover
+selector on an engine without the feature. Application positioning remains
+`absolute`; author HTML and styles are not rewritten to another position.
+Closing/Escape still returns the surface to its original flow height, and
+trusted lower controls, page UI and canonical data retain their behavior.
+
+The permanent matrix grows to **65 cases**. All 65 pass on the working repair,
+including explicit computed-position preservation and viewport resize. The
+final five-case predecessor replay retains all four intended failures and its
+passing native control. Both typechecks pass. The earlier 60-case / twenty-gate
+record remains evidence for `13b79cc6`; this later repair requires its own
+immutable integration. `B-HTML` and whole-library readiness remain open; the
+current register is separately **69 accepted / 140 open** after Code/Marker.

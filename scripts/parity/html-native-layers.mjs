@@ -16,7 +16,7 @@ const [ref, extra] = process.argv.slice(2)
 assert.equal(extra, undefined, 'Provide at most one immutable production revision')
 const sourceRef = ref ? git('rev-parse', '--verify', '--end-of-options', ref + '^{commit}').toString().trim() : null
 const head = git('rev-parse', 'HEAD').toString().trim(), startedAt = new Date().toISOString()
-const kinds = ['fixed-top', 'fixed-bottom', 'fixed-center', 'popover', 'flow', 'contained-fixed', 'scrolling-flow', 'tall-fixed', 'hover-fixed', 'focus-fixed', 'hidden-fixed', 'body-fixed']
+const kinds = ['fixed-top', 'fixed-bottom', 'fixed-center', 'popover', 'popover-absolute', 'flow', 'contained-fixed', 'scrolling-flow', 'tall-fixed', 'hover-fixed', 'focus-fixed', 'hidden-fixed', 'body-fixed']
 const kindFilter = process.env.EDITOR_HTML_LAYER_KIND
 assert.ok(kindFilter === undefined || kinds.includes(kindFilter), 'Unknown HTML layer kind')
 const paths = ['scripts/parity/html-native-layers.mjs', 'package-lock.json', 'node_modules/dompurify/dist/purify.es.mjs']
@@ -51,19 +51,20 @@ try {
   const results = []
   for (const kind of kinds.filter(kind => kindFilter === undefined || kind === kindFilter)) {
     for (const surface of ['native', 'raw-editor', 'raw-renderer', 'carousel-editor', 'carousel-renderer']) {
+      const popover = kind.startsWith('popover')
       const page = await browser.newPage({ viewport: { width: 1000, height: 800 } }), errors = []
       page.on('pageerror', error => errors.push(String(error)))
       let observation, resized, closed, escaped, hostClicks, sourceUnchanged, error
       try {
         await page.goto(server.resolvedUrls.local[0] + 'native-layer-reference')
-        await page.evaluate(async ({ kind, surface }) => {
+        await page.evaluate(async ({ kind, surface, popover }) => {
           const holder = document.createElement('section')
           holder.style.cssText = 'width:600px' + (kind === 'body-fixed' ? '' : ';margin-top:60px'); document.body.append(holder)
           const dynamic = kind === 'hover-fixed' || kind === 'focus-fixed'
           const layered = kind.startsWith('fixed-') || kind === 'tall-fixed' || kind === 'body-fixed' || dynamic
           const action = '<button id="owned-action" popovertarget="owned-result">End action</button>'
           const result = '<div id="owned-result" popover>Action completed<button id="owned-dismiss" popovertarget="owned-result" popovertargetaction="hide">Dismiss</button></div>'
-          const html = kind === 'popover'
+          const html = popover
             ? '<button id="owned-open" popovertarget="owned-layer">Open details</button><div id="owned-layer" popover><p>Native popover</p><button id="owned-close" popovertarget="owned-layer" popovertargetaction="hide">Close details</button></div>'
             : dynamic ? '<div id="owned-container"><button id="owned-trigger">Reveal content</button><div id="owned-layer">Fixed content' + action + '</div></div>' + result
               : layered ? '<div id="owned-layer">Fixed content' + action + '</div>' + (kind === 'tall-fixed' ? '<div id="owned-tall">Tall flow</div>' : '') + result
@@ -80,7 +81,7 @@ try {
             + (kind === 'body-fixed' ? 'body{position:fixed;bottom:40px;left:0;width:240px;height:140px}#owned-layer{position:relative;inset:auto;height:140px}' : '')
             + '#owned-flow{height:40px}'
             + (kind === 'scrolling-flow' ? 'body{height:100px;overflow:auto}#owned-flow{height:300px}' : '')
-            + (kind === 'popover' ? '#owned-layer{position:fixed;inset:auto;left:10px;top:30px;margin:0;width:240px;height:160px;max-height:none;padding:4px;border:1px solid}#owned-close{position:absolute;bottom:4px;left:4px}' : '')
+            + (popover ? `#owned-layer{position:${kind === 'popover-absolute' ? 'absolute' : 'fixed'};inset:auto;left:10px;top:30px;margin:0;width:240px;height:160px;max-height:none;padding:4px;border:1px solid}#owned-close{position:absolute;bottom:4px;left:4px}` : '')
             + 'p{margin:0}']
           const host = document.createElement('button'); host.id = 'host'; host.textContent = 'Host action'
           host.style.cssText = 'position:fixed;right:10px;top:10px;z-index:99'; document.body.append(host)
@@ -116,18 +117,19 @@ try {
             unchanged: () => before === JSON.stringify(editor ? editor.save().blocks : data?.blocks),
             destroy: () => { editor?.destroy(); renderer?.destroy() },
             read: () => {
-              const element = child.getElementById(layered || kind === 'popover' || kind === 'contained-fixed' || kind === 'hidden-fixed' ? 'owned-layer' : 'owned-flow')
+              const element = child.getElementById(layered || popover || kind === 'contained-fixed' || kind === 'hidden-fixed' ? 'owned-layer' : 'owned-flow')
               const box = element.getBoundingClientRect(), view = child.defaultView
               return { frameHeight: frame?.getBoundingClientRect().height ?? null, viewportHeight: view.innerHeight,
+                position: view.getComputedStyle(element).position,
                 bodyHeight: child.body.getBoundingClientRect().height,
                 box: { top: box.top, bottom: box.bottom, height: box.height },
                 visibleHeight: Math.max(0, Math.min(box.bottom, view.innerHeight) - Math.max(box.top, 0)),
                 popoverOpen: !!child.querySelector('#owned-layer:popover-open') }
             } }
-        }, { kind, surface })
+        }, { kind, surface, popover })
         await page.waitForTimeout(100)
         const target = surface === 'native' ? page : await (await page.locator('iframe').elementHandle()).contentFrame()
-        if (kind === 'popover') await target.locator('#owned-open').click({ timeout: 3000 })
+        if (popover) await target.locator('#owned-open').click({ timeout: 3000 })
         if (kind === 'hover-fixed') await target.locator('#owned-trigger').hover({ timeout: 3000 })
         if (kind === 'focus-fixed') {
           let focused = false
@@ -141,8 +143,9 @@ try {
         observation = await page.evaluate(() => window.probe.read())
         const dynamic = kind === 'hover-fixed' || kind === 'focus-fixed'
         const layered = kind.startsWith('fixed-') || kind === 'tall-fixed' || kind === 'body-fixed' || dynamic
-        if (layered || kind === 'popover' || kind === 'contained-fixed') assert.ok(observation.visibleHeight >= observation.box.height, 'Authored layer is clipped')
-        if (kind === 'popover') assert.equal(observation.popoverOpen, true)
+        if (layered || popover || kind === 'contained-fixed') assert.ok(observation.visibleHeight >= observation.box.height, 'Authored layer is clipped')
+        if (popover) assert.equal(observation.popoverOpen, true)
+        if (kind === 'popover-absolute') assert.equal(observation.position, 'absolute', 'Application positioning was rewritten')
         if (surface !== 'native' && ['flow', 'contained-fixed', 'scrolling-flow'].includes(kind)) {
           const expected = Math.max(surface === 'raw-editor' ? 100 : 0, kind === 'flow' ? 40 : kind === 'contained-fixed' ? 80 : 100)
           assert.equal(observation.frameHeight, expected, 'Ordinary or locally contained flow acquired extra viewport height')
@@ -150,7 +153,7 @@ try {
         if (surface !== 'native' && kind === 'hidden-fixed') assert.equal(observation.frameHeight, Math.max(surface === 'raw-editor' ? 100 : 0, observation.bodyHeight), 'Invisible fixed box introduced extra viewport space')
         await page.setViewportSize({ width: 1200, height: 900 }); await page.waitForTimeout(100)
         resized = await page.evaluate(() => window.probe.read())
-        if (layered || kind === 'popover') assert.ok(resized.visibleHeight >= resized.box.height, 'Resized layer is clipped')
+        if (layered || popover) assert.ok(resized.visibleHeight >= resized.box.height, 'Resized layer is clipped')
         if (layered) {
           // The frame participates in parent flow. Child-only scrollIntoView
           // cannot move a viewport-fixed box; scroll the parent when needed
@@ -165,7 +168,7 @@ try {
           assert.equal(await page.evaluate(() => window.probe.child.getElementById('owned-result').matches(':popover-open')), true, 'End action unavailable')
           await target.locator('#owned-dismiss').click({ timeout: 3000 })
         }
-        if (kind === 'popover') {
+        if (popover) {
           await target.locator('#owned-close').click({ timeout: 3000 }); await page.waitForTimeout(100)
           closed = await page.evaluate(() => window.probe.read())
           assert.equal(closed.popoverOpen, false, 'Native close action unavailable')

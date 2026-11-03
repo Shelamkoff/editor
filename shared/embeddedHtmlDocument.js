@@ -52,7 +52,7 @@ export function initializeEmbeddedDocument(context) {
     const style = accepted.defaultView.getComputedStyle(body)
     const bottom = style.overflowY === 'visible' ? Math.max(body.scrollHeight + rect.top, rect.bottom) : rect.bottom
     let height = Math.max(minimumHeight, Math.ceil(bottom + (parseFloat(style.marginBottom) || 0)))
-    // A viewport-fixed box (including the native popover top layer) has no
+    // A viewport-fixed box or native popover top layer has no
     // contribution to body flow. Give its native positioning a page viewport
     // to work in while keeping taller flow and the iframe boundary intact.
     // Fixed descendants of a local containing block already belong to that
@@ -61,7 +61,11 @@ export function initializeEmbeddedDocument(context) {
       if (!owns()) return
       if (!element.getClientRects().length) continue
       const computed = accepted.defaultView.getComputedStyle(element)
-      if (computed.position === 'fixed' && computed.visibility === 'visible' && Reflect.get(element, 'offsetParent') === null) {
+      // Application CSS may position an open native popover absolutely. It
+      // still belongs to the top layer, outside its containing body's flow.
+      const popover = element.hasAttribute('popover') && typeof Reflect.get(element, 'showPopover') === 'function'
+        && element.matches(':popover-open')
+      if (computed.visibility === 'visible' && (popover || computed.position === 'fixed' && Reflect.get(element, 'offsetParent') === null)) {
         height = Math.max(height, parent.innerHeight)
         break
       }
