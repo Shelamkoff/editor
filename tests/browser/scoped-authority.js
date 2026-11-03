@@ -11,7 +11,7 @@ function rejected(operation, expected) {
 }
 
 function fixture({ blockUpdate = true } = {}) {
-  const flags = { onDecode: null, onValue: null, decodes: 0, reads: 0, failUpdate: false, failCreate: false }
+  const flags = { onDecode: null, onValue: null, onCreate: null, decodes: 0, reads: 0, failUpdate: false, failCreate: false }
   const blocks = [], widgets = []
   const blockSchema = {
     currentVersion: 1, createDefault: () => ({ text: '', count: 0 }),
@@ -49,7 +49,7 @@ function fixture({ blockUpdate = true } = {}) {
       decode(input) {
         flags.decodes++; flags.onDecode?.()
         return { dataVersion: 1, data: { get label() {
-          flags.reads++; flags.onValue?.(); return input.data.label
+          flags.reads++; const replacement = flags.onValue?.(); return replacement === undefined ? input.data.label : replacement
         } } }
       },
       encode: data => ({ dataVersion: 1, data: { label: data.label } }),
@@ -60,7 +60,7 @@ function fixture({ blockUpdate = true } = {}) {
         element.contentEditable = 'false'
         element.textContent = initial.label
         const owner = { context, element, destroyed: 0 }
-        widgets.push(owner)
+        widgets.push(owner); flags.onCreate?.(context, initial, element)
         return { element, update(next) { element.textContent = next.label }, setReadOnly() {},
           destroy() { owner.destroyed++ },
         }
@@ -289,6 +289,174 @@ test('public destruction after terminal transaction failure releases the holder 
     h.editor.destroy()
     assert(holder.querySelector('.oe-editor'), 'old disposal destroyed the successor')
   } finally { replacement.destroy() }
+})
+
+for (const retirement of ['cancelled', 'consumed', 'mode-revoked']) {
+  test(`retired task ${retirement} reads no options or producer and leaves its owner usable`, () => {
+    const h = fixture(), task = h.context.beginTask(), before = h.editor.save().blocks
+    if (retirement === 'cancelled') task.cancel()
+    else if (retirement === 'consumed') equal(task.commit(current => current), true)
+    else { h.editor.setReadOnly(true); h.editor.setReadOnly(false) }
+    let reads = 0, producers = 0
+    equal(task.commit(() => { producers++; return { count: 9 } }, {
+      get mergeWithPreviousField() { reads++; throw new Error('retired option was read') },
+    }), false)
+    equal([reads, producers], [0, 0])
+    equal(h.editor.save().blocks, before)
+    equal(h.editor.canUndo, false)
+    equal(task.signal.aborted, retirement !== 'consumed')
+    equal(h.context.beginTask().commit(current => ({ ...current, count: 1 })), true)
+    equal(h.editor.save().blocks[0].data.count, 1)
+    equal(h.editor.undo(), true)
+    equal(h.editor.save().blocks, before)
+  })
+}
+
+for (const payload of [undefined, null, false, 0, '', NaN]) {
+  test(`option capture throw ${String(payload)} preserves exact failure and a retryable task`, () => {
+    const h = fixture(), task = h.context.beginTask(), before = h.editor.save().blocks
+    let producers = 0, reads = 0, caught, threw = false
+    try { task.commit(current => { producers++; return current }, {
+      get mergeWithPreviousField() { reads++; throw payload },
+    }) } catch (error) { caught = error; threw = true }
+    equal([threw, Object.is(caught, payload), reads, producers, task.signal.aborted], [true, true, 1, 0, false])
+    equal(h.editor.save().blocks, before)
+    equal(h.editor.canUndo, false)
+    equal(task.commit(current => { producers++; return { ...current, count: 1 } }), true)
+    equal(producers, 1)
+    equal(h.editor.save().blocks[0].data.count, 1)
+    equal(h.editor.undo(), true)
+    equal(h.editor.save().blocks, before)
+  })
+  test(`entered producer throw ${String(payload)} consumes only its task and preserves exact failure`, () => {
+    const h = fixture(), task = h.context.beginTask(), before = h.editor.save().blocks, events = []
+    h.editor.on('transaction:committed', event => events.push(event.action))
+    let reads = 0, producers = 0, caught, threw = false
+    try { task.commit(() => { producers++; throw payload }) } catch (error) { caught = error; threw = true }
+    equal([threw, Object.is(caught, payload), producers, task.signal.aborted], [true, true, 1, true])
+    equal(task.commit(() => { producers++; return {} }, {
+      get mergeWithPreviousField() { reads++; throw new Error('consumed option was read') },
+    }), false)
+    equal([reads, producers], [0, 1])
+    equal(h.editor.save().blocks, before)
+    equal(h.editor.canUndo, false)
+    equal(events, [])
+    equal(h.context.beginTask().commit(current => ({ ...current, count: 1 })), true)
+    equal(h.editor.save().blocks[0].data.count, 1)
+    equal(events, ['commit'])
+  })
+}
+
+test('task option capture preserves foreign native focus and selection, with a later live focus control', () => {
+  const h = fixture(), button = document.createElement('button')
+  button.textContent = 'Foreign focus control'; document.body.append(button); button.focus()
+  const native = window.getSelection()
+  native.setBaseAndExtent(button.firstChild, 3, button.firstChild, 3)
+  const node = native.anchorNode, offset = native.anchorOffset
+  try {
+    equal([document.activeElement === button, native.anchorNode === button.firstChild, native.anchorOffset], [true, true, 3])
+    equal(h.context.beginTask().commit(current => ({ ...current, count: 1 }), {
+      get mergeWithPreviousField() {
+        rejected(() => h.editor.blocks.focus('a'))
+        equal(document.activeElement === button, true)
+        equal([native.anchorNode === node, native.anchorOffset], [true, offset])
+        return 'text'
+      },
+    }), true)
+    equal(document.activeElement === button, true)
+    equal(h.editor.blocks.focus('a'), true)
+    equal(h.editor.save().blocks[0].data.count, 1)
+  } finally { button.remove() }
+})
+
+for (const variant of ['remount', 'in-place', 'no-op']) {
+  test(`accepted ${variant} task settles independently from a second pending task`, () => {
+    const h = fixture({ blockUpdate: variant !== 'remount' }), before = h.editor.save().blocks
+    const task = h.context.beginTask(), pending = h.context.beginTask()
+    equal(task.commit(current => variant === 'no-op' ? current : { ...current, count: 1 }), true)
+    equal([task.signal.aborted, h.context.signal.aborted], [variant === 'remount', variant === 'remount'])
+    let reads = 0, producers = 0
+    equal(pending.commit(current => { producers++; return { ...current, count: 2 } }, {
+      get mergeWithPreviousField() { reads++; return 'count' },
+    }), variant !== 'remount')
+    equal([reads, producers], variant === 'remount' ? [0, 0] : [1, 1])
+    equal(h.editor.save().blocks[0].data.count, variant === 'remount' ? 1 : 2)
+    const live = h.blocks.at(-1).context
+    equal(live.beginTask().commit(current => ({ ...current, count: 3 })), true)
+    equal(h.editor.save().blocks[0].data.count, 3)
+    equal(h.editor.undo(), true)
+    equal(h.editor.save().blocks[0].data.count, variant === 'remount' ? 1 : 2)
+    while (h.editor.canUndo) h.editor.undo()
+    equal(h.editor.save().blocks, before)
+  })
+}
+
+test('the exact revoked inline reader aborts before decode while its same-ID successor remains readable', () => {
+  const h = fixture(), old = h.inlineContext
+  h.editor.blocks.remove('a'); equal(h.editor.undo(), true)
+  h.flags.decodes = h.flags.reads = 0
+  let error
+  try { old.getData() } catch (failure) { error = failure }
+  equal([error?.name, h.flags.decodes, h.flags.reads, old.signal.aborted], ['AbortError', 0, 0, true])
+  const current = h.widgets.filter(owner => owner.element.isConnected)[0]
+  equal(current.context.getData(), { label: 'Accepted' })
+  equal([h.flags.decodes, h.flags.reads, current.context.signal.aborted], [1, 1, false])
+})
+
+test('decoded reads survive normal, read-only and staged construction without blocking later host commands', () => {
+  const h = fixture(), before = h.editor.save().blocks
+  const read = context => {
+    h.flags.decodes = h.flags.reads = 0
+    h.flags.onValue = () => 'Decoded read'
+    try { return context.getData() } finally { h.flags.onValue = null }
+  }
+  const normal = read(h.inlineContext)
+  equal(normal, { label: 'Decoded read' }); equal([h.flags.decodes, h.flags.reads], [1, 1]); assert(Object.isFrozen(normal))
+  h.editor.setReadOnly(true)
+  const readonly = read(h.inlineContext)
+  equal(readonly, { label: 'Decoded read' }); equal([h.flags.decodes, h.flags.reads], [1, 1]); assert(Object.isFrozen(readonly))
+  h.editor.setReadOnly(false)
+  equal(h.editor.save().blocks, before)
+  equal(h.editor.canUndo, false)
+  h.editor.blocks.remove('a')
+  const staged = []
+  h.flags.onCreate = (context, initial, element) => {
+    const decoded = read(context)
+    staged.push({ decoded, frozen: Object.isFrozen(decoded), connected: element.isConnected,
+      live: !context.signal.aborted, initial: initial.label, decodes: h.flags.decodes, reads: h.flags.reads })
+  }
+  equal(h.editor.undo(), true)
+  h.flags.onCreate = null
+  equal(staged, [{ decoded: { label: 'Decoded read' }, frozen: true, connected: false, live: true, initial: 'Accepted', decodes: 1, reads: 1 }])
+  h.editor.blocks.update('a', block => ({ data: { ...block.data, count: 1 } }))
+  equal(h.editor.save().blocks[0].data.count, 1)
+  equal(h.editor.undo(), true)
+  equal(h.editor.save().blocks, before)
+})
+
+test('a canonical task no-op preserves an existing redo branch and cannot be recommitted', () => {
+  const h = fixture(), before = h.editor.save().blocks, events = []
+  h.editor.on('transaction:committed', event => events.push(event.action))
+  equal(h.context.beginTask().commit(data => ({ ...data, count: 1 })), true)
+  equal(h.editor.undo(), true)
+  equal(h.editor.canRedo, true)
+  const live = h.blocks.filter(owner => owner.element.isConnected).at(-1).context
+  const task = live.beginTask()
+  equal(task.commit(data => data), true)
+  assert(!task.signal.aborted)
+  let reads = 0, producers = 0
+  equal(task.commit(() => { producers++; return {} }, {
+    get mergeWithPreviousField() { reads++; throw new Error('consumed no-op input') },
+  }), false)
+  equal([reads, producers], [0, 0])
+  equal([h.editor.canUndo, h.editor.canRedo], [false, true])
+  equal(h.editor.save().blocks, before)
+  equal(events, ['commit', 'undo'])
+  equal(h.editor.redo(), true)
+  equal(h.editor.save().blocks[0].data.count, 1)
+  equal(h.editor.undo(), true)
+  equal(h.editor.save().blocks, before)
+  equal(events, ['commit', 'undo', 'redo', 'undo'])
 })
 
 await run()

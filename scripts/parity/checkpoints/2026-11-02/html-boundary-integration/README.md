@@ -438,6 +438,18 @@ The permanent matrix grows to **65 cases**. All 65 pass on the working repair,
 including explicit computed-position preservation and viewport resize. The
 final five-case predecessor replay retains all four intended failures and its
 passing native control. Both typechecks pass. The earlier 60-case / twenty-gate
-record remains evidence for `13b79cc6`; this later repair requires its own
-immutable integration. `B-HTML` and whole-library readiness remain open; the
+record remains evidence for `13b79cc6`. The later repair on clean unchanged
+`f2070510d2bbe22b2d6244f273c890f070de16de` passes **all 21 frozen integration
+gates** in `run-xxJbdd`, 2026-11-03T01:01:14.024Z–01:15:05.802Z. Its tree is
+`d5e6a18bab9e8c5b6f933a5c34b7c1549e70c62c` and source identity is
+`b8af224bb25d803364212fd334440d0135cfcb84b3553181ffb29424f4dbf0c7`.
+The original manifest hash is
+`38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09`, retained
+at `../../2026-11-03/task-authority/integration-manifest.json.gz`. All prior
+twenty gates pass again, with the layer matrix expanded to 65 and a separate
+64-case native Code/Marker gate. This run records Node 24.22.2, Chrome
+156.0.8078.79 and Windows x64, actual fullPreset **95.4 KiB gzip / 96 KiB**,
+2198 passing Node tests / three platform skips, all 45 ordinary pages and 52
+deferred-loading cases. The manifest and every gate record unchanged source.
+`B-HTML` and whole-library readiness remain open; the
 current register is separately **69 accepted / 140 open** after Code/Marker.
