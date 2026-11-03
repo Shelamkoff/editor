@@ -1,0 +1,36 @@
+{
+  "source": "5526419b2c50a0ec1e96aa917b2c42116894ab0c",
+  "tree": "56c8034b43605dcf91f795ccd8c271c2e88e9af0",
+  "firstTestSource": "b543e963",
+  "firstReview": "failed historical observation assumption; retained",
+  "runtimeChangedByReviewCorrection": false,
+  "runtimeExit": 1,
+  "redModelExit": 0,
+  "casesPerSource": 16,
+  "totals": {
+    "v1": {
+      "observations": 416,
+      "failures": 20,
+      "complete": 16
+    },
+    "spec-baseline": {
+      "observations": 256,
+      "failures": 14,
+      "complete": 8
+    },
+    "candidate": {
+      "observations": 416,
+      "failures": 12,
+      "complete": 16
+    }
+  },
+  "positiveCurrentCases": 12,
+  "register": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptedRows": [],
+  "broaderOpenRows": [
+    "TOOL_FONTSIZE_ACTION"
+  ]
+}
