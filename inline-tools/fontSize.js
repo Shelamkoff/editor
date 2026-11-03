@@ -286,7 +286,7 @@ export function createFontSizeTool(label) {
     const text = collectTextTargets(root, range)
     if (!text.length) return []
     return Array.from(root.querySelectorAll(selector))
-      .filter(element => text.some(({ node }) => element.contains(node)))
+      .filter(element => !element.hasAttribute('contenteditable') && text.some(({ node }) => element.contains(node)))
       .map(element => /** @type {HTMLElement} */ (element))
   }
 
