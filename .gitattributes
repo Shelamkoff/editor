@@ -83,3 +83,10 @@ scripts/parity/checkpoints/2026-11-03/public-structure/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-structure/controls.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-structure/*.json -text
 scripts/parity/checkpoints/2026-11-03/public-structure/*.gz -text
+scripts/parity/public-destroy.mjs text eol=lf
+tests/browser/public-destroy-fixture.js text eol=lf
+tests/browser/public-destroy.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-destroy/review.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-destroy/controls.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-destroy/*.json -text
+scripts/parity/checkpoints/2026-11-03/public-destroy/*.gz -text
