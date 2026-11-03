@@ -1,0 +1,16 @@
+{
+  "testSource": "1ab4105afc958df9bf35912deaddebbce16fd713",
+  "rawSha256": "7417fbeb3877a1c60fb9f2fcb2d30aceff5d7ca209d83b2a4a9d1200409fd07c",
+  "manualModelSha256": "bafc8ba44b6dc10fde51afaac5f8e9ba27983ddb17f879609bdcf1d728a4becd",
+  "currentCases": 22,
+  "currentObservations": 523,
+  "currentMismatches": 0,
+  "historicalFixtureExpectationsReviewed": 974,
+  "historicalLegacyCases": 19,
+  "historicalLegacyObservations": 451,
+  "historicalLegacyMismatches": 87,
+  "historicalBaselineObservations": 523,
+  "historicalBaselineMismatches": 46,
+  "historicalBaselinePageErrors": 6,
+  "reason": "Immutable historical graph capture, all fixture expectations checked against the literal model. Current data/replay/publication/native/request graphs independently checked. Blocked OS injection attempts remain recorded separately."
+}
