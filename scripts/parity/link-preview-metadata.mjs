@@ -132,7 +132,7 @@ try {
     sourceIdentity: 'Every production module is served unchanged from its exact Git object. Fixed fixtures adapt public API/wire spelling only.',
     filter: process.env.EDITOR_LINK_PREVIEW_METADATA_FILTER ?? '',
     group,
-    scope: `Concrete LinkPreview public provider requests, immediate URL submission, field ownership, qualified history, restore suppression and resolve/falsy rejection after replacement/mode/remove/render/destroy. True native URL and unrelated paragraph input. Replay traces are exploratory until independently modelled.`,
+    scope: `Concrete LinkPreview public provider requests, immediate URL submission, field ownership, qualified history, restore suppression and resolve/falsy rejection after replacement/mode/remove/render/destroy. True native URL and unrelated paragraph input; literal intermediate replay records. The replacement control explicitly uses the public v2 60-second native grouping window. Blocked OS antivirus injection attempts are recorded separately from product network requests.`,
     sources, dependencyVersions, dependencyFiles, results, serverErrors, candidatePass,
     note: 'Historical defects remain raw FAIL observations. Unsupported legacy observation APIs are explicitly recorded and never inferred as passes.',
   }, null, 2))
