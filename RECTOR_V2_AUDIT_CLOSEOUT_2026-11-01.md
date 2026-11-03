@@ -6,9 +6,23 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Public snapshot acceptance — 2026-11-03
+
+The current register is **101/209 accepted, 108 open**. `PUBLIC_SNAPSHOTS`
+passes 26 cases / 333 observations, 359 independent current checks and nine
+rejected corruptions on `efc619d2`. Two attributed regressions are repaired:
+unknown-block mode transitions and old iterator payloads borrowing new status.
+The mode source `efb62a4b` separately passes all 33 gates in `run-dcsNke`
+(95.8/96 KiB gzip); the final iterator delta passes 13 affected gates in
+`run-QNIWAU`, including all 49 ordinary pages, native tools, model, bundle,
+heap, package and site. Per-source scopes and both original REDs remain intact.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/public-snapshots/README.md)
+contains full logs, model, corruptions and source bindings. Other public
+contracts and whole-library readiness remain open.
+
 ## Exact Bold range acceptance — 2026-11-03
 
-The current register is **100/209 accepted, 109 open**. `DEFECT_ELEMENT_RANGE`
+At that checkpoint the register was **100/209 accepted, 109 open**. `DEFECT_ELEMENT_RANGE`
 is accepted on `d39b0d8d`: 20 cases / 324 observations, 364 independent checks
 and eight rejected evidence corruptions. Text/selectNodeContents endpoints
 select the same lowercase alpha for trusted Bold apply/remove and exact native

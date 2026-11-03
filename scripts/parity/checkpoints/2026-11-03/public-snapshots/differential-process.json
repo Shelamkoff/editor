@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Two historical baseline metadata failures retain raw exit 1; the current 26-case contract and independent model pass separately."
+}

@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "candidate": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "cases": 26,
+  "currentObservations": 333,
+  "semanticChecks": {
+    "v1": 102,
+    "spec-baseline": 359,
+    "candidate": 359
+  },
+  "rawSha256": "21ab5a33e15072a5fbfc28a77dcd9d3e4a12b38c4a01ec297aa22a3eb50e7055",
+  "reviewerSha256": "8324aac568a57f139634125c14d43ca42c0fcd2e033ee0731d32892aae029295",
+  "modeIntegration": "efb62a4b95a865f2607a427d75577affbe0a54bb",
+  "modeManifestSha256": "8895d8a0ed0e2b2c7b62f5b39bb7f72805f3e850558a97d3a2936d03130b45fc",
+  "sourceRed": {
+    "source": "5dbf2458f88086e359a62c9619a23cb2efad739d",
+    "sha256": "70e7ae0b603dd93eb6a909bb506cb837af7efc7365b5ec0547552c54ff7957a4",
+    "incomplete": 9,
+    "positiveControls": 15
+  },
+  "iteratorRed": {
+    "source": "05b286fa1f325ae010521f6a576742fecb0d9dbe",
+    "sha256": "72e05c4dcf2be996b5b78a6a1c9b6442b7ed12ecbf2b388574f6308d19140ed9",
+    "failedObservations": 2,
+    "positiveControls": 24
+  },
+  "primaryProductionModuleIdentities": 275,
+  "dependencyFiles": 6,
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "historicalArtifactsVerified": 47,
+  "browserSha256": "08bbc3f03f084a9f335fa946a0b17e2df67354f0fb6518ff84d60547ad53d05d",
+  "nodeSha256": "a8afefee20c87f880f9c52aa26b9afb86a37f8d32e68c31f2f97478c187715f7"
+}

@@ -1,0 +1,84 @@
+{
+  "candidate": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "tree": "50d82328963fc930b020989259392fca18d3d89b",
+  "iteratorRuntime": "05eeb14103accbad9f9a2294c16148b4c3f6c4d9",
+  "runtimeByteIdenticalToIteratorFix": true,
+  "modeIntegration": "efb62a4b95a865f2607a427d75577affbe0a54bb",
+  "modeIntegrationGates": 33,
+  "delta": "Only public iterator activation capture changes production relative to the passing mode integration.",
+  "affectedRun": {
+    "startedAt": "2026-11-03T14:20:41.721Z",
+    "finishedAt": "2026-11-03T14:27:49.461Z",
+    "identity": "13b25e3980474b1f670b9557fed56fc4c0fb96e8e4fd94ea0bcd4f7908263a13",
+    "gates": {
+      "build": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "node": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-tools": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-element": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "snapshots-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "snapshots-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "bundle": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "heap": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "package": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "site": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 100,
+    "open": 109
+  },
+  "acceptedRows": [
+    "PUBLIC_SNAPSHOTS"
+  ],
+  "registerAfter": {
+    "accepted": 101,
+    "open": 108
+  },
+  "cases": 26,
+  "observations": 333,
+  "independentCurrentChecks": 359,
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}

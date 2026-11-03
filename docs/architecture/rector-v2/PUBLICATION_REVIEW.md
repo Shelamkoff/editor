@@ -2,9 +2,58 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **100 / 209 obligations**, with **109 open**; see the [exact Bold range acceptance](#exact-bold-range-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **101 / 209 obligations**, with **108 open**; see the [public snapshot acceptance](#public-snapshot-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public snapshot acceptance — 2026-11-03
+
+`PUBLIC_SNAPSHOTS` is accepted on immutable `efc619d226117a4b0ee1308d1cbb114df5066210`:
+**26 cases / 333 passing observations**, 359 independently reconstructed current
+checks and nine rejected evidence corruptions. The register becomes
+**101 accepted / 108 open**.
+
+The public fixture covers get/at/list/iterator, count/index/current ID and missing
+reads, known/unknown blocks, editable/read-only queries, nested arrays/tunes/inline
+payloads and own keys, frozen record envelopes with mutable caller-owned
+descendants, independent reads, retained snapshots/producer inputs across a host
+update and exact replay, and iterators resumed after destroy with a same-ID
+successor. Optional wire revision metadata is preserved as metadata; it is not
+an automatic transaction counter. A started iterator keeps coherent payload,
+type and activation status across later render/remove.
+
+Two source-attributed defects are repaired. On `5dbf2458`, nine read-only cases
+throw because an inert placeholder has no field array; 15 controls pass.
+Initializing its actual empty field collection preserves existing owner checks
+and both mode hooks without creating a plugin instance. On `05b286fa`, two
+completed iterator cases combine old data with status from the replacement or
+removed document. The iterator now captures status with its already detached
+initial list. Per-resume destruction checks and single payload traversal remain.
+Both original REDs and their positive controls are independently revalidated.
+
+The mode repair `efb62a4b` passes all 33 clean unchanged gates in `run-dcsNke`,
+including all 49 ordinary pages and 18 selected native groups. It retains its
+own complete logs and 95.8 KiB gzip / 96 KiB result. The later iterator delta
+changes only `PublicEditorApi.js` in production. Final `run-QNIWAU` passes all
+13 clean unchanged affected gates: build, Node, types, all 49 ordinary pages,
+265 native tool cases, 20 exact-Bold cases, comparison/model, nine corruptions,
+bundle, heap, docs, installed package and site. Earlier results are not relabelled
+as results for the later runtime. Two duplicated logical mode tests in the first
+source are removed before the final Node run; the original logs retain their
+actual counts and source.
+
+The independent author-written model checks 275 primary production module
+identities, six dependency files, eight versions and 47 historical artifacts.
+The specification baseline retains two metadata failures among 333 observations;
+all 26 cases complete. v1 executes 76 passing actual catalog/live-view controls.
+Its absent current detached-snapshot/status observation contract is declared,
+not emulated or counted as 26 unavailable actions. Current exceptions, failed
+observations, incomplete phases and unsupported cases are zero. Raw comparison
+exit 1 and model exit 0 remain separate. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/public-snapshots/README.md)
+retains both integrations, both REDs, full corpus, executed model, corruptions
+and source bindings. This is author verification, not peer review. Other public
+contracts, B-HTML and whole-library readiness remain open.
 
 ## Exact Bold range acceptance — 2026-11-03
 
