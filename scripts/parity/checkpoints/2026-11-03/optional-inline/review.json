@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "candidate": "baa0ffc5d240b149b5c909f60d352423829143c3",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "scriptSha256": "a797e9e53d29f5b27508182818def29dca357866e43540b1f89eafbcb8a12bbc",
+  "rawSha256": {
+    "public": "1ef8260e4fa89d61e588efffae8e440dbd64501c7d96a707492c014cce918958",
+    "native": "e8d3445b15da2bb9681595b8d1a4fc10c255657eb82d789b8796a9b088c04416"
+  },
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "integrationManifestSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09",
+  "byteIdenticalRuntime": true,
+  "ordinaryPages": 46,
+  "publicCases": 30,
+  "nativeCases": 8,
+  "manualCandidateChecks": 406,
+  "rawObservationsReviewed": 626,
+  "productionModulesVerified": 275,
+  "moduleGroupVisits": 550,
+  "dependencyFilesVerified": 6,
+  "dependencyVersionsVerified": 8,
+  "nativeInputs": 24,
+  "legacyNativeInputsPerGroup": 2,
+  "browserSha256": "f07ef6e325e86694d608dd5d302c91d5e7242da5f2b1175bca3d465d11e684e2",
+  "nativeLogSha256": "a6e24bcdca2fcd110547022f7fee2b3cf7f1396e894b9bbbbf9b8d17ab307861",
+  "rows": [
+    "CONTRACT_INLINE_OPTIONAL_UPDATE",
+    "CONTRACT_INLINE_OPTIONAL_TASK",
+    "CONTRACT_INLINE_OPTIONAL_IMMEDIATE",
+    "CONTRACT_OPTIONAL_NOOP_REUSE",
+    "CONTRACT_OPTIONAL_RECREATE_FAILURE",
+    "CONTRACT_INLINE_SYNC_UPDATE_CONTROLS",
+    "CONTRACT_NATIVE_RECONCILE_UPDATE_REQUIRED"
+  ],
+  "summaries": [
+    {
+      "group": "public",
+      "source": "spec-baseline",
+      "cases": 30,
+      "passed": 15,
+      "observations": 185,
+      "manualMismatches": 14
+    },
+    {
+      "group": "public",
+      "source": "candidate",
+      "cases": 30,
+      "passed": 30,
+      "observations": 339,
+      "manualMismatches": 0
+    },
+    {
+      "group": "native",
+      "source": "spec-baseline",
+      "cases": 8,
+      "passed": 1,
+      "observations": 35,
+      "manualMismatches": 7
+    },
+    {
+      "group": "native",
+      "source": "candidate",
+      "cases": 8,
+      "passed": 8,
+      "observations": 67,
+      "manualMismatches": 0
+    }
+  ],
+  "scope": "Independent manual data/history/scope and trusted-input/caret/replay model. Author verification, not a separate-agent review. Only seven named optional-instance rows are accepted."
+}

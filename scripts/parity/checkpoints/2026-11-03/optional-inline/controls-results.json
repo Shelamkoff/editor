@@ -1,0 +1,53 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-candidate",
+      "group": "public",
+      "mutation": "Replace the candidate source with the specification baseline.",
+      "exitCode": 1,
+      "sha256": "4ae08e51ce46e3248826a27ff946aaff235c29bde5d98e2aa13eadfe4a8a4812",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 262, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 183, in main\r\n    assert {source['label']: source['sha'] for source in raw['sources']} == expected_sources\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "consistent-stale-label",
+      "group": "public",
+      "mutation": "Keep Original as both actual and expected after an allegedly accepted Updated payload.",
+      "exitCode": 1,
+      "sha256": "28fac79535b4ccf8aedb2283bd064f6d59fbba762be21b5683afe7e02d94c6c7",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 262, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 226, in main\r\n    if row['source'] == 'candidate': assert match, (group, trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('public', 'a widget without update reflects changed data with a new scoped occurrence and one history action', 1, {'kind': 'equal', 'actual': 'Original', 'expected': 'Original', 'message': 'accepted data left the old widget projection visible'}, 'Updated')\r\n"
+    },
+    {
+      "name": "double-then-getter",
+      "group": "public",
+      "mutation": "Change both actual and expected then-getter count to two.",
+      "exitCode": 1,
+      "sha256": "c28b21477a0b0c47b565133a47f41708a075764c32c90a6036d08c40a4eb9562",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 262, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 226, in main\r\n    if row['source'] == 'candidate': assert match, (group, trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('public', 'existing update thenable rejects synchronously without fallback or unhandled rejection', 1, {'kind': 'equal', 'actual': [2, 1, True], 'expected': [2, 1, True], 'message': ''}, [1, 1, True])\r\n"
+    },
+    {
+      "name": "untrusted-native-event",
+      "group": "native",
+      "mutation": "Revoke trusted native input in both the observation and independent result record.",
+      "exitCode": 1,
+      "sha256": "b5bd16d9fed7f8073d2c0f6d0a2f8526aec27d2f79173360358bc3e423af8541",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 262, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 226, in main\r\n    if row['source'] == 'candidate': assert match, (group, trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('native', 'trusted immediate replacement preserves caret and keyboard history', 0, {'kind': 'equal', 'actual': [{'type': 'deleteContentBackward', 'trusted': False, 'prevented': True}], 'expected': [{'type': 'deleteContentBackward', 'trusted': False, 'prevented': True}], 'message': ''}, [{'type': 'deleteContentBackward', 'trusted': True, 'prevented': True}])\r\n"
+    },
+    {
+      "name": "stolen-successor-caret",
+      "group": "native",
+      "mutation": "Replace both actual and expected newer field selection with an old queued widget caret.",
+      "exitCode": 1,
+      "sha256": "eaab69c4c2d7b0bca14eeee38620317882bd649ddee694220ebb7fbfae7b0b27",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 262, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 226, in main\r\n    if row['source'] == 'candidate': assert match, (group, trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('native', 'trusted immediate same-id-owner supersedes the old queued caret', 3, {'kind': 'equal', 'actual': {'anchor': False, 'focus': False, 'anchorOffset': 2, 'focusOffset': 2, 'active': False}, 'expected': {'anchor': False, 'focus': False, 'anchorOffset': 2, 'focusOffset': 2, 'active': False}, 'message': ''}, {'anchor': True, 'focus': True, 'anchorOffset': 1, 'focusOffset': 1, 'active': True})\r\n"
+    },
+    {
+      "name": "missing-rollback-race",
+      "group": "native",
+      "mutation": "Delete the rollback race, trace, record and protocol entries while leaving other PASS verdicts.",
+      "exitCode": 1,
+      "sha256": "b973e1f6d3d77e342c231d74b443a2ffc1a48f312e70351a0f79b4b26de96fdf",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 262, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\optional-inline\\review.py\", line 212, in main\r\n    assert [case['name'] for case in row['cases']] == list(models)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

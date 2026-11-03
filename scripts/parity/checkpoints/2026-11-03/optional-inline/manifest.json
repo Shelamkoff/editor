@@ -1,0 +1,67 @@
+{
+  "candidate": "baa0ffc5d240b149b5c909f60d352423829143c3",
+  "tree": "368f915a98c90768ca0358c07f35312e891f974c",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T10:06:58.537Z",
+    "finishedAt": "2026-11-03T10:13:53.472Z",
+    "identity": "297113bc8142dd38c9bc25938376334e2ff0deef1b70f6f6f8c2b63b845bed44",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser-all": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-optional": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "optional-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "optional-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 85,
+    "open": 124
+  },
+  "acceptedRows": [
+    "CONTRACT_INLINE_OPTIONAL_UPDATE",
+    "CONTRACT_INLINE_OPTIONAL_TASK",
+    "CONTRACT_INLINE_OPTIONAL_IMMEDIATE",
+    "CONTRACT_OPTIONAL_NOOP_REUSE",
+    "CONTRACT_OPTIONAL_RECREATE_FAILURE",
+    "CONTRACT_INLINE_SYNC_UPDATE_CONTROLS",
+    "CONTRACT_NATIVE_RECONCILE_UPDATE_REQUIRED"
+  ],
+  "registerAfter": {
+    "accepted": 92,
+    "open": 117
+  },
+  "publicCases": 30,
+  "nativeCases": 8,
+  "manualCandidateChecks": 406,
+  "rawComparisonExits": {
+    "public": 1,
+    "native": 1
+  },
+  "reviewExit": 0,
+  "earlierFixtureSetupFailure": {
+    "source": "44de7d2b29832e5af19b3a6fff8e274bfc3baa02",
+    "run": "run-WctIZ8",
+    "outcome": "failed"
+  }
+}

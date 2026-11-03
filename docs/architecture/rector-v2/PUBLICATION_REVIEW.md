@@ -2,9 +2,54 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **85 / 209 obligations**, with **124 open**; see the [continuation/history acceptance](#continuation-history-and-deferred-callbacks-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **92 / 209 obligations**, with **117 open**; see the [optional-inline/native-caret acceptance](#optional-inline-instances-and-native-caret-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Optional inline instances and native caret — 2026-11-03
+
+Seven named optional-instance rows are accepted on immutable
+`baa0ffc5d240b149b5c909f60d352423829143c3`, Windows x64 / Chrome 156.0.8078.79:
+context update, task update, immediate caret, no-op reuse, failed replacement,
+synchronous-update controls and native-reconciliation's required update hook.
+The register becomes **92 accepted / 117 open**. No production behavior changed.
+
+The ordinary matrix contains 30 cases / 339 manual expectations, retaining the
+original nine names/assertions. It verifies coherent replacement and one action,
+same author reference with fresh occurrence, sibling/text/backward-range
+preservation, live no-op/unrelated tasks, every falsy and Error acquisition/
+update failure, provisional cleanup, rejected Promise/thenable, one then getter
+with its receiver, no fallback to rejected beta, and valid/invalid native opt-in.
+
+Eight additional native cases / 67 manual expectations use trusted Backspace
+and keyboard Undo/Redo. They verify exact resulting caret 2, exterior fallback,
+and cancellation by newer selection, mode, same-ID owner, rollback or destruction.
+Each race includes a real application MutationObserver control after replacement
+and before the old queued caret. The 24 protocol requests and trusted consumed
+beforeinput records are independently checked; native input does not leak.
+Installed valid ranges are explicit and do not claim physical drag selection.
+
+`run-mFAfGI` passes all six affected gates on clean unchanged source: types,
+all 46 ordinary pages, the separate eight-case repository native driver, both
+Git comparisons plus manual model, six negative evidence controls and docs.
+The model reviews 626 observations, verifies 275 distinct source/module
+identities across 550 group visits, six dependency files and eight versions.
+Wrong source, matching stale labels, a doubled then getter, untrusted input,
+stolen successor caret and missing rollback race are all rejected. Runtime paths
+and loaded candidate modules are byte identical to separately integrated
+`f2070510`; its original 21-gate result is preserved. This is author verification
+by an independently written model, not another agent's review.
+
+The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/optional-inline/README.md)
+retains both corpora, both manifests, exact verifier bytes, controls and hashes.
+The preceding clean `44de7d2b` run remains failed: its HTML omitted the repository
+native-input bridge. The corrected page initializes the existing driver; no
+native event oracle or budget was weakened. Historical baseline outcomes remain
+15/30 ordinary and 1/8 native passing, with 185 and 35 observations and raw exit
+1 for both comparisons. Candidate/source/model review exits 0. v1 executes its
+actual native Paragraph Backspace and saved/visible result, without emulating
+v2 instance/task ports. Decoder and standalone C12, B-HTML and full readiness
+retain separate proof obligations.
 
 ## Continuation history and deferred callbacks — 2026-11-03
 

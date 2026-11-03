@@ -1,8 +1,23 @@
 # Rector v2 audit closeout — active work
 
+## Optional inline/native-caret acceptance — 2026-11-03
+
+The current register is **92/209 accepted, 117 open**. Seven optional-instance
+contracts are accepted on clean unchanged `baa0ffc5`: 30 ordinary and eight
+trusted native cases / 406 manual expectations. All six gates in `run-mFAfGI`
+pass, including all 46 ordinary pages, the separate repository native driver,
+two Git comparisons plus manual model and six rejected evidence corruptions.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/optional-inline/README.md)
+retains both corpora, both original manifests, verifier bytes and the failed
+first fixture setup run. Runtime paths remain byte identical to separately
+integrated `f2070510`; no production behavior changed. v1's actual native
+Paragraph control is executed without emulating current instance/task ports.
+Decoder/unknown-extension and standalone presentation obligations are next;
+B-HTML and full readiness remain open.
+
 ## Continuation/history acceptance — 2026-11-03
 
-The current register is **85/209 accepted, 124 open**. Three named
+At this checkpoint the register became **85/209 accepted, 124 open**. Three named
 continuation/history contracts are accepted on clean unchanged `442c8825`:
 22 cases / 230 independent manual expectations, 275 verified production
 modules and all five affected gates in `run-zzJNsr`, including **all 46 ordinary
@@ -14,7 +29,7 @@ v1's actual diagnostic callback and later public render are explicitly executed;
 current deferred delivery and instance task/history improvements remain.
 Comparison exit 1 and review exit 0 remain distinct. Remote was fetched again:
 still `3fcfa866`, no incoming commits, push or publication. Optional inline
-update/projection obligations are next; full readiness remains open.
+update/projection obligations follow above; full readiness remains open.
 
 ## Public mode-recovery acceptance — 2026-11-03
 

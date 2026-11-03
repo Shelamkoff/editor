@@ -1,0 +1,7 @@
+{
+  "group": "public",
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical specification-baseline failures retain raw exit 1; candidate/source/independent model separately pass. v1 executes its actual native Paragraph control."
+}
