@@ -316,3 +316,30 @@ test('missing public snapshots stay undefined without visiting another block pay
     assert.equal(observed.traversals, 0)
   } finally { runtime.destroy() }
 })
+
+for (const mutation of ['render', 'remove']) test('public iterator keeps its initial activation metadata after ' + mutation, () => {
+  const { runtime, api, events } = fixture()
+  try {
+    const iterator = api[Symbol.iterator]()
+    assert.equal(iterator.next().value.id, 'a')
+    let retained
+    if (mutation === 'render') {
+      assert.equal(iterator.next().value.id, 'b')
+      runtime.render({ version: '2.0.0', blocks: [{ id: 'unknown', type: 'snapshot-test', dataVersion: 1, data: makeData('replacement') }] })
+      retained = iterator.next().value
+      assert.equal(retained.type, 'not-registered')
+      assert.deepEqual(retained.data, makeData('unknown'))
+      assert.equal(retained.status, 'unregistered')
+      assert.equal(api.get('unknown').status, 'active')
+    } else {
+      runtime.remove('b', 'host')
+      retained = iterator.next().value
+      assert.equal(retained.type, 'snapshot-test')
+      assert.deepEqual(retained.data, makeData('b'))
+      assert.equal(retained.status, 'active')
+      assert.equal(api.get('b'), undefined)
+    }
+    assert.equal(Object.isFrozen(retained), true)
+    assert.equal(events.length, 1, 'iteration adds no action to the explicit document mutation')
+  } finally { runtime.destroy() }
+})

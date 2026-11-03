@@ -306,31 +306,7 @@ for (const registered of [false, true]) test(`mode transitions keep unregistered
   } finally { reconciler.destroy() }
 })
 
-for (const registered of [false, true]) test(`mode transitions keep unregistered placeholders inert: ${registered ? 'inactive registered type' : 'unknown type'}`, () => {
-  const { document, registry, counters } = setup(0)
-  const container = document.createElement('div')
-  const opaque = { text: 'Opaque', nested: { rows: [{ value: 7 }] } }
-  const store = new DocumentStore({ version: '2.0.0', blocks: [
-    { id: 'x', type: registered ? 'paragraph' : 'future', data: opaque }, block('y', 'Healthy'),
-  ] })
-  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}), activationResolver: id => id !== 'x' })
-  try {
-    reconciler.mount(store)
-    const placeholder = reconciler.getElement('x'), healthy = reconciler.getElement('y')
-    counters.create = counters.destroy = counters.readOnly = 0
-    for (const mode of [true, false]) {
-      reconciler.setReadOnly(mode)
-      assert.equal(reconciler.getElement('x'), placeholder)
-      assert.equal(placeholder.contentEditable, 'false')
-      assert.equal(reconciler.getElement('y'), healthy)
-      assert.deepEqual(store.get('x').data, opaque)
-      assert.equal(store.revision, 0)
-    }
-    assert.equal(counters.readOnly, 2, 'only the healthy plugin receives mode hooks')
-    assert.equal(counters.create, 0)
-    assert.equal(counters.destroy, 0)
-  } finally { reconciler.destroy() }
-})
+
 
 
 test('document replacement recreates same-id block instances and aborts their lifetime', () => {

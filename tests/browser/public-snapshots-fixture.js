@@ -5,6 +5,7 @@ for (const mode of ['editable', 'read-only']) for (const query of ['get', 'at', 
 for (const query of ['get', 'at', 'list', 'iterator']) publicSnapshotCases.push({ id: 'update/' + query, kind: 'update', mode: 'editable', query, target: 'known' })
 for (const mode of ['editable', 'read-only']) publicSnapshotCases.push({ id: 'catalog/' + mode, kind: 'catalog', mode })
 for (const step of ['before-first', 'after-first']) publicSnapshotCases.push({ id: 'retired-iterator/' + step, kind: 'retired-iterator', mode: 'editable', step })
+for (const mutation of ['render', 'remove']) publicSnapshotCases.push({ id: 'iterator/' + mutation + '-status', kind: 'iterator-status', mode: 'editable', mutation })
 const pause = () => new Promise(resolve => setTimeout(resolve, 25))
 const copy = value => JSON.parse(JSON.stringify(value))
 const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value
@@ -22,6 +23,7 @@ function expectedSnapshot(block) {
   return { ...copy(block), status: block.type === 'future-block' ? 'unregistered' : 'active' }
 }
 export async function runPublicSnapshotCase({ sourceBase = '../../', legacy = false, spec }) {
+  if (spec.kind === 'iterator-status') return runSnapshotIteratorCase({ sourceBase, legacy, spec })
   const base = new URL(sourceBase, import.meta.url)
   const [core, paragraph] = await Promise.all(['core/index.js', 'plugins/paragraph/index.js'].map(path => import(new URL(path, base))))
   const observations = [], diagnostics = [], unsupported = [], transactions = [], completedPhases = []
@@ -115,4 +117,45 @@ export async function runPublicSnapshotCase({ sourceBase = '../../', legacy = fa
     return { id: spec.id, spec, observations, diagnostics, transactions, unsupported, planned, completedPhases, error: null }
   } catch (error) { return { id: spec.id, spec, observations, diagnostics, transactions, unsupported, planned, completedPhases, phase, error: String(error?.stack ?? error) } }
   finally { editor?.destroy(); old?.destroy(); holder.remove() }
+}
+
+async function runSnapshotIteratorCase({ sourceBase, legacy, spec }) {
+  const [core, paragraph] = await Promise.all(['core/index.js', 'plugins/paragraph/index.js'].map(path => import(new URL(path, new URL(sourceBase, import.meta.url)))))
+  const observations = [], diagnostics = [], unsupported = [], transactions = [], completedPhases = []
+  const check = (phase, property, actual, expected) => {
+    const a = copy(actual), e = copy(expected)
+    observations.push({ phase, property, actual: a, expected: e, status: same(a, e) ? 'PASS' : 'FAIL' })
+  }
+  const para = (id, text) => ({ id, type: 'paragraph', ...(!legacy ? { dataVersion: 2 } : {}), data: { text } })
+  const initial = [para('a', 'Alpha'), spec.mutation === 'render'
+    ? { id: 'b', type: 'future-block', ...(!legacy ? { dataVersion: 7 } : {}), data: { text: 'Old Bravo' } } : para('b', 'Old Bravo')]
+  const updated = spec.mutation === 'render' ? [para('b', 'New Bravo')] : [para('a', 'Alpha')]
+  const planned = legacy ? ['legacy-control', 'dispose'] : ['load', 'change', 'iterate', 'dispose']
+  const holder = document.createElement('section'); document.body.append(holder)
+  let editor, phase = 'load'
+  try {
+    editor = core.createEditor({ holder, inlineTools: [], injectStyles: false, plugins: [legacy ? new paragraph.Paragraph() : paragraph.createParagraphPlugin()],
+      onDiagnostic: value => diagnostics.push(value), data: { version: legacy ? '1.0.5' : '2.0.0', blocks: initial } })
+    if (!legacy) editor.on('transaction:committed', event => transactions.push({ action: event.action, origin: event.origin, name: event.name }))
+    if (legacy) {
+      phase = 'legacy-control'; check(phase, 'actualLegacyIteratorIds', [...editor.blocks].map(block => block.id), ['a', 'b'])
+      unsupported.push({ property: 'canonicalSnapshotStatus', reason: 'Legacy live PublicBlockView has no canonical snapshot/status contract; actual legacy iterator executes.' }); completedPhases.push(phase)
+    } else {
+      const iterator = editor.blocks[Symbol.iterator]()
+      check(phase, 'firstSnapshot', iterator.next().value, { ...initial[0], status: 'active' }); check(phase, 'initialHistory', [editor.canUndo, editor.canRedo], [false, false]); completedPhases.push(phase)
+      phase = 'change'
+      if (spec.mutation === 'render') editor.render({ version: '2.0.0', blocks: updated })
+      else editor.blocks.remove('b')
+      check(phase, 'canonical', editor.save().blocks, updated); check(phase, 'history', [editor.canUndo, editor.canRedo], [true, false]); completedPhases.push(phase)
+      phase = 'iterate'
+      const retained = iterator.next().value
+      check(phase, 'retainedSnapshot', retained, { ...initial[1], status: spec.mutation === 'render' ? 'unregistered' : 'active' })
+      check(phase, 'frozenEnvelope', Object.isFrozen(retained), true); check(phase, 'exhausted', iterator.next().done, true)
+      check(phase, 'canonicalUnchanged', editor.save().blocks, updated); check(phase, 'historyUnchanged', [editor.canUndo, editor.canRedo], [true, false])
+      check(phase, 'oneExplicitAction', transactions, [{ action: 'commit', origin: 'external', name: spec.mutation === 'render' ? 'document.render' : 'block.remove' }]); completedPhases.push(phase)
+    }
+    phase = 'dispose'; editor.destroy(); check(phase, 'rootRemoved', !holder.querySelector('.oe-editor'), true); completedPhases.push(phase)
+    return { id: spec.id, spec, observations, diagnostics, transactions, unsupported, planned, completedPhases, error: null }
+  } catch (error) { return { id: spec.id, spec, observations, diagnostics, transactions, unsupported, planned, completedPhases, phase, error: String(error?.stack ?? error) } }
+  finally { editor?.destroy(); holder.remove() }
 }
