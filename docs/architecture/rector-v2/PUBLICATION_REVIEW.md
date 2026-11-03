@@ -2,9 +2,50 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **104 / 209 obligations**, with **105 open**; see the [public block structure acceptance](#public-block-structure-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **105 / 209 obligations**, with **104 open**; see the [public editor destruction acceptance](#public-editor-destruction-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public editor destruction acceptance — 2026-11-03
+
+`PUBLIC_DESTROY` is accepted on immutable `28ee534df4e22ed3cf231f59321ee0558331f9a8`:
+**eight cases / 536 passing observations**, 544 independent current checks and
+nine rejected corruptions. The register becomes **105 accepted / 104 open**.
+No production change was needed.
+
+Known/opaque data, both modes and immediate/microtask delivery cover 31 retained
+public operations per case: handle getters/commands, subscriptions, block
+catalogs/control/mutation and unstarted/started iterators. They reject before
+caller getters or producers. Old block/inline task and context rights retire,
+instances dispose exactly once and destroy facts occur once. Repeated destroy
+after reacquiring the same holder preserves the successor. A separate matching-ID
+editor keeps canonical data, history, focus and exact native range. The successor
+admits a fresh no-op task and a real host action with exact Undo/Redo. Retained
+DOM is compared after legitimate widget cleanup, without forbidding that cleanup.
+
+All six clean unchanged affected gates pass: types, all 53 ordinary pages,
+fresh heap, exact-Git comparison/model, nine corruptions and docs. The ordinary
+lifecycle page exercises existing open media/inline panels, overlays, listeners,
+observers and object URLs against resource baselines. The separate heap gate
+retains **zero of 23 sentinels**, including its explicit retained-control release
+and history-eviction phases. These measured checks are not a claim about every
+possible browser resource. The model binds browser/heap environment, source
+identity, executed lifecycle/heap code and results. Runtime remains byte identical
+to separately integrated `efc619d2`; its original 13-gate manifest is retained.
+
+All eight specification-baseline cases complete with eight stale-task option
+read failures among 536 observations. v1 completes eight containers and real
+live render/replay controls, retaining 136 stricter-terminal-admission differences
+among 416 observations. Sixteen retained producer/keyed-focus actions lack old
+public equivalents and are explicitly skipped; eight additional live producer
+actions are declared absent, with real old render as a separate positive control.
+Another eight declarations concern absent instance/event observation ports.
+Current exceptions, incomplete phases, unsupported actions and failures are zero.
+No older permissive terminal behavior is restored. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/public-destroy/README.md)
+retains full logs/corpus, raw exit 1 versus current model exit 0, executed model,
+corruptions and source hashes. This is author verification with an independent
+model. Other public rows, B-HTML and full readiness remain open.
 
 ## Public block structure acceptance — 2026-11-03
 

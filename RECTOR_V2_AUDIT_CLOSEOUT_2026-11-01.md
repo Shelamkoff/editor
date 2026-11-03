@@ -6,9 +6,22 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Public editor destruction acceptance — 2026-11-03
+
+The current register is **105/209 accepted, 104 open**. `PUBLIC_DESTROY`
+passes eight cases / 536 observations, 544 independent checks and nine rejected
+corruptions on `28ee534d`. Thirty-one retained operations stop before caller
+code, old task/context rights retire and cleanup is exact once. Repeated destroy
+preserves the same-holder successor and a matching-ID independent editor.
+All six frozen gates and all 53 ordinary pages pass, including fresh lifecycle
+resource controls and heap 23 sentinels / zero retained. Runtime remains byte
+identical to separately integrated `efc619d2`. The [checkpoint](scripts/parity/checkpoints/2026-11-03/public-destroy/README.md)
+retains complete results, model, corruptions and hashes. Other public contracts
+and whole-library readiness remain open.
+
 ## Public block structure acceptance — 2026-11-03
 
-The current register is **104/209 accepted, 105 open**. `PUBLIC_STRUCTURE`
+At that checkpoint the register was **104/209 accepted, 105 open**. `PUBLIC_STRUCTURE`
 passes 58 cases / 1,192 observations, 1,250 independent checks and nine rejected
 corruptions on `c45a2e39`. Insert/update/remove/move/default, nested Table rows,
 owned inputs, semantic no-ops, one-action nested commands and caught-error

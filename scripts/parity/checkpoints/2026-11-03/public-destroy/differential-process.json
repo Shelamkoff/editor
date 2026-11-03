@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Legacy terminal admission and baseline stale-task option reads retain historical exit 1. The current eight-case contract and independent model pass separately."
+}

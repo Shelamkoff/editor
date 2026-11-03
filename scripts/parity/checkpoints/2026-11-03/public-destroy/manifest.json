@@ -1,0 +1,53 @@
+{
+  "candidate": "28ee534df4e22ed3cf231f59321ee0558331f9a8",
+  "tree": "1632bd9a566f56f6530243ba8328374fd746a361",
+  "integratedRuntime": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T16:15:29.900Z",
+    "finishedAt": "2026-11-03T16:18:10.873Z",
+    "identity": "e2b4be6125c6cccaf389938d1234d4b68868a688afe20fd6f3f2291482afd34b",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "heap": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "destroy-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "destroy-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 104,
+    "open": 105
+  },
+  "acceptedRows": [
+    "PUBLIC_DESTROY"
+  ],
+  "registerAfter": {
+    "accepted": 105,
+    "open": 104
+  },
+  "cases": 8,
+  "observations": 536,
+  "independentCurrentChecks": 544,
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}
