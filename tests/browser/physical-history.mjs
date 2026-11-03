@@ -590,6 +590,7 @@ try {
     'native-fontsize-imported.html', 'native-fontsize-imported-trusted.html',
     'native-public-readonly.html', 'native-public-readonly-trusted.html',
     'native-disclosure-state.html', 'native-disclosure-state-trusted.html',
+    'native-delimiter-structure.html', 'native-delimiter-structure-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({

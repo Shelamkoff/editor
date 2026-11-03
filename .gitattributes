@@ -177,3 +177,12 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-03/extension-tasks/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-03/extension-tasks/**/*.json -text
 /scripts/parity/checkpoints/2026-11-03/extension-tasks/**/*.gz -text
+
+# Delimiter public and native structural proof
+/tests/browser/delimiter-structure-fixture.js text eol=lf
+/tests/browser/native-delimiter-structure* text eol=lf
+/scripts/parity/delimiter-structure.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-03/delimiter-structure/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-03/delimiter-structure/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-03/delimiter-structure/**/*.json -text
+/scripts/parity/checkpoints/2026-11-03/delimiter-structure/**/*.gz -text
