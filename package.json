@@ -96,7 +96,7 @@
     "docs:build": "npm run docs:sync && vitepress build docs",
     "docs:preview": "vitepress preview docs --host 127.0.0.1",
     "docs:check": "npm run docs:build && node scripts/vitepress-docs-smoke.mjs && node scripts/vitepress-browser-smoke.mjs",
-    "test": "node --test",
+    "test": "node scripts/run-node-tests.mjs",
     "test:browser": "node tests/browser/run.mjs && node tests/browser/physical-history.mjs && node tests/browser/heap-gate.mjs",
     "test:plugin-source": "node scripts/plugin-source-audit.mjs",
     "test:plugin-locales": "node scripts/plugin-locale-audit.mjs",
