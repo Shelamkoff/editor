@@ -10,3 +10,7 @@ scripts/parity/mode-recovery.mjs text eol=lf
 tests/browser/mode-recovery.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/mode-recovery/*.json -text
 scripts/parity/checkpoints/2026-11-03/mode-recovery/*.gz -text
+scripts/parity/continuation-authority.mjs text eol=lf
+tests/browser/continuation-authority.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/continuation-authority/*.json -text
+scripts/parity/checkpoints/2026-11-03/continuation-authority/*.gz -text

@@ -161,6 +161,7 @@ labels.push('content-styles.html')
 labels.push('code-lazy-contracts.html')
 labels.push('raw-srcset.html')
 labels.push('raw-srcset-trusted-types.html')
+labels.push('continuation-authority.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()
