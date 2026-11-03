@@ -6,12 +6,13 @@ import { resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createServer } from '../../node_modules/vite/dist/node/index.js'
 import { findChrome } from '../../tests/browser/environment.mjs'
+import { captureNavigationDependencies,verifyNavigationDependencies } from './git-navigation-roots.mjs'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
   ? pathToFileURL(resolve(process.env.EDITOR_PLAYWRIGHT_PATH)).href : 'playwright')
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
-const files = ['scripts/parity/html-content-navigation.mjs',
+const files = ['scripts/parity/html-content-navigation.mjs','scripts/parity/git-navigation-roots.mjs',
   'shared/sanitize/walker.js', 'shared/sanitize/parseInline.js', 'shared/sanitize/sanitizeHtml.js',
   'shared/sanitize/contentClasses.js', 'shared/contentClassStyles.js', 'shared/contentClassSelectors.js',
   'core/InlineProjectionRuntime.js', 'renderer/inlineWidgets.js', 'plugins/paragraph/index.js', 'renderer/renderers/paragraph/index.js',
@@ -23,6 +24,7 @@ const files = ['scripts/parity/html-content-navigation.mjs',
 const sourceHashes = Object.fromEntries(await Promise.all(files.map(async path => [path, sha256(await readFile(resolve(root, path)))])))
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim()
 const startedAt = new Date().toISOString()
+const dependencies = await captureNavigationDependencies(root)
 
 const requests = []
 const server = await createServer({ root, cacheDir:'test-results/html-navigation-vite-cache', logLevel: 'error', server: { host: '127.0.0.1', port: 0 }, plugins: [{
@@ -160,6 +162,7 @@ try {
   for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(sha256(await readFile(resolve(root, path))), expected, 'Source changed: '+path)
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim(), head, 'HEAD changed')
   const candidatePass=results.length===72&&results.every(result=>result.status==='PASS')
-  console.log(JSON.stringify({scope:'Real target/modifier navigation on six public Raw/HTML Carousel/Paragraph surfaces compared to an independent bare anchor in a three-level owner hierarchy, distinct parent/top destinations, inspected attributes, trusted input and enforcing CSP',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,platform:process.platform,architecture:process.arch,browser:browser.version(),browserExecutable,sourceHashes,sourceUnchanged:true,candidatePass,results},null,2))
+  await verifyNavigationDependencies(root,dependencies)
+  console.log(JSON.stringify({scope:'Real target/modifier navigation on six public Raw/HTML Carousel/Paragraph surfaces compared to an independent bare anchor in a three-level owner hierarchy, distinct parent/top destinations, inspected attributes, trusted input and enforcing CSP',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,platform:process.platform,architecture:process.arch,browser:browser.version(),browserExecutable,sourceHashes,dependencies,sourceUnchanged:true,candidatePass,results},null,2))
   if(!candidatePass)process.exitCode=1
 } finally {await browser.close();await server.close()}

@@ -6,7 +6,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createServer } from '../../node_modules/vite/dist/node/index.js'
 import { findChrome } from '../../tests/browser/environment.mjs'
-import { createNavigationRoots,verifyNavigationRoots } from './git-navigation-roots.mjs'
+import { createNavigationRoots,verifyNavigationRoots,captureNavigationDependencies,verifyNavigationDependencies } from './git-navigation-roots.mjs'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const { chromium } = await import(process.env.EDITOR_PLAYWRIGHT_PATH
@@ -24,6 +24,7 @@ const files = ['scripts/parity/html-targets.mjs','scripts/parity/git-navigation-
 const sourceHashes = Object.fromEntries(await Promise.all(files.map(async path => [path, sha256(await readFile(resolve(root, path)))])))
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim()
 const startedAt = new Date().toISOString()
+const dependencies = await captureNavigationDependencies(root)
 const sources=await createNavigationRoots(root,[{label:'v1',sha:'5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340',legacy:true},{label:'spec-baseline',sha:'e981ff308000c1d92d7e820df95113c1e19bcee8',legacy:false},{label:'candidate',sha:head,legacy:false}])
 
 const requests = []
@@ -159,8 +160,9 @@ try {
   for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(sha256(await readFile(resolve(root, path))), expected, 'Source changed: '+path)
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root }).toString().trim(), head, 'HEAD changed')
   await verifyNavigationRoots(sources)
+  await verifyNavigationDependencies(root,dependencies)
   const current=results.filter(result=>result.source==='candidate')
   const candidatePass=results.length===36&&current.length===12&&current.every(result=>result.status==='PASS')
-  console.log(JSON.stringify({scope:'Three-source authored inline target navigation on public Paragraph editor/renderer surfaces, compatible allowing policy, distinct parent/top contexts and real native controls',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,platform:process.platform,architecture:process.arch,browser:browser.version(),browserExecutable,sourceHashes,sourceUnchanged:true,candidatePass,sources:sources.map(({root,...source})=>source),results},null,2))
+  console.log(JSON.stringify({scope:'Three-source authored inline target navigation on public Paragraph editor/renderer surfaces, compatible allowing policy, distinct parent/top contexts and real native controls',head,startedAt,finishedAt:new Date().toISOString(),node:process.version,platform:process.platform,architecture:process.arch,browser:browser.version(),browserExecutable,sourceHashes,dependencies,sourceUnchanged:true,candidatePass,sources:sources.map(({root,...source})=>source),results},null,2))
   if(!candidatePass||results.some(result=>result.status!=='PASS'))process.exitCode=1
 } finally {await browser.close();await server.close()}

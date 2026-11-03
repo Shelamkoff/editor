@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
-import { mkdtemp,mkdir,writeFile,readFile } from 'node:fs/promises'
+import { mkdtemp,mkdir,writeFile,readFile,readdir } from 'node:fs/promises'
 import { dirname,join,relative,resolve,sep } from 'node:path'
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex')
 const prefixes=['core/','shared/','plugins/','plugin-kit/','inline-tools/','inline-plugins/','renderer/','preset/','locale/']
@@ -30,4 +30,26 @@ export async function createNavigationRoots(repo,specifications){
 }
 export async function verifyNavigationRoots(sources){
  for(const source of sources)for(const[path,expected]of Object.entries(source.files))assert.equal(hash(await readFile(join(source.root,path))),expected,source.label+'/'+path)
+}
+/** Bind installed runtime dependency assets independently of Vite's cache. */
+export async function captureNavigationDependencies(repo){
+ const pending=Object.keys(JSON.parse(await readFile(join(repo,'package.json'),'utf8')).dependencies),versions={},files={}
+ for(const name of pending){
+  if(Object.hasOwn(versions,name))continue
+  const directory=join(repo,'node_modules',name),manifest=JSON.parse(await readFile(join(directory,'package.json'),'utf8'));versions[name]=manifest.version
+  pending.push(...Object.keys(manifest.dependencies??{}).filter(value=>value.startsWith('@shelamkoff/')))
+  await scan(directory)
+ }
+ return{versions,files}
+ async function scan(directory){
+  for(const entry of await readdir(directory,{withFileTypes:true})){
+   if(entry.name==='node_modules')continue
+   const path=join(directory,entry.name)
+   if(entry.isDirectory())await scan(path)
+   else if(entry.isFile()&&/\.(?:[cm]?js|css|json)$/.test(entry.name))files[relative(repo,path).split(sep).join('/')]=hash(await readFile(path))
+  }
+ }
+}
+export async function verifyNavigationDependencies(repo,snapshot){
+ for(const[path,expected]of Object.entries(snapshot.files))assert.equal(hash(await readFile(join(repo,path))),expected,path)
 }
