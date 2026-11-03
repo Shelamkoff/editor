@@ -199,3 +199,12 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 # Canonical source Node test discovery
 /scripts/run-node-tests.mjs text eol=lf
 /scripts/run-node-tests.test.mjs text eol=lf
+
+# Concrete LinkPreview metadata and native request lifetime proof
+/tests/browser/link-preview-metadata-fixture.js text eol=lf
+/tests/browser/native-link-preview-metadata* text eol=lf
+/scripts/parity/link-preview-metadata.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/link-preview-metadata/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-04/link-preview-metadata/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/link-preview-metadata/**/*.json -text
+/scripts/parity/checkpoints/2026-11-04/link-preview-metadata/**/*.gz -text

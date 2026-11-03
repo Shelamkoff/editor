@@ -582,3 +582,82 @@ test('LinkPreview refresh preserves a newer metadata request started by an abort
     assert.equal(h.model().description, 'Newest description')
   } finally { h.destroy() }
 })
+
+test('LinkPreview native change after Enter keeps the already pending metadata request', async () => {
+  const requests = []
+  const h = mount({ fetchMeta: (url, { signal }) => {
+    requests.push({ url, signal })
+    return new Promise(() => {})
+  } })
+  try {
+    h.input.focus()
+    h.input.value = 'https://next.example/article'
+    h.input.dispatch('input')
+    h.nativeCommit({ ...h.model(), url: h.input.value, title: '', domain: 'next.example' })
+    h.input.dispatch('keydown')
+    assert.equal(requests.length, 1)
+    h.ownerDocument.activeElement = null
+    h.input.dispatch('change')
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(requests.length, 1, 'blur submitted the URL already accepted by Enter again')
+    assert.equal(requests[0].signal.aborted, false, 'unrelated focus revoked valid metadata work')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview pending native change cannot start metadata after immediate disposal', async () => {
+  const requests = []
+  const h = mount({ fetchMeta: url => {
+    requests.push(url)
+    return new Promise(() => {})
+  } })
+  h.input.focus()
+  h.input.value = 'https://next.example/article'
+  h.input.dispatch('input')
+  h.nativeCommit({ ...h.model(), url: h.input.value, title: '', domain: 'next.example' })
+  h.input.dispatch('change')
+  h.destroy()
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.deepEqual(requests, [], 'a discarded control started an application request')
+})
+
+test('LinkPreview native change without Enter still submits once and completes its debounce', async () => {
+  const requests = []
+  const h = mount({ fetchMeta: url => {
+    requests.push(url)
+    return new Promise(() => {})
+  } })
+  try {
+    h.input.focus()
+    h.input.value = 'https://next.example/article'
+    h.input.dispatch('input')
+    h.nativeCommit({ ...h.model(), url: h.input.value, title: '', domain: 'next.example' })
+    h.ownerDocument.activeElement = null
+    h.input.dispatch('change')
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(requests, ['https://next.example/article'])
+    assert.deepEqual(h.timerIds(), [])
+  } finally { h.destroy() }
+})
+
+test('LinkPreview mode round trip revokes a queued native change', async () => {
+  const requests = []
+  const h = mount({ fetchMeta: url => {
+    requests.push(url)
+    return new Promise(() => {})
+  } })
+  try {
+    h.input.focus()
+    h.input.value = 'https://next.example/article'
+    h.input.dispatch('input')
+    h.nativeCommit({ ...h.model(), url: h.input.value, title: '', domain: 'next.example' })
+    h.input.dispatch('change')
+    h.instance.setReadOnly(true)
+    h.instance.setReadOnly(false)
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(requests, [], 'an old change resumed after its mode was retired')
+  } finally { h.destroy() }
+})
