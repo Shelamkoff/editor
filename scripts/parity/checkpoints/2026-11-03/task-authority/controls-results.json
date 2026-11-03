@@ -1,0 +1,40 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-candidate",
+      "mutation": "Replace the candidate production source with the specification baseline.",
+      "exitCode": 1,
+      "sha256": "15bf27aebf8fba0b4c45773272951c1b6db2c1bf15c1f34312d59661557431cc",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 203, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 123, in main\r\n    assert {source['label']: source['sha'] for source in raw['sources']} == expected_sources\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "consistent-wrong-state",
+      "mutation": "Change actual and expected canonical data together while retaining PASS.",
+      "exitCode": 1,
+      "sha256": "0aac3ea9829268fe5792a28225ac7569b9a24b78df3bd8ca2fd2c44e80600896",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 203, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 190, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('a task captures its declared option once before authoring and preserves one undo gesture', 11, {'kind': 'equal', 'actual': [{'id': 'a', 'type': 'scope-block', 'dataVersion': 1, 'data': {'text': 'Before{{ref}}After', 'count': 42}, 'inline': {'ref': {'type': 'scope-inline', 'dataVersion': 1, 'data': {'label': 'Accepted'}}}}], 'expected': [{'id': 'a', 'type': 'scope-block', 'dataVersion': 1, 'data': {'text': 'Before{{ref}}After', 'count': 42}, 'inline': {'ref': {'type': 'scope-inline', 'dataVersion': 1, 'data': {'label': 'Accepted'}}}}], 'message': ''}, [{'id': 'a', 'type': 'scope-block', 'dataVersion': 1, 'data': {'text': 'Before{{ref}}After', 'count': 0}, 'inline': {'ref': {'type': 'scope-inline', 'dataVersion': 1, 'data': {'label': 'Accepted'}}}}])\r\n"
+    },
+    {
+      "name": "missing-option-read",
+      "mutation": "Remove the option getter call from both actual and expected counts.",
+      "exitCode": 1,
+      "sha256": "943aac70383ef473ad52ec1605b23efa144a942f021b49437ff51cc76886505c",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 203, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 190, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('a task captures its declared option once before authoring and preserves one undo gesture', 8, {'kind': 'equal', 'actual': [0, 0, 1], 'expected': [0, 0, 1], 'message': ''}, [1, 0, 1])\r\n"
+    },
+    {
+      "name": "missing-retired-mode-case",
+      "mutation": "Remove the mode-revoked task case and its trace, retaining other PASS verdicts.",
+      "exitCode": 1,
+      "sha256": "b1fc18d5493a94b1b9bcb000936f623ad0f368b4e3b510650837c584cdb1d04b",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 203, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 173, in main\r\n    assert [case['name'] for case in row['cases']] == list(models)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "exposed-decoded-accessor",
+      "mutation": "Expose an unevaluated decoder accessor as both actual and expected read data.",
+      "exitCode": 1,
+      "sha256": "262ddf2e1b91fc1f717e80c92ba9aa1449fcb84f62386c922e347681d775c00f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 203, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\task-authority\\review.py\", line 190, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('inline onDecode returns data but cannot write or destroy its owning editor', 5, {'kind': 'equal', 'actual': {'label': {'$accessor': True}}, 'expected': {'label': {'$accessor': True}}, 'message': ''}, {'label': 'Accepted'})\r\n"
+    }
+  ]
+}

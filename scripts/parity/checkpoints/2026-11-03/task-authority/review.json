@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "candidate": "61ec543ec98e4133509ecf42afe7a4c03c130eb7",
+  "rawSha256": "bf1b98392069c5ba9b5922a49a8a801440399b715a8b06fabe587f9056ee990d",
+  "scriptSha256": "fbbaf390c348fe66819285b561489071fc0ba3ef92ae03b78bbfb7c24641fd44",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "integrationManifestSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09",
+  "byteIdenticalRuntime": true,
+  "unobservedBrowserCases": 34,
+  "browserSha256": "97b96c73702a09576c432c81ca5aef713212db72a8ef693342d45a473d782319",
+  "rows": [
+    "CONTRACT_RETIRED_TASK_OPTIONS",
+    "CONTRACT_ACTIVE_TASK_OPTIONS",
+    "CONTRACT_INLINE_OPTION_CAPTURE",
+    "CONTRACT_TASK_SETTLEMENT",
+    "CONTRACT_TASK_SUCCESS_RETIRES_OWNER",
+    "CONTRACT_READ_GUARDED_INLINE_DECODE",
+    "CONTRACT_READ_REVOKED_INLINE_DECODE",
+    "CONTRACT_READ_PRESERVED_MODES_AND_DATA",
+    "CONTRACT_FAILED_PUBLIC_DISPOSAL"
+  ],
+  "manualCases": 34,
+  "manualCandidateChecks": 333,
+  "rawObservationsReviewed": 478,
+  "productionModulesVerified": 275,
+  "dependencyFilesVerified": 6,
+  "summaries": [
+    {
+      "source": "spec-baseline",
+      "cases": 34,
+      "passed": 14,
+      "observations": 145,
+      "manualMismatches": 8
+    },
+    {
+      "source": "candidate",
+      "cases": 34,
+      "passed": 34,
+      "observations": 333,
+      "manualMismatches": 0
+    }
+  ],
+  "scope": "Independent manual canonical-state/callback/signal/history/read model. Author verification, not a separate-agent review. Only the nine named current contract rows are covered."
+}

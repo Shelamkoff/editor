@@ -2,9 +2,48 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **69 / 209 obligations**, with **140 open**; see the [inline Code/Marker acceptance](#inline-code-and-marker-acceptance-2026-11-03). Renderer-error acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **78 / 209 obligations**, with **131 open**; see the [public task/read acceptance](#public-task-and-read-authority-acceptance-2026-11-03). Renderer-error and Code/Marker acceptance remain in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public task and read authority acceptance — 2026-11-03
+
+Nine contract rows are accepted on immutable `61ec543ec98e4133509ecf42afe7a4c03c130eb7`,
+Windows x64 / Chrome 156.0.8078.79: retired/active task options, inline option
+capture, task settlement and successful owner retirement, guarded/revoked inline
+decode, preserved decoded reads, and failed public disposal. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/task-authority/README.md)
+lists the exact IDs and retains raw data, hashes, the executed verifier and
+five rejected evidence corruptions. The register becomes **78 accepted / 131 open**.
+
+All 34 cases and 333 independently reconstructed expectations pass. Cancelled,
+consumed and mode-revoked tasks read no options or producers; live capture
+cannot steal reservation, write, destroy or move foreign focus/selection.
+All six falsy failures distinguish retryable input from consumed producers.
+Accepted no-op preserves an existing Redo branch, while a successful remount
+can return true after aborting its old signal. Current sibling tasks and
+independent editors keep their rights. Exact revoked readers stop before
+decode. Normal/read-only/detached-construction reads capture a distinct valid
+decoded value once, retain frozen ownership and canonical data, and permit a
+later host command. Terminal public disposal releases resources and the holder
+once and preserves its successor. No production change was needed.
+
+The manual verifier imports neither fixture nor runtime. It checks all 478
+recorded v2 observations, 275 production modules, six dependency files and
+eight versions. It also requires a separate ordinary 34-case browser execution
+without the descriptor observation wrapper. `run-jV7549` passes all five
+affected gates on clean unchanged source: types, ordinary page, Git comparison
+plus independent model, five negative controls and docs. Candidate runtime
+paths and loaded modules are byte identical to `f2070510`; its separately
+preserved `run-xxJbdd` passes all 21 integration gates. These are distinct runs.
+
+The specification baseline passes 14/34 cases; twenty failed/incomplete cases
+and 145 observations retain raw exit 1. v1 runs a real Paragraph control and
+explicitly lacks the public instance-scoped task/schema-context contract;
+its six plugin-private task references remain recorded. They are not emulated
+as the v2 port. The candidate/source/model review exits 0. This is author
+verification with an independently written model, not a separate-agent review.
+Other C07/C12, HTML and full-library obligations remain open.
 
 ## Inline Code and Marker acceptance — 2026-11-03
 

@@ -1,8 +1,22 @@
 # Rector v2 audit closeout — active work
 
+## Public task/read acceptance — 2026-11-03
+
+The current register is **78/209 accepted, 131 open**. Nine named public
+task/read/disposal contracts are accepted on clean unchanged `61ec543e`:
+34 cases / 333 independent manual expectations, 275 verified production
+modules and all five affected gates in `run-jV7549`. The plain browser page
+passes without the observation wrapper; all five corruptions are rejected.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/task-authority/README.md)
+retains source identities, full data, checker bytes and reproduction. Runtime
+paths are byte identical to separately integrated `f2070510`, whose original
+21-gate manifest is preserved. Historical raw comparison exit 1 is retained;
+candidate/model review is 0. No production behavior was changed. Other C07/C12
+obligations and full readiness remain open. Mode recovery is the next family.
+
 ## Inline Code/Marker acceptance — 2026-11-03
 
-The current register is **69/209 accepted, 140 open**. Only `TOOL_CODE_ACTION`
+At this checkpoint the register became **69/209 accepted, 140 open**. Only `TOOL_CODE_ACTION`
 and `TOOL_MARKER_ACTION` are newly accepted on `d4f026f8`: 64 complete cases /
 2996 observations across both tools, independent manual/source review and six
 unchanged-source affected gates in `run-02FJXq`. The original 96 basic-mark
