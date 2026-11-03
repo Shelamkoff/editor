@@ -1,0 +1,26 @@
+{
+  "host-red.json.gz": {
+    "sha256": "c9086b2f545b84a20cf742e81d768964fdaffff126475cfb1b3c4855e675f3be",
+    "decodedSha256": "f7989b04791f9932d1947bc1a1afccdb2e26527343118939d585f299d12daa06"
+  },
+  "host-red.stderr.gz": {
+    "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "host-red-review.json.gz": {
+    "sha256": "dd90beb1736875b81e3273731fd597eebfad01321f3d99baa58041993759822b",
+    "decodedSha256": "0fed6819e87fe5a1b346bf9df98c2416d1ac16852c5efffbfd8c3d7c65d37032"
+  },
+  "host-red-verifier.py.gz": {
+    "sha256": "85f4d03e21ddd09d39b3441f95537a505a705d8c751afc7d30b4e9a797862042",
+    "decodedSha256": "e1aad394766119f43a532a4ff9b9202e9f2d993589c5b78b9aa869f421885689"
+  },
+  "host-red-model.py.gz": {
+    "sha256": "a4935f8a0f8056265497a196402f32c946e490cf434f32631c00e72c19d0049b",
+    "decodedSha256": "0389c0a96163ed873fb2d9af06ff1bd677b477a9c79a85f2259401700d690076"
+  },
+  "host-red-provenance.py.gz": {
+    "sha256": "3dac7d4ac77e1f03c0e0d3ddb6c3378f960a6f47608d65e5006c496ac8d0fb5f",
+    "decodedSha256": "ec32d52ea1a6600d0c43b800bacc3a8c7eb4ea4d2bc9b5f991e9bdfa8b841002"
+  }
+}

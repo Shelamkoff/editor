@@ -16,7 +16,7 @@ const ELEMENT_NODE = 1
 const ICON_NONE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l8 10m-8 0l8 -10"/></svg>'
 
 /**
- * Detect which script mode the selection is in.
+ * Detect the authored script mode at the first selected text.
  * @param {Range | null} [range]
  * @param {Document | null} [ownerDocument]
  * @returns {'sup' | 'sub' | 'none'}
@@ -29,8 +29,11 @@ function getCurrentScript(range = null, ownerDocument = range?.startContainer?.o
   const node = anchorNode.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (anchorNode)
     : anchorNode.parentElement
-  if (node?.closest('sup')) return 'sup'
-  if (node?.closest('sub')) return 'sub'
+  const field = node?.closest('[contenteditable]')
+  const sup = node?.closest('sup'), sub = node?.closest('sub')
+  // Application ancestors and the field root are not serialized author marks.
+  if (sup && sup !== field && field?.contains(sup)) return 'sup'
+  if (sub && sub !== field && field?.contains(sub)) return 'sub'
   return 'none'
 }
 

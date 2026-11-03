@@ -71,3 +71,21 @@ application boundary, both modes/directions and all three field shapes. The
 original 104 cases and old mark inventories remain unchanged. A fourth native
 page runs the new 24 controls without changing any existing page budget.
 An attributed pre-fix run and repair verification follow; both rows stay open.
+
+Exact clean `369a52be147390398da02ec7f0753ea21593b539` completes all 24 new
+cases / 1,248 observations, with 288 failed observations and no candidate
+exception, missing phase, failed input/range/focus precondition or application
+boundary change. All matching trusted actions leave own author markup unchanged.
+The manual character model and 349 source/module identities confirm this second
+RED. Raw SHA-256:
+`f7989b04791f9932d1947bc1a1afccdb2e26527343118939d585f299d12daa06`.
+The complete corpus, verifier, imported manual/provenance models and hashes are
+retained as `host-red*`.
+
+Mode detection now excludes ancestors outside the exact editable field and the
+field root itself, preserving existing sup-before-sub precedence within author
+markup. The 24 native host cases, five unit controls and both typechecks pass
+before the new frozen run. The existing 104 cases retain their inventory and
+expectations; the complete matrix is now 128 cases / 6,400 observations. Both
+rows remain open until the latest integration and full three-source/manual
+proof pass. The earlier 27-gate result is retained with its original scope.
