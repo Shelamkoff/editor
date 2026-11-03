@@ -55,3 +55,6 @@ scripts/parity/checkpoints/2026-11-03/element-range/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/element-range/controls.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/element-range/*.json -text
 scripts/parity/checkpoints/2026-11-03/element-range/*.gz -text
+scripts/parity/public-snapshots.mjs text eol=lf
+tests/browser/public-snapshots-fixture.js text eol=lf
+tests/browser/public-snapshots.js text eol=lf
