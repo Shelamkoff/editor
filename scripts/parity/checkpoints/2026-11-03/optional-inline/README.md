@@ -42,3 +42,14 @@ The new native page is added as its own full-run group, without changing
 existing page budgets or cases. Production behavior is unchanged. Registered
 decoder, unknown-extension and standalone presentation obligations are separate;
 this proof does not claim full C12, B-HTML or library readiness.
+
+## First committed fixture setup failure
+
+The clean unchanged `44de7d2b` run `run-WctIZ8` passes types, all 46 ordinary
+pages and docs, but remains **failed**. The new native HTML omitted its
+`native-input-driver.js` import, so the repository driver timed out waiting
+for the page bridge. Dependent model/controls correctly refused the missing
+native evidence. The exact original manifest and three failed gate logs are
+retained with separate hashes. This is a fixture setup defect, not product
+RED or accepted native evidence. The HTML now uses the same driver initialization
+as the existing native pages; a fresh committed run is required.

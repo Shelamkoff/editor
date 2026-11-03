@@ -1,0 +1,26 @@
+{
+  "fixture-setup-failure-manifest.json.gz": {
+    "bytes": 1184,
+    "sha256": "3e2007bc43e581e27aab7b06d2c756d631007de6fae6eba0397ae1045f0c7d60",
+    "decodedBytes": 12061,
+    "decodedSha256": "e24e7c57066177488317aaef837fc780fe55f889f0c80d5c9a1837d749f1c9fe"
+  },
+  "fixture-setup-failure-native.log.gz": {
+    "bytes": 245,
+    "sha256": "e7d860670d1a1922d6b41682a521c93688f901f0cd19dd9171a21410504fef38",
+    "decodedBytes": 464,
+    "decodedSha256": "9370ce7ebfa2add9390298719f29ce97975d91517a55277766c5405fa6cb3aff"
+  },
+  "fixture-setup-failure-proof.log.gz": {
+    "bytes": 812,
+    "sha256": "03c2fec15f17b892abadb6adab2fe720592184fefb18a4b4da4dd0b4f9a61e5c",
+    "decodedBytes": 1878,
+    "decodedSha256": "d494612677857d71d32b5495d472143c3a01750d085d7a7ae22f6bb9146cf2da"
+  },
+  "fixture-setup-failure-controls.log.gz": {
+    "bytes": 1124,
+    "sha256": "f6e0ea6abaa413b8d9507566790ba74d3b9d57004ddb281090a6538baa5291d3",
+    "decodedBytes": 3157,
+    "decodedSha256": "c27a1fb8cae763439baa76064bb04d95851cb5b26b0b2e249a30b9ba2f029c80"
+  }
+}
