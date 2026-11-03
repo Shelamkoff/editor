@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical failures, incomplete actions and known baseline exceptions remain visible. Current output is independently verified."
+}

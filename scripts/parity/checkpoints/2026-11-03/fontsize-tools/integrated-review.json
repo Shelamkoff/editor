@@ -1,0 +1,2881 @@
+{
+  "status": "PASS",
+  "candidate": "d85ae7c1f9c071e3529222f5a69147a6bb81ef1f",
+  "cases": 117,
+  "observations": 6561,
+  "rawSha256": "692bcc358cf18b86836ea418e348fef32fe8452b200b2b329505dc1cfbdf034d",
+  "reviewerSha256": "495cb8ecf89aa35708ff43c480b5613c627b0e2d9cc7ba20e0a713c99e719d96",
+  "historical": {
+    "v1": {
+      "pageErrors": [],
+      "cases": 117,
+      "complete": 113,
+      "observations": 5869,
+      "failures": [
+        {
+          "id": "apply/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Element/forward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/single/Element/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/single/Element/forward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/single/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Element/forward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/cross/Element/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/cross/Element/forward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/apply/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "partial/reset/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "cancel/escape/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "cancel/escape/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "lifetime/read-only",
+          "phase": "live",
+          "property": "intendedFontSize"
+        },
+        {
+          "id": "lifetime/destroy",
+          "phase": "live",
+          "property": "intendedFontSize"
+        },
+        {
+          "id": "lifetime/render",
+          "phase": "live",
+          "property": "intendedFontSize"
+        },
+        {
+          "id": "preset/12",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/12",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/14",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/14",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "widgets"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "widgetMarkup"
+        },
+        {
+          "id": "preset/16",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/16",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/18",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/18",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/20",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/20",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/24",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/24",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/28",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/28",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/32",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/32",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/40",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/40",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/48",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/48",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/64",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/64",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "custom/1",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "custom/1",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "custom/200",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "custom/200",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16px/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/16.5px/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5em/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/150%/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/1.5rem/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/201px/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/250px/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/inherit/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Element/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Element/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Element/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "imported/0.75em/Element/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "noop/atomic-apply/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-apply/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-reset/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-reset/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        }
+      ]
+    },
+    "spec-baseline": {
+      "pageErrors": [
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)",
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)",
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)",
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)",
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)",
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)",
+        "Error: Font-size reset selection is unavailable\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:331:31\n    at http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:186:7\n    at http://127.0.0.1:51151/fixture.js:144:78\n    at http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:42\n    at result.#runtime.syncBlocksFromProjection.origin (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1109:20)\n    at DocumentRuntime.syncBlocksFromProjection (http://127.0.0.1:51151/spec-baseline/core/DocumentRuntime.js:1249:40)\n    at #mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:1104:30)\n    at Object.mutate (http://127.0.0.1:51151/spec-baseline/core/InlineToolbar.js:288:28)\n    at Object.mutate (http://127.0.0.1:51151/fixture.js:144:22)\n    at mutate (http://127.0.0.1:51151/spec-baseline/inline-tools/fontSize.js:185:15)"
+      ],
+      "cases": 117,
+      "complete": 43,
+      "observations": 3327,
+      "failures": [
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/forward",
+          "phase": "redo-action",
+          "property": "events"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/single/Text/backward",
+          "phase": "redo-action",
+          "property": "events"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/forward",
+          "phase": "redo-action",
+          "property": "events"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/cross/Text/backward",
+          "phase": "redo-action",
+          "property": "events"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/forward",
+          "phase": "redo-action",
+          "property": "events"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "reset/fields/Text/backward",
+          "phase": "redo-action",
+          "property": "events"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "redo-input",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "redo-input",
+          "property": "meaning"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "redo-input",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "undo-input",
+          "property": "trustedHistory"
+        },
+        {
+          "id": "noop/plain-reset/backward",
+          "phase": "undo-input",
+          "property": "events"
+        },
+        {
+          "id": "lifetime/read-only",
+          "phase": "live",
+          "property": "intendedFontSize"
+        },
+        {
+          "id": "lifetime/read-only",
+          "phase": "live",
+          "property": "history"
+        },
+        {
+          "id": "lifetime/read-only",
+          "phase": "live",
+          "property": "liveProducer"
+        },
+        {
+          "id": "lifetime/read-only",
+          "phase": "live",
+          "property": "liveEvent"
+        },
+        {
+          "id": "lifetime/destroy",
+          "phase": "live",
+          "property": "intendedFontSize"
+        },
+        {
+          "id": "lifetime/destroy",
+          "phase": "live",
+          "property": "history"
+        },
+        {
+          "id": "lifetime/destroy",
+          "phase": "live",
+          "property": "liveProducer"
+        },
+        {
+          "id": "lifetime/destroy",
+          "phase": "live",
+          "property": "liveEvent"
+        },
+        {
+          "id": "lifetime/render",
+          "phase": "live",
+          "property": "intendedFontSize"
+        },
+        {
+          "id": "lifetime/render",
+          "phase": "live",
+          "property": "liveProducer"
+        },
+        {
+          "id": "lifetime/render",
+          "phase": "live",
+          "property": "liveEvent"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "intendedMeaning"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "widgetIdentity"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "events"
+        },
+        {
+          "id": "preset/16",
+          "phase": "action",
+          "property": "semanticTransaction"
+        },
+        {
+          "id": "preset/16",
+          "phase": "undo-action",
+          "property": "exactCanonical"
+        },
+        {
+          "id": "preset/16",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "preset/16",
+          "phase": "undo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "preset/16",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "preset/16",
+          "phase": "undo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/16",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "preset/16",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "preset/16",
+          "phase": "redo-action",
+          "property": "visibleMeaning"
+        },
+        {
+          "id": "preset/16",
+          "phase": "redo-action",
+          "property": "selection"
+        },
+        {
+          "id": "preset/16",
+          "phase": "redo-action",
+          "property": "events"
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "apply/single/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "apply/cross/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "apply/fields/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "enter/single/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "enter/cross/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "enter/fields/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "reset/single/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "reset/single/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "reset/cross/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "reset/cross/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "reset/fields/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "reset/fields/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/apply/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/apply/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/apply/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/apply/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/reset/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/reset/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/reset/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "partial/reset/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-apply/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-apply/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-reset/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "noop/atomic-reset/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "cancel/escape/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "cancel/escape/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "cancel/outside/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "cancel/outside/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16px/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16px/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16px/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16px/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16.5px/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16.5px/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16.5px/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/16.5px/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5em/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5em/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5em/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5em/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/150%/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/150%/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/150%/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/150%/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5rem/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5rem/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5rem/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/1.5rem/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/calc(10px + 1em)/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/201px/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/201px/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/201px/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/201px/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/250px/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/250px/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/250px/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/250px/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/inherit/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/inherit/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/inherit/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/inherit/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/0.75em/Text/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/0.75em/Text/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/0.75em/Element/forward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        },
+        {
+          "id": "imported/0.75em/Element/backward",
+          "phase": "action",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Named native control is not visible"
+        }
+      ]
+    }
+  },
+  "moduleIdentities": 338
+}

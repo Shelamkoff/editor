@@ -66,5 +66,153 @@
   "green-manifest.json": {
     "sha256": "71059b1144974f4598d845052b49d37e8db9d25a8c8f51e4737a63051159eb68",
     "bytes": 613
+  },
+  "integrated-corpus.json.gz": {
+    "sha256": "3e1f64e265ca2bce92d3807be376a3f1035fc62b2d1a27364d8602aa70e5d4d8",
+    "bytes": 21755,
+    "decodedSha256": "8ae851f94c929f1c313500e86ea54e53e832c8a092b4c470c14add4f77b6aebf",
+    "decodedBytes": 661809
+  },
+  "integrated-review.json": {
+    "sha256": "509a0db917f99c290f5bc13928957b55e1bf45976878cd146c317bdd15895746",
+    "bytes": 707
+  },
+  "integrated-process.json": {
+    "sha256": "bacd69134f4e3104937ab0eaf11085c49bd26c22e464e852e1e0f143da12b339",
+    "bytes": 205
+  },
+  "integrated-comparison.stderr.gz": {
+    "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "bytes": 20,
+    "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "decodedBytes": 0
+  },
+  "executed-integrated-review.py.gz": {
+    "sha256": "8bb3099f70ab9ea733c2bf1aee027d32b4eda574e111cf8a3e4ff54e7998ee44",
+    "bytes": 3295,
+    "decodedSha256": "6df2a82ec3b2f6e84136bb30794dc407132f0bd66fc13466c39c33e177537f56",
+    "decodedBytes": 8609
+  },
+  "executed-controls.mjs.gz": {
+    "sha256": "72d30df83e1899800d9a592d5d7c4bd9fbc8846fa557cfd2199582935f36cd7d",
+    "bytes": 1151,
+    "decodedSha256": "eacc2ae53155b8cd5632e96e7f8d6ad691a82f8e65f48f12e670d084fe5fc993",
+    "decodedBytes": 2735
+  },
+  "executed-fixture.js.gz": {
+    "sha256": "d8874c015bcc094ee219affaed72098b85eff8a0b14666fbb9d7aa81ceb34e53",
+    "bytes": 3102,
+    "decodedSha256": "91e449e30bc1018a63a6b417f1560e4d7eb32cd7cbc5365a7246849fade9b8c5",
+    "decodedBytes": 8470
+  },
+  "executed-runner.mjs.gz": {
+    "sha256": "22ee24ce0d32f73b4938993c52cf9660d9c0e0625e89a5a4ae94a0d679260836",
+    "bytes": 3481,
+    "decodedSha256": "5b2bcb97e74360bd2611537dca408a155718bea9d7204f4322b7128bade5065e",
+    "decodedBytes": 9026
+  },
+  "controls-results.json": {
+    "sha256": "8e88d57e9369e8912a64535119007333a333d28e0cbf8e9ef61f7aa84a6a8b94",
+    "bytes": 14058
+  },
+  "control-wrong-source.json.gz": {
+    "sha256": "0c2572992ef67e9a991bfa9b822575856bd241e6e9d6451678a16d6885e0cd04",
+    "bytes": 16568,
+    "decodedSha256": "6383489075741fc99598b892341d876bd1e66c33757885bb11513ff64f50f131",
+    "decodedBytes": 265023
+  },
+  "control-root-reset.json.gz": {
+    "sha256": "8a9eb682c2c39552904cb8a808109903a15365059b117b368c4fd9e066218bc4",
+    "bytes": 16578,
+    "decodedSha256": "0b504cda1cc405901f6203cd96f7bc074e5f66be26c0ed0c074bcd90273d152c",
+    "decodedBytes": 265007
+  },
+  "control-root-lost-on-undo.json.gz": {
+    "sha256": "c7c377234f55b65e967a5002e459d84ab02fdacfca43010c3178a95abf05a7f5",
+    "bytes": 16579,
+    "decodedSha256": "024c74c386411906d27cd74ba15efe022598bceeb076331e3b2a208ade40f642",
+    "decodedBytes": 265007
+  },
+  "control-root-lost-on-redo.json.gz": {
+    "sha256": "135be9d39255e02e1b9621b7a2e121479f5b232a617e12aa21ea78a6316629fd",
+    "bytes": 16578,
+    "decodedSha256": "c7c2f69d8d7886fce730d66b362e195a5b19672694cddba0e3948329cd8c776c",
+    "decodedBytes": 265007
+  },
+  "control-unselected-color-lost.json.gz": {
+    "sha256": "94ce017d2181d4ed582c141669a6132db4aed05a6139529f38b52dd7ee082039",
+    "bytes": 16580,
+    "decodedSha256": "f86c368f996d41d2f96b2e5721e3499f4d42f3ea855bab9a58572f80f69e2ea5",
+    "decodedBytes": 265005
+  },
+  "control-second-field-not-reset.json.gz": {
+    "sha256": "37da0cde28a434fd9636280fbfd374a1aaca55b549278f5107a8fa9b2dd31764",
+    "bytes": 16582,
+    "decodedSha256": "e493f54a0e7d8a7403da5493020fabcae224e12d7fa6f30e0ab92bbfaf459fea",
+    "decodedBytes": 265035
+  },
+  "control-wrong-backward-range.json.gz": {
+    "sha256": "bd50a7389c2145124cb4ab96e046f499e74e97e64fd4015cb5c530e5338274ff",
+    "bytes": 16573,
+    "decodedSha256": "97b381c55e99b401bbf9935b4aea2bf9c88ca46470577f232ebdd46b2e11aa9d",
+    "decodedBytes": 265023
+  },
+  "control-missing-history.json.gz": {
+    "sha256": "f468cbae09235fb47ddda08f6cf1e465d505f2cf9060045b5d50c1f90fd7970e",
+    "bytes": 16581,
+    "decodedSha256": "900e75c4f2ca4c5a8b1cf1ee3fdd11ee1eb733859787028bde5c3931bdef6faf",
+    "decodedBytes": 265025
+  },
+  "control-untrusted-reset.json.gz": {
+    "sha256": "d129003406841e5f7085b0b34c340baf23c1a10d22ee2eefc747e59d7d629550",
+    "bytes": 16584,
+    "decodedSha256": "78b1f6ab2fb9d32b7e1125befd9a22abbcefd764021743db6ae52d0ebb2910c4",
+    "decodedBytes": 265025
+  },
+  "control-missing-element-controls.json.gz": {
+    "sha256": "4d6988efe81dfc1adcf23c8190f0930f3e3b4da6b9d093c17fb0f515baac503c",
+    "bytes": 16166,
+    "decodedSha256": "5593f48066f7f9c50545f7f8712c6bf0cfcdb4cb7b055d36d9ae51501b25e522",
+    "decodedBytes": 220051
+  },
+  "first-integration-manifest.json.gz": {
+    "sha256": "5eaf94a8d1705ec288a76dc29cfb60bdf82de470e54a115769988444d33a81f9",
+    "bytes": 2171,
+    "decodedSha256": "5527dc649cc601d3cb63c59aa716f1f98168fda7367ab36830073607e5701de8",
+    "decodedBytes": 49868
+  },
+  "reset-followup-manifest.json.gz": {
+    "sha256": "5b55b1b6baa111e5de2faccf6fd60d2d98fa1cf29643fdee7073f5dc47c7f4b6",
+    "bytes": 1037,
+    "decodedSha256": "56d1d97a3c59323c9f174c9e054e9e7ed437d1688c2cb69947614df2113635b5",
+    "decodedBytes": 8754
+  },
+  "integrated-font-reset-proof.log.gz": {
+    "sha256": "66872465f44c43c2a321f4f09d028c1bb499217c6be9231f8b924d7f45819d9b",
+    "bytes": 352,
+    "decodedSha256": "0506bf4b7beb6621e4017783a35a83388fefe4ad6c9364291c0192f1b96cb85c",
+    "decodedBytes": 563
+  },
+  "integrated-font-reset-controls.log.gz": {
+    "sha256": "35cae219beca2548d28bfe3e1cc560d2b99a40299903ddb64db680772b9caf77",
+    "bytes": 167,
+    "decodedSha256": "8465ded616c5b2b32f0c364cbafe36ca35d61019c34b5fa37084023080084fd8",
+    "decodedBytes": 239
+  },
+  "integrated-native-font-reset.log.gz": {
+    "sha256": "b40d95081cb31481a28f9b2673a5c780cafbe1371b8fc4b43a3237bd0e7c85f6",
+    "bytes": 218,
+    "decodedSha256": "e3df7986633d37e970f0558c47334fbdb1b5b886e2cb19ada92f219d2fbc7a9e",
+    "decodedBytes": 1520
+  },
+  "integrated-native-font-reset-trusted.log.gz": {
+    "sha256": "e543c0b7272276171bb8d05fe3eb9d5006d546a730fe8800046d0e02d8e85944",
+    "bytes": 256,
+    "decodedSha256": "d5dc6438d683e39219d02e64ea06767e9dcda0d10128ff16131fa87ece50cf0e",
+    "decodedBytes": 1626
+  },
+  "integration-manifest.json": {
+    "sha256": "0c8b3ee0b5e89a26760ee9c8bdf146c671ca619785b7ee71b8fa4b764d03bf73",
+    "bytes": 1721
   }
 }

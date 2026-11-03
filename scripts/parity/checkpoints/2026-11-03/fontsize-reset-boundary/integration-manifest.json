@@ -1,0 +1,58 @@
+{
+  "source": "e050e33bf1c71af14522aa7a880336b6c9d0b4b7",
+  "tree": "2e662478519e616fa52edf0cdfe8e38b5ac38dbe",
+  "productionBasis": "4e153854221027141a2b7152f4f067be9d74f228",
+  "cases": 16,
+  "observations": 416,
+  "moduleIdentities": 319,
+  "corruptionsRejected": 10,
+  "firstIntegration": {
+    "directory": "run-OfMfqZ",
+    "outcome": "failed",
+    "successfulGates": 25,
+    "failedGates": [
+      "native-font-reset",
+      "native-font-reset-trusted"
+    ],
+    "source": "d85ae7c1f9c071e3529222f5a69147a6bb81ef1f",
+    "identity": "6538150edf8a8025fbe8a0b530e6a72fcdc4ff95553ac8f3f33f3d78ead4b21f",
+    "startedAt": "2026-11-03T19:03:48.760Z",
+    "finishedAt": "2026-11-03T19:24:16.171Z",
+    "reason": "The native caller omitted sourceBase, which had no default in the reset fixture. Modules failed to load. No product assertion executed in these two native groups."
+  },
+  "followup": {
+    "directory": "run-6udSVw",
+    "outcome": "passed",
+    "gates": 4,
+    "source": "e050e33bf1c71af14522aa7a880336b6c9d0b4b7",
+    "identity": "ad6f684e948e0124fbc5f243e8300f5539df9fc48af360360420f92c82fa57c7",
+    "startedAt": "2026-11-03T19:24:32.573Z",
+    "finishedAt": "2026-11-03T19:25:54.608Z",
+    "productionDelta": [],
+    "testDelta": [
+      "tests/browser/fontsize-reset-boundary-fixture.js"
+    ]
+  },
+  "registerBeforeAcceptance": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptedRows": [],
+  "historical": {
+    "v1": {
+      "observations": 416,
+      "failures": 20,
+      "complete": 16
+    },
+    "spec-baseline": {
+      "observations": 256,
+      "failures": 14,
+      "complete": 8
+    },
+    "candidate": {
+      "observations": 416,
+      "failures": 0,
+      "complete": 16
+    }
+  }
+}

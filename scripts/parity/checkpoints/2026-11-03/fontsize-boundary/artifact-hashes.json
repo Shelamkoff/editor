@@ -48,5 +48,153 @@
   "green-manifest.json": {
     "sha256": "91d65d03c91cf73f6ac020e556fa753a4a4520f0c5af3650a2c36b70852e1076",
     "bytes": 411
+  },
+  "integrated-corpus.json.gz": {
+    "sha256": "c76f0cd527a15fe713f46e80313149b01a94b3674a409923f6e364376665d07c",
+    "bytes": 15285,
+    "decodedSha256": "c79ef9677724f2014a50bb6f6344d58302f0e1caee732f7c276e2702077e7c2d",
+    "decodedBytes": 159526
+  },
+  "integrated-review.json": {
+    "sha256": "61b9dfc567769e49d80df0222ab339f84841b91ce4297517155615a4deb8d0ff",
+    "bytes": 495
+  },
+  "integrated-process.json": {
+    "sha256": "bacd69134f4e3104937ab0eaf11085c49bd26c22e464e852e1e0f143da12b339",
+    "bytes": 205
+  },
+  "integrated-comparison.stderr.gz": {
+    "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "bytes": 20,
+    "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "decodedBytes": 0
+  },
+  "executed-integrated-review.py.gz": {
+    "sha256": "854d578ba503917684f18953b0afa01583f3ffb01c69120e7a78be34f9d0ea1a",
+    "bytes": 2401,
+    "decodedSha256": "9807ee060510f19c2c3c50f8cab69ee3c9fb7283c3e14c746f4b73c71231ba1b",
+    "decodedBytes": 6009
+  },
+  "executed-controls.mjs.gz": {
+    "sha256": "52bbd5b0c236105b3a0814902926fd6cb33c8e452e48d5c9acddddcb142ec7e4",
+    "bytes": 1133,
+    "decodedSha256": "b622a84de596ec39ff0ecf4eaeaafc9b55628136348d849883517a922944a7c3",
+    "decodedBytes": 2630
+  },
+  "executed-fixture.js.gz": {
+    "sha256": "13cba285874eaa72ceba0f749af3113e6988f51339656d6bc00df8bafbb0f7f7",
+    "bytes": 2373,
+    "decodedSha256": "f48eaca7d2dd77b375f3005d1e7b51e7f8221d1b26c19589440b64cf1fd677c6",
+    "decodedBytes": 6050
+  },
+  "executed-runner.mjs.gz": {
+    "sha256": "4d7d5dd8ba89ec151025e4119d7b0560fb8edd3a049ab7d8a6b640a14eafd692",
+    "bytes": 3459,
+    "decodedSha256": "58dac3b57dabd1abdc6aee486fc6b7fdcbf4d3532489b3d16af23bf366909324",
+    "decodedBytes": 8958
+  },
+  "controls-results.json": {
+    "sha256": "90499998f0165dae172f7b41cf473fbc74d66fd9ce11bdeefa69424f4e078b9e",
+    "bytes": 13781
+  },
+  "control-wrong-source.json.gz": {
+    "sha256": "88434d53df5f85613719d590cba99b4aa05a6b69b9b873ed5126eab1b1cfa676",
+    "bytes": 14123,
+    "decodedSha256": "c2e9d667a40aef007227efdee10d62ea82eb0991051f8d388207ee7eec7d155b",
+    "decodedBytes": 85215
+  },
+  "control-root-resized.json.gz": {
+    "sha256": "2195be2d5b0095b4cdac630b8e9e274228a3e4f8ebf83196a55693d296fd8b19",
+    "bytes": 14136,
+    "decodedSha256": "310ffede70ee13b36485af9ca9d560947e9025505a1a7a2c56e091fb74a4b667",
+    "decodedBytes": 85215
+  },
+  "control-ancestor-resized.json.gz": {
+    "sha256": "0f1af07a482a62f1e6ea1527e7333b8be5286c7b35c25da726d234ee5d31d31f",
+    "bytes": 14140,
+    "decodedSha256": "d88174dd29335bc6bf39dc35caf27d46b2980b388edc827b4e0809b4bc803b86",
+    "decodedBytes": 85215
+  },
+  "control-lost-author-size.json.gz": {
+    "sha256": "a264434525e5ca55ef35949f0f01a460d6a335fe313f1ec02e48a0a78991dccc",
+    "bytes": 14131,
+    "decodedSha256": "5c8d9147ada1a0cba56858a180cd0190e254cdf90b9083291507d0bf031cf6d8",
+    "decodedBytes": 85135
+  },
+  "control-changed-current-size-display.json.gz": {
+    "sha256": "78a15943289de77f03bb478c551d38d13de6d92575abb1a91cc6be28b7aaecee",
+    "bytes": 14131,
+    "decodedSha256": "3e01af24999645b983cd227f554583dffa8759c4972065eae71ee7544866f2ba",
+    "decodedBytes": 85215
+  },
+  "control-missing-history.json.gz": {
+    "sha256": "5a77bddaac786eceefdc8e852d579c5ebbef8ffad9cf9adcf9426a0d6e0ddc4e",
+    "bytes": 14135,
+    "decodedSha256": "9ddee050232bb55ff4122b75a5c02e7e941b4f8bf8d707cb2ed3f2d91f0a2440",
+    "decodedBytes": 85217
+  },
+  "control-wrong-undo.json.gz": {
+    "sha256": "9ccfafc2135573dfab72c0d1e71e54267a77533cb65feeed171ba278ad5eafbc",
+    "bytes": 14139,
+    "decodedSha256": "be0e0ffaff308c528ede51dc1ab654abca02a97bca6042189ea78303f6fa62dc",
+    "decodedBytes": 85217
+  },
+  "control-wrong-redo.json.gz": {
+    "sha256": "da2b7f4c08bf430d35695d48dcb5beca0172d1ff91fa06fa4a2c9968d14fc1f6",
+    "bytes": 14139,
+    "decodedSha256": "96c34462ecb3535ce8e9e509fcde80bce6a2c671add9a202012a623bcef75c9c",
+    "decodedBytes": 85135
+  },
+  "control-untrusted-apply.json.gz": {
+    "sha256": "e589066f99fdf08715eee717ccd7c86ec1fd5113a7b0ee1c0fa13a309080c341",
+    "bytes": 14135,
+    "decodedSha256": "07f7733bcf80a2cfa33dd48722948bf25e7bb1705e873c796676d3a5b5a0a6c9",
+    "decodedBytes": 85217
+  },
+  "control-missing-positive-controls.json.gz": {
+    "sha256": "2f6964156960bdb2af8021023aa629be197e0d5fa109cc282abc0c4dde6e7a61",
+    "bytes": 13979,
+    "decodedSha256": "78a7a3f700e957f986e1bf1d882fd8fed901bd39bc3feb0c1bb4b564897e6f9d",
+    "decodedBytes": 70499
+  },
+  "first-integration-manifest.json.gz": {
+    "sha256": "5eaf94a8d1705ec288a76dc29cfb60bdf82de470e54a115769988444d33a81f9",
+    "bytes": 2171,
+    "decodedSha256": "5527dc649cc601d3cb63c59aa716f1f98168fda7367ab36830073607e5701de8",
+    "decodedBytes": 49868
+  },
+  "reset-followup-manifest.json.gz": {
+    "sha256": "5b55b1b6baa111e5de2faccf6fd60d2d98fa1cf29643fdee7073f5dc47c7f4b6",
+    "bytes": 1037,
+    "decodedSha256": "56d1d97a3c59323c9f174c9e054e9e7ed437d1688c2cb69947614df2113635b5",
+    "decodedBytes": 8754
+  },
+  "integrated-font-apply-proof.log.gz": {
+    "sha256": "52a384d28f5b00750dc8ab89b30b6267662f9abf5bf2ed8a660c3c7230eee016",
+    "bytes": 317,
+    "decodedSha256": "6725f3695a94f1951924e587e2f152241236c68210cef62af369f05147cafbf5",
+    "decodedBytes": 445
+  },
+  "integrated-font-apply-controls.log.gz": {
+    "sha256": "3deb132825b4c6351f2a9235476ca95a8df4c173db6b3ae425d29c0c133d7718",
+    "bytes": 168,
+    "decodedSha256": "04409e06d9d34419e2c83bcb8e6eee3259d84d4bb9aadeefc98a0a532a3a5d69",
+    "decodedBytes": 225
+  },
+  "integrated-native-font-apply.log.gz": {
+    "sha256": "96f56a1b2a35721c4452b49aa3b8dd10a17eaf30bd08d83cade90e1ca99c3fd8",
+    "bytes": 161,
+    "decodedSha256": "fe5f8a7af25482a4a2f78f2587a7b73d6ef05702897becfea58d4f15d0b49e13",
+    "decodedBytes": 498
+  },
+  "integrated-native-font-apply-trusted.log.gz": {
+    "sha256": "90fccfca2ff07e867958caa9573f3647c1f0833f96ef7fb9d1124707d8a1d0c1",
+    "bytes": 196,
+    "decodedSha256": "ef3df6bf990d55a05fb45e2370400f9ac8eca89884102d14b03e18ada9a32eb7",
+    "decodedBytes": 604
+  },
+  "integration-manifest.json": {
+    "sha256": "59972480c972009b4d10185d38aeb24c5c14d34f91c73aab50754f9bb062db95",
+    "bytes": 1415
   }
 }

@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "mode": "green",
+  "candidate": "e050e33bf1c71af14522aa7a880336b6c9d0b4b7",
+  "candidatePass": true,
+  "casesPerSource": 16,
+  "totals": {
+    "v1": {
+      "observations": 416,
+      "failures": 20,
+      "complete": 16
+    },
+    "spec-baseline": {
+      "observations": 256,
+      "failures": 14,
+      "complete": 8
+    },
+    "candidate": {
+      "observations": 416,
+      "failures": 0,
+      "complete": 16
+    }
+  },
+  "positiveCurrentCases": 16,
+  "rawSha256": "8ae851f94c929f1c313500e86ea54e53e832c8a092b4c470c14add4f77b6aebf",
+  "reviewerSha256": "6df2a82ec3b2f6e84136bb30794dc407132f0bd66fc13466c39c33e177537f56",
+  "moduleIdentities": 319
+}
