@@ -190,6 +190,7 @@ export function createLinkPreviewPlugin(config={}){
           let currentTask=null
           let generation=0
           let inputTimer=null
+          let submittedValue=null
           let composing=false
           const timerHost=document.defaultView??globalThis
           const clearInputTimer=()=>{
@@ -222,7 +223,7 @@ export function createLinkPreviewPlugin(config={}){
               if(next[key]!==data[key])metaRevisions[key]++
             }
             data={...next}
-            if(!retainDraft)input.value=data.url
+            if(!retainDraft){input.value=data.url;submittedValue=input.value}
             input.readOnly=readOnly
             wrapper.dataset.template=data.template
             const filled=!!data.url
@@ -308,6 +309,7 @@ export function createLinkPreviewPlugin(config={}){
               const accepted=context.getData()
               if(data.url!==accepted.url)project(accepted,accepted)
             }
+            if(data.url===url)submittedValue=input.value
             if(url&&!dead&&!readOnly&&!context.signal.aborted&&data.url===url)void resolveMeta(url,{authorSubmission:true})
           }
 
@@ -356,10 +358,22 @@ export function createLinkPreviewPlugin(config={}){
               event.stopPropagation()
             }
           },{signal:context.signal})
-          input.addEventListener('change',commitUrl,{signal:context.signal})
+          input.addEventListener('change',()=>{
+            if(readOnly||dead||context.signal.aborted)return
+            const value=input.value,current=generation
+            if(value===submittedValue)return
+            // Removing a focused control can deliver change during projection.
+            // Wait for retirement, and keep an Enter/debounce submission live.
+            queueMicrotask(()=>{
+              if(dead||readOnly||context.signal.aborted||generation!==current
+                ||input.isConnected===false||input.value!==value||submittedValue===value)return
+              commitUrl()
+            })
+          },{signal:context.signal})
           input.addEventListener('input',event=>{
             clearInputTimer()
             if(readOnly||dead||composing||event.isComposing)return
+            submittedValue=null
             inputTimer=timerHost.setTimeout(commitUrl,500)
           },{signal:context.signal})
 
