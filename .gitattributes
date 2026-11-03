@@ -33,3 +33,8 @@ tests/browser/presentation-authority.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/presentation-authority/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/presentation-authority/*.json -text
 scripts/parity/checkpoints/2026-11-03/presentation-authority/*.gz -text
+scripts/parity/script-tools.mjs text eol=lf
+tests/browser/basic-mark-tools-parity-fixture.js text eol=lf
+tests/browser/native-script-tools.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/script-tools/*.json -text
+scripts/parity/checkpoints/2026-11-03/script-tools/*.gz -text

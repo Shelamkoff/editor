@@ -556,6 +556,9 @@ try {
   const nativeBlockSettings = await runNativePage(client, pageUrl, 'native-block-settings.html')
   const nativeCodeSourceLanguage = await runNativePage(client, pageUrl, 'native-code-source-language.html')
   const nativeCodeMarker = await runNativePage(client, pageUrl, 'native-code-marker.html')
+  const nativeScriptSup = await runNativePage(client, pageUrl, 'native-script-tools-sup.html')
+  const nativeScriptSub = await runNativePage(client, pageUrl, 'native-script-tools-sub.html')
+  const nativeScriptNone = await runNativePage(client, pageUrl, 'native-script-tools-none.html')
   const nativeOptionalInline = await runNativePage(client, pageUrl, 'native-optional-inline-update.html')
   const nativePersonModes = await runNativePage(client, pageUrl, 'native-person-modes.html')
   const nativeTableKeyboard = await runNativePage(client, pageUrl, 'native-table-keyboard.html')
@@ -622,6 +625,9 @@ try {
     nativeBlockSettings,
     nativeCodeSourceLanguage,
     nativeCodeMarker,
+    nativeScriptSup,
+    nativeScriptSub,
+    nativeScriptNone,
     nativeOptionalInline,
     nativePersonModes,
     nativeTableKeyboard,

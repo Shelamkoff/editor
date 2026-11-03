@@ -24,9 +24,14 @@ function markCases(tools) {
 }
 export const basicMarkCases = markCases(['bold', 'italic', 'strikethrough'])
 export const codeMarkerCases = markCases(['code', 'marker'])
+export const scriptToolCases = ['sup', 'sub', 'none'].flatMap(mode =>
+  (mode === 'none' ? ['sup', 'sub'] : [mode]).flatMap(tag =>
+    markCases(['script']).filter(spec => mode !== 'none' || spec.variant !== 'apply').map(spec => ({ ...spec,
+      id: ['script', mode, tag, ...spec.id.split('/').slice(1)].join('/'), mode, tag }))))
 const markTags = { bold: 'b', italic: 'i', strikethrough: 's', code: 'code', marker: 'mark' }
-const edgeTags = { bold: 'i', italic: 'b', strikethrough: 'b', code: 'b', marker: 'i' }
-const middleTags = { bold: 's', italic: 's', strikethrough: 'i', code: 's', marker: 's' }
+const markTag = spec => spec.tag ?? markTags[spec.tool]
+const edgeTags = { script: 'i', bold: 'i', italic: 'b', strikethrough: 'b', code: 'b', marker: 'i' }
+const middleTags = { script: 's', bold: 's', italic: 's', strikethrough: 'i', code: 's', marker: 's' }
 const wrap = (tag, text) => '<' + tag + '>' + text + '</' + tag + '>'
 
 const pause = (ms = 25) => new Promise(resolve => setTimeout(resolve, ms))
@@ -51,7 +56,7 @@ function contentFor(spec) {
     const text = 'un{{swatch}} {{mention}} rest'
     return { before: [text], after: [text] }
   }
-  const tag = markTags[spec.tool], edge = edgeTags[spec.tool], middle = middleTags[spec.tool]
+  const tag = markTag(spec), edge = edgeTags[spec.tool], middle = middleTags[spec.tool]
   const full = spec.boundary === 'Element'
   if (spec.variant === 'nested') {
     const before = 'un' + wrap(edge, wrap(tag, wrap(tag, 'Alpha'))) + ' {{swatch}} {{mention}} rest'
@@ -195,6 +200,19 @@ async function history(nativeInput, redo) {
   await nativeInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
   await pause()
 }
+async function scriptAction(holder, spec, nativeInput) {
+  const panel = holder.querySelector('.oe-inline-toolbar__script-panel')
+  if (!panel) throw new Error('Script action panel did not open')
+  for (let attempt = 0; !panel.contains(document.activeElement) && attempt < 24; attempt++) {
+    for (const type of ['rawKeyDown', 'keyUp']) await nativeInput('Input.dispatchKeyEvent', {
+      type, key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9, modifiers: 0,
+    })
+  }
+  const auxiliaryFocus = panel.contains(document.activeElement) && document.activeElement.tagName === 'BUTTON'
+  const button = panel.querySelectorAll('.oe-inline-tool')[{ sup: 1, sub: 2, none: 3 }[spec.mode]]
+  const trusted = await click(button, nativeInput)
+  return { auxiliaryFocus, trusted, panelClosed: !panel.isConnected }
+}
 
 export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, spec, nativeInput }) {
   if (spec.lifetime) return runBasicMarkLifetimeCase({ sourceBase, legacy, spec, nativeInput })
@@ -227,7 +245,12 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
   const originalInput = JSON.stringify(input)
   let producerCalls = 0, providerCalls = 0
   const tools = legacy ? [spec.tool] : defaults.createDefaultInlineTools({ types: [spec.tool] }).map(tool => ({
-    ...tool, toggle(selection) { producerCalls++; return tool.toggle(selection) },
+    ...tool, toggle(selection) { if (spec.tool !== 'script') producerCalls++; return tool.toggle(selection) },
+    ...(spec.tool === 'script' ? { renderActions(ctx) {
+      return tool.renderActions({ ...ctx, mutate(operation, ...options) {
+        return ctx.mutate(function (...args) { producerCalls++; return operation.apply(this, args) }, ...options)
+      } })
+    } } : {}),
   }))
   if (legacy) unsupported.push({ property: 'transactionEventsAndProducerCount', reason: 'v1 public default-tool resolution injects its selection controller internally; the v2 transaction event contract is absent. Exact public Undo/Redo and content checks still execute.' })
   let editor, phase = 'load'
@@ -321,6 +344,12 @@ export async function runBasicMarkCase({ sourceBase = '../../', legacy = false, 
     completedPhases.push('selection')
     phase = 'apply'
     check('apply', 'trustedNamedButton', await click(holder.querySelector(`[data-tool="${spec.tool}"]`), nativeInput), true)
+    if (spec.tool === 'script') {
+      const panelAction = await scriptAction(holder, spec, nativeInput)
+      check('apply', 'auxiliaryPanelFocus', panelAction.auxiliaryFocus, true)
+      check('apply', 'trustedPanelAction', panelAction.trusted, true)
+      check('apply', 'acceptedPanelClosed', panelAction.panelClosed, true)
+    }
     const after = states(), afterTexts = spec.noop ? content.after : content.after.map((text, index) => (index ? '' : 'X') + text)
     check('apply', 'intendedTextAndMarks', fieldMeaning(), afterTexts.map(meaning))
     checkVisible('apply', afterTexts)
@@ -412,11 +441,16 @@ async function runBasicMarkLifetimeCase({ sourceBase, legacy, spec, nativeInput 
   holder.addEventListener('keydown', event => {
     if (event.key.toLowerCase() === 'z') trusted.push({ type: event.type, key: event.key, trusted: event.isTrusted })
   })
-  const html = wrap(markTags[spec.tool], wrap(edgeTags[spec.tool], 'Abc')) + ' {{swatch}} {{mention}} Tail'
+  const html = wrap(markTag(spec), wrap(edgeTags[spec.tool], 'Abc')) + ' {{swatch}} {{mention}} Tail'
   const create = () => {
     const state = { calls: 0, events: [] }
     const tools = legacy ? [spec.tool] : defaults.createDefaultInlineTools({ types: [spec.tool] }).map(tool => ({
-      ...tool, toggle(selection) { state.calls++; return tool.toggle(selection) },
+      ...tool, toggle(selection) { if (spec.tool !== 'script') state.calls++; return tool.toggle(selection) },
+      ...(spec.tool === 'script' ? { renderActions(ctx) {
+        return tool.renderActions({ ...ctx, mutate(operation, ...options) {
+          return ctx.mutate(function (...args) { state.calls++; return operation.apply(this, args) }, ...options)
+        } })
+      } } : {}),
     }))
     const editor = createEditor({ holder, plugins: [legacy ? new paragraph.Paragraph() : paragraph.createParagraphPlugin()],
       inlinePlugins: [color.createColorSwatchPlugin(), mention.createMentionPlugin({ searchFunction: async () => [] })], inlineTools: tools, injectStyles: true,
@@ -485,6 +519,12 @@ async function runBasicMarkLifetimeCase({ sourceBase, legacy, spec, nativeInput 
     await select()
     phase = 'live-action'
     check(phase, 'trustedLiveButton', await click(holder.querySelector(`[data-tool="${spec.tool}"]`), nativeInput), true)
+    if (spec.tool === 'script') {
+      const panelAction = await scriptAction(holder, spec, nativeInput)
+      check(phase, 'auxiliaryPanelFocus', panelAction.auxiliaryFocus, true)
+      check(phase, 'trustedPanelAction', panelAction.trusted, true)
+      check(phase, 'acceptedPanelClosed', panelAction.panelClosed, true)
+    }
     const after = current.editor.save().blocks
     const expected = wrap(edgeTags[spec.tool], 'Abc') + ' {{swatch}} {{mention}} Tail'
     check(phase, 'liveCapabilityStillWorks', meaning(after[0].data.text), meaning(expected))
