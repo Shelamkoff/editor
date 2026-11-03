@@ -1,5 +1,11 @@
 # Rector v2 audit closeout — active work
 
+Browser patch attribution is corrected from the original CDP logs: the
+19-gate `a008b32f` run used `.79`; the 20/21-gate integrations and five later
+scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
+unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
+preserves the full primary logs and manifests. This adds no accepted row.
+
 ## Optional inline/native-caret acceptance — 2026-11-03
 
 The current register is **92/209 accepted, 117 open**. Seven optional-instance

@@ -21,3 +21,5 @@ tests/browser/native-optional-inline-update.js text eol=lf
 scripts/parity/checkpoints/2026-11-03/optional-inline/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/optional-inline/*.json -text
 scripts/parity/checkpoints/2026-11-03/optional-inline/*.gz -text
+scripts/parity/checkpoints/2026-11-03/browser-environment/*.json -text
+scripts/parity/checkpoints/2026-11-03/browser-environment/*.gz -text

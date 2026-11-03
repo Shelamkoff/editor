@@ -405,7 +405,7 @@ unchanged `13b79cc62ceb29fe7a73b5d5dca9d3cde1c37b9e`, tree
 `f0d7a7149dea97c79460d4361a3cb3aca5624dd8`, identity
 `d37c9e92ab37b26ef74aa5d0241fcef851e348f87e1bc82eb05759586b47312b`.
 Started 2026-11-03T00:10:09.061Z; finished 2026-11-03T00:25:18.207Z. Node
-24.22.2, Windows x64 and Chrome 156.0.8078.79 are recorded for this run.
+24.22.2, Windows x64 and Chrome 156.0.8078.80 are recorded for this run.
 The exact manifest SHA-256 is
 `89b6477f25f5479e7e59a962f4427fad2894a4fec21e0dd82e968610dc48da2b`.
 The preceding nineteen gates are repeated on this source and the new 60-case
@@ -448,7 +448,7 @@ The original manifest hash is
 at `../../2026-11-03/task-authority/integration-manifest.json.gz`. All prior
 twenty gates pass again, with the layer matrix expanded to 65 and a separate
 64-case native Code/Marker gate. This run records Node 24.22.2, Chrome
-156.0.8078.79 and Windows x64, actual fullPreset **95.4 KiB gzip / 96 KiB**,
+156.0.8078.80 and Windows x64, actual fullPreset **95.4 KiB gzip / 96 KiB**,
 2198 passing Node tests / three platform skips, all 45 ordinary pages and 52
 deferred-loading cases. The manifest and every gate record unchanged source.
 `B-HTML` and whole-library readiness remain open; the

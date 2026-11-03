@@ -51,7 +51,7 @@ both ordinary pages, Git comparison plus manual model, five negative evidence
 controls and docs. Started 2026-11-03T02:43:31.066Z; finished
 2026-11-03T02:46:10.513Z; source identity
 `1ebff606360077de762d36ec3daf1cb52131f3d0d8ee318ee46ed11b7f4e0a44`.
-Environment: Windows x64, Node 24.22.2, Chrome 156.0.8078.79, Python 3.12.14.
+Environment: Windows x64, Node 24.22.2, Chrome 156.0.8078.80, Python 3.12.14.
 All runtime paths and candidate loaded modules are byte identical to
 `f2070510`, whose separate original `run-xxJbdd` passes all 21 integration
 gates. The six-gate run is not presented as another 21-gate run.

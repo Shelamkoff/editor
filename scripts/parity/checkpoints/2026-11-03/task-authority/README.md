@@ -65,7 +65,7 @@ typechecks, ordinary browser page, Git-source comparison plus independent
 model, five negative controls and docs contracts. Started
 2026-11-03T02:27:04.097Z; finished 2026-11-03T02:29:37.960Z; source identity
 `6cb6a17ff96590c1d97265e09eb231b14cd528cf49b5a82dc316875b854cd808`.
-Environment: Windows x64, Node 24.22.2, Chrome 156.0.8078.79, Python 3.12.14.
+Environment: Windows x64, Node 24.22.2, Chrome 156.0.8078.80, Python 3.12.14.
 All runtime paths and loaded candidate modules are byte identical to
 `f2070510`, whose separately preserved `run-xxJbdd` passes all 21 integration
 gates. The five-gate run is not presented as a new 21-gate execution.

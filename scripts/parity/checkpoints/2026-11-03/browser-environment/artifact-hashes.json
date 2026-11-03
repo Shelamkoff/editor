@@ -1,0 +1,53 @@
+{
+  "integration-19-browser.log.gz": {
+    "bytes": 42689,
+    "sha256": "001b537b0dbacd02145ec5730835a26fe8fcd5ea1b2d91b9536ac8d7d97c7e8f",
+    "decodedBytes": 1908713,
+    "decodedSha256": "d7dabce5657eef460cc9dc081ab77ca35afd9a49f9116ad1c014dbb3c4e19e46"
+  },
+  "integration-19-manifest.json.gz": {
+    "bytes": 1856,
+    "sha256": "f7469d18bfd13276df9a5fe3913945f2286ec0f5421558bfb6dae7ac515426a6",
+    "decodedBytes": 34956,
+    "decodedSha256": "bee8de5ab8986390660877d7a9db3f591e5dee31ee390b2eaac3d4daa14fd6c6"
+  },
+  "integration-20-browser.log.gz": {
+    "bytes": 42687,
+    "sha256": "0a3e4bbb5dca4a5ac034f3b45326e0e211ee53ff386671f3b61685e147acab15",
+    "decodedBytes": 1908713,
+    "decodedSha256": "0148c1f84ddab5f0db50ef1bf0af0853899164d8f2e8112a09dbfd1d481c851b"
+  },
+  "integration-20-manifest.json.gz": {
+    "bytes": 1911,
+    "sha256": "e82f37946985b19186b152b1090205498a8a58564b1c611ce81643d4c448c9e5",
+    "decodedBytes": 36719,
+    "decodedSha256": "89b6477f25f5479e7e59a962f4427fad2894a4fec21e0dd82e968610dc48da2b"
+  },
+  "integration-21-browser.log.gz": {
+    "bytes": 42687,
+    "sha256": "c7af21902193dcbbc291bf8b3f167e4c0dfc60847c21b774f4a6dc203938ebee",
+    "decodedBytes": 1908713,
+    "decodedSha256": "c1099136e26366c55b413d0763f362d0b081dc5c526526aa20fd8caa2619f638"
+  },
+  "integration-21-manifest.json.gz": {
+    "bytes": 1964,
+    "sha256": "eb50ccaf391e04d5d750524488e46e5ffd7b3d926cf4a6637bbdb643ba7ecb74",
+    "decodedBytes": 38554,
+    "decodedSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09"
+  },
+  "manifest.json": {
+    "sha256": "800d88fe0628ed9dceba0e486f263446bede0c0157b8630864d6ad52b9d038b8"
+  },
+  "correction-docs.log.gz": {
+    "bytes": 333,
+    "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+    "decodedBytes": 741,
+    "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa"
+  },
+  "correction-site.log.gz": {
+    "bytes": 939,
+    "sha256": "b0bd460be53c579d58b6cab7c6d7773f24ede78a6354127dc542730b863f4e2e",
+    "decodedBytes": 2247,
+    "decodedSha256": "b4181ae173efd7b74d52625542fbd002703ae47154c5b04fe4395672103336fc"
+  }
+}

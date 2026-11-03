@@ -6,10 +6,21 @@ Current scoped acceptance is **92 / 209 obligations**, with **117 open**; see th
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Browser environment attribution — 2026-11-03
+
+Primary CDP logs record Chrome `156.0.8078.79` for the nineteen-gate
+`run-A9Taxq`, and `156.0.8078.80` for the twenty-gate `run-DLyD1O` and
+twenty-one-gate `run-xxJbdd`. Code/Marker and the four following contract
+corpora also record `.80`. Their human descriptions previously repeated `.79`
+and are corrected; original data, hashes, sources and outcomes are unchanged.
+The [environment checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
+preserves all three original logs/manifests and the observed product/revision.
+This adds no accepted row or new test execution; the register remains 92/117.
+
 ## Optional inline instances and native caret — 2026-11-03
 
 Seven named optional-instance rows are accepted on immutable
-`baa0ffc5d240b149b5c909f60d352423829143c3`, Windows x64 / Chrome 156.0.8078.79:
+`baa0ffc5d240b149b5c909f60d352423829143c3`, Windows x64 / Chrome 156.0.8078.80:
 context update, task update, immediate caret, no-op reuse, failed replacement,
 synchronous-update controls and native-reconciliation's required update hook.
 The register becomes **92 accepted / 117 open**. No production behavior changed.
@@ -54,7 +65,7 @@ retain separate proof obligations.
 ## Continuation history and deferred callbacks — 2026-11-03
 
 Three rows are accepted on immutable `442c88252fd29c080484c7832a451786745375d6`,
-Windows x64 / Chrome 156.0.8078.79: `CONTRACT_BLOCK_INLINE_CONTINUATION`,
+Windows x64 / Chrome 156.0.8078.80: `CONTRACT_BLOCK_INLINE_CONTINUATION`,
 `CONTRACT_ASYNC_OBSERVER_ADMISSION` and `CONTRACT_DEFERRED_DIAGNOSTIC`.
 The register becomes **85 accepted / 124 open**. No production change was needed.
 
@@ -95,7 +106,7 @@ not product RED. Other C07/C12 rows, B-HTML and full-library readiness stay open
 ## Public mode recovery acceptance — 2026-11-03
 
 Four rows are accepted on immutable `4c23285dac1b6048e8e2395dbcc07408aca29b13`,
-Windows x64 / Chrome 156.0.8078.79: `CONTRACT_FAILED_MODE_DISPOSAL`,
+Windows x64 / Chrome 156.0.8078.80: `CONTRACT_FAILED_MODE_DISPOSAL`,
 `CONTRACT_MODE_FALSY_RECOVERY`, `CONTRACT_MODE_RECOVERY_CONTROLS` and
 `CONTRACT_MODE_RECOVERY_TERMINAL_DISPOSAL`. The register becomes
 **82 accepted / 127 open**. No production behavior changes in this proof.
@@ -131,7 +142,7 @@ review exits 0. Other C07/C12 rows, B-HTML and whole-library readiness stay open
 ## Public task and read authority acceptance — 2026-11-03
 
 Nine contract rows are accepted on immutable `61ec543ec98e4133509ecf42afe7a4c03c130eb7`,
-Windows x64 / Chrome 156.0.8078.79: retired/active task options, inline option
+Windows x64 / Chrome 156.0.8078.80: retired/active task options, inline option
 capture, task settlement and successful owner retirement, guarded/revoked inline
 decode, preserved decoded reads, and failed public disposal. The
 [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/task-authority/README.md)
@@ -170,7 +181,7 @@ Other C07/C12, HTML and full-library obligations remain open.
 ## Inline Code and Marker acceptance — 2026-11-03
 
 Only `TOOL_CODE_ACTION` and `TOOL_MARKER_ACTION` are accepted on immutable
-`d4f026f8b25ca178c1b3c14e6a1526afa84d0176`, Windows x64 / Chrome 156.0.8078.79.
+`d4f026f8b25ca178c1b3c14e6a1526afa84d0176`, Windows x64 / Chrome 156.0.8078.80.
 Each tool completes 32 cases and 1498 passing observations through the actual
 public editor: apply/mixed/nested removal, text/element endpoints in both
 directions, cross-Paragraph/Quote fields, native input, real Color/Mention

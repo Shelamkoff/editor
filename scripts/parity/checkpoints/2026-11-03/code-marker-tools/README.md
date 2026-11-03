@@ -50,7 +50,7 @@ cases, the three-source comparison plus independent review, three negative
 evidence controls and documentation contracts. Started
 2026-11-03T00:33:01.954Z; finished 2026-11-03T00:37:41.414Z; identity
 `c6bbfe4d268d9fcfc061766d3e4319471fdb73784f39af2a099032bc3f6c1abd`.
-Environment: Windows x64, Node 24.22.2, Chrome 156.0.8078.79 and Python 3.12.14.
+Environment: Windows x64, Node 24.22.2, Chrome 156.0.8078.80 and Python 3.12.14.
 
 All candidate production modules and runtime paths are byte identical to
 `13b79cc6`, whose original twenty-gate manifest is separately preserved. The
