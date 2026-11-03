@@ -397,3 +397,24 @@ confidently determine the current browser URL. Context-menu UI and actual
 native fullscreen UI therefore remain unverified. No preservation count or
 whole B-HTML acceptance changes. Frozen combined integration follows this
 repair; prior successful integrations retain their earlier source identity.
+
+### Completed native-layer integration
+
+`test-results/run-DLyD1O/manifest.json` passes **all twenty gates** on clean
+unchanged `13b79cc62ceb29fe7a73b5d5dca9d3cde1c37b9e`, tree
+`f0d7a7149dea97c79460d4361a3cb3aca5624dd8`, identity
+`d37c9e92ab37b26ef74aa5d0241fcef851e348f87e1bc82eb05759586b47312b`.
+Started 2026-11-03T00:10:09.061Z; finished 2026-11-03T00:25:18.207Z. Node
+24.22.2, Windows x64 and Chrome 156.0.8078.79 are recorded for this run.
+The exact manifest SHA-256 is
+`89b6477f25f5479e7e59a962f4427fad2894a4fec21e0dd82e968610dc48da2b`.
+The preceding nineteen gates are repeated on this source and the new 60-case
+native-layer gate passes against exact Git modules. All five selected native
+groups pass (28 HTML, 65 roundtrip, 95 media, 345 plugin and 28 Person cases),
+as do 45 ordinary pages, 2198 Node tests / three platform skips, 52 deferred
+loading cases, resource/navigation/responsive/glyph controls, heap, types,
+docs, package and site. The actual fullPreset measurement is **95.5 KiB gzip /
+96 KiB**. The manifest is retained with the following Code/Marker checkpoint
+as `integration-manifest.json.gz`; it is the original twenty-gate record,
+without a relabelled candidate or outcome. B-HTML and the register remain open
+within their separately recorded scopes.

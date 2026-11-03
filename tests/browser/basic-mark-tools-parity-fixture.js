@@ -1,27 +1,32 @@
 // Fixed public-editor actions shared by the native regression and the
 // immutable three-source runner. Expected text is authored below, never
 // calculated by calling the production tool or its normalizer.
-export const basicMarkCases = []
-for (const tool of ['bold', 'italic', 'strikethrough']) {
-  for (const variant of ['apply', 'mixed', 'nested']) {
-    for (const shape of variant === 'nested' ? ['single'] : ['single', 'cross', 'fields']) {
-      for (const boundary of ['Text', 'Element']) for (const backward of [false, true]) {
-        basicMarkCases.push({ id: [tool, variant, shape, boundary, backward ? 'backward' : 'forward'].join('/'),
-          tool, variant, shape, boundary, backward })
+function markCases(tools) {
+  const cases = []
+  for (const tool of tools) {
+    for (const variant of ['apply', 'mixed', 'nested']) {
+      for (const shape of variant === 'nested' ? ['single'] : ['single', 'cross', 'fields']) {
+        for (const boundary of ['Text', 'Element']) for (const backward of [false, true]) {
+          cases.push({ id: [tool, variant, shape, boundary, backward ? 'backward' : 'forward'].join('/'),
+            tool, variant, shape, boundary, backward })
+        }
       }
     }
+    for (const backward of [false, true]) cases.push({
+      id: [tool, 'noop', 'atomic', backward ? 'backward' : 'forward'].join('/'),
+      tool, noop: 'atomic', shape: 'single', boundary: 'Element', backward,
+    })
+    for (const lifetime of ['read-only', 'destroy']) cases.push({
+      id: [tool, 'lifetime', lifetime].join('/'), tool, lifetime,
+    })
   }
-  for (const backward of [false, true]) basicMarkCases.push({
-    id: [tool, 'noop', 'atomic', backward ? 'backward' : 'forward'].join('/'),
-    tool, noop: 'atomic', shape: 'single', boundary: 'Element', backward,
-  })
-  for (const lifetime of ['read-only', 'destroy']) basicMarkCases.push({
-    id: [tool, 'lifetime', lifetime].join('/'), tool, lifetime,
-  })
+  return cases
 }
-const markTags = { bold: 'b', italic: 'i', strikethrough: 's' }
-const edgeTags = { bold: 'i', italic: 'b', strikethrough: 'b' }
-const middleTags = { bold: 's', italic: 's', strikethrough: 'i' }
+export const basicMarkCases = markCases(['bold', 'italic', 'strikethrough'])
+export const codeMarkerCases = markCases(['code', 'marker'])
+const markTags = { bold: 'b', italic: 'i', strikethrough: 's', code: 'code', marker: 'mark' }
+const edgeTags = { bold: 'i', italic: 'b', strikethrough: 'b', code: 'b', marker: 'i' }
+const middleTags = { bold: 's', italic: 's', strikethrough: 'i', code: 's', marker: 's' }
 const wrap = (tag, text) => '<' + tag + '>' + text + '</' + tag + '>'
 
 const pause = (ms = 25) => new Promise(resolve => setTimeout(resolve, ms))

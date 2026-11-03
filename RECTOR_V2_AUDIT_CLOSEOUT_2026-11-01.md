@@ -23,10 +23,14 @@ of preceding Node 24.9.0 evidence. Its actual enforced bundle result is
 all 45 ordinary browser pages and the five selected native groups pass.
 B-HTML and full readiness are not claimed. A subsequent native probe reproduces
 clipped fixed elements and opened popovers in all four HTML surfaces. The repair
-passes all 60 public/native layer cases before commit; exact preceding
-`a008b32f` fails 28 of them while all twelve native controls pass. Frozen
-integration of this follow-up is the next step. Earlier source-specific
-acceptance remains in force.
+on `13b79cc6` passes **all 20 frozen integration gates** in `run-DLyD1O`, including
+all 60 public/native layer cases. Exact preceding `a008b32f` fails 28 of them
+while all twelve native controls pass. The final actual bundle is **95.5 KiB
+gzip / 96 KiB**. Native context-menu/fullscreen UI remains unverified because
+computer-use stopped when it could not confidently identify the current URL.
+The next active proof covers inline Code and Marker; its exploratory candidate
+cases pass, while committed-fixture verification and row acceptance are pending.
+Earlier source-specific acceptance remains in force.
 
 ## Accepted integration — 2026-11-02
 

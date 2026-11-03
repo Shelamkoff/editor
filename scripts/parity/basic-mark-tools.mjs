@@ -13,6 +13,8 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex')
 const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 })
 const headBefore = git('rev-parse', 'HEAD').toString().trim()
 const startedAt = new Date().toISOString()
+const group = process.env.EDITOR_BASIC_TOOLS_GROUP ?? 'basic'
+assert.ok(['basic', 'code-marker'].includes(group), 'Unknown basic-tool group')
 const runnerBytes = await readFile(fileURLToPath(import.meta.url))
 assert.deepEqual(git('show', `${headBefore}:scripts/parity/basic-mark-tools.mjs`), runnerBytes, 'Runner differs from committed source')
 const fixturePath = 'tests/browser/basic-mark-tools-parity-fixture.js'
@@ -94,12 +96,13 @@ try {
     })
     await page.goto(`http://127.0.0.1:${server.address().port}/`)
     const cases = await page.evaluate(async source => {
-      const { basicMarkCases, runBasicMarkCase } = await import('/fixture.js')
+      const { basicMarkCases, codeMarkerCases, runBasicMarkCase } = await import('/fixture.js')
       const results = []
-      for (const spec of basicMarkCases.filter(value => !source.filter || value.id.includes(source.filter))) results.push(await runBasicMarkCase({ sourceBase: `/${source.label}/`,
+      const cases = source.group === 'code-marker' ? codeMarkerCases : basicMarkCases
+      for (const spec of cases.filter(value => !source.filter || value.id.includes(source.filter))) results.push(await runBasicMarkCase({ sourceBase: `/${source.label}/`,
         legacy: source.legacy, spec, nativeInput: window.__basicMarkInput }))
       return results
-    }, { label: source.label, legacy: source.legacy, filter: process.env.EDITOR_BASIC_TOOLS_FILTER ?? '' })
+    }, { label: source.label, legacy: source.legacy, group, filter: process.env.EDITOR_BASIC_TOOLS_FILTER ?? '' })
     results.push({ source: source.label, cases, pageErrors, inputErrors })
     await page.close()
   }
@@ -120,7 +123,8 @@ try {
     packageLockSha256: digest(await readFile(join(repo, 'package-lock.json'))),
     sourceIdentity: 'Every production module is served unchanged from its exact Git object. Fixed fixtures adapt public API/wire spelling only.',
     filter: process.env.EDITOR_BASIC_TOOLS_FILTER ?? '',
-    scope: 'Actual native toolbar actions and history for Bold/Italic/Strikethrough. Selections are explicitly installed valid DOM ranges, not physical drag claims.',
+    group,
+    scope: `Actual native toolbar actions and history for ${group === 'code-marker' ? 'inline Code/Marker' : 'Bold/Italic/Strikethrough'}. Selections are explicitly installed valid DOM ranges, not physical drag claims.`,
     sources, dependencyVersions, dependencyFiles, results, serverErrors, candidatePass,
     note: 'Historical defects remain raw FAIL observations. Unsupported legacy observation APIs are explicitly recorded and never inferred as passes.',
   }, null, 2))
