@@ -30,8 +30,8 @@ function findBgSpan(rangeHint = null, ownerDocument = rangeHint?.startContainer?
     ? /** @type {HTMLElement} */ (anchorNode)
     : anchorNode.parentElement
   while (node) {
+    if (node.hasAttribute('contenteditable')) break
     if (node.tagName === 'SPAN' && node.style.backgroundColor) return node
-    if (node.classList && node.classList.contains('oe-paragraph')) break
     node = node.parentElement
   }
   return null
@@ -123,7 +123,7 @@ export function createBgColorTool(label) {
           if (endOffset < node.length) node.splitText(endOffset)
           if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
           const parentEl = targetNode.parentElement
-          if (parentEl?.tagName === 'SPAN' && parentEl.style.backgroundColor
+          if (parentEl?.tagName === 'SPAN' && !parentEl.hasAttribute('contenteditable') && parentEl.style.backgroundColor
               && parentEl.childNodes.length === 1 && parentEl.firstChild === targetNode) {
             parentEl.style.backgroundColor = color
           } else {
