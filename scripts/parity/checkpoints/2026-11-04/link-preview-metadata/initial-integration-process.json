@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical delayed URL/replay/view differences and six baseline projection errors remain raw; the independent model requires all current observations and graphs to pass."
+}

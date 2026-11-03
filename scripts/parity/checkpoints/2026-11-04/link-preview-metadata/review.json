@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "candidate": "cb0a51d1f112877f2c341fc3ae3d9edbc0f68296",
+  "results": {
+    "final": {
+      "v1": {
+        "cases": 19,
+        "observations": 451,
+        "differences": 87,
+        "pageErrors": 0,
+        "unavailableProducerCases": 3,
+        "blockedEnvironmentRequests": 1
+      },
+      "spec-baseline": {
+        "cases": 22,
+        "observations": 523,
+        "differences": 46,
+        "pageErrors": 6,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate": {
+        "cases": 22,
+        "observations": 523,
+        "differences": 0,
+        "pageErrors": 0,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      }
+    },
+    "red": {
+      "v1": {
+        "cases": 19,
+        "observations": 394,
+        "differences": 61,
+        "pageErrors": 0,
+        "unavailableProducerCases": 3,
+        "blockedEnvironmentRequests": 1
+      },
+      "spec-baseline": {
+        "cases": 22,
+        "observations": 457,
+        "differences": 40,
+        "pageErrors": 6,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate": {
+        "cases": 22,
+        "observations": 457,
+        "differences": 13,
+        "pageErrors": 6,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      }
+    }
+  },
+  "currentCases": 22,
+  "currentObservations": 523,
+  "nativeCases": 22,
+  "trustedCases": 23,
+  "ordinaryPages": 55,
+  "rawSha256": "9ea32f4cff80524b5466ace3298992e8770c613bd0f66f2363f6527c5279a0da",
+  "redSha256": "d8cd92e1ee76f58184b33d2615c6e4bca7ce9a87b80a17036b493929096ee411",
+  "reviewerSha256": "fb85c363b62ea10524c2f7ca2f6713c1054d56271c496751bda5be407ae01236",
+  "nativeNormalSha256": "312f36cf4c74701b49123dde8e1322a4e979637e943fc60870f309b1c5e7daff",
+  "nativeTrustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+  "browserSha256": "81429c9299e33fe33151d22e42bbb192d35b6fae5cddb3690566b9b087f59918",
+  "moduleIdentities": 287,
+  "redModuleIdentities": 287,
+  "seedModuleIdentities": 287,
+  "seedCommit": "66f45e5abfd37334208b46d5be92d46f2ef9aaeb",
+  "seedRawSha256": "7417fbeb3877a1c60fb9f2fcb2d30aceff5d7ca209d83b2a4a9d1200409fd07c",
+  "manualSeedModelSha256": "bafc8ba44b6dc10fde51afaac5f8e9ba27983ddb17f879609bdcf1d728a4becd",
+  "runtimeBasis": "38dd32300fa68e6586a2c2a521aacb1eb6391923"
+}

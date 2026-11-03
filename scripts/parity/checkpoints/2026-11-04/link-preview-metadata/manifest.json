@@ -1,0 +1,147 @@
+{
+  "candidate": "cb0a51d1f112877f2c341fc3ae3d9edbc0f68296",
+  "tree": "f1c114ccb3532152d56d66b766f332554d46563e",
+  "sourceIdentity": "7e1872497859f1b0b4adf2be7fd524821b80caa9456748624c9d20d63c7229a8",
+  "initialIntegrationSource": "e9283a72ddfeceb36708571794b4ccbf5978fc46",
+  "reviewFollowup": {
+    "directory": "run-3CGIMB",
+    "outcome": "passed",
+    "gates": 2,
+    "source": "cb0a51d1f112877f2c341fc3ae3d9edbc0f68296",
+    "sourceIdentity": "7e1872497859f1b0b4adf2be7fd524821b80caa9456748624c9d20d63c7229a8",
+    "startedAt": "2026-11-03T22:51:46.304Z",
+    "finishedAt": "2026-11-03T22:52:41.386Z",
+    "change": "Reviewer browser inventory matcher only; .htm is a real page. Exact ordered inventory is checked against tests/browser/run.mjs."
+  },
+  "integrationRun": {
+    "directory": "run-l5MOwq",
+    "outcome": "failed",
+    "gates": 18,
+    "startedAt": "2026-11-03T22:42:03.731Z",
+    "finishedAt": "2026-11-03T22:50:38.396Z"
+  },
+  "productionBasis": "38dd32300fa68e6586a2c2a521aacb1eb6391923",
+  "productionDeltaFromPreviousBasis": [
+    "plugins/link-preview/index.js"
+  ],
+  "redSource": "b4ac89a0ac56c679f25cc0ef1e84ca821616ee2c",
+  "focusedGreenSource": "38dd32300fa68e6586a2c2a521aacb1eb6391923",
+  "cases": 22,
+  "observations": 523,
+  "nativeGroups": {
+    "native-metadata": [
+      "native-link-preview-metadata.html",
+      22
+    ],
+    "native-metadata-trusted": [
+      "native-link-preview-metadata-trusted.html",
+      23
+    ],
+    "native-templates": [
+      "native-link-preview-templates.html",
+      14
+    ],
+    "native-templates-trusted": [
+      "native-link-preview-templates-trusted.html",
+      15
+    ],
+    "native-controls": [
+      "native-plugin-controls.html",
+      169
+    ],
+    "native-html": [
+      "native-html-content.html",
+      28
+    ]
+  },
+  "selectedNativeCases": 271,
+  "defaultNativePageInventory": 83,
+  "ordinaryPages": 55,
+  "canonicalNodeFiles": 197,
+  "nodePassed": 2207,
+  "nodeSkipped": 3,
+  "corruptionsRejected": 18,
+  "moduleIdentities": 287,
+  "results": {
+    "final": {
+      "v1": {
+        "cases": 19,
+        "observations": 451,
+        "differences": 87,
+        "pageErrors": 0,
+        "unavailableProducerCases": 3,
+        "blockedEnvironmentRequests": 1
+      },
+      "spec-baseline": {
+        "cases": 22,
+        "observations": 523,
+        "differences": 46,
+        "pageErrors": 6,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate": {
+        "cases": 22,
+        "observations": 523,
+        "differences": 0,
+        "pageErrors": 0,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      }
+    },
+    "red": {
+      "v1": {
+        "cases": 19,
+        "observations": 394,
+        "differences": 61,
+        "pageErrors": 0,
+        "unavailableProducerCases": 3,
+        "blockedEnvironmentRequests": 1
+      },
+      "spec-baseline": {
+        "cases": 22,
+        "observations": 457,
+        "differences": 40,
+        "pageErrors": 6,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate": {
+        "cases": 22,
+        "observations": 457,
+        "differences": 13,
+        "pageErrors": 6,
+        "unavailableProducerCases": 0,
+        "blockedEnvironmentRequests": 1
+      }
+    }
+  },
+  "historicalSeed": {
+    "commit": "66f45e5abfd37334208b46d5be92d46f2ef9aaeb",
+    "rawSha256": "7417fbeb3877a1c60fb9f2fcb2d30aceff5d7ca209d83b2a4a9d1200409fd07c",
+    "modelSha256": "bafc8ba44b6dc10fde51afaac5f8e9ba27983ddb17f879609bdcf1d728a4becd"
+  },
+  "environment": "Exact known Kaspersky injected script attempts are blocked and recorded separately in environmentRequests. Product externalRequests must remain empty. No antivirus or OS settings were changed.",
+  "excludedAttempts": "Initial and diagnostic exploratory corpora mixed environmental script attempts with product network and preceded the complete literal replay assertions. Exact raw bytes and original fixture/driver hashes are retained; neither is acceptance evidence.",
+  "registerBefore": {
+    "accepted": 121,
+    "open": 88
+  },
+  "registerAfter": {
+    "accepted": 124,
+    "open": 85
+  },
+  "acceptedRows": [
+    "BLOCK_LINK_PREVIEW_METADATA",
+    "BLOCK_LINK_PREVIEW_HISTORY_CONTINUATION",
+    "BLOCK_LINK_PREVIEW_CANCELLATION"
+  ],
+  "register": {
+    "accepted": 124,
+    "open": 85
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

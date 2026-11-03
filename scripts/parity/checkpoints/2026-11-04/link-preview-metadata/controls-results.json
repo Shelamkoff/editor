@@ -1,0 +1,149 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "sha256": "23660e10655d29cd2b2dec143acacb401f2630337ecf09b3b9d7a6a8548369bf",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 138, in main\r\n    modules=validate_raw_identity(d,a.candidate,helper,True);red_modules=validate_raw_identity(r,RED,helper);seed_modules=validate_raw_identity(seed,SEED_SOURCE,helper);assert d['candidatePass'] is True and r['candidatePass'] is False and seed['candidatePass'] is True\r\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 119, in validate_raw_identity\r\n    assert {s['label']:s['sha'] for s in d['sources']}==dict(v1=V1,**{'spec-baseline':BASELINE,'candidate':source})\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "overwritten-host-title",
+      "exitCode": 1,
+      "sha256": "bd995241c41e34bb9136887aaef891c454e94a01e316b86f82f4d341e0f7d04d",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 145, in main\r\n    for case in row['cases']:verify_expectations(case,old,history)\r\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 108, in verify_expectations\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value),(case['id'],phase,key,'changed oracle')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('host-title', 'complete', 'canonical', 'changed oracle')\r\n"
+    },
+    {
+      "name": "lost-away-back-ownership",
+      "exitCode": 1,
+      "sha256": "1cb08648651aa6a826fec27443c6d0041a1c69139ffc7875278349b4fca1384e",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 145, in main\r\n    for case in row['cases']:verify_expectations(case,old,history)\r\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 108, in verify_expectations\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value),(case['id'],phase,key,'changed oracle')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('host-away-back', 'complete', 'canonical', 'changed oracle')\r\n"
+    },
+    {
+      "name": "unrelated-task-revoked",
+      "exitCode": 1,
+      "sha256": "fa315f4b2831111a8206248660552daa185510f6670c857e6840297068dc91e9",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 145, in main\r\n    for case in row['cases']:verify_expectations(case,old,history)\r\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 108, in verify_expectations\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value),(case['id'],phase,key,'changed oracle')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('intervening', 'intervene', 'firstAborted', 'changed oracle')\r\n"
+    },
+    {
+      "name": "merged-unrelated-action",
+      "exitCode": 1,
+      "sha256": "d8ce5690eed075ddcb13e370ffa7b2428a11c3ae1bbe0c2013950964b2a8ca0b",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 145, in main\r\n    for case in row['cases']:verify_expectations(case,old,history)\r\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 108, in verify_expectations\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value),(case['id'],phase,key,'changed oracle')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('intervening', 'replay', 'undoStates', 'changed oracle')\r\n"
+    },
+    {
+      "name": "restoration-refetched",
+      "exitCode": 1,
+      "sha256": "6bff23395c4239d5b63c0990761a81e9305b5778ff7d3018cfcbd0b7a04bd844",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 145, in main\r\n    for case in row['cases']:verify_expectations(case,old,history)\r\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 108, in verify_expectations\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value),(case['id'],phase,key,'changed oracle')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('auto-replay', 'replay', 'requestCountAfterReplay', 'changed oracle')\r\n"
+    },
+    {
+      "name": "retired-result-authored",
+      "exitCode": 1,
+      "sha256": "747778943e13827eeef228e09d72072a5b0f23c6c8c1badfa3720c70aabb01f0",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 145, in main\r\n    for case in row['cases']:verify_expectations(case,old,history)\r\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 108, in verify_expectations\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],value),(case['id'],phase,key,'changed oracle')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('destroy/resolve', 'complete', 'canonical', 'changed oracle')\r\n"
+    },
+    {
+      "name": "late-rejection-escaped",
+      "exitCode": 1,
+      "sha256": "5bf3a6031999ef57dddafa9415be263880e0e011b7617f02bf2508f3ce80f4e8",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 148, in main\r\n    verified=[verify_current(case,red=label=='red',history=history,other=label!='red') for case in row['cases']];assert len(row['pageErrors'])==(6 if label=='red' else 0);assert sum(len(f) for _,f in verified)==(13 if label=='red' else 0)\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 83, in verify_current\r\n    s=case['spec'];assert case['id']==s['id'] and case['planned']==case['completedPhases']==PHASES and case['error'] is None and case['diagnostics']==case['unhandled']==case['unsupported']==[]\r\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "wrong-request-phase",
+      "exitCode": 1,
+      "sha256": "b50e2dd30c1ea5f357d403e10b7ead127bb362e5278e7b93b9519d0c88688b1b",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 148, in main\r\n    verified=[verify_current(case,red=label=='red',history=history,other=label!='red') for case in row['cases']];assert len(row['pageErrors'])==(6 if label=='red' else 0);assert sum(len(f) for _,f in verified)==(13 if label=='red' else 0)\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 89, in verify_current\r\n    assert case['transactions']==events(s,red) and case['nativeEvents']==native(s,other) and case['requestTrace']==request_trace(s,red) and case['changeTrace']==changes(s),(s['id'],'delivery graph')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('adjacent', 'delivery graph')\r\n"
+    },
+    {
+      "name": "untrusted-other-input",
+      "exitCode": 1,
+      "sha256": "7425114bd8312e916879e31f6cf28b3266b13a5a0705679ca34b54040bbec346",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 148, in main\r\n    verified=[verify_current(case,red=label=='red',history=history,other=label!='red') for case in row['cases']];assert len(row['pageErrors'])==(6 if label=='red' else 0);assert sum(len(f) for _,f in verified)==(13 if label=='red' else 0)\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 89, in verify_current\r\n    assert case['transactions']==events(s,red) and case['nativeEvents']==native(s,other) and case['requestTrace']==request_trace(s,red) and case['changeTrace']==changes(s),(s['id'],'delivery graph')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('intervening', 'delivery graph')\r\n"
+    },
+    {
+      "name": "missing-typed-teardown",
+      "exitCode": 1,
+      "sha256": "4b33fd728fea8f3d368f1de896e15441fd3ac91e3100119923a31875575956a5",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 143, in main\r\n    verify_environment(row);old=row['source']=='v1';assert row['inputErrors']==[] and [case['spec'] for case in row['cases']]==[s for s in specs() if not old or not s.get('currentOnly')]\r\n                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "hidden-baseline-errors",
+      "exitCode": 1,
+      "sha256": "dc4c12cb565d2fd8f3876b877e06f914d191d374dce2187873de7bf31b343c42",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 146, in main\r\n    if label=='final' and row['source']!='candidate':assert historical_graph(row)==historical_graph(seed['results'][index]),(row['source'],'historical graph changed')\r\n                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('spec-baseline', 'historical graph changed')\r\n"
+    },
+    {
+      "name": "hidden-legacy-delay",
+      "exitCode": 1,
+      "sha256": "429354f57652b71affdee179cf87c11f109b885fd6da87891d6b25eb277b6ae2",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 146, in main\r\n    if label=='final' and row['source']!='candidate':assert historical_graph(row)==historical_graph(seed['results'][index]),(row['source'],'historical graph changed')\r\n                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('v1', 'historical graph changed')\r\n"
+    },
+    {
+      "name": "unapproved-environment-host",
+      "exitCode": 1,
+      "sha256": "815433dd77c65b64c08233b4b80746962577c5f70cec8913af5c866ea4419ef7",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 143, in main\r\n    verify_environment(row);old=row['source']=='v1';assert row['inputErrors']==[] and [case['spec'] for case in row['cases']]==[s for s in specs() if not old or not s.get('currentOnly')]\r\n    ^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 99, in verify_environment\r\n    assert url.scheme=='http' and url.hostname=='gc.kis.v2.scr.kaspersky-labs.com' and url.path=='/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js' and url.username is None and url.password is None\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "ignored-product-network",
+      "exitCode": 1,
+      "sha256": "ab1113c26610c44b4a43f78be1e314435564f44451a9715ee5a30a893250253b",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 143, in main\r\n    verify_environment(row);old=row['source']=='v1';assert row['inputErrors']==[] and [case['spec'] for case in row['cases']]==[s for s in specs() if not old or not s.get('currentOnly')]\r\n    ^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 96, in verify_environment\r\n    assert row['externalRequests']==[] and len(row['environmentRequests'])<=1\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "altered-module",
+      "exitCode": 1,
+      "sha256": "5b180e25a57d1730e57826abc690e7a07f6316f2fbe7b3a8fb065773081461ce",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 138, in main\r\n    modules=validate_raw_identity(d,a.candidate,helper,True);red_modules=validate_raw_identity(r,RED,helper);seed_modules=validate_raw_identity(seed,SEED_SOURCE,helper);assert d['candidatePass'] is True and r['candidatePass'] is False and seed['candidatePass'] is True\r\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 123, in validate_raw_identity\r\n    for path,h in item['loaded'].items():assert sha(blobs[item['sha']+':'+path])==h\r\n                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "hidden-red-failure",
+      "exitCode": 1,
+      "sha256": "2fda412825e29dcf1b5fe9ae35a3dd71cab0c2d40a3cb0663e9bb61b4224762d",
+      "redSha256": "53d5921124ecd6feb6fd000983b10868abeda10bba34ba61ccc6e060ec021bd2",
+      "trustedSha256": "e50cdc6b1add9eea12dd19b9117242f9980550319b72cfee8ea0a178fddb2b6e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 148, in main\r\n    verified=[verify_current(case,red=label=='red',history=history,other=label!='red') for case in row['cases']];assert len(row['pageErrors'])==(6 if label=='red' else 0);assert sum(len(f) for _,f in verified)==(13 if label=='red' else 0)\r\n                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-enforced-policy",
+      "exitCode": 1,
+      "sha256": "2fda412825e29dcf1b5fe9ae35a3dd71cab0c2d40a3cb0663e9bb61b4224762d",
+      "redSha256": "c1ab85af6c49a9d9a8c5107a8b76c4f0c8e483ff2642655e11b7339cdb89479b",
+      "trustedSha256": "99dc8e3965696329f61554de6dd00f6c9ebc3d3e0eca1a1fdf620c37db877598",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 163, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\link-preview-metadata\\review.py\", line 156, in main\r\n    assert [c['name'] for c in summary]==(['LinkPreview Trusted Types policy rejects untrusted HTML'] if policy else [])+['LinkPreview metadata '+s['id'] for s in specs()] and all(c['status']=='PASS' for c in summary)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}
