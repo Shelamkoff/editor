@@ -1,0 +1,65 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "sha256": "0d69405a769101dbcd1bca05ccdb606fdf3628d0e609e86b13250793176f2704",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 42, in main\r\n    assert len(d['sources'])==len(d['results'])==1 and d['sources'][0]['label']=='candidate' and d['sources'][0]['sha']==a.candidate\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "pending-rgb-lost",
+      "exitCode": 1,
+      "sha256": "5955c7674e1abc822dad6ad6cf510325cf5fea6c7377a73d698ea93cab64adb3",
+      "stderr": ", 'size': None}, {'kind': 'text', 'text': ' ', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 'r', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 'e', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 's', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 't', 'marks': [], 'bg': None, 'color': None, 'size': None}], 'status': 'PASS'}, [{'kind': 'text', 'text': 'A', 'marks': ['b'], 'bg': '#ff0000@0.5', 'color': '#800000', 'size': None}, {'kind': 'text', 'text': 'l', 'marks': ['b'], 'bg': '#ff0000@0.5', 'color': '#800000', 'size': None}, {'kind': 'text', 'text': 'p', 'marks': ['b'], 'bg': '#ff0000@0.5', 'color': '#800000', 'size': None}, {'kind': 'text', 'text': 'h', 'marks': ['b'], 'bg': '#ff0000@0.5', 'color': '#800000', 'size': None}, {'kind': 'text', 'text': 'a', 'marks': ['b'], 'bg': '#ff0000@0.5', 'color': '#800000', 'size': None}, {'kind': 'text', 'text': ' ', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 'r', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 'e', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 's', 'marks': [], 'bg': None, 'color': None, 'size': None}, {'kind': 'text', 'text': 't', 'marks': [], 'bg': None, 'color': None, 'size': None}])\r\n"
+    },
+    {
+      "name": "wrong-alpha",
+      "exitCode": 1,
+      "sha256": "c79328843644fccb866e98b7cd99fb1de3e72007d9657923c1e92b27158d6d6f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plain/alpha', ('action', 'alphaValue'), 'expected', {'phase': 'action', 'property': 'alphaValue', 'actual': '1', 'expected': '1', 'status': 'PASS'}, '0.5')\r\n"
+    },
+    {
+      "name": "unenforced-trusted-types",
+      "exitCode": 1,
+      "sha256": "da99add7722467028b6e66c9e231954aa6b3a20a1b591112521d517537927f3c",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('trusted/apply', ('load', 'actualTrustedTypesPolicy'), 'expected', {'phase': 'load', 'property': 'actualTrustedTypesPolicy', 'actual': False, 'expected': False, 'status': 'PASS'}, True)\r\n"
+    },
+    {
+      "name": "wrong-document",
+      "exitCode": 1,
+      "sha256": "35ebb65bf3e64e1d1093568d881a1c2713344ec2757282197397c4de5b20af94",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plain/alpha', ('auxiliary', 'nativeRealmOwner'), 'expected', {'phase': 'auxiliary', 'property': 'nativeRealmOwner', 'actual': {'owner': False, 'fallback': False, 'parentPickers': 1}, 'expected': {'owner': False, 'fallback': False, 'parentPickers': 1}, 'status': 'PASS'}, {'owner': True, 'fallback': True, 'parentPickers': 0})\r\n"
+    },
+    {
+      "name": "lost-redo",
+      "exitCode": 1,
+      "sha256": "7ba24555dd9ab4a70cf6c632d38b017dea3638dce73874d83481c2b2aa990e5d",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plain/alpha', ('redo', 'history'), 'expected', {'phase': 'redo', 'property': 'history', 'actual': [False, False], 'expected': [False, False], 'status': 'PASS'}, [True, False])\r\n"
+    },
+    {
+      "name": "cancel-mutated",
+      "exitCode": 1,
+      "sha256": "25a8e669cfad67b6f1ce6fd9a6d1859f8f90d250898fa99a754192c5be0d3c0b",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plain/escape', ('action', 'cancelProducer'), 'expected', {'phase': 'action', 'property': 'cancelProducer', 'actual': 1, 'expected': 1, 'status': 'PASS'}, 0)\r\n"
+    },
+    {
+      "name": "untrusted-action",
+      "exitCode": 1,
+      "sha256": "cd6e9bdfa74eefa7ba599a6a32febe29f523a4401b2f44abde67029ff61f171e",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plain/alpha', ('action', 'trustedAction'), 'expected', {'phase': 'action', 'property': 'trustedAction', 'actual': False, 'expected': False, 'status': 'PASS'}, True)\r\n"
+    },
+    {
+      "name": "retired-producer",
+      "exitCode": 1,
+      "sha256": "d58d8124db9c7884c149846ee98d654b5217b60abfeb52aff396225b7057873f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 54, in main\r\n    o=observed[key];assert same(o['expected'],value),(case['id'],key,'expected',o,value)\r\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plain/alpha', ('dispose', 'retiredProducer'), 'expected', {'phase': 'dispose', 'property': 'retiredProducer', 'actual': 2, 'expected': 2, 'status': 'PASS'}, 1)\r\n"
+    },
+    {
+      "name": "missing-controls",
+      "exitCode": 1,
+      "sha256": "c377e9f7194e96507bd34694051b0e0e23de0487e7730d575985e9c1ec8253a6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 77, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\bgcolor-realm\\review.py\", line 44, in main\r\n    assert [c['spec'] for c in row['cases']]==specs()\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

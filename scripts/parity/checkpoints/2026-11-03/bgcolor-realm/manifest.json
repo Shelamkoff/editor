@@ -1,0 +1,64 @@
+{
+  "source": "1492fbc10b7d5a2d313e550102a151fe3851b624",
+  "tree": "e29c1b29ebece94bb0a3bbf3db2a640260b4a5ae",
+  "productionFix": "f528b2e8eb681b5e7eeeefc62999b9babe80b78c",
+  "redSource": "fff2caed0241768a08da302d467ec3a6269c6b0e",
+  "productionDelta": [
+    "shared/colorPickerRealm.js"
+  ],
+  "basisIntegration": "c8bdd535eb4573af2f3aaa36ea9cfebff2020cbe",
+  "run": {
+    "startedAt": "2026-11-03T17:45:11.115Z",
+    "finishedAt": "2026-11-03T17:54:24.121Z",
+    "identity": "7c78e54f4d4c5ba610de72d9afa6c4c96850a16990e4dfd4aacff6bd571e174b",
+    "gates": 19,
+    "outcome": "passed",
+    "sourceUnchanged": true
+  },
+  "cases": 12,
+  "observations": 334,
+  "currentFailures": 0,
+  "corruptionsRejected": 10,
+  "nodePassed": 2202,
+  "nodeSkipped": 3,
+  "ordinaryPages": 54,
+  "nativeCases": {
+    "native-tools": {
+      "page": "native-tools.html",
+      "cases": 265
+    },
+    "native-boundary": {
+      "page": "native-bgcolor-boundary.html",
+      "cases": 6
+    },
+    "native-boundary-trusted": {
+      "page": "native-bgcolor-boundary-trusted.html",
+      "cases": 7
+    },
+    "native-color-popup": {
+      "page": "native-color-popup.html",
+      "cases": 8
+    },
+    "native-color-popup-trusted": {
+      "page": "native-color-popup-trusted.html",
+      "cases": 8
+    },
+    "native-realm": {
+      "page": "native-bgcolor-realm.html",
+      "cases": 12
+    }
+  },
+  "nativeCaseTotal": 306,
+  "fullPresetGzipKiB": 95.6,
+  "fullPresetLimitKiB": 96,
+  "heapSentinels": 23,
+  "heapRetained": 0,
+  "register": {
+    "accepted": 106,
+    "open": 103
+  },
+  "acceptedRows": [],
+  "broaderRowsOpen": [
+    "TOOL_BGCOLOR_ACTION"
+  ]
+}
