@@ -154,7 +154,7 @@ def main():
   assert ('Native '+page+': '+str(23 if policy else 22)+' passed').encode() in text
   summary=next(json.loads(line)[page] for line in text.decode().splitlines() if line.startswith('{"'+page+'":'))
   assert [c['name'] for c in summary]==(['LinkPreview Trusted Types policy rejects untrusted HTML'] if policy else [])+['LinkPreview metadata '+s['id'] for s in specs()] and all(c['status']=='PASS' for c in summary)
- browser=a.browser.read_bytes();pages=re.findall(r'^[-a-z0-9]+\.html: ',browser.decode(),re.M);assert len(pages)==len(set(pages))==55
+ browser=a.browser.read_bytes();pages=re.findall(r'^([-a-z0-9]+\.html?): ',browser.decode(),re.M);runner=helper['git_blobs']([a.candidate+':tests/browser/run.mjs'])[a.candidate+':tests/browser/run.mjs'];inventory=re.findall(r"['\"]([-a-z0-9]+\.html?)['\"]",runner.decode());assert pages==inventory and len(pages)==len(set(pages))==55
  own=[root+'review.py',root+'controls.mjs','tests/browser/native-link-preview-metadata.js','tests/browser/native-link-preview-metadata.html','tests/browser/native-link-preview-metadata-trusted.html','tests/browser/physical-history.mjs'];blobs=helper['git_blobs']([a.candidate+':'+p for p in own])
  for path in own:assert Path(path).read_bytes().replace(b'\r\n',b'\n')==blobs[a.candidate+':'+path]
  runtime=['core','shared','plugins','plugin-kit','inline-tools','inline-plugins','renderer','preset','locale','index.js','index.d.ts','types.d.ts','package.json','package-lock.json'];assert subprocess.check_output(['git','diff','--name-only',GREEN,a.candidate,'--',*runtime])==b''
