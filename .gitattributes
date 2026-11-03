@@ -208,3 +208,7 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-04/link-preview-metadata/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-04/link-preview-metadata/**/*.json -text
 /scripts/parity/checkpoints/2026-11-04/link-preview-metadata/**/*.gz -text
+
+# Native LinkPreview navigation proof
+/tests/browser/link-preview-navigation-fixture.js text eol=lf
+/scripts/parity/link-preview-navigation.mjs text eol=lf

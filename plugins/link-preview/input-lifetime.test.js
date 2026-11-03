@@ -661,3 +661,20 @@ test('LinkPreview mode round trip revokes a queued native change', async () => {
     assert.deepEqual(requests, [], 'an old change resumed after its mode was retired')
   } finally { h.destroy() }
 })
+
+test('LinkPreview card activation follows the current editor mode', () => {
+  const h = mount()
+  try {
+    const card = h.instance.element.querySelector('.oe-lp__card')
+    const before = structuredClone(h.model())
+    for (const readOnly of [false, true, false]) {
+      h.instance.setReadOnly(readOnly)
+      for (const [type, button, ctrlKey] of [['click', 0, false], ['click', 0, true], ['auxclick', 1, false]]) {
+        let prevented = false
+        card.dispatch(type, { button, ctrlKey, preventDefault() { prevented = true } })
+        assert.equal(prevented, !readOnly, `${type}/${button}/${ctrlKey}, readOnly=${readOnly}`)
+        assert.deepEqual(h.model(), before)
+      }
+    }
+  } finally { h.destroy() }
+})
