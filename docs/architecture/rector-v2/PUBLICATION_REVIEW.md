@@ -2,9 +2,67 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **106 / 209 obligations**, with **103 open**; see the [public editor events acceptance](#public-editor-events-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **107 / 209 obligations**, with **102 open**; see the [background color tool acceptance](#background-color-tool-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Background color tool acceptance — 2026-11-03
+
+`TOOL_BGCOLOR_ACTION` is accepted on `f579926569da2b35fafd91df4a22269f159097ae`:
+**61 common cases / 3,322 independently verified current observations** and
+**twelve rejected evidence corruptions**. The register becomes **107 accepted,
+102 open**. The public factories, toolbar and native keyboard/pointer bridge
+execute the real workflows in every supported source.
+
+Apply and Enter, Reset, mixed marks, partial existing background, both range
+directions and Text/Element boundaries cover single fields, separate blocks
+and Quote text/caption. Links, non-target styles, BR, Color widget DOM and
+sidecars survive. A preceding native text edit remains a separate history
+action; exact canonical Undo/Redo and logical ranges pass. Widget-only and
+unformatted reset no-ops preserve Redo. Escape and outside cancellation leave
+data/history unchanged. Retained Apply/Reset/Enter/Escape controls after
+read-only, render and destroy produce no effect, followed by a working live
+successor and exact replay. Outside cancellation gives focus to the application;
+history replay returns to the editor explicitly.
+
+The current oracle is rebuilt from literal author units, metadata and events;
+it does not call the formatter or sanitizer. All 61 current cases complete.
+The native pages pass **61 ordinary and 62 enforced Trusted Types cases**,
+including an actually rejected raw HTML sink. Historical v1 completes 57 of
+61 containers with 2,907 observations and 179 differences; four real widget-only
+toolbar actions are unavailable. Its partial reset also removes background from
+unselected neighboring text, and reset rewrites a widget dot. The specification
+baseline completes 27 containers with 1,888 observations, 19 differences and
+34 incomplete actions. Every raw result remains visible. Manually reviewed
+historical graphs are bound to immutable seed `560e631f`; they are observations,
+not normative behavior. The improved current behavior is retained.
+
+The [field-boundary repair](#background-color-field-boundary-repair-2026-11-03)
+adds six cases / 126 current observations: application hosts and ancestors keep
+their own styles. The native realm repair adds twelve cases / 334 observations
+in real foreign documents, plain and Trusted Types protected, with parent-realm
+factories. Choose/Enter/reset/cancel, pending text followed by opacity, exact
+history and disposal pass; ten additional corruptions are rejected. Fix
+`f528b2e8` preserves newly entered RGB before opacity input synchronizes controls.
+These three bounded corpora total **79 cases / 3,782 current observations**.
+
+Runtime is byte identical to `1492fbc1`, whose clean unchanged `run-r5VoQ1`
+passes **all 19 gates**: build, Node 2,202 pass / three skips, types, all 54
+ordinary pages, six selected native groups / 306 cases, both scoped models and
+controls, bundle, heap, docs, installed package and site. FullPreset stays
+**95.6 KiB gzip / 96 KiB** and heap retains **zero of 23 sentinels**. The common
+run `run-Ro2EJJ` retains its failed overall status: `security.html` timed out
+while still running, with no captured exception. Its other six gates pass.
+An isolated page recheck and full frozen browser retry `run-3xYUfh`
+pass on the exact same source identity. The checkpoint preserves both outcomes,
+all raw corpora, models, historical graphs, corruptions, source manifests and
+stored/decoded hashes. This is author verification with an independent current
+model. Other tools and whole-library acceptance remain open.
+
+Coverage correction for the earlier boundary integration: its Trusted Types
+page ran eight test invocations for seven distinct cases, including one duplicated
+policy sentinel. The original log is unchanged. Source `fff2caed` removes that
+duplicate; subsequent boundary runs contain seven cases.
 
 ## Background color field boundary repair — 2026-11-03
 
@@ -30,11 +88,11 @@ observations passing, preserves application styles and restores exact replay;
 historical sources retain their 12 failures. Nine corrupted inputs are rejected.
 
 The fresh 14-gate run includes build, all 2,202 passing Node tests / three skips,
-types, all 54 ordinary pages, 265 native tool cases, six field cases, seven
-Trusted Types cases including an actually rejected raw HTML sink, comparison
+types, all 54 ordinary pages, 265 native tool cases, six field cases, seven distinct
+Trusted Types cases (eight invocations) including an actually rejected raw HTML sink, comparison
 and model, corruptions, bundle, heap, docs, installed package and site.
 FullPreset is **95.6 KiB gzip / 96 KiB**; the core size remains informational.
-The heap gate retains **zero of 23 sentinels**. Three native groups / 278 cases
+The heap gate retains **zero of 23 sentinels**. Three native groups / 278 distinct cases (279 invocations)
 are fresh, not the complete native inventory. The
 [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/README.md)
 retains full RED/GREEN, executed model, source diff, all logs, corruptions and

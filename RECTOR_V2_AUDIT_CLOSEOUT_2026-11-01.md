@@ -6,15 +6,38 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Background color tool acceptance — 2026-11-03
+
+The register is **107/209 accepted, 102 open**. `TOOL_BGCOLOR_ACTION` completes
+its 61-case common matrix / 3,322 independently verified observations on
+`f5799265`. Native common and enforced Trusted Types pages pass 61 + 62 cases;
+twelve corruptions are rejected. Apply/Enter/reset, partial/mixed Text/Element
+ranges in both directions, cross-field widgets, exact history, cancellation,
+no-op Redo and retired controls followed by live successors pass.
+
+Two defects are repaired: field-root/background ownership on `604e210e`, and
+pending text color lost on native opacity input on `f528b2e8`. Six field-boundary
+and twelve actual foreign-document profiles pass. These three scoped corpora
+total 79 cases / 3,782 observations. Runtime is unchanged from `1492fbc1`, whose
+19-gate `run-r5VoQ1` passes: 54 ordinary pages, 306 selected native cases, Node
+2,202 pass / three skips, 95.6/96 KiB gzip, heap 23 / zero retained, package/site.
+
+`run-Ro2EJJ` remains failed due to the general browser page timeout; its other
+six gates pass. The isolated page and complete frozen browser retry
+`run-3xYUfh` pass on the identical source identity. The
+[common checkpoint](scripts/parity/checkpoints/2026-11-03/bgcolor-tools/README.md)
+retains both outcomes, full corpora, independent current model, reviewed historical
+graphs, corruptions and hashes. Other tool rows and full readiness remain open.
+
 ## Background color field-boundary repair — 2026-11-03
 
-The register remains **106/209 accepted, 103 open**. A real custom-field defect
+At that checkpoint the register was **106/209 accepted, 103 open**. A real custom-field defect
 is repaired on `604e210e`: background formatting respects the editing-host and
 application-style boundaries. Immutable `acb654bb` retains its complete six-case
 RED, 12 failed observations and three positive controls; current GREEN passes
 all six / 126. Exact replay and host styles survive. The test-only integration
 source `c8bdd535` passes all 14 clean unchanged gates in `run-9aJdbS`, including
-all 54 ordinary pages and 278 cases in three selected native groups. FullPreset
+all 54 ordinary pages and 278 distinct cases (279 invocations) in three selected native groups. FullPreset
 is 95.6/96 KiB gzip, Node 2,202 pass / three skips, heap 23 / zero retained.
 The [checkpoint](scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/README.md)
 retains full logs, diff, model and nine rejected corruptions. The broader

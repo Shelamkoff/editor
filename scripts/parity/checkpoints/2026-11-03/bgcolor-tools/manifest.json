@@ -1,0 +1,71 @@
+{
+  "source": "f579926569da2b35fafd91df4a22269f159097ae",
+  "tree": "420aed0100b98e7a9611721ca9f0e8a2a2250284",
+  "productionDelta": [],
+  "runtimeBasis": "1492fbc10b7d5a2d313e550102a151fe3851b624",
+  "runtimeIntegration": {
+    "directory": "run-r5VoQ1",
+    "gates": 19,
+    "identity": "7c78e54f4d4c5ba610de72d9afa6c4c96850a16990e4dfd4aacff6bd571e174b",
+    "startedAt": "2026-11-03T17:45:11.115Z",
+    "finishedAt": "2026-11-03T17:54:24.121Z"
+  },
+  "firstRun": {
+    "directory": "run-Ro2EJJ",
+    "outcome": "failed",
+    "identity": "8e98e4b86696af260428ee8ca86874c60a4a58f9c9d70f1f3d1d09e3fe81387f",
+    "startedAt": "2026-11-03T17:59:41.660Z",
+    "finishedAt": "2026-11-03T18:06:57.395Z",
+    "successfulGates": 6,
+    "failedGate": "browser",
+    "reason": "security.html remained running without a captured exception until the existing page timeout; isolated recheck and full frozen retry pass."
+  },
+  "browserRetry": {
+    "directory": "run-3xYUfh",
+    "outcome": "passed",
+    "gates": 1,
+    "identity": "8e98e4b86696af260428ee8ca86874c60a4a58f9c9d70f1f3d1d09e3fe81387f",
+    "startedAt": "2026-11-03T18:07:09.704Z",
+    "finishedAt": "2026-11-03T18:09:07.670Z"
+  },
+  "cases": 61,
+  "observations": 3322,
+  "independentCandidateOracle": "literal author units, metadata, events, exact replay and public effects",
+  "historicalOracle": "all real observations retained and manually reviewed; complete graphs source-bound to immutable seed 560e631f",
+  "nativeCommonCases": 61,
+  "nativeTrustedCases": 62,
+  "corruptionsRejected": 12,
+  "moduleIdentities": 338,
+  "historical": {
+    "v1": {
+      "cases": 61,
+      "complete": 57,
+      "observations": 2907,
+      "failures": 179,
+      "incomplete": 4
+    },
+    "spec-baseline": {
+      "cases": 61,
+      "complete": 27,
+      "observations": 1888,
+      "failures": 19,
+      "incomplete": 34
+    }
+  },
+  "registerAfterAcceptance": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptedRows": [
+    "TOOL_BGCOLOR_ACTION"
+  ],
+  "register": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed",
+    "finalSite": "passed"
+  }
+}
