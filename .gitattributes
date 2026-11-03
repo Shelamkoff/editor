@@ -120,3 +120,11 @@ scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.json -text
 scripts/parity/checkpoints/2026-11-03/bgcolor-tools/*.gz -text
+
+scripts/parity/fontsize-boundary.mjs text eol=lf
+tests/browser/fontsize-boundary-fixture.js text eol=lf
+tests/browser/native-fontsize-boundary.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.json -text
+scripts/parity/checkpoints/2026-11-03/fontsize-boundary/*.gz -text
