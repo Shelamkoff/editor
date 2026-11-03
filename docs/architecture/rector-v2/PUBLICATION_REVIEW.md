@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **94 / 209 obligations**, with **115 open**; see the [decoder/unknown-inline acceptance](#registered-decoder-and-unknown-inline-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **96 / 209 obligations**, with **113 open**; see the [standalone presentation acceptance](#standalone-presentation-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
@@ -16,6 +16,43 @@ and are corrected; original data, hashes, sources and outcomes are unchanged.
 The [environment checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves all three original logs/manifests and the observed product/revision.
 This adds no accepted row or new test execution; the register remains 92/117.
+
+## Standalone presentation acceptance — 2026-11-03
+
+Two rows are accepted on immutable `4501d0cd99a69163f0881dfd7011a1df5698a84f`,
+Windows x64 / Chrome 156.0.8078.80: independent batch delivery and field-local
+recovery preservation. The register becomes **96 accepted / 113 open**.
+Production behavior is unchanged.
+
+Twenty public cases / 208 manual expectations verify independent B delivery,
+healthy tasks, accepted data/sidecars/history, known and opaque widgets,
+decoder/create failure through observer/public query, one/two/persistent faults,
+explicit descriptor retry, bounded settled queries, partial cleanup and every
+falsy descriptor throw. Fourteen unchanged native cases / 87 manual expectations
+verify genuine IME and pending trusted text, harmless layout, exact backward
+and foreign-editor ranges, and synthetic/forged/stale/unsafe negatives. All 25
+current browser requests and trusted preedit/beforeinput/input records are
+checked; existing untrusted compositionend during cleanup is retained and never
+substituted for trusted preedit. Ranges are explicitly installed, not physical
+drag-selection claims. Public destruction retires each created owner once.
+
+`run-ajbeH2` passes six gates on clean unchanged source: types, all 48 ordinary
+pages, the separate 14-case native driver, both three-source comparisons plus
+manual model, seven rejected evidence corruptions and docs. All 63 original
+ownership/containment/terminal/mode/cached-host controls keep their exact
+inventory/assertions and pass. The model reviews 393 v2 observations, verifies
+281 distinct production modules across 562 group visits, six dependency files
+and eight versions. Runtime bytes match separately integrated `f2070510`; its
+original 21-gate manifest/environment remains a separate run.
+
+The baseline retains 1/20 public and 6/14 native passing, 49 observations in
+each group and 22 completed native requests. Raw exits 1 and manual-review exit
+0 remain separate. Real v1 native Paragraph controls execute in both groups
+without emulating v2 field/instance ports. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/presentation-authority/README.md)
+retains original corpora, logs, manifests, verifier, rejected evidence and hashes.
+This is author verification with an independent model, not another agent's
+review. Other C12, B-HTML and whole-library readiness remain open.
 
 ## Registered decoder and unknown inline acceptance — 2026-11-03
 

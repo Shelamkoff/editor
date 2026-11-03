@@ -1,0 +1,57 @@
+{
+  "candidate": "4501d0cd99a69163f0881dfd7011a1df5698a84f",
+  "tree": "a33a8a7db85add76050b675536180903c76cfad2",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T11:27:04.317Z",
+    "finishedAt": "2026-11-03T11:30:01.103Z",
+    "identity": "af7fadf833b7e2c666ee651c24a7bac8331c0d93a25aedea3a930326847222ca",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser-all": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "native-presentation": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "presentation-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "presentation-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 94,
+    "open": 115
+  },
+  "acceptedRows": [
+    "CONTRACT_PRESENTATION_BATCH_INDEPENDENCE",
+    "CONTRACT_PRESENTATION_LOCAL_RECOVERY_PRESERVATION"
+  ],
+  "registerAfter": {
+    "accepted": 96,
+    "open": 113
+  },
+  "publicCases": 20,
+  "nativeCases": 14,
+  "manualCandidateChecks": 295,
+  "rawComparisonExits": {
+    "public": 1,
+    "native": 1
+  },
+  "reviewExit": 0
+}

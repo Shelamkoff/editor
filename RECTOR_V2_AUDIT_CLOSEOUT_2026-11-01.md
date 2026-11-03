@@ -6,9 +6,23 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Standalone presentation acceptance — 2026-11-03
+
+The current register is **96/209 accepted, 113 open**. Two field-local rows are
+accepted on clean unchanged `4501d0cd`: 20 public and 14 native cases / 295
+manual expectations, genuine IME/pending trusted input, backward/foreign ranges
+and healthy tasks. All six gates in `run-ajbeH2` pass, including all 48 ordinary
+pages, the separate native driver, both Git comparisons and seven rejected
+evidence corruptions. All 63 original owner controls keep their assertions.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/presentation-authority/README.md)
+preserves original corpora, raw exits 1 versus review exit 0, manifests, verifier
+and hashes. Runtime remains byte identical to separately integrated `f2070510`;
+real legacy native controls execute without emulating v2 ports. Script/panel
+and other remaining rows follow; B-HTML and full readiness remain open.
+
 ## Decoder/unknown-inline acceptance — 2026-11-03
 
-The current register is **94/209 accepted, 115 open**. Two decoder/unknown-inline
+At this checkpoint the register became **94/209 accepted, 115 open**. Two decoder/unknown-inline
 contracts are accepted on clean unchanged `d7eecafd`: 24 cases / 215 manual
 expectations, seven owner records and twelve primitive-cause records. All five
 gates in `run-zTaAYr` pass, including all 47 ordinary pages and seven rejected

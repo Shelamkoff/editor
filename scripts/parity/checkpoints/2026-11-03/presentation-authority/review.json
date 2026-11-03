@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "candidate": "4501d0cd99a69163f0881dfd7011a1df5698a84f",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "scriptSha256": "ec32d52ea1a6600d0c43b800bacc3a8c7eb4ea4d2bc9b5f991e9bdfa8b841002",
+  "rawSha256": {
+    "public": "d75e122eb74d283772e127e927e63079ded6b18ad77e9e9aed22fe2a69e5b51d",
+    "native": "49ff6661f832d5970d4d236e0aa6bef2ec9f5e2e5e0e7dde73ce75a5dbc6399e"
+  },
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "integrationManifestSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09",
+  "byteIdenticalRuntime": true,
+  "browser": "156.0.8078.80",
+  "ordinaryPages": 48,
+  "existingOwnerControls": 63,
+  "publicCases": 20,
+  "nativeCases": 14,
+  "manualCandidateChecks": 295,
+  "rawObservationsReviewed": 393,
+  "productionModulesVerified": 281,
+  "moduleGroupVisits": 562,
+  "dependencyFilesVerified": 6,
+  "dependencyVersionsVerified": 8,
+  "nativeInputs": 25,
+  "legacyNativeInputsPerGroup": 2,
+  "browserSha256": "47785f5b9e32462981f1fcb50d4746d4e668c8451c1b0d34e87d68115164d36d",
+  "nativeLogSha256": "8f5a11eb4dd77a23a555ab60062623e4a2446c3d5a3ebcab6b8b669edcc6bf88",
+  "rows": [
+    "CONTRACT_PRESENTATION_BATCH_INDEPENDENCE",
+    "CONTRACT_PRESENTATION_LOCAL_RECOVERY_PRESERVATION"
+  ],
+  "summaries": [
+    {
+      "group": "public",
+      "source": "spec-baseline",
+      "cases": 20,
+      "passed": 1,
+      "observations": 49,
+      "manualMismatches": 38
+    },
+    {
+      "group": "public",
+      "source": "candidate",
+      "cases": 20,
+      "passed": 20,
+      "observations": 208,
+      "manualMismatches": 0
+    },
+    {
+      "group": "native",
+      "source": "spec-baseline",
+      "cases": 14,
+      "passed": 6,
+      "observations": 49,
+      "manualMismatches": 7
+    },
+    {
+      "group": "native",
+      "source": "candidate",
+      "cases": 14,
+      "passed": 14,
+      "observations": 87,
+      "manualMismatches": 0
+    }
+  ],
+  "scope": "Independent manual standalone data/sidecars/diagnostics/history/owner/retry/cleanup and native input/IME/range model. Existing 63 owner controls retain their own explicit assertions. Author verification, not separate-agent review. Only two named standalone rows are accepted."
+}
