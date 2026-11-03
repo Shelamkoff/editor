@@ -12,7 +12,7 @@ export async function createNavigationRoots(repo,specifications){
  const directory=await mkdtemp(join(repo,'test-results','navigation-sources-'))
  const sources=[]
  for(const spec of specifications){
-  assert(/^[a-z-]+$/.test(spec.label));const sha=git('rev-parse',spec.sha).toString().trim(),tree=git('rev-parse',sha+'^{tree}').toString().trim()
+  assert(/^[a-z][a-z0-9-]*$/.test(spec.label));const sha=git('rev-parse',spec.sha).toString().trim(),tree=git('rev-parse',sha+'^{tree}').toString().trim()
   const paths=git('ls-tree','-r','-z','--name-only',sha).toString().split('\0').filter(path=>rootFiles.has(path)||prefixes.some(prefix=>path.startsWith(prefix)))
   const queries=paths.map(path=>sha+':'+path),raw=gitBatch(git,queries),sourceRoot=join(directory,spec.label),files={}
   let offset=0
