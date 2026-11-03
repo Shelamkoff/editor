@@ -1,0 +1,170 @@
+{
+  "status": "PASS",
+  "candidate": "bac774b77c9a334faf068c31300dc95c2112e8d5",
+  "results": {
+    "v1": {
+      "cases": 24,
+      "observations": 1128,
+      "differences": [
+        {
+          "id": "paragraph/initial-editor/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "paragraph/initial-editor/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "paragraph/initial-editor/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "paragraph/initial-reader/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "paragraph/initial-reader/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "paragraph/initial-reader/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-closed/initial-editor/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-closed/initial-editor/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-closed/initial-editor/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-closed/initial-reader/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-closed/initial-reader/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-closed/initial-reader/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-open/initial-editor/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-open/initial-editor/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-open/initial-editor/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-open/initial-reader/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-open/initial-reader/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "toggle-open/initial-reader/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "spoiler/initial-editor/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "spoiler/initial-editor/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "spoiler/initial-editor/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "spoiler/initial-reader/empty",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "spoiler/initial-reader/undo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        },
+        {
+          "id": "spoiler/initial-reader/redo",
+          "phase": "denied",
+          "property": "publicReplayRejected"
+        }
+      ],
+      "unavailableObservationPorts": 24
+    },
+    "spec-baseline": {
+      "cases": 24,
+      "observations": 1152,
+      "differences": [],
+      "unavailableObservationPorts": 0
+    },
+    "candidate": {
+      "cases": 24,
+      "observations": 1152,
+      "differences": [],
+      "unavailableObservationPorts": 0
+    }
+  },
+  "structuralHostControls": {
+    "v1": {
+      "cases": 58,
+      "observations": 1068,
+      "independentChecks": 1126,
+      "differences": 57
+    },
+    "spec-baseline": {
+      "cases": 58,
+      "observations": 1192,
+      "independentChecks": 1250,
+      "differences": 0
+    },
+    "candidate": {
+      "cases": 58,
+      "observations": 1192,
+      "independentChecks": 1250,
+      "differences": 0
+    }
+  },
+  "rawSha256": "df00483a448187c89cce3b88824d85fa625da45cd29ee2af9f27af914df7b928",
+  "structureRawSha256": "6864097843defd70088053ff8a0ea6926f37a3ee0db6d67e4b0bb2387c30b76c",
+  "reviewerSha256": "e60493e427d01d7d30e39dd024ba0bb55650b26e874f2d247fce8af2a31151ae",
+  "moduleIdentities": 307,
+  "structuralModuleIdentities": 286
+}

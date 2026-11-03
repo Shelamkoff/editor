@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical structural differences and unavailable observation ports remain explicit."
+}

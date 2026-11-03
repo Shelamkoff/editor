@@ -1,0 +1,89 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "sha256": "7b44b5767356714182ceef7258a4ad1636e330c5cecfb29bb0314a17f4038138",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 86, in main\r\n    assert {s['label']:s['sha'] for s in d['sources']}==dict(v1=V1,**{'spec-baseline':BASELINE,'candidate':a.candidate})\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "readonly-authored",
+      "exitCode": 1,
+      "sha256": "1d02629ec2c8a6580ddb592a6cf556991122c5345af7d85b2c7ccfbc779959ea",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('paragraph/initial-editor/empty', 'denied', 'canonical', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "editable-root-in-reader-mode",
+      "exitCode": 1,
+      "sha256": "9b3dcc53b3bd59837e7c8b492ec99a606e07c30092636729c15f30de0ffa7a83",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('paragraph/initial-editor/empty', 'read-only', 'fields', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "reader-cannot-reveal",
+      "exitCode": 1,
+      "sha256": "f291d047420f33d25d51a58bd537a2011c062553761907cb160c45c1eb7f96f3",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('spoiler/initial-editor/empty', 'reader', 'view0', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "reader-wrote-document",
+      "exitCode": 1,
+      "sha256": "d51a08c3418982fad0056d87c262198193dce46e46d26a4ea41b7d33541334e7",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/initial-editor/empty', 'reader', 'canonical0', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "lost-redo",
+      "exitCode": 1,
+      "sha256": "546cb95ba7b492609796e56963af24416732545fab03bbd08a562755578ff867",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('paragraph/initial-editor/redo', 'editable', 'history', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "duplicate-mode-fact",
+      "exitCode": 1,
+      "sha256": "0a89b5faa9caf0494476cd680675fc7efdc83f767a3800a77c327d66e1afddef",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('paragraph/initial-editor/empty', 'read-only', 'modeFacts', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "untrusted-key",
+      "exitCode": 1,
+      "sha256": "c7b2ea2a345c5b66a1408c8b0c1d6ee9302a20816cb2ab7c472d16ac75ec6e75",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('paragraph/initial-editor/empty', 'denied', 'trustedKeys', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "fresh-input-disabled",
+      "exitCode": 1,
+      "sha256": "bce62fe58604144098d2d3b11a6739bd40c2c36d11e337b6c383c11f48df539f",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 91, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 51, in verify_case\r\n    assert same(o['expected'],wanted),(s['id'],phase,key,'fixture expected changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('paragraph/initial-editor/empty', 'author', 'trustedInput', 'fixture expected changed')\r\n"
+    },
+    {
+      "name": "missing-empty-and-initial-reader",
+      "exitCode": 1,
+      "sha256": "7117738b517217ddff5b90c519a080466a823f73f33a95063b80d00f85575473",
+      "structureSha256": "a17246e49e24058c0d503a60b2cd6020e2168c830f4de10487d26518f9240127",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 90, in main\r\n    assert row['inputErrors']==row['pageErrors']==[] and [c['spec'] for c in row['cases']]==specs()\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "readonly-host-update-denied",
+      "exitCode": 1,
+      "sha256": "2dbc8c71da3a4f6b16bc94535eb3fbe405d6b3a29d4465a073eb57708cdd0246",
+      "structureSha256": "b90a471c4138af460b0c107bcc9fedfa63f3db52f1163c160a7fef59103ad01f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 101, in main\r\n    checks=sum(model.verify_case(c,row['source']=='v1',row['source']!='v1') for c in row['cases'])\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 101, in <genexpr>\r\n    checks=sum(model.verify_case(c,row['source']=='v1',row['source']!='v1') for c in row['cases'])\r\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts/parity/checkpoints/2026-11-03/public-structure/review.py\", line 96, in verify_case\r\n    o=actual[key];assert exact(o['expected'],wanted),(case['id'],key,o,wanted)\r\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('update-data/read-only', ('apply', 'producerCalls'), {'phase': 'apply', 'property': 'producerCalls', 'actual': 0, 'expected': 0, 'status': 'PASS'}, 1)\r\n"
+    },
+    {
+      "name": "host-redo-lost",
+      "exitCode": 1,
+      "sha256": "2dbc8c71da3a4f6b16bc94535eb3fbe405d6b3a29d4465a073eb57708cdd0246",
+      "structureSha256": "9d58135ac00f30b7102aa9c32fe137eda60e2a624fa149710723d78677cb471c",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 123, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 101, in main\r\n    checks=sum(model.verify_case(c,row['source']=='v1',row['source']!='v1') for c in row['cases'])\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\public-readonly\\review.py\", line 101, in <genexpr>\r\n    checks=sum(model.verify_case(c,row['source']=='v1',row['source']!='v1') for c in row['cases'])\r\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts/parity/checkpoints/2026-11-03/public-structure/review.py\", line 96, in verify_case\r\n    o=actual[key];assert exact(o['expected'],wanted),(case['id'],key,o,wanted)\r\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('insert-middle/read-only', ('replay', 'redoAvailable'), {'phase': 'replay', 'property': 'redoAvailable', 'actual': False, 'expected': False, 'status': 'PASS'}, True)\r\n"
+    }
+  ]
+}

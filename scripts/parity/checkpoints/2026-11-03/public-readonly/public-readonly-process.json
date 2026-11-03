@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Legacy boolean rejection remains visible as a current API representation difference."
+}
