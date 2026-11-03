@@ -97,3 +97,9 @@ scripts/parity/checkpoints/2026-11-03/public-events/review.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-events/controls.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/public-events/*.json -text
 scripts/parity/checkpoints/2026-11-03/public-events/*.gz -text
+scripts/parity/bgcolor-boundary.mjs text eol=lf
+tests/browser/bgcolor-boundary-fixture.js text eol=lf
+tests/browser/native-bgcolor-boundary.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/*.json -text
+scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/*.gz -text
