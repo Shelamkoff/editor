@@ -1,0 +1,1042 @@
+{
+  "candidate": "14466a7d84846c2b5549e1f9e39b4141cd3b9820",
+  "tree": "f0be378bfb548500e85b8d316a8354814c1e2ae3",
+  "sourceIdentity": "61cddfd96df249d77b7d69bc07e28bfddd46948864306cedeb155e9ee3b4d93f",
+  "integrationRun": {
+    "directory": "run-b5REs8",
+    "outcome": "passed",
+    "gates": 18,
+    "startedAt": "2026-11-03T23:08:20.997Z",
+    "finishedAt": "2026-11-03T23:18:51.706Z"
+  },
+  "productionBasis": "e8b2cd8fa902e1bbfbc0422df13576be4aea619f",
+  "productionDeltaFromPreviousBasis": [
+    "plugins/link-preview/index.js"
+  ],
+  "redSource": "7cafb8b1e54593afefc49cc464a737ce4e565010",
+  "focusedGreenSource": "e8b2cd8fa902e1bbfbc0422df13576be4aea619f",
+  "cases": 50,
+  "observations": 950,
+  "commonHistoricalCases": 45,
+  "currentEnforcedPolicyCases": 5,
+  "currentNativeActivations": 100,
+  "nativeGroups": {
+    "native-metadata": [
+      "native-link-preview-metadata.html",
+      22
+    ],
+    "native-metadata-trusted": [
+      "native-link-preview-metadata-trusted.html",
+      23
+    ],
+    "native-templates": [
+      "native-link-preview-templates.html",
+      14
+    ],
+    "native-templates-trusted": [
+      "native-link-preview-templates-trusted.html",
+      15
+    ],
+    "native-controls": [
+      "native-plugin-controls.html",
+      169
+    ],
+    "native-html": [
+      "native-html-content.html",
+      28
+    ]
+  },
+  "additionalSelectedNativeCases": 271,
+  "defaultNativePageInventory": 83,
+  "ordinaryPages": 55,
+  "canonicalNodeFiles": 197,
+  "nodePassed": 2208,
+  "nodeSkipped": 3,
+  "bundle": {
+    "rawKiB": 378.4,
+    "gzipKiB": 95.6,
+    "budgetKiB": 96
+  },
+  "heap": {
+    "sentinels": 23,
+    "retained": 0
+  },
+  "corruptionsRejected": 18,
+  "moduleIdentities": 468,
+  "results": {
+    "final": {
+      "v1": {
+        "cases": 45,
+        "observations": 855,
+        "differences": [
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          }
+        ],
+        "blockedEnvironmentRequests": 45
+      },
+      "spec-baseline": {
+        "cases": 45,
+        "observations": 855,
+        "differences": [
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          }
+        ],
+        "blockedEnvironmentRequests": 45
+      },
+      "candidate": {
+        "cases": 50,
+        "observations": 950,
+        "differences": [],
+        "blockedEnvironmentRequests": 50
+      }
+    },
+    "red": {
+      "v1": {
+        "cases": 45,
+        "observations": 855,
+        "differences": [
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          }
+        ],
+        "blockedEnvironmentRequests": 45
+      },
+      "spec-baseline": {
+        "cases": 45,
+        "observations": 855,
+        "differences": [
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          }
+        ],
+        "blockedEnvironmentRequests": 45
+      },
+      "candidate": {
+        "cases": 50,
+        "observations": 950,
+        "differences": [
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "horizontal/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "horizontal/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "compact/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "compact/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "large-top/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "large-top/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "twitter/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "twitter/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "notion/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "notion/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "split/editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "split/back-to-editable/click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/ctrl-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/ctrl-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/middle-click",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/editable/trusted-policy",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/editable/trusted-policy",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/editable/trusted-policy",
+            "phase": "activate",
+            "property": "requests"
+          },
+          {
+            "id": "minimal/back-to-editable/trusted-policy",
+            "phase": "activate",
+            "property": "events"
+          },
+          {
+            "id": "minimal/back-to-editable/trusted-policy",
+            "phase": "activate",
+            "property": "pages"
+          },
+          {
+            "id": "minimal/back-to-editable/trusted-policy",
+            "phase": "activate",
+            "property": "requests"
+          }
+        ],
+        "blockedEnvironmentRequests": 50
+      }
+    }
+  },
+  "legacyObservationLimitations": [
+    {
+      "port": "transaction:committed",
+      "source": "v1",
+      "reason": "The legacy fixture has no public event subscription. Its empty harness trace is not evidence of zero legacy transaction events. Native destinations, canonical data and history are measured."
+    }
+  ],
+  "historicalPolicyScope": "All 45 common cases use the declared compatible policy. Five additional enforced-policy cases run only on the current source; no historical policy verdict is inferred.",
+  "environment": "Known Kaspersky injected script attempts are blocked and recorded verbatim separately. Product externalRequests must remain empty. No antivirus or OS settings were changed.",
+  "initialProbe": "Exploratory single editable click has no acceptance oracle. Its complete actual two-page destination result and exact runner bytes remain archived. Immutable RED thereafter has all 140 source cases with literal expectations.",
+  "registerBefore": {
+    "accepted": 124,
+    "open": 85
+  },
+  "registerAfter": {
+    "accepted": 125,
+    "open": 84
+  },
+  "acceptedRows": [
+    "BLOCK_LINK_PREVIEW_NAVIGATION"
+  ],
+  "register": {
+    "accepted": 125,
+    "open": 84
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

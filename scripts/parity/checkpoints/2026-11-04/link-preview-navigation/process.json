@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Six historical v1 middle-click differences and 54 baseline editable-navigation differences remain raw. The independent model requires every current case and complete native/control graph to pass."
+}
