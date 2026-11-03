@@ -1,5 +1,5 @@
-// Public toolbar action differential. Production bytes are served from exact
-// Git objects; one fixed fixture and trusted input bridge serve every source.
+// Public LinkPreview navigation differential with real native link controls.
+// Production modules are served unchanged from their exact Git objects.
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
@@ -117,6 +117,6 @@ try{
  }
  const headAfter=git('rev-parse','HEAD').toString().trim();assert.equal(headAfter,headBefore);assert.equal(git('diff','--name-only','HEAD').toString().trim(),'')
  const candidate=results.filter(r=>r.source==='candidate'),passed=row=>!row.error&&!row.pageErrors.length&&!row.externalRequests.length&&row.observations.length===19&&row.observations.every(o=>o.status==='PASS'),candidatePass=candidate.length>0&&candidate.every(passed)
- console.log(JSON.stringify({group,startedAt,finishedAt:new Date().toISOString(),headBefore,headAfter,node:process.version,platform:process.platform+' '+process.arch,browser:browser.version(),runnerSha256:digest(runnerBytes),fixtureSha256:digest(fixture),packageLockSha256:digest(await readFile(join(repo,'package-lock.json'))),sources,dependencyVersions,dependencyFiles,serverErrors,filter:process.env.EDITOR_LINK_PREVIEW_NAVIGATION_FILTER??'',results,candidatePass},null,2))
+ console.log(JSON.stringify({group,startedAt,finishedAt:new Date().toISOString(),headBefore,headAfter,node:process.version,platform:process.platform+' '+process.arch,browser:browser.version(),runnerSha256:digest(runnerBytes),fixtureSha256:digest(fixture),packageLockSha256:digest(await readFile(join(repo,'package-lock.json'))),legacyObservationLimitations:[{port:'transaction:committed',source:'v1',reason:'The legacy fixture has no public event subscription. Its empty harness trace is not evidence of zero legacy transaction events. Native destinations, canonical data and history are measured.'}],sources,dependencyVersions,dependencyFiles,serverErrors,filter:process.env.EDITOR_LINK_PREVIEW_NAVIGATION_FILTER??'',results,candidatePass},null,2))
  if(!candidatePass||results.some(row=>!passed(row)))process.exitCode=1
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
