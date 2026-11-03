@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Historical editable Enter inserts a paragraph instead of activating the native disclosure control. Exact old failures are independently verified."
+}

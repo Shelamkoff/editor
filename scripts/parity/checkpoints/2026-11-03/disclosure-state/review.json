@@ -1,0 +1,133 @@
+{
+  "status": "PASS",
+  "candidate": "8f0988ad2df8e6376c15e3f69e748ebc3ccaf47d",
+  "results": {
+    "v1": {
+      "cases": 18,
+      "observations": 450,
+      "differences": [
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "activate",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "activate",
+          "property": "view"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "activate",
+          "property": "trustedActivation"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "history",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "history",
+          "property": "redoView"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "remount",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "remount",
+          "property": "view"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "activate",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "activate",
+          "property": "view"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "activate",
+          "property": "trustedActivation"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "history",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "history",
+          "property": "redoView"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "remount",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "remount",
+          "property": "view"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "canonical"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "view"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "history"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "trustedActivation"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "history",
+          "property": "revealedHistory"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "history",
+          "property": "redoAvailable"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "history",
+          "property": "redoCanonical"
+        }
+      ],
+      "unavailableObservationPorts": 18
+    },
+    "spec-baseline": {
+      "cases": 18,
+      "observations": 468,
+      "differences": [],
+      "unavailableObservationPorts": 0
+    },
+    "candidate": {
+      "cases": 18,
+      "observations": 468,
+      "differences": [],
+      "unavailableObservationPorts": 0
+    }
+  },
+  "rawSha256": "a98d7e9f99f6afdf4b58febc04fc850589d1a295643e5ce3248140bebbde8725",
+  "reviewerSha256": "4455abe71dd735eaa750eaca0cec9917300a0d6aa743e808fe1f89cd54ad9fbf",
+  "moduleIdentities": 307
+}

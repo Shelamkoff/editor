@@ -1,0 +1,77 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "sha256": "56bcbf2f0956e50f3a09a123129b9d8222acd41956553f172b8348f6c7057f4c",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 69, in main\r\n    assert {s['label']:s['sha'] for s in d['sources']}==dict(v1=V1,**{'spec-baseline':BASELINE,'candidate':a.candidate})\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "lost-authored-open",
+      "exitCode": 1,
+      "sha256": "df2c4f952eb15b058c6f245a160b2712a0d6576c1d9ebba70b608223487b1238",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/editor/click', 'activate', 'canonical', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "persisted-spoiler-disclosure",
+      "exitCode": 1,
+      "sha256": "123641559dbaba4169b92efc8423b2d0f2f27e21f2578a4572ad59a1c140a6d7",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('spoiler/editor/click', 'activate', 'canonical', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "keyboard-did-not-activate",
+      "exitCode": 1,
+      "sha256": "2aff60f714f0fe5acd70680da983122be7b2daa0c384bbc5d6e7a7ebb89a48e3",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/editor/Enter', 'activate', 'trustedActivation', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "wrong-control-clicked",
+      "exitCode": 1,
+      "sha256": "1177c440d317a3090658326579353207a0b0d34399c9841fbde1f9b994a68174",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/editor/click', 'activate', 'trustedActivation', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "expanded-content-hidden",
+      "exitCode": 1,
+      "sha256": "f90812dc0cdc487a2169d726a9f1673697523b0da8e8a2201a4544693a98be00",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/editor/click', 'activate', 'view', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "reader-created-history",
+      "exitCode": 1,
+      "sha256": "da69c0fdd71fa4f9e7c2a70d659067c54581b45603a97a4f82ee5607726d3ee4",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/reader/click', 'activate', 'history', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "remount-lost-open",
+      "exitCode": 1,
+      "sha256": "f84c7f90e2510cddca84edfe7297ed5da01fb6d30e1bcb5baffc382812969e44",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/editor/click', 'remount', 'canonical', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "remount-kept-transient-view",
+      "exitCode": 1,
+      "sha256": "aabf105bb0acb1c7813ff8068bc66355a1c7dd41ecc5cd5f88a3008a099c735b",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('spoiler/editor/click', 'remount', 'view', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "lost-redo",
+      "exitCode": 1,
+      "sha256": "f4cae8d8ced8e795b647ba0b49295284f1ed9c09203a39b8df46acdab7490d79",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 40, in verify_case\r\n    assert (o['phase'],o['property'])==(phase,key) and same(o['expected'],wanted),(s['id'],phase,key,'fixture expectation changed')\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('toggle-closed/reader/click', 'history', 'revealedHistory', 'fixture expectation changed')\r\n"
+    },
+    {
+      "name": "missing-space-cases",
+      "exitCode": 1,
+      "sha256": "09c2f846a67dd07b8a6d895f9e8f8cec00b736b61a16ebf51a40a5edd329e98f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 72, in main\r\n    assert row['inputErrors']==row['pageErrors']==[] and [c['spec'] for c in row['cases']]==specs()\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "hidden-historical-enter",
+      "exitCode": 1,
+      "sha256": "7a1e6f49eb4fc9107e4a1df562e5a31aa0186f0d20ca5c7d56bd20d48eb76f55",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 89, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 73, in main\r\n    verified=[verify_case(c,row['source']=='v1') for c in row['cases']]\r\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\disclosure-state\\review.py\", line 35, in verify_case\r\n    rows=next(o for o in case['observations'] if o['phase']=='activate' and o['property']=='canonical')['actual'];assert len(rows)==3\r\n                                                                                                                         ^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

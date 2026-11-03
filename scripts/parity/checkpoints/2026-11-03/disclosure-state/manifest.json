@@ -1,0 +1,174 @@
+{
+  "candidate": "8f0988ad2df8e6376c15e3f69e748ebc3ccaf47d",
+  "tree": "c349570c4548688c7ceddd5089d52a6de588f473",
+  "sourceIdentity": "bd8a55a90cd340a5104af1445bc6a61023d00dc80408b2308b65bf0638c42640",
+  "affectedRun": {
+    "directory": "run-tYwegf",
+    "outcome": "passed",
+    "gates": 7,
+    "startedAt": "2026-11-03T19:52:24.541Z",
+    "finishedAt": "2026-11-03T19:55:58.011Z"
+  },
+  "productionBasis": "4e153854221027141a2b7152f4f067be9d74f228",
+  "productionDelta": [],
+  "cases": 18,
+  "observations": 468,
+  "toggleCases": 12,
+  "toggleObservations": 312,
+  "spoilerCases": 6,
+  "spoilerObservations": 156,
+  "nativeCases": 18,
+  "nativeTrustedCases": 19,
+  "corruptionsRejected": 12,
+  "moduleIdentities": 307,
+  "results": {
+    "v1": {
+      "cases": 18,
+      "observations": 450,
+      "differences": [
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "activate",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "activate",
+          "property": "view"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "activate",
+          "property": "trustedActivation"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "history",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "history",
+          "property": "redoView"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "remount",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-closed/editor/Enter",
+          "phase": "remount",
+          "property": "view"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "activate",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "activate",
+          "property": "view"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "activate",
+          "property": "trustedActivation"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "history",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "history",
+          "property": "redoView"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "remount",
+          "property": "canonical"
+        },
+        {
+          "id": "toggle-open/editor/Enter",
+          "phase": "remount",
+          "property": "view"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "canonical"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "view"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "history"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "activate",
+          "property": "trustedActivation"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "history",
+          "property": "revealedHistory"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "history",
+          "property": "redoAvailable"
+        },
+        {
+          "id": "spoiler/editor/Enter",
+          "phase": "history",
+          "property": "redoCanonical"
+        }
+      ],
+      "unavailableObservationPorts": 18
+    },
+    "spec-baseline": {
+      "cases": 18,
+      "observations": 468,
+      "differences": [],
+      "unavailableObservationPorts": 0
+    },
+    "candidate": {
+      "cases": 18,
+      "observations": 468,
+      "differences": [],
+      "unavailableObservationPorts": 0
+    }
+  },
+  "excludedInitialAttempt": {
+    "candidateFailures": 18,
+    "reason": "Incorrect expectation that replaying document.render retains transient disclosure; first legacy CSS load also lacked an asset-readiness wait. No production repair or acceptance is inferred from this attempt."
+  },
+  "registerBefore": {
+    "accepted": 109,
+    "open": 100
+  },
+  "registerAfter": {
+    "accepted": 111,
+    "open": 98
+  },
+  "acceptedRows": [
+    "BLOCK_TOGGLE_STATE",
+    "BLOCK_SPOILER_DISCLOSURE"
+  ],
+  "register": {
+    "accepted": 111,
+    "open": 98
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}
