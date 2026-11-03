@@ -216,3 +216,11 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-04/link-preview-navigation/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-04/link-preview-navigation/**/*.json -text
 /scripts/parity/checkpoints/2026-11-04/link-preview-navigation/**/*.gz -text
+
+# Public Embed service and ID validation
+/tests/browser/embed-services-fixture.js text eol=lf
+/scripts/parity/embed-services.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-services/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-services/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-services/**/*.json -text
+/scripts/parity/checkpoints/2026-11-04/embed-services/**/*.gz -text
