@@ -1,0 +1,14 @@
+{
+  "source": "acb654bbc7a50fbae30c10e3acde5c4770406373",
+  "tree": "20270459dddacdc4999086dfd91149267b4fdf6e",
+  "rawComparisonExit": 1,
+  "reviewExit": 0,
+  "candidatePass": false,
+  "cases": 6,
+  "observationsPerSource": 126,
+  "expectedCandidateFailures": 12,
+  "positiveCandidateCases": 3,
+  "registerAccepted": 106,
+  "registerOpen": 103,
+  "acceptedRows": []
+}

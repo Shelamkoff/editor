@@ -1,0 +1,22 @@
+{
+  "red-corpus.json.gz": {
+    "sha256": "1c495041e880cecfe2f9a39df24c478128d7157c2776221e6213162865d03318",
+    "bytes": 15306,
+    "decodedSha256": "600f135d901a65d1838c2281a2c43bc1c8d42a9073ef10f37514d94041c77cb9",
+    "decodedBytes": 160788
+  },
+  "red-review.json": {
+    "sha256": "93296af71b0431bae1ba854f87244b86219f38a60cd594cff00430805f5be363",
+    "bytes": 497
+  },
+  "executed-red-review.py.gz": {
+    "sha256": "d70b925809833f599c034fab482df9933eb8ae614f9a2fd3c6bece8cf6ca5d5b",
+    "bytes": 2433,
+    "decodedSha256": "a798e55a6b10bccefc62cb851421d038a0225b51605a743a39c1212fa43b6d49",
+    "decodedBytes": 6100
+  },
+  "red-manifest.json": {
+    "sha256": "32d7e8bcb3f5728a9ba5d1eb975867ff43bb62203da6dd9940bcc7384826cb82",
+    "bytes": 368
+  }
+}
