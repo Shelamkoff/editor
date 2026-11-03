@@ -168,3 +168,12 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/html-targets/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/html-targets/*.json -text
 scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
+
+# Public extension task lifetime proof
+/tests/browser/extension-tasks*.js text eol=lf
+/tests/browser/extension-tasks.html text eol=lf
+/scripts/parity/extension-tasks.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-03/extension-tasks/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-03/extension-tasks/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-03/extension-tasks/**/*.json -text
+/scripts/parity/checkpoints/2026-11-03/extension-tasks/**/*.gz -text
