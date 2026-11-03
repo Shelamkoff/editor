@@ -586,6 +586,7 @@ try {
     'native-bgcolor-realm.html', 'native-bgcolor-tools.html', 'native-bgcolor-tools-trusted.html',
     'native-fontsize-boundary.html', 'native-fontsize-boundary-trusted.html',
     'native-fontsize-reset-boundary.html', 'native-fontsize-reset-boundary-trusted.html',
+    'native-fontsize-tools.html', 'native-fontsize-tools-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
