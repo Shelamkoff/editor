@@ -6,9 +6,23 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Background color field-boundary repair — 2026-11-03
+
+The register remains **106/209 accepted, 103 open**. A real custom-field defect
+is repaired on `604e210e`: background formatting respects the editing-host and
+application-style boundaries. Immutable `acb654bb` retains its complete six-case
+RED, 12 failed observations and three positive controls; current GREEN passes
+all six / 126. Exact replay and host styles survive. The test-only integration
+source `c8bdd535` passes all 14 clean unchanged gates in `run-9aJdbS`, including
+all 54 ordinary pages and 278 cases in three selected native groups. FullPreset
+is 95.6/96 KiB gzip, Node 2,202 pass / three skips, heap 23 / zero retained.
+The [checkpoint](scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/README.md)
+retains full logs, diff, model and nine rejected corruptions. The broader
+`TOOL_BGCOLOR_ACTION`, other remaining rows and full readiness remain open.
+
 ## Public editor events acceptance — 2026-11-03
 
-The current register is **106/209 accepted, 103 open**. `PUBLIC_EVENTS`
+At that checkpoint the register was **106/209 accepted, 103 open**. `PUBLIC_EVENTS`
 passes 122 cases / 3,172 observations, 3,294 independent checks, 4,663 subscriber
 deliveries and 252 contained observer failures on `09d6ddbd`. Eight event types,
 exact immutable facts/replay and unsubscribe pass with six falsy causes plus

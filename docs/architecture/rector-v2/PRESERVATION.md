@@ -1,5 +1,7 @@
 # Functional preservation register
 
+**Current runtime verification, 2026-11-03:** the [background-color field boundary repair](/architecture/rector-v2/PUBLICATION_REVIEW#background-color-field-boundary-repair-2026-11-03) on `c8bdd535` passes all 14 clean unchanged affected gates. Only `inline-tools/colorPicker.js` changes production relative to separately integrated `efc619d2`. Six cases / 126 current observations, nine rejected corruptions, all 54 ordinary pages and 278 cases in three selected native groups pass, including an enforced Trusted Types control. Node: 2,202 pass / three skips. FullPreset: 95.6 KiB gzip / 96 KiB; heap: 23 sentinels / zero retained. This bounded defect repair adds no accepted row: **106/209 accepted, 103 open**. The full `TOOL_BGCOLOR_ACTION` and whole-library acceptance remain open. Earlier scoped results keep their own source identities.
+
 The selected application-owned inline styling boundary closes the bounded
 B-STYLE gate on `7a77b7aa`, 2026-11-02. See the
 [style-boundary acceptance](/architecture/rector-v2/PUBLICATION_REVIEW#inline-style-boundary-2026-11-02)

@@ -6,6 +6,41 @@ Current scoped acceptance is **106 / 209 obligations**, with **103 open**; see t
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Background color field boundary repair — 2026-11-03
+
+The bounded repair on `c8bdd535eb4573af2f3aaa36ea9cfebff2020cbe` passes all
+**14 clean unchanged affected gates** in `run-9aJdbS`. The register stays
+**106 accepted / 103 open**. `TOOL_BGCOLOR_ACTION` is not accepted by these
+six field-boundary cases alone.
+
+On immutable RED `acb654bb`, ordinary P/SPAN controls pass, but both application
+ancestor profiles incorrectly activate/prefill the picker and a styled SPAN
+edits its host background without persisted formatting or history. All three
+sources complete six cases with 12 attributed failures and three positive
+controls. The independent model verifies the complete RED rather than merely
+accepting a failed process. Genuine v1 consumer subclassing and the current
+public custom-definition contract express the same field; no private mutation
+or fake action is substituted. Native HTML serialization stays native.
+
+The production fix `604e210e` stops background discovery at the editing host,
+instead of relying on a Paragraph class, and never reuses that host as an
+author span. Only `inline-tools/colorPicker.js` changes production relative
+to separately integrated `efc619d2`. Current GREEN has all six cases / 126
+observations passing, preserves application styles and restores exact replay;
+historical sources retain their 12 failures. Nine corrupted inputs are rejected.
+
+The fresh 14-gate run includes build, all 2,202 passing Node tests / three skips,
+types, all 54 ordinary pages, 265 native tool cases, six field cases, seven
+Trusted Types cases including an actually rejected raw HTML sink, comparison
+and model, corruptions, bundle, heap, docs, installed package and site.
+FullPreset is **95.6 KiB gzip / 96 KiB**; the core size remains informational.
+The heap gate retains **zero of 23 sentinels**. Three native groups / 278 cases
+are fresh, not the complete native inventory. The
+[checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/bgcolor-boundary/README.md)
+retains full RED/GREEN, executed model, source diff, all logs, corruptions and
+stored/decoded hashes. This is author verification with an independent model.
+Common background action/reset/cancel/realm proof and full readiness remain open.
+
 ## Public editor events acceptance — 2026-11-03
 
 `PUBLIC_EVENTS` is accepted on immutable `09d6ddbd5104bf8f2693d8ea35ff9376adbe9726`:

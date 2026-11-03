@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Both historical sources retain their 12 attributed failures; current GREEN and the independent model pass separately."
+}

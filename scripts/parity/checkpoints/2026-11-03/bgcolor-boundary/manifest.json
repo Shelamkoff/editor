@@ -1,0 +1,43 @@
+{
+  "source": "c8bdd535eb4573af2f3aaa36ea9cfebff2020cbe",
+  "tree": "465841a9adb1b66263333609caeab0211e6ec565",
+  "productionFix": "604e210e4cacf854452eb1613637a0841b955a08",
+  "redSource": "acb654bbc7a50fbae30c10e3acde5c4770406373",
+  "productionDelta": [
+    "inline-tools/colorPicker.js"
+  ],
+  "basisIntegration": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "run": {
+    "startedAt": "2026-11-03T17:01:21.703Z",
+    "finishedAt": "2026-11-03T17:10:14.633Z",
+    "identity": "ef17ca02c86d9b062b6860c92a5476beaeb942e3a234fdae6aaa7f924d6277aa",
+    "gates": 14,
+    "outcome": "passed",
+    "sourceUnchanged": true
+  },
+  "cases": 6,
+  "observations": 126,
+  "currentFailures": 0,
+  "historicalFailuresPerSource": 12,
+  "corruptionsRejected": 9,
+  "nodePassed": 2202,
+  "nodeSkipped": 3,
+  "ordinaryPages": 54,
+  "nativeCases": {
+    "tools": 265,
+    "boundary": 6,
+    "boundaryTrusted": 7
+  },
+  "fullPresetGzipKiB": 95.6,
+  "fullPresetLimitKiB": 96,
+  "heapSentinels": 23,
+  "heapRetained": 0,
+  "register": {
+    "accepted": 106,
+    "open": 103
+  },
+  "acceptedRows": [],
+  "broaderRowsOpen": [
+    "TOOL_BGCOLOR_ACTION"
+  ]
+}
