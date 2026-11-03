@@ -1,0 +1,97 @@
+{
+  "status": "PASS",
+  "candidate": "5dae95a1fea29621c08eca487ab2d4c470011536",
+  "results": {
+    "v1": {
+      "cases": 20,
+      "observations": 548,
+      "differences": [
+        {
+          "id": "remove-final/editor",
+          "phase": "replay",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "remove-final/editor",
+          "phase": "replay",
+          "property": "redoOrder"
+        },
+        {
+          "id": "remove-final/editor",
+          "phase": "output",
+          "property": "rendered"
+        },
+        {
+          "id": "remove-final/editor",
+          "phase": "output",
+          "property": "canonical"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "undoCanonical"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "undoOrder"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "undoHistory"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "redoAvailable"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "redoOrder"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "output",
+          "property": "rendered"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "output",
+          "property": "canonical"
+        }
+      ],
+      "unavailableFactPorts": 20
+    },
+    "spec-baseline": {
+      "cases": 20,
+      "observations": 548,
+      "differences": [],
+      "unavailableFactPorts": 0
+    },
+    "candidate": {
+      "cases": 20,
+      "observations": 548,
+      "differences": [],
+      "unavailableFactPorts": 0
+    }
+  },
+  "moduleIdentities": 472,
+  "currentCases": 20,
+  "currentObservations": 548,
+  "nativeCases": 20,
+  "trustedCases": 21,
+  "rawSha256": "dc3e5007dae50cb9311fceaaed7eea5f099d5a06c2257ff7ad6656588be4dbc4",
+  "reviewerSha256": "6b144b1923f92e38c6dc166ae7af0118ed1ef5e29c2f0fd9e77e8366bd5613e0",
+  "identityHelperSha256": "6a636b99ce42abdeeac5f740b16f833b1698a47afeecf16bf5400cb850983829",
+  "nativeNormalSha256": "06b93e0a785998c24f7322cc9ad54575bdb4fc1043462eda71800278c008cbbb",
+  "nativeTrustedSha256": "9dd350a385bc202c8efc52c47d15ff928f757b3e5217869b5c09f008c26ac893",
+  "productionUnchanged": true,
+  "runtimeBasis": "4e153854221027141a2b7152f4f067be9d74f228"
+}

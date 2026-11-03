@@ -1,0 +1,123 @@
+{
+  "candidate": "5dae95a1fea29621c08eca487ab2d4c470011536",
+  "tree": "536d6305fc2b86b6fcc03248738d51385ca3e8e9",
+  "sourceIdentity": "7c9ccf297db7a9df8569c68a67a3f365826618a6acdb488d750e395b3626f6f7",
+  "affectedRun": {
+    "directory": "run-xkkiXk",
+    "outcome": "passed",
+    "gates": 6,
+    "startedAt": "2026-11-03T21:19:11.695Z",
+    "finishedAt": "2026-11-03T21:21:19.323Z"
+  },
+  "productionBasis": "4e153854221027141a2b7152f4f067be9d74f228",
+  "productionDelta": [],
+  "cases": 20,
+  "observations": 548,
+  "nativeCases": 20,
+  "nativeTrustedCases": 21,
+  "corruptionsRejected": 12,
+  "moduleIdentities": 472,
+  "results": {
+    "v1": {
+      "cases": 20,
+      "observations": 548,
+      "differences": [
+        {
+          "id": "remove-final/editor",
+          "phase": "replay",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "remove-final/editor",
+          "phase": "replay",
+          "property": "redoOrder"
+        },
+        {
+          "id": "remove-final/editor",
+          "phase": "output",
+          "property": "rendered"
+        },
+        {
+          "id": "remove-final/editor",
+          "phase": "output",
+          "property": "canonical"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "undoCanonical"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "undoOrder"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "undoHistory"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "redoAvailable"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "redoCanonical"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "replay",
+          "property": "redoOrder"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "output",
+          "property": "rendered"
+        },
+        {
+          "id": "remove-final/reader",
+          "phase": "output",
+          "property": "canonical"
+        }
+      ],
+      "unavailableFactPorts": 20
+    },
+    "spec-baseline": {
+      "cases": 20,
+      "observations": 548,
+      "differences": [],
+      "unavailableFactPorts": 0
+    },
+    "candidate": {
+      "cases": 20,
+      "observations": 548,
+      "differences": [],
+      "unavailableFactPorts": 0
+    }
+  },
+  "excludedInitialAttempt": {
+    "reason": "Sixteen old order/shell mismatches observed before removal animation completed; the corrected fixture waits up to two seconds for DOM/model order settlement. All exact original data remain preserved; current source already passed. Twelve actual legacy default reconstruction/history differences remain."
+  },
+  "registerBefore": {
+    "accepted": 119,
+    "open": 90
+  },
+  "registerAfter": {
+    "accepted": 120,
+    "open": 89
+  },
+  "acceptedRows": [
+    "BLOCK_DELIMITER_STRUCTURE"
+  ],
+  "register": {
+    "accepted": 120,
+    "open": 89
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

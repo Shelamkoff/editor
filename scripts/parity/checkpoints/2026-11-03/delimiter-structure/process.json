@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Twelve actual legacy final-removal reconstruction/history differences are independently verified. Current source must pass."
+}
