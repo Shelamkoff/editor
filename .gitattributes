@@ -160,3 +160,11 @@ scripts/parity/checkpoints/2026-11-03/disclosure-state/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-03/disclosure-state/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-03/disclosure-state/*.json -text
 scripts/parity/checkpoints/2026-11-03/disclosure-state/*.gz -text
+
+scripts/parity/html-content-navigation.mjs text eol=lf
+scripts/parity/html-targets.mjs text eol=lf
+scripts/parity/git-navigation-roots.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/html-targets/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-03/html-targets/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-03/html-targets/*.json -text
+scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
