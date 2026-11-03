@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "candidate": "d7eecafd25ef0474d3426a325674417908a75155",
+  "rawSha256": "1c72106ccb91987a822b1a5bb196287904de6eb9eb2a6b264d80436e4d2b21cc",
+  "scriptSha256": "325b48165298e2985299df6a60c0ebad3d6a338dae1ef30b25d9090afb64827e",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "integrationManifestSha256": "38a9a5540d05ae594f6fae67fbe7c6d4f884ab1ab807c2084f9d3271e2a30f09",
+  "browser": "156.0.8078.80",
+  "integratedBrowser": "Chrome/156.0.8078.80",
+  "byteIdenticalRuntime": true,
+  "ordinaryPages": 47,
+  "unobservedBrowserCases": 24,
+  "browserSha256": "185bd94596a3d029f6da8b9bc6e7109b66861b4c5c9c25950f703018efdff04c",
+  "rows": [
+    "CONTRACT_PROJECTION_REGISTERED_DECODE_FAILURE",
+    "CONTRACT_PROJECTION_UNKNOWN_INLINE_CONTROL"
+  ],
+  "legacyUnknownFailures": 3,
+  "ownerRecords": 7,
+  "primitiveCauseRecords": 12,
+  "manualCases": 24,
+  "manualCandidateChecks": 215,
+  "rawObservationsReviewed": 299,
+  "productionModulesVerified": 458,
+  "dependencyFilesVerified": 63,
+  "summaries": [
+    {
+      "source": "spec-baseline",
+      "cases": 24,
+      "passed": 3,
+      "observations": 84,
+      "manualMismatches": 21
+    },
+    {
+      "source": "candidate",
+      "cases": 24,
+      "passed": 24,
+      "observations": 215,
+      "manualMismatches": 0
+    }
+  ],
+  "scope": "Independent manual data/schema/cause/cleanup and opaque JSON/marker/renderer model; classification uses the existing read-only issue lookup, with no runtime mutation or normalization oracle. Author verification, not a separate-agent review. Only the two named registered-decoder and unknown-inline rows are covered."
+}

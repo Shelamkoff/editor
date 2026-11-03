@@ -6,9 +6,25 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Decoder/unknown-inline acceptance — 2026-11-03
+
+The current register is **94/209 accepted, 115 open**. Two decoder/unknown-inline
+contracts are accepted on clean unchanged `d7eecafd`: 24 cases / 215 manual
+expectations, seven owner records and twelve primitive-cause records. All five
+gates in `run-zTaAYr` pass, including all 47 ordinary pages and seven rejected
+evidence corruptions. The
+[checkpoint](scripts/parity/checkpoints/2026-11-03/decode-authority/README.md)
+retains raw exit 1 versus review exit 0, original manifests, primary browser
+environment, exact verifier and hashes. Three actual v1 opaque-data losses
+remain FAIL; improved current preservation stays. Candidate runtime and Chrome
+product/revision match separately integrated `f2070510`; no production change
+was needed. The blank-page object-transport diagnostic and JSON-string repair
+are recorded as a test issue. Standalone presentation is next; B-HTML and full
+readiness remain open.
+
 ## Optional inline/native-caret acceptance — 2026-11-03
 
-The current register is **92/209 accepted, 117 open**. Seven optional-instance
+At this checkpoint the register became **92/209 accepted, 117 open**. Seven optional-instance
 contracts are accepted on clean unchanged `baa0ffc5`: 30 ordinary and eight
 trusted native cases / 406 manual expectations. All six gates in `run-mFAfGI`
 pass, including all 46 ordinary pages, the separate repository native driver,

@@ -2,7 +2,7 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **92 / 209 obligations**, with **117 open**; see the [optional-inline/native-caret acceptance](#optional-inline-instances-and-native-caret-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **94 / 209 obligations**, with **115 open**; see the [decoder/unknown-inline acceptance](#registered-decoder-and-unknown-inline-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
@@ -16,6 +16,46 @@ and are corrected; original data, hashes, sources and outcomes are unchanged.
 The [environment checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves all three original logs/manifests and the observed product/revision.
 This adds no accepted row or new test execution; the register remains 92/117.
+
+## Registered decoder and unknown inline acceptance — 2026-11-03
+
+Two named rows are accepted on immutable
+`d7eecafd25ef0474d3426a325674417908a75155`, Windows x64 / Chrome 156.0.8078.80:
+registered-decoder projection failure and unknown-inline preservation. The
+register becomes **94 accepted / 115 open**. Production behavior is unchanged.
+
+All 24 cases / 215 independent manual expectations pass. Seven original
+initial/render/canonical/mode recovery cases retain their assertions; structured
+records verify accepted data, schema classification, actual failure identity,
+application-controlled phases, restoration, remaining rights and exact public
+cleanup. Twelve controls retain every falsy cause, including own undefined cause,
+and ordered two-failure aggregates. Promise/thenable results fail synchronously
+without literal fallback, history or unhandled rejection. Three unknown IDs
+preserve opaque nested own keys, inert identity, Undo/Redo, modes and public
+renderer output alongside a live registered control.
+
+`run-zTaAYr` passes five affected gates on clean unchanged source: types, all
+47 ordinary pages, exact three-source comparison plus manual model, seven
+negative evidence controls and docs. The model reviews 299 v2 observations,
+seven owner records and twelve primitive-cause records, verifies 458 production
+modules, 63 dependency files and eight versions. Runtime bytes and the actual
+Chrome product/revision match separately integrated `f2070510`; its original
+21-gate manifest and environment log are retained. These are separate runs.
+
+Actual v1 import/save/DOM/renderer controls preserve literal visible/output
+text but lose opaque inline data in all three cases. Those losses remain FAIL;
+the baseline retains 3/24 passing and 84 observations. Raw comparison exit 1
+and independent model exit 0 remain separate. The basic legacy Paragraph
+control passes; no v2 definition or schema API is emulated.
+
+The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/decode-authority/README.md)
+retains original corpora, logs, manifests, verifier bytes, seven rejected
+corruptions and hashes. A blank-page diagnostic reproduces Playwright's loss
+of own `__proto__` keys in object results. JSON-string transport preserves them;
+the manual model rejected the earlier corpus rather than accepting matching
+loss in both operands. This was a test transport issue, not product RED.
+Verification is by the author with an independently written model, not another
+agent. Standalone presentation, B-HTML and full readiness remain open.
 
 ## Optional inline instances and native caret — 2026-11-03
 

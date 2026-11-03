@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Specification-baseline and actual v1 opaque-data failures retain raw exit 1; candidate and independent manual review separately pass."
+}

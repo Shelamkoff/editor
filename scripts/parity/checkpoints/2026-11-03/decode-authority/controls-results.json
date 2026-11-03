@@ -1,0 +1,54 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-candidate",
+      "mutation": "Replace the candidate source with the specification baseline.",
+      "exitCode": 1,
+      "sha256": "423f73732d1799fcabb319e89148283bc9d084807000d947148dd1c8be30a5c3",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 156, in main\r\n    assert {source['label']: source['sha'] for source in raw['sources']} == expected_sources\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "accepted-literal-fallback",
+      "mutation": "Change recovered accepted data while retaining PASS and stable-data claims.",
+      "exitCode": 1,
+      "sha256": "6b4228d360c0e482922144230a42b49ca9a5afdc8ea11c44e14f59db4bdedf9a",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 235, in main\r\n    verify_owners(row['ownerObservations'], exact)\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 90, in verify_owners\r\n    assert equal(row['finalSaved'], None if index == 0 else known_doc())\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-undefined-cause",
+      "mutation": "Remove own undefined cause while changing both assertion operands and the cause record.",
+      "exitCode": 1,
+      "sha256": "35bc84e2c34508cdb52d417b1d64702468db6c73c7362f78078f86f1f4d9e3e0",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 233, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('projection decoder throw undefined with 1 failures preserves its cause and recovery owner', 0, {'kind': 'equal', 'actual': [1, ['invalid-data'], [False], False], 'expected': [1, ['invalid-data'], [False], False], 'message': ''}, [1, ['invalid-data'], [True], False])\r\n"
+    },
+    {
+      "name": "consistent-proto-loss",
+      "mutation": "Strip every own __proto__ key from current observations, including both assertion operands.",
+      "exitCode": 1,
+      "sha256": "a23ee1656be94466578ca565570145274b9771088068f78102eee506b00de09b",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 233, in main\r\n    if row['source'] == 'candidate': assert match, (trace['name'], index, observation, value)\r\n                                            ^^^^^\r\nAssertionError: ('unknown inline future preserves opaque data, inert identity and renderer output', 0, {'kind': 'equal', 'actual': [{'id': 'a', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Before {{future}} / {{literal}} / {{toString}} after'}, 'inline': {'future': {'type': 'future-extension', 'dataVersion': 7, 'data': {'name': 'future', 'nested': {'constructor': 'opaque', 'toString': 'opaque'}, 'values': [None, False, 0, 'text']}}}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Control {{known}}'}, 'inline': {'known': {'type': 'known-control', 'dataVersion': 1, 'data': {'label': 'Known'}}}}], 'expected': [{'id': 'a', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Before {{future}} / {{literal}} / {{toString}} after'}, 'inline': {'future': {'type': 'future-extension', 'dataVersion': 7, 'data': {'name': 'future', 'nested': {'constructor': 'opaque', 'toString': 'opaque'}, 'values': [None, False, 0, 'text']}}}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Control {{known}}'}, 'inline': {'known': {'type': 'known-control', 'dataVersion': 1, 'data': {'label': 'Known'}}}}], 'message': ''}, [{'id': 'a', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Before {{future}} / {{literal}} / {{toString}} after'}, 'inline': {'future': {'type': 'future-extension', 'dataVersion': 7, 'data': {'name': 'future', 'nested': {'__proto__': {'value': 'opaque'}, 'constructor': 'opaque', 'toString': 'opaque'}, 'values': [None, False, 0, 'text']}}}}, {'id': 'b', 'type': 'paragraph', 'dataVersion': 2, 'data': {'text': 'Control {{known}}'}, 'inline': {'known': {'type': 'known-control', 'dataVersion': 1, 'data': {'label': 'Known'}}}}])\r\n"
+    },
+    {
+      "name": "unfinished-cleanup",
+      "mutation": "Retain all PASS verdicts but leave a staged widget owner alive after public destruction.",
+      "exitCode": 1,
+      "sha256": "7c28a5c22ef7faa320c8ccd2583202534c2913c4e3063f0f56dc4084ab2aedbe",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 235, in main\r\n    verify_owners(row['ownerObservations'], exact)\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 84, in verify_owners\r\n    assert equal(row['cleanup'], dict(rootGone=True, blocksRetired=True, widgetsRetired=True, once=True, allCreatedDisposed=True))\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "relabel-legacy-loss",
+      "mutation": "Call actual v1 data loss a passing preservation control without restoring its saved data.",
+      "exitCode": 1,
+      "sha256": "b2d7b5f15db3b41502aa7116cc12c19b7196c7c6c062a4fb0755873d172b3f11",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 192, in main\r\n    assert exact(legacy['legacyUnknownCases'], expected_legacy())\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-mode-disable",
+      "mutation": "Remove the read-only reversal case, trace and owner record while retaining remaining PASS verdicts.",
+      "exitCode": 1,
+      "sha256": "0fe08bdca9183236cce383c289b71a4dc50185ac59f5af8076b4670098909756",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 249, in <module>\r\n    if __name__ == '__main__': main()\r\n                               ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-03\\decode-authority\\review.py\", line 216, in main\r\n    assert [case['name'] for case in row['cases']] == list(models)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

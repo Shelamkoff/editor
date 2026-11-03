@@ -1,0 +1,67 @@
+{
+  "candidate": "d7eecafd25ef0474d3426a325674417908a75155",
+  "tree": "5919b0146eece5c651c34ef289da322c1f1c842d",
+  "integratedRuntime": "f2070510d2bbe22b2d6244f273c890f070de16de",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T11:10:26.866Z",
+    "finishedAt": "2026-11-03T11:16:30.119Z",
+    "identity": "7a3fd4b1e463cb3cae5bc0b32292798dfa472e8354b4569e8b995bbd1af35c79",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser-all": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "decode-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "decode-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "v1",
+      "sha": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+      "tree": "81c14d252e25a6501be18afc5f2f840ef4480e78",
+      "loadedModules": 139
+    },
+    {
+      "label": "spec-baseline",
+      "sha": "e981ff308000c1d92d7e820df95113c1e19bcee8",
+      "tree": "e9956fb78777835fd5054c4e1ec882833c4fedbc",
+      "loadedModules": 157
+    },
+    {
+      "label": "candidate",
+      "sha": "d7eecafd25ef0474d3426a325674417908a75155",
+      "tree": "5919b0146eece5c651c34ef289da322c1f1c842d",
+      "loadedModules": 162
+    }
+  ],
+  "registerBefore": {
+    "accepted": 92,
+    "open": 117
+  },
+  "acceptedRows": [
+    "CONTRACT_PROJECTION_REGISTERED_DECODE_FAILURE",
+    "CONTRACT_PROJECTION_UNKNOWN_INLINE_CONTROL"
+  ],
+  "registerAfter": {
+    "accepted": 94,
+    "open": 115
+  },
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}
