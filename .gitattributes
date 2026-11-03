@@ -58,3 +58,5 @@ scripts/parity/checkpoints/2026-11-03/element-range/*.gz -text
 scripts/parity/public-snapshots.mjs text eol=lf
 tests/browser/public-snapshots-fixture.js text eol=lf
 tests/browser/public-snapshots.js text eol=lf
+scripts/parity/checkpoints/2026-11-03/public-snapshots/*.json -text
+scripts/parity/checkpoints/2026-11-03/public-snapshots/*.gz -text

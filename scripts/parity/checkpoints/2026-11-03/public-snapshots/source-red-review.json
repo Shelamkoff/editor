@@ -1,0 +1,10 @@
+{
+  "source": "5dbf2458f88086e359a62c9619a23cb2efad739d",
+  "rawSha256": "70e7ae0b603dd93eb6a909bb506cb837af7efc7365b5ec0547552c54ff7957a4",
+  "candidateCases": 24,
+  "incomplete": 9,
+  "positiveControls": 15,
+  "failedPhases": "load during read-only transition",
+  "verifiedProductionModules": 275,
+  "status": "ATTRIBUTED_REGRESSION"
+}

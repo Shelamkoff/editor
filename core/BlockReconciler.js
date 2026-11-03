@@ -1023,6 +1023,7 @@ export class BlockReconciler {
         instance,
         controller: null,
         unregistered: true,
+        fields: [],
         definition: null,
         baseContext: null,
         lifetime,

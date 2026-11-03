@@ -1,0 +1,26 @@
+{
+  "source-red.json.gz": {
+    "sha256": "ee8efb2cb4ca14c01eaa466ddea8d1151ea90d539a8353ce25853ba3d69842ea",
+    "decodedSha256": "70e7ae0b603dd93eb6a909bb506cb837af7efc7365b5ec0547552c54ff7957a4",
+    "bytes": 38616,
+    "decodedBytes": 1663917
+  },
+  "source-red-unit.log.gz": {
+    "sha256": "e5763106af14e41bbfaf75093287fc9687df759c53605f1fb5812e4c77807897",
+    "decodedSha256": "cdff373d8d7c4e93b2c7255ed268aa6d617b6e66fa267918595c67731747e6fc",
+    "bytes": 611,
+    "decodedBytes": 4046
+  },
+  "source-red-runner.mjs.gz": {
+    "sha256": "41394aeac8b3b081bd52686b3be185c988bc54b09c225bab1676546f0d54e839",
+    "decodedSha256": "867e9aaf05bf4019e4414f6460be941f96ff5a672d30d735a23d93af50397eab",
+    "bytes": 3395,
+    "decodedBytes": 8853
+  },
+  "source-red-fixture.js.gz": {
+    "sha256": "d143b6604697fa59cd313824908f5d8c844c58a40ce461f2df1be6e1d16db964",
+    "decodedSha256": "146ecda1241ef9a584db1d3beab9ed84592ae3f84c924b93a5ff7b6aa2a50a81",
+    "bytes": 3145,
+    "decodedBytes": 9923
+  }
+}
