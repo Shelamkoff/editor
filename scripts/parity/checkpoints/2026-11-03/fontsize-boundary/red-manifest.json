@@ -1,0 +1,22 @@
+{
+  "source": "dc68a4b3bd8e353ad0d6151e01fd1b1cba515878",
+  "tree": "abeac1ba999fbc5c632897592d9077981e2b633a",
+  "runtimeExit": 1,
+  "redModelExit": 0,
+  "cases": 6,
+  "observationsPerSource": 126,
+  "failures": {
+    "v1": 0,
+    "spec-baseline": 6,
+    "candidate": 6
+  },
+  "positiveCurrentCases": 5,
+  "register": {
+    "accepted": 107,
+    "open": 102
+  },
+  "acceptedRows": [],
+  "broaderOpenRows": [
+    "TOOL_FONTSIZE_ACTION"
+  ]
+}
