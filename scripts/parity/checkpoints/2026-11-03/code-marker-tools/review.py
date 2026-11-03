@@ -206,7 +206,7 @@ def main():
                       'tests/browser/regressions/harness.js']
     native_source_hashes = {}
     for path in native_sources:
-        assert Path(path).read_text().replace('\r\n', '\n').encode() == git('show', source + ':' + path)
+        assert Path(path).read_bytes().replace(b'\r\n', b'\n') == git('show', source + ':' + path)
         native_source_hashes[path] = digest(git('show', source + ':' + path))
     assert data['packageLockSha256'] == digest(Path('package-lock.json').read_bytes())
     expected_sources = {'v1': V1, 'spec-baseline': SPEC, 'candidate': source}
