@@ -77,10 +77,10 @@ export async function runDocumentLifecycleCase({sourceBase='../../',legacy=false
       if(legacy){
         const saved=editor.save();legacyOutcome={rejected,errorName,document:copy(saved),canUndo:editor.canUndo,canRedo:editor.canRedo}
         unsupported.push({property:'currentVersionValidationContract',reason:'v1 has its own accepted legacy envelope and lacks the current v2 version/schema rejection contract. Its actual render result and history are recorded without imposing v2 validation semantics.'})
-        check(phase,'legacyEditorUsable',{version:saved.version,blocks:Array.isArray(saved.blocks)&&saved.blocks.length>0,root:!!holder.querySelector('.oe-editor')},{version,blocks:true,root:true})
+        check(phase,'legacyEditorUsable',{version:saved.version,blocks:Array.isArray(saved.blocks)&&saved.blocks.length>0,root:!!holder.querySelector('.oe-editor')},{version:spec.invalid==='no-version'?'1.0.0':version,blocks:true,root:true})
       }else{
         check(phase,'callerInputUnchanged',input,beforeInput)
-        check(phase,'rejected',rejected,true);check(phase,'canonical',editor.save().blocks,initial)
+        check(phase,'rejected',rejected,true);check(phase,'canonical',editor.save().blocks,initial);check(phase,'version',editor.save().version,version)
         const expectedError=['no-version','wrong-blocks'].includes(spec.invalid)?'TypeError':'RangeError'
         const issue=spec.invalid==='legacy-version'?{reason:'unsupported-document-version'}:spec.invalid==='future-registered'?{reason:'unsupported-data-version',blockId:'c',type:'paragraph'}:{reason:'invalid-input'}
         check(phase,'errorName',errorName,expectedError)
@@ -104,7 +104,7 @@ export async function runDocumentLifecycleCase({sourceBase='../../',legacy=false
         for(const block of supplied.blocks)block.data.text='caller mutation'
       }else{editor.clear();target=null}
       if(!target){allocatedId=editor.save().blocks[0]?.id;check(phase,'freshDefaultIdentity',typeof allocatedId==='string'&&allocatedId.length>0&&!initial.some(block=>block.id===allocatedId),true);target=defaults(allocatedId)}
-      check(phase,'canonical',editor.save().blocks,target);check(phase,'oldRootsRetired',oldNodes.every(node=>!node.isConnected),true)
+      check(phase,'canonical',editor.save().blocks,target);check(phase,'version',editor.save().version,version);check(phase,'oldRootsRetired',oldNodes.every(node=>!node.isConnected),true)
       check(phase,'mode',editor.readOnly,spec.mode==='read-only')
       if(!legacy){check(phase,'oldTasksDenied',stale(),{results:oldTasks.map(()=>false),producers:0,options:0,aborted:oldTasks.map(()=>true)});check(phase,'oldOwnersDisposed',[...oldOwners.block,...oldOwners.inline].map(owner=>owner.destroyed),[...oldOwners.block,...oldOwners.inline].map(()=>1))}
       if(spec.mode==='read-only')editor.setReadOnly(false)
@@ -116,7 +116,7 @@ export async function runDocumentLifecycleCase({sourceBase='../../',legacy=false
         const previousTasks=previousOwners.map(owner=>owner.context.beginTask())
         if(!legacy)check(phase,'previousTasksInitiallyLive',previousTasks.map(task=>task.signal.aborted),previousTasks.map(()=>false))
         check(phase,'available',redo?editor.redo():editor.undo(),true)
-        check(phase,'canonical',editor.save().blocks,redo?target:initial)
+        check(phase,'canonical',editor.save().blocks,redo?target:initial);check(phase,'version',editor.save().version,version)
         if(!legacy){check(phase,'oldTasksDenied',stale(),{results:oldTasks.map(()=>false),producers:0,options:0,aborted:oldTasks.map(()=>true)});check(phase,'previousTasksDenied',stale(previousTasks),{results:previousTasks.map(()=>false),producers:0,options:0,aborted:previousTasks.map(()=>true)});check(phase,'previousOwnersDisposed',previousOwners.map(owner=>owner.destroyed),previousOwners.map(()=>1));check(phase,'liveBlockNoop',freshNoop('block'),{result:true,producers:1,newEvents:0})}
         check(phase,'history',[editor.canUndo,editor.canRedo],redo?[true,false]:[false,true]);completedPhases.push(phase)
       }
