@@ -2,9 +2,50 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **103 / 209 obligations**, with **106 open**; see the [public block selection acceptance](#public-block-selection-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **104 / 209 obligations**, with **105 open**; see the [public block structure acceptance](#public-block-structure-acceptance-2026-11-03). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Public block structure acceptance — 2026-11-03
+
+`PUBLIC_STRUCTURE` is accepted on immutable `c45a2e39c0546ee630ea6de527e4522febebdcde`:
+**58 cases / 1,192 passing observations**, 1,250 independent current checks and
+nine rejected corruptions. The register becomes **104 accepted / 105 open**.
+No production change was needed.
+
+Twenty-nine variants run in editable and read-only host-control mode. Insert
+positions/defaults/rich inline metadata, data/tune updates and tune reset,
+nested Table rows/cells, semantic no-ops including reordered keys, forward and
+backward move, known/opaque removal and atomic final-block default replacement
+execute. Fresh IDs remain stable through exact Undo/Redo. Caller inputs and
+retained producer descendants cannot mutate accepted data or history. Current
+missing/unknown targets, invalid positions and forbidden patches reject without
+partial data. Nested same/other-block updates and insert/remove/move form one
+outer action. A caught nested failure still rejects the entire draft. No-op and
+error preserve the seeded Redo branch. Explicit host commands remain admitted
+in read-only mode; user authoring and history availability stay separate.
+
+All five clean unchanged affected gates pass: types, all 52 ordinary pages,
+three-source comparison/model, nine corruptions and docs. The model verifies
+286 primary module identities, six dependency files and eight versions.
+Runtime is byte identical to separately integrated `efc619d2`; its original
+13-gate manifest is retained separately. All 58 specification-baseline cases
+and all 1,192 observations pass. v1 executes its real public indexed structural
+commands and replay controls, with 1,068 observations and 57 retained differences.
+Its old Table wire shape is used; stable v2 cell identities are not fabricated.
+Public producer actions are absent in 24 case variants, and missing-ID removal
+has no same-contract setter in two. These 26 actions are explicitly skipped;
+replay controls still execute. Four final deletions actually produce an empty
+legacy document, without a fabricated extra insert. Fifty-eight other records
+declare absent current transaction observation ports. Default insertion order,
+metadata and strict-index differences remain visible, without restoring older
+behavior. Real legacy diagnostics are preserved.
+
+Current exceptions, incomplete phases, unsupported actions and failed
+observations are zero. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-03/public-structure/README.md)
+retains full logs, corpus, raw comparison exit 1 versus model exit 0, executed
+scripts, corruptions and source hashes. This is author verification with an
+independent model. Other public rows, B-HTML and full readiness remain open.
 
 ## Public block selection acceptance — 2026-11-03
 

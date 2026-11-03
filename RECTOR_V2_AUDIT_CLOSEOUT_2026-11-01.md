@@ -6,9 +6,21 @@ scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are
 unchanged. The [environment checkpoint](scripts/parity/checkpoints/2026-11-03/browser-environment/README.md)
 preserves the full primary logs and manifests. This adds no accepted row.
 
+## Public block structure acceptance — 2026-11-03
+
+The current register is **104/209 accepted, 105 open**. `PUBLIC_STRUCTURE`
+passes 58 cases / 1,192 observations, 1,250 independent checks and nine rejected
+corruptions on `c45a2e39`. Insert/update/remove/move/default, nested Table rows,
+owned inputs, semantic no-ops, one-action nested commands and caught-error
+rollback pass. Explicit host commands retain their read-only contract. All five
+frozen gates and all 52 ordinary pages pass; runtime remains byte identical to
+separately integrated `efc619d2`. The [checkpoint](scripts/parity/checkpoints/2026-11-03/public-structure/README.md)
+retains complete raw corpora, model, corruptions and source hashes. Other public
+contracts and whole-library readiness remain open.
+
 ## Public block selection acceptance — 2026-11-03
 
-The current register is **103/209 accepted, 106 open**. `PUBLIC_SELECTION`
+At that checkpoint the register was **103/209 accepted, 106 open**. `PUBLIC_SELECTION`
 passes 44 cases / 1,142 observations, 1,186 independent current checks and nine
 rejected corruptions on `455d0488`. Live/stale IDs, removed/replaced roots,
 same-ID replacement, document order, both modes and a matching-ID second editor

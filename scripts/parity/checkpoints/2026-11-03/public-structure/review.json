@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "candidate": "c45a2e39c0546ee630ea6de527e4522febebdcde",
+  "cases": 58,
+  "semanticChecks": {
+    "v1": 1126,
+    "spec-baseline": 1250,
+    "candidate": 1250
+  },
+  "history": [
+    {
+      "source": "v1",
+      "cases": 58,
+      "observations": 1068,
+      "failures": 57,
+      "unsupportedObservations": 88
+    },
+    {
+      "source": "spec-baseline",
+      "cases": 58,
+      "observations": 1192,
+      "failures": 0,
+      "unsupportedObservations": 0
+    },
+    {
+      "source": "candidate",
+      "cases": 58,
+      "observations": 1192,
+      "failures": 0,
+      "unsupportedObservations": 0
+    }
+  ],
+  "rawSha256": "d62d2899830ad6b7978f36cb5c4df28d966f216f4bb861357a26c56a5abe6bf1",
+  "reviewerSha256": "0156cb044fe30ea5daf25290bb5cf16e7fd5779e5eb5c64d71c03ad3302ede05",
+  "integratedRuntime": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "integrationManifestSha256": "58992cfcbffc696b115bc4e638a521bb2fac4631aef292f566b8c88cc7b6d41a",
+  "primaryProductionModuleIdentities": 286,
+  "dependencyFiles": 6,
+  "dependencyVersions": {
+    "dompurify": "3.4.17",
+    "@shelamkoff/carousel": "1.0.0",
+    "@shelamkoff/color-picker": "1.0.0",
+    "@shelamkoff/cropper": "1.0.0",
+    "@shelamkoff/event-bus": "1.0.0",
+    "@shelamkoff/expose": "1.0.0",
+    "@shelamkoff/masonry": "1.0.0",
+    "@shelamkoff/infinite-scroll": "1.0.1"
+  },
+  "browserSha256": "f64f9a37647bd95835c4369f5015dca004f44ca9274a51615e30dbd03b1cb688"
+}

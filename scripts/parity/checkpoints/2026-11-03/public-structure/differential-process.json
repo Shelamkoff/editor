@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "Legacy wire/default/index semantics retain historical exit 1. The current 58-case contract and independent model pass separately; unavailable old producer actions are explicit."
+}

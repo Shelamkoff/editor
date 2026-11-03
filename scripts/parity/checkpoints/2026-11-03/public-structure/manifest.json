@@ -1,0 +1,49 @@
+{
+  "candidate": "c45a2e39c0546ee630ea6de527e4522febebdcde",
+  "tree": "2a042ac3e4c3e0e1081bbe2afc7761031a7179d9",
+  "integratedRuntime": "efc619d226117a4b0ee1308d1cbb114df5066210",
+  "runtimeByteIdentical": true,
+  "affectedRun": {
+    "startedAt": "2026-11-03T16:01:35.690Z",
+    "finishedAt": "2026-11-03T16:04:11.959Z",
+    "identity": "0c146c8345b209e102cc0ab13c2455fe410b71bbecad0fd15bb0b3c715fbe873",
+    "gates": {
+      "types": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "browser": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "structure-proof": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "structure-controls": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      },
+      "docs": {
+        "outcome": "passed",
+        "sourceUnchanged": true
+      }
+    }
+  },
+  "registerBefore": {
+    "accepted": 103,
+    "open": 106
+  },
+  "acceptedRows": [
+    "PUBLIC_STRUCTURE"
+  ],
+  "registerAfter": {
+    "accepted": 104,
+    "open": 105
+  },
+  "cases": 58,
+  "observations": 1192,
+  "independentCurrentChecks": 1250,
+  "rawComparisonExit": 1,
+  "reviewExit": 0
+}
