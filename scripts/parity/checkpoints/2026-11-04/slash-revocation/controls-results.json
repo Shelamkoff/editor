@@ -1,0 +1,209 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "d5dc68bf0ab42e458dceeee74afae0868dd25c9f6c1b57dbf424ddc9f0957537"
+    },
+    {
+      "name": "altered-module",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "85f06327ddca2a9e15cbe85d176673d3ae14ca16b8c75342293a4e7f8a4e6513"
+    },
+    {
+      "name": "missing-case",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "8fbec9ecdb77da1f44f708b1d73ca2e76ce92c785b18610ed9b64019abd0d584"
+    },
+    {
+      "name": "missing-observation",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "6ec24fce575d7ccfab91ac5e1a16320f84b8c5935dbbeb43ae514ac87559acc3"
+    },
+    {
+      "name": "fake-completion",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "2f6bb21e0269a08ce3849edbf023f20e0d55462e3f3c613c6e396d3aa5186359"
+    },
+    {
+      "name": "menu-items-replaced",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "5422bb2201944e578d1ba97255ea0604e099a24737df36de4895a9d8c6e3f6e0"
+    },
+    {
+      "name": "hover-dom-churn",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "c5bed048ba9c53bcdf5df5f6eccab0775973f130474df349ff41567dc2b6facf"
+    },
+    {
+      "name": "wrong-keyboard-target",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "91a071cb2f2356b06919f97f40318295edc29490323479394cdd3d8397999191"
+    },
+    {
+      "name": "filter-left-query",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "f869eea0b55b30b362406aa726e69e10455ca1900906892eb0b21030a848e4ae"
+    },
+    {
+      "name": "cancel-absorbed-history",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "01e6d8d6d47e39b291be486a9507180d7989cc38ffc0e2a52ee163cb507e897b"
+    },
+    {
+      "name": "empty-enter-authored",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "a60fe7782c4ca60557b5b382cbf7e883b66430b0b9864628294bf7a166532c22"
+    },
+    {
+      "name": "outside-closed-too-late",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "e3b1762e31176c82ead1e685aeeadcc7946a67dd6a814717d956d878d97c1ae9"
+    },
+    {
+      "name": "retired-mode-wrote",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "e4a66781b2fabf0ed88921ebacd9cb7c4ea70bcfda807b1171a43e56993bb969"
+    },
+    {
+      "name": "retired-render-closed-successor",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "6eb0786d01e25ba025465847927a83633fd06c6cf53543aa1a431661b6a48e5f"
+    },
+    {
+      "name": "old-destroy-killed-successor",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "12853e1d924568308466a8a55f75d90730fdaf2ae3d2c8e183a1e412dd9b7c00"
+    },
+    {
+      "name": "native-click-missed",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "5887502e723ba7842f279534d9db8a9f2e2f456d184c637fed485d7a6ecc43d0"
+    },
+    {
+      "name": "synthetic-input",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "1096a2c4693acda2ca3b2f19d45bf4cef58e250246929eb2f428b185a3f1d3ba"
+    },
+    {
+      "name": "lost-transaction",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "ae6b0b60a01d039fb72c7b32dd4555b3d679a1964a9a12ff9269055a0b2cc575"
+    },
+    {
+      "name": "extra-author-command",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "d850024a2cf665dc6dabd4da90e5d31a4a54f8ea373c82c1bad4f668f1990303"
+    },
+    {
+      "name": "unhit-control",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "cde3ee52ddcdeded34c3b2174626abd0297a5a3aa713a22842c39d59ee16ce6b"
+    },
+    {
+      "name": "unenforced-policy",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "b07abd438ac24d6201ec65d5d82ec25f7b5d461967ae8968964efe9de57a62d0"
+    },
+    {
+      "name": "unexpected-page-error",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "ed438c924a2ac988ea9b7c1093693d17370c4f9da032fd74d8a58bd6858ba795"
+    },
+    {
+      "name": "unexpected-network",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "eeb1462bccde6a1e02a5cf0b785a2dfd910b25cb29810642723347abba81288d"
+    },
+    {
+      "name": "hidden-diagnostic",
+      "exitCode": 1,
+      "revocationSha256": "b79f30eccd265c0642a3b875001e46941c514dd44fcb69bbf67966084239bdad",
+      "pointerSha256": "d43bb24abdc1aff1b21de53167932f955642046dfcd4ddcf3dbee1ba12506883"
+    },
+    {
+      "name": "revoked-caret-menu-left-open",
+      "exitCode": 1,
+      "revocationSha256": "63fac273b9213550e7362d196da1113482c898cb316ef94699bd28b5f40a1cae",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "revoked-range-menu-left-open",
+      "exitCode": 1,
+      "revocationSha256": "6fc37f6e68a5513e2462b4e9c5ce96ff2d964620ec6d0a67527be4bd932abfb2",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "revoked-cancel-deleted-query",
+      "exitCode": 1,
+      "revocationSha256": "fd4fee9885e2d4b1406733e07f86f799a8b761288b772f6a99c38e0d5bb3b9d5",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "revoked-cancel-authored-history",
+      "exitCode": 1,
+      "revocationSha256": "fcd1a37a3a66359ed8c56d2d03ffd4fae8eeaaf487492d4f8ef32c0eeb28aed5",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "retired-range-click-authored",
+      "exitCode": 1,
+      "revocationSha256": "7296f69ef902b888fdd0326c81a8e5bfdc6d758a555154fbc30caa1b6e7c6bb8",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "retired-caret-closed-new-menu",
+      "exitCode": 1,
+      "revocationSha256": "7acb6dacd9165bb7cf471f4fb461af7bbf9c0d9ba34d176ebad7ce821929ec45",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "fresh-caret-lost-query-undo",
+      "exitCode": 1,
+      "revocationSha256": "226ae17dc29f561325aa306c92a908d65b243c526bebfd7f952339c732077923",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "native-range-was-not-changed",
+      "exitCode": 1,
+      "revocationSha256": "a4bd9bf8999b874caa48dc1d041cf52b75f1abc79e5a077c93d8c275d357d4e9",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "revocation-native-click-missed",
+      "exitCode": 1,
+      "revocationSha256": "13de13c4e1e86633ce4e852ca42b7dd2d35060e835e605895815f7b26bfbb6d7",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    },
+    {
+      "name": "revocation-extra-command",
+      "exitCode": 1,
+      "revocationSha256": "27073f271c3700ba6633e2e538e5bd6faf623f0a7c40b96f71bbe16be3ba84b6",
+      "pointerSha256": "2e91e463bd0e687fd55e731e6fcbf6451e9c5d65937fd028545185660f259222"
+    }
+  ]
+}

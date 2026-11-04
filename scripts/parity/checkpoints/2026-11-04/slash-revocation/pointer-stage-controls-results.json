@@ -1,0 +1,125 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "rawSha256": "7dbd5e504c7e01f9d2ae45666c643353a53430d85be23d945b43061be97bb4a6"
+    },
+    {
+      "name": "altered-module",
+      "exitCode": 1,
+      "rawSha256": "c6ce2d21f55c577b9669d95038ffcb2c02df004a4e0ce5d99323a96a98dc2ce7"
+    },
+    {
+      "name": "missing-case",
+      "exitCode": 1,
+      "rawSha256": "93c0f256cc9f86dc025280bf51cbf431414e5547a58463f40d2f40f28dd08615"
+    },
+    {
+      "name": "missing-observation",
+      "exitCode": 1,
+      "rawSha256": "6e9d36d1212aff8ae32769bf700a0c199b153d03d64e32a731ee7f6e93c3591c"
+    },
+    {
+      "name": "fake-completion",
+      "exitCode": 1,
+      "rawSha256": "e4d8f810faa6f37f9e1d0e9b7a31b4da60fd55a509ec7b6a9d5da5e876a3a951"
+    },
+    {
+      "name": "menu-items-replaced",
+      "exitCode": 1,
+      "rawSha256": "9bd94725d546fc89e805ac2b4cf66f17e104aec3a18a8dd8dc9fc7084b2bd9c0"
+    },
+    {
+      "name": "hover-dom-churn",
+      "exitCode": 1,
+      "rawSha256": "9810daa23f15f99e6c1dacdfea6ef8d7b6e21ecf2f0c978fb3ae52f962e9dab1"
+    },
+    {
+      "name": "wrong-keyboard-target",
+      "exitCode": 1,
+      "rawSha256": "08bdd84a1a03a4b826a0f052cd2519464b430da29d8204a434e565a87a32750a"
+    },
+    {
+      "name": "filter-left-query",
+      "exitCode": 1,
+      "rawSha256": "a75c2716bc50fbba03619f279a1d6ee173484bd173a05c315b45da9fe405ba0f"
+    },
+    {
+      "name": "cancel-absorbed-history",
+      "exitCode": 1,
+      "rawSha256": "bb57bfa3f658e0b54eae801e298dfab348c84894c02a2e0b3d73212f0249337d"
+    },
+    {
+      "name": "empty-enter-authored",
+      "exitCode": 1,
+      "rawSha256": "f75b72ba192e3570efd05514d6c7756f1745c5b0adce7fcb0da69013655c3a47"
+    },
+    {
+      "name": "outside-closed-too-late",
+      "exitCode": 1,
+      "rawSha256": "d072c3596e1b73cff5cd5620fa9dfe183690eb7d5c4d62b6ddcf8b599ba7c2d4"
+    },
+    {
+      "name": "retired-mode-wrote",
+      "exitCode": 1,
+      "rawSha256": "fa424da53f75bede70c0ef0236278abb52d49289eac050b8d0a39428b10f1092"
+    },
+    {
+      "name": "retired-render-closed-successor",
+      "exitCode": 1,
+      "rawSha256": "b6924abd51a9e45c47987595ab676cb62afbe1ac73a9ec5e739d93fa33ccbcb5"
+    },
+    {
+      "name": "old-destroy-killed-successor",
+      "exitCode": 1,
+      "rawSha256": "05e5c356276a79864bc7ea5e000cac1188b429dd83aca8e7096a1b8d45e21576"
+    },
+    {
+      "name": "native-click-missed",
+      "exitCode": 1,
+      "rawSha256": "43dd16e7bb029b35f33b38fcd1c4cfcc4ab21fd3fa1bdc7c39da6cb68531b878"
+    },
+    {
+      "name": "synthetic-input",
+      "exitCode": 1,
+      "rawSha256": "d6b3a5ef535614ad551b70dcab859dd066a10893cd787b7efb5a9173fb48b5a4"
+    },
+    {
+      "name": "lost-transaction",
+      "exitCode": 1,
+      "rawSha256": "92467bfc1a70b62c663260a4169a0188f479b1a20cab4b199896374929bd2a50"
+    },
+    {
+      "name": "extra-author-command",
+      "exitCode": 1,
+      "rawSha256": "9f7be2342628fe844c4c1408da2cd271ebb9333e48667077e456c6103ef6e1f1"
+    },
+    {
+      "name": "unhit-control",
+      "exitCode": 1,
+      "rawSha256": "bb3bbbda0cb1d6cfd1c2873d905cfdc89ce84914b8992fcc4a04857d081bae9d"
+    },
+    {
+      "name": "unenforced-policy",
+      "exitCode": 1,
+      "rawSha256": "98b97dfebb1a45803ecae63b77d3d59090b9476fc2f81d5d0e1cb40a6c1dab2c"
+    },
+    {
+      "name": "unexpected-page-error",
+      "exitCode": 1,
+      "rawSha256": "7e2fe7e58d7b2ca32ef29abbfedfae7762477886c0581bbab72e49a907773e77"
+    },
+    {
+      "name": "unexpected-network",
+      "exitCode": 1,
+      "rawSha256": "e40e3612c3ed0836930ac9586ee5d7d0c467bf1e62e2199e452c88585a75174b"
+    },
+    {
+      "name": "hidden-diagnostic",
+      "exitCode": 1,
+      "rawSha256": "c0b242472d7ddf6f181ad437396032b25e466ee4148a717fccb530d2719f0eea"
+    }
+  ]
+}
