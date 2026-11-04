@@ -37,3 +37,6 @@ native follow-up gates, including build/Node/types, broad browser, package,
 bundle and heap, with their actual source/date. The original prior page timeout
 remains recorded. Only this structural Paragraph row is newly accepted;
 Paragraph text/alignment, B-HTML and full readiness remain separate obligations.
+
+Post-acceptance documentation and site checks pass on `06411172`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
