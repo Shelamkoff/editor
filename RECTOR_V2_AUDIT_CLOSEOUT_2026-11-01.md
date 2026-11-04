@@ -1,5 +1,17 @@
 # Rector v2 audit closeout — active work
 
+## Compound residual acceptance — 2026-11-04
+
+Register: **138 accepted / 71 open / 209 total**. Accepted on `54e04b11`:
+`BLOCK_WARNING_RESIDUAL`, `BLOCK_TOGGLE_CUT`, `BLOCK_SPOILER_CUT`.
+Warning merging ignores formatting-only empty fields without adding lines;
+all merge entry points receive the owning document. Native Cut and partial
+conversion preserve other fields/widgets and exact replay. The independent
+model verifies 152 executions / 2,768 observations, 1,240 module identities
+and 54 corruptions. All fifteen gates and 306 selected native cases pass.
+The default inventory is 98 native pages. [Checkpoint](scripts/parity/checkpoints/2026-11-04/compound-residuals/README.md).
+Whole-library readiness remains open.
+
 ## Warning fields acceptance — 2026-11-04
 
 `BLOCK_WARNING_FIELDS` accepted on `226cf273`. Register: **135 accepted / 74 open / 209 total**.
