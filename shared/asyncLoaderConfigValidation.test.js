@@ -1,7 +1,49 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { spawnSync } from 'node:child_process'
 import { loadBlockPluginDefinition, preloadBlockPluginDefinitions, createBlockPluginsAsync } from '../plugins/async.js'
 import { createRendererAsync, loadRendererFactory, preloadRendererFactories, createDefaultRenderersAsync } from '../renderer/renderers/async.js'
+
+for (const helper of ['preloadBlockPluginDefinitions', 'createBlockPluginsAsync']) {
+  for (const later of ['invalid-shape', 'throwing-getter']) {
+    test(`${helper} contains an earlier nested config rejection when a later config has ${later}`, () => {
+      const source = `
+        import { ${helper} as operation } from ${JSON.stringify(new URL('../plugins/async.js', import.meta.url).href)}
+        const unhandled = [], earlier = new Error('Earlier nested config failure'), later = new Error('Later config failure')
+        process.on('unhandledRejection', reason => unhandled.push(reason === earlier ? 'earlier' : String(reason)))
+        let reads = 0
+        const configs = { paragraph: { actions: [Object.defineProperty({}, 'label', {
+          enumerable: true, get() { reads++; throw earlier },
+        })] } }
+        if (${JSON.stringify(later)} === 'invalid-shape') configs.heading = null
+        else Object.defineProperty(configs, 'heading', { get() { throw later } })
+        let failure
+        try { await operation(['paragraph', 'heading'], configs) } catch (error) {
+          failure = { name: error.name, message: error.message, sameLater: error === later }
+        }
+        await new Promise(resolve => setImmediate(resolve))
+        await new Promise(resolve => setImmediate(resolve))
+        const recovered = await operation(['paragraph'])
+        const types = recovered instanceof Map ? [...recovered.keys()] : recovered.map(value => value.type)
+        console.log(JSON.stringify({ reads, failure, unhandled, types }))
+      `
+      const child = spawnSync(process.execPath, ['--input-type=module', '-e', source], {
+        encoding: 'utf8', windowsHide: true,
+        env: { ...process.env, NODE_TEST_CONTEXT: '' },
+      })
+      assert.equal(child.error, undefined)
+      assert.equal(child.status, 0, child.stderr)
+      assert.equal(child.stderr, '')
+      assert.deepEqual(JSON.parse(child.stdout), {
+        reads: 1,
+        failure: later === 'invalid-shape'
+          ? { name: 'TypeError', message: 'configs.heading must be an object', sameLater: false }
+          : { name: 'Error', message: 'Later config failure', sameLater: true },
+        unhandled: [], types: ['paragraph'],
+      })
+    })
+  }
+}
 
 test('async plugin helpers reject malformed source and configuration shapes', async () => {
   await assert.rejects(() => preloadBlockPluginDefinitions('paragraph'), TypeError)
