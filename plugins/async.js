@@ -94,7 +94,8 @@ export async function loadBlockPluginDefinition(type, config = {}) {
 export async function preloadBlockPluginDefinitions(source, configs = {}) {
   const configMap = requireRecord(configs, 'configs')
   const types = requestedTypes(source)
-  const definitions = await Promise.all(types.map(type => {
+  // Admit config failures to Promise.all alongside loads already started for earlier types.
+  const definitions = await Promise.all(types.map(async type => {
     const configured = Object.hasOwn(configMap, type) ? configMap[type] : undefined
     const config = configured !== undefined
       ? { ...requireRecord(configured, `configs.${type}`) }
