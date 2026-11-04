@@ -44,4 +44,3 @@ Range text across editing hosts were precondition issues. The first reviewer
 incorrectly named removal of a fully empty merge source `block.merge`;
 the correct existing transaction is `block.remove`. Exact original bytes and
 the failed review are preserved. None of these corrections changed production.
-
