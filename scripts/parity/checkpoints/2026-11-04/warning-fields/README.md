@@ -24,3 +24,7 @@ existing dates and sources. No production repair is needed for this scope.
 
 Only BLOCK_WARNING_FIELDS is newly accepted. Warning residual cut/merge/
 conversion, B-HTML and full readiness remain separate open obligations.
+
+Post-acceptance documentation and site checks both pass on `41bedd4b`.
+The exact post-check logs are retained. `artifact-hashes.json` verifies actual Git blobs
+and decoded compressed artifacts.
