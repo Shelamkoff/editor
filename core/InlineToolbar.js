@@ -806,7 +806,7 @@ export class InlineToolbar {
     const fallback = label.fallback ?? type
     const key = `${scope}.${type}.${label.key}`
     const value = this.#translate(key, fallback)
-    return value === key ? fallback : value
+    return value
   }
 
   #position(range) {

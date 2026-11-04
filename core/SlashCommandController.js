@@ -7,7 +7,7 @@ function localizedLabel(definition, scope, translate) {
   if (!label) return definition?.type ?? ''
   const key = `${scope}.${definition.type}.${label.key}`
   const value = translate(key, label.fallback)
-  return value === key ? label.fallback : value
+  return value
 }
 
 export class SlashCommandController {

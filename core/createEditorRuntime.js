@@ -264,8 +264,9 @@ export function createEditorRuntime(input){
     acquireStyles:config.injectStyles!==false,
     contentStyles:config.contentStyles,
     translate:(key,fallback='',params=undefined)=>{
+      // Explicit translations may equal their key; only absence selects fallback.
       const translated=i18n.t(key,params)
-      return translated===key?fallback:translated
+      return i18n.has(key)?translated:fallback
     },
     showPopup:(owner,anchor,content,cleanup)=>popup.showPopup(owner,anchor,content,cleanup),
   }))
@@ -435,11 +436,11 @@ export function createEditorRuntime(input){
     isComposing:()=>nativeInput.isComposing,
     translate:(key,fallback='')=>{
       const translated=i18n.t(key)
-      return translated===key?fallback:translated
+      return i18n.has(key)?translated:fallback
     },
     t:(key,fallback='')=>{
       const translated=i18n.t(key)
-      return translated===key?fallback:translated
+      return i18n.has(key)?translated:fallback
     },
   }))
 
@@ -467,11 +468,11 @@ export function createEditorRuntime(input){
     reportError:(code,error)=>reportDiagnostic(code,'block-toolbar',error),
     translate:(key,fallback='')=>{
       const translated=i18n.t(key)
-      return translated===key?fallback:translated
+      return i18n.has(key)?translated:fallback
     },
     t:(key,fallback='')=>{
       const translated=i18n.t(key)
-      return translated===key?fallback:translated
+      return i18n.has(key)?translated:fallback
     },
     filterThreshold:config.toolboxFilterThreshold??7,
   }))
@@ -495,7 +496,7 @@ export function createEditorRuntime(input){
     reportError:(code,error)=>reportDiagnostic(code,'inline-toolbar',error),
     translate:(key,fallback='',params=undefined)=>{
       const translated=i18n.t(key,params)
-      return translated===key?fallback:translated
+      return i18n.has(key)?translated:fallback
     },
   }))
 

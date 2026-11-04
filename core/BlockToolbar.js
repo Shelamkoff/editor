@@ -423,7 +423,7 @@ export class BlockToolbar {
     if (!label) return type
     const key = `${scope}.${type}.${label.key}`
     const translated = this.#translate(key, label.fallback)
-    return translated === key ? label.fallback : translated
+    return translated
   }
 
   #buildToolbox(direction = 'none') {
