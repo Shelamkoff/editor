@@ -498,6 +498,55 @@
     "package-consumer.tgz": {
       "sha256": "8fdc728997e065d5d9f3add59b4caffc271641d0801b3bb8e3acd611915e9c0b",
       "bytes": 649432
+    },
+    "initial-post-document-manifest.json.gz": {
+      "sha256": "c8e5af0c1a5212ee04e7db98adc656066fffe9abdcee953d96f195b964f078d0",
+      "bytes": 899,
+      "decodedSha256": "9c672ac393fbb57e94d524a6433cc1db931a10a1893e945f5c57ccdef5288ccf",
+      "decodedBytes": 4919
+    },
+    "initial-post-docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "initial-post-site.log.gz": {
+      "sha256": "51658e350527eae9106173ace1ba5b55c717e8bcf44b2bca2b92239efb8c7bc6",
+      "bytes": 710,
+      "decodedSha256": "4260b9c56dfa81065598894e3a0817936e2d5f96a98e36fa5fd7c994c1255de7",
+      "decodedBytes": 1481
+    },
+    "post-document-manifest.json.gz": {
+      "sha256": "ef2b8314534f76b719e4c8d06e05287391833d34539c1a74d26cc57f9ef1bdb9",
+      "bytes": 883,
+      "decodedSha256": "f910524f447a9c74b2081ae64bc6b8b16e4e0fd0c838a670faeedd95ff01ccef",
+      "decodedBytes": 4919
+    },
+    "post-docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "post-site.log.gz": {
+      "sha256": "b215a61bf468f3949420fbfa4dea8d6f394c7031f60516c1ccde710278ad38e5",
+      "bytes": 939,
+      "decodedSha256": "27d1a8a77784fd2bbec1da0ac9b5902c40dac1aa57231ef03875cf182a07a32c",
+      "decodedBytes": 2247
     }
-  }
+  },
+  "initialPostDocumentChecks": {
+    "source": "5c595213e56248e666e2d162fe8800b820a0bda2",
+    "directory": "run-3MdRK8",
+    "outcome": "failed",
+    "reason": "Russian prose validator required code formatting for Slash, KiB and gzip; one documentation-only follow-up corrects the terms."
+  },
+  "postDocumentChecks": {
+    "source": "fd88a2236a3236d964d476a92f9b404247c738e2",
+    "directory": "run-kfnMhF",
+    "outcome": "passed",
+    "gates": 2
+  },
+  "gitStoredArtifacts": 86
 }

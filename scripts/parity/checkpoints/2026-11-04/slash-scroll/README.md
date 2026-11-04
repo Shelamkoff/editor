@@ -32,3 +32,8 @@ all three final corpora, models, controls, package tarball and inherited hashes.
 Absent legacy subscriptions and incomplete historical traces remain explicit.
 
 Only UI_SLASH is newly accepted. B-HTML and whole-library readiness remain open.
+
+Post-acceptance documentation and site checks both pass on `fd88a223`.
+The initial site prose-format failure and its documentation-only correction
+remain in the original logs. `artifact-hashes.json` verifies actual Git blobs
+and decoded compressed artifacts.
