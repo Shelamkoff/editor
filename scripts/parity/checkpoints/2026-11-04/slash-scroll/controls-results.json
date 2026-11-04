@@ -1,0 +1,75 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "rawSha256": "f8ad3ef5e59cee4de0319bf7a03d8071a9e9b1592be05a91cfbe97ec93d088ed"
+    },
+    {
+      "name": "altered-module",
+      "exitCode": 1,
+      "rawSha256": "4b4bbaf7f30ee2be93e32fe60ca3aa6486e2ee2c19a3adf817ceb01cbb3ff26f"
+    },
+    {
+      "name": "missing-case",
+      "exitCode": 1,
+      "rawSha256": "21997fd8335b2444f2e02836946aa8a09f516456f9d387769f7b79f465bbd62d"
+    },
+    {
+      "name": "down-hover-stole-step",
+      "exitCode": 1,
+      "rawSha256": "0f96ff41098d743b5062a129f2449130d9c3a1c3af917deb8f7effa3feee826e"
+    },
+    {
+      "name": "up-hover-stole-step",
+      "exitCode": 1,
+      "rawSha256": "7b647c5777c0d9bf1a087b9d02cd1e2591e15cf3a07b4bd9180d0252dbb5398e"
+    },
+    {
+      "name": "wrap-tab-selected-hover",
+      "exitCode": 1,
+      "rawSha256": "903db090fe40afc356054ea1302e38bb10252930a2145cbf1c81ad73acb72cdb"
+    },
+    {
+      "name": "scrolled-pointer-missed",
+      "exitCode": 1,
+      "rawSha256": "932b81182d3e687f36a7bd737ab1b290b9cd830559864c17bdc2440d28615809"
+    },
+    {
+      "name": "keyboard-replaced-items",
+      "exitCode": 1,
+      "rawSha256": "6f672514f0afa8038d1fc61dbfe37e9f090d536010ae61336355b03258dbb907"
+    },
+    {
+      "name": "menu-did-not-scroll",
+      "exitCode": 1,
+      "rawSha256": "c20cb804e6290972688a34f8ab5cc8b96f5fabf8addab2e5753c1f3c334c79d9"
+    },
+    {
+      "name": "undo-lost-query",
+      "exitCode": 1,
+      "rawSha256": "759ec1cff012ad58a6e0fd83cf7a72d9b4a73dcb38344eb3c3fb214ad675c772"
+    },
+    {
+      "name": "synthetic-query",
+      "exitCode": 1,
+      "rawSha256": "51d400a9567398681aea1f9a187756b81c876b774b9b058e4fd0ea4ca5633de7"
+    },
+    {
+      "name": "extra-command",
+      "exitCode": 1,
+      "rawSha256": "c90f79c3e6c6215fd4084518da02e39dfa85e560c6605df570625f583262da96"
+    },
+    {
+      "name": "unenforced-policy",
+      "exitCode": 1,
+      "rawSha256": "9f509140d1d23144655f517cbde7e8c170af81d76cbcd2d0437370d0931e5698"
+    },
+    {
+      "name": "unexpected-page-error",
+      "exitCode": 1,
+      "rawSha256": "43eb302e364af06ed0646b31470d154a25aad62aab0f53ec81b0effe49a9a300"
+    }
+  ]
+}

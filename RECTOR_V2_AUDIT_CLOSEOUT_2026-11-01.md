@@ -1,5 +1,19 @@
 # Rector v2 audit closeout — active work
 
+## Slash menu acceptance — 2026-11-04
+
+`UI_SLASH` accepted on `932f119b`. Register: **133 accepted / 76 open / 209 total**.
+Three real browser defects are repaired: replaced pointer targets, retained
+Slash authority after native caret/range changes, and keyboard target theft
+during menu scroll. Popup focus remains stable for reconnected aborted items.
+The final source passes 38 executions / 1,210 observations, 14 new corruptions
+and thirteen affected gates; the byte-verified unchanged runtime retains the
+complete eighteen-gate `8883222d` integration. Native pages pass 19 + 20 cases.
+Exact installed package, FullPreset 95.8 / 96 KiB gzip and all source identities
+are retained. [Checkpoint](scripts/parity/checkpoints/2026-11-04/slash-scroll/README.md).
+The partial pointer/selection stage preserves 217 Git-verified artifacts,
+including failed intermediate probes. Whole-library readiness remains open.
+
 Browser patch attribution is corrected from the original CDP logs: the
 19-gate `a008b32f` run used `.79`; the 20/21-gate integrations and five later
 scoped corpora used Chrome `156.0.8078.80`. Original data/hashes/outcomes are

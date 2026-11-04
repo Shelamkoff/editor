@@ -6,6 +6,55 @@ Current scoped acceptance is **132 / 209 obligations**, with **77 open**; see th
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Slash menu and selection revocation 2026-11-04
+
+`UI_SLASH` is accepted on `932f119b`: **133/209 obligations accepted,
+76 open**. Three independent models verify **38 current executions / 1,210
+observations**, with **1,194 module identity checks**. All **14 new corruptions**
+are rejected; the preceding 34 controls and complete eighteen-gate integration
+remain pinned to `8883222d`. The fresh unchanged `run-L3w4sg` passes **all thirteen
+affected gates**. [Exact sources, corpora and review](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-04/slash-scroll/README.md) retain every stage.
+
+The repair covers three actual browser failures. `8b84e6d2` preserves item nodes
+when the active highlight changes, so a real pointer click reaches its item.
+Native caret/range revocation now closes the exact old session and prevents its
+click, Escape or Enter from consuming a later author gesture. Popup mousedown
+retains author focus even for an aborted old item reconnected inside a fresh
+menu. `3c02d2d4` changes one runtime line from `mouseenter` to `mousemove`, so
+scrolling under a stationary pointer cannot overwrite keyboard navigation.
+Improved cancellation, no-result handling and successor ownership are retained.
+
+Fifteen basic/revoked-session cases and four long-menu cases execute per policy.
+They cover real pointer and mixed keyboard navigation, repeat hover, filtering,
+Escape, outside focus, no-result Enter, mode/render/destroy, old controls before
+and during a new query, native caret/range changes, and stale cancellation. A
+declared 31-choice collection checks every step of twenty Down/Up keys,
+wraparound with Tab, scrolled pointer confirmation, stable nodes, exact target
+identifiers, canonical data, caller ownership, transaction counts and native
+Undo/Redo. Real v1 class instances and current public definitions supply the
+same custom choices; no runtime behavior is emulated. Historical hover and
+retired-session defects remain raw failures. Missing legacy event APIs and
+incomplete historical paths are explicit limitations.
+
+All three models rerun on the final source. The two earlier models are loaded
+unchanged from their Git objects. The sole runtime delta from the complete
+`8883222d` integration is the event name, verified as exactly one added and one
+removed line. Fresh build, **2,216 Node passes / three skips**, typecheck,
+17 Slash lifetime tests, the ordinary Slash page, native **19 + 20** cases,
+the isolated published package, bundle, docs and site pass. The ordinary page
+also covers Heading, inline Color, insertion and composite fields. Unaffected
+ordinary pages, declarations, I18n/control pages and heap keep the source/date
+of the full integration, including **55 ordinary pages**, **444 selected
+harness cases** and **23 sentinels / zero retained**. The default native
+inventory is **92 pages**; FullPreset is **95.8 KiB gzip / 96 KiB**.
+
+The partial pointer/selection checkpoint preserves two complete integrations,
+the excluded Quote wire-version expectation mistake, the initial exploratory
+entry-point failure and the caught auxiliary-focus regression. All **217**
+stored artifacts there are verified against Git; exact executed Python report
+bytes are retained alongside normalized readable reports. B-HTML and whole-
+library readiness remain open.
+
 ## Localization and plural forms — 2026-11-04
 
 `APPEARANCE_I18N` is accepted on `584191647ac18a3b19660660788500f8d60640f3`. The register becomes
