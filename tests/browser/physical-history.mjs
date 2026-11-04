@@ -604,6 +604,7 @@ try {
     'native-history-merges.html', 'native-history-merges-trusted.html',
     'native-paragraph-structure.html', 'native-paragraph-structure-trusted.html',
     'native-ime-lifecycle.html', 'native-ime-lifecycle-trusted.html',
+    'native-typing.html', 'native-typing-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
