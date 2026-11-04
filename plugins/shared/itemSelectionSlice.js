@@ -4,6 +4,23 @@
  */
 export function createItemSelectionSlice(){
   return Object.freeze({
+    split(data,start,end,context){
+      const first=data.items.findIndex(item=>`item:${item.id}`===start.fieldKey)
+      const last=data.items.findIndex(item=>`item:${item.id}`===end.fieldKey)
+      if(first<0||last<=first)return null
+      const before=context.sliceField(start.fieldKey,{start:start.offset,end:Number.MAX_SAFE_INTEGER})
+      const after=context.sliceField(end.fieldKey,{start:0,end:end.offset})
+      if(!before||!after)return null
+      return {
+        data:{...data,items:[
+          ...data.items.slice(0,first).map(item=>({...item})),
+          {...data.items[first],text:before.before},
+          {...data.items[last],text:after.after},
+          ...data.items.slice(last+1).map(item=>({...item})),
+        ]},
+        focus:{fieldKey:end.fieldKey,offset:0},
+      }
+    },
     slice(data,start,end,context){
       const startId=start.fieldKey.startsWith('item:')?start.fieldKey.slice(5):''
       const endId=end.fieldKey.startsWith('item:')?end.fieldKey.slice(5):''

@@ -19,7 +19,7 @@ import {
   captureDocumentView,
   canonicalRecordsEqual,
 } from './CanonicalTransforms.js'
-import { prepareRemoveBlocks, prepareReplaceWholeDocument, prepareReplaceLogicalRange } from './LogicalRangePlans.js'
+import { prepareRemoveBlocks, prepareReplaceWholeDocument, prepareReplaceLogicalRange, prepareStructuredSelectionSplit } from './LogicalRangePlans.js'
 import { prepareClipboardSlice, prepareClipboardCut, prepareReplaceClipboardSlice, prepareInsertClipboardParts, preparePasteResults, prepareReplaceClipboardRange, prepareInsertLocalBlocks, prepareInlineSegments } from './ClipboardPlans.js'
 import { conversionTargetData, convertedCanonicalRecord, prepareSelectionConversion } from './SelectionConversionPlans.js'
 import { uid } from '../shared/uid.js'
@@ -508,6 +508,12 @@ export class DocumentRuntime {
       edits.push({kind:'insert',index:view.ids.indexOf(blockId)+1,record})
       return {edits,result:id}
     })
+  }
+
+  splitStructuredSelection(bookmark) {
+    this.#assertInteractionMutation()
+    return this.#executePrepared({origin:'user',name:'selection.split'},view=>
+      prepareStructuredSelectionSplit(this.#planningServices(),view,cloneEditorData(bookmark)))
   }
 
   /**

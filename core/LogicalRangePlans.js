@@ -3,6 +3,7 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { getRichTextLogicalLength, replaceRichTextRange, sliceRichTextRange } from '../shared/richTextOperations.js'
 import { canonicalRecordsEqual } from './CanonicalTransforms.js'
 import { mapRichTextFields } from './projectionFields.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 const cloneInline = value => value === undefined ? undefined : cloneEditorData(value)
 /** @typedef {import('./CanonicalTransforms.js').CanonicalEdit} CanonicalEdit */
 /** @returns {CanonicalEdit[]} */
@@ -216,6 +217,49 @@ export function orderedLogicalRange(s,view,bookmark) {
  const forward=(a-b||left.field-right.field||left.offset-right.offset)<=0
  const clean=p=>({blockId:p.blockId,fieldKey:p.fieldKey,offset:p.offset})
  return {start:clean(forward?left:right),end:clean(forward?right:left)}
+}
+
+/** Let a declared structured selection keep its own field boundary on Enter. */
+export function prepareStructuredSelectionSplit(s,view,bookmark) {
+  const ordered=orderedLogicalRange(s,view,bookmark)
+  const none={edits:[],result:null}
+  if(!ordered)return none
+  const {start,end}=ordered
+  if(start.blockId!==end.blockId||start.fieldKey===end.fieldKey)return none
+  const current=view.peek(start.blockId)
+  const definition=s.getBlockDefinition(current.type)
+  const capability=definition?.capabilities?.selectionSlice
+  if(typeof capability?.split!=='function')return none
+  const inline=cloneInline(current.inline)??{}
+  const fields=richTextFields(s,definition,current.data,inline)
+  const context=Object.freeze({
+    ownerDocument:s.ownerDocument,
+    createId:prefix=>s.allocateId(prefix),
+    sliceField:(key,range)=>{
+      const field=fields.find(field=>field.key===key)
+      return field?sliceRichTextRange(field.html,inline,range,s.ownerDocument):null
+    },
+  })
+  const result=cloneEditorData(synchronousResult(capability.split(
+    cloneEditorData(current.data),
+    {fieldKey:start.fieldKey,offset:start.offset},
+    {fieldKey:end.fieldKey,offset:end.offset},
+    context,
+  )))
+  if(result===null)return none
+  if(!result||typeof result!=='object'||Array.isArray(result)
+    ||Object.keys(result).some(key=>key!=='data'&&key!=='focus')
+    ||!result.data||typeof result.data!=='object'||Array.isArray(result.data)
+    ||!result.focus||typeof result.focus!=='object'||Array.isArray(result.focus)
+    ||Object.keys(result.focus).some(key=>key!=='fieldKey'&&key!=='offset')
+    ||typeof result.focus.fieldKey!=='string'
+    ||!Number.isSafeInteger(result.focus.offset)||result.focus.offset<0){
+    throw new TypeError('Invalid structured selection split result')
+  }
+  const next=s.recordFromData(current.id,current.type,definition,result.data,current.tunes,inline)
+  const field=richTextFields(s,definition,next.data,next.inline??{}).find(field=>field.key===result.focus.fieldKey)
+  if(!field||result.focus.offset>field.length)throw new TypeError('Invalid structured selection split focus')
+  return {edits:updatedRecord(current.id,current,next),result:{blockId:current.id,...result.focus}}
 }
 
 export function prepareReplaceLogicalRange(s,view,bookmark,replacement) {

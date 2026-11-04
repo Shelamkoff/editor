@@ -248,6 +248,13 @@ export interface SelectionSliceCapability<D extends object> {
     end: LogicalFieldPoint,
     context: SelectionSliceContext,
   ): SelectionSliceResult<D> | null
+  /** Own Enter across different rich fields in one block; null uses the default split. */
+  split?(
+    data: Readonly<D>,
+    start: LogicalFieldPoint,
+    end: LogicalFieldPoint,
+    context: SelectionSliceContext,
+  ): { data: D, focus: LogicalFieldPoint } | null
 }
 
 /** Logical keyboard input resolved by core for one editable field. */

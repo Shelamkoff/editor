@@ -531,21 +531,26 @@ export class SelectionController {
     if (this.#controller.signal.aborted) return false
     const bookmark=this.bookmark
     if(!bookmark||this.#wholeBlocks||this.#runtime.readOnly)return false
-    const nextId=this.#runtime.interact('selection.split',()=>{
+    const target=this.#runtime.interact('selection.split',()=>{
+      const structured=this.#runtime.splitStructuredSelection(bookmark)
+      if(structured)return structured
       const point=this.#runtime.replaceLogicalRange(bookmark,{kind:'text',text:''})
-      return point?this.#runtime.splitBlock(point.blockId,point.fieldKey,{start:point.offset,end:point.offset}):false
-    },id=>{
-      const field=this.#reconciler.getEditableFields(id)[0]
-      if(!id||!field)return null
-      const caret={blockId:id,fieldKey:field.key,offset:0}
+      const id=point?this.#runtime.splitBlock(point.blockId,point.fieldKey,{start:point.offset,end:point.offset}):false
+      return id?{blockId:id,offset:0}:false
+    },target=>{
+      if(!target)return null
+      const fields=this.#reconciler.getEditableFields(target.blockId)
+      const field=target.fieldKey?fields.find(field=>field.key===target.fieldKey):fields[0]
+      if(!field)return null
+      const caret={blockId:target.blockId,fieldKey:field.key,offset:target.offset}
       return {anchor:caret,focus:{...caret}}
     })
-    if(!nextId)return false
+    if(!target)return false
     if(!this.#canPresentCommitted())return true
     this.#deactivate()
     this.#view.reconcileInteraction()
-    this.#view.setCurrent(nextId)
-    this.#queueOwnedFocus(nextId,{offset:'start'})
+    this.#view.setCurrent(target.blockId)
+    this.#queueOwnedFocus(target.blockId,{...(target.fieldKey?{fieldKey:target.fieldKey}:{}),offset:target.offset})
     return true
   }
 
