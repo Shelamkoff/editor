@@ -1,0 +1,145 @@
+{
+  "healthyExitCode": 0,
+  "results": [
+    {
+      "name": "wrong-source",
+      "exitCode": 1,
+      "rawSha256": "159a5c237984197ce74117070b838ed4d541f1a7213b4ebceb8cf19a872152c1",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 128, in main\r\n    raw=a.raw.read_bytes();d=json.loads(raw);modules=validate_identity(d,a.candidate,helper,True);assert d['candidatePass'] is True and [(r['source'],r['trustedPolicy']) for r in d['results']]==[('v1',False),('spec-baseline',False),('parent',False),('candidate',False),('candidate',True)]\r\n                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 110, in validate_identity\r\n    assert [(s['label'],s['sha']) for s in d['sources']]==[('v1',V1),('spec-baseline',BASELINE),('parent',PARENT),('candidate',source)]\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "altered-module",
+      "exitCode": 1,
+      "rawSha256": "67e79d527c22cad67b42b65ce424b5cb6f46cfaf5cc11baf75614e7d3f540e8d",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 128, in main\r\n    raw=a.raw.read_bytes();d=json.loads(raw);modules=validate_identity(d,a.candidate,helper,True);assert d['candidatePass'] is True and [(r['source'],r['trustedPolicy']) for r in d['results']]==[('v1',False),('spec-baseline',False),('parent',False),('candidate',False),('candidate',True)]\r\n                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 114, in validate_identity\r\n    for path,h in s['loaded'].items():assert sha(blobs[s['sha']+':'+path])==h\r\n                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-case",
+      "exitCode": 1,
+      "rawSha256": "a3efc22b643865cbd0c74289bd96fa531ee6e5b25764ab0c1da3132e7d420fa2",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 131, in main\r\n    service['validate_environment'](row);assert row['inputErrors']==row['unavailable']==row['mediaRequests']==[] and row['policyEnforced'] is row['trustedPolicy'] and [c['spec'] for c in row['cases']]==specs()\r\n                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "wrong-order",
+      "exitCode": 1,
+      "rawSha256": "4b97fae6b06b81030ca97c1a2e40fd55e979bf3fdaddf47e51cc2aa762bf3cd7",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "SPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 65, in verify_case\r\n    status='PASS' if same(observed,wanted) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['actual'],observed) and same(o['expected'],wanted) and o['status']==status,(s['id'],phase,key,o,observed,wanted)\r\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plugin-create/list', 'settle', 'types', {'phase': 'settle', 'property': 'types', 'actual': ['paragraph', 'heading', 'delimiter'], 'expected': ['paragraph', 'heading', 'delimiter'], 'status': 'PASS'}, ['heading', 'paragraph', 'delimiter'], ['heading', 'paragraph', 'delimiter'])\r\n"
+    },
+    {
+      "name": "duplicate-not-deduplicated",
+      "exitCode": 1,
+      "rawSha256": "fbdcfc2e836c82d7cef5f05a21bf69554aaddb76a6660d0844219b86701f01a9",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 65, in verify_case\r\n    status='PASS' if same(observed,wanted) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['actual'],observed) and same(o['expected'],wanted) and o['status']==status,(s['id'],phase,key,o,observed,wanted)\r\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plugin-create/list', 'settle', 'types', {'phase': 'settle', 'property': 'types', 'actual': ['heading', 'paragraph', 'heading', 'delimiter', 'paragraph'], 'expected': ['heading', 'paragraph', 'heading', 'delimiter', 'paragraph'], 'status': 'PASS'}, ['heading', 'paragraph', 'delimiter'], ['heading', 'paragraph', 'delimiter'])\r\n"
+    },
+    {
+      "name": "unknown-list-accepted",
+      "exitCode": 1,
+      "rawSha256": "78120bf8cc1028a1585437881754703f8a337f4e1300823592e0caacd2aab49d",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 62, in verify_case\r\n    s=c['spec'];assert c['id']==s['id'] and c['planned']==c['completedPhases']==['invoke','settle','recover'] and c['error'] is None and c['unsupported']==[] and c['callError']==failure(s,source) and c['unhandled']==unhandled(s,source)\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "unknown-document-rejected",
+      "exitCode": 1,
+      "rawSha256": "bd160a21de9311479d69fb4b89308c86654e8fb580431dbb292afd3411a747eb",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 65, in verify_case\r\n    status='PASS' if same(observed,wanted) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['actual'],observed) and same(o['expected'],wanted) and o['status']==status,(s['id'],phase,key,o,observed,wanted)\r\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('plugin-create/document-unknown', 'settle', 'types', {'phase': 'settle', 'property': 'types', 'actual': [], 'expected': [], 'status': 'PASS'}, ['paragraph', 'delimiter'], ['paragraph', 'delimiter'])\r\n"
+    },
+    {
+      "name": "late-config-snapshot",
+      "exitCode": 1,
+      "rawSha256": "7e6a0dc9a68ed3b882eb0b0ac07e10a94286ebf1fe8368e4e0f0bccdf72f9a92",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 65, in verify_case\r\n    status='PASS' if same(observed,wanted) else 'FAIL';assert (o['phase'],o['property'])==(phase,key) and same(o['actual'],observed) and same(o['expected'],wanted) and o['status']==status,(s['id'],phase,key,o,observed,wanted)\r\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: ('snapshot/plugin', 'settle', 'placeholder', {'phase': 'settle', 'property': 'placeholder', 'actual': 'Replacement', 'expected': 'Replacement', 'status': 'PASS'}, 'Before import', 'Before import')\r\n"
+    },
+    {
+      "name": "orphaned-rejection-escaped",
+      "exitCode": 1,
+      "rawSha256": "c2578e2d48ba9dcd9f147b60f61912dd6b3ebb7476272b6f402e7504021aa973",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 62, in verify_case\r\n    s=c['spec'];assert c['id']==s['id'] and c['planned']==c['completedPhases']==['invoke','settle','recover'] and c['error'] is None and c['unsupported']==[] and c['callError']==failure(s,source) and c['unhandled']==unhandled(s,source)\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "changed-error-identity",
+      "exitCode": 1,
+      "rawSha256": "77c875db53bf421a5c7f8bf0ad3f4900c790c2298918332a8ab0970a31d45451",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 135, in main\r\n    failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)\r\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 62, in verify_case\r\n    s=c['spec'];assert c['id']==s['id'] and c['planned']==c['completedPhases']==['invoke','settle','recover'] and c['error'] is None and c['unsupported']==[] and c['callError']==failure(s,source) and c['unhandled']==unhandled(s,source)\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "hidden-parent-orphan",
+      "exitCode": 1,
+      "rawSha256": "ba8187372185ba97d5febef57fca36664ec412e5a5b0bb76ab3380e130bdfb16",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 132, in main\r\n    count=4 if row['source'] in ['spec-baseline','parent'] else 0;assert len(row['pageErrors'])==count\r\n                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "unenforced-policy",
+      "exitCode": 1,
+      "rawSha256": "5545ca7297ef5287ae4902a2cd65cd666c79e30bcfe67fd507ff20516b56ce89",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 131, in main\r\n    service['validate_environment'](row);assert row['inputErrors']==row['unavailable']==row['mediaRequests']==[] and row['policyEnforced'] is row['trustedPolicy'] and [c['spec'] for c in row['cases']]==specs()\r\n                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "ignored-product-network",
+      "exitCode": 1,
+      "rawSha256": "6cbc03ffbb568a87ada24c4b400a3b68315275070944fe641ee0b8e8b9d9d553",
+      "packageSha256": "e2bfd809343dd5237608b35662ca3e7832b5d142960297e925ee65931bba94c6",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 131, in main\r\n    service['validate_environment'](row);assert row['inputErrors']==row['unavailable']==row['mediaRequests']==[] and row['policyEnforced'] is row['trustedPolicy'] and [c['spec'] for c in row['cases']]==specs()\r\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"accepted-environment-helper\", line 53, in validate_environment\r\nAssertionError\r\n"
+    },
+    {
+      "name": "module-bytes-disagree-with-tarball",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "cd38ebdc5829477bb2d5c9558fefc8ff3bd45ffc8372ea7d66639eb809df20d4",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 104, in verify_package\r\n    assert report['results']==wanted\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "missing-public-module",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "38d3745c8ae2c276b8dca1229f76c4e60baaf963b8f8199d7d33580b1a975726",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 76, in verify_package\r\n    assert report['status']=='PASS' and report['node']=='v24.22.2' and report['platform']=='win32 x64' and report['modules']==66 and report['styles']==53 and report['rejectedRuntimeEntries']==6 and report['installedPackage'] is True\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "css-bytes-disagree-with-tarball",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "c9423bddc5ce67af9a2b7d6247b50e02ea91d40045f0b4f4596a54d61cd4ce9c",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 104, in verify_package\r\n    assert report['results']==wanted\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "outside-package-asset",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "a87e2fb88a1d3cfe96f10632b111b5098429034e5cc9de867408e9009ad841cc",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 104, in verify_package\r\n    assert report['results']==wanted\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "removed-runtime-alias-accepted",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "a07190bf7f04856d6491157acf9e2b43f150897d6af039b2d91e9ef535b3710f",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 104, in verify_package\r\n    assert report['results']==wanted\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "wrong-typed-bindings",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "48cdb0c87c134ade0bb5a609023630de3f42491d66f0205675ae76bafd8c5a8e",
+      "stderr": "omains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 79, in verify_package\r\n    ts='\\n'.join(\"import * as entry\"+str(i)+\" from '@shelamkoff/rector\"+path+\"'\\nvoid [\"+','.join('entry'+str(i)+'.'+name for name in names or ['default'])+\"]\" for i,(path,names,_) in enumerate(modules))+'\\n';assert report['typescriptSha256']==sha(ts.encode())\r\n                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    },
+    {
+      "name": "wrong-tarball",
+      "exitCode": 1,
+      "rawSha256": "fe58536bbd3e828df5d5fa50c1ac3a4d56d74fc2abc1db67cac9c14047900066",
+      "packageSha256": "0ad0552c87eca31d255fb6e577c83981de8436575cfdb4b137992978af211dc4",
+      "stderr": "Traceback (most recent call last):\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 144, in <module>\r\n    if __name__=='__main__':main()\r\n                            ^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 140, in main\r\n    package_raw=a.package_report.read_bytes();package=verify_package(json.loads(package_raw),a.tarball.read_bytes(),json.loads(blobs[a.candidate+':package.json']),blobs[a.candidate+':scripts/package-public-exports.mjs'])\r\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\OSPanel\\domains\\editor\\scripts\\parity\\checkpoints\\2026-11-04\\async-presets\\review.py\", line 77, in verify_package\r\n    assert report['tarball']=='shelamkoff-rector-'+manifest['version']+'.tgz' and report['tarballSha256']==sha(tarball) and report['tarballBytes']==len(tarball) and report['contractSha256']==sha(contract)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nAssertionError\r\n"
+    }
+  ]
+}

@@ -1,0 +1,516 @@
+{
+  "status": "PASS",
+  "candidate": "cce91235ac53433e0150954a1a4020739e3ba7ef",
+  "runtimeBasis": "4727534d3df182ba0fe0ae37580d1641083c35f4",
+  "parent": "dc5a70b860be8564bf4ce04c7806330e7c61ff28",
+  "currentCases": 262,
+  "currentObservations": 1980,
+  "casesPerPolicy": 131,
+  "observationsPerPolicy": 990,
+  "moduleIdentities": 779,
+  "results": {
+    "v1/compatible": {
+      "cases": 131,
+      "observations": 990,
+      "differences": [
+        {
+          "id": "plugin-preload/document-unknown",
+          "phase": "settle",
+          "property": "error"
+        },
+        {
+          "id": "plugin-preload/document-unknown",
+          "phase": "settle",
+          "property": "types"
+        },
+        {
+          "id": "plugin-preload/document-unknown",
+          "phase": "settle",
+          "property": "shape"
+        },
+        {
+          "id": "plugin-create/document-unknown",
+          "phase": "settle",
+          "property": "error"
+        },
+        {
+          "id": "plugin-create/document-unknown",
+          "phase": "settle",
+          "property": "types"
+        },
+        {
+          "id": "plugin-create/document-unknown",
+          "phase": "settle",
+          "property": "shape"
+        },
+        {
+          "id": "renderer-preload/document-unknown",
+          "phase": "settle",
+          "property": "error"
+        },
+        {
+          "id": "renderer-preload/document-unknown",
+          "phase": "settle",
+          "property": "types"
+        },
+        {
+          "id": "renderer-preload/document-unknown",
+          "phase": "settle",
+          "property": "shape"
+        },
+        {
+          "id": "renderer-map/document-unknown",
+          "phase": "settle",
+          "property": "error"
+        },
+        {
+          "id": "renderer-map/document-unknown",
+          "phase": "settle",
+          "property": "types"
+        },
+        {
+          "id": "renderer-map/document-unknown",
+          "phase": "settle",
+          "property": "shape"
+        },
+        {
+          "id": "orphan/plugin-preload/invalid-shape",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "orphan/plugin-preload/invalid-shape",
+          "phase": "settle",
+          "property": "reads"
+        },
+        {
+          "id": "orphan/plugin-preload/throwing-getter",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "orphan/plugin-preload/throwing-getter",
+          "phase": "settle",
+          "property": "reads"
+        },
+        {
+          "id": "orphan/plugin-create/invalid-shape",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "orphan/plugin-create/invalid-shape",
+          "phase": "settle",
+          "property": "reads"
+        },
+        {
+          "id": "orphan/plugin-create/throwing-getter",
+          "phase": "settle",
+          "property": "reads"
+        },
+        {
+          "id": "snapshot/plugin",
+          "phase": "settle",
+          "property": "placeholder"
+        },
+        {
+          "id": "snapshot/renderer",
+          "phase": "invoke",
+          "property": "reads"
+        },
+        {
+          "id": "snapshot/renderer",
+          "phase": "settle",
+          "property": "reads"
+        },
+        {
+          "id": "invalid/plugin-load/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-preload/constructor",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-preload/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-create/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-load/constructor",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-load/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-create/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-preload/constructor",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-preload/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/constructor",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-preload/versionless",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-preload/versionless",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-preload/legacy-version",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-preload/legacy-version",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-preload/bad-schema",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-preload/bad-schema",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-create/versionless",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-create/versionless",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-create/legacy-version",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-create/legacy-version",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-create/bad-schema",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-create/bad-schema",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-preload/versionless",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-preload/versionless",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-preload/legacy-version",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-preload/legacy-version",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-preload/bad-schema",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-preload/bad-schema",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/versionless",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-map/versionless",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/legacy-version",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-map/legacy-version",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/bad-schema",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-map/bad-schema",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-preload/config-map",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-preload/config-map",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-preload/config-entry",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-preload/config-entry",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-create/config-map",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-create/config-map",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/plugin-create/config-entry",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/plugin-create/config-entry",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/config-map",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-map/config-map",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-create/prefix",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-create/prefix",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-create/locale",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-create/locale",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/prefix",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-map/prefix",
+          "phase": "settle",
+          "property": "errorName"
+        },
+        {
+          "id": "invalid/renderer-map/locale",
+          "phase": "settle",
+          "property": "rejected"
+        },
+        {
+          "id": "invalid/renderer-map/locale",
+          "phase": "settle",
+          "property": "errorName"
+        }
+      ],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "spec-baseline/compatible": {
+      "cases": 131,
+      "observations": 990,
+      "differences": [
+        {
+          "id": "orphan/plugin-preload/invalid-shape",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-preload/invalid-shape",
+          "phase": "recover",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-preload/throwing-getter",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-preload/throwing-getter",
+          "phase": "recover",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/invalid-shape",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/invalid-shape",
+          "phase": "recover",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/throwing-getter",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/throwing-getter",
+          "phase": "recover",
+          "property": "unhandled"
+        }
+      ],
+      "pageErrors": 4,
+      "blockedEnvironmentRequests": 1
+    },
+    "parent/compatible": {
+      "cases": 131,
+      "observations": 990,
+      "differences": [
+        {
+          "id": "orphan/plugin-preload/invalid-shape",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-preload/invalid-shape",
+          "phase": "recover",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-preload/throwing-getter",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-preload/throwing-getter",
+          "phase": "recover",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/invalid-shape",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/invalid-shape",
+          "phase": "recover",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/throwing-getter",
+          "phase": "settle",
+          "property": "unhandled"
+        },
+        {
+          "id": "orphan/plugin-create/throwing-getter",
+          "phase": "recover",
+          "property": "unhandled"
+        }
+      ],
+      "pageErrors": 4,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 131,
+      "observations": 990,
+      "differences": [],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 131,
+      "observations": 990,
+      "differences": [],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "package": {
+    "modules": 66,
+    "styles": 53,
+    "rejectedRuntimeEntries": 6,
+    "bindings": 125,
+    "tarballSha256": "7ce412ac632e6ea4a4d2b3686fc33af3e771dee721e7282b8ccc94f2091ee8a4",
+    "tarballBytes": 648588,
+    "typescriptSha256": "8e8cc265f56b9946e352b65ceeda48d1081d173ca11a25869434c7b30bad66de"
+  },
+  "rawSha256": "fa5ad861f561299327f29c82b247c04b92e28eda2e4e8d63b1612af307edaa98",
+  "packageReportSha256": "ee222bdcdd641c029c2c91109548214b7be0196b5f9870d5b96d7ec029720804",
+  "reviewerSha256": "bf96e187f563d33903e32f2eef46a40f40331cabcdaa3ab2fc02fb3c845338f6",
+  "identityHelperSha256": "6a636b99ce42abdeeac5f740b16f833b1698a47afeecf16bf5400cb850983829",
+  "environmentHelperSha256": "e605d2a5b942a4d851d87b263c94e615659fcfd4307d6ff8e2e543c4479e72a9",
+  "scope": "Every canonical async type and seven operation families execute their real public APIs. Legacy constructor spelling and document envelope spelling alone are adapted. Unknown document and explicit-list routes retain distinct current contracts. Four original orphaned-rejection controls are retained on the immutable parent. The installed package contract checks runtime imports, declarations, CSS, private/type-only runtime rejection and exact retained tarball bytes."
+}

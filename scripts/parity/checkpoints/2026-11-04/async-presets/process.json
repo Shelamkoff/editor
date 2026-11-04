@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "The immutable v1, baseline and parent differences remain raw; every current async case must pass."
+}

@@ -1,0 +1,1050 @@
+{
+  "status": "PASS",
+  "node": "v24.22.2",
+  "platform": "win32 x64",
+  "modules": 66,
+  "styles": 53,
+  "rejectedRuntimeEntries": 6,
+  "installedPackage": true,
+  "typescriptSha256": "8e8cc265f56b9946e352b65ceeda48d1081d173ca11a25869434c7b30bad66de",
+  "results": [
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector",
+      "names": [
+        "createEditor"
+      ],
+      "file": "dist/index.js",
+      "sha256": "f12de3c8aab463079d0a7d4786a03b17048e889d519ffd3ee026f6b615f786a3"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugin-kit",
+      "names": [
+        "sanitizeHtml",
+        "setSanitizedHtml",
+        "insertSanitizedHtml",
+        "normalizeRichText",
+        "canonicalizeRichText",
+        "escapeHtml",
+        "getTextOffset",
+        "getTextLength",
+        "findNodeAtOffset",
+        "restoreSelectionByOffsets",
+        "editableTextWalker",
+        "handleMenuKeydown",
+        "uid",
+        "setSafeUrlAttribute"
+      ],
+      "file": "dist/plugin-kit/index.js",
+      "sha256": "a805518c6ec8dc557a13318dc3277d9272ef20069b53ff1036bfc5f11c835d9e"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/preset",
+      "names": [
+        "createDefaultInlineTools"
+      ],
+      "file": "dist/preset/index.js",
+      "sha256": "a09c7fcee69a712f7c16a436f9933e43fac74e467132fdf21aaa28af3266f359"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins",
+      "names": [
+        "createParagraphPlugin",
+        "createHeadingPlugin",
+        "createListPlugin",
+        "createQuotePlugin",
+        "createCodePlugin",
+        "createImagePlugin",
+        "createDelimiterPlugin",
+        "createTablePlugin",
+        "createChecklistPlugin",
+        "createWarningPlugin",
+        "createEmbedPlugin",
+        "createRawPlugin",
+        "createGalleryPlugin",
+        "createCarouselPlugin",
+        "createAttachesPlugin",
+        "createLinkPreviewPlugin",
+        "createTogglePlugin",
+        "createColumnsPlugin",
+        "createSpoilerPlugin",
+        "createPollPlugin",
+        "createPersonPlugin"
+      ],
+      "file": "dist/plugins/index.js",
+      "sha256": "9cdf0dfdf15d2089b9520ac65805e2455e32ea40c42377dba6089d83da619c5e"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/async",
+      "names": [
+        "getAsyncBlockPluginTypes",
+        "loadBlockPluginDefinition",
+        "preloadBlockPluginDefinitions",
+        "createBlockPluginsAsync"
+      ],
+      "file": "dist/plugins/async.js",
+      "sha256": "47ef3af7c05bc2ea92d0e383b73a598d5cfcf7be1af9290db7950e7fdf9f478e"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer",
+      "names": [
+        "EditorRenderer",
+        "getSupportedBlockTypes"
+      ],
+      "file": "dist/renderer/index.js",
+      "sha256": "de51b3bcc2920832bc590706f486c0c0f8354776fbf264381673125980b0b167"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers",
+      "names": [
+        "getSupportedBlockTypes",
+        "createDefaultRenderers",
+        "createRenderer"
+      ],
+      "file": "dist/renderer/renderers/index.js",
+      "sha256": "38ab8bca7d57f0acc96d67dca762cedb7acb8313c4335182d3b431ce6840b53f"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/async",
+      "names": [
+        "getAsyncRendererTypes",
+        "loadRendererFactory",
+        "preloadRendererFactories",
+        "createRendererAsync",
+        "createDefaultRenderersAsync"
+      ],
+      "file": "dist/renderer/renderers/async.js",
+      "sha256": "674e8768857790737fe61e9f10f43576cdad327b9676d0e307318df7921d4a40"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/paragraph",
+      "names": [
+        "createParagraphPlugin"
+      ],
+      "file": "dist/plugins/paragraph/index.js",
+      "sha256": "347215fafba52f47001d7bf99de02283c4183ebeea9418fd2422d75a5792c827"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/heading",
+      "names": [
+        "createHeadingPlugin"
+      ],
+      "file": "dist/plugins/heading/index.js",
+      "sha256": "206333a16ffb15bc292756150399a2159a1fd7d2e04bdfbdb6587f4611a481ed"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/list",
+      "names": [
+        "createListPlugin"
+      ],
+      "file": "dist/plugins/list/index.js",
+      "sha256": "56a054922566c5998801415bdeeeb1d3f4b9011901724aeb8b07e5dea6bc853d"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/quote",
+      "names": [
+        "createQuotePlugin"
+      ],
+      "file": "dist/plugins/quote/index.js",
+      "sha256": "9d27bd1b1ba3b31dad94fdc1df1351de019936bad363fd8d5f691e2a2eae2eb1"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/code",
+      "names": [
+        "createCodePlugin"
+      ],
+      "file": "dist/plugins/code/index.js",
+      "sha256": "33862731f52ef573a3eef9060883ecbe02316ad82b7828303644404743c1bc07"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/image",
+      "names": [
+        "createImagePlugin"
+      ],
+      "file": "dist/plugins/image/index.js",
+      "sha256": "d93117d8538dfb60f3fad04b9ce1e966b37cf7d08faefcecf97f7d1620e26de3"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/delimiter",
+      "names": [
+        "createDelimiterPlugin"
+      ],
+      "file": "dist/plugins/delimiter/index.js",
+      "sha256": "e8e0e7e71e9e1ead6c13eb29ff68f1bd2e69bd07c57aae26fc4e2143d3868043"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/table",
+      "names": [
+        "createTablePlugin"
+      ],
+      "file": "dist/plugins/table/index.js",
+      "sha256": "4004bc6afc2afbf9139635c15f24013084c9155a5be095fe9f2bf2ac83f1b64b"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/checklist",
+      "names": [
+        "createChecklistPlugin"
+      ],
+      "file": "dist/plugins/checklist/index.js",
+      "sha256": "8917f33f03046316c4f82174acc4133591a574f0f24301069f78a400ac1a7bc9"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/warning",
+      "names": [
+        "createWarningPlugin"
+      ],
+      "file": "dist/plugins/warning/index.js",
+      "sha256": "f88a88618486c4fdead0fd38f7d93fc659094814aa3854fbf1786c70e80860b3"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/embed",
+      "names": [
+        "createEmbedPlugin"
+      ],
+      "file": "dist/plugins/embed/index.js",
+      "sha256": "c5d763a9a7162854abfbff0b3cd05282c99b95618ba3db37233b192d33a93001"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/raw",
+      "names": [
+        "createRawPlugin"
+      ],
+      "file": "dist/plugins/raw/index.js",
+      "sha256": "30215081c4f96583fe4ece434684279b780ca3f9ab5c045fd375107170ca954b"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/gallery",
+      "names": [
+        "createGalleryPlugin"
+      ],
+      "file": "dist/plugins/gallery/index.js",
+      "sha256": "b0853d5042d2eabeca0463e1898748ec758301c84818f41298f3559fbf873b76"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/carousel",
+      "names": [
+        "createCarouselPlugin"
+      ],
+      "file": "dist/plugins/carousel/index.js",
+      "sha256": "ef749115365896561b9966572660ffbad42a235008107be2b4ef873ec02cde8d"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/attaches",
+      "names": [
+        "createAttachesPlugin"
+      ],
+      "file": "dist/plugins/attaches/index.js",
+      "sha256": "38087979b98f55935f2a1673a32d24a3444b6fd34c4dd6ed55941c5e0d0fe6e8"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/link-preview",
+      "names": [
+        "createLinkPreviewPlugin"
+      ],
+      "file": "dist/plugins/link-preview/index.js",
+      "sha256": "816d801bfbbd6ed088b4f447cb65cc32acacea8c17c44408439f33c419d1b4c2"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/toggle",
+      "names": [
+        "createTogglePlugin"
+      ],
+      "file": "dist/plugins/toggle/index.js",
+      "sha256": "8fbda18de9450a6cb0ed0fab26eef014818c775cccdf6d52b6f93b1d71421710"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/columns",
+      "names": [
+        "createColumnsPlugin"
+      ],
+      "file": "dist/plugins/columns/index.js",
+      "sha256": "5c84d18f69797024658147c931020aba743c4f3a8245acc31f44982846a69aea"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/spoiler",
+      "names": [
+        "createSpoilerPlugin"
+      ],
+      "file": "dist/plugins/spoiler/index.js",
+      "sha256": "f26bebd815b2b8714fc1d98a2023707370e9cad87db5a9b1f6e12e81993f147f"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/poll",
+      "names": [
+        "createPollPlugin"
+      ],
+      "file": "dist/plugins/poll/index.js",
+      "sha256": "15d2e9cabac6c9f06fc8eac09e06d372b2d7fda29d34c6831a99cefcdf222914"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/plugins/person",
+      "names": [
+        "createPersonPlugin"
+      ],
+      "file": "dist/plugins/person/index.js",
+      "sha256": "136d901b4ed26245343ecd57e661907d6b808dda7f34917a148e2084fbe52aa1"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/paragraph",
+      "names": [
+        "createParagraphRenderer"
+      ],
+      "file": "dist/renderer/renderers/paragraph/index.js",
+      "sha256": "a3d3c0b9a0f423674475a333671bbd3559228544fc7463690c66c9d81f87fe8a"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/heading",
+      "names": [
+        "createHeaderRenderer"
+      ],
+      "file": "dist/renderer/renderers/heading/index.js",
+      "sha256": "96822f01912f967f5658901b5fd255586100bc10386c6b02ff661e9644d66af1"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/list",
+      "names": [
+        "createListRenderer"
+      ],
+      "file": "dist/renderer/renderers/list/index.js",
+      "sha256": "cc272bfe7b71e6db3c2357833ccdeb48aa017506d04e7084d86d3018e4127370"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/quote",
+      "names": [
+        "createQuoteRenderer"
+      ],
+      "file": "dist/renderer/renderers/quote/index.js",
+      "sha256": "252857573c89064c909cb3dc10e8096ce5dc022af77abf845903956ecd9314fc"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/code",
+      "names": [
+        "createCodeRenderer"
+      ],
+      "file": "dist/renderer/renderers/code/index.js",
+      "sha256": "9cdae1c33cd961a7e603bfed5dbc1be98999159ae8f366a04a34e285d166e0e8"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/image",
+      "names": [
+        "createImageRenderer"
+      ],
+      "file": "dist/renderer/renderers/image/index.js",
+      "sha256": "6423183fd161a492b8b0f4e58a455d56d79d158bc779fe94234a64c184760319"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/delimiter",
+      "names": [
+        "createDelimiterRenderer"
+      ],
+      "file": "dist/renderer/renderers/delimiter/index.js",
+      "sha256": "8efdc6550275c8af155ebb270b0a930dd9afbe747438dfd9d7cb2f60e80153b8"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/table",
+      "names": [
+        "createTableRenderer"
+      ],
+      "file": "dist/renderer/renderers/table/index.js",
+      "sha256": "9201d6dc9a414f05d73e91c49c42c2d864d1262616d8ec6509fe7a6bb7773b3a"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/checklist",
+      "names": [
+        "createChecklistRenderer"
+      ],
+      "file": "dist/renderer/renderers/checklist/index.js",
+      "sha256": "2911241f2a8f607e4664b37c979ce752bbb42153576edcd8014a89c3e61e13b1"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/warning",
+      "names": [
+        "createWarningRenderer"
+      ],
+      "file": "dist/renderer/renderers/warning/index.js",
+      "sha256": "525ac304dff460d6261f3ccc35004103a9e2c33bd67daeb8e85e85c01a44b73b"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/embed",
+      "names": [
+        "createEmbedRenderer"
+      ],
+      "file": "dist/renderer/renderers/embed/index.js",
+      "sha256": "2b76bdf3e14027bb9161b74e6326ad40fe0511152731ee726c3c6225cad77260"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/raw",
+      "names": [
+        "createRawRenderer"
+      ],
+      "file": "dist/renderer/renderers/raw/index.js",
+      "sha256": "9067852a507db16b33a08f8e73e84ce8d0fc72f6c2a0c0d6dc371c2f662bb28f"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/gallery",
+      "names": [
+        "createGalleryRenderer"
+      ],
+      "file": "dist/renderer/renderers/gallery/index.js",
+      "sha256": "48fb508f208a4e76b786f9af72689361c3c5ecfc824d7317a86ddfeb18da433f"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/carousel",
+      "names": [
+        "createCarouselRenderer"
+      ],
+      "file": "dist/renderer/renderers/carousel/index.js",
+      "sha256": "2b893974f3974224f2307f67dff257d410e91cbb313898449edca85ea10c902a"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/attaches",
+      "names": [
+        "createAttachesRenderer"
+      ],
+      "file": "dist/renderer/renderers/attaches/index.js",
+      "sha256": "522c8ddcd3648f7dcd01cd68d361b0382b4b44544ba971a3dc7b5deb9df346a4"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/link-preview",
+      "names": [
+        "createLinkPreviewRenderer"
+      ],
+      "file": "dist/renderer/renderers/link-preview/index.js",
+      "sha256": "feb17d4a987affcd0eb4740b25e95bdcefd7bc3bdb86d04ed5790a5e720bf64d"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/toggle",
+      "names": [
+        "createToggleRenderer"
+      ],
+      "file": "dist/renderer/renderers/toggle/index.js",
+      "sha256": "d6713b8a9299d21551e0af843d79c702466b49e0d0e00f4c0beb7d0a9a2b7519"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/columns",
+      "names": [
+        "createColumnsRenderer"
+      ],
+      "file": "dist/renderer/renderers/columns/index.js",
+      "sha256": "60645fb93617febd308c7d2ae16354fb2adfc8bdbb0226e6f76271b320dc9cce"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/spoiler",
+      "names": [
+        "createSpoilerRenderer"
+      ],
+      "file": "dist/renderer/renderers/spoiler/index.js",
+      "sha256": "d42305d13ee6731da23b0031f6152cb4e3b0645c29a9308b16a03051d6a21278"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/poll",
+      "names": [
+        "createPollRenderer"
+      ],
+      "file": "dist/renderer/renderers/poll/index.js",
+      "sha256": "dddc900b6bbef75cc8ff62b47438948bdd4b90d57d4c7336221ca50152b7a036"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/renderer/renderers/person",
+      "names": [
+        "createPersonRenderer"
+      ],
+      "file": "dist/renderer/renderers/person/index.js",
+      "sha256": "d41374fde428e84b448dc57ff03ec576cd4c5fcd839481672160ba865d4966c9"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-plugins/color",
+      "names": [
+        "createColorSwatchPlugin"
+      ],
+      "file": "dist/inline-plugins/color.js",
+      "sha256": "8f41420455b17f7df85cb0bb237c50c87f391941dea0e7697cf7b99c97fcd043"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-plugins/mention",
+      "names": [
+        "createMentionPlugin"
+      ],
+      "file": "dist/inline-plugins/mention/index.js",
+      "sha256": "c84c6df551138818d468b530bae3b876a56b1918b34cbaf5eff15fdb8883f217"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/bold",
+      "names": [
+        "createBoldTool"
+      ],
+      "file": "dist/inline-tools/bold.js",
+      "sha256": "4981bbc3e14ac5e21bc483d3bcc3f82c8f3e4d00db40e8d19bc75e2b24c73e30"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/italic",
+      "names": [
+        "createItalicTool"
+      ],
+      "file": "dist/inline-tools/italic.js",
+      "sha256": "a79625593983b1322d5fa8364dabd1b9cd2c672339b9421b5613386f201d0cfa"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/strikethrough",
+      "names": [
+        "createStrikethroughTool"
+      ],
+      "file": "dist/inline-tools/strikethrough.js",
+      "sha256": "b08148d11d3741adebd182715c8bf4b372868839be9f901207cfe66c736cbd77"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/link",
+      "names": [
+        "createLinkTool"
+      ],
+      "file": "dist/inline-tools/link.js",
+      "sha256": "d168b82203eb68266d41bcc147015e590b9de501e65fc99058788ca02ebf5ebd"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/code",
+      "names": [
+        "createCodeTool"
+      ],
+      "file": "dist/inline-tools/code.js",
+      "sha256": "376d412d9c692bfda0df20bfc07d353a26de959f60988f12f447a37f0fd2715b"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/marker",
+      "names": [
+        "createMarkerTool"
+      ],
+      "file": "dist/inline-tools/marker.js",
+      "sha256": "dc82809b020d8abcb9def309f2c821682f1a7ace0411b230054ad1cd2770cf6c"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/colorPicker",
+      "names": [
+        "createBgColorTool"
+      ],
+      "file": "dist/inline-tools/colorPicker.js",
+      "sha256": "ca40f789b20d646a09d47d8b72496564773c4891a5c4ddffc802dd3f67331bf7"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/fontSize",
+      "names": [
+        "createFontSizeTool"
+      ],
+      "file": "dist/inline-tools/fontSize.js",
+      "sha256": "44921cf61d94c6466df85ab29289a66727f3dd22de9096effb189e55f25f3ace"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/scriptTool",
+      "names": [
+        "createScriptTool"
+      ],
+      "file": "dist/inline-tools/scriptTool.js",
+      "sha256": "ce666fb632a3047e8093719d228c1b05b0991c4b972f29efc0c2ce9593ebaf1e"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/align",
+      "names": [
+        "createAlignTool"
+      ],
+      "file": "dist/inline-tools/align.js",
+      "sha256": "ab774b92c13abb1250c4d7f5af0c0a3fb95746f13f2335a98f33ac872b00fc00"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/caseTransform",
+      "names": [
+        "createCaseTransformTool"
+      ],
+      "file": "dist/inline-tools/caseTransform.js",
+      "sha256": "08d1e8e7dd1a4da127a359bff355b6238ef35c03b14e81d7a9a18ef3b2e5e98b"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/inline-tools/clearFormatting",
+      "names": [
+        "createClearFormattingTool"
+      ],
+      "file": "dist/inline-tools/clearFormatting.js",
+      "sha256": "36e6a9fef4d605071aa5bcaac59dc785fe85624accea3c2b54156f39a47c0a79"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/locale/en",
+      "names": [],
+      "file": "dist/locale/en.js",
+      "sha256": "e583895e22886b66a82e39a83ce8364391c871d5d44cfc31530828478f013276"
+    },
+    {
+      "kind": "module",
+      "specifier": "@shelamkoff/rector/locale/ru",
+      "names": [],
+      "file": "dist/locale/ru.js",
+      "sha256": "e8214436dfdfbdf0fbce0fae9595c83e866683f821c5b6545a1e6729922268a4"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles.css",
+      "file": "dist/styles.css",
+      "bytes": 1858,
+      "sha256": "8f217d65204a8f9f9fae9a1133c306296e1381f8730ab7dabd954d23bc864c8c"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/editor.css",
+      "file": "dist/styles/editor.css",
+      "bytes": 111,
+      "sha256": "d47e8b988b02b2119b9ac1f8af57018725ac627bfd7aa7d5ab586d2e57e33050"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/renderer.css",
+      "file": "dist/styles/renderer.css",
+      "bytes": 39,
+      "sha256": "821c61e512ae050e7e249c54e1196b02f569de26e8735487137c2d9d4bfa1b13"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/paragraph/styles.css",
+      "file": "dist/styles/plugins/paragraph.css",
+      "bytes": 49,
+      "sha256": "4fda79cada403fe770f9d75b68a6fab5a177c769118edde8743df73ad0057490"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/paragraph/styles.css",
+      "file": "dist/styles/renderers/paragraph.css",
+      "bytes": 57,
+      "sha256": "8e1b4da2871adeab5e59ab0ac043ff9a790171f8b3374aeb65dc4c2296a1bf4d"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/heading/styles.css",
+      "file": "dist/styles/plugins/heading.css",
+      "bytes": 45,
+      "sha256": "9f2325e1006e677982dc25bfca762070591bc1eeaa0eeff5b956ca05ba9b8795"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/heading/styles.css",
+      "file": "dist/styles/renderers/heading.css",
+      "bytes": 55,
+      "sha256": "64e2ce26e5ea02e83b8da3b33ffc87df2ab8497675fb772c2a2c4db6e0c39705"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/list/styles.css",
+      "file": "dist/styles/plugins/list.css",
+      "bytes": 39,
+      "sha256": "72c9c1e834c062eff165cacde06341ef035e762e6f24d28800a557174c7e2cef"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/list/styles.css",
+      "file": "dist/styles/renderers/list.css",
+      "bytes": 52,
+      "sha256": "06853accc69acc4b48404fbbd7944bd553ef51bcceebcd4217eb3961da693fe2"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/quote/styles.css",
+      "file": "dist/styles/plugins/quote.css",
+      "bytes": 41,
+      "sha256": "aed478d75c7be7f7fa20e8810cf837022f9269dfda131401016e87f29c360cfd"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/quote/styles.css",
+      "file": "dist/styles/renderers/quote.css",
+      "bytes": 53,
+      "sha256": "5a05f47fe62af6c4b25e3773a399ea5faba8b47aadd3479ea491e2e35abb26dc"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/code/styles.css",
+      "file": "dist/styles/plugins/code.css",
+      "bytes": 39,
+      "sha256": "06859cb67361229d11013a6e7d05652f6485848e89f0d0e51072c57d0f3b89ee"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/code/styles.css",
+      "file": "dist/styles/renderers/code.css",
+      "bytes": 52,
+      "sha256": "cf67aec5c44c910b966f73118de1ead71fb51f3fccad63f496f30d9e9302b790"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/image/styles.css",
+      "file": "dist/styles/plugins/image.css",
+      "bytes": 90,
+      "sha256": "6546ff12e5c9253fbaf4754430a88ed01a898471645122cfa4492a09247f3ed7"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/image/styles.css",
+      "file": "dist/styles/renderers/image.css",
+      "bytes": 53,
+      "sha256": "8254217c950df10505a980c5224be0535f7a402892934962fbb6f247d14bfa1b"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/delimiter/styles.css",
+      "file": "dist/styles/plugins/delimiter.css",
+      "bytes": 49,
+      "sha256": "8b2eded66d6f39a1be838ebb509ccca422d98b90707f9799673decc283a40c88"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/delimiter/styles.css",
+      "file": "dist/styles/renderers/delimiter.css",
+      "bytes": 57,
+      "sha256": "36f2c1e447b1d97cc0578f791a1cf37ccdbe83db8b34e8d13cb0e647653554bd"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/table/styles.css",
+      "file": "dist/styles/plugins/table.css",
+      "bytes": 41,
+      "sha256": "1f34be7078dace183c3ceaaec64ada247df29223132c1b9d8645e48fcd0fd72a"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/table/styles.css",
+      "file": "dist/styles/renderers/table.css",
+      "bytes": 53,
+      "sha256": "d567445c66c8f64feeb2cff67a320e85c86a47809bc353ee7a78d0777faa03f3"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/checklist/styles.css",
+      "file": "dist/styles/plugins/checklist.css",
+      "bytes": 49,
+      "sha256": "3e9c9045441ba7a0b5e95c7bd1e657cf5f08c37ab978facc2536c1262c98b5f8"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/checklist/styles.css",
+      "file": "dist/styles/renderers/checklist.css",
+      "bytes": 57,
+      "sha256": "6b4adc7ae460b05f3e0dec3bd474751d6fe9df87b597f418e2bcb17dcf4767e8"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/warning/styles.css",
+      "file": "dist/styles/plugins/warning.css",
+      "bytes": 45,
+      "sha256": "66747a0a9e8cf89f5c2f2ac16818f732131d7eb9b3e80846ca851711585415fc"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/warning/styles.css",
+      "file": "dist/styles/renderers/warning.css",
+      "bytes": 55,
+      "sha256": "78ba337c2511ae55a8a2780f72c201fae10a6a390a33f161508deae2dd32749b"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/embed/styles.css",
+      "file": "dist/styles/plugins/embed.css",
+      "bytes": 41,
+      "sha256": "a8917c8ae9ad7c0dbbe2a3a05bf212c5a6cf6437f1abb70310801d4fa40ecb0b"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/embed/styles.css",
+      "file": "dist/styles/renderers/embed.css",
+      "bytes": 53,
+      "sha256": "e95fee902c6bd589f875b6f6c6bf018e4e9c9f16c0b61dd35b0ab3cbea683033"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/raw/styles.css",
+      "file": "dist/styles/plugins/raw.css",
+      "bytes": 37,
+      "sha256": "d80ce3718f9df604585dc989e979b790015fe53dceb41f322989cda73b690607"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/raw/styles.css",
+      "file": "dist/styles/renderers/raw.css",
+      "bytes": 67,
+      "sha256": "df311aa5398f4b2ca0381f95a6dd6eab51b9aad5f36e30b5cbeae58860fce0dc"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/gallery/styles.css",
+      "file": "dist/styles/plugins/gallery.css",
+      "bytes": 94,
+      "sha256": "cd61c4cefd3ff9cc3ba95d2f4e1794473fed1478f6c3146229eb74f978ad6a3e"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/gallery/styles.css",
+      "file": "dist/styles/renderers/gallery.css",
+      "bytes": 96,
+      "sha256": "a522c039593b82aace9451b9481baa74970745525ea4d9404a258e7844a39c5b"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/carousel/styles.css",
+      "file": "dist/styles/plugins/carousel.css",
+      "bytes": 96,
+      "sha256": "8b98ee8a4c70004dfbe96397cdcb2bee91f260e713b48c8c67a4bbab256a3e41"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/carousel/styles.css",
+      "file": "dist/styles/renderers/carousel.css",
+      "bytes": 99,
+      "sha256": "577b9edc6380dab94fd7d108b60f58af424b580308c84caf27681558b165be97"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/attaches/styles.css",
+      "file": "dist/styles/plugins/attaches.css",
+      "bytes": 96,
+      "sha256": "dcf336ade0f80245553b98d78ead3549fa1ae34f8ab0676fca1891b2dee4f8f6"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/attaches/styles.css",
+      "file": "dist/styles/renderers/attaches.css",
+      "bytes": 56,
+      "sha256": "d7ddbad8d5b909838372dacfa13d9941dae586b5547864b6436976718f87d0ec"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/link-preview/styles.css",
+      "file": "dist/styles/plugins/link-preview.css",
+      "bytes": 55,
+      "sha256": "12bbbc56508b15648e3b1e8f207b9cb93afa9f29a37ec295952da99a2df8603a"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/link-preview/styles.css",
+      "file": "dist/styles/renderers/link-preview.css",
+      "bytes": 60,
+      "sha256": "28125e437e21537a3f379e3786e8cadc5c9786e66379c771445802e692278ae2"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/toggle/styles.css",
+      "file": "dist/styles/plugins/toggle.css",
+      "bytes": 43,
+      "sha256": "98a5d8a59e0dcdef3e3976c547fd878860a77dfe63ae0fbb1f47647915c198a6"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/toggle/styles.css",
+      "file": "dist/styles/renderers/toggle.css",
+      "bytes": 54,
+      "sha256": "2a842ea08a5f0f329f73295c9c7f202aaa0106ec5a2fdbe2d66f18d79f4ecb18"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/columns/styles.css",
+      "file": "dist/styles/plugins/columns.css",
+      "bytes": 45,
+      "sha256": "cddd7c98157becfc400985378bf0a427d8c752425578500a7b1d07ae1b55edda"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/columns/styles.css",
+      "file": "dist/styles/renderers/columns.css",
+      "bytes": 55,
+      "sha256": "356ed9da3c6990db90632f8af8d905ae2a8a4dd7634ab04658733586426a3716"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/spoiler/styles.css",
+      "file": "dist/styles/plugins/spoiler.css",
+      "bytes": 45,
+      "sha256": "11d5838693d3703bae13fb55212824faaf1fe8cbe6067bb3bef8acb7a750a401"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/spoiler/styles.css",
+      "file": "dist/styles/renderers/spoiler.css",
+      "bytes": 55,
+      "sha256": "42a0155572a5953f31c139e1d396f2062fd4393eb7011d48474511c174ff0c4f"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/poll/styles.css",
+      "file": "dist/styles/plugins/poll.css",
+      "bytes": 39,
+      "sha256": "a3ce40f8422349bb335e2524891b6c6bec74a141157bb4190fd3b1e23ed6647c"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/poll/styles.css",
+      "file": "dist/styles/renderers/poll.css",
+      "bytes": 52,
+      "sha256": "7edfe6868c754ba55d329d7bca78e3a4d2ae7eed4bfcdc70188929b49f81bde6"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/plugins/person/styles.css",
+      "file": "dist/styles/plugins/person.css",
+      "bytes": 85,
+      "sha256": "b5b6f308020776fee3e39eded9900fe2e954d2e795606dd5940cadefaa677488"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/renderer/renderers/person/styles.css",
+      "file": "dist/styles/renderers/person.css",
+      "bytes": 97,
+      "sha256": "cd717d799c88f5cea44b487123096a5d8a73f2d25139d05839cf5474cce5b2fc"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/inline-plugins/color/styles.css",
+      "file": "dist/styles/inline-plugins/color.css",
+      "bytes": 47,
+      "sha256": "529e0cc93b063e9d9e8aa494bc2f2f238d4c77e9a1a7b227896ee68e8a41a31a"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/inline-plugins/mention/styles.css",
+      "file": "dist/styles/inline-plugins/mention.css",
+      "bytes": 51,
+      "sha256": "657339f63a9fe353ea1e8a41f95337e71a9e2de5859e6ce3ba30412bf0b9485d"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/themes/variables",
+      "file": "dist/core/themes/variables.css",
+      "bytes": 22438,
+      "sha256": "676acbf1c6499dc3fcd9c8a5060b8f6da6b6f3d2e79886747597f8da6e8b43d1"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/themes/variables.css",
+      "file": "dist/core/themes/variables.css",
+      "bytes": 22438,
+      "sha256": "676acbf1c6499dc3fcd9c8a5060b8f6da6b6f3d2e79886747597f8da6e8b43d1"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/themes/light",
+      "file": "dist/core/themes/light.css",
+      "bytes": 783,
+      "sha256": "d4fb8134e7589e0364e3b23ab909aa6392d2966e17ebdb877dc5dbfd7fd89d52"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/themes/light.css",
+      "file": "dist/core/themes/light.css",
+      "bytes": 783,
+      "sha256": "d4fb8134e7589e0364e3b23ab909aa6392d2966e17ebdb877dc5dbfd7fd89d52"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/themes/dark",
+      "file": "dist/core/themes/dark.css",
+      "bytes": 734,
+      "sha256": "ab10d02834c629d989fa362ff9902bb08d086ded98053f4999d9536956eea324"
+    },
+    {
+      "kind": "style",
+      "specifier": "@shelamkoff/rector/styles/themes/dark.css",
+      "file": "dist/core/themes/dark.css",
+      "bytes": 734,
+      "sha256": "ab10d02834c629d989fa362ff9902bb08d086ded98053f4999d9536956eea324"
+    },
+    {
+      "kind": "rejected-runtime-entry",
+      "specifier": "@shelamkoff/rector/renderer/async",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "kind": "rejected-runtime-entry",
+      "specifier": "@shelamkoff/rector/inline-tools",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "kind": "rejected-runtime-entry",
+      "specifier": "@shelamkoff/rector/core",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "kind": "rejected-runtime-entry",
+      "specifier": "@shelamkoff/rector/shared/DocumentSchema",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "kind": "rejected-runtime-entry",
+      "specifier": "@shelamkoff/rector/types",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "kind": "rejected-runtime-entry",
+      "specifier": "@shelamkoff/rector/renderer/types",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    }
+  ],
+  "tarball": "shelamkoff-rector-2.0.0.tgz",
+  "tarballSha256": "7ce412ac632e6ea4a4d2b3686fc33af3e771dee721e7282b8ccc94f2091ee8a4",
+  "tarballBytes": 648588,
+  "contractSha256": "dc7f1aa9671413ebaee3ab26db01e143c85f95e226c160fd79d44919c33fa641"
+}
