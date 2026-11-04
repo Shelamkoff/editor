@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## Native IME lifecycle — 2026-11-04
+
+Register: **145 accepted / 64 open / 209 total**. Accepted on `0e470fe5`:
+`NATIVE_IME`. Fixed stale composition blocking native history after render.
+Browser-engine confirmation/cancel, directed replacement, separate gestures,
+render/mode/destroy revocation, successor and exact selection/replay pass.
+Literal oracle: 16 executions / 360 observations / 380 module identities;
+22 corruptions, all sixteen integration gates and 47 native cases pass.
+No physical operating-system IME certification is claimed.
+[Checkpoint](scripts/parity/checkpoints/2026-11-04/ime-lifecycle/README.md). Full readiness remains open.
+
 ## Transaction atomicity — 2026-11-04
 
 Register: **144 accepted / 65 open / 209 total**. Accepted on `750e99ae`:

@@ -1,0 +1,19 @@
+{
+  "source": "034c741fcf7db05befc3c878c6c7d5bd21e7529d",
+  "parent": "4a47bed8a7132aa7bb7ed0d16f82adfe67639218",
+  "runtimeUnchanged": true,
+  "results": [
+    {
+      "trustedPolicy": false,
+      "cases": 8,
+      "failedObservations": 2,
+      "actualObservationsMatchImmutableParent": true
+    },
+    {
+      "trustedPolicy": true,
+      "cases": 8,
+      "failedObservations": 2,
+      "actualObservationsMatchImmutableParent": true
+    }
+  ]
+}
