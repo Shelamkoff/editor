@@ -1,0 +1,172 @@
+{
+  "candidate": "360c0258147d9b14098c5b93df21385b9e532270",
+  "tree": "be24bd8527a2e9b5052120a64964c2a6ab864e58",
+  "sourceIdentity": "cd50de9340bc2f90b15380ef1d9576619ed48b844f5d9a632ec42e2c2e16989f",
+  "integration": {
+    "source": "db1b052dd559d2a199d5a3a2fae4e85197baad69",
+    "directory": "run-bLebVG",
+    "outcome": "failed",
+    "gates": 18,
+    "passed": 16,
+    "failed": [
+      "proof"
+    ],
+    "notRun": [
+      "controls"
+    ],
+    "startedAt": "2026-11-04T10:59:04.814Z",
+    "finishedAt": "2026-11-04T11:09:09.306Z"
+  },
+  "reviewFollowup": {
+    "source": "360c0258147d9b14098c5b93df21385b9e532270",
+    "directory": "run-fjXD30",
+    "outcome": "passed",
+    "gates": 3,
+    "startedAt": "2026-11-04T11:09:31.938Z",
+    "finishedAt": "2026-11-04T11:10:59.377Z",
+    "change": "Only reviewer source-list assertion changed: the legitimate Node regression file is explicitly verified alongside the single production file."
+  },
+  "productionBasis": "64eef82a36d9a374c4fff045fa331a8a58535dd8",
+  "productionChanged": true,
+  "productionRepair": "One Embed action callback now invokes the consumer inside try/await/catch/finally, containing synchronous throw and always retiring its task while retaining immediate invocation.",
+  "casesPerCurrentPolicy": 42,
+  "observationsPerCurrentPolicy": 967,
+  "currentCases": 84,
+  "currentObservations": 1934,
+  "lifetime": {
+    "currentCases": 60,
+    "currentObservations": 1380,
+    "acceptance": "efe3d0bb73fef41593cf56e827b6a84060e40f7b",
+    "rawSha256": "7cfdde8988e5664f31f25e0ff76ab142904811a6b6a715a78df4046b009af580"
+  },
+  "red": {
+    "source": "6684a878fed4369ff7458dc6d970e259fb86eb7d",
+    "currentCases": 4,
+    "currentDifferences": 4,
+    "currentPageErrors": 2,
+    "rawSha256": "6940ec4e263369bbb7c7c52246a1637c56cd63d656c023da8eece374841d100d"
+  },
+  "corruptionsRejected": 18,
+  "moduleIdentities": 297,
+  "lifetimeModuleIdentities": 297,
+  "results": {
+    "v1/compatible": {
+      "cases": 42,
+      "observations": 968,
+      "differences": [
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "preview"
+        }
+      ],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "spec-baseline/compatible": {
+      "cases": 42,
+      "observations": 967,
+      "differences": [
+        {
+          "id": "action/throw",
+          "phase": "failure",
+          "property": "faults"
+        },
+        {
+          "id": "action/throw",
+          "phase": "recovery",
+          "property": "faults"
+        },
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "aborted"
+        },
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "reason"
+        },
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "preview"
+        }
+      ],
+      "pageErrors": 1,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 42,
+      "observations": 967,
+      "differences": [],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 42,
+      "observations": 967,
+      "differences": [],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "transport": "No real provider or product network is contacted. Real native file chooser events receive exact local PNG files. Temporary local object URLs are read before and after replay, then must be revoked on destruction. Known blocked environment script attempts remain separate.",
+  "canonicalNodeFiles": 197,
+  "nodePassed": 2210,
+  "nodeSkipped": 3,
+  "ordinaryPages": 55,
+  "native": {
+    "native-embed": {
+      "page": "native-embed-metadata.html",
+      "cases": 27
+    },
+    "native-embed-trusted": {
+      "page": "native-embed-metadata-trusted.html",
+      "cases": 28
+    },
+    "native-media": {
+      "page": "native-plugin-media.html",
+      "cases": 95
+    },
+    "native-controls": {
+      "page": "native-plugin-controls.html",
+      "cases": 169
+    },
+    "native-html": {
+      "page": "native-html-content.html",
+      "cases": 28
+    }
+  },
+  "selectedNativeCases": 347,
+  "bundleKiBGzip": 95.7,
+  "budgetKiB": 96,
+  "defaultNativePageInventory": 85,
+  "heapSentinels": 23,
+  "heapRetained": 0,
+  "exploratoryAttempts": {
+    "initial": "A data-image URL with an added fragment was invalid. Its recovery expectation was a fixture error; the real synchronous source failure remains recorded.",
+    "expanded": "One cancel selector was wrong on v2. All other current observations pass; the corrected public secondary button is used afterward.",
+    "complete": "Forty workflows pass on current, but the payload-based file bridge omitted its change event trace. Final bridge uses real local paths and requires trusted native changes.",
+    "picker": "One focused local-file workflow confirms trusted changes, byte identity and local URL lifetime across all sources/policies."
+  },
+  "registerBefore": {
+    "accepted": 127,
+    "open": 82
+  },
+  "registerAfter": {
+    "accepted": 128,
+    "open": 81
+  },
+  "acceptedRows": [
+    "BLOCK_EMBED_METADATA"
+  ],
+  "register": {
+    "accepted": 128,
+    "open": 81
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

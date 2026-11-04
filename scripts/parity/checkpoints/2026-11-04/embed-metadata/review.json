@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "candidate": "360c0258147d9b14098c5b93df21385b9e532270",
+  "runtimeBasis": "64eef82a36d9a374c4fff045fa331a8a58535dd8",
+  "currentCases": 84,
+  "currentObservations": 1934,
+  "casesPerPolicy": 42,
+  "observationsPerPolicy": 967,
+  "moduleIdentities": 297,
+  "lifetimeModuleIdentities": 297,
+  "results": {
+    "v1/compatible": {
+      "cases": 42,
+      "observations": 968,
+      "differences": [
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "preview"
+        }
+      ],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "spec-baseline/compatible": {
+      "cases": 42,
+      "observations": 967,
+      "differences": [
+        {
+          "id": "action/throw",
+          "phase": "failure",
+          "property": "faults"
+        },
+        {
+          "id": "action/throw",
+          "phase": "recovery",
+          "property": "faults"
+        },
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "aborted"
+        },
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "reason"
+        },
+        {
+          "id": "preview/timeout",
+          "phase": "settle",
+          "property": "preview"
+        }
+      ],
+      "pageErrors": 1,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 42,
+      "observations": 967,
+      "differences": [],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 42,
+      "observations": 967,
+      "differences": [],
+      "pageErrors": 0,
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "lifetime": {
+    "currentCases": 60,
+    "currentObservations": 1380,
+    "acceptance": "efe3d0bb73fef41593cf56e827b6a84060e40f7b",
+    "rawSha256": "7cfdde8988e5664f31f25e0ff76ab142904811a6b6a715a78df4046b009af580"
+  },
+  "red": {
+    "source": "6684a878fed4369ff7458dc6d970e259fb86eb7d",
+    "currentCases": 4,
+    "currentDifferences": 4,
+    "currentPageErrors": 2,
+    "rawSha256": "6940ec4e263369bbb7c7c52246a1637c56cd63d656c023da8eece374841d100d"
+  },
+  "rawSha256": "db33a66655a293c6efd197efbda65fd598a2559147ba9b19eca71d4db486ad7d",
+  "reviewerSha256": "15ce05e6a05144c4278f45c93a6030942ad130ceade5da58ef333ea0afd76295",
+  "identityHelperSha256": "6a636b99ce42abdeeac5f740b16f833b1698a47afeecf16bf5400cb850983829",
+  "serviceHelperSha256": "e605d2a5b942a4d851d87b263c94e615659fcfd4307d6ff8e2e543c4479e72a9",
+  "lifetimeHelperSha256": "7d20699d219d2db5e4b906e72aacb752bda871c25e493459d1a43dbea8e002d8",
+  "transport": "No real provider or product network is contacted. Real native file chooser events receive exact local PNG files. Temporary local object URLs are read before and after replay, then must be revoked on destruction. Known blocked environment script attempts remain separate."
+}

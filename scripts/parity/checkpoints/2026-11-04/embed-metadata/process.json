@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "One original v1 deadline difference and five baseline differences with one escaped source error remain raw; all current cases must pass the independent model."
+}
