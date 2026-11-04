@@ -600,6 +600,7 @@ try {
     'native-quote-fields.html', 'native-quote-fields-trusted.html',
     'native-warning-fields.html', 'native-warning-fields-trusted.html',
     'native-compound-residuals.html', 'native-compound-residuals-trusted.html',
+    'native-disclosure-fields.html', 'native-disclosure-fields-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
