@@ -11,9 +11,9 @@ const editorStyles=new URL('./warning.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>'
 const ICON_LARGE='<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>'
 
-function append(left,right){
-  if(!left)return right
-  if(!right)return left
+function append(left,right,context){
+  if(isRichTextEmpty(right,context))return left
+  if(isRichTextEmpty(left,context))return right
   return left+'<br>'+right
 }
 
@@ -29,8 +29,8 @@ export function createWarningPlugin(config = {}) {
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.title,context)&&isRichTextEmpty(data.message,context)}),
     merge:Object.freeze({
-      merge(target,source){
-        return {title:append(target.title,source.title),message:append(target.message,source.message)}
+      merge(target,source,context){
+        return {title:append(target.title,source.title,context),message:append(target.message,source.message,context)}
       },
     }),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({

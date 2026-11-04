@@ -279,7 +279,7 @@ export function prepareReplaceLogicalRange(s,view,bookmark,replacement) {
     const merge = startDefinition?.capabilities?.merge?.merge
     if (typeof merge === 'function') {
       const prepared = s.prepareInlineMerge(startDefinition, startNext, endNext)
-      const mergedData = merge(prepared.targetData, prepared.sourceData)
+      const mergedData = merge(prepared.targetData, prepared.sourceData, Object.freeze({ ownerDocument: s.ownerDocument }))
       merged = s.recordFromData(
         startNext.id,
         startNext.type,

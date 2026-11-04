@@ -609,7 +609,7 @@ export class DocumentRuntime {
       if (typeof merge !== 'function') return noMerge
 
       const prepared = this.#prepareInlineMerge(definition, target, source)
-      const mergedData = merge(prepared.targetData, prepared.sourceData)
+      const mergedData = merge(prepared.targetData, prepared.sourceData, Object.freeze({ ownerDocument: this.#ownerDocument }))
       const next = this.#recordFromData(
         target.id, target.type, definition, mergedData, target.tunes, prepared.inline,
       )

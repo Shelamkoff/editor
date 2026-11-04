@@ -143,7 +143,8 @@ export interface FormattingCapability {
 
 /** Pure data merge capability. */
 export interface MergeCapability<D extends object> {
-  merge(target: Readonly<D>, source: Readonly<D>): D
+  /** The host supplies the owning DOM realm for rich-text checks. */
+  merge(target: Readonly<D>, source: Readonly<D>, context?: { readonly ownerDocument: Document }): D
 }
 
 /** Neutral conversion payload exchanged between block types. */

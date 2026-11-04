@@ -864,14 +864,19 @@ test('failed render of a non-current document is atomic and keeps history', () =
 // in tests/browser/runtime-contracts.js.
 
 test('mergeAdjacent commits data merge and source removal as one undoable transaction', () => {
+  const ownerDocument = Object.freeze({ kind: 'owning-editor-realm' })
+  let received
   const definition = paragraphDefinition()
   definition.capabilities.merge = {
-    merge(target, source) {
+    merge(target, source, context) {
+      received = context.ownerDocument
+      assert.ok(Object.isFrozen(context))
       return { text: target.text + source.text }
     },
   }
   const runtime = new DocumentRuntime({
     registry: registry([definition]),
+    ownerDocument,
     data: {
       version: '2.0.0',
       blocks: [block('a', { text: 'A' }), block('b', { text: 'B' })],
@@ -879,6 +884,7 @@ test('mergeAdjacent commits data merge and source removal as one undoable transa
   })
 
   assert.equal(runtime.mergeAdjacent('a', 'b'), true)
+  assert.strictEqual(received, ownerDocument)
   assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'AB']])
   assert.equal(runtime.canUndo, true)
 

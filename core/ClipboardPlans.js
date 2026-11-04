@@ -330,7 +330,7 @@ export function prepareClipboardCut(s,view,plan) {
       const merge=definition?.capabilities?.merge?.merge
       if(typeof merge==='function'){
         const prepared=s.prepareInlineMerge(definition,first.remaining,last.remaining)
-        const mergedData=merge(prepared.targetData,prepared.sourceData)
+        const mergedData=merge(prepared.targetData,prepared.sourceData,Object.freeze({ownerDocument:s.ownerDocument}))
         first.remaining=s.recordFromData(
           first.id,
           first.remaining.type,
@@ -608,7 +608,7 @@ export function prepareReplaceClipboardRange(s,view,bookmark,parts) {
     const merge=startDefinition?.capabilities?.merge?.merge
     if(typeof merge==='function'){
       const prepared=s.prepareInlineMerge(startDefinition,before,after)
-      const mergedData=merge(prepared.targetData,prepared.sourceData)
+      const mergedData=merge(prepared.targetData,prepared.sourceData,Object.freeze({ownerDocument:s.ownerDocument}))
       before=s.recordFromData(
         before.id,before.type,startDefinition,mergedData,before.tunes,prepared.inline,
       )
