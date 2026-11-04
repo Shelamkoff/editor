@@ -1,3 +1,4 @@
+import { slashRevocationCases, runSlashRevocationCase } from './slash-revocation-fixture.js'
 import { slashMenuCases, runSlashMenuCase } from './slash-menu-fixture.js'
 import { test, assert, equal, run } from './regressions/harness.js'
 if (document.querySelector('meta[http-equiv="Content-Security-Policy"]')) test('Slash Trusted Types policy rejects untrusted HTML', () => {
@@ -16,6 +17,13 @@ const nativeInput = (method, params) => {
 for (const spec of slashMenuCases) test(`Slash ${spec.id}`, async () => {
   const result = await runSlashMenuCase({ spec, nativeInput })
   ;(window.__slashMenuResults ??= []).push(result)
+  assert(!result.error, result.error); equal(result.completedPhases, result.planned)
+  equal(result.diagnostics, []); equal(result.unsupported, [])
+  for (const observation of result.observations) equal(observation.actual, observation.expected, `${observation.phase}/${observation.property}`)
+})
+for (const spec of slashRevocationCases) test(`Slash revoked ${spec.id}`, async () => {
+  const result = await runSlashRevocationCase({ spec, nativeInput })
+  ;(window.__slashRevocationResults ??= []).push(result)
   assert(!result.error, result.error); equal(result.completedPhases, result.planned)
   equal(result.diagnostics, []); equal(result.unsupported, [])
   for (const observation of result.observations) equal(observation.actual, observation.expected, `${observation.phase}/${observation.property}`)
