@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## Heading structure and conversion — 2026-11-05
+
+Register: **148 accepted / 61 open / 209 total**. Accepted on `612b5bf4`:
+`BLOCK_HEADING_SPLIT_CONVERT`. H2–H6 native split, empty exit, directed actual
+whole/partial conversion, preserved levels/IDs/widgets and exact keyboard replay
+pass. Literal oracle: 144 executions / 3032 observations / 816 module identities;
+40 corruptions, all seven affected gates and 173 native cases pass.
+Ten legacy widget-only conversion bodies remain explicitly unexecuted. Runtime
+is unchanged from `c58523cc`; complete inherited checks retain sources/dates.
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/heading-structure-conversion/README.md). Full readiness remains open.
+
 ## Columns rich fields — 2026-11-04
 
 Register: **147 accepted / 62 open / 209 total**. Accepted on `7e5b84e1`:
