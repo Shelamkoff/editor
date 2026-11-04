@@ -261,8 +261,7 @@ export class SlashCommandController {
       event.stopPropagation()
       if (!ownsKey() || !this.#filtered.length) return
       const direction = key === 'ArrowDown' ? 1 : -1
-      this.#activeIndex = (this.#activeIndex + direction + this.#filtered.length) % this.#filtered.length
-      this.#render()
+      this.#setActive((this.#activeIndex + direction + this.#filtered.length) % this.#filtered.length, ownsKey)
       return
     }
     if (key === 'Enter' || key === 'Tab') {
@@ -329,6 +328,20 @@ export class SlashCommandController {
     this.#render()
   }
 
+  #setActive(index, owns) {
+    const version = this.#itemsVersion
+    const current = () => this.#itemsVersion === version && owns() && this.#itemsVersion === version
+    if (!current() || index === this.#activeIndex) return
+    this.#activeIndex = index
+    // Highlight changes retain the actual pointer target. Only a new query
+    // or a retired session replaces items and revokes their event handlers.
+    for (const [itemIndex, element] of Array.from(this.#menu.children).entries()) {
+      if (!current()) return
+      element.classList.toggle('oe-slash-menu__item--active', itemIndex === index)
+    }
+    if (current()) this.#menu.children[index]?.scrollIntoView?.({ block: 'nearest' })
+  }
+
   #render() {
     if (this.#controller.signal.aborted || !this.#session) return
     const version = ++this.#itemsVersion
@@ -380,9 +393,7 @@ export class SlashCommandController {
         if (ownsItems()) this.#select(index)
       }, { signal: this.#controller.signal })
       element.addEventListener('mouseenter', () => {
-        if (!ownsItems()) return
-        this.#activeIndex = index
-        this.#render()
+        this.#setActive(index, ownsItems)
       }, { signal: this.#controller.signal })
       if (ownsItems()) this.#menu.appendChild(element)
     })
