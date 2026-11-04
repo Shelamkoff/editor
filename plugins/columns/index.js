@@ -23,7 +23,12 @@ function fitColumns(columns,size,context){
   }
   const last=kept[size-1]
   for(const column of columns.slice(size)){
-    last.content=mergeRichText(last.content,column.content,context)
+    if(context.ownerDocument||globalThis.document){
+      last.content=mergeRichText(last.content,column.content,context)
+    }else if(column.content.trim()){
+      // Direct data operations retain the literal join outside a DOM.
+      last.content=last.content?last.content+'<br>'+column.content:column.content
+    }
   }
   return kept
 }
