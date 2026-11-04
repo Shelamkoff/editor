@@ -49,3 +49,6 @@ implementation/public types, ordinary browser pages, package consumer/assets,
 bundle, heap, docs and site gates pass with exact logs. Columns field editing,
 formatting/selection/conversion, B-HTML and full readiness retain their separate
 open obligations.
+
+Post-acceptance documentation and site checks pass on `4bc49bef`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
