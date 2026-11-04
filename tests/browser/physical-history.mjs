@@ -596,6 +596,7 @@ try {
     'native-embed-metadata.html', 'native-embed-metadata-trusted.html',
     'native-link-tool.html', 'native-link-tool-trusted.html',
     'native-i18n-contexts.html', 'native-i18n-contexts-trusted.html',
+    'native-slash-menu.html', 'native-slash-menu-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
