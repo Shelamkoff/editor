@@ -37,3 +37,6 @@ counts. The first exploratory render-shortcut fixture lacked renewed field focus
 the corrected pre-fix run still reproduces the product bug. All attempts remain
 archived. Only this IME row is newly accepted; ordinary typing, B-HTML and full
 readiness remain open.
+
+Post-acceptance documentation and site checks pass on `a2addaac`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
