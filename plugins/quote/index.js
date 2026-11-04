@@ -5,6 +5,7 @@ import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { quoteDataSchema } from '../../shared/blockSchemas/quote.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { mergeRichText } from '../shared/mergeRichText.js'
 
 const editorStyles = new URL('./quote.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 5a2 2 0 0 1 2 2v6c0 3.13 -1.65 5.193 -4.757 5.97a1 1 0 1 1 -.486 -1.94c2.227 -.557 3.243 -1.827 3.243 -4.03v-1h-3a2 2 0 0 1 -1.995 -1.85l-.005 -.15v-3a2 2 0 0 1 2 -2z"/><path d="M18 5a2 2 0 0 1 2 2v6c0 3.13 -1.65 5.193 -4.757 5.97a1 1 0 1 1 -.486 -1.94c2.227 -.557 3.243 -1.827 3.243 -4.03v-1h-3a2 2 0 0 1 -1.995 -1.85l-.005 -.15v-3a2 2 0 0 1 2 -2z"/></svg>'
@@ -27,10 +28,10 @@ export function createQuotePlugin(config = {}) {
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.text,context)&&isRichTextEmpty(data.caption,context)}),
     merge:Object.freeze({
-      merge(target,source){
+      merge(target,source,context){
         return {
           text:mergeField(target.text,source.text),
-          caption:mergeField(target.caption,source.caption,'<br>'),
+          caption:mergeRichText(target.caption,source.caption,context),
         }
       },
     }),

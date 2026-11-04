@@ -9,17 +9,12 @@ import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { toggleDataSchema } from '../../shared/blockSchemas/toggle.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { mergeRichText } from '../shared/mergeRichText.js'
 
 const editorStyles=new URL('./toggle.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v-3a3 3 0 0 1 3-3h13m-3-3l3 3l-3 3"/><path d="M20 12v3a3 3 0 0 1-3 3H4m3 3l-3-3l3-3"/></svg>'
 const ICON_CHEVRON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6"/></svg>'
 let sequence=0
-
-function append(left,right){
-  if(!left)return right
-  if(!right)return left
-  return left+'<br>'+right
-}
 
 /**
  * Create the immutable Toggle v2 definition with model-owned open state.
@@ -33,10 +28,10 @@ export function createTogglePlugin(config = {}) {
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.title,context)&&isRichTextEmpty(data.content,context)}),
     merge:Object.freeze({
-      merge(target,source){
+      merge(target,source,context){
         return {
-          title:append(target.title,source.title),
-          content:append(target.content,source.content),
+          title:mergeRichText(target.title,source.title,context),
+          content:mergeRichText(target.content,source.content,context),
           open:target.open||source.open,
         }
       },

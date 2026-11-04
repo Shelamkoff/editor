@@ -9,16 +9,11 @@ import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { spoilerDataSchema } from '../../shared/blockSchemas/spoiler.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { mergeRichText } from '../shared/mergeRichText.js'
 
 const editorStyles=new URL('./spoiler.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828"/><path d="M16.681 16.673a8.717 8.717 0 0 1-4.681 1.327c-3.6 0-6.6-2-9-6 1.272-2.12 2.712-3.678 4.32-4.674m2.86-1.146a9.055 9.055 0 0 1 1.82-.18c3.6 0 6.6 2 9 6-.666 1.11-1.379 2.067-2.138 2.87"/><path d="M3 3l18 18"/></svg>'
 let sequence=0
-
-function append(left,right){
-  if(!left)return right
-  if(!right)return left
-  return left+'<br>'+right
-}
 
 /**
  * Create the immutable Spoiler v2 definition with transient disclosure state.
@@ -32,8 +27,8 @@ export function createSpoilerPlugin(config = {}) {
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.label,context)&&isRichTextEmpty(data.content,context)}),
     merge:Object.freeze({
-      merge(target,source){
-        return {label:append(target.label,source.label),content:append(target.content,source.content)}
+      merge(target,source,context){
+        return {label:mergeRichText(target.label,source.label,context),content:mergeRichText(target.content,source.content,context)}
       },
     }),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
