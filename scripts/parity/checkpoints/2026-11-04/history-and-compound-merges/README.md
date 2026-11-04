@@ -53,3 +53,6 @@ and declaration types, all 55 ordinary pages, external package consumer/assets,
 bundle, heap, docs and site pass. Only the two history rows are newly accepted;
 the compound repairs extend regression coverage of previously accepted rows.
 B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `f9eccb91`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
