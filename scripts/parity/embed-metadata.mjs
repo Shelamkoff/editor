@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
-import { readFile } from 'node:fs/promises'
+import { mkdtemp,readFile,writeFile,rm,mkdir } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { createServer } from 'node:http'
 import { extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -77,6 +78,7 @@ const server = createServer(async (request, response) => {
 })
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
 let browser
+const fileDirectory=await mkdtemp(join(tmpdir(),'rector-embed-metadata-'));let fileSequence=0
 const results = []
 try {
   browser = await chromium.launch({ ...(process.env.EDITOR_CHROME_PATH ? { executablePath: process.env.EDITOR_CHROME_PATH } : {}),
@@ -95,9 +97,10 @@ try {
           await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,x:params.x,y:params.y})
           await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:params.x,y:params.y})
           const chooser=await choosing
-          await chooser.element().evaluate(input=>{window.__embedFileChange=null;input.addEventListener('change',event=>{window.__embedFileChange={type:'change',trusted:event.isTrusted,name:input.files[0]?.name,mimeType:input.files[0]?.type,size:input.files[0]?.size,multiple:input.multiple}},{once:true})})
-          await chooser.setFiles({name:params.name,mimeType:params.mimeType,buffer:Buffer.from(params.base64,'base64')})
-          return page.evaluate(()=>window.__embedFileChange)
+          await chooser.element().evaluate(input=>{input.__embedFileChange=null;input.addEventListener('change',event=>{input.__embedFileChange={type:'change',trusted:event.isTrusted,name:input.files[0]?.name,mimeType:input.files[0]?.type,size:input.files[0]?.size,multiple:input.multiple}},{once:true,capture:true})})
+          assert.equal(params.name,'cover.png');assert.equal(params.mimeType,'image/png')
+          const directory=join(fileDirectory,String(++fileSequence));await mkdir(directory);const path=join(directory,params.name);await writeFile(path,Buffer.from(params.base64,'base64'));await chooser.setFiles(path)
+          return chooser.element().evaluate(input=>input.__embedFileChange)
         }
         if(method==='Input.prompt'){
           const response=new Promise(resolve=>page.once('dialog',async dialog=>{const observed={type:dialog.type(),message:dialog.message(),value:params.value};await dialog.accept(params.value);resolve(observed)}))
@@ -151,4 +154,5 @@ try {
 } finally {
   await browser?.close()
   await new Promise(resolve => server.close(resolve))
+  await rm(fileDirectory,{recursive:true,force:true})
 }
