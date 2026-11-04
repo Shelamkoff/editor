@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## Transaction atomicity — 2026-11-04
+
+Register: **144 accepted / 65 open / 209 total**. Accepted on `750e99ae`:
+`HISTORY_ATOMICITY`. Real internal store/engine rejection, projection faults,
+exact documents/history cursors, usable recovery and terminal denial pass.
+Literal oracle: 20 executions / 252 observations / 116 module identities;
+22 corruptions, all five affected gates and 14 separate native recovery
+cases pass. V1 has no engine module; its ten scenario bodies are unexecuted.
+Runtime is unchanged; prior full verification retains actual sources/dates.
+[Checkpoint](scripts/parity/checkpoints/2026-11-04/transaction-atomicity/README.md). Full readiness remains open.
+
 ## Paragraph split and merge — 2026-11-04
 
 Register: **143 accepted / 66 open / 209 total**. Accepted on `340297dc`:
