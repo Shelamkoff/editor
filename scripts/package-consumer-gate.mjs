@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { copyFile, mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -358,6 +359,20 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
 
   run(node, [viteCli, 'build'], consumerRoot)
   run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
+  await copyFile(join(editorRoot, 'scripts/package-public-exports.mjs'), join(consumerRoot, 'src/public-exports.mjs'))
+  const exportReport = JSON.parse(run(node, ['src/public-exports.mjs'], consumerRoot, { capture: true }))
+  const tarballBytes = await readFile(tarball)
+  const packageProof = {
+    ...exportReport,
+    tarball: basename(tarball),
+    tarballSha256: createHash('sha256').update(tarballBytes).digest('hex'),
+    tarballBytes: tarballBytes.length,
+  }
+  if (process.env.EDITOR_RESULTS_DIR) {
+    await copyFile(tarball, join(process.env.EDITOR_RESULTS_DIR, 'package-consumer.tgz'))
+    await writeJson(join(process.env.EDITOR_RESULTS_DIR, 'package-public-exports.json'), packageProof)
+  }
+  console.log(JSON.stringify({ publicExportContract: packageProof }))
   run(node, ['--input-type=module', '-e', `
     import assert from 'node:assert/strict'
     const renderer = await import('@shelamkoff/rector/renderer')

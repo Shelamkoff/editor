@@ -8,6 +8,10 @@ export const asyncPresetCases=[
  ...['plugin','renderer'].map(target=>({id:'catalog/'+target,kind:'catalog',target})),
  {id:'snapshot/plugin',kind:'snapshot',target:'plugin'},
  {id:'snapshot/renderer',kind:'snapshot',target:'renderer'},
+ ...['plugin-load','plugin-preload','plugin-create','renderer-load','renderer-create','renderer-preload','renderer-map'].flatMap(operation=>['missing','constructor'].map(type=>({id:'invalid/'+operation+'/'+type,kind:'invalid',operation,type,input:'unknown'}))),
+ ...bulk.flatMap(operation=>['versionless','legacy-version','bad-schema','sparse-list'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
+ ...['plugin-preload','plugin-create','renderer-map'].flatMap(operation=>['config-map','config-entry'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
+ ...['renderer-create','renderer-map'].flatMap(operation=>['prefix','locale'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
 ]
 function documentInput(legacy,unknown=false){return{version:legacy?'1.0.5':'2.0.0',blocks:[{id:'p',type:'paragraph',...(!legacy?{dataVersion:2}:{}),data:{text:'Alpha'}},...(unknown?[{id:'opaque',type:'not-installed',...(!legacy?{dataVersion:9}:{}),data:{value:'Opaque'}}]:[]),{id:'d',type:'delimiter',...(!legacy?{dataVersion:1}:{}),data:{}},{id:'p2',type:'paragraph',...(!legacy?{dataVersion:2}:{}),data:{text:'Bravo'}}]}}
 export async function runAsyncPresetCase({sourceBase,legacy,spec}){
@@ -26,7 +30,16 @@ export async function runAsyncPresetCase({sourceBase,legacy,spec}){
  window.addEventListener('unhandledrejection',reject)
  let error=null,callError=null,source,holder,editor
  try{
-  if(spec.kind==='orphan'){
+  if(spec.kind==='invalid'){
+   source=spec.input==='unknown'?['paragraph',spec.type]:spec.input==='sparse-list'?Array(1):['config-map','config-entry','prefix','locale'].includes(spec.input)?['paragraph']:documentInput(legacy)
+   if(spec.input==='versionless')delete source.version
+   else if(spec.input==='legacy-version')source.version='0.9.0'
+   else if(spec.input==='bad-schema')source.blocks=[{id:'e',type:'embed',...(!legacy?{dataVersion:1}:{}),data:{service:'foreign',videoId:'12345',caption:'',cover:'',title:'',duration:''}}]
+   const caller=structuredClone(source),config=spec.input==='config-map'?'invalid':spec.input==='config-entry'?{paragraph:null}:{}
+   const invoke=()=>spec.input==='prefix'?(spec.operation==='renderer-create'?renderers.createRendererAsync('paragraph',42):renderers.createDefaultRenderersAsync(42,{},source)):spec.input==='locale'?(spec.operation==='renderer-create'?renderers.createRendererAsync('paragraph','async-proof',[]):renderers.createDefaultRenderersAsync('async-proof',[],source)):operation(source,config)
+   const pending=invoke();check('invoke','caller',source,caller);completedPhases.push('invoke');try{await pending}catch(e){callError={name:e.name,message:e.message}}
+   check('settle','rejected',callError!==null,true);check('settle','errorName',callError?.name??null,['unknown','sparse-list'].includes(spec.input)?'RangeError':'TypeError');check('settle','caller',source,caller);check('settle','unhandled',unhandled,[]);completedPhases.push('settle')
+  }else if(spec.kind==='orphan'){
    const earlier=new Error('Earlier nested config failure'),later=new Error('Later config failure');let reads=0
    const config={paragraph:{actions:[Object.defineProperty({},'label',{enumerable:true,get(){reads++;throw earlier}})]}}
    if(spec.later==='invalid-shape')config.heading=null;else Object.defineProperty(config,'heading',{get(){throw later}})
