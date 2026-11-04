@@ -309,6 +309,8 @@ export class SlashCommandController {
     const session = this.#session
     const version = this.#itemsVersion
     if (!session || this.#controller.signal.aborted) return
+    // A focused menu item owns auxiliary text, not a new author selection.
+    if (this.#menu.contains(this.#document.activeElement)) return
     const valid = this.#sessionIsCurrent()
     // Field resolution can publish a successor while checking this selection.
     if (!valid && this.#session === session && this.#itemsVersion === version
