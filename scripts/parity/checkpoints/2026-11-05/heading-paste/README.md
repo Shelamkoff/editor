@@ -40,3 +40,6 @@ and all fifteen final integration gates on `c58523cc` with their original
 sources/dates and separately recorded earlier Node compatibility failure.
 Only this Heading paste row is newly accepted; broader clipboard obligations,
 B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `f882ca68`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
