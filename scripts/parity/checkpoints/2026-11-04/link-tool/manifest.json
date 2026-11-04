@@ -1,0 +1,1611 @@
+{
+  "candidate": "3f3140578b19733895bf269b44840869aa491084",
+  "tree": "5e86931a3828b82272932b3004efc791c63d8095",
+  "sourceIdentity": "ca16a1b31aaf4559244385e5dc4e756d2d17b6d782eff391869d576905404e10",
+  "productionBasis": "4727534d3df182ba0fe0ae37580d1641083c35f4",
+  "productionChange": false,
+  "integration": {
+    "source": "0a0250eed34368ede59036c5601daa0a9da0533f",
+    "directory": "run-oZdJyO",
+    "outcome": "failed",
+    "gates": 8,
+    "passed": 6,
+    "failed": [
+      "proof"
+    ],
+    "notRun": [
+      "controls"
+    ],
+    "startedAt": "2026-11-04T12:53:07.851Z",
+    "finishedAt": "2026-11-04T12:59:02.584Z"
+  },
+  "reviewFollowup": {
+    "source": "3f3140578b19733895bf269b44840869aa491084",
+    "directory": "run-Cc8Mwd",
+    "outcome": "passed",
+    "gates": 2,
+    "startedAt": "2026-11-04T12:59:19.214Z",
+    "finishedAt": "2026-11-04T13:02:54.360Z",
+    "change": "Only the reviewer environment rule changes to validate the actual blocked HTTP antivirus script, its exact host/path and sole bounded attr query. Public browser cases rerun unchanged."
+  },
+  "currentCases": 146,
+  "currentObservations": 8988,
+  "casesPerPolicy": 73,
+  "observationsPerPolicy": 4494,
+  "moduleIdentities": 338,
+  "results": {
+    "v1/compatible": {
+      "cases": 73,
+      "observations": 4076,
+      "differences": [
+        {
+          "id": "apply/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/cross/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/fields/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/cross/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/cross/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/fields/Text/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/fields/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "nested/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "cancel/back/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "cancel/escape/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "empty/apply/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "empty/enter/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "relink/single/Text/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "relink/single/Text/backward",
+          "phase": "relink",
+          "property": "selection"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "phase": "relink",
+          "property": "selection"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "action",
+          "property": "selection"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "relink",
+          "property": "selection"
+        },
+        {
+          "id": "lifetime/mode",
+          "phase": "live",
+          "property": "selection"
+        },
+        {
+          "id": "lifetime/destroy",
+          "phase": "live",
+          "property": "selection"
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "atomic/plain/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Public link control not visible tool"
+        },
+        {
+          "id": "atomic/plain/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "prepare-redo",
+            "selection"
+          ],
+          "error": "Error: Public link control not visible tool"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Public link control not visible tool"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Public link control not visible tool"
+        },
+        {
+          "id": "lifetime/render",
+          "completedPhases": [
+            "load"
+          ],
+          "error": "Error: Hidden lifetime Link control fresh-tool"
+        }
+      ],
+      "pageErrors": []
+    },
+    "spec-baseline/compatible": {
+      "cases": 73,
+      "observations": 3798,
+      "differences": [
+        {
+          "id": "apply/single/Element/forward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "apply/cross/Element/forward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "apply/fields/Element/forward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "enter/single/Element/forward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "enter/cross/Element/forward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "enter/fields/Element/forward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "phase": "action",
+          "property": "panelOpened"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/single/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/single/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "unlink/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/single/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/single/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/cross/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/cross/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/fields/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "mixed/fields/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "nested/single/Element/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "undo-action",
+          "property": "canonical"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "undo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "undo-action",
+          "property": "visible"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "redo-action",
+          "property": "meaning"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "redo-action",
+          "property": "visible"
+        },
+        {
+          "id": "nested/single/Element/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "phase": "relink",
+          "property": "panelOpened"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "action",
+          "property": "meaning"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "action",
+          "property": "visible"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "phase": "relink",
+          "property": "panelOpened"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "action",
+          "property": "widgetLinks"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "undo-input",
+          "property": "canonical"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "undo-input",
+          "property": "meaning"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "undo-input",
+          "property": "visible"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "undo-input",
+          "property": "history"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "redo-action",
+          "property": "widgetLinks"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "atomic/linked/forward",
+          "phase": "redo-action",
+          "property": "diagnostics"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "action",
+          "property": "widgetLinks"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "action",
+          "property": "producerCalls"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "action",
+          "property": "actions"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "undo-action",
+          "property": "history"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "undo-input",
+          "property": "canonical"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "undo-input",
+          "property": "meaning"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "undo-input",
+          "property": "visible"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "undo-input",
+          "property": "history"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "redo-input",
+          "property": "history"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "redo-action",
+          "property": "widgetLinks"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "redo-action",
+          "property": "actions"
+        },
+        {
+          "id": "atomic/linked/backward",
+          "phase": "redo-action",
+          "property": "diagnostics"
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "apply/single/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "apply/single/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "apply/cross/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "apply/cross/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "apply/fields/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "apply/fields/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "enter/single/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "enter/single/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "enter/cross/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "enter/cross/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "enter/fields/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "enter/fields/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection"
+          ],
+          "error": "Error: Missing public link control url"
+        },
+        {
+          "id": "relink/single/Element/forward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection",
+            "action"
+          ],
+          "error": "Error: Missing public link control relink-url"
+        },
+        {
+          "id": "relink/single/Element/backward",
+          "completedPhases": [
+            "load",
+            "input",
+            "selection",
+            "action"
+          ],
+          "error": "Error: Missing public link control relink-url"
+        }
+      ],
+      "pageErrors": [
+        "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:56620/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.undo (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:272:31)\n    at DocumentRuntime.undo (http://127.0.0.1:56620/spec-baseline/core/DocumentRuntime.js:763:25)",
+        "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:56620/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.undo (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:272:31)\n    at DocumentRuntime.undo (http://127.0.0.1:56620/spec-baseline/core/DocumentRuntime.js:763:25)",
+        "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:56620/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.undo (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:272:31)\n    at DocumentRuntime.undo (http://127.0.0.1:56620/spec-baseline/core/DocumentRuntime.js:763:25)",
+        "Error: Inline widget root left its projection boundary before hydration\n    at #hydrateField (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:788:17)\n    at #projectState (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:603:25)\n    at InlineProjectionRuntime.reconcileBlock (http://127.0.0.1:56620/spec-baseline/core/InlineProjectionRuntime.js:99:27)\n    at Object.apply (http://127.0.0.1:56620/spec-baseline/core/BlockReconciler.js:466:36)\n    at #replayObserved (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:331:34)\n    at http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:80\n    at #observeCommand (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:500:14)\n    at #replay (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:298:32)\n    at TransactionEngine.undo (http://127.0.0.1:56620/spec-baseline/core/TransactionEngine.js:272:31)\n    at DocumentRuntime.undo (http://127.0.0.1:56620/spec-baseline/core/DocumentRuntime.js:763:25)"
+      ]
+    },
+    "candidate/compatible": {
+      "cases": 73,
+      "observations": 4494,
+      "differences": [],
+      "incomplete": [],
+      "pageErrors": []
+    },
+    "candidate/trusted": {
+      "cases": 73,
+      "observations": 4494,
+      "differences": [],
+      "incomplete": [],
+      "pageErrors": []
+    }
+  },
+  "nativeCases": 147,
+  "corruptionsRejected": 24,
+  "defaultNativePageInventory": 88,
+  "precedingNativeInventoryRecount": {
+    "reported": 85,
+    "actual": 86
+  },
+  "precedingAcceptedRuntime": {
+    "source": "cce91235ac53433e0150954a1a4020739e3ba7ef",
+    "acceptance": "e005a7595dc45e59c5d449b3a1ea00943a15eb75",
+    "productionBasis": "4727534d3df182ba0fe0ae37580d1641083c35f4",
+    "passedProductGates": 9,
+    "nodePassed": 2214,
+    "nodeSkipped": 3,
+    "ordinaryPages": 55,
+    "bundleKiBGzip": 95.8,
+    "budgetKiB": 96
+  },
+  "exploratoryAttempts": {
+    "first": "Four Text-forward cases pass on all sources.",
+    "expanded": "52 cases retain old selection/admission/replay differences; current passes.",
+    "cancel": "62 cases add cancellation and empty URL with pending Redo; current passes.",
+    "relink": "Four focused Unlink then Apply cases preserve the improved one-click current unlink behavior.",
+    "atomic": "The first fixture mistakenly unlinked unrelated Alpha/Bravo in its expected graph. Excluded oracle error; exact original bytes retained.",
+    "atomicFixed": "Four focused widget-only cases pass on current. v1 named tool is hidden; baseline linked-widget Undo throws. Neither is simulated.",
+    "lifetime": "Three focused retained-button cases; current passes, old direction loss and post-render hidden toolbar retained.",
+    "complete": "All 73 cases, independent current literal model passes; predecessor raw/source hashes retained."
+  },
+  "scope": "Current observations are checked by independent literal unit, canonical shape, sidecar, selection, native delivery, history and retired authority models. Historical graphs retain every difference and incomplete real action, with normalized diagnostic timestamps and server ports only. Missing legacy observer ports are not simulated. Runtime bytes equal the preceding accepted async/package checkpoint; this checkpoint changes tests and evidence only.",
+  "registerBefore": {
+    "accepted": 130,
+    "open": 79
+  },
+  "registerAfter": {
+    "accepted": 131,
+    "open": 78
+  },
+  "acceptedRows": [
+    "TOOL_LINK_ACTION"
+  ],
+  "register": {
+    "accepted": 131,
+    "open": 78
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}
