@@ -1,0 +1,316 @@
+{
+  "status": "PASS",
+  "candidate": "f8616442313695c875658aab6217272e2d9669c6",
+  "runtimeBasis": "5a5030eccd92d72dc04365dc7f828ed0a9732443",
+  "parent": "23f010c45a1fb1f4d34ce086e035aed0e9683ae0",
+  "red": "f081857448c7813696c46c563cf4321864d68e9c",
+  "currentCases": 12,
+  "currentObservations": 346,
+  "casesPerPolicy": 6,
+  "observationsPerPolicy": 173,
+  "moduleIdentities": 470,
+  "results": {
+    "spec-baseline/compatible": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "plugin.paragraph/echo"
+        },
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "inlinePlugin.color/echo"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "addLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "tuneLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "typeName"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "toolbox",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "slash",
+          "property": "labels"
+        }
+      ],
+      "blockedEnvironmentRequests": 1
+    },
+    "parent/compatible": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "plugin.paragraph/echo"
+        },
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "inlinePlugin.color/echo"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "addLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "tuneLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "typeName"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "toolbox",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "slash",
+          "property": "labels"
+        }
+      ],
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [],
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [],
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "redResults": {
+    "spec-baseline/compatible": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "plugin.paragraph/echo"
+        },
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "inlinePlugin.color/echo"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "addLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "tuneLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "typeName"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "toolbox",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "slash",
+          "property": "labels"
+        }
+      ],
+      "blockedEnvironmentRequests": 1
+    },
+    "parent/compatible": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "plugin.paragraph/echo"
+        },
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "inlinePlugin.color/echo"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "addLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "tuneLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "typeName"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "toolbox",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "slash",
+          "property": "labels"
+        }
+      ],
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "plugin.paragraph/echo"
+        },
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "inlinePlugin.color/echo"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "addLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "tuneLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "typeName"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "toolbox",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "slash",
+          "property": "labels"
+        }
+      ],
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 6,
+      "observations": 173,
+      "differences": [
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "plugin.paragraph/echo"
+        },
+        {
+          "id": "literal-key/public-runtime-contexts",
+          "phase": "create",
+          "property": "inlinePlugin.color/echo"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "addLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "load",
+          "property": "tuneLabel"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "typeName"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "inline",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "toolbox",
+          "property": "labels"
+        },
+        {
+          "id": "menus/literal",
+          "phase": "slash",
+          "property": "labels"
+        }
+      ],
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "redModuleIdentities": 470,
+  "rawSha256": "7235aff7755fb260203b9429da8bff44b1ca5b506d6bef95c62e6b3698dc186a",
+  "redRawSha256": "9a658d36123ac12aa684aa397b877cc72a2206de5c1999a9891e4abc3efd9ef6",
+  "reviewerSha256": "7ee11a63b4e04a7f76dd865e915928884c2b4535e76c8f07f2975564dead9557",
+  "identityHelperSha256": "6a636b99ce42abdeeac5f740b16f833b1698a47afeecf16bf5400cb850983829",
+  "scope": "Public block/inline translation contexts, explicit key-equal and empty translations, missing fallback, literal interpolation and plural-object other form. Default/bundled/regional/custom labels retain actual native toolbox and slash action IDs and exact history. The immutable pre-fix parent executes the identical final fixture. Original RED differs only by returning its already observed diagnostic array. The absent legacy v1 definition/runtime context contract is not emulated. Existing plural/interpolation/catalog unit tests remain explicit controls."
+}

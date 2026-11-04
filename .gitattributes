@@ -266,3 +266,4 @@ scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.py text eol=lf
 scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.json -text
 scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.gz -text
+scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.tgz -text
