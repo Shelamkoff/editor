@@ -2,9 +2,46 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **138 / 209 obligations**, with **71 open**; see the [compound residual acceptance](/architecture/rector-v2/PUBLICATION_REVIEW#compound-residual-cut-merge-and-conversion-2026-11-04). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **140 / 209 obligations**, with **69 open**; see the [rich disclosure fields](/architecture/rector-v2/PUBLICATION_REVIEW#toggle-and-spoiler-rich-fields-2026-11-04). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Toggle and Spoiler rich fields 2026-11-04
+
+`BLOCK_TOGGLE_FIELDS` and `BLOCK_SPOILER_FIELDS` are accepted on `2c4f35d3`:
+**140/209 obligations accepted, 69 open**. All **seven affected gates** pass on
+one clean unchanged source. [Exact evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-04/disclosure-fields/README.md) verifies **56 current
+executions / 2,236 observations**, **465 module identities** and **24 rejected
+corruptions**. No production repair is needed.
+
+Actual Toggle title/content and Spoiler label/content fields preserve native
+caret insertion, backward replacement and cross-field Bold apply/remove.
+Text and Element boundaries in both directions retain unselected marks,
+separate Color references, labels/dots, authored breaks, nodes and caller data.
+Native selection positions and direction are checked after action, Undo and
+Redo. Empty-field deletion cannot discard its nonempty sibling. Saved data
+opens in a real read-only editor with unchanged widgets and no author history.
+Native conceal/reveal preserves all rich data: Toggle starts open for this
+fixture, while the read-only Spoiler correctly starts closed.
+
+The literal rich-field oracle remains unchanged at `373ce247`; only expected
+document type/field names and Toggle's authored open value map to these types.
+The actual factories/classes run unchanged. Every historical case completes
+without page errors. v1 retains **144 differences**, baseline **56**, parent
+zero. Current improvements are preserved, and absent legacy observation APIs
+remain explicit limitations. Real save timestamps are bounded by the run.
+
+Native **28 + 29** cases and **18 existing disclosure cases** pass, totaling
+**75**. The native inventory is **100 pages**. Runtime bytes exactly match
+`54e04b11`, retaining its fifteen passing integration gates and 192 verified
+Git artifacts, including Node/types, all ordinary pages, package, bundle and
+heap checks with their original source/date. Docs/site pass. Only these two
+field rows are newly accepted; B-HTML and full readiness remain open.
+
+Exact exploratory fixtures/results are retained. Their field-name shadowing,
+schema-key order, initial reader visibility and placement of the selection
+assertion were test mistakes, corrected without production changes. The final
+independent model checks every observation and trusted event.
 
 ## Compound residual cut merge and conversion 2026-11-04
 

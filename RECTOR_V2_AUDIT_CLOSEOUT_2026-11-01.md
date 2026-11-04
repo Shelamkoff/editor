@@ -1,5 +1,15 @@
 # Rector v2 audit closeout — active work
 
+## Toggle and Spoiler rich fields — 2026-11-04
+
+Register: **140 accepted / 69 open / 209 total**. Accepted on `2c4f35d3`:
+`BLOCK_TOGGLE_FIELDS`, `BLOCK_SPOILER_FIELDS`. Native rich edits, directed
+formatting, exact native selection/history, widgets and read-only conceal/reveal
+pass. Literal oracle: 56 executions / 2,236 observations / 465 module identities;
+24 corruptions, all seven affected gates and 75 native cases pass. Runtime is
+unchanged from `54e04b11` and its full fifteen-gate integration. The inventory
+is 100 native pages. [Checkpoint](scripts/parity/checkpoints/2026-11-04/disclosure-fields/README.md). Full readiness remains open.
+
 ## Compound residual acceptance — 2026-11-04
 
 Register: **138 accepted / 71 open / 209 total**. Accepted on `54e04b11`:
