@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## List item editing 2026-11-05
+
+Register: **150 accepted / 59 open / 209 total**.
+
+[List item editing](/architecture/rector-v2/PUBLICATION_REVIEW#list-item-editing-2026-11-05) is accepted on `c2236390`: repaired cross-item Enter retains endpoint IDs and suffix focus; rich split/merge/exit and exact directed replay pass. Evidence: 72 executions / 1440 observations, 24 corruptions, all fifteen final gates and 214 native cases.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/list-edit/README.md). Full readiness remains open.
+
 ## Heading rich paste — 2026-11-05
 
 Register: **149 accepted / 60 open / 209 total**. Accepted on `174cc8f6`:

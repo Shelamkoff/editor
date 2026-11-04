@@ -1,0 +1,18 @@
+# List item editing 2026-11-05
+
+**Accepted: BLOCK_LIST_ITEM_EDIT.**
+Register: **150 accepted / 59 open / 209 total**. Tested source: `c2236390b1610ae7807b70dd718475cdf8aeb291`.
+
+`BLOCK_LIST_ITEM_EDIT` is accepted on `c2236390`: **150/209 obligations accepted, 59 open**. All **fifteen final integration gates** pass on one clean unchanged source. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/list-edit/README.md): **72 current executions / 1,440 observations**, **407 module identities**, **24 rejected corruptions**.
+
+Thirty-six cases cover ordered/unordered rich item splitting at four boundaries, forward/backward selected text and widgets, Backspace at both supported item joins, plain/BR/formatting-empty sole and final exits, and cross-item Enter. Literal text, marks, style, sidecars, stable/fresh IDs, neighboring DOM, native caret/direction and exact raw keyboard Undo/Redo are required. Only visually empty b/i/BR representation is neutral; raw replay stays exact.
+
+The immutable parent reproduces four cross-item defects / sixteen observations: Enter preserves both rich residual items but invents an empty Paragraph after the List and moves focus there. The repair adds optional synchronous `selectionSlice.split`, captured once with its receiver by the registry. List and Checklist own that boundary, retain both endpoint IDs and checks and focus the surviving suffix at offset zero. Core validates data/focus before committing one action; absent/null capability retains the default split. Keyboard failure containment prevents native fallback after a rejected preparation.
+
+Native supplemental cases verify both Checklist directions with marks/widget/checks and four rejected hooks: throw, Promise, invalid focus and duplicate item IDs. Each rejection preserves canonical data, DOM and history, with exact transaction/keyboard diagnostics. The English/Russian List field tables now describe identified objects and valid empty canonical states, matching the actual schema and save output.
+
+All 36 cases complete on every reference without page/input errors. v1 retains **92 differences**, baseline **20**, immutable parent **16**, and both current policies zero. Missing old observers/stable item IDs are explicit. The first prototype incorrectly expected focus at the range's focus endpoint and a fresh suffix ID; the corrected expectation retains the actual anchor focus and original suffix ID. The first repair attempt omitted registry capture, and its parent label also pointed to the repair commit; exact sources/results remain archived without claiming an independent pre-fix comparison there.
+
+The first full integration and its independent same-source checker follow-up remain separately recorded. Its historical-coordinate verifier and diagnostic-count expectations required correction before the final run. Initial uncommitted focused logs include a corrected test syntax error; they do not claim immutable executed-source snapshots. Canonical full Node evidence records its actual clean source.
+
+Final validation includes 2,230 passing Node tests / 3 skipped in 201 files, 297 declarations with zero source diagnostics, seven declaration tests, all 55 ordinary browser pages, **214 native cases**, package/assets, enforced bundle and heap budgets, and documentation/site checks. Native inventory is **118 pages**. Exact gate logs and compressed artifacts retain their source/date; any initial failure is not relabeled. Only the item-edit obligation is newly accepted; partial conversion, broader keyboard/clipboard obligations, B-HTML and full readiness remain open.
