@@ -16,3 +16,6 @@ All 36 cases complete on every reference without page/input errors. v1 retains *
 The first full integration and its independent same-source checker follow-up remain separately recorded. Its historical-coordinate verifier and diagnostic-count expectations required correction before the final run. Initial uncommitted focused logs include a corrected test syntax error; they do not claim immutable executed-source snapshots. Canonical full Node evidence records its actual clean source.
 
 Final validation includes 2,230 passing Node tests / 3 skipped in 201 files, 297 declarations with zero source diagnostics, seven declaration tests, all 55 ordinary browser pages, **214 native cases**, package/assets, enforced bundle and heap budgets, and documentation/site checks. Native inventory is **118 pages**. Exact gate logs and compressed artifacts retain their source/date; any initial failure is not relabeled. Only the item-edit obligation is newly accepted; partial conversion, broader keyboard/clipboard obligations, B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `28fa6ce0`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
