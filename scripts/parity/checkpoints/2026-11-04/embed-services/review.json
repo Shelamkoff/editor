@@ -1,0 +1,492 @@
+{
+  "status": "PASS",
+  "candidate": "22cf46f010900529d0e63827d9d3da5088383749",
+  "runtimeBasis": "e8b2cd8fa902e1bbfbc0422df13576be4aea619f",
+  "currentCases": 102,
+  "currentObservations": 1184,
+  "casesPerPolicy": 51,
+  "observationsPerPolicy": 592,
+  "historicalCommonCases": 39,
+  "unavailableLegacyInsertCases": 12,
+  "moduleIdentities": 470,
+  "results": {
+    "v1/compatible": {
+      "cases": 39,
+      "observations": 424,
+      "differences": [
+        {
+          "id": "unknown-host",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "unknown-host",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "unknown-host",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "unknown-host",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "unknown-host",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "lookalike-host",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "lookalike-host",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "lookalike-host",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "lookalike-host",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "lookalike-host",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "userinfo-host",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "userinfo-host",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "userinfo-host",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "userinfo-host",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "userinfo-host",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "script-scheme",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "script-scheme",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "script-scheme",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "script-scheme",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "script-scheme",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "relative-url",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "relative-url",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "relative-url",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "relative-url",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "relative-url",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "youtube-missing-id",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "youtube-missing-id",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "youtube-missing-id",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "youtube-missing-id",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "youtube-missing-id",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "youtube-short-id",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "youtube-short-id",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "youtube-short-id",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "youtube-short-id",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "youtube-short-id",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "youtube-long-id",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "youtube-long-id",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "youtube-long-id",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "youtube-long-id",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "youtube-long-id",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "youtube-bad-id",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "youtube-bad-id",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "youtube-bad-id",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "youtube-bad-id",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "youtube-bad-id",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "youtube-wrong-path",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "youtube-wrong-path",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "youtube-wrong-path",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "youtube-wrong-path",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "youtube-wrong-path",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "vimeo-bad-id",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "vimeo-bad-id",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "vimeo-bad-id",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "vimeo-bad-id",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "vimeo-bad-id",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "vimeo-missing-id",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "vimeo-missing-id",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "vimeo-missing-id",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "vimeo-missing-id",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "vimeo-missing-id",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "prototype-host",
+          "phase": "submit",
+          "property": "history"
+        },
+        {
+          "id": "prototype-host",
+          "phase": "play",
+          "property": "history"
+        },
+        {
+          "id": "prototype-host",
+          "phase": "replay",
+          "property": "before"
+        },
+        {
+          "id": "prototype-host",
+          "phase": "replay",
+          "property": "undoStates"
+        },
+        {
+          "id": "prototype-host",
+          "phase": "replay",
+          "property": "redoStates"
+        },
+        {
+          "id": "schema/unknown",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/unknown",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/prototype",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/prototype",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/constructor",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/constructor",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/to-string",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/to-string",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/youtube-short",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/youtube-short",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/youtube-long",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/youtube-long",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/youtube-symbol",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/youtube-symbol",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/vimeo-word",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/vimeo-word",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/vimeo-negative",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/vimeo-negative",
+          "phase": "create",
+          "property": "holderEmpty"
+        },
+        {
+          "id": "schema/vimeo-decimal",
+          "phase": "create",
+          "property": "rejected"
+        },
+        {
+          "id": "schema/vimeo-decimal",
+          "phase": "create",
+          "property": "holderEmpty"
+        }
+      ],
+      "mediaDocuments": 16,
+      "unavailableInsertCases": 12,
+      "blockedEnvironmentRequests": 1
+    },
+    "spec-baseline/compatible": {
+      "cases": 51,
+      "observations": 592,
+      "differences": [],
+      "mediaDocuments": 28,
+      "unavailableInsertCases": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 51,
+      "observations": 592,
+      "differences": [],
+      "mediaDocuments": 28,
+      "unavailableInsertCases": 0,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 51,
+      "observations": 592,
+      "differences": [],
+      "mediaDocuments": 28,
+      "unavailableInsertCases": 0,
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "inheritedIntegration": {
+    "acceptance": "e2c8c74632434e7f36d467256656cf9b957e0ed9",
+    "source": "14466a7d84846c2b5549e1f9e39b4141cd3b9820",
+    "sourceIdentity": "61cddfd96df249d77b7d69bc07e28bfddd46948864306cedeb155e9ee3b4d93f",
+    "gates": 18,
+    "outcome": "passed",
+    "canonicalNodeFiles": 197,
+    "nodePassed": 2208,
+    "nodeSkipped": 3,
+    "ordinaryPages": 55,
+    "selectedNativeCases": 271,
+    "navigationCases": 50,
+    "bundleKiBGzip": 95.6,
+    "budgetKiB": 96,
+    "heapSentinels": 23,
+    "heapRetained": 0
+  },
+  "rawSha256": "f5ea60f033da3ae073876c485b483a3c269c5ed941800fa2a0e24d265fcc398b",
+  "reviewerSha256": "e605d2a5b942a4d851d87b263c94e615659fcfd4307d6ff8e2e543c4479e72a9",
+  "transport": "Only literal expected YouTube/Vimeo iframe document URLs are requested; their responses are inert test content. No real provider is contacted. Known blocked environmental script attempts remain separately recorded."
+}

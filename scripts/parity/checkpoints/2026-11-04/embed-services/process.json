@@ -1,0 +1,6 @@
+{
+  "exitCode": 1,
+  "signal": null,
+  "expectedExitCode": 1,
+  "reason": "The 85 real legacy validation/history differences remain raw. The independent model requires every current compatible/enforced-policy case to pass."
+}
