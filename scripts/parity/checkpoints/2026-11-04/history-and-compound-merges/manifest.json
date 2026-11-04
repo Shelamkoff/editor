@@ -1,0 +1,4051 @@
+{
+  "candidate": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+  "tree": "719c2ab2aaf8f8be4e8c9231b2b73fd5e3236fab",
+  "sourceIdentity": "c3e88685a5a132a73ab44bf4fbd38d9707134f3b713bd28e891e2b792e39fd27",
+  "parents": {
+    "compound": "701cd0ad2402618cdb09503e7eee2e520a027ede",
+    "history": "2c4f35d3665f1c28c53d0b89dd610df3a1ec4db2"
+  },
+  "redSource": "788d96efc38b67c99cbd2ed0db4c7997f6a3af06",
+  "productionBasis": "9e09b3d97b5056af1f0d135dfdcf93dd4a4ab6ab",
+  "productionChanged": true,
+  "integration": {
+    "source": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+    "directory": "run-J6UHgX",
+    "outcome": "reconciled",
+    "initialOutcome": "failed",
+    "gates": 16,
+    "passedGates": 15,
+    "failedGates": [
+      "native-controls"
+    ]
+  },
+  "nativeFollowup": {
+    "source": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+    "directory": "run-rDyypP",
+    "outcome": "passed",
+    "gates": 2
+  },
+  "requiredGatesSatisfied": true,
+  "groups": [
+    {
+      "status": "PASS",
+      "candidate": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+      "parent": "701cd0ad2402618cdb09503e7eee2e520a027ede",
+      "group": "compound-merge",
+      "currentCases": 224,
+      "currentObservations": 2688,
+      "moduleIdentities": 441,
+      "identityReviewerSha256": "cac909753ad416c5b28c18c6b0e70c7de9af6969fa4531b389657abd37af3eec",
+      "rawSha256": "faf651199f7d0a793d46ad11f6e2eb89629137c0f847bb59ade5832fc1381f12",
+      "reviewerSha256": "ce27a7c09d7167d73033e03330153bc74e4aea990b98709de720d8228eaafc20",
+      "results": [
+        {
+          "source": "v1",
+          "trustedPolicy": false,
+          "cases": 112,
+          "observations": 1344,
+          "differences": [
+            [
+              "warning/source/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/first-plain/Backspace",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/first-plain/Backspace",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/first-plain/Backspace",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/last-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/last-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/last-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/last-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/last-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/last-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/both-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/both-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/both-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/source/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/both-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/source/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/source/both-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/source/both-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/target/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/target/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/target/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/target/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/target/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/target/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "warning/target/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "warning/target/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "warning/target/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/both-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "warning/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/first-plain/Backspace",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/first-plain/Backspace",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/first-plain/Backspace",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/last-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/last-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/both-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/both-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/both-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/source/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/both-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/source/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/source/both-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/source/both-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/target/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/target/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/target/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/target/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/target/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/target/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "quote/target/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "quote/target/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "quote/target/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/both-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "quote/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-plain/Backspace",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/first-plain/Backspace",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/first-plain/Backspace",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/last-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/last-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/both-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/both-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/both-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/source/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/both-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/source/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/source/both-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/source/both-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/target/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/target/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/target/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/target/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/target/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/target/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "toggle/target/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/both-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "toggle/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-plain/Backspace",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/first-plain/Backspace",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/first-plain/Backspace",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/last-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/last-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/both-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/both-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/both-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/source/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/both-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/source/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/source/both-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/source/both-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/target/rich/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/rich/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/rich/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/rich/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/target/rich/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/rich/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/target/rich/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/target/first-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/first-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-plain/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/target/first-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/first-plain/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/target/first-plain/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "merge",
+              "history"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "undo",
+              "history"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "redo",
+              "history"
+            ],
+            [
+              "spoiler/target/last-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/last-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-mark/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/both-plain/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-plain/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/both-plain/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-plain/Delete",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-mark/Backspace",
+              "merge",
+              "widgetCount"
+            ],
+            [
+              "spoiler/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-mark/Delete",
+              "merge",
+              "widgetCount"
+            ]
+          ]
+        },
+        {
+          "source": "spec-baseline",
+          "trustedPolicy": false,
+          "cases": 112,
+          "observations": 1344,
+          "differences": [
+            [
+              "warning/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "warning/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ]
+          ]
+        },
+        {
+          "source": "parent",
+          "trustedPolicy": false,
+          "cases": 112,
+          "observations": 1344,
+          "differences": [
+            [
+              "quote/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "quote/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "toggle/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/source/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/first-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/last-mark/Delete",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-mark/Backspace",
+              "merge",
+              "canonical"
+            ],
+            [
+              "spoiler/target/both-mark/Delete",
+              "merge",
+              "canonical"
+            ]
+          ]
+        },
+        {
+          "source": "candidate",
+          "trustedPolicy": false,
+          "cases": 112,
+          "observations": 1344,
+          "differences": []
+        },
+        {
+          "source": "candidate",
+          "trustedPolicy": true,
+          "cases": 112,
+          "observations": 1344,
+          "differences": []
+        }
+      ],
+      "scope": "Independent literal rich-field documents, identities, both widget payloads/presentation and trusted event histories. Quote adjacent Bold words retain canonical normalization and its text concatenation contract; empty caption/compound fields add no line breaks. Clipboard private parts contain selected fields only."
+    },
+    {
+      "status": "PASS",
+      "candidate": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+      "parent": "701cd0ad2402618cdb09503e7eee2e520a027ede",
+      "group": "compound-cut-merge",
+      "currentCases": 16,
+      "currentObservations": 288,
+      "moduleIdentities": 441,
+      "identityReviewerSha256": "cac909753ad416c5b28c18c6b0e70c7de9af6969fa4531b389657abd37af3eec",
+      "rawSha256": "79ddcb44007ce79f2b24ee3e38facb52d03ebdce6e3f77fb66ed187973377c0d",
+      "reviewerSha256": "ce27a7c09d7167d73033e03330153bc74e4aea990b98709de720d8228eaafc20",
+      "results": [
+        {
+          "source": "v1",
+          "trustedPolicy": false,
+          "cases": 8,
+          "observations": 144,
+          "differences": [
+            [
+              "warning/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "warning/forward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "warning/forward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "warning/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "warning/backward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "warning/backward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "quote/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "quote/forward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "quote/forward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "quote/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "quote/backward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "quote/backward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "toggle/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "toggle/forward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "toggle/forward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "toggle/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "toggle/backward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "toggle/backward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "spoiler/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "spoiler/forward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "spoiler/forward",
+              "cut",
+              "widgets"
+            ],
+            [
+              "spoiler/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "spoiler/backward",
+              "cut",
+              "selectedPlainOnly"
+            ],
+            [
+              "spoiler/backward",
+              "cut",
+              "widgets"
+            ]
+          ]
+        },
+        {
+          "source": "spec-baseline",
+          "trustedPolicy": false,
+          "cases": 8,
+          "observations": 144,
+          "differences": [
+            [
+              "warning/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "warning/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "quote/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "quote/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "toggle/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "toggle/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "spoiler/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "spoiler/backward",
+              "cut",
+              "canonical"
+            ]
+          ]
+        },
+        {
+          "source": "parent",
+          "trustedPolicy": false,
+          "cases": 8,
+          "observations": 144,
+          "differences": [
+            [
+              "quote/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "quote/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "toggle/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "toggle/backward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "spoiler/forward",
+              "cut",
+              "canonical"
+            ],
+            [
+              "spoiler/backward",
+              "cut",
+              "canonical"
+            ]
+          ]
+        },
+        {
+          "source": "candidate",
+          "trustedPolicy": false,
+          "cases": 8,
+          "observations": 144,
+          "differences": []
+        },
+        {
+          "source": "candidate",
+          "trustedPolicy": true,
+          "cases": 8,
+          "observations": 144,
+          "differences": []
+        }
+      ],
+      "scope": "Independent literal rich-field documents, identities, both widget payloads/presentation and trusted event histories. Quote adjacent Bold words retain canonical normalization and its text concatenation contract; empty caption/compound fields add no line breaks. Clipboard private parts contain selected fields only."
+    },
+    {
+      "status": "PASS",
+      "candidate": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+      "parent": "2c4f35d3665f1c28c53d0b89dd610df3a1ec4db2",
+      "group": "history-gestures",
+      "currentCases": 40,
+      "currentObservations": 796,
+      "moduleIdentities": 380,
+      "identityReviewerSha256": "cac909753ad416c5b28c18c6b0e70c7de9af6969fa4531b389657abd37af3eec",
+      "rawSha256": "fcb7f95027de5459815feeb4634a52f01426cc1018bd00f8397250ae6c798839",
+      "reviewerSha256": "a8cf10dc237db5e3dae7181a8681aca21e4f2ca09eea45b3fccc135dba81f775",
+      "results": [
+        {
+          "source": "v1",
+          "trustedPolicy": false,
+          "cases": 20,
+          "observations": 398,
+          "differences": [
+            [
+              "count/typing-boundary",
+              "undo",
+              "canonical"
+            ],
+            [
+              "count/typing-boundary",
+              "undo",
+              "history"
+            ],
+            [
+              "count/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "count/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "count/typing-boundary",
+              "redo",
+              "canonical"
+            ],
+            [
+              "count/typing-boundary",
+              "redo",
+              "history"
+            ],
+            [
+              "count/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ],
+            [
+              "count/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "undo",
+              "canonical"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "undo",
+              "history"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "redo",
+              "canonical"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "redo",
+              "history"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ],
+            [
+              "undefined-bytes/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ],
+            [
+              "tiny/insert",
+              "undo",
+              "history"
+            ],
+            [
+              "tiny/insert",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/insert",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/insert",
+              "redo",
+              "canonical"
+            ],
+            [
+              "tiny/insert",
+              "redo",
+              "history"
+            ],
+            [
+              "tiny/typing-boundary",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "tiny/typing-boundary",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "author",
+              "history"
+            ],
+            [
+              "tiny/branch",
+              "author",
+              "history"
+            ],
+            [
+              "tiny/branch",
+              "undo",
+              "history"
+            ],
+            [
+              "tiny/branch",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "redo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "redo",
+              "history"
+            ],
+            [
+              "wide/typing-boundary",
+              "undo",
+              "canonical"
+            ],
+            [
+              "wide/typing-boundary",
+              "undo",
+              "history"
+            ],
+            [
+              "wide/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "wide/typing-boundary",
+              "undo",
+              "nativeSelection"
+            ],
+            [
+              "wide/typing-boundary",
+              "redo",
+              "canonical"
+            ],
+            [
+              "wide/typing-boundary",
+              "redo",
+              "history"
+            ],
+            [
+              "wide/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ],
+            [
+              "wide/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ]
+          ]
+        },
+        {
+          "source": "spec-baseline",
+          "trustedPolicy": false,
+          "cases": 20,
+          "observations": 398,
+          "differences": [
+            [
+              "tiny/insert",
+              "undo",
+              "history"
+            ],
+            [
+              "tiny/insert",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/insert",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/insert",
+              "redo",
+              "canonical"
+            ],
+            [
+              "tiny/insert",
+              "redo",
+              "history"
+            ],
+            [
+              "tiny/typing-boundary",
+              "undo",
+              "history"
+            ],
+            [
+              "tiny/typing-boundary",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/typing-boundary",
+              "redo",
+              "canonical"
+            ],
+            [
+              "tiny/typing-boundary",
+              "redo",
+              "history"
+            ],
+            [
+              "tiny/typing-boundary",
+              "redo",
+              "nativeSelection"
+            ],
+            [
+              "tiny/branch",
+              "author",
+              "history"
+            ],
+            [
+              "tiny/branch",
+              "author",
+              "history"
+            ],
+            [
+              "tiny/branch",
+              "undo",
+              "history"
+            ],
+            [
+              "tiny/branch",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "undo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "redo",
+              "canonical"
+            ],
+            [
+              "tiny/branch",
+              "redo",
+              "history"
+            ]
+          ]
+        },
+        {
+          "source": "parent",
+          "trustedPolicy": false,
+          "cases": 20,
+          "observations": 398,
+          "differences": []
+        },
+        {
+          "source": "candidate",
+          "trustedPolicy": false,
+          "cases": 20,
+          "observations": 398,
+          "differences": []
+        },
+        {
+          "source": "candidate",
+          "trustedPolicy": true,
+          "cases": 20,
+          "observations": 398,
+          "differences": []
+        }
+      ],
+      "scope": "Literal complete-document, native selection and event tables verify typing coalescence, field boundaries, structural Enter, no-op branch preservation, count-only/undefined/tiny/wide budgets and exact replay. Legacy byte-budget absence is explicit; no old event counts are inferred."
+    }
+  ],
+  "currentCases": 280,
+  "currentObservations": 3772,
+  "moduleIdentities": 1262,
+  "controls": 60,
+  "native": {
+    "native-history-merges.html": 140,
+    "native-history-merges-trusted.html": 141,
+    "native-clipboard.html": 25,
+    "native-conversion.html": 7,
+    "native-quote-fields.html": 16,
+    "native-quote-fields-trusted.html": 17,
+    "native-warning-fields.html": 17,
+    "native-warning-fields-trusted.html": 18,
+    "native-disclosure-fields.html": 28,
+    "native-disclosure-fields-trusted.html": 29,
+    "native-disclosure-state.html": 18,
+    "native-conversion-preservation.html": 53,
+    "native-plugin-field-clipboard.html": 68
+  },
+  "nativeCases": 577,
+  "nativeInventoryPages": 102,
+  "budgetUnitCases": 25,
+  "registry": {
+    "accepted": 142,
+    "open": 67,
+    "total": 209,
+    "onlyNewlyAccepted": [
+      "HISTORY_GESTURE",
+      "HISTORY_BUDGET"
+    ]
+  },
+  "artifacts": {
+    "integration--browser.log.gz": {
+      "sha256": "723845bdbff59e2e37427fcee62a4d6f33cb05624d0718c64254d45b1a4e9459",
+      "bytes": 46285,
+      "decodedSha256": "394d9cb6a4c96adc19b56fc3a3fb300f4a1f8ae2622fb9eb1c33fbb050a0e14d",
+      "decodedBytes": 1957097
+    },
+    "integration--build.log.gz": {
+      "sha256": "8d563a6351497bd4360fa92634214bc8fed226dc3e4db8ee5afef3de086e2ffc",
+      "bytes": 215,
+      "decodedSha256": "4a4bc78e11aacc825ecc115e1ea6f9174c765ca15a026750be14e14d24c3cda6",
+      "decodedBytes": 319
+    },
+    "integration--bundle.log.gz": {
+      "sha256": "80cbe2ee436d9f62158ccdee6f598a0e00c5dfc5a332941e4a200f1948bd68eb",
+      "bytes": 367,
+      "decodedSha256": "64e4b0d39a8ec2a82800f3e20cb5c6a693b49b15776bc8296fb526d5e7a04140",
+      "decodedBytes": 1158
+    },
+    "integration--compound-cut-merge-controls--altered-module.json.gz": {
+      "sha256": "6999e5f68c271307c2f44f3675e775c9fce3f8938d2978a63d6bd308b3f641b7",
+      "bytes": 21190,
+      "decodedSha256": "e86b3c34e9655b17c6e7f1da4859c2ed10357c19b687da9ab54ffdbe186394b9",
+      "decodedBytes": 374722
+    },
+    "integration--compound-cut-merge-controls--altered-module.stderr.gz": {
+      "sha256": "87a42ae1bbfd4b57d449c835aae39767cfe6b63e65b118b71ed70fca8e5703ab",
+      "bytes": 519,
+      "decodedSha256": "96110a4e528f99b9f53c3a7e93f1b4df8b4984cfe7ba8a2d6c901bcf3dfeb787",
+      "decodedBytes": 1103
+    },
+    "integration--compound-cut-merge-controls--caller-mutated.json.gz": {
+      "sha256": "6c9b8846a461ca7a8cb48092afedc9cb5b512f72c96f92d6b54ed0052af2ad23",
+      "bytes": 21190,
+      "decodedSha256": "5edcf1fb5ba7e66c46fccd873ee44818400ae88e6a3b3122868b5d6d44c86f86",
+      "decodedBytes": 374690
+    },
+    "integration--compound-cut-merge-controls--caller-mutated.stderr.gz": {
+      "sha256": "c093d0dd8f8dc346abf8515c27ca147f09f8ceb30fe208eb1583612c10b7764b",
+      "bytes": 673,
+      "decodedSha256": "2bb404a9e5a2bcad7b6ee6f906e93e9b1936f4e4ef257046f46ea2cc1bfddec7",
+      "decodedBytes": 1657
+    },
+    "integration--compound-cut-merge-controls--cut-not-prevented.json.gz": {
+      "sha256": "a62b986eea26a6b34f2df517f1ba28b3595f67f53bc468673d3a782e9148ff86",
+      "bytes": 21193,
+      "decodedSha256": "5f75c23cdf0471a34bf9bb8980a038e13b73f6319426b383249c5620f5a75f1f",
+      "decodedBytes": 374723
+    },
+    "integration--compound-cut-merge-controls--cut-not-prevented.stderr.gz": {
+      "sha256": "5503709f730688550e303c84d8ecc5d662a780c5bcf9ddb75222f8c38fc48351",
+      "bytes": 423,
+      "decodedSha256": "0ad426df7a1e8987494ecf7ce73fa37466ff2be37beaf26bd18a5ae6eaf9b7d5",
+      "decodedBytes": 677
+    },
+    "integration--compound-cut-merge-controls--empty-caption-line.json.gz": {
+      "sha256": "0676318df59932916f308085333043bcdbc25910dfb16d4ba4f564b4dee355ac",
+      "bytes": 21190,
+      "decodedSha256": "e151ecbd0f81edc145c4d56b2e5712a4403a1307b5a26cb59eb35a43a121f310",
+      "decodedBytes": 374744
+    },
+    "integration--compound-cut-merge-controls--empty-caption-line.stderr.gz": {
+      "sha256": "48f899a8c7a87140769c922027cd462844f87f9a444351c1e5edb4b6d20975a6",
+      "bytes": 682,
+      "decodedSha256": "2bdb58494d6cfcdcbcb5a02fd3b8e426251bc2baf38a95df239a682029552993",
+      "decodedBytes": 1687
+    },
+    "integration--compound-cut-merge-controls--empty-title-line.json.gz": {
+      "sha256": "ad8bca097d3916a43d179680435bb54fcfd8514e1dc9340fe6211572bfb24d40",
+      "bytes": 21196,
+      "decodedSha256": "a114d56deb3c569dca8e0ff70e9f1ad9836365cba5ef7d6e955321a3048bc0a4",
+      "decodedBytes": 374744
+    },
+    "integration--compound-cut-merge-controls--empty-title-line.stderr.gz": {
+      "sha256": "06c993219c397b091033fae9b7494539a91730733973fd6670792f1a6ad031b4",
+      "bytes": 672,
+      "decodedSha256": "901963bad7537261e2efec3da631bb7563be4b50737983f90ce4a05dcfc94494",
+      "decodedBytes": 1659
+    },
+    "integration--compound-cut-merge-controls--extra-command.json.gz": {
+      "sha256": "7c086633e8d2542f8d4962775c1ccb4ff7010e4e472064c6eb3e9e9e99f8911c",
+      "bytes": 21195,
+      "decodedSha256": "281a66eefafbdd917f8bcf866dfdadfd902aff6a8b8e070f00b708f22e5a35ba",
+      "decodedBytes": 374781
+    },
+    "integration--compound-cut-merge-controls--extra-command.stderr.gz": {
+      "sha256": "dcbd9b318dc14623d3037e6ca94657f41a2821cc661e279fd82d4f863823ec8f",
+      "bytes": 586,
+      "decodedSha256": "0c893c718c3a15b0ee83e6fda5637654eca7601d4cb9d2d20d8eeba77885c4c4",
+      "decodedBytes": 1538
+    },
+    "integration--compound-cut-merge-controls--healthy-review.json.gz": {
+      "sha256": "5e31b7f36fa1b91d553b83c7e72c67d9de23b22780872cd9e2b3bbdff2002f2b",
+      "bytes": 843,
+      "decodedSha256": "81471fdfab6dea8baae9684716c42de57329dac18b1d6139907505c8fa1bddf3",
+      "decodedBytes": 5000
+    },
+    "integration--compound-cut-merge-controls--lost-second-sidecar.json.gz": {
+      "sha256": "5eccf119ee16b414754063373ac8b1918d37f9c15abcbf1ecfe29d5681399546",
+      "bytes": 21192,
+      "decodedSha256": "19e4e241ad4b62c920bc4400ce2b94594bca8525a80f1f092301dcc1e7a7fd15",
+      "decodedBytes": 374582
+    },
+    "integration--compound-cut-merge-controls--lost-second-sidecar.stderr.gz": {
+      "sha256": "c988ebdee62858ea4208c19d48c51d2da66b1b52c0f44d2b247b60e4e73cd094",
+      "bytes": 661,
+      "decodedSha256": "7511e308283d598a99ab8b5f37e588e6ae08dce06099158a036df77964e5b2a6",
+      "decodedBytes": 1672
+    },
+    "integration--compound-cut-merge-controls--lost-widget-dot.json.gz": {
+      "sha256": "2b6ba4178d0ef3bd80b6a75273022a3c6204b9797792ac48eea1aebc51d36396",
+      "bytes": 21194,
+      "decodedSha256": "7da266bb263bb712c72009507ce4723fa8a894fe97de0ce3207b024ed0253820",
+      "decodedBytes": 374690
+    },
+    "integration--compound-cut-merge-controls--lost-widget-dot.stderr.gz": {
+      "sha256": "6cc91a88394b75a562bd74eb929537356cca69a982d7a7446a48f1c37c4a1992",
+      "bytes": 661,
+      "decodedSha256": "eb613977e9d01e797c15bb5165a943465ac46111eedd44b587ba08cde26188b0",
+      "decodedBytes": 1621
+    },
+    "integration--compound-cut-merge-controls--missing-case.json.gz": {
+      "sha256": "023d270be669ca17343108c25e106d0da1c7e0d7046e28921fac5293cb76a275",
+      "bytes": 21107,
+      "decodedSha256": "6c465b5207017eeecfa09b27c5cd9b3264db99aea21160ddf3f620c0678e5257",
+      "decodedBytes": 366423
+    },
+    "integration--compound-cut-merge-controls--missing-case.stderr.gz": {
+      "sha256": "b2b5c255fe52ca54f704a642a288af11e3b3a75e9e3065f7e219ebd2e2dda6d1",
+      "bytes": 609,
+      "decodedSha256": "7733c1c7a0157d50a1bce43e0a37334df3fc50f2f9f0d64e77a17451c2219048",
+      "decodedBytes": 1908
+    },
+    "integration--compound-cut-merge-controls--neighbors-remounted.json.gz": {
+      "sha256": "233ea65f477dab5773594851addfa8ea77517dbb589c88aca30e91b2c51b3480",
+      "bytes": 21195,
+      "decodedSha256": "449d3816d2ee6de0910ac526dde6284bce52b25a61e34d470f1db8f8f6072dad",
+      "decodedBytes": 374724
+    },
+    "integration--compound-cut-merge-controls--neighbors-remounted.stderr.gz": {
+      "sha256": "9899e80818396c3305edb5472acf8f29800cc1f4b1071b74ec2d67e594984d3e",
+      "bytes": 554,
+      "decodedSha256": "f9e65434961eb22885d68b30165c3a55a341ecad83c4e7436343a7be9edca2e8",
+      "decodedBytes": 1370
+    },
+    "integration--compound-cut-merge-controls--private-payload-leaks-field.json.gz": {
+      "sha256": "21c434bf3046c81289b5b57c02594010d8a83e25666a202b3fb402aa44433948",
+      "bytes": 21190,
+      "decodedSha256": "80ac4dbd2acc6e9e4a156c90e8acc45077cd25802eabe88f64d5585f5feea492",
+      "decodedBytes": 374726
+    },
+    "integration--compound-cut-merge-controls--private-payload-leaks-field.stderr.gz": {
+      "sha256": "c9969c49491f4f28636ea9fdaaf1e3eab4eeeb01af424801e5b7509a3770a4be",
+      "bytes": 602,
+      "decodedSha256": "78e61cda96965594e1a7bc64552122ae659a241c767453f2f5e00a4d3e99c8b0",
+      "decodedBytes": 1818
+    },
+    "integration--compound-cut-merge-controls--private-payload-lost-part.json.gz": {
+      "sha256": "eb7286aa8fd50bae132c91d71fb5d3776bd358995d9d792f3f118292f3324f7f",
+      "bytes": 21181,
+      "decodedSha256": "cb2442a31b34578c038d076ea9c0d57e8993a64c9550166c0cb7a3a3722c3630",
+      "decodedBytes": 374584
+    },
+    "integration--compound-cut-merge-controls--private-payload-lost-part.stderr.gz": {
+      "sha256": "cc4546341748d2374d6839586cb68b2c2d886c4b274d31d2d2a0e1d2c20f2ff3",
+      "bytes": 634,
+      "decodedSha256": "3dbf339a9dcb6f2d45639dd98920ed9bb8f8e030318c17b04212235592829c83",
+      "decodedBytes": 1713
+    },
+    "integration--compound-cut-merge-controls--published-unselected-text.json.gz": {
+      "sha256": "f19362723a687dd1538b82c80e17f65a955a38a8e464f9b2a9ad9c79900b2546",
+      "bytes": 21193,
+      "decodedSha256": "9f1cc78520b067062757e293a87a59b68793fd0ec130d3b1669d3990915e07ce",
+      "decodedBytes": 374726
+    },
+    "integration--compound-cut-merge-controls--published-unselected-text.stderr.gz": {
+      "sha256": "279ee1362c9057acb417c26d3d91c63fd832e01cf4bf06d4abe736931eaeab28",
+      "bytes": 443,
+      "decodedSha256": "97c892014fab762f2457afdfddebec66cc384315280fb670f4c928f3ce2cdbd9",
+      "decodedBytes": 733
+    },
+    "integration--compound-cut-merge-controls--redo-lost-author-state.json.gz": {
+      "sha256": "43f68e6d2c6d93af2fd47918062d020fdf2383d8847bb1bb703f4bb9678da035",
+      "bytes": 21192,
+      "decodedSha256": "4e171439ab4df7728f5edf3a2885d4f64a4e4328567e976b018b7d8b36c1b65a",
+      "decodedBytes": 374724
+    },
+    "integration--compound-cut-merge-controls--redo-lost-author-state.stderr.gz": {
+      "sha256": "eff615604c66a2b658b3875182d911a892eab61b30983723bb7bb57563191c4f",
+      "bytes": 683,
+      "decodedSha256": "9975926973295fb86e61449090d4333e526875199d2f1436b24deb6f76a2d078",
+      "decodedBytes": 1654
+    },
+    "integration--compound-cut-merge-controls--results.json.gz": {
+      "sha256": "f85593d409e2bf5cf34f6c9c51ee7e98991182603efee9cbc7a2d6872f393805",
+      "bytes": 1180,
+      "decodedSha256": "5e1088a02d2a086fd9bd3cfb4dfb634ee170de599c69f243d6b39c79bbd47cba",
+      "decodedBytes": 3197
+    },
+    "integration--compound-cut-merge-controls--synthetic-input.json.gz": {
+      "sha256": "19857b0b372c75166ff0d617b0875636aacadbc4f0867ef9cbde4e8bf1f75205",
+      "bytes": 21187,
+      "decodedSha256": "e783b535b17c2a9b7faf913f79a27caea0e88f1e99efb5ee68f032a0169d4f61",
+      "decodedBytes": 374723
+    },
+    "integration--compound-cut-merge-controls--synthetic-input.stderr.gz": {
+      "sha256": "c1ba3e44073f36f81d0058481eb9657e0a871fd077fb458d05ddb9804a8adc83",
+      "bytes": 610,
+      "decodedSha256": "b8399fd929ea67b2d14f274abc3d62d800f5e16f495c7b84f57951ad20463be1",
+      "decodedBytes": 1883
+    },
+    "integration--compound-cut-merge-controls--undo-lost-source.json.gz": {
+      "sha256": "405bac2a9a988017fd3ab423b70bf728382a96d6bcb24e427d55b5089857536c",
+      "bytes": 21187,
+      "decodedSha256": "2a1d796f4f1fc5c1703978488f0cf0587ea4edeaae49c9f6422fce3c65c83748",
+      "decodedBytes": 374308
+    },
+    "integration--compound-cut-merge-controls--undo-lost-source.stderr.gz": {
+      "sha256": "a80e33bfc891d3dc841d1132c6ba41b8402312490dd5bc200e1684dabaac2064",
+      "bytes": 763,
+      "decodedSha256": "fca9804f2ccd6043ae7507569a9ba925366836bfbf9b8b3ecb3fd0c231156359",
+      "decodedBytes": 1944
+    },
+    "integration--compound-cut-merge-controls--unenforced-policy.json.gz": {
+      "sha256": "fce08033dc7092a1759d9e50479ee4e9e357a30abfbced291dbaeb4441c878c0",
+      "bytes": 21187,
+      "decodedSha256": "dfc51f3614e320121ed4a4c24d21ec18ac62b6ac41f177e70bbc1b99486e6aa4",
+      "decodedBytes": 374723
+    },
+    "integration--compound-cut-merge-controls--unenforced-policy.stderr.gz": {
+      "sha256": "97389656f507d8b3481610e1ebebeb2b90b369e68e5456af9c8d44a13b13747a",
+      "bytes": 453,
+      "decodedSha256": "88a1a6968d26b6b95a59b66217aff3a41aee227d29d505b9e6937fb9c5af2b9a",
+      "decodedBytes": 834
+    },
+    "integration--compound-cut-merge-controls--unexpected-page-error.json.gz": {
+      "sha256": "a35077b51eec28f9f0a736b55280a4bdb7c2f918fd8964d35c3bb52fde429781",
+      "bytes": 21194,
+      "decodedSha256": "1b1641ae37380de50914ae7f8d4b86a913fcea41ed3aa3ecab4a5e9457b74a0c",
+      "decodedBytes": 374731
+    },
+    "integration--compound-cut-merge-controls--unexpected-page-error.stderr.gz": {
+      "sha256": "14c361e96f91835484cd6b3728eabcc71f0861c44c9d76d57ce89c92103c5267",
+      "bytes": 483,
+      "decodedSha256": "e84f3aabc548d46e6b55d5731ea190b09634efd38addbf44865bf7aeb46f644f",
+      "decodedBytes": 886
+    },
+    "integration--compound-cut-merge-controls--wrong-source-identity.json.gz": {
+      "sha256": "ebeb609a453ecdcfbd970bd72c4b8b3d1618cdc122ed14163f20847cbd9de846",
+      "bytes": 21192,
+      "decodedSha256": "e48af65d40747d8d8081bb2d9858bb9d854dbd7c3645f976bc7cc80f83d78634",
+      "decodedBytes": 374722
+    },
+    "integration--compound-cut-merge-controls--wrong-source-identity.stderr.gz": {
+      "sha256": "bc38911f7f89373ddf053ac7e35eaa64117c4ec1547d0df3c7cc0e8e5746dc59",
+      "bytes": 656,
+      "decodedSha256": "5796887900b1dfc855104c1a9b48f6b9591c0ae309e27c8e748eedd13947c7ce",
+      "decodedBytes": 1617
+    },
+    "integration--compound-cut-merge-controls--wrong-source.json.gz": {
+      "sha256": "88af180942ab3eff3d96bbe6e0c2934c941249926aaeb49675538431e04a38a1",
+      "bytes": 21179,
+      "decodedSha256": "ba13cc428fb2b634866683c45b48cdf487a97ac2c5aa372361fa0efae54aeefa",
+      "decodedBytes": 374722
+    },
+    "integration--compound-cut-merge-controls--wrong-source.stderr.gz": {
+      "sha256": "c17b85c054aac845ce5bbc578e2c1b101279aefd0d0f02398bdab38e70bce097",
+      "bytes": 649,
+      "decodedSha256": "0241a80152d692163371c03a469b186127a12a9d24de8aa4544489725d244167",
+      "decodedBytes": 1624
+    },
+    "integration--compound-cut-merge-review.json.gz": {
+      "sha256": "5e31b7f36fa1b91d553b83c7e72c67d9de23b22780872cd9e2b3bbdff2002f2b",
+      "bytes": 843,
+      "decodedSha256": "81471fdfab6dea8baae9684716c42de57329dac18b1d6139907505c8fa1bddf3",
+      "decodedBytes": 5000
+    },
+    "integration--compound-cut-merge.json.gz": {
+      "sha256": "65d787a3f3fa77ec64619fc72841b9569477370b95ee05c0e4bb0b0513ebbba3",
+      "bytes": 21188,
+      "decodedSha256": "79ddcb44007ce79f2b24ee3e38facb52d03ebdce6e3f77fb66ed187973377c0d",
+      "decodedBytes": 374723
+    },
+    "integration--compound-cut-merge.json.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "integration--compound-merge-controls--altered-module.json.gz": {
+      "sha256": "04cb6b71deee2c15cbe9fb7d594a15dde9bc616da37393bb227c8319e606c7e5",
+      "bytes": 53457,
+      "decodedSha256": "9096dec215382de9e029ecf2720d429b4611c071524794c10ef2d0fca77e6b38",
+      "decodedBytes": 3538957
+    },
+    "integration--compound-merge-controls--altered-module.stderr.gz": {
+      "sha256": "87a42ae1bbfd4b57d449c835aae39767cfe6b63e65b118b71ed70fca8e5703ab",
+      "bytes": 519,
+      "decodedSha256": "96110a4e528f99b9f53c3a7e93f1b4df8b4984cfe7ba8a2d6c901bcf3dfeb787",
+      "decodedBytes": 1103
+    },
+    "integration--compound-merge-controls--empty-source-retained.json.gz": {
+      "sha256": "56d4477ec930ea7e05a1cffccf49781bb6c1cd37c2cf1f6e082ae6c5483d1bec",
+      "bytes": 53455,
+      "decodedSha256": "062f70beda5bc8f0789de67d676c97ef7670b71b55f9e7e1cb88e2fecb49d9d9",
+      "decodedBytes": 3539149
+    },
+    "integration--compound-merge-controls--empty-source-retained.stderr.gz": {
+      "sha256": "dc9a2ae27be548e712518690bc1249a04d135a5e1b85e87c2bfdb7643b7214ba",
+      "bytes": 704,
+      "decodedSha256": "5b6deac877e72cf5cba77f636f2d5762e27aa719b02c357d8b854d3e9909a6d8",
+      "decodedBytes": 1750
+    },
+    "integration--compound-merge-controls--empty-source-wrong-command.json.gz": {
+      "sha256": "55e19dd38e5bc51a7c1ce93d57ff5f4de64145941db5f3450d3bc86890c4f7ba",
+      "bytes": 53454,
+      "decodedSha256": "940e4ea1b32e01ed0c29b6bc78123081a781465e37e8632c558218e2c476ad01",
+      "decodedBytes": 3538956
+    },
+    "integration--compound-merge-controls--empty-source-wrong-command.stderr.gz": {
+      "sha256": "af0f777b418dba83a2a9af6193fd5a662a2494e09b2bf161872fac45f1f34f56",
+      "bytes": 571,
+      "decodedSha256": "2baa602951492a470dff356ffc490543820332fba4a5ebcd067a9f0b1232ef55",
+      "decodedBytes": 1431
+    },
+    "integration--compound-merge-controls--extra-command.json.gz": {
+      "sha256": "907638704a2928a078fb62693c7152d03b9ee0b605eff0fa2f2d65f350ecc30a",
+      "bytes": 53459,
+      "decodedSha256": "6679757d0652e6a57ade8aeec45fd911eec9168cf240a37b941caede00097ecc",
+      "decodedBytes": 3539014
+    },
+    "integration--compound-merge-controls--extra-command.stderr.gz": {
+      "sha256": "bb9181b4bbe3ac19e529dd62976e1c9dce3f5508de22d721d5a0d355e57f26e6",
+      "bytes": 586,
+      "decodedSha256": "2c212b93d43fa38fe1361f174dcb82e2512891862c13fd66b188d3bb36587be8",
+      "decodedBytes": 1520
+    },
+    "integration--compound-merge-controls--healthy-review.json.gz": {
+      "sha256": "55f330a147fe38ea1bd16c651b66134e927d0e2b1c7e6837d30d314bbbd62434",
+      "bytes": 2217,
+      "decodedSha256": "e7be2788ba641e77f2813f622246f28916fac47f1aff8ba0fc7523572beecce9",
+      "decodedBytes": 45488
+    },
+    "integration--compound-merge-controls--lost-source-sidecar.json.gz": {
+      "sha256": "f3c9e36df9a1d5f2e703fe824d256d87a50076ea9a8865868d4507758d9d902c",
+      "bytes": 53455,
+      "decodedSha256": "b3ebde7fc78ae59cc118f12d84e1ce78cc1041bb863f3245375420c9eccc5796",
+      "decodedBytes": 3538817
+    },
+    "integration--compound-merge-controls--lost-source-sidecar.stderr.gz": {
+      "sha256": "43d70da7b21a4c284f2f5e73a9144d9d7d0a562fb6756c81c8ae0c84113b7e96",
+      "bytes": 670,
+      "decodedSha256": "89ef30f9d7b72471b3ce49bce8d3ba9f6d00922eaeec11cc759d986429b0294f",
+      "decodedBytes": 1688
+    },
+    "integration--compound-merge-controls--lost-toggle-open-state.json.gz": {
+      "sha256": "9eb5183c136575e0d09993f31b9006d67757a2e0ef5a2446dc2672235de7dbf4",
+      "bytes": 53460,
+      "decodedSha256": "d190256708970a8e83b40cbae5641fb6e5d38287c6dce6b585ef08ad190e806e",
+      "decodedBytes": 3538959
+    },
+    "integration--compound-merge-controls--lost-toggle-open-state.stderr.gz": {
+      "sha256": "dce268475110fe78b384f43c9f3882646629c7c252d7841f0367c9712f1453eb",
+      "bytes": 713,
+      "decodedSha256": "2834c001962235c87fda9d2dab4beab5bb0fe3fbbce0db0ae8c595538da0f4c8",
+      "decodedBytes": 1700
+    },
+    "integration--compound-merge-controls--missing-case.json.gz": {
+      "sha256": "edeaaa59835eaa2253410ac10a53490607497268577c984a5708b7ddd4b6342f",
+      "bytes": 53397,
+      "decodedSha256": "2d9983395344b5f61c3047a0d063723d97f31a48d2f0f5e7b4f8c88aa34c17ad",
+      "decodedBytes": 3533014
+    },
+    "integration--compound-merge-controls--missing-case.stderr.gz": {
+      "sha256": "ff4c44ac5c25f6becb82a742978ab1e8c1c88f94269c140f672817ee8bc9504f",
+      "bytes": 1578,
+      "decodedSha256": "6f237198feb69d0313c3f57f697be417d456e6197d95d356c7d1256528805c16",
+      "decodedBytes": 34270
+    },
+    "integration--compound-merge-controls--quote-text-gained-separator.json.gz": {
+      "sha256": "39e4d266138e1d29d9a6e5a20fd036c4ba38f3e16f6e0f574e9ecf366ecde608",
+      "bytes": 53462,
+      "decodedSha256": "1bb723832653fcbf9d3012236c396de4194e955df755b27c510898c46dadad4f",
+      "decodedBytes": 3538979
+    },
+    "integration--compound-merge-controls--quote-text-gained-separator.stderr.gz": {
+      "sha256": "c5d429b3e1312186c0d48e8d3ef6f2ac7c45c372e1d67b673458762f93924378",
+      "bytes": 698,
+      "decodedSha256": "06e6f9f15e93b1a5826c68a8fb16fa14b0e1454ad7d6061c319f256b6f0d3019",
+      "decodedBytes": 1706
+    },
+    "integration--compound-merge-controls--results.json.gz": {
+      "sha256": "b50f8458df8d2ba519e0663d9cad214105f1e7967a63426e89f193a00131d950",
+      "bytes": 1181,
+      "decodedSha256": "64fc6ac37841198c8474dfe1e8b589ddec06d0f59a00c747ded1958f42a9f094",
+      "decodedBytes": 3236
+    },
+    "integration--compound-merge-controls--source-empty-mark-adds-line.json.gz": {
+      "sha256": "1c07e6341c71e5b033ebacfbfeec474f51956694a370589568affaef6371e87f",
+      "bytes": 53458,
+      "decodedSha256": "f92252ad23a1ca13ed03ce5c4efed5b998d29b6567fb3dd7fd43adeabd411e0e",
+      "decodedBytes": 3538979
+    },
+    "integration--compound-merge-controls--source-empty-mark-adds-line.stderr.gz": {
+      "sha256": "c36c68e3d0c86cd3da7c5028ad00dd9db08ecc27a9eb2c1c2ccabc79db68e21c",
+      "bytes": 679,
+      "decodedSha256": "cee74500588662062d9c17003910e7e35d2eee843a0b0e830be6b68796f0f2ff",
+      "decodedBytes": 1659
+    },
+    "integration--compound-merge-controls--spoiler-empty-body-adds-line.json.gz": {
+      "sha256": "ab321547c065ae7cb1a00c90b3df6b5146e6bc291ddaa37252a322f560fd5125",
+      "bytes": 53465,
+      "decodedSha256": "72c8b6d353f5740d7827df24149464060c2bd8f533e7fcb3dfffdb9285de1fff",
+      "decodedBytes": 3538979
+    },
+    "integration--compound-merge-controls--spoiler-empty-body-adds-line.stderr.gz": {
+      "sha256": "4b315b34f7859b722796e92da90b4e16282dd31d3f4ed467fd751898c110e281",
+      "bytes": 702,
+      "decodedSha256": "a97e19da7b7b46bb54d811576a4755591f622755b8a0d979a0e861431d531a3d",
+      "decodedBytes": 1707
+    },
+    "integration--compound-merge-controls--synthetic-input.json.gz": {
+      "sha256": "d968bd680ee9c391af56566418874a70d68d9b03f3b96ff5a586dc475b7b18fb",
+      "bytes": 53458,
+      "decodedSha256": "44f4ca3e6e07ea30b215034ab5b302806c2a1a7398e91ca537ea87f602d0a339",
+      "decodedBytes": 3538958
+    },
+    "integration--compound-merge-controls--synthetic-input.stderr.gz": {
+      "sha256": "770b03ea1b8a4748989bcb235519194742ba5e6bb6828511641c84a0bd600063",
+      "bytes": 602,
+      "decodedSha256": "e0480fcfbd34c0f5c1c810f71936ee20cd7a759a24134547c43799f03e65655e",
+      "decodedBytes": 1791
+    },
+    "integration--compound-merge-controls--target-empty-caption-adds-line.json.gz": {
+      "sha256": "5e0346b237558a8b7b24c7d156832314af7593c7d0ad667b2a3245aeef1a4f19",
+      "bytes": 53459,
+      "decodedSha256": "ee80b373cca8a2cff2c22f66fad99d6b659bb8c9b2ee1c9927938d6964011e72",
+      "decodedBytes": 3538979
+    },
+    "integration--compound-merge-controls--target-empty-caption-adds-line.stderr.gz": {
+      "sha256": "78c8f6dfcff6fb833215ff0f72dcfe897051b8c7a87ad3ed36eb9cb62c07b583",
+      "bytes": 685,
+      "decodedSha256": "bc499e1f45fcb8f1b3e196f88c4d66acc2817ef5bcdba7344ac273c86b375ca7",
+      "decodedBytes": 1690
+    },
+    "integration--compound-merge-controls--undo-kept-extra-action.json.gz": {
+      "sha256": "98d1aa5010100c7c5979bfb687db431cad744dfcad4e79eb43ca4c3a5813e31e",
+      "bytes": 53467,
+      "decodedSha256": "ff8342cf2cd211b4cb6fc8368fea3402a1c20b9315bfcbf11dcf8a597c02f173",
+      "decodedBytes": 3538955
+    },
+    "integration--compound-merge-controls--undo-kept-extra-action.stderr.gz": {
+      "sha256": "f23a30c1be0431fc81c0590dc24fdd2195a56a51095d1461096acf977cec8e1f",
+      "bytes": 575,
+      "decodedSha256": "67906918d886adde153bb2b9d1a6b1b3cf99c08676dc5448360caebd47a53bc5",
+      "decodedBytes": 1423
+    },
+    "integration--compound-merge-controls--undo-lost-neighbor.json.gz": {
+      "sha256": "410d358286d86435200f5a2653925edb98117aa64c70cd70ef95d6c21330b3b9",
+      "bytes": 53457,
+      "decodedSha256": "77c432cb5d7ffc56e5bea44de2c905933d78e8b31a0fdecb0281458ca178ef42",
+      "decodedBytes": 3538807
+    },
+    "integration--compound-merge-controls--undo-lost-neighbor.stderr.gz": {
+      "sha256": "fb46599c28a614e5c39c1ff555a3abae518f6e97d8ee24f726acdacfb57dc0cf",
+      "bytes": 658,
+      "decodedSha256": "a5ef26f0a3d9a4093227d755a72c66d97e047b79be89eb74912bd74b1a4264fb",
+      "decodedBytes": 1611
+    },
+    "integration--compound-merge-controls--unenforced-policy.json.gz": {
+      "sha256": "174bb19726f915f658e2a6135425bae3be2842e705ded263e4b3ed3e573ba020",
+      "bytes": 53457,
+      "decodedSha256": "b869f79630985a04e0c6c3c4734c5cb7411d97e1da378767a848463465e7b7ff",
+      "decodedBytes": 3538958
+    },
+    "integration--compound-merge-controls--unenforced-policy.stderr.gz": {
+      "sha256": "97389656f507d8b3481610e1ebebeb2b90b369e68e5456af9c8d44a13b13747a",
+      "bytes": 453,
+      "decodedSha256": "88a1a6968d26b6b95a59b66217aff3a41aee227d29d505b9e6937fb9c5af2b9a",
+      "decodedBytes": 834
+    },
+    "integration--compound-merge-controls--unexpected-page-error.json.gz": {
+      "sha256": "9f3e504cbcd571d362d527579c325fe5da34e41a07abf1b58081212189ee15fd",
+      "bytes": 53465,
+      "decodedSha256": "d946712408cb6f5fc479a445fcb1706ad87f3403f892435ede60496db849a64f",
+      "decodedBytes": 3538966
+    },
+    "integration--compound-merge-controls--unexpected-page-error.stderr.gz": {
+      "sha256": "14c361e96f91835484cd6b3728eabcc71f0861c44c9d76d57ce89c92103c5267",
+      "bytes": 483,
+      "decodedSha256": "e84f3aabc548d46e6b55d5731ea190b09634efd38addbf44865bf7aeb46f644f",
+      "decodedBytes": 886
+    },
+    "integration--compound-merge-controls--wrong-source.json.gz": {
+      "sha256": "9b5bda5a69bc78129086bacc74187d0b55bddc9564b4d46fa955b886814db84b",
+      "bytes": 53448,
+      "decodedSha256": "2294f16f6d956175c59636538d420160b57dec234a605899d386f4a5a395ca08",
+      "decodedBytes": 3538957
+    },
+    "integration--compound-merge-controls--wrong-source.stderr.gz": {
+      "sha256": "c17b85c054aac845ce5bbc578e2c1b101279aefd0d0f02398bdab38e70bce097",
+      "bytes": 649,
+      "decodedSha256": "0241a80152d692163371c03a469b186127a12a9d24de8aa4544489725d244167",
+      "decodedBytes": 1624
+    },
+    "integration--compound-merge-controls--wrong-target-identity.json.gz": {
+      "sha256": "86ef386289b4e9c5be9203be249234093617d3d8a3c98cb808500e6bd67c94f8",
+      "bytes": 53459,
+      "decodedSha256": "25b1c51d5a25e483c1106b067222bbdf57195d78bee2050a4a663f3ea950b3cf",
+      "decodedBytes": 3538955
+    },
+    "integration--compound-merge-controls--wrong-target-identity.stderr.gz": {
+      "sha256": "e4c339d0e69c2edec707076a29d0327624f53aedd8039a5d0ca5b903a6e89fe2",
+      "bytes": 665,
+      "decodedSha256": "315fb9d67d35665e33d6a70724d260c4839f34b43110ba8dfd0bfa1bca7ecea2",
+      "decodedBytes": 1632
+    },
+    "integration--compound-merge-controls--wrong-widget-count.json.gz": {
+      "sha256": "0af287bbae77c2b857143b92ba55501efd06fe5a5ade2d85e79df03c7989ac7f",
+      "bytes": 53453,
+      "decodedSha256": "2c3b722b0002bff88099043758f6158cdd8ae010f9cdc7cbfb67c2b21913a10b",
+      "decodedBytes": 3538957
+    },
+    "integration--compound-merge-controls--wrong-widget-count.stderr.gz": {
+      "sha256": "b8ba71c8c0db05cbace8ff3408b25fd3627aba00fc4309a714c942df77c07ce1",
+      "bytes": 555,
+      "decodedSha256": "89931d578ac3fc2f2a94f89a2c7499100f8be5d7324e1e244bb41ccb57ec4d18",
+      "decodedBytes": 1373
+    },
+    "integration--compound-merge-controls--wrong-widget-value.json.gz": {
+      "sha256": "338ac71366b8a78993d7d49781fa3ff9a325aa69cbdf3a7a5628cfa1eb2abbe2",
+      "bytes": 53460,
+      "decodedSha256": "ed5484c2ee7ff9c3946ee045958858a0aca2cc1a83a173cb1c07cd5e234d546a",
+      "decodedBytes": 3538957
+    },
+    "integration--compound-merge-controls--wrong-widget-value.stderr.gz": {
+      "sha256": "9740b052ac7da244428a809d361531d81207cfd7a0db2f6feb2856974a49e7a3",
+      "bytes": 654,
+      "decodedSha256": "730df0fa2e434261b73f51e62d2c9f22aeb0715f6afa1c37a3fde06d695fa627",
+      "decodedBytes": 1634
+    },
+    "integration--compound-merge-review.json.gz": {
+      "sha256": "55f330a147fe38ea1bd16c651b66134e927d0e2b1c7e6837d30d314bbbd62434",
+      "bytes": 2217,
+      "decodedSha256": "e7be2788ba641e77f2813f622246f28916fac47f1aff8ba0fc7523572beecce9",
+      "decodedBytes": 45488
+    },
+    "integration--compound-merge.json.gz": {
+      "sha256": "d49b864f4d20f78450d5528da2082c8255b4aa2b234f52b4a8406e3674301b27",
+      "bytes": 53456,
+      "decodedSha256": "faf651199f7d0a793d46ad11f6e2eb89629137c0f847bb59ade5832fc1381f12",
+      "decodedBytes": 3538958
+    },
+    "integration--compound-merge.json.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "integration--controls.log.gz": {
+      "sha256": "7b3a753c2fa8d7bff4384d559daa0bf85078198dcb6406c0b7b931516ffde03e",
+      "bytes": 2970,
+      "decodedSha256": "a54586b4cd23faaf9cc80746c40b9eeb17f0d02c1d7024801b22dcb81a656e36",
+      "decodedBytes": 7573
+    },
+    "integration--docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "integration--heap.log.gz": {
+      "sha256": "d47b5dfc410edaef61821787644b9ebc808e8aba7dbc2a6374f45814bec8980c",
+      "bytes": 617,
+      "decodedSha256": "bb8e3f1f7a12828a69907f9d6eade4f36904915151e8154a8a85f833866e4666",
+      "decodedBytes": 1451
+    },
+    "integration--history-gestures-controls--altered-module.json.gz": {
+      "sha256": "c4d4013b7b016452786ec614ca1388f7b9ee0e96658440d818f07d4cdfca7023",
+      "bytes": 22637,
+      "decodedSha256": "de9f4c6319536186449fbec764fb0ffbee9c0967881b982d56cf23bf54b57967",
+      "decodedBytes": 594691
+    },
+    "integration--history-gestures-controls--altered-module.stderr.gz": {
+      "sha256": "437abb0be1a58375154fbc4fdadf22ff616efcbfc2cd8a54349938e188ddde32",
+      "bytes": 525,
+      "decodedSha256": "d596163e4b82105cef2171aa36827841978d936273b64f5f2c76031b9a3e6446",
+      "decodedBytes": 1104
+    },
+    "integration--history-gestures-controls--boundary-undo-lost-first-edit.json.gz": {
+      "sha256": "912362935109cc4ef638b8ca65429df5c2f126b822d2daf385ab56d42b743f73",
+      "bytes": 22631,
+      "decodedSha256": "fb8887952a93c19da9ab2073dcede36f9991a86dc84ce62aaca5298400bc7331",
+      "decodedBytes": 594689
+    },
+    "integration--history-gestures-controls--boundary-undo-lost-first-edit.stderr.gz": {
+      "sha256": "33791d0ab3f7af1e67f43baae187c876f4f97e571ce3edff6aa7c244093029be",
+      "bytes": 624,
+      "decodedSha256": "cb80e4a4c1436a6075b84cb22a7ccf55d0f887e9ea7d60896d6c070347aa7d38",
+      "decodedBytes": 1535
+    },
+    "integration--history-gestures-controls--caller-mutated.json.gz": {
+      "sha256": "4166e1e2ab58aa8c12e65ca23ace1e81a78e2c62422a839218b7d37399749aeb",
+      "bytes": 22645,
+      "decodedSha256": "9322af66abbfd2f49610409f60a0a7ad23ed999fa96e9e83070c05edcc11cf4c",
+      "decodedBytes": 594695
+    },
+    "integration--history-gestures-controls--caller-mutated.stderr.gz": {
+      "sha256": "23751b663e44a9d50a7e37846febbb0132c7c17bd8727407dcd82cd6ab2788c3",
+      "bytes": 631,
+      "decodedSha256": "85c7f92aec8be51a468d82c4273402eb5ebf297865a351d0e90c82a6af14e00f",
+      "decodedBytes": 1556
+    },
+    "integration--history-gestures-controls--cross-field-coalesced.json.gz": {
+      "sha256": "c0c1da5d9c1d6b681cb3203cc3c88bb1fd019d6a2aa9eda96bf6732877081ae1",
+      "bytes": 22638,
+      "decodedSha256": "57e844396c79c0b74c77d141849121a4d85b8f7f062df81a160cfbe343747a93",
+      "decodedBytes": 594693
+    },
+    "integration--history-gestures-controls--cross-field-coalesced.stderr.gz": {
+      "sha256": "1332613e29af0aa4bdd8134cff607b37ac2541eea97351843eae6f4592346be4",
+      "bytes": 572,
+      "decodedSha256": "fbb2a02ac2e0422cb6252030ccf5b9c8dd1045f7867c0850e4952dfdf0d8c000",
+      "decodedBytes": 1417
+    },
+    "integration--history-gestures-controls--duplicated-generated-id.json.gz": {
+      "sha256": "c854696fa64374adfa3725e98f312f4642378afe10a37d85d9094a373bd0388d",
+      "bytes": 22626,
+      "decodedSha256": "8d4845912cbcd328c2b54da01506eb1819356a052c2801b38c2518f16a03b7a1",
+      "decodedBytes": 594679
+    },
+    "integration--history-gestures-controls--duplicated-generated-id.stderr.gz": {
+      "sha256": "761b0d50acfde1c8ad8185b0388ef03030612f709d69ed83e2831e97403f31d5",
+      "bytes": 425,
+      "decodedSha256": "81185382d37368a199e54eddca71d8a9dd8c3d85c05c1135b568922d0e5cf84f",
+      "decodedBytes": 664
+    },
+    "integration--history-gestures-controls--extra-command.json.gz": {
+      "sha256": "97b73691267ff2407453e34f6dc4dcdb0de29355cd2f533a43e6414c28b7ed8a",
+      "bytes": 22636,
+      "decodedSha256": "ff7bbebeda66e355b97178421f996c79db836859d71b1eb33cf97b2115115844",
+      "decodedBytes": 594800
+    },
+    "integration--history-gestures-controls--extra-command.stderr.gz": {
+      "sha256": "e3c48141d16f2d82240107654f8324967ade41ddbb6303de28f6afe66c2ad0cb",
+      "bytes": 640,
+      "decodedSha256": "f9a16a5a34dac83645dff60ccb2557cae1d733c705aeea203206facde51e8c59",
+      "decodedBytes": 2469
+    },
+    "integration--history-gestures-controls--healthy-review.json.gz": {
+      "sha256": "2e6b5e471f228d86ec5b3f5a1e6762caff67c90bbc257c998636054e63b401e5",
+      "bytes": 892,
+      "decodedSha256": "9374bc0019c697ef4eeb06ad4ded7f5f922715ca32585d0d084ed83c1bfa3944",
+      "decodedBytes": 6797
+    },
+    "integration--history-gestures-controls--lost-second-character.json.gz": {
+      "sha256": "67ef829a8fc399fe0b3555da531abd1fdd533e07a44ecca6f981d0e2babd7a02",
+      "bytes": 22640,
+      "decodedSha256": "6ab8aca987e20de82ed2edb63ce09f9b1253f44527029268c35667f4dcb4c5be",
+      "decodedBytes": 594689
+    },
+    "integration--history-gestures-controls--lost-second-character.stderr.gz": {
+      "sha256": "3b8ffabd5cb63445c36f1ae4a6953429597463d1931a027ab46736da5fafb593",
+      "bytes": 621,
+      "decodedSha256": "a49c9e14c7277a602e6c7af75509d08a3f8a22abd9ca5d32c01ebb746f5e19c3",
+      "decodedBytes": 1529
+    },
+    "integration--history-gestures-controls--lost-typing-commit.json.gz": {
+      "sha256": "cc69cd2b79ee0622f23361d07eb96e549dc9116eee4498ff3811533a46a7dcf6",
+      "bytes": 22631,
+      "decodedSha256": "2c249d3c2230ad57ca80b6f4b5e2ee29fdb02cc571532881d790cb72f34273ec",
+      "decodedBytes": 594582
+    },
+    "integration--history-gestures-controls--lost-typing-commit.stderr.gz": {
+      "sha256": "da5241a15e58340bb3fb674359b3d9d4bdc11749801fa7189ed39b21cb37d77a",
+      "bytes": 647,
+      "decodedSha256": "b59673d8ea4972b92af1419b4ec27fb074b3d008e3a68fdb00088eff742fecee",
+      "decodedBytes": 2263
+    },
+    "integration--history-gestures-controls--missing-case.json.gz": {
+      "sha256": "62bb151c5b783dfe5dea0788cfb01116ed415046297a2be1288373292a7caef6",
+      "bytes": 22570,
+      "decodedSha256": "d9b3f2a2377c976f00c602d01945ff6e58f4c343d2f8f17bedb375ed262ff65e",
+      "decodedBytes": 585500
+    },
+    "integration--history-gestures-controls--missing-case.stderr.gz": {
+      "sha256": "9cc97d32a839f4cf1dd9d9d086bbef744a83c3ffe3179b39a0e9e42e00f4efa9",
+      "bytes": 770,
+      "decodedSha256": "df3792e2ce249663e71b74557e36b1f362468645dc9a16b5e7613e8251ba361f",
+      "decodedBytes": 4103
+    },
+    "integration--history-gestures-controls--noop-destroyed-redo.json.gz": {
+      "sha256": "a11fa9a76cdf2d523be21b0326fffa3be0041cf34e678d3b6960f8aa1221b4a5",
+      "bytes": 22643,
+      "decodedSha256": "cbc0fde2503d171aca3cf5a432826f47a9288f7139b08e7e78c401944699f17e",
+      "decodedBytes": 594693
+    },
+    "integration--history-gestures-controls--noop-destroyed-redo.stderr.gz": {
+      "sha256": "d984d5047dda614a1a7cbfc5240b22e38cb5021ab5424397218722f06d13b1b8",
+      "bytes": 568,
+      "decodedSha256": "8abb5ee20583959577ae821dc86aa8f74d19f9da373b8c3ee7713fbce97d922e",
+      "decodedBytes": 1409
+    },
+    "integration--history-gestures-controls--replay-event-flags-lie.json.gz": {
+      "sha256": "201497f766b2ddec0b886a95a1ea50584c77b460d4384030671310556f56e327",
+      "bytes": 22634,
+      "decodedSha256": "9922d5025db30feb80969d94be3811ea1452d60656393a9b1d3c9bdefd3df442",
+      "decodedBytes": 594690
+    },
+    "integration--history-gestures-controls--replay-event-flags-lie.stderr.gz": {
+      "sha256": "5ffc15fd4c131cc105fdbc5d62a54bee76ef07428248beed1afd4a5b3dbd444e",
+      "bytes": 632,
+      "decodedSha256": "bc34805c3034f0d6ee4f93ff73a3bf6a848be341c7214ccc11c5df8f2e6a7d49",
+      "decodedBytes": 2292
+    },
+    "integration--history-gestures-controls--results.json.gz": {
+      "sha256": "8c907ea8c25ad6c42b201652dea21c94dbeb8b83b8d7d06678e88d39dd7839c1",
+      "bytes": 1219,
+      "decodedSha256": "3db4047b6620195427f4637b5be3fc9305a168d8e9ae744659abd0b360187f1d",
+      "decodedBytes": 3228
+    },
+    "integration--history-gestures-controls--split-redo-fresh-identity.json.gz": {
+      "sha256": "95d3709d0e115ab3713bcf2fafa35f1a015dac4ea04765b8eb8b1e7d69c989d9",
+      "bytes": 22642,
+      "decodedSha256": "13a14b350985d4f0427f102a86ac59f4b170f54531464fe638bbbdb177d35570",
+      "decodedBytes": 594691
+    },
+    "integration--history-gestures-controls--split-redo-fresh-identity.stderr.gz": {
+      "sha256": "e0d68b5cf77474576b21cf2bb80303a325c23adf678710af43bc96880bec5c19",
+      "bytes": 640,
+      "decodedSha256": "156159f69755eec40703cc925a9b14fc19e925c987fccaf6de3e7876e6f21af7",
+      "decodedBytes": 1551
+    },
+    "integration--history-gestures-controls--split-undo-wrong-caret.json.gz": {
+      "sha256": "8f1114eb1a948135919fc9f5c0770ea9587d42b8209f92c8aee324bd5310ddfb",
+      "bytes": 22653,
+      "decodedSha256": "89d84c778c592d4d56eb03af14f7398e6afc23ddf628663b7180d62b6dd08f54",
+      "decodedBytes": 594691
+    },
+    "integration--history-gestures-controls--split-undo-wrong-caret.stderr.gz": {
+      "sha256": "e61c8ec66402e8926b2b313149884a041ae7ff30c52955ff7d318a7b91cdc712",
+      "bytes": 593,
+      "decodedSha256": "2d1a82b51bcc77d23993277e940a54ae83769abd1b95ec327df1080b06cbedd0",
+      "decodedBytes": 1482
+    },
+    "integration--history-gestures-controls--synthetic-input.json.gz": {
+      "sha256": "55c6c03630fb918a81790ddfac27f1359a3008348ae96a78fbe74be3f53e6483",
+      "bytes": 22637,
+      "decodedSha256": "f3882e07c682366223c745c15d5a7aa8174a7c1716e9f18385a009269b2a5a16",
+      "decodedBytes": 594692
+    },
+    "integration--history-gestures-controls--synthetic-input.stderr.gz": {
+      "sha256": "4cf730e2177fe269a1b83454a5586014e86b301da09b7fa923aa8751dcd18716",
+      "bytes": 620,
+      "decodedSha256": "ffa9bf60c227eac9e36148002c37a36d700976be6ecd16ab059b8993ba95bc4e",
+      "decodedBytes": 1998
+    },
+    "integration--history-gestures-controls--tiny-kept-older-action.json.gz": {
+      "sha256": "466b079fb52999137dd89b59662f49bfca837d9bad5f4a660317fddad755e002",
+      "bytes": 22621,
+      "decodedSha256": "cad1a7d60f4500f4b8398ada3d207875e27a4f746b974507dda791b09e180656",
+      "decodedBytes": 594689
+    },
+    "integration--history-gestures-controls--tiny-kept-older-action.stderr.gz": {
+      "sha256": "26ff4b43d3ceaa0d9b10b160f43ca3d6c1b2c42d018a5b8aaed582bcd223c1fc",
+      "bytes": 565,
+      "decodedSha256": "3242c7951f435628e98821afb9b7f447f1095a2acbd9da08e2cc253e1c3d2995",
+      "decodedBytes": 1407
+    },
+    "integration--history-gestures-controls--undefined-bytes-restricts-count.json.gz": {
+      "sha256": "2f203beb6d5ae5894686ebac39d22b46a72f406c7aecca8c1bd874d74e0190b5",
+      "bytes": 22626,
+      "decodedSha256": "57709c7ca906f315b0d7505bdb0026d4ed4e344e32d81f785cddd67165471679",
+      "decodedBytes": 594823
+    },
+    "integration--history-gestures-controls--undefined-bytes-restricts-count.stderr.gz": {
+      "sha256": "5dc736d18e7542fc7139c70c391c3023033f6c1fd8324f377251f59edb58063d",
+      "bytes": 647,
+      "decodedSha256": "9152517c547c1350a1c88912c0eccbf246157017cd59e8a2c02b4bdca8a9bc31",
+      "decodedBytes": 1596
+    },
+    "integration--history-gestures-controls--unenforced-policy.json.gz": {
+      "sha256": "4e170da8cd62659ae90064dbfaddef3ff6a46a49aa248667c9cf0a63b81723a1",
+      "bytes": 22632,
+      "decodedSha256": "c10e9302121fd5ae3d3c52630f7df349406c68ed8eb097e709db311c58e4bf86",
+      "decodedBytes": 594692
+    },
+    "integration--history-gestures-controls--unenforced-policy.stderr.gz": {
+      "sha256": "faecdae2ccfd83db2e84d8f2f7c12664b9fa887d673c167de8ade64da8e58d2e",
+      "bytes": 459,
+      "decodedSha256": "6e046768120ef6bdf4de367340e2983393ccd1c1169871f6206aea2b185960fb",
+      "decodedBytes": 835
+    },
+    "integration--history-gestures-controls--unexpected-page-error.json.gz": {
+      "sha256": "ffab254f2fe0c3dcd8679e275c27902d5e05f89f1484628c4cb773d85528a4d5",
+      "bytes": 22642,
+      "decodedSha256": "6d52413044fee575924a3b157905ad1e95dfc9dafd528c7ac987f76fa7027b4f",
+      "decodedBytes": 594700
+    },
+    "integration--history-gestures-controls--unexpected-page-error.stderr.gz": {
+      "sha256": "4204df90fcd47494849fb66fb0e503ec221b85c85920141e72353d37eac1e2e3",
+      "bytes": 488,
+      "decodedSha256": "9174f7f456c2a62e5d1c5e8a910f2dc4a1538c6e353b61edde24a1aa39c31fda",
+      "decodedBytes": 887
+    },
+    "integration--history-gestures-controls--wrong-coalesce-caret.json.gz": {
+      "sha256": "43ce3a47eae75bcf32bba31ccf7db7db159e4ef3342f4a62c395a6ad51410348",
+      "bytes": 22653,
+      "decodedSha256": "f73573dcc0374c6438be3a35eb839f31267651053e4fab6dc9b830f0a20513ad",
+      "decodedBytes": 594691
+    },
+    "integration--history-gestures-controls--wrong-coalesce-caret.stderr.gz": {
+      "sha256": "8b74a7dffaf9b67e3ae92324572b33e929a8ecc6e2913b172fac32b5ce40eaec",
+      "bytes": 591,
+      "decodedSha256": "2845504ed7c87d34b221745ae062f7e28e43490347034e28dd71c07eb229ffdd",
+      "decodedBytes": 1478
+    },
+    "integration--history-gestures-controls--wrong-source.json.gz": {
+      "sha256": "dfbaf0b0584a832a94f7c0e2fdebc832092d947074d1aa8281f25097c0873d32",
+      "bytes": 22624,
+      "decodedSha256": "d3751ffd3b6ad70827565b7cd9549b04259be299347fbac6d55e6159c914672d",
+      "decodedBytes": 594691
+    },
+    "integration--history-gestures-controls--wrong-source.stderr.gz": {
+      "sha256": "b4bef57ea4cb34dd703494fe847ba2d7257c0dc910276d7a6ee02c4fde57787e",
+      "bytes": 656,
+      "decodedSha256": "9ca9e35c73e6c9a00b4d707bb1da5db3ebe10ba2a562ee99794ed214c89941fd",
+      "decodedBytes": 1625
+    },
+    "integration--history-gestures-review.json.gz": {
+      "sha256": "2e6b5e471f228d86ec5b3f5a1e6762caff67c90bbc257c998636054e63b401e5",
+      "bytes": 892,
+      "decodedSha256": "9374bc0019c697ef4eeb06ad4ded7f5f922715ca32585d0d084ed83c1bfa3944",
+      "decodedBytes": 6797
+    },
+    "integration--history-gestures.json.gz": {
+      "sha256": "2d4b8bb9ff2b9d8cadf6bb5c8568bb55fa8b8da1369fca7c390db11213a86705",
+      "bytes": 22634,
+      "decodedSha256": "fcb7f95027de5459815feeb4634a52f01426cc1018bd00f8397250ae6c798839",
+      "decodedBytes": 594692
+    },
+    "integration--history-gestures.json.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "integration--manifest.json.gz": {
+      "sha256": "5c933e3fb528dea60ab08df1d65b67b6a77ac5e0f39553cc3cc0b10a3bbed512",
+      "bytes": 1643,
+      "decodedSha256": "e6146d9b4063fc7e962355ec629b1f4da2018f054e189830bf88ecead4971ee0",
+      "decodedBytes": 29723
+    },
+    "integration--native-controls.log.gz": {
+      "sha256": "8e7587977784a4cf8793906e016a0992cc102a16fb8b86374c53a07928a91d45",
+      "bytes": 1146,
+      "decodedSha256": "37cd7cb22e0abf6205760ab6a2a46f5110e500ec6397b916dde4cedcbb24b046",
+      "decodedBytes": 4121
+    },
+    "integration--native-fields.log.gz": {
+      "sha256": "64c3ec7898feb63b8a9b2e6880e5f0edeace389ed6966b6a4830d416ed3bd903",
+      "bytes": 710,
+      "decodedSha256": "e03adcc37e1f70b91db2121f1fb6ec00478f07b8207f2a9fd70fc619377057d5",
+      "decodedBytes": 10536
+    },
+    "integration--native-history.log.gz": {
+      "sha256": "26bee4d05eb7d43be02c662a125c515ca5157135605b303b40228e9499b3fe77",
+      "bytes": 700,
+      "decodedSha256": "2f13b8438248e143e72c5a28466345b240d24ff3f4047a64042199cd5dfbf172",
+      "decodedBytes": 10181
+    },
+    "integration--native-trusted.log.gz": {
+      "sha256": "dc867dc4473bfef4d18d64f9941ed277c21a535e456add86b7d52cdd0b9f4a7b",
+      "bytes": 729,
+      "decodedSha256": "956f78ce4ba3d4a5937c6a1117e40aeee5443fbb440868702987f5f7b64f8c42",
+      "decodedBytes": 10274
+    },
+    "integration--node.log.gz": {
+      "sha256": "26eb3746959dfa7f20e8612023cebcd8b5cee061fd91a376a9d2c2ad01f89028",
+      "bytes": 55949,
+      "decodedSha256": "71f07e9ab73b07ba2ba3d0ce57ceef8bbfe5d625277c018ce8725feeb9f2c3bb",
+      "decodedBytes": 210838
+    },
+    "integration--package-consumer.tgz": {
+      "sha256": "1de9ea949afbc8b80ce291f47f0db93325d9e972e58cf2c83650588432730457",
+      "bytes": 649750
+    },
+    "integration--package-public-exports.json.gz": {
+      "sha256": "32c2f68f13b4abaaaa4e81e16f566ed78fc78f924aa56fa008cba4e9c8806786",
+      "bytes": 7107,
+      "decodedSha256": "bead8ccb0e9032a80dff8de2ace0b94989975d4304a2db234a5ec7db3d56744f",
+      "decodedBytes": 35230
+    },
+    "integration--package.log.gz": {
+      "sha256": "5f3c45f8282fb34e624e22bf7199815025ccaa9a6b1d9580cc7b3b53bcc96283",
+      "bytes": 10970,
+      "decodedSha256": "98e15b16a4e09f98ea284e8b3519b6947fe0aeb18b3dde31985f9acf63b3d617",
+      "decodedBytes": 48366
+    },
+    "integration--proof.log.gz": {
+      "sha256": "ffa31a3826448fba9c647d686dadba038ee7d22535c3772f4768926a68ca7508",
+      "bytes": 1069,
+      "decodedSha256": "df95d5914ed0119b8f2c70647314aa52bd49a20af6a16ac4764d42c0c2ada399",
+      "decodedBytes": 3758
+    },
+    "integration--site.log.gz": {
+      "sha256": "96d28e3e8ddc82617565ee27d35b0fa17a33f99065562a3148ac45f0750de458",
+      "bytes": 938,
+      "decodedSha256": "febd356d9f1b08e3608733edde11e12bb1bc3818072ef5f84b1e95f52d7f6a6f",
+      "decodedBytes": 2247
+    },
+    "integration--typecheck.log.gz": {
+      "sha256": "5195bd42f81bd01a1425b25faff1c7906bcd40d7cc092a59883d832443bc6a4a",
+      "bytes": 119,
+      "decodedSha256": "47a7fb20950b8eb3c4b0130d55a9eff5dafeb441b94eb1698e9f05ea8cc9c16d",
+      "decodedBytes": 160
+    },
+    "integration--types.log.gz": {
+      "sha256": "71e054bd54a6f873d6fd2d8315899c58e6c92b6469bd19b88743bb906032e50c",
+      "bytes": 472,
+      "decodedSha256": "b9609e876e2e0c82f96cc5204af2cc789d1b6a9852269c225938ce29bf9a7231",
+      "decodedBytes": 802
+    },
+    "followup--manifest.json.gz": {
+      "sha256": "65dfbe7362e7ebc891bfe10f95b5c918fbf9e643490cec0a13adad2ff37a2401",
+      "bytes": 961,
+      "decodedSha256": "15728e887694ab31afe359dd9b9b265c2b05d73eb81b81ed4cdb98ab8711a5b2",
+      "decodedBytes": 5181
+    },
+    "followup--native-conversion.log.gz": {
+      "sha256": "434535c05be3ff62e27ca6f946762b70a272c82aecdb5c7e0cebacfce234a29c",
+      "bytes": 599,
+      "decodedSha256": "391c99cedc96bf46620d9c40530ff50f805fe2651eb741133f941780fe94672c",
+      "decodedBytes": 5763
+    },
+    "followup--native-field-clipboard.log.gz": {
+      "sha256": "a474b55142c4e1326ba790ea6b7a69a140fb918fa71660800983565eebbe8536",
+      "bytes": 578,
+      "decodedSha256": "3f913edcb1a490798bcc6f62fe7c0f1438269e066009c9863f5eaf2bfcbd1752",
+      "decodedBytes": 7754
+    },
+    "targeted-timeout-case.log.gz": {
+      "sha256": "286798d4a68db77c880cb0680fcc4afa25dda2d0d873f26187365019add05f47",
+      "bytes": 170,
+      "decodedSha256": "d212875593088ab4e4ee8285670cd4619b49108a44a8f9881d72d5072730d59c",
+      "decodedBytes": 233
+    },
+    "executed--native-followup-supervisor.mjs.gz": {
+      "sha256": "d52e81fdc7c173a0736153b2a833b40691b51b345ded6c395ccd542d8ecbfb8e",
+      "bytes": 821,
+      "decodedSha256": "132955d28dc10e64899dcd8a69f75eef5676e5c0a718bda51e54466e175db1c1",
+      "decodedBytes": 1824
+    },
+    "exploratory--history-budget.json.gz": {
+      "sha256": "62f736576b1bcf46b6cce9059e4986430af5dbb7e45f52fd855811196222c2aa",
+      "bytes": 19443,
+      "decodedSha256": "cb596fb109f1c6f5dd612fe056d2bf28c5bde345eb8032764b4640091790dcf1",
+      "decodedBytes": 406078
+    },
+    "exploratory--history-budget.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "exploratory--history-budget-initial-fixture.js.gz": {
+      "sha256": "68ab278f7e970c04f3ac3bcb6ee042a64cb9874e4f16974385f492ec0a5192af",
+      "bytes": 2225,
+      "decodedSha256": "025cae98c00c645773e418523961bf83e0dd2fbb88e481f5667a595b626ab143",
+      "decodedBytes": 5328
+    },
+    "exploratory--history-budget-initial-probe.mjs.gz": {
+      "sha256": "1c33e1a3ee48f29cc54c37cb7173813f15eb00e7de086a736f6981fd9db64061",
+      "bytes": 3913,
+      "decodedSha256": "3918ae59f33d07797c38988231f41a15fd75691ca94bb0607486cbec20969474",
+      "decodedBytes": 10013
+    },
+    "exploratory--history-gestures.json.gz": {
+      "sha256": "5f8731543ffdc774d96bf72286366eda4de01033cc3e09d65cb637165734a2b3",
+      "bytes": 22660,
+      "decodedSha256": "9359d3acfe4f935c6d5867262099e67b406748db025a5cbb9527f78f0f0a7ad4",
+      "decodedBytes": 594719
+    },
+    "exploratory--history-gestures.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "exploratory--history-gestures-initial-fixture.js.gz": {
+      "sha256": "faa3add33617e70a1e140aba6868c7bcd663d390b045c254bd8cc37ec28e8f30",
+      "bytes": 2963,
+      "decodedSha256": "f2100c73c046d9eb39adb0ed75b5600ecd2fc6f14a77495cc208a95771adb531",
+      "decodedBytes": 8572
+    },
+    "exploratory--history-gestures-initial-probe.mjs.gz": {
+      "sha256": "7527c9b12957e35e72e5e57d3d6f0ebf0cac5a471387e1789be99e84eedb7dc2",
+      "bytes": 3914,
+      "decodedSha256": "1ff05b104db89b6e5a8bb14a01ff32e9a4b8053be2f5580715b5eaac7d35ecca",
+      "decodedBytes": 10021
+    },
+    "exploratory--compound-merge.json.gz": {
+      "sha256": "c4e9ab16f5fc66cb86b2943e32d40b76aa025ff22b73e9f6fa03402cc2382f55",
+      "bytes": 53737,
+      "decodedSha256": "0fd7db2047be64d218c760b148a8d60b94fee4d4eb49ac3d0063b9da7083a01b",
+      "decodedBytes": 3541482
+    },
+    "exploratory--compound-merge.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "exploratory--compound-merge-initial-fixture.js.gz": {
+      "sha256": "79aa31eed9122b442cc53a1f8b699657f6eca2ab5bcd7323a73a7d60c293bec7",
+      "bytes": 2404,
+      "decodedSha256": "4d4861c8f94cb3ef9fe4170f9dbc54b2bb592771d996832a07a1dbb54828b12b",
+      "decodedBytes": 6002
+    },
+    "exploratory--compound-merge-initial-probe.mjs.gz": {
+      "sha256": "a588699c5f1cf5bb378e347e2bb1f4cc30d0c830e403daeb7f7f4f8e1f726385",
+      "bytes": 3911,
+      "decodedSha256": "be60a748b28b7b952c9ca473665e73ecfa3facbb95561bde14d996bcbcb7aaed",
+      "decodedBytes": 10013
+    },
+    "exploratory--compound-cut-merge.json.gz": {
+      "sha256": "e8eabb1eea51c2ba5f6bb433ed5c696073768c317c3e05b5d1d43a1a9d77a487",
+      "bytes": 21154,
+      "decodedSha256": "4917569c3b7fdede09b00a5fa4731b29f9c1b6b037a256e0aacb23983c3eaa2d",
+      "decodedBytes": 375329
+    },
+    "exploratory--compound-cut-merge.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "exploratory--compound-cut-merge-initial-fixture.js.gz": {
+      "sha256": "0dafa1c5a7b6544103652ee26ff9cf6dbd11e68c87902a235781169011c4afb6",
+      "bytes": 2513,
+      "decodedSha256": "744615d9c289c1aaa96bcc547a2d193f0a582aa5bb8a44086c647f0f2347c5fe",
+      "decodedBytes": 6356
+    },
+    "exploratory--compound-cut-merge-initial-probe.mjs.gz": {
+      "sha256": "80783ebcaf10524fd2d4d3f59a222da54c48481cef17d857a48ba3180b94c2ed",
+      "bytes": 3917,
+      "decodedSha256": "9948dc39fa0d9a6bf5994959cc0838c47d4d459975c4f05922f1d73d8d1c2ecc",
+      "decodedBytes": 10033
+    },
+    "red--compound-merge.json.gz": {
+      "sha256": "676e0ccd157b8e269f6cbdc6397303871eaf686e7b19bc207525b8258a4f966d",
+      "bytes": 53678,
+      "decodedSha256": "d7a2f5779b1bd8989483b05cd2f691ead4fe8ac4a43dc466312df849e659c91e",
+      "decodedBytes": 3540838
+    },
+    "red--compound-merge.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "red--compound-merge.mjs.gz": {
+      "sha256": "00b835607aedb837ac9061105279e1e1be44e108076377a92badfc011cc7e24a",
+      "bytes": 3914,
+      "decodedSha256": "7fde5be494ae2387d4aac634dd7e5735d74ce8ff1689c151d70ec4a0a9f71e8e",
+      "decodedBytes": 10072
+    },
+    "red--compound-merge-fixture.js.gz": {
+      "sha256": "d297edca6a32344d3ada499f5187186e6038fc35aeb93738f70edde9f1d28898",
+      "bytes": 2394,
+      "decodedSha256": "e17ed6e1b69a97c77fddadac84fa131ed9d4d778aae6c78c768b8f53b5f76b20",
+      "decodedBytes": 6013
+    },
+    "red--compound-cut-merge.json.gz": {
+      "sha256": "691a54d4f6178380f9ea29cdd637ce436dddd48ef6b9f1b172ce02d4e6f5bebe",
+      "bytes": 21122,
+      "decodedSha256": "a53fa1d8e3b3dfa74f648b528125e3ca19528678ce6a422d536d5a01f14e2a3e",
+      "decodedBytes": 375283
+    },
+    "red--compound-cut-merge.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "red--compound-cut-merge.mjs.gz": {
+      "sha256": "870aa80f64c23779626ad28fcae6a3ee46c0a35202c436073796397091f538bd",
+      "bytes": 3888,
+      "decodedSha256": "9d084030639235891a8c723e1f0c1d6d85fc739e54c6e59c5387ccb41dc05f14",
+      "decodedBytes": 10064
+    },
+    "red--compound-cut-merge-fixture.js.gz": {
+      "sha256": "0dafa1c5a7b6544103652ee26ff9cf6dbd11e68c87902a235781169011c4afb6",
+      "bytes": 2513,
+      "decodedSha256": "744615d9c289c1aaa96bcc547a2d193f0a582aa5bb8a44086c647f0f2347c5fe",
+      "decodedBytes": 6356
+    },
+    "red-vs-parent-review.json": {
+      "sha256": "276b33531f59134eb36d1f52f780ce1ec43b1323712b0783eab5f6eb7fcb62c7",
+      "bytes": 886
+    },
+    "preflight--compound-merge.json.gz": {
+      "sha256": "b6927b007ca56ae901b2521aeee6e03770ae4cd2d7bf1f042159489e8b833fad",
+      "bytes": 53466,
+      "decodedSha256": "ce15f01d83ff8ef31853813b0002ff9d9a2d6e7325d4dc31667995f39a4a8c47",
+      "decodedBytes": 3538958
+    },
+    "preflight--compound-merge.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "preflight--compound-merge-review.json.gz": {
+      "sha256": "b0a84ff2bb5060e29a6ca5c72c612557b103186c5e5140dab42ed714b0130aad",
+      "bytes": 2218,
+      "decodedSha256": "563ae4d0984c3a9b3f29fc005e2c9f225594030b491f683c1316ad249d2e1663",
+      "decodedBytes": 45488
+    },
+    "preflight--compound-cut-merge.json.gz": {
+      "sha256": "616a1ad3a66b521c9cb9b66f8561873756fa8db97f346f7d61feef168b47b6b7",
+      "bytes": 21233,
+      "decodedSha256": "9bcb6abfc997845f2d8c1d588f4953cc3256f347eb1a6c01b72d4662940da720",
+      "decodedBytes": 374723
+    },
+    "preflight--compound-cut-merge.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "preflight--compound-cut-merge-review.json.gz": {
+      "sha256": "7a26749d0da1099e58773e87279e7433e45a73d24fe1ee1cf250a9ceed9aa04a",
+      "bytes": 843,
+      "decodedSha256": "079e913068595fb88f07563a8deefdff7e83bba88593248c03e3ac802bad7457",
+      "decodedBytes": 5000
+    },
+    "preflight--history-gestures.json.gz": {
+      "sha256": "2f15c6f7c96d7d960f5eed7abb31d0039ceba53ba439530f09e57c8f54501bc4",
+      "bytes": 22652,
+      "decodedSha256": "d0e0dd40a3dadda6f40f9a1b33e7c8bc8bf6b3a28538bace8bef2fbfe12cf093",
+      "decodedBytes": 594692
+    },
+    "preflight--history-gestures.stderr.gz": {
+      "sha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "decodedBytes": 0
+    },
+    "preflight--history-gestures-review.json.gz": {
+      "sha256": "906064d5e3c8e942561526fb0899c31ac2f009f2cc4e1d79bef15c717f01ec26",
+      "bytes": 888,
+      "decodedSha256": "e6fc05d6f16ffad552f8087045707a3b6f192d41f6bc02d59b26d95acc0eba4a",
+      "decodedBytes": 6797
+    },
+    "preflight--review-history-gestures.mjs.gz": {
+      "sha256": "cf3fca45f300b5b58b7d13643cb18a66da85ad4d083238580bc17c51966952b7",
+      "bytes": 2205,
+      "decodedSha256": "a8cf10dc237db5e3dae7181a8681aca21e4f2ca09eea45b3fccc135dba81f775",
+      "decodedBytes": 6063
+    },
+    "executed--review-history-gestures.mjs.gz": {
+      "sha256": "cf3fca45f300b5b58b7d13643cb18a66da85ad4d083238580bc17c51966952b7",
+      "bytes": 2205,
+      "decodedSha256": "a8cf10dc237db5e3dae7181a8681aca21e4f2ca09eea45b3fccc135dba81f775",
+      "decodedBytes": 6063
+    },
+    "preflight--review-compound-merges.mjs.gz": {
+      "sha256": "a0f04280ad5224c174265712fa247402aa9b295a435bb0ee069029050e848850",
+      "bytes": 2428,
+      "decodedSha256": "ce27a7c09d7167d73033e03330153bc74e4aea990b98709de720d8228eaafc20",
+      "decodedBytes": 6507
+    },
+    "executed--review-compound-merges.mjs.gz": {
+      "sha256": "a0f04280ad5224c174265712fa247402aa9b295a435bb0ee069029050e848850",
+      "bytes": 2428,
+      "decodedSha256": "ce27a7c09d7167d73033e03330153bc74e4aea990b98709de720d8228eaafc20",
+      "decodedBytes": 6507
+    },
+    "preflight--history-merge-identity.mjs.gz": {
+      "sha256": "0141cf3e5746b223e18cfdb2d17a5ca36121018fe60437d44cb6b0947727674c",
+      "bytes": 1795,
+      "decodedSha256": "cac909753ad416c5b28c18c6b0e70c7de9af6969fa4531b389657abd37af3eec",
+      "decodedBytes": 3949
+    },
+    "executed--history-merge-identity.mjs.gz": {
+      "sha256": "0141cf3e5746b223e18cfdb2d17a5ca36121018fe60437d44cb6b0947727674c",
+      "bytes": 1795,
+      "decodedSha256": "cac909753ad416c5b28c18c6b0e70c7de9af6969fa4531b389657abd37af3eec",
+      "decodedBytes": 3949
+    },
+    "preflight--history-merge-controls.mjs.gz": {
+      "sha256": "47e44421a887eaaba6d2ae4dbf77a164a8cea3483ae89fb3b7ced14e28feda17",
+      "bytes": 2299,
+      "decodedSha256": "05f2aad140e4b130b731b149dc43f9eceb9db692f54bbaafd39f2d244fc4177a",
+      "decodedBytes": 6517
+    },
+    "executed--history-merge-controls.mjs.gz": {
+      "sha256": "47e44421a887eaaba6d2ae4dbf77a164a8cea3483ae89fb3b7ced14e28feda17",
+      "bytes": 2299,
+      "decodedSha256": "05f2aad140e4b130b731b149dc43f9eceb9db692f54bbaafd39f2d244fc4177a",
+      "decodedBytes": 6517
+    },
+    "executed--compound-merge.mjs.gz": {
+      "sha256": "00b835607aedb837ac9061105279e1e1be44e108076377a92badfc011cc7e24a",
+      "bytes": 3914,
+      "decodedSha256": "7fde5be494ae2387d4aac634dd7e5735d74ce8ff1689c151d70ec4a0a9f71e8e",
+      "decodedBytes": 10072
+    },
+    "executed--compound-merge-fixture.js.gz": {
+      "sha256": "d297edca6a32344d3ada499f5187186e6038fc35aeb93738f70edde9f1d28898",
+      "bytes": 2394,
+      "decodedSha256": "e17ed6e1b69a97c77fddadac84fa131ed9d4d778aae6c78c768b8f53b5f76b20",
+      "decodedBytes": 6013
+    },
+    "executed--compound-cut-merge.mjs.gz": {
+      "sha256": "870aa80f64c23779626ad28fcae6a3ee46c0a35202c436073796397091f538bd",
+      "bytes": 3888,
+      "decodedSha256": "9d084030639235891a8c723e1f0c1d6d85fc739e54c6e59c5387ccb41dc05f14",
+      "decodedBytes": 10064
+    },
+    "executed--compound-cut-merge-fixture.js.gz": {
+      "sha256": "0dafa1c5a7b6544103652ee26ff9cf6dbd11e68c87902a235781169011c4afb6",
+      "bytes": 2513,
+      "decodedSha256": "744615d9c289c1aaa96bcc547a2d193f0a582aa5bb8a44086c647f0f2347c5fe",
+      "decodedBytes": 6356
+    },
+    "executed--history-gestures.mjs.gz": {
+      "sha256": "db95c0891abe890114259b8bc18d93530418cbbe58b49ce17cfc25fde124223a",
+      "bytes": 3897,
+      "decodedSha256": "c03a9c2f2a01c43df7facb61e6723e2d34b24b8262aadbfb62508dac90c95e18",
+      "decodedBytes": 10069
+    },
+    "executed--history-gestures-fixture.js.gz": {
+      "sha256": "faa3add33617e70a1e140aba6868c7bcd663d390b045c254bd8cc37ec28e8f30",
+      "bytes": 2963,
+      "decodedSha256": "f2100c73c046d9eb39adb0ed75b5600ecd2fc6f14a77495cc208a95771adb531",
+      "decodedBytes": 8572
+    },
+    "executed--native-history-merges.js.gz": {
+      "sha256": "44fffcb611a782c093d26cadd22f06c0e13827ed602df563da8d66a5945cd908",
+      "bytes": 706,
+      "decodedSha256": "c5dfcc8ba10671c9695afd69eb0ee750528ab86a47abfd52c4c20a22f473f3de",
+      "decodedBytes": 1583
+    },
+    "executed--native-history-merges.html.gz": {
+      "sha256": "a093612d1815a5d20baf665b80ab57fa7748d2370b91ef160a6f551f481eb9aa",
+      "bytes": 219,
+      "decodedSha256": "abe52b1c777409fc604f8104fdcd51db8f4859c40a5d27b7ce95091826fa5f72",
+      "decodedBytes": 298
+    },
+    "executed--native-history-merges-trusted.html.gz": {
+      "sha256": "65462fc0c3cfa3a128a5b2f9717084703fc1bc3e3bc6964907a93a4717d6a2ee",
+      "bytes": 284,
+      "decodedSha256": "ed6f5d030b8d5df1e5992ecab5ae788572f1f8a9c4681c6d63ea502589352bff",
+      "decodedBytes": 418
+    },
+    "executed--physical-history.mjs.gz": {
+      "sha256": "a68e1337686b92970bf32ad14b30db9b6af8dd4d985c3f0d99851145fbeb366f",
+      "bytes": 7853,
+      "decodedSha256": "c043236365dddae26172b833a3f8824e6d495b2237508ccd4eb03048c2b0a4bc",
+      "decodedBytes": 35213
+    },
+    "executed--mergeRichText.js.gz": {
+      "sha256": "795604544a714108d298c5cd438474d95fc386c7ac37234e8af27fe3bf29ebbb",
+      "bytes": 276,
+      "decodedSha256": "ef222adeca9686191f694c757fd5b7aa6e9cca055f1a275360c59294de12d138",
+      "decodedBytes": 480
+    },
+    "executed--mergeRichText.test.js.gz": {
+      "sha256": "36955d6521b3f9ab17fb56e099ce79ba6f6693eb2f3365561b39679bfadc9d76",
+      "bytes": 947,
+      "decodedSha256": "975eb6b37d357738466e7715c3303a150d013a5fcceab790ce4e6ad3414459fd",
+      "decodedBytes": 2546
+    },
+    "executed--supervisor.mjs.gz": {
+      "sha256": "f008f6808a042d65bb0e7d5d71b0a4748c5007a89ba319e62643af07c6890157",
+      "bytes": 1331,
+      "decodedSha256": "35c4d88bc6f087a9ba3298c270ece6a91d18adda106e05f7a87e647539acd231",
+      "decodedBytes": 3672
+    },
+    "focused-merge-unit.log.gz": {
+      "sha256": "6cc020b7bdff4a1036f9858767a4565663e93269201e870d02b14ef102f8f0fb",
+      "bytes": 268,
+      "decodedSha256": "97b237d34aad40e1334897d846020d6e77e72c2c5e2102c014ad6fc6c0379d06",
+      "decodedBytes": 601
+    },
+    "production.patch.gz": {
+      "sha256": "eade3a93f2eafc45fb9e080a2278c19405e30e6a6aaba299b7ece53d052f3b43",
+      "bytes": 2039,
+      "decodedSha256": "71f42e6bd6c0ae1ebe7cff76b7c00af8b649e0acc77265e9a0c923ec0efa709f",
+      "decodedBytes": 8844
+    },
+    "executed--HistoryStore.bytes.test.js.gz": {
+      "sha256": "cbedd31d05c8ba0fdd21307a4cb8666d8b4c61e9660576ca725c1073c01a954b",
+      "bytes": 4204,
+      "decodedSha256": "0932644987431b882a371f25f7f3930e7280b1eafd5c7557c2f3ab2cb894ea85",
+      "decodedBytes": 17992
+    },
+    "executed--TransactionEngine.history-budget.test.js.gz": {
+      "sha256": "c4d2fc39ea0766096828dea93e44cc034bcbe7055a9dad995af6ad1c503539bd",
+      "bytes": 1569,
+      "decodedSha256": "a2ecdf98070085bf72dd1bae9c64af7a3495750643c2820b27f59740981acb7b",
+      "decodedBytes": 5474
+    },
+    "budget-unit-coverage.json": {
+      "sha256": "01f7d7e176eb54adb815998d9eb137ce655f61322a391324b12b8b40b755478d",
+      "bytes": 2774
+    }
+  }
+}

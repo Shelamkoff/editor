@@ -1,0 +1,45 @@
+{
+  "source": "ce76492c0ed242205b617a2dd6179ae45e6b57e4",
+  "nodeGate": "passed",
+  "files": [
+    {
+      "path": "core/HistoryStore.bytes.test.js",
+      "executedSha256": "0932644987431b882a371f25f7f3930e7280b1eafd5c7557c2f3ab2cb894ea85",
+      "gitSha256": "682f712928d4892480f646d945bfeb83689d455000e51077c0c9e0d5a5c7f289",
+      "passingCases": [
+        "history byte budget accepts only an omitted value or a positive safe integer",
+        "history evicts oldest whole records at the exact serialized UTF-8 boundary",
+        "newest oversized action remains whole and survives repeated Undo and Redo",
+        "omitted or undefined byte budget keeps count-only behavior without serialization",
+        "enabled budget serializes each final candidate once, never in commit or replay",
+        "budget observes owned JSON once and never invokes caller toJSON hooks",
+        "coalescence replaces the old cost with the complete merged action cost",
+        "shrinking a coalesced action releases bytes for the next independent action",
+        "qualified async continuation is budgeted as one complete authoring action",
+        "a branched edit releases Redo costs without evicting affordable Undo actions",
+        "count eviction also removes old costs before the next byte-budget decision",
+        "detached peeks and replay payloads cannot change retained records or their costs",
+        "abandoned preparation cannot evict committed history or reserve bytes",
+        "failed encoding preserves both cursors and their accounting",
+        "failed JSON ownership cannot change retained records or cached costs",
+        "stale record and replay plans cannot change live byte accounting",
+        "clear resets byte accounting and invalidates prepared entries",
+        "rejected coalescence does not evict records or consume the byte budget",
+        "successful record and replay commits apply their accounting only once",
+        "byte budget option is captured once at construction"
+      ]
+    },
+    {
+      "path": "core/TransactionEngine.history-budget.test.js",
+      "executedSha256": "a2ecdf98070085bf72dd1bae9c64af7a3495750643c2820b27f59740981acb7b",
+      "gitSha256": "65077a040aaaf5ae5d8bbecf38de0949976132d0ecdaad1c89d691902838bcf9",
+      "passingCases": [
+        "an oversized semantic action keeps all blocks and selection through real history replay",
+        "failed projection cannot replace or evict the last accepted undo action",
+        "failed byte capture after projection recovers without changing the model or either history cursor",
+        "a canonical no-op does not measure, evict or discard the accepted redo branch",
+        "an aborted compound edit preserves the previous whole action and accounting"
+      ]
+    }
+  ]
+}

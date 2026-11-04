@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## History and compound merge acceptance — 2026-11-04
+
+Register: **142 accepted / 67 open / 209 total**. Accepted on `ce76492c`:
+`HISTORY_GESTURE`, `HISTORY_BUDGET`. History: 40 executions / 796 observations,
+plus 25 passing budget boundary/failure cases in the Node suite. Shared merging
+repairs Quote captions, Toggle/Spoiler and same-type compound Cut while retaining
+Warning, Quote text concatenation and authored open state. Combined literal proof:
+280 executions / 3,772 observations / 1,262 module identities / 60 corruptions.
+Fifteen initial gates and both native follow-up gates and 577 selected native cases pass. Inventory: 102 native pages.
+[Checkpoint](scripts/parity/checkpoints/2026-11-04/history-and-compound-merges/README.md). Full readiness remains open.
+
 ## Toggle and Spoiler rich fields — 2026-11-04
 
 Register: **140 accepted / 69 open / 209 total**. Accepted on `2c4f35d3`:

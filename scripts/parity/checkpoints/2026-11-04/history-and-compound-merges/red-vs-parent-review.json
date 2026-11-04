@@ -1,0 +1,35 @@
+{
+  "source": "788d96efc38b67c99cbd2ed0db4c7997f6a3af06",
+  "parent": "701cd0ad2402618cdb09503e7eee2e520a027ede",
+  "runtimeUnchanged": true,
+  "results": [
+    {
+      "group": "compound-merge",
+      "trustedPolicy": false,
+      "cases": 112,
+      "failedObservations": 26,
+      "actualObservationsMatchImmutableParent": true
+    },
+    {
+      "group": "compound-merge",
+      "trustedPolicy": true,
+      "cases": 112,
+      "failedObservations": 26,
+      "actualObservationsMatchImmutableParent": true
+    },
+    {
+      "group": "compound-cut-merge",
+      "trustedPolicy": false,
+      "cases": 8,
+      "failedObservations": 6,
+      "actualObservationsMatchImmutableParent": true
+    },
+    {
+      "group": "compound-cut-merge",
+      "trustedPolicy": true,
+      "cases": 8,
+      "failedObservations": 6,
+      "actualObservationsMatchImmutableParent": true
+    }
+  ]
+}
