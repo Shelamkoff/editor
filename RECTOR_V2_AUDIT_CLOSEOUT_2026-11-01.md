@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## Warning fields acceptance — 2026-11-04
+
+`BLOCK_WARNING_FIELDS` accepted on `226cf273`. Register: **135 accepted / 74 open / 209 total**.
+Real title/message rich edits, directed Text/Element formatting, widgets, empty
+field guards, Tab/Shift+Tab/title Enter, exact native history and read-only
+roundtrip pass. Immutable oracle: 34 executions / 996 observations / 454 module
+identities and 21 corruptions. All seven gates and 17 + 18 + 11 native cases pass.
+The inventory is 96 native pages. Production remains `3c02d2d4`; prior complete
+checks keep their source/date. [Checkpoint](scripts/parity/checkpoints/2026-11-04/warning-fields/README.md).
+Residual cut/merge/conversion and whole-library readiness remain open.
+
 ## Quote fields acceptance — 2026-11-04
 
 `BLOCK_QUOTE_FIELDS` accepted on `373ce247`. Register: **134 accepted / 75 open / 209 total**.

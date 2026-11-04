@@ -6,6 +6,42 @@ Current scoped acceptance is **132 / 209 obligations**, with **77 open**; see th
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Warning fields and traversal 2026-11-04
+
+`BLOCK_WARNING_FIELDS` is accepted on `226cf273`: **135/209 obligations
+accepted, 74 open**. All **seven gates** pass on one clean unchanged source.
+The immutable literal rich-field oracle verifies **34 current executions / 996
+observations**, **454 module identities** and **21 rejected corruptions**.
+[Exact evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-04/warning-fields/README.md) retains the complete comparison and native results.
+**Production is unchanged** from `3c02d2d4` and the accepted Quote runtime.
+
+Actual Warning classes/factories edit both title and message with native caret
+insertion and backward replacement. Cross-field Bold apply/remove uses Text and
+Element endpoints in both directions while preserving unselected marks, distinct
+Color references, labels/dots, authored breaks and exact native history. Empty
+title or message cannot remove the nonempty sibling. Tab/Shift+Tab and the
+Warning-specific title Enter reach the intended field/offset without author
+history. Field/widget/neighbor identity, caller data and actual read-only save
+roundtrip pass. Real save timestamps remain bounded by the actual run.
+
+The accepted Quote oracle is loaded unchanged from `373ce247`. Only expected
+document type and data-field names map to Warning; actual production behavior
+is never emulated. Title Enter is a separate trusted native case. Every one of
+seventeen cases completes on v1, baseline, immutable parent and both current
+policies without page errors. v1 retains **51 failed observations**, baseline
+**35**, and parent zero. Their old end-offset, Element-format/history and
+widget-presentation defects remain explicit; absent v1 event APIs are not
+reported as measured zero events. Improved current behavior is preserved.
+
+Fresh native pages pass **17 + 18** cases; **11 existing Warning cases** also
+pass, totaling **46**. Existing controls cover rich sibling reprojection,
+backward range replacement, read-only authoring, native Shift+Enter and
+conversion. Docs/site pass. The native inventory is **96 pages**. Runtime-byte
+identity preserves the previous build/Node/types/package/bundle and broad
+browser/heap verification with its actual source/date. Only this field row is
+newly accepted; Warning residual cut/merge/conversion, B-HTML and whole-library
+readiness retain their separate open obligations.
+
 ## Quote fields and rich selections 2026-11-04
 
 `BLOCK_QUOTE_FIELDS` is accepted on `373ce247`: **134/209 obligations
