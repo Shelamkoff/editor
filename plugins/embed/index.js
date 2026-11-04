@@ -466,14 +466,19 @@ export function createEmbedPlugin(config = {}) {
             button.addEventListener('click', () => {
               if (readOnly || dead) return
               const task = beginCoverTask()
-              void Promise.resolve(action.handler({ signal: task.signal })).then(result => {
-                if (task.signal.aborted || !result) return
-                const safe = sanitizeMediaUrl(result.url)
-                if (safe) retainControlFocus(wrapper, () => task.commit(current => ({ ...current, cover: safe })))
-              }).catch(() => {}).finally(() => {
-                task.cancel()
-                if (coverTask === task) coverTask = null
-              })
+              void (async () => {
+                try {
+                  const result = await action.handler({ signal: task.signal })
+                  if (task.signal.aborted || !result) return
+                  const safe = sanitizeMediaUrl(result.url)
+                  if (safe) retainControlFocus(wrapper, () => task.commit(current => ({ ...current, cover: safe })))
+                } catch {
+                  // Both synchronous source failures and rejected selections are contained.
+                } finally {
+                  task.cancel()
+                  if (coverTask === task) coverTask = null
+                }
+              })()
             }, { signal: context.signal })
             button.addEventListener('click', closeCover, { signal: context.signal })
             coverActions.insertBefore(button, removeCover)
