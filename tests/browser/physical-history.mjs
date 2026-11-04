@@ -608,6 +608,7 @@ try {
     'native-columns-empty-layout.html', 'native-columns-empty-layout-trusted.html',
     'native-columns-fields.html', 'native-columns-fields-trusted.html',
     'native-heading-structure-conversion.html', 'native-heading-structure-conversion-trusted.html',
+    'native-heading-paste.html', 'native-heading-paste-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
