@@ -322,6 +322,7 @@ export function createEditorRuntime(input){
       }
       // Revoke stale clipboard work before fallible UI refresh/notifications.
       complete(()=>clipboard?.handleTransaction(event),'clipboard')
+      complete(()=>nativeInput?.handleTransaction(),'native-input')
       complete(()=>interaction?.reconcile(),'interaction')
       complete(()=>toolbar?.refresh(),'toolbar')
       complete(()=>notifier?.schedule(),'change-notifier')

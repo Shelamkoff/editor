@@ -66,6 +66,19 @@ export class NativeInputController {
 
   get isComposing() { return this.#composition !== null }
 
+  handleTransaction() {
+    const session = this.#composition ?? this.#endingComposition
+    if (!session || (session.generation === this.#runtime.generation
+      && session.revision === this.#runtime.revision
+      && session.modeEpoch === this.#runtime.modeEpoch)) return
+    // A replacement can detach the composing host before Chrome sends its
+    // compositionend. That retired session must not keep new fields or their
+    // keyboard shortcuts behind the old composition guard.
+    this.#composition = null
+    this.#preparedComposition = null
+    this.#endingComposition = null
+  }
+
   /** Observe an existing native envelope without granting mutation rights.
    * @param {string} blockId
    * @param {string} fieldKey

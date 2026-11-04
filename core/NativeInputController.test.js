@@ -68,6 +68,43 @@ function harness(options = {}) {
   }
 }
 
+test('a changed document retires stale composition before native history and late completion', async () => {
+  for (const property of ['generation', 'revision', 'modeEpoch']) {
+    const { controller, runtime, field, calls } = harness()
+    Object.assign(runtime, { generation: 1, revision: 2, modeEpoch: 3 })
+    controller.handleCompositionStart({ target: field, isTrusted: true })
+    runtime[property]++
+    controller.handleTransaction?.()
+    let prevented = false
+    controller.handleBeforeInput({
+      target: field, inputType: 'historyUndo',
+      preventDefault() { prevented = true },
+    })
+    assert.equal(prevented, true, property)
+    assert.equal(controller.isComposing, false, property)
+    controller.handleCompositionEnd({ target: field, data: 'late' })
+    await Promise.resolve()
+    assert.deepEqual(calls, [{ history: 'undo' }], property)
+    controller.destroy()
+  }
+})
+
+test('unchanged document reconciliation preserves an active composition', async () => {
+  const { controller, runtime, field, calls } = harness()
+  Object.assign(runtime, { generation: 1, revision: 2, modeEpoch: 3 })
+  controller.handleCompositionStart({ target: field, isTrusted: true })
+  controller.handleTransaction?.()
+  assert.equal(controller.isComposing, true)
+  let prevented = false
+  controller.handleBeforeInput({ target: field, inputType: 'historyUndo', preventDefault() { prevented = true } })
+  assert.equal(prevented, false)
+  controller.handleCompositionEnd({ target: field, data: 'confirmed' })
+  await Promise.resolve()
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].metadata.name, 'native-input')
+  controller.destroy()
+})
+
 test('a matching trusted field input hands off its captured descriptor only for canonical no-op completion', () => {
   const state = harness({ selection: { capture: () => null } })
   Object.assign(state.runtime, { generation: 1, revision: 2, modeEpoch: 3 })
