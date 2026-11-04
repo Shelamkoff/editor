@@ -112,7 +112,8 @@ def corpus(d,candidate):
       stamp=o['actual'].get('time');assert type(stamp)==int and int(datetime.fromisoformat(d['startedAt'].replace('Z','+00:00')).timestamp()*1000)<=stamp<=int(datetime.fromisoformat(d['finishedAt'].replace('Z','+00:00')).timestamp()*1000);v=dict(v,time=stamp)
      assert (o['phase'],o['property'])==(p,k) and same(o['actual'],v) and same(o['expected'],v),(c['id'],p,k,o,v)
     assert c['nativeEvents']==native(c['spec']) and c['transactions']==events(c['spec'])
-   else:assert len(c['unsupported'])==1 and c['unsupported'][0]['property']=='currentObservers'
+   elif r['source']=='v1':assert len(c['unsupported'])==1 and c['unsupported'][0]['property']=='currentObservers'
+   else:assert c['unsupported']==[]
   assert count==472;assert len(differences)==(50 if r['source']=='v1' else 34 if r['source']=='spec-baseline' else 0)
   result[r['source']+('/trusted' if r['trustedPolicy'] else '/compatible')]=dict(cases=16,observations=count,differences=differences)
  return result,modules
