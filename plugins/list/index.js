@@ -112,7 +112,7 @@ export function createListPlugin(config = {}) {
             selected.push({...item,text:field.selected})
           }
           const text=field.before+field.after
-          if(text)remaining.push({...item,text})
+          if(!field.whole&&text)remaining.push({...item,text})
         }
         if(!selected.length)throw new Error('List clipboard selection is empty')
         if(!remaining.length)remaining.push({id:context.createId('item'),text:''})
