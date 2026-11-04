@@ -408,7 +408,7 @@ export class SlashCommandController {
         event.stopPropagation()
         if (ownsItems()) this.#select(index)
       }, { signal: this.#controller.signal })
-      element.addEventListener('mouseenter', () => {
+      element.addEventListener('mousemove', () => {
         this.#setActive(index, ownsItems)
       }, { signal: this.#controller.signal })
       if (ownsItems()) this.#menu.appendChild(element)
