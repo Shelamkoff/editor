@@ -27,5 +27,5 @@ for(const kind of['throw','promise','focus','schema'])test('declared cross-item 
   return{data,focus:{fieldKey:'item:missing',offset:0}}
  }}}},diagnostics=[],editor=make([{id:'seed',type:'list',dataVersion:2,data:{style:'ordered',items:[{id:'a',text:'Alpha'},{id:'b',text:'Bravo'}]}},para('after','After')],{plugins:[createParagraphPlugin(),definition],onDiagnostic:v=>diagnostics.push(v)})
  const initial=editor.save().blocks;range(editor,false);await pause(60);const html=editorRoot(editor).querySelector('.oe-list').innerHTML;await dispatchKey('Enter','Enter',13);await pause(60)
- equal(editor.save().blocks,initial);equal(editorRoot(editor).querySelector('.oe-list').innerHTML,html);equal([editor.canUndo,editor.canRedo],[false,false]);equal(diagnostics.length,1);equal(diagnostics[0].code,'command.failed');assert(!editorRoot(editor).querySelector('.oe-block[data-block-id="seed"] .oe-paragraph'))
+ equal(editor.save().blocks,initial);equal(editorRoot(editor).querySelector('.oe-list').innerHTML,html);equal([editor.canUndo,editor.canRedo],[false,false]);equal(diagnostics.map(d=>[d.code,d.operation]),[['command.failed','selection.split'],['command.failed','keyboard.shortcut']]);assert(!editorRoot(editor).querySelector('.oe-block[data-block-id="seed"] .oe-paragraph'))
 })
