@@ -111,7 +111,7 @@ async function runMetadataWorkflow({sourceBase,legacy,spec,nativeInput}){
     else{
      const value=spec.action==='url'?RECOVERY:'javascript:alert(1)'
      if(legacy){const response=await click('URL','url','Input.prompt',{value});check(phase,'prompt',response,{type:'prompt',message:'Image URL:',value})}
-     else{await click('URL','url');const surface=holder.querySelector('.oe-source-editor[aria-hidden="false"]'),field=surface.querySelector('input');await type(field,value,'url');await click(surface.querySelector('button[type="submit"]'),'submit');if(spec.action==='invalid-url'){check(phase,'invalid',field.getAttribute('aria-invalid'),'true');await click(surface.querySelector('.oe-source-editor__cancel'),'cancel')}}
+     else{await click('URL','url');const surface=holder.querySelector('.oe-source-editor[aria-hidden="false"]'),field=surface.querySelector('input');await type(field,value,'url');await click(surface.querySelector('button[type="submit"]'),'submit');if(spec.action==='invalid-url'){check(phase,'invalid',field.getAttribute('aria-invalid'),'true');await click(surface.querySelector('.oe-source-editor__button--secondary'),'cancel')}}
      if(spec.action==='url'){after.cover=RECOVERY;authored=true}
     }
    }else if(spec.kind==='local'){
