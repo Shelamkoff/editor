@@ -1,3 +1,4 @@
+import { slashScrollCases, runSlashScrollCase } from './slash-scroll-fixture.js'
 import { slashRevocationCases, runSlashRevocationCase } from './slash-revocation-fixture.js'
 import { slashMenuCases, runSlashMenuCase } from './slash-menu-fixture.js'
 import { test, assert, equal, run } from './regressions/harness.js'
@@ -24,6 +25,13 @@ for (const spec of slashMenuCases) test(`Slash ${spec.id}`, async () => {
 for (const spec of slashRevocationCases) test(`Slash revoked ${spec.id}`, async () => {
   const result = await runSlashRevocationCase({ spec, nativeInput })
   ;(window.__slashRevocationResults ??= []).push(result)
+  assert(!result.error, result.error); equal(result.completedPhases, result.planned)
+  equal(result.diagnostics, []); equal(result.unsupported, [])
+  for (const observation of result.observations) equal(observation.actual, observation.expected, `${observation.phase}/${observation.property}`)
+})
+for (const spec of slashScrollCases) test(`Slash scroll ${spec.id}`, async () => {
+  const result = await runSlashScrollCase({ spec, nativeInput })
+  ;(window.__slashScrollResults ??= []).push(result)
   assert(!result.error, result.error); equal(result.completedPhases, result.planned)
   equal(result.diagnostics, []); equal(result.unsupported, [])
   for (const observation of result.observations) equal(observation.actual, observation.expected, `${observation.phase}/${observation.property}`)
