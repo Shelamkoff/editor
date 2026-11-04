@@ -1,5 +1,5 @@
 // @ts-check
-import { findNodeAtOffset } from '../shared/textOffset.js'
+import { findNodeAtOffset, getTextOffset } from '../shared/textOffset.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 
 function localizedLabel(definition, scope, translate) {
@@ -62,6 +62,7 @@ export class SlashCommandController {
       root.addEventListener('compositionstart', () => this.close(), { signal })
       root.addEventListener('keydown', event => this.#onKeydown(event), { capture: true, signal })
       root.addEventListener('focusout', event => this.#onFocusOut(event), { signal })
+      this.#document.addEventListener('selectionchange', () => this.#onSelectionChange(), { signal })
       this.#document.addEventListener('scroll', () => this.#position(), { capture: true, passive: true, signal })
       this.#window?.addEventListener?.('resize', () => this.#position(), { signal })
     } catch (error) {
@@ -304,6 +305,16 @@ export class SlashCommandController {
     }
   }
 
+  #onSelectionChange() {
+    const session = this.#session
+    const version = this.#itemsVersion
+    if (!session || this.#controller.signal.aborted) return
+    const valid = this.#sessionIsCurrent()
+    // Field resolution can publish a successor while checking this selection.
+    if (!valid && this.#session === session && this.#itemsVersion === version
+      && !this.#controller.signal.aborted) this.close()
+  }
+
   #onFocusOut(event) {
     const session = this.#session
     const modeEpoch = this.#runtime.modeEpoch
@@ -456,10 +467,20 @@ export class SlashCommandController {
 
   #sessionIsCurrent() {
     const session = this.#session
-    if (this.#controller.signal.aborted || this.#runtime.readOnly
-      || !session || !session.element.isConnected || !this.#root.contains(session.element)) return false
+    const modeEpoch = this.#runtime.modeEpoch
+    const owns = () => !this.#controller.signal.aborted && !this.#runtime.readOnly
+      && this.#session === session && this.#runtime.modeEpoch === modeEpoch
+    if (!session || !owns() || !session.element.isConnected
+      || !this.#root.contains(session.element) || !owns()) return false
     const field = this.#reconciler.getEditableField(session.blockId, session.fieldKey)
-    return field?.element === session.element
+    if (!owns() || field?.element !== session.element) return false
+    const native = this.#window?.getSelection?.()
+    const node = native?.focusNode, offset = native?.focusOffset
+    if (!owns() || !native?.isCollapsed || !native.rangeCount || !node
+      || !session.element.contains(node) || !owns()) return false
+    const position = getTextOffset(session.element, node, offset)
+    return owns() && position === session.end && native.isCollapsed
+      && native.focusNode === node && native.focusOffset === offset
   }
 
   #textBeforeCaret(element, node, offset) {

@@ -198,7 +198,7 @@ test('Slash input in read-only mode dismisses an already open command menu', () 
     defaultView: {
       AbortController, innerWidth: 1000, innerHeight: 1000,
       getSelection() {
-        return { focusNode: text, focusOffset: 1, rangeCount: 1 }
+        return { focusNode: text, focusOffset: 1, rangeCount: 1, isCollapsed: true }
       },
       addEventListener() {},
     },
@@ -277,7 +277,7 @@ function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
   const ownerDocument = {
     defaultView: {
       AbortController, innerWidth: 1000, innerHeight: 1000,
-      getSelection() { return { focusNode: text, focusOffset: 1, rangeCount: 1 } },
+      getSelection() { return { focusNode: text, focusOffset: 1, rangeCount: 1, isCollapsed: true } },
       addEventListener() {},
     },
     createElement(tag) {
@@ -490,3 +490,18 @@ test('live Slash inline selection still commits through a healthy owned session'
   assert.deepEqual(h.actions, ['restore selection', 'insert inline'])
   h.controller.destroy()
 })
+
+for (const kind of ['caret', 'range']) {
+  test(`Slash Enter cannot author after its native ${kind} selection is revoked`, () => {
+    const h = activeSlashKeyHarness({ blockItem: true })
+    h.input()
+    const view = h.root.ownerDocument.defaultView
+    const previous = view.getSelection()
+    view.getSelection = () => ({ ...previous, isCollapsed: kind === 'caret', focusOffset: 0 })
+    const result = h.keydown('Enter')
+    assert.deepEqual(h.actions, [], 'revoked Slash range authored a command')
+    assert.deepEqual(result, { prevented: false, stopped: false }, 'revoked Slash took the next author key')
+    assert.equal(h.controller.isOpen, false)
+    h.controller.destroy()
+  })
+}
