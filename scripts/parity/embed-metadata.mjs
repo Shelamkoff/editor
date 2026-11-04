@@ -84,11 +84,27 @@ try {
   for (const source of sources) { for(const trustedPolicy of (source.label==='candidate'?[false,true]:[false])) {
     const page = await browser.newPage({ viewport: { width: 1300, height: 1000 } })
     const pageErrors = [], inputErrors = [],mediaRequests=[],externalRequests=[],environmentRequests=[]
+    page.on('filechooser',()=>{})
     page.on('pageerror', error => pageErrors.push(error.stack ?? String(error)))
     await page.route('**/*',route=>{const request=route.request(),url=new URL(request.url()),origin='http://127.0.0.1:'+server.address().port;if(['http:','https:'].includes(url.protocol)&&url.origin!==origin){const entry={url:url.href,type:request.resourceType()};if((url.hostname==='www.youtube.com'&&url.pathname.startsWith('/embed/')||url.hostname==='player.vimeo.com'&&url.pathname.startsWith('/video/'))&&entry.type==='document'){mediaRequests.push({...entry,fulfilled:true});return route.fulfill({contentType:'text/html',body:'<!doctype html><title>Controlled player</title>Controlled player'})}if(url.hostname==='img.youtube.com'&&entry.type==='image'){mediaRequests.push({...entry,fulfilled:true});return route.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=','base64')})}if(url.hostname==='gc.kis.v2.scr.kaspersky-labs.com'&&url.pathname==='/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js'&&entry.type==='script')environmentRequests.push({...entry,blocked:true});else externalRequests.push({...entry,blocked:true});return route.abort()}return route.continue()})
     const cdp = await page.context().newCDPSession(page)
     await page.exposeFunction('__basicMarkInput', async (method, params) => {
       try {
+        if(method==='Input.chooseFiles'){
+          const choosing=page.waitForEvent('filechooser',{timeout:10000})
+          await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,x:params.x,y:params.y})
+          await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:params.x,y:params.y})
+          const chooser=await choosing
+          await chooser.element().evaluate(input=>{window.__embedFileChange=null;input.addEventListener('change',event=>{window.__embedFileChange={type:'change',trusted:event.isTrusted,name:input.files[0]?.name,mimeType:input.files[0]?.type,size:input.files[0]?.size,multiple:input.multiple}},{once:true})})
+          await chooser.setFiles({name:params.name,mimeType:params.mimeType,buffer:Buffer.from(params.base64,'base64')})
+          return page.evaluate(()=>window.__embedFileChange)
+        }
+        if(method==='Input.prompt'){
+          const response=new Promise(resolve=>page.once('dialog',async dialog=>{const observed={type:dialog.type(),message:dialog.message(),value:params.value};await dialog.accept(params.value);resolve(observed)}))
+          await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,x:params.x,y:params.y})
+          await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:params.x,y:params.y})
+          return response
+        }
         if (method === 'Input.click') {
           await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...params })
           await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...params })
