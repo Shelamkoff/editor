@@ -1,0 +1,6 @@
+{
+  "exitCode": 0,
+  "signal": null,
+  "expectedExitCode": 0,
+  "reason": "All historical and current player/preview lifetime cases pass the independent literal model."
+}

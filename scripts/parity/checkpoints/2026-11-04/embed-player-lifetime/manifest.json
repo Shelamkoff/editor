@@ -1,0 +1,92 @@
+{
+  "candidate": "4c1db6f5190e4f79c58867e8d7023e0ffb295905",
+  "tree": "0b938d9b6d42d8ee00f9eb5562f3fc5b7eb28e5d",
+  "sourceIdentity": "720d172d630f32c0a25ed5406fc6871bc01426b1ff1cc56a89d44dfec8e76640",
+  "affectedIntegration": {
+    "directory": "run-7N3G2l",
+    "outcome": "passed",
+    "gates": 4,
+    "startedAt": "2026-11-04T10:36:07.670Z",
+    "finishedAt": "2026-11-04T10:37:12.027Z"
+  },
+  "productionBasis": "e8b2cd8fa902e1bbfbc0422df13576be4aea619f",
+  "productionChanged": false,
+  "inheritedIntegration": {
+    "acceptance": "e2c8c74632434e7f36d467256656cf9b957e0ed9",
+    "source": "14466a7d84846c2b5549e1f9e39b4141cd3b9820",
+    "sourceIdentity": "61cddfd96df249d77b7d69bc07e28bfddd46948864306cedeb155e9ee3b4d93f",
+    "gates": 18,
+    "outcome": "passed",
+    "canonicalNodeFiles": 197,
+    "nodePassed": 2208,
+    "nodeSkipped": 3,
+    "ordinaryPages": 55,
+    "selectedNativeCases": 271,
+    "navigationCases": 50,
+    "bundleKiBGzip": 95.6,
+    "budgetKiB": 96,
+    "heapSentinels": 23,
+    "heapRetained": 0
+  },
+  "casesPerCurrentPolicy": 30,
+  "observationsPerCurrentPolicy": 690,
+  "currentCases": 60,
+  "currentObservations": 1380,
+  "playerCasesPerPolicy": 20,
+  "pendingCasesPerPolicy": 10,
+  "corruptionsRejected": 18,
+  "moduleIdentities": 297,
+  "results": {
+    "v1/compatible": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    },
+    "spec-baseline/compatible": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "transport": "Only literal expected YouTube/Vimeo iframe document URLs are requested; their responses are inert test content. Pending preview callbacks are explicitly controlled through the public resolver. No real provider is contacted. Known blocked environmental script attempts remain separately recorded.",
+  "defaultNativePageInventory": 83,
+  "exploratoryAttempts": {
+    "initial": "Two scoped player cases; all pass. Not a product RED.",
+    "expanded": "Twenty player cases; all pass. Not a product RED.",
+    "pending": "Ten pending-preview resolve/reject cases added to the twenty player cases; all pass."
+  },
+  "registerBefore": {
+    "accepted": 126,
+    "open": 83
+  },
+  "registerAfter": {
+    "accepted": 127,
+    "open": 82
+  },
+  "register": {
+    "accepted": 127,
+    "open": 82
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}

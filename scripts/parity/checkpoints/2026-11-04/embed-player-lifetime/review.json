@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "candidate": "4c1db6f5190e4f79c58867e8d7023e0ffb295905",
+  "runtimeBasis": "e8b2cd8fa902e1bbfbc0422df13576be4aea619f",
+  "currentCases": 60,
+  "currentObservations": 1380,
+  "casesPerPolicy": 30,
+  "observationsPerPolicy": 690,
+  "playerCasesPerPolicy": 20,
+  "pendingCasesPerPolicy": 10,
+  "moduleIdentities": 297,
+  "results": {
+    "v1/compatible": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    },
+    "spec-baseline/compatible": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/compatible": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    },
+    "candidate/trusted": {
+      "cases": 30,
+      "observations": 690,
+      "differences": 0,
+      "mediaDocuments": 30,
+      "blockedEnvironmentRequests": 1
+    }
+  },
+  "inheritedIntegration": {
+    "acceptance": "e2c8c74632434e7f36d467256656cf9b957e0ed9",
+    "source": "14466a7d84846c2b5549e1f9e39b4141cd3b9820",
+    "sourceIdentity": "61cddfd96df249d77b7d69bc07e28bfddd46948864306cedeb155e9ee3b4d93f",
+    "gates": 18,
+    "outcome": "passed",
+    "canonicalNodeFiles": 197,
+    "nodePassed": 2208,
+    "nodeSkipped": 3,
+    "ordinaryPages": 55,
+    "selectedNativeCases": 271,
+    "navigationCases": 50,
+    "bundleKiBGzip": 95.6,
+    "budgetKiB": 96,
+    "heapSentinels": 23,
+    "heapRetained": 0
+  },
+  "rawSha256": "25e6b97c5e56b8c825142afb693231aa9d3bee1ae18eec902121f892f5e5a61a",
+  "reviewerSha256": "aa97effb3e8e82bdd6d5b05b546bb79b8b0ac19b3a85a5d153b4542cee94d08b",
+  "identityHelperSha256": "6a636b99ce42abdeeac5f740b16f833b1698a47afeecf16bf5400cb850983829",
+  "serviceHelperSha256": "e605d2a5b942a4d851d87b263c94e615659fcfd4307d6ff8e2e543c4479e72a9",
+  "transport": "Only literal expected YouTube/Vimeo iframe document URLs are requested; their responses are inert test content. Pending preview callbacks are explicitly controlled through the public resolver. No real provider is contacted. Known blocked environmental script attempts remain separately recorded."
+}
