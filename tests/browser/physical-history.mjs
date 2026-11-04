@@ -606,6 +606,7 @@ try {
     'native-ime-lifecycle.html', 'native-ime-lifecycle-trusted.html',
     'native-typing.html', 'native-typing-trusted.html',
     'native-columns-empty-layout.html', 'native-columns-empty-layout-trusted.html',
+    'native-columns-fields.html', 'native-columns-fields-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
