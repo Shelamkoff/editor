@@ -1,5 +1,17 @@
 # Rector v2 audit closeout — active work
 
+## Heading rich paste — 2026-11-05
+
+Register: **149 accepted / 60 open / 209 total**. Accepted on `174cc8f6`:
+`BLOCK_HEADING_RICH_PASTE`. Native rich/private-widget/root Paste across H2–H6,
+mixed roots and empty replacement preserve marks, levels, author text, sidecars,
+projection and exact directed keyboard replay. Literal oracle: 72 executions /
+1800 observations / 408 module identities; 24 corruptions, all seven affected
+gates and 98 native cases pass. Ten legacy private-format paste
+bodies are explicitly unexecuted. Runtime remains identical to `c58523cc`;
+inherited complete checks retain sources/dates.
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/heading-paste/README.md). Full readiness remains open.
+
 ## Heading structure and conversion — 2026-11-05
 
 Register: **148 accepted / 61 open / 209 total**. Accepted on `612b5bf4`:
