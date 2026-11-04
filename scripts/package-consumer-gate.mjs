@@ -367,6 +367,7 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
     tarball: basename(tarball),
     tarballSha256: createHash('sha256').update(tarballBytes).digest('hex'),
     tarballBytes: tarballBytes.length,
+    contractSha256: createHash('sha256').update(await readFile(join(consumerRoot, 'src/public-exports.mjs'))).digest('hex'),
   }
   if (process.env.EDITOR_RESULTS_DIR) {
     await copyFile(tarball, join(process.env.EDITOR_RESULTS_DIR, 'package-consumer.tgz'))

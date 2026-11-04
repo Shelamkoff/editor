@@ -10,7 +10,9 @@ export const asyncPresetCases=[
  {id:'snapshot/renderer',kind:'snapshot',target:'renderer'},
  ...['plugin-load','plugin-preload','plugin-create','renderer-load','renderer-create','renderer-preload','renderer-map'].flatMap(operation=>['missing','constructor'].map(type=>({id:'invalid/'+operation+'/'+type,kind:'invalid',operation,type,input:'unknown'}))),
  ...bulk.flatMap(operation=>['versionless','legacy-version','bad-schema','sparse-list'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
- ...['plugin-preload','plugin-create','renderer-map'].flatMap(operation=>['config-map','config-entry'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
+ ...['plugin-preload','plugin-create'].flatMap(operation=>['config-map','config-entry'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
+ {id:'invalid/renderer-map/config-map',kind:'invalid',operation:'renderer-map',input:'config-map'},
+ {id:'config/renderer-map/opaque-entry',kind:'opaque-config',operation:'renderer-map'},
  ...['renderer-create','renderer-map'].flatMap(operation=>['prefix','locale'].map(input=>({id:'invalid/'+operation+'/'+input,kind:'invalid',operation,input}))),
 ]
 function documentInput(legacy,unknown=false){return{version:legacy?'1.0.5':'2.0.0',blocks:[{id:'p',type:'paragraph',...(!legacy?{dataVersion:2}:{}),data:{text:'Alpha'}},...(unknown?[{id:'opaque',type:'not-installed',...(!legacy?{dataVersion:9}:{}),data:{value:'Opaque'}}]:[]),{id:'d',type:'delimiter',...(!legacy?{dataVersion:1}:{}),data:{}},{id:'p2',type:'paragraph',...(!legacy?{dataVersion:2}:{}),data:{text:'Bravo'}}]}}
@@ -38,7 +40,7 @@ export async function runAsyncPresetCase({sourceBase,legacy,spec}){
    const caller=structuredClone(source),config=spec.input==='config-map'?'invalid':spec.input==='config-entry'?{paragraph:null}:{}
    const invoke=()=>spec.input==='prefix'?(spec.operation==='renderer-create'?renderers.createRendererAsync('paragraph',42):renderers.createDefaultRenderersAsync(42,{},source)):spec.input==='locale'?(spec.operation==='renderer-create'?renderers.createRendererAsync('paragraph','async-proof',[]):renderers.createDefaultRenderersAsync('async-proof',[],source)):operation(source,config)
    const pending=invoke();check('invoke','caller',source,caller);completedPhases.push('invoke');try{await pending}catch(e){callError={name:e.name,message:e.message}}
-   check('settle','rejected',callError!==null,true);check('settle','errorName',callError?.name??null,['unknown','sparse-list'].includes(spec.input)?'RangeError':'TypeError');check('settle','caller',source,caller);check('settle','unhandled',unhandled,[]);completedPhases.push('settle')
+   check('settle','rejected',callError!==null,true);check('settle','errorName',callError?.name??null,['unknown','sparse-list','legacy-version'].includes(spec.input)?'RangeError':'TypeError');check('settle','caller',source,caller);check('settle','unhandled',unhandled,[]);completedPhases.push('settle')
   }else if(spec.kind==='orphan'){
    const earlier=new Error('Earlier nested config failure'),later=new Error('Later config failure');let reads=0
    const config={paragraph:{actions:[Object.defineProperty({},'label',{enumerable:true,get(){reads++;throw earlier}})]}}
@@ -56,9 +58,9 @@ export async function runAsyncPresetCase({sourceBase,legacy,spec}){
    const reads={config:0,locale:0},configs={get paragraph(){reads.config++;return{marker:'Before import'}}},locale={get probe(){reads.locale++;return'Before import'}}
    const pending=renderers.createDefaultRenderersAsync('async-proof',locale,['paragraph'],configs);check('invoke','reads',reads,{config:1,locale:1});completedPhases.push('invoke');const map=await pending;check('settle','types',[...map.keys()],['paragraph']);check('settle','reads',reads,{config:1,locale:1});completedPhases.push('settle')
   }else{
-   source=spec.input==='list'?['heading','paragraph','heading','delimiter','paragraph']:spec.input==='empty'?[]:spec.input?.startsWith('document')?documentInput(legacy,spec.input==='document-unknown'):undefined
-   const caller=source===undefined?null:structuredClone(source),wanted=spec.type?[spec.type]:spec.input==='list'?['heading','paragraph','delimiter']:spec.input==='empty'?[]:spec.input?.startsWith('document')?['paragraph','delimiter']:TYPES
-   const pending=operation(source);check('invoke','caller',source??null,caller);completedPhases.push('invoke');let result
+   source=spec.kind==='opaque-config'?['paragraph']:spec.input==='list'?['heading','paragraph','heading','delimiter','paragraph']:spec.input==='empty'?[]:spec.input?.startsWith('document')?documentInput(legacy,spec.input==='document-unknown'):undefined
+   const caller=source===undefined?null:structuredClone(source),wanted=spec.kind==='opaque-config'?['paragraph']:spec.type?[spec.type]:spec.input==='list'?['heading','paragraph','delimiter']:spec.input==='empty'?[]:spec.input?.startsWith('document')?['paragraph','delimiter']:TYPES
+   const pending=operation(source,spec.kind==='opaque-config'?{paragraph:null}:{});check('invoke','caller',source??null,caller);completedPhases.push('invoke');let result
    try{result=await pending}catch(e){callError={name:e.name,message:e.message}}
    check('settle','error',callError,null)
    let types=[],shape=null
