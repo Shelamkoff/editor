@@ -131,8 +131,7 @@ def main():
   service['validate_environment'](row);assert row['inputErrors']==row['unavailable']==row['mediaRequests']==[] and row['policyEnforced'] is row['trustedPolicy'] and [c['spec'] for c in row['cases']]==specs()
   count=4 if row['source'] in ['spec-baseline','parent'] else 0;assert len(row['pageErrors'])==count
   for e in row['pageErrors']:
-   assert e.startswith('Error: Earlier nested config failure\n') and '/'+row['source']+'/plugins/async.js:' in e and '/fixture.js:' in e
-   for path in re.findall(r'http://127\.0\.0\.1:[0-9]+([^ )\n]+)',e):assert re.fullmatch(r'/(?:fixture\.js|'+row['source']+r'/plugins/(?:shared/configRecords|async)\.js):[0-9]+:[0-9]+',path)
+   assert re.fullmatch(r'Error: Earlier nested config failure\n    at runAsyncPresetCase \(http://127\.0\.0\.1:[0-9]+/fixture\.js:[0-9]+:[0-9]+\)\n    at async eval \(eval at evaluate \(:[0-9]+:[0-9]+\), <anonymous>:[0-9]+:[0-9]+\)\n    at async <anonymous>:[0-9]+:[0-9]+',e)
   failures=[f for c in row['cases'] for f in verify_case(c,row['source'])];assert len(failures)==(74 if row['source']=='v1' else 8 if row['source'] in ['spec-baseline','parent'] else 0)
   key=row['source']+('/trusted' if row['trustedPolicy'] else '/compatible');summaries[key]=dict(cases=len(row['cases']),observations=sum(len(c['observations']) for c in row['cases']),differences=failures,pageErrors=count,blockedEnvironmentRequests=len(row['environmentRequests']))
  assert all(s['cases']==131 and s['observations']==990 for s in summaries.values())
