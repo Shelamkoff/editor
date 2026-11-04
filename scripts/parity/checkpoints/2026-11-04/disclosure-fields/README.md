@@ -37,3 +37,6 @@ Exact exploratory fixtures/results are retained. Their field-name shadowing,
 schema-key order, initial reader visibility and placement of the selection
 assertion were test mistakes, corrected without production changes. The final
 independent model checks every observation and trusted event.
+
+Post-acceptance documentation and site checks pass on `90070bb0`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
