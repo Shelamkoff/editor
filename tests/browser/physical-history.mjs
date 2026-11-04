@@ -351,7 +351,7 @@ try {
   await installNativeInput(client)
   const nativePage = process.env.EDITOR_NATIVE_PAGE
   if (nativePage) {
-    if (!/^native-[a-z-]+\.html$/.test(nativePage)) throw new Error('Expected a native fixture filename')
+    if (!/^native-[a-z0-9-]+\.html$/.test(nativePage)) throw new Error('Expected a native fixture filename')
     console.log(JSON.stringify({ [nativePage]: await runNativePage(client, pageUrl, nativePage) }))
   } else {
   await waitForEditor(client)
