@@ -267,3 +267,11 @@ scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.mjs text eol=lf
 scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.json -text
 scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.gz -text
 scripts/parity/checkpoints/2026-11-04/i18n-contexts/*.tgz -text
+
+scripts/parity/i18n-counts.mjs text eol=lf
+tests/browser/i18n-counts-fixture.js text eol=lf
+scripts/parity/checkpoints/2026-11-04/i18n-counts/*.py text eol=lf
+scripts/parity/checkpoints/2026-11-04/i18n-counts/*.mjs text eol=lf
+scripts/parity/checkpoints/2026-11-04/i18n-counts/*.json -text
+scripts/parity/checkpoints/2026-11-04/i18n-counts/*.gz -text
+scripts/parity/checkpoints/2026-11-04/i18n-counts/*.tgz -text
