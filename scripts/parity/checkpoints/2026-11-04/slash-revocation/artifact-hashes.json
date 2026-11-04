@@ -268,8 +268,11 @@
     "decodedBytes": 0
   },
   "review.json": {
-    "sha256": "ebe7ec6d4efad0574dac7fdaf0419ecd2e45d9e8eae554d3a061a6a6b7cd8253",
-    "bytes": 40960
+    "sha256": "17f0fa67f40ff3ef167ae153525835936bf83b2e5e209970fa521d28249d8a2d",
+    "bytes": 38941,
+    "executedSha256": "ebe7ec6d4efad0574dac7fdaf0419ecd2e45d9e8eae554d3a061a6a6b7cd8253",
+    "executedBytes": 40960,
+    "normalization": "CRLF to LF for Git storage; exact executed bytes in executed-original-review.json.gz"
   },
   "revocation-red-corpus.json.gz": {
     "sha256": "347146ce9e846129428e2f07a4bf4069ac79922a21604a529f328e3b8f31b38b",
@@ -1138,8 +1141,11 @@
     "decodedBytes": 308755
   },
   "pointer-stage-review.json": {
-    "sha256": "ae8322771fa76950a0406daa236286ec3607b13df95d459a424e5ef8dd32fa7d",
-    "bytes": 23587
+    "sha256": "6430a50683e1013277714fde769511c6abeb93e6a930cf03c3da5254a6f39021",
+    "bytes": 22425,
+    "executedSha256": "ae8322771fa76950a0406daa236286ec3607b13df95d459a424e5ef8dd32fa7d",
+    "executedBytes": 23587,
+    "normalization": "CRLF to LF for Git storage; exact executed bytes in executed-original-pointer-stage-review.json.gz"
   },
   "pointer-stage-comparison-corpus.json.gz": {
     "sha256": "9298a4c61673808ba0a32f16e67c241aaf6f92302aa1f25e8bd75df6b8d48a39",
@@ -1249,12 +1255,36 @@
     "decodedSha256": "9a62d6ad7126390e5a349df2587850ec8655e980d8957a01b9a444a41ea3a732",
     "decodedBytes": 5566
   },
+  "storage-original-manifest.json.gz": {
+    "sha256": "e34e05aedc6d25163e3d24fdd580bdc757ac713223161ff35635438fe9e5d508",
+    "bytes": 15062,
+    "decodedSha256": "8f4414f0e8aa6efb7ce236cb7bb0327a969596bcda63b0c3647132798a7bc3d1",
+    "decodedBytes": 60390
+  },
+  "storage-original-hashes.json.gz": {
+    "sha256": "dab3b346a41cb65bcccaf11a8751793f9cad303adcbe1173db2386c8271faaf4",
+    "bytes": 14068,
+    "decodedSha256": "4cec436a311e9769f707ea49a71248425b5b8744c31f2875b4cf8cff383b8a05",
+    "decodedBytes": 56203
+  },
+  "executed-original-review.json.gz": {
+    "sha256": "21e95b0263f1b157e8be4144673daaf8891e7d57c8146ae9068d4bb153496e4f",
+    "bytes": 1878,
+    "decodedSha256": "ebe7ec6d4efad0574dac7fdaf0419ecd2e45d9e8eae554d3a061a6a6b7cd8253",
+    "decodedBytes": 40960
+  },
+  "executed-original-pointer-stage-review.json.gz": {
+    "sha256": "48dc606fac95073c9c1b8425b0c4e6e75f0840fa584731bb3c00d44b3e8b06a8",
+    "bytes": 1364,
+    "decodedSha256": "ae8322771fa76950a0406daa236286ec3607b13df95d459a424e5ef8dd32fa7d",
+    "decodedBytes": 23587
+  },
   "README.md": {
-    "sha256": "66ec2fc2b42239ca5aeca7c6b5bdcac7131f8f3835789350ee6562dbce4f0ea7",
-    "bytes": 1860
+    "sha256": "af67c2536176dee0244ab39288cc718adaf75ca568c26fd825d021eff6f03e7a",
+    "bytes": 2254
   },
   "manifest.json": {
-    "sha256": "8f4414f0e8aa6efb7ce236cb7bb0327a969596bcda63b0c3647132798a7bc3d1",
-    "bytes": 60390
+    "sha256": "06d9c3fd1751f40fca9d5f0663643f79ff89c413a4eaec371a57b178b0d5c5e2",
+    "bytes": 61978
   }
 }

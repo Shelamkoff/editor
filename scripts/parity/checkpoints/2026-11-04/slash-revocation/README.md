@@ -27,3 +27,9 @@ transaction subscriptions are not reported as zero legacy events. Canonical
 RED corpora, exact fixtures/runners, the excluded Quote wire-version expectation
 mistake, exploratory fixture-entry failure, all controls, both full integration
 logs and exact installed-package tarballs are hashed in `manifest.json`.
+
+Storage verification initially lacked a separate hash index, then exposed Git
+line-ending normalization in the two Python JSON reports. Their exact executed
+bytes are retained as `executed-original-*.json.gz`; readable copies use LF. The
+original storage maps are retained separately. `artifact-hashes.json` verifies
+the actual Git blobs and decoded compressed bytes, including this manifest.
