@@ -1,5 +1,15 @@
 # Rector v2 audit closeout — active work
 
+## Columns formatting-empty layout — 2026-11-04
+
+Register unchanged: **146 accepted / 63 open / 209 total**. Supplemented
+`BLOCK_COLUMNS_NO_LOSS_REDUCE` on `c58523cc`: no extra BR for formatting-empty
+source/target through direct/menu controls; IDs, sidecars and replay retained.
+Settings/inline actions now receive their UI ownerDocument. Literal oracle:
+16 executions / 264 observations / 665 module identities; 20 corruptions,
+all fifteen integration gates and 278 native cases pass. No new row
+is accepted. [Checkpoint](scripts/parity/checkpoints/2026-11-04/columns-empty-layout/README.md). Full readiness remains open.
+
 ## Ordinary native input — 2026-11-04
 
 Register: **146 accepted / 63 open / 209 total**. Accepted on `35ec80a9`:
