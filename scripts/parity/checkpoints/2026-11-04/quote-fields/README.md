@@ -29,3 +29,7 @@ Its build/Node/type/package/bundle checks and preceding complete eighteen-gate
 integration and heap measurements retain their own dates and sources.
 
 Only BLOCK_QUOTE_FIELDS is newly accepted. B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks both pass on `ae42e14d`.
+The exact post-check logs are retained. `artifact-hashes.json` verifies actual Git blobs
+and decoded compressed artifacts.

@@ -421,6 +421,31 @@
       "bytes": 6394,
       "decodedSha256": "c9cb961cd06bdb8aa5acf076b12bc100f60254b51599915651b0744ec2ae09bb",
       "decodedBytes": 21003
+    },
+    "post-document-manifest.json.gz": {
+      "sha256": "a2e53c36d37eb7e96d12118be18dad406c216e615b0929e6954f95fdc8601b09",
+      "bytes": 884,
+      "decodedSha256": "b71d26dac1a8b260d631b9b29fecfce2b331a75a613bd03e2281e696b9d18d39",
+      "decodedBytes": 4919
+    },
+    "post-docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "post-site.log.gz": {
+      "sha256": "78de8c6dd5b1e02a4bce8a2c5e5d43f237601a514f41c19ca0dd0d42c0d7f3f2",
+      "bytes": 939,
+      "decodedSha256": "e62c8654564a8e5290cf02bd9be4dbb5f8adf543ac17c51d5831c2366cad9347",
+      "decodedBytes": 2247
     }
-  }
+  },
+  "postDocumentChecks": {
+    "source": "ae42e14df20be02e7e88a9959e9a4524d96c3c1f",
+    "directory": "run-GdSfkF",
+    "outcome": "passed",
+    "gates": 2
+  },
+  "gitStoredArtifacts": 70
 }
