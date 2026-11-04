@@ -2,7 +2,7 @@ const PIXEL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCA
 const RECOVERY='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0)),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b)
 export const embedMetadataCases=[
- ...['throw','reject'].map(outcome=>({id:'action/'+outcome,kind:'action-error',outcome})),
+ ...['throw','reject','null','invalid'].map(outcome=>({id:'action/'+outcome,kind:'action-error',outcome})),
  ...['caption','title','duration'].map(field=>({id:'field/'+field,kind:'field',field})),
  ...['url','invalid-url','back','remove'].map(action=>({id:'cover/'+action,kind:'cover',action})),
  ...['action','upload'].flatMap(source=>['live','caption','mode','replace','remove-undo','render','destroy-successor'].flatMap(variant=>['resolve','reject'].map(outcome=>({id:source+'/'+variant+'/'+outcome,kind:'task',source,variant,outcome})))),
@@ -16,7 +16,7 @@ export async function runEmbedMetadataCase({sourceBase,legacy,spec,nativeInput})
  const onError=e=>faults.push({kind:'error',message:e.message}),onRejection=e=>faults.push({kind:'rejection',reason:String(e.reason)});window.addEventListener('error',onError);window.addEventListener('unhandledrejection',onRejection)
  const stable=async()=>{await Promise.all(Array.from(holder.querySelectorAll('img'),img=>img.decode().catch(()=>{})));await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame)},button=label=>Array.from(holder.querySelectorAll('button')).find(el=>el.textContent.trim()===label)
  const click=async(label,role)=>{await stable();const target=button(label);if(!target)throw Error('Missing public button '+label);target.scrollIntoView({block:'center'});const r=target.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;pointTrace.push({role,connected:target.isConnected,hit:target.contains(document.elementFromPoint(x,y)),x,y,width:r.width,height:r.height});target.addEventListener('click',e=>nativeEvents.push({role,type:'click',trusted:e.isTrusted}),{once:true});await nativeInput('Input.click',{x,y});await pause()}
- const handler=({signal})=>{calls.push({abortedAtCall:signal.aborted,signal});if(calls.length===1){if(spec.outcome==='throw')throw Error('Cover source failed synchronously');return Promise.reject(false)}return Promise.resolve({url:RECOVERY})}
+ const handler=({signal})=>{calls.push({abortedAtCall:signal.aborted,signal});if(calls.length===1){if(spec.outcome==='throw')throw Error('Cover source failed synchronously');if(spec.outcome==='null')return Promise.resolve(null);if(spec.outcome==='invalid')return Promise.resolve({url:'javascript:alert(1)'});return Promise.reject(false)}return Promise.resolve({url:RECOVERY})}
  let editor,phase='load',error=null
  try{
   const config={injectStyles:false,resolvePreview:false,actions:[{label:'Library',handler}]};editor=createEditor({holder,plugins:[legacy?new plugin.Embed(config):plugin.createEmbedPlugin(config)],injectStyles:false,inlineTools:[],blockRemoveAnimationMs:0,data:{version,blocks:record(initial)}})
