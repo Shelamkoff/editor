@@ -602,6 +602,7 @@ try {
     'native-compound-residuals.html', 'native-compound-residuals-trusted.html',
     'native-disclosure-fields.html', 'native-disclosure-fields-trusted.html',
     'native-history-merges.html', 'native-history-merges-trusted.html',
+    'native-paragraph-structure.html', 'native-paragraph-structure-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
