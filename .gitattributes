@@ -224,3 +224,11 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-04/embed-services/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-04/embed-services/**/*.json -text
 /scripts/parity/checkpoints/2026-11-04/embed-services/**/*.gz -text
+
+# Public Embed player and preview lifetime
+/tests/browser/embed-player-lifetime-fixture.js text eol=lf
+/scripts/parity/embed-player-lifetime.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/**/*.json -text
+/scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/**/*.gz -text
