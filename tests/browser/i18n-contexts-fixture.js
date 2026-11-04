@@ -12,7 +12,7 @@ export async function runI18nContextsCase({sourceBase="../../",spec,nativeInput}
  }
  let editor,error=null
  try{editor=core.createEditor({holder,locale,plugins:[definitions[0]],inlinePlugins:[definitions[1]],data:{version:'2.0.0',blocks:[{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{swatch}} tail'},inline:{swatch:{type:'color',dataVersion:1,data:{value:'#aBcDef'}}}}]},onDiagnostic:d=>diagnostics.push(d)});completedPhases.push('create');check('create','history',[editor.canUndo,editor.canRedo],[false,false]);check('create','diagnostics',diagnostics,[]);editor.destroy();check('dispose','rootRemoved',!holder.querySelector('.oe-editor'),true);completedPhases.push('dispose')}catch(e){error=String(e.stack??e)}finally{editor?.destroy();holder.remove()}
- return{id:spec.id,spec,observations,planned,completedPhases,unsupported:[],error}
+ return{id:spec.id,spec,observations,planned,completedPhases,diagnostics,unsupported:[],error}
 }
 
 async function runMenuCase({sourceBase,spec,nativeInput}){
