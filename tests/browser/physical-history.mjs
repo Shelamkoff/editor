@@ -597,6 +597,7 @@ try {
     'native-link-tool.html', 'native-link-tool-trusted.html',
     'native-i18n-contexts.html', 'native-i18n-contexts-trusted.html',
     'native-slash-menu.html', 'native-slash-menu-trusted.html',
+    'native-quote-fields.html', 'native-quote-fields-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
