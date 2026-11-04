@@ -1,5 +1,19 @@
 # Rector v2 audit closeout — active work
 
+## Quote fields acceptance — 2026-11-04
+
+`BLOCK_QUOTE_FIELDS` accepted on `373ce247`. Register: **134 accepted / 75 open / 209 total**.
+Both rich fields, native insertion/backward replacement, Text/Element directed
+cross-field Bold apply/remove, widgets, empty boundaries, exact navigation,
+native history and read-only roundtrip pass. Production remains identical to
+`3c02d2d4`. Independent proof: 32 executions / 944 observations / 455 module
+identities and twenty corruptions. All five product gates pass; the original
+proof classifier failure and unexecuted controls remain, and both reviewer-only
+follow-up gates pass. Native pages complete 16 + 17 + 27 cases. The native
+inventory is 94 pages. [Checkpoint](scripts/parity/checkpoints/2026-11-04/quote-fields/README.md).
+Existing build/package/type/bundle and heap results retain their actual sources.
+Whole-library readiness remains open.
+
 ## Slash menu acceptance — 2026-11-04
 
 `UI_SLASH` accepted on `932f119b`. Register: **133 accepted / 76 open / 209 total**.

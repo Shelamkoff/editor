@@ -1,0 +1,1 @@
+{"status": "PASS", "cases": 32, "observations": 944, "scope": "Model-shape preflight against the exploratory expanded corpus; source identity runs separately. Actual save timestamps are bounded by real run times."}

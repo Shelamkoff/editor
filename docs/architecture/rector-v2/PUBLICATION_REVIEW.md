@@ -6,6 +6,48 @@ Current scoped acceptance is **132 / 209 obligations**, with **77 open**; see th
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Quote fields and rich selections 2026-11-04
+
+`BLOCK_QUOTE_FIELDS` is accepted on `373ce247`: **134/209 obligations
+accepted, 75 open**. The independent literal model verifies **32 current
+executions / 944 observations**, **455 module identities** and **20 rejected
+corruptions**. Five product gates pass on `41131315`; both reviewer follow-up
+gates pass on `373ce247`. The original seven-gate run retains its failed
+proof and unexecuted controls. [Sources and complete evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-04/quote-fields/README.md) preserve
+the correction. **Production is unchanged** from `3c02d2d4` and the previously
+verified `932f119b` runtime.
+
+Both quotation and caption retain native caret insertion and backward-range
+replacement, independent marks, two distinct Color references, labels and dots,
+unaffected field/widget/neighbor identity, exact caller data and keyboard replay.
+Text and Element endpoints select forward/backward between the two fields.
+Separate Bold apply/remove cases preserve the established rule: any selected
+bold text makes the toggle remove bold from the selected interval. Unselected
+edges, caption italics, widgets and authored breaks survive. Empty text or
+caption cannot erase nonempty sibling content; Tab/Shift+Tab reach the intended
+field and logical offset without adding history. Saved data opens in an actual
+read-only editor with both fields, sidecars and marks intact. Actual save
+timestamps are checked within real run bounds; clocks are never substituted.
+
+All sixteen cases complete on real v1, baseline, immutable parent and both
+current policies with no page errors. v1 retains **50 failed observations**;
+the baseline retains **34**, covering old end-offset navigation, Element
+formatting/history and widget presentation defects. The parent has zero
+differences. Missing legacy diagnostic/transaction subscriptions remain an
+explicit limitation, not zero measured legacy events. The first exploratory
+expectation incorrectly treated a mixed Bold toggle as apply; its exact source
+and raw failures are retained separately. No implementation repair is required.
+
+Fresh native pages pass **16 + 17** cases and the existing Quote selection
+passes **27**, totaling **60**. These include rich sibling reprojection,
+native paste/merge, incompatible boundaries and conversion. Docs/site pass.
+The default native inventory is **94 pages**. Every runtime byte matches the
+accepted Slash source, so build, 2,216 Node passes / three skips, types,
+installed package and bundle retain their tested source `932f119b`; the complete
+eighteen-gate and heap measurements retain `8883222d`. The checker-only follow-up
+distinguishes the baseline's event APIs from absent v1 APIs. Both runs and all
+control payloads are preserved. B-HTML and whole-library readiness remain open.
+
 ## Slash menu and selection revocation 2026-11-04
 
 `UI_SLASH` is accepted on `932f119b`: **133/209 obligations accepted,
