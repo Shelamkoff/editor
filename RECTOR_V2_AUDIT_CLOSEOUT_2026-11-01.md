@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## Paragraph split and merge — 2026-11-04
+
+Register: **143 accepted / 66 open / 209 total**. Accepted on `340297dc`:
+`BLOCK_PARAGRAPH_SPLIT_MERGE`. Rich split positions, directed text/widget
+replacement, both merge keys, edge guards, sidecars and exact caret/replay pass.
+Literal oracle: 24 executions / 424 observations / 389 module identities;
+20 corruptions, all seven affected gates and 50 native cases pass. Runtime is
+unchanged from `ce76492c`; prior passing checks retain their sources/dates and
+the recorded timeout/follow-up. Inventory: 104 native pages.
+[Checkpoint](scripts/parity/checkpoints/2026-11-04/paragraph-structure/README.md). Full readiness remains open.
+
 ## History and compound merge acceptance — 2026-11-04
 
 Register: **142 accepted / 67 open / 209 total**. Accepted on `ce76492c`:
