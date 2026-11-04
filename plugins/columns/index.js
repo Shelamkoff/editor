@@ -7,6 +7,7 @@ import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { columnsDataSchema } from '../../shared/blockSchemas/columns.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { mergeRichText } from '../shared/mergeRichText.js'
 import {
   COLUMNS_ICON,
   COLUMNS_STYLES,
@@ -22,8 +23,7 @@ function fitColumns(columns,size,context){
   }
   const last=kept[size-1]
   for(const column of columns.slice(size)){
-    if(!column.content.trim())continue
-    last.content=last.content?last.content+'<br>'+column.content:column.content
+    last.content=mergeRichText(last.content,column.content,context)
   }
   return kept
 }

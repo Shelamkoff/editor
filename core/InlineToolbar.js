@@ -1104,6 +1104,7 @@ export class InlineToolbar {
         this.#runtime.interact('block.inline-control', () => this.#runtime.update(blockId, current => ({
           data: prepared.apply(current.data, action.id, {
             createId: prefix => this.#runtime.createDataId(prefix),
+            ownerDocument: this.#root.ownerDocument,
           }),
         })), () => bookmark)
         const settledRevision = this.#runtime.revision

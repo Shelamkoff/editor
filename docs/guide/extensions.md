@@ -117,6 +117,11 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `selectionSlice.slice(...)` describes partial structured selection without mutating DOM.
 - `inlineControls` reuses model-first settings actions inside the inline toolbar.
 - `settings` is either an actions capability or a model-first panel.
+
+Settings and inline-control action `apply()` receives `createId()` and the UI's
+`ownerDocument`. Use that document to parse rich-text fields in their owning realm.
+The document is optional in the type for direct pure-data calls; host UI always
+provides it.
 - `htmlImport.matchesRoot/importRoot` synchronously imports one safe structural HTML root into local current data for that block type; it must consume the whole root and have no side effects. Optional `inlineWhenSingleRoot: true` lets the importer opt into replacing a selected rich-text range when that root is the sole content in the clipboard. The default is `false`, so third-party importers keep their block semantics. The flag is captured and validated at registration; multi-root imports remain structural.
 - `ClipboardCapability` (`clipboard.slice(data, context)`) lets a composite block return exported `parts`, the canonical `remaining` value after Cut, and an optional `focus`. `context.field(key)` exposes only actually selected rich-text intervals (`before/selected/after/whole`). Export and remaining come from the same pure capability, so core never guesses the block's data shape.
 - `paste` routes only text/file inputs to block or rich-text results; structural HTML is not passed to it.

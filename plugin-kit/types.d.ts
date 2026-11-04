@@ -491,7 +491,10 @@ export interface SettingsActionCapability<D extends object> {
   /** Localized group name used by the inline control trigger. */
   readonly label?: LocalizedLabel
   actions(data: Readonly<D>, context: ExtensionUiContext): readonly SettingsAction[]
-  apply(data: Readonly<D>, actionId: string, context: DataOperationContext): D
+  apply(data: Readonly<D>, actionId: string, context: DataOperationContext & {
+    /** Supplied by host UI; optional for direct pure-data capability calls. */
+    readonly ownerDocument?: Document
+  }): D
 }
 
 export interface SettingsPanelContext<D extends object>

@@ -639,7 +639,10 @@ export class BlockToolbar {
             () => {
               if (revision !== this.#runtime.revision || this.#runtime.get(id)?.type !== record.type) return
               this.#mutate('block.settings', () => this.#runtime.update(id, current => ({
-                data: prepared.apply(current.data, action.id, { createId: prefix => this.#runtime.createDataId(prefix) }),
+                data: prepared.apply(current.data, action.id, {
+                  createId: prefix => this.#runtime.createDataId(prefix),
+                  ownerDocument: document,
+                }),
               })), () => id)
               const generation = this.#runtime.generation
               const settledRevision = this.#runtime.revision
