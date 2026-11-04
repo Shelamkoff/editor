@@ -1,6 +1,7 @@
 """Independent literal Link action model; no browser observation defines current expectations."""
 import argparse,copy,hashlib,json,re,subprocess,math,sys
 from pathlib import Path
+from urllib.parse import urlsplit,parse_qs
 from html.parser import HTMLParser
 from html.parser import HTMLParser
 sys.dont_write_bytecode=True
@@ -213,7 +214,9 @@ def main():
  summaries={}
  for r in d['results']:
   assert r['policyEnforced'] is r['trustedPolicy'] and r['inputErrors']==r['unavailable']==r['mediaRequests']==r['externalRequests']==[] and [c['spec'] for c in r['cases']]==specs()
-  for e in r['environmentRequests']:assert set(e)=={'url','type','blocked'} and e['url'].startswith('https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js') and e['type']=='script' and e['blocked'] is True
+  for e in r['environmentRequests']:
+   u=urlsplit(e['url']);assert set(e)=={'url','type','blocked'} and e['type']=='script' and e['blocked'] is True and u.scheme=='http' and u.hostname=='gc.kis.v2.scr.kaspersky-labs.com' and u.path=='/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js' and u.username is None and u.password is None
+   q=parse_qs(u.query,keep_blank_values=True);assert set(q)=={'attr'} and len(q['attr'])==1 and 0<len(q['attr'][0])<1024
   failures=[dict(id=c['id'],phase=o['phase'],property=o['property']) for c in r['cases'] for o in c['observations'] if o['status']=='FAIL'];incomplete=[dict(id=c['id'],completedPhases=c['completedPhases'],error=c['error'].split('\n')[0]) for c in r['cases'] if c['error']]
   if r['source']=='candidate':
    assert r['pageErrors']==[] and sum(verify_case(c) for c in r['cases'])==4494
