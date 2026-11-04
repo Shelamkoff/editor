@@ -3,6 +3,22 @@ import assert from 'node:assert/strict'
 
 import { ExtensionRegistry } from './ExtensionRegistry.js'
 
+test('ExtensionRegistry captures the optional structured split once with its receiver',()=>{
+  let reads=0,calls=0
+  const capability={slice(){return null},get split(){reads++;return function(data){calls++;assert.equal(this,capability);return{data,focus:{fieldKey:'text',offset:0}}}}}
+  const registry=new ExtensionRegistry({ownerDocument:documentStub(),blocks:[{...blockDefinition('paragraph'),capabilities:{selectionSlice:capability}}]})
+  try{
+    const captured=registry.getBlockDefinition('paragraph').capabilities.selectionSlice
+    Object.defineProperty(capability,'split',{value(){throw Error('Late replacement')}})
+    assert.deepEqual(captured.split({text:'A'}),{data:{text:'A'},focus:{fieldKey:'text',offset:0}})
+    assert.equal(reads,1);assert.equal(calls,1);assert(Object.isFrozen(captured))
+  }finally{registry.destroy()}
+})
+
+test('ExtensionRegistry rejects a declared non-callable structured split',()=>{
+  assert.throws(()=>new ExtensionRegistry({ownerDocument:documentStub(),blocks:[{...blockDefinition('paragraph'),capabilities:{selectionSlice:{slice(){return null},split:3}}}]}),/split must be a function/)
+})
+
 test('ExtensionRegistry captures optional inline toText getter and receiver once', () => {
   let reads = 0, calls = 0
   const source = { ...inlineDefinition('badge'), prefix: 'Label: ', get toText() {

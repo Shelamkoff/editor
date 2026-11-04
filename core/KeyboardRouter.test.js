@@ -869,3 +869,17 @@ for (const key of ['Home', 'End']) {
     h.router.destroy()
   })
 }
+
+test('failed cross-field Enter preparation prevents native and generic fallback',()=>{
+  const errors=[],failure=new Error('Range split preparation failed'),h=harness({
+    crossSelection:{active:true,split(){throw failure}},reportError:error=>errors.push(error),
+  })
+  h.owner.mode='rich-text'
+  h.setBookmark({anchor:{blockId:'a',fieldKey:'first',offset:2},focus:{blockId:'b',fieldKey:'text',offset:3}})
+  const event=h.event('Enter')
+  assert.doesNotThrow(()=>h.router.handleKeydown(event))
+  assert.equal(event.prevented,true)
+  assert.deepEqual(errors,[failure])
+  assert.deepEqual(h.calls,[])
+  h.router.destroy()
+})

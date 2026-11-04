@@ -194,7 +194,7 @@ function snapshotCapabilities(source, label) {
   }
   if (candidate.selectionSlice !== undefined) {
     result.selectionSlice = snapshotCapabilityObject(
-      candidate.selectionSlice, `${label} selectionSlice`, [['slice', false]],
+      candidate.selectionSlice, `${label} selectionSlice`, [['slice', false], ['split', true]],
     )
   }
   if (candidate.inlineControls !== undefined) {

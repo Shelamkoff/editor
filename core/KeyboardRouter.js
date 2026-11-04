@@ -193,9 +193,9 @@ export class KeyboardRouter {
     }
 
     const owner = ownership.owner
-    if (key === 'Enter' && !keys.shiftKey && this.#crossSelection?.active && this.#crossSelection.split()) {
-      event.preventDefault?.()
-      return
+    if (key === 'Enter' && !keys.shiftKey && this.#crossSelection?.active) {
+      const handled=this.#handleStructuralKey(event,()=>this.#crossSelection.split())
+      if(handled){event.preventDefault?.();return}
     }
     const authorSelection = this.#selection.capture()
     const range = sameEditableRange(authorSelection, owner)
