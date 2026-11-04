@@ -594,6 +594,7 @@ try {
     'native-link-preview-templates.html', 'native-link-preview-templates-trusted.html',
     'native-link-preview-metadata.html', 'native-link-preview-metadata-trusted.html',
     'native-embed-metadata.html', 'native-embed-metadata-trusted.html',
+    'native-link-tool.html', 'native-link-tool-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
 
   console.log(JSON.stringify({
