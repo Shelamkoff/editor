@@ -342,23 +342,6 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
   await writeFile(join(consumerRoot, 'src/extensibility.ts'), extensionConsumer, 'utf8')
   await writeFile(join(consumerRoot, 'index.html'), '<script type="module" src="/src/main.js"></script>\n', 'utf8')
 
-  for (const moduleResolution of ['Bundler', 'NodeNext']) {
-    await writeJson(join(consumerRoot, `tsconfig.${moduleResolution.toLowerCase()}.json`), {
-      compilerOptions: {
-        target: 'ES2022',
-        module: moduleResolution === 'NodeNext' ? 'NodeNext' : 'ESNext',
-        moduleResolution,
-        strict: true,
-        noEmit: true,
-        skipLibCheck: false,
-      },
-      include: ['src/main.ts', 'src/extensibility.ts'],
-    })
-    run(node, [tscCli, '-p', `tsconfig.${moduleResolution.toLowerCase()}.json`], consumerRoot)
-  }
-
-  run(node, [viteCli, 'build'], consumerRoot)
-  run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
   await copyFile(join(editorRoot, 'scripts/package-public-exports.mjs'), join(consumerRoot, 'src/public-exports.mjs'))
   const exportReport = JSON.parse(run(node, ['src/public-exports.mjs'], consumerRoot, { capture: true }))
   const tarballBytes = await readFile(tarball)
@@ -374,6 +357,24 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
     await writeJson(join(process.env.EDITOR_RESULTS_DIR, 'package-public-exports.json'), packageProof)
   }
   console.log(JSON.stringify({ publicExportContract: packageProof }))
+
+  for (const moduleResolution of ['Bundler', 'NodeNext']) {
+    await writeJson(join(consumerRoot, `tsconfig.${moduleResolution.toLowerCase()}.json`), {
+      compilerOptions: {
+        target: 'ES2022',
+        module: moduleResolution === 'NodeNext' ? 'NodeNext' : 'ESNext',
+        moduleResolution,
+        strict: true,
+        noEmit: true,
+        skipLibCheck: false,
+      },
+      include: ['src/main.ts', 'src/extensibility.ts', 'src/public-exports.ts'],
+    })
+    run(node, [tscCli, '-p', `tsconfig.${moduleResolution.toLowerCase()}.json`], consumerRoot)
+  }
+
+  run(node, [viteCli, 'build'], consumerRoot)
+  run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
   run(node, ['--input-type=module', '-e', `
     import assert from 'node:assert/strict'
     const renderer = await import('@shelamkoff/rector/renderer')

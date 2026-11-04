@@ -248,3 +248,5 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-04/async-presets/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-04/async-presets/**/*.json -text
 /scripts/parity/checkpoints/2026-11-04/async-presets/**/*.gz -text
+/scripts/parity/checkpoints/2026-11-04/async-presets/**/*.tgz -text
+/scripts/package-public-exports.mjs text eol=lf
