@@ -40,6 +40,7 @@ export interface BlockPluginRuntimeContext {
   readonly editorPlaceholder?: string
   /** Immutable application-owned CSS text for rich/derived and embedded document content. */
   readonly contentStyles?: readonly string[]
+  /** An own numeric params.count selects the locale plural form; other values use ordinary translation. */
   t(key: string, fallback?: string, params?: Record<string, string | number>): string
 }
 
@@ -395,6 +396,7 @@ export interface InlinePopupHandle {
 export interface InlinePluginRuntimeContext {
   readonly ownerDocument: Document
   readonly signal: AbortSignal
+  /** An own numeric params.count selects the locale plural form; other values use ordinary translation. */
   t(key: string, fallback?: string, params?: Record<string, string | number>): string
   showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): InlinePopupHandle
 }

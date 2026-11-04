@@ -264,9 +264,12 @@ export function createEditorRuntime(input){
     acquireStyles:config.injectStyles!==false,
     contentStyles:config.contentStyles,
     translate:(key,fallback='',params=undefined)=>{
-      // Explicit translations may equal their key; only absence selects fallback.
-      const translated=i18n.t(key,params)
-      return i18n.has(key)?translated:fallback
+      // Missing keys never inspect interpolation getters. Own values are captured
+      // once so count selection cannot borrow an inherited or changing count.
+      if(!i18n.has(key))return fallback
+      const values=params?Object.assign(Object.create(null),params):undefined
+      const count=values?.count
+      return typeof count==='number'?i18n.plural(key,count,values):i18n.t(key,values)
     },
     showPopup:(owner,anchor,content,cleanup)=>popup.showPopup(owner,anchor,content,cleanup),
   }))

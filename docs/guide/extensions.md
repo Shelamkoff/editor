@@ -28,6 +28,12 @@ interface BlockPluginDefinition<Data> {
 | `capabilities` | Pure optional behavior contracts. |
 | `setup` | Creates one per-editor runtime. |
 
+## Translations
+
+Block and inline `setup()` contexts expose `t(key, fallback, params)`. Keys resolve under `plugin.<type>.*` or `inlinePlugin.<type>.*`. Pass an own numeric `params.count` to select a plural form, for example `context.t('filesCount', 'files', { count: files.length })`. The primary locale selects its grammar; English fallback entries retain English grammar. A string `count` and calls without a numeric count retain ordinary translation behavior.
+
+Own enumerable interpolation values are captured once. Inherited values are ignored, and missing keys return the fallback without reading parameter getters. Empty translations and translations equal to their key are preserved; inserted parameter text is not interpreted as another template.
+
 ## Runtime and block instance
 
 `BlockPluginRuntime` has `create(initial, context)` and `destroy()`. Each `create()` returns one `BlockInstance`.

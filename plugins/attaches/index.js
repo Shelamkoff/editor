@@ -396,7 +396,7 @@ export function createAttachesPlugin(config={}){
                 header.className='oe-attaches__group-header'
                 const count=document.createElement('div')
                 count.className='oe-attaches__info'
-                count.textContent=data.files.length+' '+runtimeContext.t('filesCount','files')
+                count.textContent=data.files.length+' '+runtimeContext.t('filesCount','files',{count:data.files.length})
                 const totalSize=data.files.reduce((sum,file)=>sum+file.size,0)
                 if(totalSize){
                   const size=document.createElement('div')
