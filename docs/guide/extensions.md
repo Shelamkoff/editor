@@ -30,7 +30,7 @@ interface BlockPluginDefinition<Data> {
 
 ## Translations
 
-Block and inline `setup()` contexts expose `t(key, fallback, params)`. Keys resolve under `plugin.<type>.*` or `inlinePlugin.<type>.*`. Pass an own numeric `params.count` to select a plural form, for example `context.t('filesCount', 'files', { count: files.length })`. The primary locale selects its grammar; English fallback entries retain English grammar. A string `count` and calls without a numeric count retain ordinary translation behavior.
+Block and inline `setup()` contexts expose `t(key, fallback, params)`. Keys resolve under `plugin.<type>.*` or `inlinePlugin.<type>.*`. Pass an own enumerable numeric `params.count` to select a plural form, for example `context.t('filesCount', 'files', { count: files.length })`. English and Russian primary locales, including their regional tags, select their own grammar; other language codes use the existing English rule. English fallback entries retain English grammar. A string `count` and calls without a numeric count retain ordinary translation behavior.
 
 Own enumerable interpolation values are captured once. Inherited values are ignored, and missing keys return the fallback without reading parameter getters. Empty translations and translations equal to their key are preserved; inserted parameter text is not interpreted as another template.
 

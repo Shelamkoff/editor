@@ -1,0 +1,5625 @@
+{
+  "candidate": "584191647ac18a3b19660660788500f8d60640f3",
+  "tree": "0bd69bfcd340b4bdc93ec15bce5e9ee82f350a70",
+  "sourceIdentity": "ddc1aeb9aabc799877c278bd3f3e0af0dfac73794cbdde614bec6bc71f120e0d",
+  "productionBasis": "a7363edda4d507745928425fce2771f1e3d6b653",
+  "productionChanged": true,
+  "productionRepair": "The existing public t captures own enumerable interpolation values once and selects plural() for a numeric count. Missing keys skip parameter getters. Attaches supplies its real file count. Existing ordinary/string-count, key-equal, empty and literal interpolation behavior is retained.",
+  "integration": {
+    "source": "584191647ac18a3b19660660788500f8d60640f3",
+    "directory": "run-yXQXKS",
+    "outcome": "passed",
+    "gates": 18,
+    "startedAt": "2026-11-04T14:23:50.648Z",
+    "finishedAt": "2026-11-04T14:37:41.224Z"
+  },
+  "currentCases": 190,
+  "currentObservations": 1984,
+  "counts": {
+    "casesPerPolicy": 89,
+    "observationsPerPolicy": 819,
+    "currentCases": 178,
+    "currentObservations": 1638,
+    "moduleIdentities": 880,
+    "redModuleIdentities": 880,
+    "red": "aba84b1c62fd181d5c13ab88d715c07007bfdc33",
+    "results": {
+      "v1/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2.5",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "spec-baseline/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "parent/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [],
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate/trusted": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [],
+        "blockedEnvironmentRequests": 1
+      }
+    },
+    "redResults": {
+      "v1/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1.5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2.5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2.5",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "spec-baseline/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "parent/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate/compatible": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate/trusted": {
+        "cases": 89,
+        "observations": 819,
+        "differences": [
+          {
+            "id": "ru/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/5",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "load",
+            "property": "label"
+          },
+          {
+            "id": "ru-RU/21",
+            "phase": "reader",
+            "property": "label"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/en/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru-RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/ru_RU/101",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/-1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/0",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/1",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/2",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/5",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/11",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/12",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/14",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/21",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/22",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/25",
+            "phase": "load",
+            "property": "inline"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "block"
+          },
+          {
+            "id": "runtime/RU/101",
+            "phase": "load",
+            "property": "inline"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      }
+    }
+  },
+  "literal": {
+    "currentCases": 12,
+    "currentObservations": 346,
+    "moduleIdentities": 470,
+    "results": {
+      "spec-baseline/compatible": {
+        "cases": 6,
+        "observations": 173,
+        "differences": [
+          {
+            "id": "literal-key/public-runtime-contexts",
+            "phase": "create",
+            "property": "plugin.paragraph/echo"
+          },
+          {
+            "id": "literal-key/public-runtime-contexts",
+            "phase": "create",
+            "property": "inlinePlugin.color/echo"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "load",
+            "property": "addLabel"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "load",
+            "property": "tuneLabel"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "inline",
+            "property": "typeName"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "inline",
+            "property": "labels"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "toolbox",
+            "property": "labels"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "slash",
+            "property": "labels"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "parent/compatible": {
+        "cases": 6,
+        "observations": 173,
+        "differences": [
+          {
+            "id": "literal-key/public-runtime-contexts",
+            "phase": "create",
+            "property": "plugin.paragraph/echo"
+          },
+          {
+            "id": "literal-key/public-runtime-contexts",
+            "phase": "create",
+            "property": "inlinePlugin.color/echo"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "load",
+            "property": "addLabel"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "load",
+            "property": "tuneLabel"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "inline",
+            "property": "typeName"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "inline",
+            "property": "labels"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "toolbox",
+            "property": "labels"
+          },
+          {
+            "id": "menus/literal",
+            "phase": "slash",
+            "property": "labels"
+          }
+        ],
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate/compatible": {
+        "cases": 6,
+        "observations": 173,
+        "differences": [],
+        "blockedEnvironmentRequests": 1
+      },
+      "candidate/trusted": {
+        "cases": 6,
+        "observations": 173,
+        "differences": [],
+        "blockedEnvironmentRequests": 1
+      }
+    },
+    "precedingCheckpoint": "7d7edfd5"
+  },
+  "corruptionsRejected": 24,
+  "canonicalNodeFiles": 197,
+  "nodePassed": 2214,
+  "nodeSkipped": 3,
+  "ordinaryPages": 55,
+  "localeUnitTests": 22,
+  "native": {
+    "native-i18n-contexts.html": 95,
+    "native-i18n-contexts-trusted.html": 96,
+    "native-link-tool.html": 73,
+    "native-link-tool-trusted.html": 74,
+    "native-block-menus.html": 110,
+    "native-library-boundaries.html": 48,
+    "native-retained-tools.html": 64
+  },
+  "nativeCases": 560,
+  "defaultNativePageInventory": 90,
+  "bundleKiBGzip": 95.8,
+  "budgetKiB": 96,
+  "heapSentinels": 23,
+  "heapRetained": 0,
+  "legacyObservationLimitations": [
+    "The legacy diagnostic option is absent; its empty fixture diagnostic array is not evidence of zero legacy diagnostic events. Real page errors and history flags are measured.",
+    "The v1 canonical Attaches wire has no member IDs. Current records must preserve their actual stable file IDs."
+  ],
+  "scope": "All 89 cases execute actual public APIs on v1, baseline, immutable parent and both current policies. Legacy protected _p/_t and inline scoped plural/t map operation spelling only; no translation behavior is emulated. Literal plural tables, getter counters, own/inherited/string counts, missing fallbacks and literal interpolation are independent of fixture arithmetic. Editor/reader labels are checked against a real locale-configured renderer and exact canonical data/history. The original literal-key/native-command model reruns unchanged on the final source.",
+  "exploratoryAttempts": {
+    "initial": "Nine real Attaches cases confirm the v2 count regression; v1 Russian controls pass and its regional limitation remains raw.",
+    "expanded": "89 cases add actual legacy protected/scoped APIs and modern definition contexts; no translation behavior is emulated.",
+    "outputInitial": "Excluded fixture mistake: an unsupported renderers constructor option was ignored and locale was omitted. Exact raw/fixture/runner bytes remain; no renderer behavior is rolled back.",
+    "outputFixed": "The documented renderer locale and blockTypes options provide the correct independent output control.",
+    "green": "All current plural and existing literal/native-command observations pass; independent models confirm the exact historical differences."
+  },
+  "registerBefore": {
+    "accepted": 131,
+    "open": 78
+  },
+  "registerAfter": {
+    "accepted": 132,
+    "open": 77
+  },
+  "acceptedRows": [
+    "APPEARANCE_I18N"
+  ],
+  "register": {
+    "accepted": 132,
+    "open": 77
+  },
+  "acceptanceDocumentation": {
+    "docs": "passed",
+    "site": "passed"
+  }
+}
