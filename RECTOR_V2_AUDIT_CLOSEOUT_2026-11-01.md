@@ -1,5 +1,17 @@
 # Rector v2 audit closeout — active work
 
+## Columns rich fields — 2026-11-04
+
+Register: **147 accepted / 62 open / 209 total**. Accepted on `7e5b84e1`:
+`BLOCK_COLUMNS_FIELDS`. Three independent fields, directed local/cross-field
+marks, real selected conversion, preserved empty layout/IDs/widgets and exact
+native caret/replay pass. Literal oracle: 90 executions / 1758 observations /
+882 module identities; 40 corruptions, all seven affected gates and 141
+native cases pass. Three strict-schema cases retain their full Node-gate source.
+Runtime is unchanged from `c58523cc`; all fifteen final integration gates and
+173 verified artifacts retain actual sources/dates and the earlier failed run.
+[Checkpoint](scripts/parity/checkpoints/2026-11-04/columns-fields/README.md). Full readiness remains open.
+
 ## Columns formatting-empty layout — 2026-11-04
 
 Register unchanged: **146 accepted / 63 open / 209 total**. Supplemented

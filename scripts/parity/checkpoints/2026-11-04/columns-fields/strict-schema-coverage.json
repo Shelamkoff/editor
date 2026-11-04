@@ -1,0 +1,14 @@
+{
+  "source": "c58523ccf1ab5bb521d800ff6b549fa4eccc54da",
+  "directory": "C:\\OSPanel\\domains\\editor\\test-results\\run-5lofn7",
+  "nodeGate": "passed",
+  "path": "plugins/columns/strict-schema.test.js",
+  "executedSha256": "e6fbf4ea0b2539362a8b82909e41e5d13a54a58086cdd47a8fa81cea370dd741",
+  "gitSha256": "3aa308022e74d668504af37d5738f9d2e9c2be7734748ae215bcdc4b3b1ef068",
+  "passingCases": [
+    "Columns current schema persists stable column identities and rich-text in exact version",
+    "Columns strict v2 schema rejects obsolete or ambiguous layout payloads instead of silently dropping content",
+    "Columns default is an independent legal two-column value with stable IDs"
+  ],
+  "scope": "Existing full Node-gate coverage: exact current version/IDs, rejection of unknown/mismatched layouts, duplicate or missing IDs, and independent legal defaults. No separate unit invocation is claimed."
+}
