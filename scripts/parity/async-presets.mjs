@@ -1,5 +1,5 @@
-// Public toolbar action differential. Production bytes are served from exact
-// Git objects; one fixed fixture and trusted input bridge serve every source.
+// Public asynchronous API differential. Production bytes are served from exact
+// Git objects; every source executes the same fixed public-API fixture.
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
@@ -87,27 +87,17 @@ try {
     const pageErrors = [], inputErrors = [],mediaRequests=[],externalRequests=[],environmentRequests=[]
     page.on('pageerror', error => pageErrors.push(error.stack ?? String(error)))
     await page.route('**/*',route=>{const request=route.request(),url=new URL(request.url()),origin='http://127.0.0.1:'+server.address().port;if(['http:','https:'].includes(url.protocol)&&url.origin!==origin){const entry={url:url.href,type:request.resourceType()};if((url.hostname==='www.youtube.com'&&url.pathname.startsWith('/embed/')||url.hostname==='player.vimeo.com'&&url.pathname.startsWith('/video/'))&&entry.type==='document'){mediaRequests.push({...entry,fulfilled:true});return route.fulfill({contentType:'text/html',body:'<!doctype html><title>Controlled player</title>Controlled player'})}if(url.hostname==='img.youtube.com'&&entry.type==='image'){mediaRequests.push({...entry,fulfilled:true});return route.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=','base64')})}if(url.hostname==='gc.kis.v2.scr.kaspersky-labs.com'&&url.pathname==='/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js'&&entry.type==='script')environmentRequests.push({...entry,blocked:true});else externalRequests.push({...entry,blocked:true});return route.abort()}return route.continue()})
-    const cdp = await page.context().newCDPSession(page)
-    await page.exposeFunction('__basicMarkInput', async (method, params) => {
-      try {
-        if (method === 'Input.click') {
-          await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...params })
-          await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...params })
-        } else if (method === 'Input.insertText' || method === 'Input.dispatchKeyEvent') await cdp.send(method, params)
-        else throw new Error('Unsupported native input: ' + method)
-      } catch (error) { inputErrors.push(String(error)); throw error }
-    })
     await page.goto(`http://127.0.0.1:${server.address().port}/${trustedPolicy?'trusted':''}`)
     const policyEnforced=await page.evaluate(()=>{try{document.createElement('div').innerHTML='<b>untrusted control</b>';return false}catch(error){return error instanceof TypeError}})
     const cases = JSON.parse(await page.evaluate(async source => {
       const { asyncPresetCases, runAsyncPresetCase } = await import('/fixture.js')
       const results = []
       const cases = asyncPresetCases
-      for (const spec of cases.filter(value => (!source.legacy||value.method!=='button')&&(!source.filter||value.id.includes(source.filter)))) results.push(await runAsyncPresetCase({ sourceBase: `/${source.label}/`,
-        legacy: source.legacy, spec, nativeInput: window.__basicMarkInput }))
+      for (const spec of cases.filter(value => !source.filter||value.id.includes(source.filter))) results.push(await runAsyncPresetCase({ sourceBase: `/${source.label}/`,
+        legacy: source.legacy, spec }))
       return JSON.stringify(results)
     }, { label: source.label, legacy: source.legacy, group, filter: process.env.EDITOR_ASYNC_PRESETS_FILTER ?? '' }))
-    await page.waitForTimeout(50);results.push({ source: source.label, trustedPolicy, policyEnforced, cases, unavailable:source.legacy?(await import(pathToFileURL(resolve(repo,fixturePath)).href)).asyncPresetCases.filter(s=>s.method==='button').map(s=>({id:s.id,port:'URL Insert button',reason:'Absent in the public v1 URL bar. Common Enter, native play and replay execute without a substitute action.'})):[], pageErrors, inputErrors,mediaRequests,externalRequests,environmentRequests })
+    await page.waitForTimeout(50);results.push({ source: source.label, trustedPolicy, policyEnforced, cases, unavailable:[], pageErrors, inputErrors,mediaRequests,externalRequests,environmentRequests })
     await page.close()
   }}
   const headAfter = git('rev-parse', 'HEAD').toString().trim()
@@ -128,7 +118,7 @@ try {
     sourceIdentity: 'Every production module is served unchanged from its exact Git object. Fixed fixtures adapt public API/wire spelling only.',
     filter: process.env.EDITOR_ASYNC_PRESETS_FILTER ?? '',
     group,
-    scope: `Public async single/list/document factories, canonical order, caller snapshots, independent rejection containment and recovery. Controlled external player documents are fulfilled with inert test content; no real provider is contacted.`,
+    scope: `Public async single/list/document factories, canonical order, caller snapshots, independent rejection containment and recovery. No provider or product network is contacted.`,
     sources, dependencyVersions, dependencyFiles, results, serverErrors, candidatePass,
     note: 'Historical defects remain raw FAIL observations. Unsupported legacy observation APIs are explicitly recorded and never inferred as passes.',
   }, null, 2))
