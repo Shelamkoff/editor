@@ -28,3 +28,6 @@ Exact runtime identity retains all sixteen passing integration gates from
 `0e470fe5` and **119 Git-verified artifacts**, with their actual source/date.
 Only this ordinary-input row is newly accepted; Paragraph's complete plugin and
 conversion contracts, B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `604f26cc`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
