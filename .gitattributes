@@ -232,3 +232,11 @@ scripts/parity/checkpoints/2026-11-03/html-targets/*.gz -text
 /scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/*.mjs text eol=lf
 /scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/**/*.json -text
 /scripts/parity/checkpoints/2026-11-04/embed-player-lifetime/**/*.gz -text
+
+# Public Embed metadata and cover sources
+/tests/browser/embed-metadata-fixture.js text eol=lf
+/scripts/parity/embed-metadata.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-metadata/*.py text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-metadata/*.mjs text eol=lf
+/scripts/parity/checkpoints/2026-11-04/embed-metadata/**/*.json -text
+/scripts/parity/checkpoints/2026-11-04/embed-metadata/**/*.gz -text

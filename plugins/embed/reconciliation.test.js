@@ -166,15 +166,30 @@ function mount({ config = {}, initial = {}, fetch, schedule } = {}) {
     ...initial,
   }
   let instance
+  const updateData = producer => {
+    writes++
+    canonical = producer(structuredClone(canonical))
+    instance.update(canonical)
+  }
   instance = definition.setup({ t: (_key, fallback) => fallback }).create(canonical, {
     ownerDocument,
     signal: owner.signal,
     getData: () => canonical,
     isReadOnly: () => false,
-    updateData(producer) {
-      writes++
-      canonical = producer(structuredClone(canonical))
-      instance.update(canonical)
+    updateData,
+    beginTask() {
+      const controller = new AbortController()
+      const cancel = () => controller.abort()
+      owner.signal.addEventListener('abort', cancel, { once: true, signal: controller.signal })
+      return {
+        signal: controller.signal,
+        cancel,
+        commit(producer) {
+          if (controller.signal.aborted) return false
+          updateData(producer)
+          return true
+        },
+      }
     },
   })
   return {
@@ -213,6 +228,37 @@ function deferred() {
     reject = rejectPromise
   })
   return { promise, resolve, reject }
+}
+
+for (const outcome of ['throw', 'reject']) {
+  test(`Embed contains a custom cover source ${outcome} and permits a later successful selection`, async () => {
+    const calls = []
+    const h = mount({ config: { actions: [{ label: 'Library', handler({ signal }) {
+      calls.push(signal)
+      if (calls.length === 1) {
+        if (outcome === 'throw') throw new Error('Controlled cover source failure')
+        return Promise.reject(false)
+      }
+      return Promise.resolve({ url: '/selected-cover.png' })
+    } }] } })
+    try {
+      const before = structuredClone(h.model())
+      const button = h.instance.element.querySelectorAll('button').find(node => node.textContent === 'Library')
+      assert.ok(button)
+      assert.doesNotThrow(() => button.dispatch('click'))
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(calls.length, 1)
+      assert.equal(calls[0].aborted, true, 'Failed source retained its task')
+      assert.deepEqual(h.model(), before)
+      assert.equal(h.writes(), 0)
+      button.dispatch('click')
+      await new Promise(resolve => setImmediate(resolve))
+      assert.deepEqual(h.model(), { ...before, cover: '/selected-cover.png' })
+      assert.equal(h.writes(), 1)
+      assert.equal(calls.length, 2)
+      assert.equal(calls[1].aborted, true, 'Completed source retained its task')
+    } finally { h.destroy() }
+  })
 }
 
 test('Embed custom preview timeout aborts its resolver and ignores a late result', async () => {
