@@ -58,6 +58,11 @@ export class SlashCommandController {
 
       this.#items = this.#buildItems()
 
+      // Retired items may be reconnected inside this popup. Keep native focus
+      // in the authored field even when their own listeners were aborted.
+      root.addEventListener('mousedown', event => {
+        if (!signal.aborted && this.#menu.contains(event.target)) event.preventDefault()
+      }, { capture: true, signal })
       root.addEventListener('input', event => this.#onInput(event), { signal })
       root.addEventListener('compositionstart', () => this.close(), { signal })
       root.addEventListener('keydown', event => this.#onKeydown(event), { capture: true, signal })
@@ -309,8 +314,6 @@ export class SlashCommandController {
     const session = this.#session
     const version = this.#itemsVersion
     if (!session || this.#controller.signal.aborted) return
-    // A focused menu item owns auxiliary text, not a new author selection.
-    if (this.#menu.contains(this.#document.activeElement)) return
     const valid = this.#sessionIsCurrent()
     // Field resolution can publish a successor while checking this selection.
     if (!valid && this.#session === session && this.#itemsVersion === version
