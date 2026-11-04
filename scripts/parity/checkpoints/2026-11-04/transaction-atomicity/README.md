@@ -35,3 +35,6 @@ remain identical to `ce76492c`, retaining the prior fifteen passing integration
 gates and two complete native follow-up gates with their actual sources/dates
 and original timeout. Inventory remains **104 native pages**. Only this history
 row is newly accepted; native typing/IME, B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `1d882683`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
