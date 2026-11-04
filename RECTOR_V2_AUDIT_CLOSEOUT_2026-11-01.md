@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## List partial conversion 2026-11-05
+
+Register: **151 accepted / 58 open / 209 total**.
+
+[List partial conversion](/architecture/rector-v2/PUBLICATION_REVIEW#list-partial-conversion-2026-11-05) is accepted on `523245ff`: fully selected items are removed, while unselected empty siblings, IDs, checks and widgets survive. Evidence: 48 executions / 960 observations, 24 corruptions, all fifteen gates and 246 native cases. The analogous Checklist repair is covered without accepting its open rows.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/list-conversion/README.md). Full readiness remains open.
+
 ## List item editing 2026-11-05
 
 Register: **150 accepted / 59 open / 209 total**.
