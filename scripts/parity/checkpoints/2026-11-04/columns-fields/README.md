@@ -38,3 +38,6 @@ runtime identity retains all fifteen passing final integration gates on
 `c58523cc` and **173 Git-verified artifacts**, with their actual source/date.
 The earlier failed Node-compatibility run remains separately recorded. Only this
 Columns field row is newly accepted; B-HTML and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `9324d4ca`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
