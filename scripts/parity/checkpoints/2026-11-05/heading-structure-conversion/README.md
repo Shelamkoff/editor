@@ -41,3 +41,6 @@ and all fifteen final integration gates on `c58523cc`, with original sources,
 dates and the separately recorded earlier Node compatibility failure. Only this
 Heading obligation is newly accepted; rich paste, B-HTML and full readiness remain
 open.
+
+Post-acceptance documentation and site checks pass on `00d2fa1e`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
