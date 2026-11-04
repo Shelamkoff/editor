@@ -1,5 +1,15 @@
 # Rector v2 audit closeout — active work
 
+## Ordinary native input — 2026-11-04
+
+Register: **146 accepted / 63 open / 209 total**. Accepted on `35ec80a9`:
+`NATIVE_TYPING`. Trusted Unicode/rich typing, directed replacement/deletion,
+astral and BR deletion, empty fields and exact DOM/caret/history pass.
+Literal oracle: 28 executions / 812 observations / 380 module identities;
+24 corruptions, all seven affected gates and 81 native cases pass.
+Runtime is unchanged from the complete sixteen-gate IME integration.
+[Checkpoint](scripts/parity/checkpoints/2026-11-04/native-typing/README.md). Full readiness remains open.
+
 ## Native IME lifecycle — 2026-11-04
 
 Register: **145 accepted / 64 open / 209 total**. Accepted on `0e470fe5`:
