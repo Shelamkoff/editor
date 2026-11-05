@@ -12,3 +12,6 @@ The preceding sealed [readonly output checkpoint](https://github.com/Shelamkoff/
 V1 retains **86 differences** over its executed bodies; eight private Paste/Undo/Redo bodies are unexecuted because native old Copy lacks the private fragment MIME. Availability and source data are measured, without substituting an HTML fallback. Baseline retains six differences; immutable parent and both current policies retain zero. Exploratory errors and expectation changes remain with exact bytes/source/date: authoring-column selector, harmless empty literal wrapper, valid merge remapping and the intentional structured Columns clipboard contract.
 
 Native pages pass **83 cases**, including prior Paragraph and clipboard regressions; inventory is **134 native pages**, with **57 ordinary browser pages**. Documentation and site pass. Exact runtime/package identity and 115 Git-verified artifacts preserve all fifteen full integration gates on `c0054fb8`, with actual source/date. Only the remaining Color roundtrip row is newly accepted; all three Color rows are now accepted. Full readiness remains open.
+
+Post-acceptance documentation and site checks pass on `37085cda`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
