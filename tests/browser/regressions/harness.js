@@ -116,7 +116,8 @@ export async function run() {
         new Promise((_, reject) => {
           timer = setTimeout(
             () => reject(new Error(`Audit case timed out: ${name}`)),
-            new URL(location.href).searchParams.has('ui-driver') ? 120_000 : 10_000,
+            new URL(location.href).searchParams.has('ui-driver') || typeof window.__rectorTestInput === 'function'
+              ? 120_000 : 10_000,
           )
         }),
       ])
