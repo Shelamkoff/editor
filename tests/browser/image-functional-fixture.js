@@ -123,6 +123,15 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
       input.dispatchEvent(new Event('change', { bubbles: true }))
     }
     await pause(100)
+    if (spec.source === 'local') {
+      // A real FileReader can finish after the fixture's fixed sampling delay.
+      // Observe completion before checking the unchanged source/history oracle.
+      const deadline = Date.now() + 5000
+      while (wrapper().classList.contains('oe-image--loading')) {
+        if (Date.now() > deadline) throw new Error('Local Image file reading did not settle')
+        await pause()
+      }
+    }
     return requests.at(-1)
   }
   const setting = label => {

@@ -144,3 +144,15 @@ mode to retain every physical typing/toolbox/history assertion and its output
 when all 159 native pages run independently. The normal command still runs
 the same introduction and complete registry. Its separate introduction passes;
 no native case or literal assertion is removed.
+
+The complete immutable `125b3e22` comparison later exposes one Image fixture
+sampling race in the enforcing policy's empty local-file case. At the source
+snapshot the file is still loading and no action has committed. Its subsequent
+native Undo/Redo correctly replays the requested image, proving that the real
+FileReader finishes after that snapshot. No production upload failure is
+established. The fixture now waits for the existing local loading state to
+settle, with a bounded failure deadline, before applying its unchanged literal
+URL/data/transaction/history assertions. Other provider-race timing and all
+case/observation inventories remain unchanged. This test-only change requires
+its own complete Image corpus and both complete affected native pages; the
+original failed comparison remains explicit.
