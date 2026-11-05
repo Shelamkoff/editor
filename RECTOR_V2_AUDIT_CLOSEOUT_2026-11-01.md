@@ -1,5 +1,26 @@
 # Rector v2 audit closeout — active work
 
+## Complete-audit continuation — 2026-11-05
+
+The user requires completion of the entire audit and a push after each completed
+code packet. Preserve superior current behavior. Continue through all remaining
+rows and final convergence; a scoped green checkpoint is not the stopping goal.
+
+Image source/caption/appearance/expanded rows are accepted on `0a8a3580`:
+**173/209 accepted, 36 open**. The independent model verifies 52 executions /
+798 observations and rejects 19 corruptions; both maintained native pages pass
+53 cases on `08f3a1e0`. Historical incomplete input bodies remain unexecuted.
+[Evidence](/architecture/rector-v2/PUBLICATION_REVIEW#image-functional-acceptance-2026-11-05).
+
+The complete native inventory is running on the isolated immutable `3d4b8f46`
+worktree. Two compound pages initially timed out at the ordinary 10-second case
+deadline. The native harness now uses its existing 120-second UI-driver limit
+for the actual CDP input binding too; unchanged assertions pass 76 + 77 cases.
+The package gate initially failed because the environment's `umask 0077`
+packed 0600 rather than locked 0644 files. `umask 022` reproduces the exact
+locked SRI and passes the full original package gate without changing the lock.
+Both initial failures and same-source follow-ups remain distinct.
+
 ## Image expanded layout repair 2026-11-05
 
 Register: **169 accepted / 40 open / 209 total**.

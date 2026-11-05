@@ -1,0 +1,84 @@
+{
+  "candidate": "0a8a3580ad797fb27e1c072c80fdb457a54049cb",
+  "status": "PASS",
+  "currentExecutions": 52,
+  "currentObservations": 798,
+  "historical": [
+    {
+      "source": "v1",
+      "differences": 15,
+      "incompleteBodies": [
+        {
+          "id": "url-race/7",
+          "phase": "source",
+          "error": "Error: Untrusted Image action\n    at click (http://127.0.0.1:37163/fixture.js:76:25)\n    at async runImageFunctionalCase (http://127.0.0.1:37163/fixture.js:153:9)\n    at async eval (eval at evaluate (:311:30), <anonymous>:5:114)\n    at async <anonymous>:337:30"
+        },
+        {
+          "id": "url-race/10",
+          "phase": "source",
+          "error": "Error: Untrusted Image action\n    at click (http://127.0.0.1:37163/fixture.js:76:25)\n    at async runImageFunctionalCase (http://127.0.0.1:37163/fixture.js:153:9)\n    at async eval (eval at evaluate (:311:30), <anonymous>:5:114)\n    at async <anonymous>:337:30"
+        },
+        {
+          "id": "url-race/13",
+          "phase": "source",
+          "error": "Error: Untrusted Image action\n    at click (http://127.0.0.1:37163/fixture.js:76:25)\n    at async runImageFunctionalCase (http://127.0.0.1:37163/fixture.js:153:9)\n    at async eval (eval at evaluate (:311:30), <anonymous>:5:114)\n    at async <anonymous>:337:30"
+        },
+        {
+          "id": "url-race/16",
+          "phase": "source",
+          "error": "Error: Untrusted Image action\n    at click (http://127.0.0.1:37163/fixture.js:76:25)\n    at async openSources (http://127.0.0.1:37163/fixture.js:107:66)\n    at async runImageFunctionalCase (http://127.0.0.1:37163/fixture.js:152:9)\n    at async eval (eval at evaluate (:311:30), <anonymous>:5:114)\n    at async <anonymous>:337:30"
+        }
+      ]
+    },
+    {
+      "source": "spec-baseline",
+      "differences": 40,
+      "incompleteBodies": []
+    },
+    {
+      "source": "parent",
+      "differences": 0,
+      "incompleteBodies": []
+    }
+  ],
+  "moduleIdentities": 716,
+  "nativeSource": "08f3a1e0512e4f1e4e5421a76e90e0ef97b27292",
+  "productionBasis": "3d4b8f46d912a8c31aaaab5fe5351b76bbe0f7a2",
+  "runtimeUnchanged": true,
+  "changedRuntimeFiles": [],
+  "nativeCases": 53,
+  "corruptions": 19,
+  "accepted": [
+    "BLOCK_IMAGE_SOURCES",
+    "BLOCK_IMAGE_CAPTION",
+    "BLOCK_IMAGE_APPEARANCE",
+    "BLOCK_IMAGE_EXPANDED"
+  ],
+  "register": {
+    "accepted": 173,
+    "open": 36,
+    "total": 209
+  },
+  "sources": {
+    "tests/browser/image-functional-fixture.js": {
+      "sha256": "6c50871b649ccda18a6275e0e0e720fa6585b4d22a3416b52db382770e282aa0",
+      "gitBlob": "a9865b566abddcc7b1c39b14c24446f3e91b7fe3"
+    },
+    "scripts/parity/image-functional.mjs": {
+      "sha256": "f8e7e9d992dd869c6fa9ea187d6d7c52475c67fe340b4467e948c1e25b6fea0f",
+      "gitBlob": "c2e81d2d1bfb82542d74e63b585bb1cc5e5370bf"
+    },
+    "tests/browser/native-image-functional.js": {
+      "sha256": "c7d8a96e04807623f77f09f0ccc8a9adfc739c43614c7a7399ca8a443c8bd0c5",
+      "gitBlob": "8234a0c10f559c1c616ab378fa00a3d97c283182"
+    },
+    "tests/browser/regressions/harness.js": {
+      "sha256": "25df44172d31e762bb2034e4ac9203796cc92ab05deeb16c779cda86344a99ec",
+      "gitBlob": "b8442d636f38fcdb901d2df87bdc8f955f2e46ec"
+    },
+    "tests/browser/physical-history.mjs": {
+      "sha256": "951d40b363be5b3980d7bf7c81f9101d9f713a7a296c83f1b874e5f0496db521",
+      "gitBlob": "35d72f61760f107dec84336bac162efca9eeb8d8"
+    }
+  }
+}

@@ -2,9 +2,43 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **169 / 209 obligations**, with **40 open**; see the [Table native paste and conversion 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#table-native-paste-and-conversion-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **173 / 209 obligations**, with **36 open**; see the [Image functional acceptance 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#image-functional-acceptance-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Image functional acceptance 2026-11-05
+
+`BLOCK_IMAGE_SOURCES`, `BLOCK_IMAGE_CAPTION`, `BLOCK_IMAGE_APPEARANCE` and
+`BLOCK_IMAGE_EXPANDED` are accepted on `0a8a3580`: **173/209 accepted, 36 open**.
+The complete controlled Image comparison has 52 current executions and 798
+observations under ordinary and enforced Trusted Types policies. An independent
+literal model checks the full case/phase/observation inventory and 716 actual
+Git module identities; nineteen damaged evidence variants are rejected.
+[Checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/image-functional/README.md)
+
+Local-file fallback, application uploads and custom actions exercise empty and
+populated blocks, exact file metadata, rejected providers and canonical no-ops.
+Explicit URL replacement and read-only retirement preserve the current source,
+caption and appearance while late work settles. A later live source retains its
+own loading and history. Rich captions use actual Mention/Color occurrences;
+native edits, output and directed sibling projection retain payloads and hosts.
+Appearance covers dimensions, fit, position, border, radius and background
+against a native CSS declaration. Native height input and expanded toggles
+preserve styles, disabled controls, measured owner geometry and exact replay.
+
+Both maintained native pages pass 26 + 27 cases on `08f3a1e0`, whose production
+and comparison fixture bytes are unchanged. V1 retains fifteen differences and
+four incomplete pending-URL input bodies; those pointer attempts are not passes
+or evidence of a product defect. The spec baseline retains forty differences,
+while the immutable parent and both current policies have zero. Earlier probe
+errors in no-op history, nested caret structure and old control labels are kept
+separately; no production behavior changes to accommodate them.
+
+Production remains byte-identical to the repaired `3d4b8f46` basis. Its fresh
+typecheck, 2247 Node tests, build, site and package consumers pass. Package
+verification retains the initial 0600-archive mismatch and the same-source
+0644-mode follow-up, which reproduces the exact locked SRI without modifying
+the lock. The full native union and remaining 36 rows continue separately.
 
 ## Image expanded layout repair 2026-11-05
 
