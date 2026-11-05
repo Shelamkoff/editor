@@ -36,7 +36,7 @@ used the wrong registration spelling; those two bodies were unexecuted until
 corrected to the real public `registerRenderer` method. No functional oracle
 was relaxed.
 
-## Confirmed repair: one-read array shape capture
+## Confirmed repair: one-read JSON shape capture
 
 `cloneJsonValue` sampled an array's length on every iteration. A supported
 JSON-shaped proxy therefore ran its length accessor repeatedly. An element
@@ -52,6 +52,13 @@ JSON/realm/equality/store/transaction/history cases pass. Existing proxy support
 dense-array validation and ignored array metadata are retained. An initial
 sandbox-restricted Node invocation could not run its test worker; the enabled
 run independently records all three actual assertion failures before the fix.
+
+The same review found a second enumeration of object proxy keys: symbol
+validation and Object.keys could observe different shapes. Two additional
+regressions compare one key-list read and a fresh native-JSON proxy control.
+One Reflect.ownKeys snapshot now supplies symbol admission and the complete
+enumerable string-key snapshot before payload access. Existing symbol rejection,
+null prototypes and own `__proto__` behavior remain. All 183 focused cases pass.
 
 ## Confirmed repair: file picker acquisition and retirement
 
@@ -79,6 +86,11 @@ The renderer-only `0b03ccf8` continuation likewise retains eight passing gates
 and an interrupted browser gate once the JSON defect is confirmed. The final
 source containing all three repairs requires its own complete integration and
 comparative runs; neither interrupted browser command is a passing full run.
+The subsequent clean `1be764d4` attempt passes its eight non-browser gates;
+the ordinary browser loop then fails with a CDP Runtime.evaluate timeout before
+the native/heap command stages. That failure is retained, and is not relabeled
+as an interruption or successful complete run. Final verification includes the
+object-key capture follow-up as well as all three repaired boundaries.
 Fresh output is isolated under ignored `test-results/library-recheck/`; exact
 source/fixture identities, logs, failed attempts and final results will be
 recorded in the completion section after those commands actually finish.

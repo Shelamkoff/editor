@@ -98,15 +98,24 @@ export function cloneJsonValue(value, path = '$') {
       // The persisted JSON boundary forbids enumerable symbol keys on
       // records. Reject their *names* before reading any ordinary payload
       // accessor; a rejected shape must not execute author-owned data code.
-      for (const key of Object.getOwnPropertySymbols(current)) {
-        if (Object.prototype.propertyIsEnumerable.call(current, key)) {
+      const keys = Reflect.ownKeys(current)
+      for (const key of keys) {
+        if (typeof key === 'symbol' && Object.prototype.propertyIsEnumerable.call(current, key)) {
           throw new TypeError(`${currentPath} contains an enumerable symbol key`)
         }
       }
 
+      // Snapshot all enumerable string keys before reading payload getters,
+      // without asking an object proxy for a second, possibly different shape.
+      /** @type {string[]} */
+      const stringKeys = []
+      for (const key of keys) {
+        if (typeof key === 'string' && Object.prototype.propertyIsEnumerable.call(current, key)) stringKeys.push(key)
+      }
+
       /** @type {Record<string, unknown>} */
       const result = {}
-      for (const key of Object.keys(current)) {
+      for (const key of stringKeys) {
         // defineProperty keeps JSON's ordinary own-property semantics even for
         // the special "__proto__" key without invoking Object.prototype's setter.
         Object.defineProperty(result, key, {

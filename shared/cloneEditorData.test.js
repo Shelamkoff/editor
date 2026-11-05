@@ -79,6 +79,28 @@ test('cloneEditorData observes an array proxy length once', () => {
   assert.equal(lengthReads, 1)
 })
 
+test('cloneEditorData observes an object proxy own-key list once', () => {
+  let reads = 0
+  const input = new Proxy({ first: 1, second: 2 }, { ownKeys(target) {
+    reads++
+    return Reflect.ownKeys(target)
+  } })
+  assert.deepEqual(cloneEditorData(input), { first: 1, second: 2 })
+  assert.equal(reads, 1)
+})
+
+test('cloneEditorData retains the original object proxy shape like native JSON', () => {
+  const create = () => {
+    let reads = 0
+    return new Proxy({ first: 1, second: 2 }, { ownKeys() {
+      return ++reads === 1 ? ['first'] : ['second']
+    } })
+  }
+  const expected = JSON.parse(JSON.stringify(create()))
+  assert.deepEqual(expected, { first: 1 })
+  assert.deepEqual(cloneEditorData(create()), expected)
+})
+
 test('cloneEditorData captures array shape before an entry getter grows it', () => {
   const create = () => {
     const input = []
