@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Table rich cells and sibling projection 2026-11-05
+
+Register: **168 accepted / 41 open / 209 total**.
+
+[Table rich cells](/architecture/rector-v2/PUBLICATION_REVIEW#table-rich-cells-and-sibling-projection-2026-11-05) is accepted on `46438770`: 16 executions / 2064 observations, 24 corruptions and 115 native cases. Row-local IDs, rich field/widget owners, exact history and external sibling caret survive. Table paste/conversion remains open.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/table-cells/README.md). Full readiness remains open.
+
 ## Poll server runtime and renderer 2026-11-05
 
 Register: **167 accepted / 42 open / 209 total**.
