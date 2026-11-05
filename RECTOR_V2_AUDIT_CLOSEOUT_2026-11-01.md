@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Table native paste and conversion 2026-11-05
+
+Register: **169 accepted / 40 open / 209 total**.
+
+Table paste and conversion pass on `aa181a13` with 48 executions, 744 observations, 24 rejected corruptions and 395 native cases. The repair preserves blank unselected cells and removes the fully converted table. [Scope and evidence](/architecture/rector-v2/PUBLICATION_REVIEW#table-native-paste-and-conversion-2026-11-05).
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/table-transfer/README.md). Full readiness remains open.
+
 ## Table rich cells and sibling projection 2026-11-05
 
 Register: **168 accepted / 41 open / 209 total**.
