@@ -933,6 +933,65 @@
       "bytes": 721,
       "decodedSha256": "5b935542ed347e319779486e9ef90aaca998ac5f37d8a6cc230caaa497d57a46",
       "decodedBytes": 1506
+    },
+    "post-document-manifest.json.gz": {
+      "sha256": "ad136715b598a39abc4c96b872354f56e8d45d1c0a28acc7de8631539f8a1d81",
+      "bytes": 825,
+      "decodedSha256": "03eec4f5cff9e11e958f34af6b192e390c6b12df4a517a9645c5ee6e9eb45296",
+      "decodedBytes": 4629
+    },
+    "post-docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "post-site.log.gz": {
+      "sha256": "415f847ae90bc2f5d8cb0c736f4b62ccd106909d5cc8b5b8807265b71aae4108",
+      "bytes": 938,
+      "decodedSha256": "e65f909394e0cbded0aae4d2a26105028fe1ee08924d94f8878097f81151375e",
+      "decodedBytes": 2247
+    },
+    "executed--post-supervisor.mjs.gz": {
+      "sha256": "cf3c378e41f8124f7246046e2348f73b40a4960267f8f63f294997a9774d4c7a",
+      "bytes": 546,
+      "decodedSha256": "ecd357248dfed7d25a01ef00cae4c82098d10ab1c349c3af7b5c56e9e72bddfb",
+      "decodedBytes": 1074
+    },
+    "preacceptance--localization.json.gz": {
+      "sha256": "459cfb6d7d2f78bf7e8e213fb81b6081a17280d6551db313a3774fc2d9d75379",
+      "bytes": 399,
+      "decodedSha256": "b2c1c4528dcba8966a993116304d4010252ce3d555bdcae588c410d163ed54d9",
+      "decodedBytes": 538
+    },
+    "preacceptance--ru-publication.md.gz": {
+      "sha256": "9815b48d22a4d36305af405efd4728f691727d284966bf3dd998141930ce1b03",
+      "bytes": 113099,
+      "decodedSha256": "72a4ff751bcf8cad0d66e12077b0c5bfcd63da56bfefd645ec3002935977e7de",
+      "decodedBytes": 529893
+    },
+    "preacceptance--localization.log.gz": {
+      "sha256": "c3d0d678bda037c3b77e8bd06ad732274070dea1ba4ab16041ce14a732c29692",
+      "bytes": 259,
+      "decodedSha256": "43343fed5ee4ecbee0542de16255c58a521e3d4407fe16b1f45c10d146fad55f",
+      "decodedBytes": 447
     }
-  }
+  },
+  "preAcceptanceLocalization": {
+    "head": "b9203cf40a6f7323ba03df3110b72c76f34876de",
+    "dirty": true,
+    "outcome": "failed",
+    "scope": "Uncommitted acceptance report before publication; no immutable candidate pass/failure is inferred.",
+    "path": "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md",
+    "sourceSha256": "72a4ff751bcf8cad0d66e12077b0c5bfcd63da56bfefd645ec3002935977e7de",
+    "logSha256": "43343fed5ee4ecbee0542de16255c58a521e3d4407fe16b1f45c10d146fad55f",
+    "reason": "RGB/RGBA/HSL/HSLA and Chrome need code formatting in Russian technical prose."
+  },
+  "postDocumentChecks": {
+    "source": "968653ea440e0e1c20a5b1ed7061ae7a117c306e",
+    "directory": "run-eiMcVj",
+    "outcome": "passed",
+    "gates": 2
+  },
+  "gitStoredArtifacts": 155
 }

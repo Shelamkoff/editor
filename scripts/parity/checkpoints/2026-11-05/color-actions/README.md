@@ -12,3 +12,6 @@ Literal wire/versions, exact color values, sidecars, swatch/label/ARIA, one none
 Every reference body completes without page/input errors. v1 retains **117 differences**, baseline **84**, immutable parent and both current policies zero. Missing legacy observers are explicit. Native pages pass **73 cases**, including existing color popup lifecycle, geometry, keyboard focus and unchanged-Redo controls; inventory is **130 native pages**. Documentation and site checks pass. Exact runtime/package identity retains all fifteen full integration gates on `c0054fb8`, including 2,241 passing Node tests / three skipped and all 55 ordinary browser pages, with their actual source/date. The inherited Color lifecycle unit test remains supplemental; Color roundtrip/lifetime and full readiness stay open.
 
 The first canonical run passed six gates; site validation rejected an unformatted technical term in the preceding Russian report. Its exact manifest/logs remain archived separately. A fresh seven-gate run uses the corrected clean source; runtime bytes are unchanged.
+
+Post-acceptance documentation and site checks pass on `968653ea`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
