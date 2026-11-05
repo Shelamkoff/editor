@@ -316,6 +316,10 @@ export function createPollPlugin(config={}){
               if(runtime.voters?.length){
                 const section=document.createElement('div')
                 section.className='oe-poll__voters'
+                const heading=document.createElement('div')
+                heading.className='oe-poll__voters-title'
+                heading.textContent=runtimeContext.t('voters','Voters')+': '+(runtime.votersTotal??runtime.voters.length)
+                section.appendChild(heading)
                 const list=document.createElement('ul')
                 for(const voter of runtime.voters){
                   const item=document.createElement('li')
