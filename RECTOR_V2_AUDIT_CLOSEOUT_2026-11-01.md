@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Mention query and choice 2026-11-05
+
+Register: **162 accepted / 47 open / 209 total**.
+
+[Mention query/choice](/architecture/rector-v2/PUBLICATION_REVIEW#mention-query-and-choice-2026-11-05) is accepted on `b34b6f0d`: 30 executions / 770 observations, 24 rejected corruptions and 31 cases on native pages. Configured rows/loading/empty/debounce, Unicode/pagination, exact original callback IDs and per-editor raw history pass. All Mention and Color rows are accepted.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/mention-query/README.md). Full readiness remains open.
+
 ## Mention native label editing 2026-11-05
 
 Register: **161 accepted / 48 open / 209 total**.
