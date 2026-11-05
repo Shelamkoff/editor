@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Mention native label editing 2026-11-05
+
+Register: **161 accepted / 48 open / 209 total**.
+
+[Mention label editing](/architecture/rector-v2/PUBLICATION_REVIEW#mention-native-label-editing-2026-11-05) is accepted on `46fc2e15`: 52 executions / 1200 observations, 24 rejected corruptions and 138 native cases. Character/word/line edits and directed system clipboard preserve exact identity/data/caret; trigger removal unwraps text, and leaving the widget and raw history remain correct.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/mention-label/README.md). Full readiness remains open.
+
 ## Mention search lifetime 2026-11-05
 
 Register: **160 accepted / 49 open / 209 total**.
