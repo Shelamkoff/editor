@@ -610,6 +610,7 @@ try {
     'native-heading-structure-conversion.html', 'native-heading-structure-conversion-trusted.html',
     'native-heading-paste.html', 'native-heading-paste-trusted.html',
     'native-code-paste.html', 'native-code-paste-trusted.html',
+    'native-code-conversion.html', 'native-code-conversion-trusted.html',
     'native-list-edit.html', 'native-list-edit-trusted.html',
     'native-list-conversion.html', 'native-list-conversion-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
