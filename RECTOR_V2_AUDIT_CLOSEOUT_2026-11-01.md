@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Checklist item editing 2026-11-05
+
+Register: **154 accepted / 55 open / 209 total**.
+
+[Checklist item editing](/architecture/rector-v2/PUBLICATION_REVIEW#checklist-item-editing-2026-11-05) is accepted on `5cbdd6d6`: 96 executions / 1920 observations, 24 rejected corruptions, seven affected gates and 264 native cases. Real checks, typing and structural edits retain stable IDs, marks/widgets and exact directed history.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/checklist-edit/README.md). Full readiness remains open.
+
 ## Code conversion 2026-11-05
 
 Register: **153 accepted / 56 open / 209 total**.
