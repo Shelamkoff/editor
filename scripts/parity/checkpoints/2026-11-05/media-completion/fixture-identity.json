@@ -1,0 +1,10 @@
+{
+  "runtime": "e88992ee55b17e635be38a7ef715c076f6a8ac64",
+  "testInputCommit": "2e2d61e48aac78ba8805ac2637aede0ec3f83685",
+  "files": {
+    "tests/browser/color-lifetime-fixture.js": "36bec92cbeede659cd10b2f808d0c54471e2436544e5dda1ee5caac9f2af3507",
+    "tests/browser/regressions/person-cards-native.js": "aaa98ed25833610b02cf936f589abdd3624b659ca4b4d8f7c862c5e3b0235963",
+    "tests/browser/native-plugin-parity.js": "27141a6c597c59da71bf0fa7cfced170aa3cf9665686180eef7d7a4d5b860353"
+  },
+  "productionDifference": ""
+}

@@ -1,5 +1,17 @@
 # Rector v2 audit closeout — active work
 
+## Detailed media completion — 2026-11-05
+
+Register: **187/209 accepted, 22 open**. All Gallery, Carousel and Person rows
+are accepted on runtime `e88992ee`, including the narrow Gallery layout repair.
+The immutable comparisons and full 345-case native plugin follow-up retain all
+original failures and exact test-input changes. [Evidence](/architecture/rector-v2/PUBLICATION_REVIEW#media-completion-2026-11-05).
+
+All 159 native pages have executed; the final reviewed union retains complete
+page follow-ups. The remaining differential corpora and architecture convergence
+continue. No production source changed after `e88992ee`; subsequent input/CI
+changes are test and verification only.
+
 ## Attaches completion — 2026-11-05
 
 Register: **175/209 accepted, 34 open**. All Attaches rows are accepted, including

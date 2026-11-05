@@ -1,0 +1,402 @@
+{
+  "candidate": "e88992ee55b17e635be38a7ef715c076f6a8ac64",
+  "acceptedRows": [
+    "BLOCK_GALLERY_SOURCES",
+    "BLOCK_GALLERY_LAYOUT",
+    "BLOCK_GALLERY_APPEARANCE_VIEWER",
+    "BLOCK_CAROUSEL_MIXED",
+    "BLOCK_CAROUSEL_STRUCTURE",
+    "BLOCK_CAROUSEL_CONTROLS",
+    "BLOCK_CAROUSEL_AUTOPLAY",
+    "BLOCK_CAROUSEL_HTML",
+    "BLOCK_CAROUSEL_TASKS",
+    "BLOCK_PERSON_CARDS",
+    "BLOCK_PERSON_AVATAR",
+    "BLOCK_PERSON_LINKS"
+  ],
+  "currentExecutions": 90,
+  "currentObservations": 1557,
+  "servedModuleRecords": 1685,
+  "rejectedCorruptions": 29,
+  "fullNativePluginCases": 345,
+  "galleryViewerCases": [
+    7,
+    8
+  ],
+  "galleryLayoutCases": [
+    21,
+    22
+  ],
+  "rows": [
+    {
+      "id": "BLOCK_GALLERY_SOURCES",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-parity.html",
+        "native-config-snapshot.html"
+      ],
+      "additionalProof": [
+        "media-sources"
+      ],
+      "independentAcceptance": "Fixed ordered local/upload/action batches, failed middle member, original file name/MIME/bytes and read-only cancellation; existing author record retained and one source Undo/Redo; owned readers cleaned."
+    },
+    {
+      "id": "BLOCK_GALLERY_LAYOUT",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "block-roundtrip.mjs",
+        "gallery-viewer-captions.mjs"
+      ],
+      "independentAcceptance": "All 21 declared layouts have real geometry/order; resize/detach/reinsert/update retains source/caption owners; installed Masonry positive and stale/failed-loading controls release observers/frames."
+    },
+    {
+      "id": "BLOCK_GALLERY_APPEARANCE_VIEWER",
+      "nativePages": [
+        "native-gallery-viewer-options.html",
+        "native-gallery-viewer-options-trusted.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "gallery-viewer-captions.mjs"
+      ],
+      "independentAcceptance": "Stored appearance and loop/zoom/navigation/captions/thumbnails/fullscreen/autoplay interval work in ordinary main, foreign and enforcing TT; actual orientation matrices, completed download, pause/loop and disposal."
+    },
+    {
+      "id": "BLOCK_CAROUSEL_MIXED",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "media-sources",
+        "carousel-controls",
+        "block-roundtrip.mjs"
+      ],
+      "independentAcceptance": "Actual mixed image/video/HTML source batches, file/URL/HTML actions and poster/alt/caption/order; real local WebM bytes/decoding/native playback, not a video attribute-only claim."
+    },
+    {
+      "id": "BLOCK_CAROUSEL_STRUCTURE",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-controls.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "block-roundtrip.mjs",
+        "2026-10-30/carousel-source-selection"
+      ],
+      "independentAcceptance": "Active add/remove/reorder and remove-all preserve full neighboring slides and IDs, first-added selection and native replay; stale tasks and newer navigation keep their owner."
+    },
+    {
+      "id": "BLOCK_CAROUSEL_CONTROLS",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-controls.html"
+      ],
+      "additionalProof": [
+        "carousel-controls"
+      ],
+      "independentAcceptance": "Loop bounds, navigation, pagination and thumbnails in editor and ordinary output; saved options/data/history unchanged; explicit CSP/foreign static list keeps all readable slides and native media."
+    },
+    {
+      "id": "BLOCK_CAROUSEL_AUTOPLAY",
+      "nativePages": [
+        "native-plugin-media.html"
+      ],
+      "additionalProof": [
+        "carousel-controls",
+        "block-roundtrip.mjs"
+      ],
+      "independentAcceptance": "Configured delay/loop/aspect ratio and actual playback, plus output autoplay/stop/dispose; editor/read-only advances without author history and adopted wrappers receive no ticks."
+    },
+    {
+      "id": "BLOCK_CAROUSEL_HTML",
+      "nativePages": [
+        "native-html-content.html",
+        "native-html-boundary-decision.html"
+      ],
+      "additionalProof": [
+        "html-native-layers.mjs",
+        "html-content-navigation.mjs",
+        "html-resource-effects.mjs",
+        "html-logical-viewport.mjs"
+      ],
+      "independentAcceptance": "Both Carousel HTML surfaces retain actual tall linked/downloadable themed content and media in the chosen confined scriptless frame; native equivalent controls and overlay negatives."
+    },
+    {
+      "id": "BLOCK_CAROUSEL_TASKS",
+      "nativePages": [
+        "native-plugin-parity.html",
+        "native-plugin-media.html",
+        "native-config-snapshot.html"
+      ],
+      "additionalProof": [
+        "media-sources",
+        "block-roundtrip.mjs"
+      ],
+      "independentAcceptance": "Selective source completion after unrelated edits, read-only/replacement/remove/destroy rejection, failed member and projection rollback; completed history replay retains owned video URLs and final destruction releases them."
+    },
+    {
+      "id": "BLOCK_PERSON_CARDS",
+      "nativePages": [
+        "native-plugin-parity.html",
+        "native-plugin-controls.html",
+        "native-person-modes.html"
+      ],
+      "additionalProof": [
+        "person-modes.mjs",
+        "block-roundtrip.mjs",
+        "2026-10-30/person-cards-native"
+      ],
+      "independentAcceptance": "Three complete profiles and real rich fields: add/edit/active-middle/last removal, tab drag and link actions; full records/sidecars/order/IDs/caret and distinct native Undo/Redo; hidden profiles retained."
+    },
+    {
+      "id": "BLOCK_PERSON_AVATAR",
+      "nativePages": [
+        "native-plugin-controls.html"
+      ],
+      "additionalProof": [
+        "media-sources",
+        "person-avatar-csp.html"
+      ],
+      "independentAcceptance": "Real ordinary cropper Apply/Cancel and upload, native dialog actions; foreign/TT original-file fallback retains name/MIME/exact bytes, no permissive policy; abort/replacement/destroy release old work."
+    },
+    {
+      "id": "BLOCK_PERSON_LINKS",
+      "nativePages": [
+        "native-config-snapshot.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "person-modes.mjs",
+        "block-roundtrip.mjs",
+        "person-social-registry.html",
+        "lifecycle.html"
+      ],
+      "independentAcceptance": "Built-in/custom resolver classification and icon after actual URL input, caller snapshots and reentrant retirement; actual safe output links on every card and responsive carousel/disposal; prototype/unsafe URLs rejected."
+    }
+  ],
+  "files": {
+    "README.md": {
+      "sha256": "cf20325632a99a4dfc6f8f7bf07b6289b13eeaf203196faec3dc49b0663e71df",
+      "bytes": 5793
+    },
+    "carousel-controls/comparison.json.gz": {
+      "sha256": "73048efdd30678d40c85177919dec41a08c8d79b8fb7fdf73ca9b741413a213c",
+      "bytes": 16639,
+      "decodedSha256": "c4ca647137d9ba463f03add7511fa889bb372c77126bb3f0d8c8b6c2891ab8d2"
+    },
+    "carousel-controls/comparison.stderr.gz": {
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "carousel-controls/fixture.js": {
+      "sha256": "0ae72ed303165c9a04a06587bf792851ee0b494bd20d1a3b14091c4f25178684",
+      "bytes": 7560
+    },
+    "carousel-controls/initial-scope-runner.mjs": {
+      "sha256": "74375b223a7c2fa7d7633fbc7da3e438516369f6c687ee61ad68082cf8fd5e8e",
+      "bytes": 10812
+    },
+    "carousel-controls/initial-scope.json.gz": {
+      "sha256": "6ba4a492dac80953d1ec196aa3d93fba761a0d97aa383819c84d64bffe6d2755",
+      "bytes": 16578,
+      "decodedSha256": "cfbd2ebd9fdd1e9546a197ef737fd346f2fce52dff6cac8c700abe1d94174b8f"
+    },
+    "carousel-controls/runner.mjs": {
+      "sha256": "2a877334844a45f4c56a0613105eb0f9cc3c8ec86c17755a22947f993ffb343e",
+      "bytes": 10921
+    },
+    "controls.mjs": {
+      "sha256": "5d5b4467d2001472b45ee2ad5cffe73631aad0af0582e8cb233c30b81315c586",
+      "bytes": 2875
+    },
+    "fixture-identity.json": {
+      "sha256": "aaf59c7dc887f12fa13bf39c123497de78e37ff5ce92d6c05b6a1b46cb5c42e6",
+      "bytes": 524
+    },
+    "fixture-loads.jsonl.gz": {
+      "sha256": "b04b0d027274cd57ccc89fa8718859af4a407b154bab58694443955b4a7cb677",
+      "bytes": 264,
+      "decodedSha256": "b4fad5daaf425ec901d670ba88722211c520d54b637c30f43aeeb79e0a16b7fe"
+    },
+    "fixture-vite.config.mjs.gz": {
+      "sha256": "01be8eb6949122223d16eb6cffbb09e39ec2f65f1f94c2969c278a08adb004b9",
+      "bytes": 592,
+      "decodedSha256": "8e70039dee22d1a5581cdab27ae65ebc8830851a14e8db758005c1c64e670487"
+    },
+    "gallery-headless-control.log.gz": {
+      "sha256": "c6eea9dc3c6fc91ca68cb796865a8d90c3a4a41c3cbbee6ec517c989330ff519",
+      "bytes": 244,
+      "decodedSha256": "f00c870f2a9bce6676c46a0bbdd671ed2836196ef8b781bc37410dd01ea4fd66"
+    },
+    "gallery-layouts/comparison.json.gz": {
+      "sha256": "0f9f22f415afd32db49c555414db1b4337398b42b0c4cb9d9fbe4fc95b82c7d3",
+      "bytes": 36820,
+      "decodedSha256": "66d749f9e962bbbdc4008622a1decdc63562bbc53bd14084c468f0d9d83fe6e1"
+    },
+    "gallery-layouts/comparison.stderr.gz": {
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gallery-layouts/fixture.js": {
+      "sha256": "103380a30bbf8d68adb50227c08c2e67bf5c59358886ec666f4d0640f28af4cf",
+      "bytes": 3937
+    },
+    "gallery-layouts/initial-scope-runner.mjs": {
+      "sha256": "9daea702d5fa43b349a3d11897e7805d720c2b841500f5550bb16d0fc2b59a68",
+      "bytes": 10890
+    },
+    "gallery-layouts/initial-scope.json.gz": {
+      "sha256": "aceb087ae62b0256a164d919ef064bb1ffd345f63730be7f04de98d905520cb6",
+      "bytes": 36473,
+      "decodedSha256": "f4838e62d341bf5b22fe9a6aafd37ebb6dca37bdc7357b57812bbb39c478dfd1"
+    },
+    "gallery-layouts/runner.mjs": {
+      "sha256": "fad414dd8d853a607f25aa0beeb8d524de9e15880ed28db7c54bd79decc8094d",
+      "bytes": 10967
+    },
+    "gallery-maintained-ordinary.log.gz": {
+      "sha256": "9c5b83663651c44beef4fb577293e05185c96447f7b835fb2f4e8b566b7c1569",
+      "bytes": 242,
+      "decodedSha256": "346210bce1090de8ed72e6ef426efedb4545694d34194ea9b12ee92236520248"
+    },
+    "gallery-maintained-trusted.log.gz": {
+      "sha256": "abed2957349d8eb4b7d29d5cb71790afdde61639ca0c90e8ef43fe42e18136a8",
+      "bytes": 285,
+      "decodedSha256": "57e93520361a8230228c8728af125065bd9fcf64ada0f55b654073d6c0c6994d"
+    },
+    "gallery-viewer-ordinary.log.gz": {
+      "sha256": "c6eea9dc3c6fc91ca68cb796865a8d90c3a4a41c3cbbee6ec517c989330ff519",
+      "bytes": 244,
+      "decodedSha256": "f00c870f2a9bce6676c46a0bbdd671ed2836196ef8b781bc37410dd01ea4fd66"
+    },
+    "gallery-viewer-trusted.log.gz": {
+      "sha256": "ebbff7c8121236d1d15e91d385e9cba285cd08263343d46bebfb1785576713cc",
+      "bytes": 288,
+      "decodedSha256": "a121b7909ad1bde423e3ebc0719f2f74ec94671a47a97a996c821a2c99d44ab4"
+    },
+    "html-native-layers.json.gz": {
+      "sha256": "fa6a307ae3edf8bc3ff62195b218deb1288848394ffe7b606677f296cfeee1d6",
+      "bytes": 10443,
+      "decodedSha256": "c0250aea3992da8cba86fe78767df5ec5a03361f1dc84e3b95c911a87039bb27"
+    },
+    "integration-manifest.json.gz": {
+      "sha256": "5fdd9645487233329ed86f382648cf1590648c067fe25b79d6cb649ad63fba10",
+      "bytes": 1310,
+      "decodedSha256": "f088c3ffb788fcadab2e94023bc8b047c45765985ce0fdc45027716236ac8e06"
+    },
+    "media-sources/before-style-ready-fixture.js": {
+      "sha256": "a0e9e2811734ae17939982c69e43d77e6008f269a3a411a52a6d56614e526fcd",
+      "bytes": 10663
+    },
+    "media-sources/before-style-ready.json.gz": {
+      "sha256": "e3b7b8deb5a07ff958a8df0ac3b12f460a2b7f999da7a6d2029d93a0a3e16f26",
+      "bytes": 29560,
+      "decodedSha256": "93ab266c2096ecce9262e0ac5a8898938a74c57bfd299c650a8f46eda3c3c2a7"
+    },
+    "media-sources/comparison.json.gz": {
+      "sha256": "93000e80da3a5689790891bfb61290fa78db882410da9cd55df1130d8ff08cf5",
+      "bytes": 29416,
+      "decodedSha256": "774bf8264580e48ec63ce60f1443c5a44c9335137e342eda8778fc232490f75b"
+    },
+    "media-sources/comparison.stderr.gz": {
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "media-sources/fixture.js": {
+      "sha256": "4ed2f941324d02781897a0b600a474222cbdcdbbe0656dfb13fbe8affd6719eb",
+      "bytes": 10935
+    },
+    "media-sources/initial-scope-runner.mjs": {
+      "sha256": "7ca216462996c514364c5c083ca873477de3be14f34c2b7e56208e4c07bd1d69",
+      "bytes": 10790
+    },
+    "media-sources/initial-scope.json.gz": {
+      "sha256": "4daa6b1fe594766a5d2596211c3d5c0418a3c10d33d7d3fcf97022bd381a7d11",
+      "bytes": 29498,
+      "decodedSha256": "080043983bebdbb33db268d2db70e7ed7fcc4ca677edaeb1f072d13dc662f5dc"
+    },
+    "media-sources/runner.mjs": {
+      "sha256": "854d290b84f2af0f2027b3210c3ab35a1dd2513091fa8bc5c393add8963e85f8",
+      "bytes": 10803
+    },
+    "person-links/comparison.json.gz": {
+      "sha256": "3e3559ef4962fce9d7aa0177abbd63107a081cb1e885f29d1f0970c015d6d479",
+      "bytes": 15998,
+      "decodedSha256": "43b16ebf6d18d38d65e3cf7494d2c03f4b220e32225782c9aec0f834a0a6eed3"
+    },
+    "person-links/comparison.stderr.gz": {
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "person-links/fixture.js": {
+      "sha256": "6a673c3609a350ad53d33176b4a7301948db007191f257afe33370c0bac2809b",
+      "bytes": 6622
+    },
+    "person-links/initial-scope-runner.mjs": {
+      "sha256": "52fc54813c902abcbcc4c19c16f2281ca2edb91c3f09bc707b869c7bc7aeff4e",
+      "bytes": 11520
+    },
+    "person-links/initial-scope.json.gz": {
+      "sha256": "7381448c17970d77938bf7492c5a0ada99f8c9d35ccd626eb4eb5d4eaf8e19e6",
+      "bytes": 15983,
+      "decodedSha256": "0ff286ff169bd0b9dd37dd8d32eeaa7ecfd73b2cead3145184811c1edc286e96"
+    },
+    "person-links/runner.mjs": {
+      "sha256": "0461760c5a55e93925a3cdeb1b247bce01240dc12ebef1765e5436d8fa943060",
+      "bytes": 11592
+    },
+    "plugin-controls.log.gz": {
+      "sha256": "2e40e601da325a307c30dc383404aaa49e500f400c5f6bb3c0458c5586efb226",
+      "bytes": 2323,
+      "decodedSha256": "5fc484702774aeec052cb82dd564cb93e479ca4eaa27f5d596666472f23b937e"
+    },
+    "plugin-media.log.gz": {
+      "sha256": "abc7f9fd94d1a9909ff1104c8d4302c5cae8ce703f3a425a6fcaef56a391ef41",
+      "bytes": 1825,
+      "decodedSha256": "a3d459f29a7f61ed164b1c2eb26948a530852265905b12cfbdb58853916713cc"
+    },
+    "plugin-parity-complete.log.gz": {
+      "sha256": "3cfbf8d868cca3e4989d9d7f5a4e02dfa759349d0c9ab1454592c8ff69c95dac",
+      "bytes": 5246,
+      "decodedSha256": "167b6c862223c92afbb42306fc7d915876bc22056a348b2e9029cf0c086a64eb"
+    },
+    "plugin-parity-first-followup-failed.log.gz": {
+      "sha256": "e07cb4ec6ab1c0a372ed8000be332d34a970a69e6610d337fb93dea59e585fe2",
+      "bytes": 5927,
+      "decodedSha256": "970a1a3f7275392dd6a47ce1a7c73b3e0bb19a743bf0ba03723932581962a80d"
+    },
+    "plugin-parity-original-failed.log.gz": {
+      "sha256": "5ac91d594d677318b19d5807e9c678a23ddad7b562a5a284737964b734303f0e",
+      "bytes": 6252,
+      "decodedSha256": "b840c01a93d719fb624a857095a72ae01f14d8ebbafcc40827c9c80e787f1149"
+    },
+    "review-initial-failed.log.gz": {
+      "sha256": "2140710909bec787a0f64e26231888d75ae61948bce853de92b364509b2d9141",
+      "bytes": 423,
+      "decodedSha256": "4762f06b772b2b1a73f6acf63e3e03852693a88efea6d492ed06c3f903261ae6"
+    },
+    "review.log.gz": {
+      "sha256": "8362e059834c212cb8fdc1af25d14c440bb9ef7bd0baf435b995e11e0368dddf",
+      "bytes": 131,
+      "decodedSha256": "56c4c69c7145a7c1ee6b97478a983431237b493675791013bea053b1521fa9fb"
+    },
+    "review.mjs": {
+      "sha256": "1a05fbb0b643abc39239f0216fa8b18abe19659d89eed2056d5d7f81d3db5be8",
+      "bytes": 9511
+    },
+    "docs.log.gz": {
+      "sha256": "c85a547425104ecf096d91235b912f332fd1b3a94213ade47826b204bc63cee2",
+      "bytes": 451,
+      "decodedSha256": "aa6d6a9b12be12a9b7dc079ce12453f187f3efc155a6508eaf267335b2d5a908"
+    }
+  }
+}
