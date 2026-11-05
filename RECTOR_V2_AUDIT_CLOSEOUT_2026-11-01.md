@@ -1,5 +1,16 @@
 # Rector v2 audit closeout — active work
 
+## Attaches completion — 2026-11-05
+
+Register: **175/209 accepted, 34 open**. All Attaches rows are accepted, including
+the immutable comparison of actual downloads and disposal, 29 focused lifetime/
+quota cases and thirteen native download cases. Fourteen evidence corruptions
+are rejected; two historical v1 failures remain explicit. [Evidence](/architecture/rector-v2/PUBLICATION_REVIEW#attaches-download-and-lifetime-completion-2026-11-05).
+
+Final immutable runtime candidate is `e7fb76e9`; complete native/integration and
+differential corpora continue on its separate worktree. Each completed code
+packet is pushed, per the user. Do not stop at this scoped acceptance.
+
 ## Complete-audit continuation — 2026-11-05
 
 The user requires completion of the entire audit and a push after each completed

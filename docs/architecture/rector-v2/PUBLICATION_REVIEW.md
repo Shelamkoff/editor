@@ -3633,3 +3633,8 @@ including the repaired immediate remote-upload callback. The earlier 98.8 KiB
 report remains historical; the core 51 KiB target stays informational. Remaining
 register/architecture-to-target proof, B-HTML and whole-library readiness remain
 separate obligations.
+
+
+## Attaches download and lifetime completion — 2026-11-05 {#attaches-download-and-lifetime-completion-2026-11-05}
+
+Accepts the two remaining Attaches download/lifetime rows on `e7fb76e9`: **175/209 accepted, 34 open**. The [checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/attaches-completion/README.md) retains four immutable sources and both current browser policies, twenty current executions / 90 observations, all 62 served module hashes, thirteen native download cases, 29 focused quota/stream/reentry cases and fourteen rejected evidence corruptions. Completed browser files and decoded ZIP members match literal filenames and bytes. Retired publication, pending stream cleanup and failed-sibling refunds are checked separately. Original v1's two retired-button request failures remain raw FAIL; superior current behavior is preserved. No production code or API changes in this acceptance packet. Whole-audit integration is still running.

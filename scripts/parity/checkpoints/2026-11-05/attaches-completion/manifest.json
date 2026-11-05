@@ -1,0 +1,82 @@
+{
+  "candidate": "e7fb76e98d8360c8e0a4867c47e36f145f8aa4f4",
+  "current": {
+    "executions": 20,
+    "observations": 90,
+    "policies": [
+      "ordinary",
+      "enforcing Trusted Types"
+    ]
+  },
+  "nativeCases": 13,
+  "focusedNodeCases": 29,
+  "rejectedCorruptions": 14,
+  "documentation": "Passed after current build; initial absent command and stale dist README failures retained.",
+  "files": {
+    "README.md": {
+      "sha256": "35d39a79611d54211d8ed5144b855b23465e1e66aca34d368dcb0d17bcd3c46e",
+      "bytes": 3451
+    },
+    "build.log.gz": {
+      "sha256": "8951c2c006694a2d49a573c8c8662adce63ae8b51503aa9671a79e99cb3059bc",
+      "bytes": 323,
+      "decodedSha256": "e334ea9046005759c5e926be141463cb4ccca81fefa33eb5b67d7834e8148851"
+    },
+    "comparison.json.gz": {
+      "sha256": "9752c8bca3fc8023e50c8b5bce356b385684c93fd4989bc70c2082e08ecdc5f4",
+      "bytes": 6267,
+      "decodedSha256": "46f7ed5d781ade97800754b4575c098aed4c057ca369f14022d56f412f739818"
+    },
+    "comparison.stderr.gz": {
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "bytes": 20,
+      "decodedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "controls.mjs": {
+      "sha256": "aa17acaf9f5e4b786ae17cc52a0d8253f66d9b49e517a26b69bf3c08e778cfb3",
+      "bytes": 1360
+    },
+    "docs-after-build.log.gz": {
+      "sha256": "c85a547425104ecf096d91235b912f332fd1b3a94213ade47826b204bc63cee2",
+      "bytes": 451,
+      "decodedSha256": "aa6d6a9b12be12a9b7dc079ce12453f187f3efc155a6508eaf267335b2d5a908"
+    },
+    "docs-canonical.log.gz": {
+      "sha256": "f5660d714c2c2a470fc41852f7d15c2073772d013a2dbd833c33108979e6efac",
+      "bytes": 512,
+      "decodedSha256": "73bb5c68300c4ac7c598c2d45a051912284ccc8768429b6f906f112854943077"
+    },
+    "docs.log.gz": {
+      "sha256": "283b31406af4b325308f16e5354fa180c190d946a5341fe000e7ac9b0be684b9",
+      "bytes": 363,
+      "decodedSha256": "659e3377a562743b38e71c36e6f5bdf0d6bfab381c44b769bb84856fa576539b"
+    },
+    "fixture.js": {
+      "sha256": "ac50a5b888cf0d3d6557a8eb2d117e75ddf1e2aad54c24f9d4f056ae8cfbb35d",
+      "bytes": 5106
+    },
+    "native-downloads.log.gz": {
+      "sha256": "98ef3810bababf0eb82e90771e20c9fb0b5794b14b831ce4f5f8b9cb3f239fb7",
+      "bytes": 301,
+      "decodedSha256": "be0983ba37b089db216541b7e3ad9600debaa1be49cd1ce90910b622ddb33117"
+    },
+    "node.log.gz": {
+      "sha256": "0f898af54eb6527b820e0572407de980a3308fc01067a57e70b2aecf04af31fb",
+      "bytes": 1213,
+      "decodedSha256": "4215dd9282baf73ddb9a1756fefe1fa6fb4ffaa976233282f2365bae6245700b"
+    },
+    "review.log.gz": {
+      "sha256": "14ee8f038aea52322f0466bc8b35d61e60e3ec5a4e7e5c66642e9eb4fa024126",
+      "bytes": 143,
+      "decodedSha256": "7276738993f5516afb884fa947696bdbd89d2acca5f7fda3d43c17ff3e895fb9"
+    },
+    "review.mjs": {
+      "sha256": "ce7b489d635ab4f50f8366b58d4aab626ce7ef027d706a974cb10c2ad152dc9b",
+      "bytes": 3847
+    },
+    "runner.mjs": {
+      "sha256": "3610002fcd8e8a85ca6fbe9012fa4a6688064cd9143a90594645e35ef98af46a",
+      "bytes": 10772
+    }
+  }
+}
