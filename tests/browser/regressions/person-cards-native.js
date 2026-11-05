@@ -162,7 +162,15 @@ test('Person card add and native name role biography and URL edits replay indepe
   states.push(linked)
   const input = wrapper().querySelector('.oe-person__link-url')
   await clickNative(input)
-  for (const character of 'https://example.com/new') await printable(character)
+  const nativeUrlEvents = []
+  for (const type of ['beforeinput', 'input']) input.addEventListener(type, event => {
+    nativeUrlEvents.push({ type, trusted: event.isTrusted, inputType: event.inputType, data: event.data })
+  }, { once: true })
+  // This case checks one native URL action, independently of the typing-coalescence deadline.
+  await window.__testInput('Input.insertText', { text: 'https://example.com/new' })
+  equal(nativeUrlEvents, ['beforeinput', 'input'].map(type => ({
+    type, trusted: true, inputType: 'insertText', data: 'https://example.com/new',
+  })))
   const completed = structuredClone(linked)
   completed[1].data.persons.at(-1).links[0].url = 'https://example.com/new'
   equal(editor.save().blocks, completed)
