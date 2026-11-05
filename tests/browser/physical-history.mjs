@@ -620,6 +620,7 @@ try {
     'native-mention-label.html', 'native-mention-label-trusted.html',
     'native-mention-query.html', 'native-mention-query-trusted.html',
     'native-poll-author-local.html', 'native-poll-author-local-trusted.html',
+    'native-poll-remote.html', 'native-poll-remote-trusted.html',
     'native-list-edit.html', 'native-list-edit-trusted.html',
     'native-list-conversion.html', 'native-list-conversion-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
