@@ -615,6 +615,7 @@ try {
     'native-checklist-merge.html', 'native-checklist-merge-trusted.html',
     'native-color-actions.html', 'native-color-actions-trusted.html',
     'native-color-lifetime.html', 'native-color-lifetime-trusted.html',
+    'native-color-roundtrip.html', 'native-color-roundtrip-trusted.html',
     'native-list-edit.html', 'native-list-edit-trusted.html',
     'native-list-conversion.html', 'native-list-conversion-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
