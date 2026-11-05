@@ -12,6 +12,7 @@ import {
   exposeStylesUrl,
 } from '@shelamkoff/expose'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { requiresTrustedHtml } from '../../../shared/sanitize/trustedHtml.js'
 import { mountGalleryMasonry } from '../../../shared/galleryMasonry.js'
 import { gallerySlotCount as getSlotsCount, autoGalleryLayout as selectAutoTemplate, galleryOrientation as detectOrientation } from '../../../shared/galleryLayout.js'
 import { localeText } from '../locale.js'
@@ -170,7 +171,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         // global document/window. Renderer output may live in a different
         // same-origin document, so keep lightbox DOM in the target realm with
         // a native dialog instead of leaking an Expose overlay to the parent.
-        if (ownerDocument !== globalThis.document) {
+        if (ownerDocument !== globalThis.document || requiresTrustedHtml(ownerDocument)) {
           let fallback = null
           fallback = openOwnedGalleryDialog(
             ownerDocument, images, idx, classPrefix,
@@ -178,9 +179,18 @@ export function createGalleryRenderer(classPrefix, locale) {
               close: localeText(locale, 'renderer.gallery.close', 'Close gallery'),
               previous: localeText(locale, 'renderer.gallery.previous', 'Previous image'),
               next: localeText(locale, 'renderer.gallery.next', 'Next image'),
+              zoomIn: localeText(locale, 'renderer.gallery.zoomIn', 'Zoom in'),
+              zoomOut: localeText(locale, 'renderer.gallery.zoomOut', 'Zoom out'),
+              fullscreen: localeText(locale, 'renderer.gallery.fullscreen', 'Fullscreen'),
+              autoplay: localeText(locale, 'renderer.gallery.autoplay', 'Autoplay'),
+              rotate: localeText(locale, 'renderer.gallery.rotate', 'Rotate image'),
+              flip: localeText(locale, 'renderer.gallery.flip', 'Flip image'),
+              download: localeText(locale, 'renderer.gallery.download', 'Download image'),
             },
             () => { if (fallback) instances.delete(fallback) },
+            options,
           )
+          if (activeInstances.get(container) !== instances) { fallback.destroy(); return }
           instances.add(fallback)
           return
         }
@@ -256,20 +266,23 @@ export function createGalleryRenderer(classPrefix, locale) {
 }
 
 /**
- * Open a minimal gallery lightbox entirely inside the renderer owning document.
- * This is the cross-realm fallback for @shelamkoff/expose 1.x.
+ * Open the gallery entirely inside its owning document when Expose's ambient
+ * document or plain HTML sinks are incompatible with that document.
  * @param {Document} ownerDocument
  * @param {Array<{ url: string; caption?: string }>} images
  * @param {number} startIndex
  * @param {string} classPrefix
- * @param {{ close: string; previous: string; next: string }} labels
+ * @param {Record<string,string>} labels
  * @param {() => void} onClose
+ * @param {import('../../../shared/blockDataTypes.js').GalleryOptions} [options]
  * @returns {{ destroy(): void }}
  */
-function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, labels, onClose) {
+function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, labels, onClose, options = {}) {
   const dialog = ownerDocument.createElement('dialog')
   dialog.className = `${classPrefix}-gallery__lightbox`
   dialog.setAttribute('aria-label', labels.close)
+  const surface = ownerDocument.createElement('div')
+  surface.className = `${classPrefix}-gallery__lightbox-surface`
 
   const image = ownerDocument.createElement('img')
   image.className = `${classPrefix}-gallery__lightbox-image`
@@ -292,23 +305,113 @@ function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, 
   next.textContent = '›'
   next.setAttribute('aria-label', labels.next)
 
+  const Controller = ownerDocument.defaultView?.AbortController ?? AbortController
+  const lifetime = new Controller()
+  const viewport = ownerDocument.createElement('div')
+  viewport.className = `${classPrefix}-gallery__lightbox-viewport`
+  viewport.appendChild(image)
+  const toolbar = ownerDocument.createElement('div')
+  toolbar.className = `${classPrefix}-gallery__lightbox-toolbar`
+  const thumbnails = ownerDocument.createElement('div')
+  thumbnails.className = `${classPrefix}-gallery__lightbox-thumbnails`
+  const view = ownerDocument.defaultView
+  const interval = options.autoplayInterval ?? 0
+  let timer = null
   let index = Math.max(0, Math.min(startIndex, images.length - 1))
   let destroyed = false
+  let scale = 1
+  let playing = Number.isFinite(interval) && interval > 0
+  const transforms = new Map()
+  const addControl = (name, text, action) => {
+    const button = ownerDocument.createElement('button')
+    button.type = 'button'; button.dataset.galleryControl = name
+    button.textContent = text; button.setAttribute('aria-label', text)
+    button.addEventListener('click', action, { signal: lifetime.signal })
+    toolbar.appendChild(button)
+    return button
+  }
+  const transform = () => {
+    const state = transforms.get(index) ?? { rotation: 0, horizontal: false, vertical: false }
+    image.style.transform = `rotate(${state.rotation}deg) scaleX(${state.horizontal ? -1 : 1}) scaleY(${state.vertical ? -1 : 1})`
+    image.style.width = scale === 1 ? '' : `${scale * 100}%`
+    image.style.maxHeight = scale === 1 ? '' : 'none'
+  }
+  if (options.zoom !== false) {
+    addControl('zoom-in', labels.zoomIn, () => { scale = Math.min(4, scale + .5); transform() })
+    addControl('zoom-out', labels.zoomOut, () => { scale = Math.max(1, scale - .5); transform() })
+  }
+  if (options.fullscreen !== false) addControl('fullscreen', labels.fullscreen, async () => {
+    if (destroyed) return
+    try {
+      if (ownerDocument.fullscreenElement && surface.contains(ownerDocument.fullscreenElement)) await ownerDocument.exitFullscreen()
+      else {
+        await surface.requestFullscreen()
+        if (destroyed && ownerDocument.fullscreenElement && surface.contains(ownerDocument.fullscreenElement)) {
+          await ownerDocument.exitFullscreen()
+        }
+      }
+    } catch { /* A host/browser denial leaves the owned viewer usable. */ }
+  })
+  const autoplay = playing ? addControl('autoplay', labels.autoplay, () => {
+    playing = !playing; autoplay.setAttribute('aria-pressed', String(playing)); schedule()
+  }) : null
+  autoplay?.setAttribute('aria-pressed', 'true')
+  for (const name of ['rotate-cw', 'rotate-ccw', 'flip-h', 'flip-v']) {
+    addControl(name, name.startsWith('rotate') ? labels.rotate : labels.flip, () => {
+      const state = transforms.get(index) ?? { rotation: 0, horizontal: false, vertical: false }
+      if (name === 'rotate-cw') state.rotation += 90
+      else if (name === 'rotate-ccw') state.rotation -= 90
+      else if (name === 'flip-h') state.horizontal = !state.horizontal
+      else state.vertical = !state.vertical
+      transforms.set(index, state); transform()
+    })
+  }
+  const download = ownerDocument.createElement('a')
+  download.dataset.galleryControl = 'download'; download.textContent = labels.download
+  toolbar.appendChild(download)
+  if (options.thumbnails && images.length > 1) images.forEach((item, itemIndex) => {
+    const button = ownerDocument.createElement('button')
+    button.type = 'button'; button.className = `${classPrefix}-gallery__lightbox-thumb`
+    button.setAttribute('aria-label', item.caption || String(itemIndex + 1))
+    const thumbnail = ownerDocument.createElement('img')
+    setSafeUrlAttribute(thumbnail, 'src', item.url, 'media'); thumbnail.alt = item.caption || ''
+    button.appendChild(thumbnail)
+    button.addEventListener('click', () => move(itemIndex - index), { signal: lifetime.signal })
+    thumbnails.appendChild(button)
+  })
   const show = () => {
     const current = images[index]
     if (!current) return
     setSafeUrlAttribute(image, 'src', current.url, 'media')
     image.alt = current.caption || ''
     caption.textContent = current.caption || ''
-    caption.hidden = !current.caption
+    caption.hidden = options.captions === false || !current.caption
     const multiple = images.length > 1
-    prev.hidden = !multiple
-    next.hidden = !multiple
+    prev.hidden = !multiple || options.navigation === false || options.loop === false && index === 0
+    next.hidden = !multiple || options.navigation === false || options.loop === false && index === images.length - 1
+    setSafeUrlAttribute(download, 'href', current.url, 'download')
+    download.download = `image-${index + 1}`
+    for (const [itemIndex, button] of [...thumbnails.children].entries()) button.setAttribute('aria-current', String(itemIndex === index))
+    transform()
   }
   const move = (delta) => {
-    if (images.length <= 1) return
-    index = (index + delta + images.length) % images.length
-    show()
+    if (destroyed || images.length <= 1) return
+    const next = options.loop === false ? Math.max(0, Math.min(images.length - 1, index + delta))
+      : (index + delta + images.length) % images.length
+    if (next !== index) { index = next; scale = 1; viewport.scrollTop = viewport.scrollLeft = 0; show() }
+    schedule()
+  }
+  const schedule = () => {
+    if (timer !== null) { (view ?? globalThis).clearTimeout(timer); timer = null }
+    if (destroyed || !playing || images.length <= 1) return
+    timer = (view ?? globalThis).setTimeout(() => {
+      timer = null
+      if (destroyed) return
+      if (options.loop === false && index === images.length - 1) {
+        playing = false; autoplay?.setAttribute('aria-pressed', 'false'); return
+      }
+      move(1)
+    }, interval)
   }
   const onKeydown = (event) => {
     if (event.key === 'ArrowLeft') { event.preventDefault(); move(-1) }
@@ -317,24 +420,32 @@ function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, 
   const destroy = () => {
     if (destroyed) return
     destroyed = true
+    playing = false
+    schedule()
+    lifetime.abort()
+    transforms.clear()
     ownerDocument.removeEventListener('keydown', onKeydown)
-    if (dialog.open && typeof dialog.close === 'function') dialog.close()
-    dialog.remove()
-    onClose()
+    if (ownerDocument.fullscreenElement && surface.contains(ownerDocument.fullscreenElement)) void ownerDocument.exitFullscreen().catch(() => {})
+    try { if (dialog.open && typeof dialog.close === 'function') dialog.close() }
+    finally { dialog.remove(); onClose() }
   }
 
-  close.addEventListener('click', destroy)
-  prev.addEventListener('click', () => move(-1))
-  next.addEventListener('click', () => move(1))
-  dialog.addEventListener('cancel', (event) => { event.preventDefault(); destroy() })
-  dialog.addEventListener('click', (event) => { if (event.target === dialog) destroy() })
-  ownerDocument.addEventListener('keydown', onKeydown)
-  dialog.append(close, prev, image, next, caption)
-  ownerDocument.body.appendChild(dialog)
-  show()
-  if (typeof dialog.showModal === 'function') dialog.showModal()
-  else dialog.setAttribute('open', '')
-  close.focus()
+  close.addEventListener('click', destroy, { signal: lifetime.signal })
+  prev.addEventListener('click', () => move(-1), { signal: lifetime.signal })
+  next.addEventListener('click', () => move(1), { signal: lifetime.signal })
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); destroy() }, { signal: lifetime.signal })
+  dialog.addEventListener('click', (event) => { if (event.target === dialog) destroy() }, { signal: lifetime.signal })
+  try {
+    ownerDocument.addEventListener('keydown', onKeydown)
+    surface.append(close, toolbar, prev, viewport, next, caption, thumbnails)
+    dialog.appendChild(surface)
+    ownerDocument.body.appendChild(dialog)
+    show()
+    if (typeof dialog.showModal === 'function') dialog.showModal()
+    else dialog.setAttribute('open', '')
+    schedule()
+    close.focus()
+  } catch (error) { destroy(); throw error }
   return { destroy }
 }
 

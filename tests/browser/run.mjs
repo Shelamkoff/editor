@@ -21,8 +21,8 @@ async function freePort() {
   })
 }
 
-function start(executable, args) {
-  const child = spawn(executable, args, { cwd: fileURLToPath(editorRoot), stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+function start(executable, args, env = process.env) {
+  const child = spawn(executable, args, { cwd: fileURLToPath(editorRoot), env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
   let output = '', failure = null
   const capture = data => { output = (output + data).slice(-24_000) }
   child.stdout.on('data', capture)
@@ -188,7 +188,9 @@ const port = await freePort(), debugPort = await freePort()
 const profile = await mkdtemp(join(tmpdir(), 'rector-page-tests-'))
 let vite, chrome, client
 try {
-  vite = start(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(port), '--strictPort'])
+  vite = start(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(port), '--strictPort',
+    '--config', fileURLToPath(new URL('./vite.config.mjs', import.meta.url))],
+  { ...process.env, EDITOR_VITE_CACHE_DIR: join(profile, 'vite-cache') })
   const deadline = Date.now() + 20_000
   while (true) {
     vite.assertRunning()

@@ -19,7 +19,7 @@ function environment() {
   return {
     node: process.version, nodeExecutable: process.execPath, npm, platform: process.platform, architecture: process.arch, release: release(),
     runner: selectedEnvironment(['RUNNER_OS', 'RUNNER_ARCH', 'ImageOS', 'ImageVersion']),
-    selection: selectedEnvironment(['EDITOR_BROWSER_PAGE', 'EDITOR_BROWSER_ROOT', 'EDITOR_NATIVE_PAGE', 'EDITOR_NATIVE_FILTER', 'EDITOR_CHROME_PATH', 'EDITOR_VITE_PATH', 'DOCS_BASE']),
+    selection: selectedEnvironment(['EDITOR_BROWSER_PAGE', 'EDITOR_BROWSER_ROOT', 'EDITOR_NATIVE_PAGE', 'EDITOR_NATIVE_FILTER', 'EDITOR_CHROME_PATH', 'EDITOR_CHROME_HEADLESS', 'EDITOR_VITE_PATH', 'DOCS_BASE']),
   }
 }
 

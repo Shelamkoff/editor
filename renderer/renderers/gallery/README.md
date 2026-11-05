@@ -54,6 +54,8 @@ The complete persisted-data contract, including layouts, defaults, and validatio
 
 Image sources use the media URL policy. The renderer owns its Expose viewers and image-readiness listeners; `destroy()` releases them. It declares gallery and Expose styles.
 
+In a foreign document or under enforcing Trusted Types, the renderer uses an owned native dialog. It preserves navigation, looping, captions, thumbnails, zoom, fullscreen, autoplay, image transforms and downloads without a global default policy. Closing or destroying the output releases its timers and controls.
+
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
 
 The VitePress guide documents renderer ownership, inline widget reconstruction, styles, cleanup, and security boundaries.

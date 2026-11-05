@@ -136,7 +136,8 @@ async function waitForNativeInput() {
 }
 
 async function waitForHistoryMatrix(client) {
-  const deadline = Date.now() + 120_000
+  let deadline = Date.now() + 120_000
+  let completed = -1
   let latest
   while (Date.now() < deadline) {
     const result = await evaluate(client, `({
@@ -145,6 +146,10 @@ async function waitForHistoryMatrix(client) {
       progress: window.__auditProgress ?? null,
     })`)
     latest = result
+    if (Number.isSafeInteger(result.progress?.completed) && result.progress.completed > completed) {
+      completed = result.progress.completed
+      deadline = Date.now() + 120_000
+    }
     if (result.status === 'pass') {
       await waitForNativeInput()
       return result.summary
@@ -295,6 +300,7 @@ async function runNativePage(client, pageUrl, page) {
   const url = new URL(`/tests/browser/${page}`, pageUrl)
   if (process.env.EDITOR_NATIVE_FILTER) url.searchParams.set('test-filter', process.env.EDITOR_NATIVE_FILTER)
   await client.send('Page.navigate', { url: url.href })
+  await client.send('Page.bringToFront')
   const deadline = Date.now() + 20_000
   while (!await evaluate(client, `location.pathname.endsWith(${JSON.stringify('/' + page)}) && typeof window.__resolveTestInput === "function"`)) {
     if (Date.now() > deadline) throw new Error(`Timed out loading ${page}`)
@@ -312,8 +318,10 @@ const pageUrl = `http://127.0.0.1:${vitePort}/tests/browser/physical-history.htm
 const userDataDir = await mkdtemp(join(tmpdir(), 'ophire-editor-physical-history-'))
 const downloadDirectory = join(userDataDir, 'downloads')
 await mkdir(downloadDirectory)
-const vite = spawn(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort'], {
+const vite = spawn(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort',
+  '--config', fileURLToPath(new URL('./vite.config.mjs', import.meta.url))], {
   cwd: fileURLToPath(editorRoot),
+  env: { ...process.env, EDITOR_VITE_CACHE_DIR: join(userDataDir, 'vite-cache') },
   stdio: 'ignore',
   windowsHide: true,
 })
@@ -327,7 +335,10 @@ let downloadFailure = null
 try {
   await waitForHttp(pageUrl, vite)
   chrome = spawn(chromePath, [
-    '--headless=new',
+    ...(process.env.EDITOR_CHROME_HEADLESS === '0' ? [] : ['--headless=new']),
+    '--enable-automation',
+    '--no-first-run',
+    '--no-default-browser-check',
     '--disable-gpu',
     '--no-sandbox',
     '--disable-dev-shm-usage',
@@ -348,6 +359,8 @@ try {
   })
   await browserClient.send('Browser.setDownloadBehavior', { behavior: 'allowAndName', downloadPath: downloadDirectory, eventsEnabled: true })
   await client.send('Runtime.enable')
+  await client.send('Page.enable')
+  await client.send('Emulation.setFocusEmulationEnabled', { enabled: true })
   await installNativeInput(client)
   const nativePage = process.env.EDITOR_NATIVE_PAGE
   if (nativePage) {
@@ -626,6 +639,7 @@ try {
     'native-image-source-ownership.html', 'native-image-source-ownership-trusted.html',
     'native-image-expanded-layout.html', 'native-image-expanded-layout-trusted.html',
     'native-image-functional.html', 'native-image-functional-trusted.html',
+    'native-gallery-viewer-options.html', 'native-gallery-viewer-options-trusted.html',
     'native-list-edit.html', 'native-list-edit-trusted.html',
     'native-list-conversion.html', 'native-list-conversion-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
