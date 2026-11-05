@@ -70,6 +70,18 @@ function assertDetachedWrapper(wrapper, ownerDocument) {
   }
 }
 
+/** A pending highlighter retains only this small output lease, not the renderer
+ * or its other documents/configuration through a render-method closure.
+ * @param {{element:HTMLElement|null, document:Document}} owner
+ * @param {HTMLElement} code
+ */
+function ownsInlineElement(owner, code) {
+  const output = owner.element
+  if (!output || output.ownerDocument !== owner.document) return false
+  const contains = output.contains(code)
+  return contains && owner.element === output && output.ownerDocument === owner.document
+}
+
 /** Stable fingerprint of already-owned JSON. Unlike JSON.stringify(), this
  * treats object property insertion order as irrelevant while retaining array
  * order and primitive values. Only used on the deep-signature path; a trusted
@@ -100,7 +112,7 @@ export class EditorRenderer {
   #renderers
   /** @type {Map<string, import('./types').InlineWidgetRenderer>} */
   #inlineRenderers
-  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRendererDefinition }> }>} */
+  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRendererDefinition, releaseInline?:()=>void }> }>} */
   #mountedContainers = new Map()
   /** Containers currently inside renderTo(); protects staged ownership from same-container reentry. */
   /** @type {WeakSet<HTMLElement>} */
@@ -111,11 +123,11 @@ export class EditorRenderer {
   #destroyingTargets = new WeakSet()
 
   /** Results returned by render(); keyed by their document wrapper. */
-  /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>>} */
+  /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, releaseInline?:()=>void }>>} */
   #detachedDocuments = new Map()
 
   /** Results returned directly by renderBlock(). */
-  /** @type {Map<HTMLElement, { element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
+  /** @type {Map<HTMLElement, { element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, releaseInline?:()=>void }>} */
   #detachedBlocks = new Map()
 
   /** @type {Map<string, number>} */
@@ -127,7 +139,7 @@ export class EditorRenderer {
    */
   #liveRenderers = new Map()
 
-  /** @type {WeakMap<Document, import('./types').InlineParser>} */
+  /** @type {WeakMap<Document, ReturnType<typeof createInlineParser>>} */
   #inlineParsers = new WeakMap()
 
   /** Source block objects whose validation issue is being reported on this stack. */
@@ -317,7 +329,7 @@ export class EditorRenderer {
    * @param {Document} ownerDocument
    * @param {object} [validationSource] Original identity, not a signature clone.
    * @param {boolean} [alreadyOwned] Whether JSON was already cloned by this owner.
-   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document }}
+   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document, releaseInline?:()=>void }}
    */
   #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block, alreadyOwned = false) {
     // Reject a registered version mismatch before traversing opaque data.
@@ -356,7 +368,14 @@ export class EditorRenderer {
 
     // Sanitize document HTML first, then mount schema-decoded widget DOM.
     // Package-owned widget attributes must not cross the external HTML sanitizer.
-    const baseParser = this.#inlineParserFor(ownerDocument)
+    /** @type {{element:HTMLElement|null, document:Document}} */
+    const inlineOwner = { element: null, document: ownerDocument }
+    const parser = this.#inlineParserFor(ownerDocument)
+    // Parser reuse is document-scoped; deferred painting belongs to this
+    // exact output lease, including staged failures and reused renderer objects.
+    const ownsInline = ownsInlineElement.bind(null, inlineOwner)
+    /** @type {import('./types').InlineParser} */
+    const baseParser = html => parser(html, ownsInline)
     const parse = renderableBlock.inline && this.#inlineRenderers.size > 0
       ? html => renderInlineWidgets(baseParser(html), renderableBlock.inline, this.#inlineRenderers, ownerDocument)
       : baseParser
@@ -417,7 +436,9 @@ export class EditorRenderer {
       // after our initial detached check but before these writes finish.
       // Revalidate immediately before returning a node for publication.
       assertRenderedElementOwnership({ element, type: block.type }, ownerDocument)
-      return { element, type: block.type, renderer, styleOwnerDocument: ownerDocument }
+      inlineOwner.element = element
+      return { element, type: block.type, renderer, styleOwnerDocument: ownerDocument,
+        releaseInline() { inlineOwner.element = null } }
     } catch (error) {
       // The renderer allocated this element, but decorating it failed.
       // Retire the provisional lease and release its resources exactly once.
@@ -473,9 +494,10 @@ export class EditorRenderer {
 
   /**
    * Release resources owned by one rendered block.
-   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document }} entry
+   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document, releaseInline?:()=>void }} entry
    */
   #disposeRenderedElement(entry) {
+    entry.releaseInline?.()
     try {
       if (this.#contentStyleScope && entry.element.ownerDocument === entry.styleOwnerDocument
         && entry.element.getAttribute(CONTENT_STYLE_OWNER) === this.#contentStyleScope.id) {

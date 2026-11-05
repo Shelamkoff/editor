@@ -13,6 +13,8 @@ The [publication review](docs/architecture/rector-v2/PUBLICATION_REVIEW.md) reco
 
 ## Readiness
 
+A [fresh full-library recheck](RECTOR_V2_LIBRARY_RECHECK_2026-11-05.md) follows `d7a32b63`. It confirms and repairs a shared inline-code highlighting lifetime gap; complete verification of the repaired runtime is in progress. Earlier accepted counts below retain their recorded source and scope.
+
 The [complete audit acceptance](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#complete-audit-acceptance-2026-11-05) closes C01–C12, R01–R20 and all 209 preservation obligations on immutable runtime `e88992ee` in the supported Chromium environment. B-HTML, B-STYLE and the settled field-local B-PRESENTATION proof are complete. Ten frozen integration gates, all 159 native pages, all 100 maintained differential corpora and the separate architecture-to-target comparison pass within their recorded scopes. Subsequent test/CI/documentation changes preserve the same production bytes. Superior current behavior remains; historical failures and unexecuted engines are not relabeled as passes. This is audit acceptance, not a public release receipt.
 
 Do not add a second document store, history engine, selection store, global authority manager, legacy decoder, compatibility shim, or alternate API merely to make a local repair easier. Large modules are split only at a demonstrated responsibility boundary.

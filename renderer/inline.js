@@ -9,14 +9,15 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
  * @param {HTMLElement} element
  * @param {string} text
  * @param {string} language
+ * @param {(element:HTMLElement)=>boolean} ownsElement
  */
-function highlightElement(element, text, language) {
-  const apply = () => {
+function highlightElement(element, text, language, ownsElement) {
+  const apply = (isCurrent = () => true) => {
     // The lazy highlighter may settle after another render or author action
     // has repurposed this node. Never rewrite newer code with an old snapshot.
-    if (element.textContent !== text) return false
+    if (!isCurrent() || element.textContent !== text) return false
     const result = highlightCode(text, language)
-    if (!result || element.textContent !== text) return false
+    if (!result || element.textContent !== text || !isCurrent()) return false
     // highlight.js escapes source text and returns library-owned markup.
     setTrustedHtml(element, result.value)
     return true
@@ -27,7 +28,7 @@ function highlightElement(element, text, language) {
   element.textContent = text
   // Plain source text is already available. Failed loading must not restore
   // this obsolete snapshot over a newer owner of the same DOM node.
-  void loadHighlightRuntime().then(apply).catch(() => {})
+  void loadHighlightRuntime().then(() => apply(() => ownsElement(element))).catch(() => {})
 }
 
 /**
@@ -38,8 +39,9 @@ function highlightElement(element, text, language) {
  * parseInline and keeps its class/lang attributes.
  *
  * @param {DocumentFragment | HTMLElement} root
+ * @param {(element:HTMLElement)=>boolean} ownsElement
  */
-function upgradeCodeBlocks(root) {
+function upgradeCodeBlocks(root, ownsElement) {
   const codeEls = root.querySelectorAll('code')
   for (const el of codeEls) {
     const text = el.textContent || ''
@@ -47,7 +49,7 @@ function upgradeCodeBlocks(root) {
 
     const lang = el.getAttribute('lang')
     if (lang) {
-      highlightElement(el, text, lang)
+      highlightElement(el, text, lang, ownsElement)
     } else {
       el.textContent = text
     }
@@ -57,12 +59,12 @@ function upgradeCodeBlocks(root) {
 /**
  * Create inline parser function.
  * @param {Document} [ownerDocument]
- * @returns {import('./types').InlineParser}
+ * @returns {(text:string, ownsElement?:(element:HTMLElement)=>boolean)=>DocumentFragment}
  */
 export function createInlineParser(_classPrefix, ownerDocument = globalThis.document) {
-  return (/** @type {string} */ text) => {
+  return (/** @type {string} */ text, ownsElement = () => true) => {
     const fragment = parseInline(text, ownerDocument)
-    upgradeCodeBlocks(fragment)
+    upgradeCodeBlocks(fragment, ownsElement)
     return fragment
   }
 }
