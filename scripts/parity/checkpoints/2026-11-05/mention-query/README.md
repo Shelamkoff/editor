@@ -12,3 +12,6 @@ Custom rows retain their explicit style after host mounting; their render-time n
 All fifteen reference bodies finish without errors or unavailable bodies. V1 retains **two differences**: decorative extra empty-state text and no custom initial pending indicator. Baseline, immutable parent and both current policies retain zero. Exact successful smoke/full exploratory attempts remain archived with actual sources/dates.
 
 The two native pages pass **31 cases**, comprising the interactive cases, constructor validation and the enforcing-policy control. The two existing browser flow pages also pass. Inventory is **140 native / 57 ordinary browser pages**. Documentation and site pass. Exact runtime/package identity and 115 Git-verified artifacts retain all fifteen full gates on `c0054fb8`, with actual source/date. Only the remaining query row is newly accepted; all Mention and Color rows are now accepted. Full readiness remains open.
+
+Post-acceptance documentation and site checks pass on `4c529387`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
