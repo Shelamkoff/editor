@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Mention and Color readonly output 2026-11-05
+
+Register: **158 accepted / 51 open / 209 total**.
+
+[Mention save/output](/architecture/rector-v2/PUBLICATION_REVIEW#mention-and-color-readonly-output-2026-11-05) is accepted on `8161ce18`: 48 executions / 2016 observations, 144 readonly renderings and 24 rejected corruptions. Known/unregistered refs, own-key IDs and literals survive Paragraph/Columns and foreign-document output. Color output is supplemental; its complete roundtrip remains open.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/inline-output/README.md). Full readiness remains open.
+
 ## Color popup lifetime 2026-11-05
 
 Register: **157 accepted / 52 open / 209 total**.
