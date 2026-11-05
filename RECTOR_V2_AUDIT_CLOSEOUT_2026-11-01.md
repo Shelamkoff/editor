@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Mention search lifetime 2026-11-05
+
+Register: **160 accepted / 49 open / 209 total**.
+
+[Mention search lifetime](/architecture/rector-v2/PUBLICATION_REVIEW#mention-search-lifetime-2026-11-05) is accepted on `478cf02f`: 16 executions / 566 observations, 24 rejected corruptions and 17 native cases. Stale requests and retained old rows cannot change successor data/popup/loading/transactions; current Enter, callback ownership and exact keyboard replay remain live.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/mention-lifetime/README.md). Full readiness remains open.
+
 ## Color native roundtrip 2026-11-05
 
 Register: **159 accepted / 50 open / 209 total**.
