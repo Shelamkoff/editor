@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Checklist merge and exact item boundaries 2026-11-05
+
+Register: **155 accepted / 54 open / 209 total**.
+
+[Checklist merge and exact item boundaries](/architecture/rector-v2/PUBLICATION_REVIEW#checklist-merge-and-exact-item-boundaries-2026-11-05) are accepted on `c0054fb8`: checked labels, marks, widgets and collision-free IDs survive merge/export. Logical endpoint lengths remove empty formatting ghosts in List/Checklist. Evidence: 24 executions / 576 observations, five regressions, 24 corruptions, all fifteen gates and 370 native cases.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/checklist-merge/README.md). Full readiness remains open.
+
 ## Checklist item editing 2026-11-05
 
 Register: **154 accepted / 55 open / 209 total**.

@@ -1,0 +1,16 @@
+# Checklist merge and exact item boundaries 2026-11-05
+
+**Accepted: BLOCK_CHECKLIST_INLINE_MERGE.**
+Register: **155 accepted / 54 open / 209 total**. Tested source: `c0054fb89575c5eb31ab490556dc3e2b13f4fa1e`.
+
+`BLOCK_CHECKLIST_INLINE_MERGE` is accepted on `c0054fb8`: **155/209 obligations accepted, 54 open**. `BLOCK_LIST_PARTIAL_CONVERT` receives a repair supplement without another accepted row. All **fifteen integration gates** pass on one clean unchanged source. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/checklist-merge/README.md): **24 current executions / 576 observations**, **407 module identities**, **24 rejected corruptions**.
+
+Twelve native reference scenarios cover whole Checklist merge using Backspace and Delete, opposite check states, colliding and distinct item IDs, two exact Color sidecars/projections, and whole rich-label export through inline and block menus. Merged items retain checks, marks and source order; colliding item IDs are rebased deterministically. Widget labels/dots and noneditable ownership remain exact. Native caret/direction, caller input and raw keyboard replay are required.
+
+The immutable parent reproduces two full inline conversion defects / ten differences: empty formatting wrappers are mistaken for unselected endpoints, leaving a synthetic empty Checklist before the exported Paragraph. Core now supplies the original logical field length in `sliceField()`. Shared List/Checklist slicing uses exact endpoint bounds to discard only those synthetic wrappers. Whole selected item content replaces its source block; real partial suffixes keep their IDs. Unselected authored empty items and trailing breaks survive. The optional length metadata keeps independently supplied older contexts compatible; ordinary whole-item Cut still creates its required empty editing item.
+
+Five focused regression tests first produce **four failures / one passing control**; after the repair, all **twenty focused tests** pass. Their exploratory source/bytes remain explicit; the canonical full Node log separately binds all five new passing names to the immutable candidate. Twelve additional native List cases cover both styles/directions, full marked/widget ranges, authored empty siblings and a real trailing break. New native pages pass 24 and 25 cases including Trusted Types.
+
+Every historical reference body completes without page/input errors. v1 retains **93 differences**, baseline **14**, immutable parent **10**, and both current policies zero. The first prototype's two old block-menu bodies stopped because its selector expected Paragraph rather than the actual Text label; its exact source/results remain separate from the completed comparison. Missing legacy observers/item identities are explicit.
+
+Full validation: **2,241 Node tests pass / three skipped in 204 files**, all declaration checks, all **55 ordinary browser pages**, **370 native cases**, package/assets, enforced bundle and heap budgets, documentation and site checks. Native inventory is **128 pages**. A separate 24-case native preflight passes on the same candidate. Only Checklist inline merge/export is newly accepted; other open obligations and full readiness remain open.
