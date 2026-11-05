@@ -1,0 +1,14 @@
+# Color insertion and editing 2026-11-05
+
+**Accepted: INLINE_COLOR_INSERT_EDIT.**
+Register: **156 accepted / 53 open / 209 total**. Tested source: `f38dd5789bf00aac2670a75e1a50c1880cb12581`.
+
+`INLINE_COLOR_INSERT_EDIT` is accepted on `f38dd578`: **156/209 obligations accepted, 53 open**. All **seven affected gates** pass on one clean unchanged source. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/color-actions/README.md): **56 current executions / 1,142 observations**, **389 module identities**, **24 rejected corruptions**. No production change is needed.
+
+Twenty-one native typed-pattern cases cover short, six-digit and alpha hex, RGB/RGBA and HSL/HSLA, each completed by Space, Enter or Shift+Enter. One widget replaces the exact word; Space contributes one suffix and Enter does not split the block. Four public API cases insert default/explicit colors over a directed rich-text range in both directions, preserving caller data, surrounding marks and a caret immediately after the atom. Three actual color-picker cases exercise Apply, preview cancellation and unchanged Apply. Preview never changes canonical data/history; cancel and no-op remain transaction-free; changed Apply commits exactly one plugin action and restores widget focus.
+
+Literal wire/versions, exact color values, sidecars, swatch/label/ARIA, one noneditable widget, neighboring DOM, native directed range/caret and raw keyboard Undo/Redo are required. Newly created IDs are fresh and exact replay retains them. The first prototype expected alpha 0.502 in the visible swatch; Chrome serializes the actual swatch as 0.5 while keeping the exact authored hex8 payload. Its source/results remain separate from the corrected literal expectation; no color normalization or product change is introduced.
+
+Every reference body completes without page/input errors. v1 retains **117 differences**, baseline **84**, immutable parent and both current policies zero. Missing legacy observers are explicit. Native pages pass **73 cases**, including existing color popup lifecycle, geometry, keyboard focus and unchanged-Redo controls; inventory is **130 native pages**. Documentation and site checks pass. Exact runtime/package identity retains all fifteen full integration gates on `c0054fb8`, including 2,241 passing Node tests / three skipped and all 55 ordinary browser pages, with their actual source/date. The inherited Color lifecycle unit test remains supplemental; Color roundtrip/lifetime and full readiness stay open.
+
+The first canonical run passed six gates; site validation rejected an unformatted technical term in the preceding Russian report. Its exact manifest/logs remain archived separately. A fresh seven-gate run uses the corrected clean source; runtime bytes are unchanged.

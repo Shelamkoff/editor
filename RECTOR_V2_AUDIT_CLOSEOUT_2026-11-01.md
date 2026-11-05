@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Color insertion and editing 2026-11-05
+
+Register: **156 accepted / 53 open / 209 total**.
+
+[Color insertion and editing](/architecture/rector-v2/PUBLICATION_REVIEW#color-insertion-and-editing-2026-11-05) is accepted on `f38dd578`: 56 executions / 1142 observations, 24 rejected corruptions, seven affected gates and 73 native cases. Pattern/public insertion and actual picker actions retain exact values, swatches, IDs and directed history.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/color-actions/README.md). Full readiness remains open.
+
 ## Checklist merge and exact item boundaries 2026-11-05
 
 Register: **155 accepted / 54 open / 209 total**.
