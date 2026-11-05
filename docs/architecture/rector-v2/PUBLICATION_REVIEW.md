@@ -2,9 +2,21 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **151 / 209 obligations**, with **58 open**; see the [List partial conversion 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#list-partial-conversion-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **152 / 209 obligations**, with **57 open**; see the [Code paste 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#code-paste-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Code paste 2026-11-05
+
+`BLOCK_CODE_PASTE` is accepted on `ec685838`: **152/209 obligations accepted, 57 open**. All **seven affected gates** pass on one clean unchanged source. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/code-paste/README.md): **64 current executions / 1,664 observations**, **413 module identities**, **24 rejected corruptions**. No production change is needed.
+
+Thirty-two native clipboard scenarios cover pre/code HTML roots, nested code with surrounding preformatted text, multiple roots, known and unknown literal fences, ordinary-prose no-claim controls, and native Paste into an existing Code textarea. Both range directions and empty/populated Paragraph targets are exercised. Actual trusted Copy and Paste use the system clipboard. Imported HTML is decoded to literal source, complete preformatted text is retained, internal blank lines survive and trailing newline runs collapse to one. HTML classes do not silently choose a language. Fences remain literal source including their delimiters. Ordinary prose remains escaped Paragraph content.
+
+Structural Code paste preserves selected author text in a populated target and inserts after it; empty replacement retains its ID. Existing Code uses text/plain, replaces exactly the native textarea range and retains an unknown explicit language despite conflicting HTML. Source, versions, sidecars, inert visible paint, neighboring DOM, native caret/direction, one history action, caller input and exact raw keyboard replay are required. A deterministic public highlighter provider is configured: this evidence does not replace the separately accepted default-highlighter proof.
+
+All 32 bodies finish for every reference and both current policies without page/input errors. v1 retains **98 differences**; baseline, immutable parent and current policies retain zero. Missing legacy observers are explicit. Five existing paste unit cases, including language signatures, prose controls and HTML newline/nested-root behavior, are verified by exact passing names in the inherited full Node log; this is not a separate fresh invocation.
+
+Native pages pass **110 cases**; inventory is **122 native pages**. Documentation and site checks pass. Exact runtime/package identity and **122 verified Git artifacts** retain all fifteen full integration gates on `523245ff`, including 2,236 passing Node tests, three skips, all 55 ordinary browser pages, package/assets and bundle/heap budgets, with their actual source/date. Only Code paste is newly accepted; broader Clipboard, Code conversion and full readiness remain open.
 
 ## List partial conversion 2026-11-05
 

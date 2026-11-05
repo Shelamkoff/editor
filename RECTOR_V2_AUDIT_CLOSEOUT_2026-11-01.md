@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Code paste 2026-11-05
+
+Register: **152 accepted / 57 open / 209 total**.
+
+[Code paste](/architecture/rector-v2/PUBLICATION_REVIEW#code-paste-2026-11-05) is accepted on `ec685838`: 64 executions / 1664 observations, 24 rejected corruptions, seven affected gates and 110 native cases pass. Literal source and native Code textarea behavior are retained without a production change.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/code-paste/README.md). Full readiness remains open.
+
 ## List partial conversion 2026-11-05
 
 Register: **151 accepted / 58 open / 209 total**.
