@@ -10,3 +10,6 @@ Twenty-four cases combine Color/Mention, registered/unregistered definitions, no
 All 24 bodies finish for each reference. V1 retains **336 differences**; baseline, parent and both current policies retain zero. Legacy factory/config spelling is adapted to its actual API, and unavailable transaction observers are explicit. Failed exploratory smoke and matrix attempts retain their exact sources and bytes: missing legacy renderer factory adaptation, volatile timestamp/marker expectations, namespace-aware literal selection and an incorrect unregistered rerender count were fixture errors corrected before this canonical run.
 
 Three browser case pages pass **437 cases**. Two further pages pass the existing 21-flow Mention and 21-plugin trusted roundtrip summaries. Browser inventory is **57 pages**; inherited full integration exercised its original 55 pages on `c0054fb8`. Exact runtime/package identity and 115 Git-verified artifacts retain those fifteen full gates with actual source/date. Documentation and site pass. Only Mention output is newly accepted. Color save/render evidence supplements its remaining split/merge/clipboard obligation; `INLINE_COLOR_ROUNDTRIP` and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `54e92925`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
