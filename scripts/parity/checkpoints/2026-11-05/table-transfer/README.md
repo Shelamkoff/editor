@@ -12,3 +12,6 @@ Twenty conversion cases cover marked text, a Color widget, a complete cell, a ce
 Three focused regressions fail before the repair and pass with it. The reference v1 records eighty differences and lacks the chooser in four widget-only cases. Their conversion and replay bodies remain unexecuted. The baseline and immutable parent each retain sixteen differences. Both current policies pass with zero differences. The exploratory attempts retain their original cases and source bytes.
 
 The full verification passes **59 ordinary browser pages and 395 cases on ten native pages**. It covers the package, size, heap, types, documentation and site. The first run passed thirteen gates. The related native suite stopped at a Chrome driver timeout, and the site browser smoke did not find a tooltip after a successful build and link check. An isolated run on the identical source passed the timed-out page, the two remaining pages and the site browser smoke. Both manifests retain their recorded outcomes. The native inventory has 148 pages. Only Table paste and conversion are accepted in this checkpoint. The broader clipboard and conversion obligations remain open.
+
+Post-acceptance documentation and site checks pass on `f207c969`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
