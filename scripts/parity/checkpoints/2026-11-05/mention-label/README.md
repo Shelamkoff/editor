@@ -12,3 +12,6 @@ Word cases first perform the same trusted key on an ordinary editable span outsi
 All 26 bodies finish for every reference, without page/input errors or unavailable bodies. V1 retains **146 differences**; baseline, immutable parent and both current policies retain zero. Four exploratory attempts remain with exact bytes/source/date. The initial full matrix incorrectly expected Ctrl+Delete to retain the following space in English/Russian; native controls established the correct complete-word deletion. The final exploratory matrix also binds immediate caret ownership. A CRLF warning from a Git read during the first line probe is retained verbatim and is not a failed browser observation.
 
 Native pages pass **138 cases**, including the existing Mention popup and native edge regressions covering label projection and replay. Inventory is **138 native / 57 ordinary browser pages**. Documentation and site pass. Exact runtime/package identity and 115 Git-verified artifacts retain all fifteen full gates on `c0054fb8`, with actual source/date. Only Mention label editing is newly accepted; the complete Mention query surface and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `3f9b82a6`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
