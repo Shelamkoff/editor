@@ -44,10 +44,13 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
       return callback(context)
     } } : {}) }
   const definition = legacy ? new imageModule.Image(config) : imageModule.createImagePlugin(config)
+  const landscape = document.createElement('canvas')
+  landscape.width = 2; landscape.height = 1
+  const fixtureUrl = spec.kind === 'expanded' ? landscape.toDataURL('image/png') : initialUrl
   const widget = (type, data) => ({ type, ...(!legacy ? { dataVersion: 1 } : {}), data })
   const rich = spec.widgets === true
   const input = { version: legacy ? '1.0.5' : '2.0.0', blocks: [{ id: 'image', type: 'image', ...(!legacy ? { dataVersion: 1 } : {}),
-    data: { ...clone(defaults), ...(spec.populated ? { file: { url: initialUrl }, caption: '<b>Keep</b>' + (rich ? ' {{mention}} {{color}}' : ''),
+    data: { ...clone(defaults), ...(spec.populated ? { file: { url: fixtureUrl }, caption: '<b>Keep</b>' + (rich ? ' {{mention}} {{color}}' : ''),
       styles: clone(appearance), withBorder: true, withBackground: spec.withBackground === true } : {}) },
     ...(rich ? { inline: { mention: widget('mention', { id: 'ada', name: 'Ada' }), color: widget('color', { value: '#123456' }) } } : {}),
   }] }
@@ -56,7 +59,8 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
   const wrapper = () => holder.querySelector('.oe-image')
   const caption = () => wrapper().querySelector('.oe-image__caption')
   const picture = () => wrapper().querySelector('.oe-image__image')
-  const button = label => [...wrapper().querySelectorAll('button')].find(element => element.textContent.trim() === label && element.checkVisibility())
+  const button = label => [...wrapper().querySelectorAll('button')].find(element =>
+    element.textContent.trim().toLowerCase() === label.toLowerCase() && element.checkVisibility())
   const click = async element => {
     if (!element) throw new Error('Missing live Image control')
     element.scrollIntoView({ block: 'center' })
@@ -64,7 +68,7 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
     const rect = element.getBoundingClientRect()
     if (!rect.width || !rect.height) throw new Error('Image control is not visible')
     let trusted = false
-    element.addEventListener('click', event => { trusted = event.isTrusted }, { once: true })
+    element.addEventListener('click', event => { trusted = event.isTrusted }, { once: true, capture: true })
     await nativeInput('Input.click', { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
     events.push({ kind: 'click', trusted })
     if (!trusted) throw new Error('Untrusted Image action')
@@ -85,8 +89,9 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
     const image = output.querySelector('img')
     check(name, 'outputSource', image?.getAttribute('src') ?? '', expected[0].data.file.url)
     const text = rich ? 'Keep @Ada #123456' : 'Keep'
-    check(name, 'caption', caption().textContent, expected[0].data.caption ? text + (expected[0].data.caption.endsWith('X') ? 'X' : '') : '')
-    check(name, 'outputAlt', image?.alt ?? '', expected[0].data.caption ? text + (expected[0].data.caption.endsWith('X') ? 'X' : '') : '')
+    const edited = expected[0].data.caption.endsWith('X') || expected[0].data.caption === '<b>KeepX</b>'
+    check(name, 'caption', caption().textContent, expected[0].data.caption ? text + (edited ? 'X' : '') : '')
+    check(name, 'outputAlt', image?.alt ?? '', expected[0].data.caption ? text + (edited ? 'X' : '') : '')
   }
   const replay = async (before, after) => {
     phase = 'undo'; wrapper().focus(); await key('z', 'KeyZ', 90, 2)
@@ -116,8 +121,11 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
     await pause(100)
     return requests.at(-1)
   }
-  const setting = label => [...wrapper().querySelectorAll('.oe-image__style-label')]
-    .find(element => element.querySelector('span')?.textContent === label)?.querySelector('input')
+  const setting = label => {
+    const legacyLabel = legacy ? { Width: 'W', Height: 'H', 'Min width': 'Min W', 'Max width': 'Max W' }[label] ?? label : label
+    return [...wrapper().querySelectorAll('.oe-image__style-label')]
+      .find(element => element.querySelector('span')?.textContent === legacyLabel)?.querySelector('input')
+  }
   const openSettings = async () => { if (button('Settings').getAttribute('aria-expanded') !== 'true') await click(button('Settings')) }
   try {
     editor = createEditor({ holder, plugins: [definition], defaultBlock: 'image', injectStyles: true, inlineTools: [],
@@ -132,6 +140,7 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
       if (Date.now() > deadline) throw new Error('Image styles failed to load')
       await pause()
     }
+    if (spec.populated) await picture().decode()
     phase = 'load'; checkModel(phase); check(phase, 'history', [editor.canUndo, editor.canRedo], [false, false]); mark(phase)
     if (['success', 'error', 'url-race', 'mode'].includes(spec.kind)) {
       phase = 'source'; let request = await start()
@@ -162,13 +171,14 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
         expected[0].data.file = { url: spec.source === 'local' ? initialUrl : nextUrl }
       }
       await pause(100); checkModel(phase)
-      check(phase, 'visibleSource', picture().getAttribute('src') ?? '', expected[0].data.file.url)
+      check(phase, 'visibleSource', picture()?.getAttribute('src') ?? '', expected[0].data.file.url)
       check(phase, 'loadingSettled', wrapper().classList.contains('oe-image--loading'), false)
       if (spec.source === 'upload') check(phase, 'uploadFile', events.filter(value => value.kind === 'upload'),
         Array.from({ length: spec.kind === 'mode' ? 2 : 1 }, () => ({ kind: 'upload', name: 'tiny.gif', type: 'image/gif', size: 42 })))
-      check(phase, 'transactionCount', transactions.length, legacy ? 0 : spec.kind === 'error' ? 0 : 1)
+      const changed = JSON.stringify(stable(original.blocks)) !== JSON.stringify(stable(expected))
+      check(phase, 'transactionCount', transactions.length, legacy ? 0 : changed ? 1 : 0)
       mark(phase)
-      if (spec.kind !== 'error') await replay(original.blocks, expected)
+      if (changed) await replay(original.blocks, expected)
       else check(phase, 'history', [editor.canUndo, editor.canRedo], [false, false])
     } else if (spec.kind === 'caption') {
       phase = 'caption-edit'
@@ -176,10 +186,13 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
       const range = document.createRange(); range.selectNodeContents(host); range.collapse(false)
       const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range)
       await nativeInput('Input.insertText', { text: 'X' }); await pause(100)
-      expected[0].data.caption += 'X'; checkModel(phase); render(phase); mark(phase)
+      expected[0].data.caption = rich ? expected[0].data.caption + 'X' : '<b>KeepX</b>'
+      checkModel(phase); render(phase); mark(phase)
       await replay(original.blocks, expected)
       phase = 'sibling-projection'
-      const oldCaption = caption(), oldTail = oldCaption.lastChild
+      const oldCaption = caption(), walker = document.createTreeWalker(oldCaption, NodeFilter.SHOW_TEXT)
+      let oldTail
+      while (walker.nextNode()) oldTail = walker.currentNode
       oldCaption.focus(); selection.setBaseAndExtent(oldTail, oldTail.length, oldTail, 0)
       if (legacy) {
         unsupported.push('publicBlockProducer')
