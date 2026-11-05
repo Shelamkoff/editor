@@ -395,6 +395,15 @@ export function createImagePlugin(config={}){
           const updateData=producer=>{
             retainControlFocus(wrapper,()=>context.updateData(producer))
           }
+          const cancelSource=()=>{
+            const task=currentTask
+            // Retire presentation ownership before abort callbacks can start
+            // a successor request. A retired promise may settle much later.
+            currentTask=null
+            ++requestGeneration
+            wrapper.classList.remove(CSS.loading)
+            task?.cancel()
+          }
           const beginTask=()=>{
             currentTask?.cancel()
             const task=context.beginTask()
@@ -461,7 +470,10 @@ export function createImagePlugin(config={}){
                 cancelText:runtimeContext.t('sourceCancel','Cancel'),
               invalidText:runtimeContext.t('invalidUrl','Invalid image URL'),
               normalize:sanitizeMediaUrl,
-              onSubmit:url=>updateData(current=>({...current,file:{url}})),
+              onSubmit:url=>{
+                cancelSource()
+                updateData(current=>({...current,file:{url}}))
+              },
             })
           }
 
@@ -473,9 +485,7 @@ export function createImagePlugin(config={}){
           urlButton.addEventListener('click',()=>{openUrl();restoreSource()},{signal:context.signal})
           remove.addEventListener('click',()=>{
             if(readOnly)return
-            currentTask?.cancel()
-            currentTask=null
-            wrapper.classList.remove(CSS.loading)
+            cancelSource()
             updateData(()=>imageDataSchema.createDefault())
           },{signal:context.signal})
           for(const {action,filledButton} of customActionButtons){
@@ -506,6 +516,7 @@ export function createImagePlugin(config={}){
             },
             setReadOnly(value){
               readOnly=value
+              if(readOnly)cancelSource()
               // Native source input can commit a newer caption without an
               // instance.update() while the browser caret remains mounted.
               const canonical=context.getData()
@@ -515,8 +526,7 @@ export function createImagePlugin(config={}){
             destroy(){
               dead=true
               settingsController?.abort()
-              currentTask?.cancel()
-              currentTask=null
+              cancelSource()
             },
           }
         },

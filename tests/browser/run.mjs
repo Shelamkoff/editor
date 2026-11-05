@@ -179,6 +179,7 @@ labels.push('poll-voter-summary.html')
 labels.push('poll-voter-summary-trusted-types.html')
 labels.push('inline-output.html')
 labels.push('inline-output-trusted-types.html')
+labels.push('image-source-ownership.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()

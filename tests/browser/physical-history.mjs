@@ -623,6 +623,7 @@ try {
     'native-poll-remote.html', 'native-poll-remote-trusted.html',
     'native-table-cells.html', 'native-table-cells-trusted.html',
     'native-table-transfer.html', 'native-table-transfer-trusted.html',
+    'native-image-source-ownership.html', 'native-image-source-ownership-trusted.html',
     'native-list-edit.html', 'native-list-edit-trusted.html',
     'native-list-conversion.html', 'native-list-conversion-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
