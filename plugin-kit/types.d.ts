@@ -232,7 +232,7 @@ export interface SelectionSliceContext extends DataOperationContext {
   sliceField(
     fieldKey: string,
     range: Readonly<{ start: number, end: number }>,
-  ): { before: string, selected: string, after: string } | null
+  ): { before: string, selected: string, after: string, readonly length?: number } | null
 }
 
 export interface SelectionSliceResult<D extends object> {

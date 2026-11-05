@@ -146,6 +146,7 @@ Its context provides `createId()`, `splitField(fieldKey, range)`, and `fieldLeng
 `SelectionSliceCapability` has `slice(data, start, end, context)` and returns `before`, a neutral `selected` payload, and `after`.
 
 Its optional `split(data, start, end, context)` owns Enter across different rich fields within the same block. It returns `{ data, focus: { fieldKey, offset } }`, or `null` to use the default block split. The synchronous preparation context provides `ownerDocument`, `createId()` and `sliceField()`; core validates the returned data and focus and commits one history action. List and Checklist preserve the unselected endpoint item IDs and focus the surviving suffix, without adding a default block below them.
+`sliceField()` also supplies the original logical field `length`. Item selection slicing uses that boundary to discard empty formatting wrappers at fully selected edges; authored breaks and unselected empty items remain. The length property is optional for compatibility with older independently supplied contexts.
 
 ## Minimal definition
 

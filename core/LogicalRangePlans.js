@@ -105,7 +105,7 @@ export function sliceSelection(s,record,start,end) {
   const sliceField=(fieldKey,range)=>{
     const field=fields.find(item=>item.key===fieldKey)
     if(!field)return null
-    return sliceRichTextRange(field.html,inline,range,s.ownerDocument)
+    return {...sliceRichTextRange(field.html,inline,range,s.ownerDocument),length:field.length}
   }
 
   const capability=definition.capabilities?.selectionSlice
@@ -237,7 +237,7 @@ export function prepareStructuredSelectionSplit(s,view,bookmark) {
     createId:prefix=>s.allocateId(prefix),
     sliceField:(key,range)=>{
       const field=fields.find(field=>field.key===key)
-      return field?sliceRichTextRange(field.html,inline,range,s.ownerDocument):null
+      return field?{...sliceRichTextRange(field.html,inline,range,s.ownerDocument),length:field.length}:null
     },
   })
   const result=cloneEditorData(synchronousResult(capability.split(

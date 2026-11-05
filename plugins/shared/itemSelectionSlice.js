@@ -35,22 +35,24 @@ export function createItemSelectionSlice(){
       if(startIndex===endIndex){
         const slice=context.sliceField(start.fieldKey,{start:start.offset,end:end.offset})
         if(!slice)return null
-        if(slice.before)beforeItems.push({...data.items[startIndex],text:slice.before})
+        const hasBefore=Boolean(slice.before)&&start.offset>0
+        const hasAfter=Boolean(slice.after)&&(slice.length===undefined||end.offset<slice.length)
+        if(hasBefore)beforeItems.push({...data.items[startIndex],text:slice.before})
         if(slice.selected)selected.push(slice.selected)
-        if(slice.after)afterItems.unshift({
+        if(hasAfter)afterItems.unshift({
           ...data.items[startIndex],
-          id:slice.before?context.createId('item'):data.items[startIndex].id,
+          id:hasBefore?context.createId('item'):data.items[startIndex].id,
           text:slice.after,
         })
       }else{
         const first=context.sliceField(start.fieldKey,{start:start.offset,end:Number.MAX_SAFE_INTEGER})
         const last=context.sliceField(end.fieldKey,{start:0,end:end.offset})
         if(!first||!last)return null
-        if(first.before)beforeItems.push({...data.items[startIndex],text:first.before})
+        if(first.before&&start.offset>0)beforeItems.push({...data.items[startIndex],text:first.before})
         if(first.selected)selected.push(first.selected)
         for(let index=startIndex+1;index<endIndex;index++)selected.push(data.items[index].text)
         if(last.selected)selected.push(last.selected)
-        if(last.after)afterItems.unshift({...data.items[endIndex],text:last.after})
+        if(last.after&&(last.length===undefined||end.offset<last.length))afterItems.unshift({...data.items[endIndex],text:last.after})
       }
 
       if(selected.length===0)return null
