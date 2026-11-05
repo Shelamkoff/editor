@@ -12,3 +12,6 @@ After retirement, four retained input/change/blur/click events are delivered syn
 All six reference bodies finish without page/input errors. v1 retains **52 differences**; baseline, immutable parent and both current policies retain zero. V1 forbids sharing one plugin object between live editors, so separate old objects exercise its real popup lifetime while current editors reuse an immutable definition. That unavailable sharing contract and missing observers are explicit. The initial exploratory process stopped before a report at that old sharing restriction; exact stderr, fixture/runner bytes and the unreached source-completion check remain archived, without inferring a current pass.
 
 Native pages pass **86 cases**, including current Color action and popup regressions; inventory is **132 native pages**. Documentation and site checks pass. Exact runtime/package identity and 115 verified Git artifacts retain all fifteen full integration gates on `c0054fb8`, with actual sources/dates. The existing lifecycle unit test is verified by its passing name in the inherited full Node log. Only Color lifetime is newly accepted; Color roundtrip and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `7a4c182e`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
