@@ -2,9 +2,21 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **158 / 209 obligations**, with **51 open**; see the [Mention and Color readonly output 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#mention-and-color-readonly-output-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **159 / 209 obligations**, with **50 open**; see the [Color native roundtrip 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#color-native-roundtrip-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Color native roundtrip 2026-11-05
+
+`INLINE_COLOR_ROUNDTRIP` is accepted on `2d98e1f7`: **159/209 obligations accepted, 50 open**. All **seven affected gates** pass on one clean unchanged source. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/color-roundtrip/README.md): **32 current executions / 784 observations**, **417 module identities** and **24 rejected corruptions**. Production is unchanged.
+
+Sixteen cases exercise native Enter before/after a Color widget and inside its same-spelling protected literal, Backspace/Delete merge with distinct/colliding references and actual system Copy/Paste between Paragraph/Columns fields in both selection directions. Selected-only sidecars, both colliding values, literal text, fresh block identities, exact source/target fields, swatches, untouched neighbours/callers and directed native caret are literal requirements. Every action remains one transaction, with exact raw keyboard Undo/Redo. Whole selected Columns content deliberately keeps its structured container, empty sibling column and local field identities; the unselected sibling widget is excluded. This existing superior behavior is retained.
+
+The preceding sealed [readonly output checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/inline-output/README.md) contributes its Color-only **24 executions / 1008 observations / 72 renderings**, on actual source `8161ce18`. Ninety Git artifacts are reverified, and the original combined raw proof is retained. It covers known/unregistered refs, own-key IDs and same-spelling literal text in detached/mounted/foreign-document output under both policies. These earlier counts are not a fresh invocation.
+
+V1 retains **86 differences** over its executed bodies; eight private Paste/Undo/Redo bodies are unexecuted because native old Copy lacks the private fragment MIME. Availability and source data are measured, without substituting an HTML fallback. Baseline retains six differences; immutable parent and both current policies retain zero. Exploratory errors and expectation changes remain with exact bytes/source/date: authoring-column selector, harmless empty literal wrapper, valid merge remapping and the intentional structured Columns clipboard contract.
+
+Native pages pass **83 cases**, including prior Paragraph and clipboard regressions; inventory is **134 native pages**, with **57 ordinary browser pages**. Documentation and site pass. Exact runtime/package identity and 115 Git-verified artifacts preserve all fifteen full integration gates on `c0054fb8`, with actual source/date. Only the remaining Color roundtrip row is newly accepted; all three Color rows are now accepted. Full readiness remains open.
 
 ## Mention and Color readonly output 2026-11-05
 

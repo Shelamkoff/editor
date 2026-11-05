@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Color native roundtrip 2026-11-05
+
+Register: **159 accepted / 50 open / 209 total**.
+
+[Color roundtrip](/architecture/rector-v2/PUBLICATION_REVIEW#color-native-roundtrip-2026-11-05) is accepted on `2d98e1f7`: 32 native executions / 784 observations, 24 corruptions and 83 native cases. Actual and literal refs survive split, colliding merge and structured system clipboard transfer. Earlier Color output evidence is retained with its actual source/date; all Color rows are accepted.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/color-roundtrip/README.md). Full readiness remains open.
+
 ## Mention and Color readonly output 2026-11-05
 
 Register: **158 accepted / 51 open / 209 total**.
