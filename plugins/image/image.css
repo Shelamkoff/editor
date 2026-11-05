@@ -141,6 +141,10 @@
   margin-left: -2rem;
   margin-right: -2rem;
 }
+.oe-image--expanded .oe-image__image-container {
+  box-sizing: border-box;
+  width: 100%;
+}
 .oe-image--expanded .oe-image__image {
   width: 100%;
   border-radius: 0;
