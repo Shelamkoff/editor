@@ -34,7 +34,7 @@ function exportText(data){
 export function createTablePlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>} */
   const capabilities=Object.freeze({
-    selectionSlice:createTextSelectionSlice(tableDataSchema),
+    selectionSlice:createTextSelectionSlice(tableDataSchema,true),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:(data,context)=>data.rows.every(row=>row.cells.every(cell=>isRichTextEmpty(cell.text,context)))}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
@@ -95,7 +95,7 @@ export function createTablePlugin(config = {}) {
           ...row,
           cells:row.cells.map(cell=>{
             const field=context.field(tableFieldKey(row.id,cell.id))
-            return field?{...cell,text:field.before+field.after}:{...cell}
+            return field?{...cell,text:field.whole?'':field.before+field.after}:{...cell}
           }),
         }))
         return {

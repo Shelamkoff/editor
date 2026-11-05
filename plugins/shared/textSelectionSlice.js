@@ -3,9 +3,10 @@
  * with each residual; the selected author text uses the neutral rich payload.
  * No DOM or editor managers participate in this pure plugin capability.
  * @param {{mapRichText:Function}} schema
+ * @param {boolean} [retainUnselectedFields] Preserve empty fields outside the range.
  * @returns {import('../../plugin-kit/types').SelectionSliceCapability<any>}
  */
-export function createTextSelectionSlice(schema) {
+export function createTextSelectionSlice(schema, retainUnselectedFields = false) {
   return Object.freeze({
     slice(data, start, end, context) {
       const fields = []
@@ -23,17 +24,23 @@ export function createTextSelectionSlice(schema) {
         if (!result) return null
         slices.set(field.key, result)
       }
-      let hasBefore = false
-      let hasAfter = false
+      const firstSlice = slices.get(fields[first].key)
+      const lastSlice = slices.get(fields[last].key)
+      // Range extraction can return empty format wrappers at a field edge.
+      // Use logical offsets to decide whether that edge has a residual.
+      const startsInsideField = start.offset > 0
+      const endsInsideField = lastSlice.length === undefined || end.offset < lastSlice.length
+      let hasBefore = retainUnselectedFields && first > 0
+      let hasAfter = retainUnselectedFields && last < fields.length - 1
       const before = schema.mapRichText(data, (html, key) => {
         const index = fields.findIndex(field => field.key === key)
-        const text = index < first ? html : index === first ? slices.get(key).before : ''
+        const text = index < first ? html : index === first && startsInsideField ? firstSlice.before : ''
         hasBefore ||= !!text
         return text
       })
       const after = schema.mapRichText(data, (html, key) => {
         const index = fields.findIndex(field => field.key === key)
-        const text = index > last ? html : index === last ? slices.get(key).after : ''
+        const text = index > last ? html : index === last && endsInsideField ? lastSlice.after : ''
         hasAfter ||= !!text
         return text
       })

@@ -62,6 +62,53 @@ test('Table selection starting below header does not make the copied first row a
   assert.deepEqual(slice.remaining.rows[0], data.rows[0])
 })
 
+test('Table clipboard clears fully selected formatting and preserves an unselected empty cell', () => {
+  const data = matrix([['<b>Title</b>', '<i></i>'], ['Footer', '']])
+  const sliced = capability.slice(data, context([
+    [tableKey(0, 0), { before: '<b></b>', selected: '<b>Title</b>', after: '', whole: true }],
+  ]))
+
+  assert.deepEqual(sliced.remaining, matrix([['', '<i></i>'], ['Footer', '']]))
+  assert.equal(sliced.parts[0].data.rows[0].cells[0].text, '<b>Title</b>')
+  assert.equal(data.rows[0].cells[0].text, '<b>Title</b>')
+})
+
+const selection = createTablePlugin({ injectStyles: false }).capabilities.selectionSlice
+const selectTitle = {
+  sliceField(key) {
+    assert.equal(key, tableKey(0, 0))
+    return { before: '<b></b>', selected: '<b>Title</b>', after: '<b></b>', length: 5 }
+  },
+}
+
+test('converting every Table field ignores empty markup at the selection boundaries', () => {
+  const sliced = selection.slice(
+    matrix([['<b>Title</b>']]),
+    { fieldKey: tableKey(0, 0), offset: 0 },
+    { fieldKey: tableKey(0, 0), offset: 5 },
+    selectTitle,
+  )
+
+  assert.deepEqual(sliced, {
+    before: null,
+    selected: { kind: 'rich-text', data: { text: '<b>Title</b>' } },
+    after: null,
+  })
+})
+
+test('converting a whole cell preserves even blank unselected Table fields', () => {
+  const sliced = selection.slice(
+    matrix([['<b>Title</b>', ''], ['', '']]),
+    { fieldKey: tableKey(0, 0), offset: 0 },
+    { fieldKey: tableKey(0, 0), offset: 5 },
+    selectTitle,
+  )
+
+  assert.equal(sliced.before, null)
+  assert.deepEqual(sliced.after, matrix([['', ''], ['', '']]))
+  assert.equal(sliced.selected.data.text, '<b>Title</b>')
+})
+
 test('Table settings append columns and rows with unique stable identities and preserve preexisting cells', () => {
   const data = matrix([['Name', 'Value'], ['A', '1']])
   const settings = createTablePlugin({ injectStyles: false }).capabilities.settings
