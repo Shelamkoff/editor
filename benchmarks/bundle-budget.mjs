@@ -70,6 +70,9 @@ async function measurePreset(preset, input) {
   const code = staticChunks.map(chunk => chunk.code).join('\n')
   const css = outputs
     .filter(item => item.type === 'asset' && item.fileName.endsWith('.css'))
+    // Asset emission follows parallel transform completion. A stable order is
+    // required before gzip: identical styles must have an identical report.
+    .sort((a, b) => a.fileName < b.fileName ? -1 : a.fileName > b.fileName ? 1 : 0)
     .map(asset => typeof asset.source === 'string' ? asset.source : Buffer.from(asset.source))
     .join('\n')
   const rawBytes = Buffer.byteLength(code) + Buffer.byteLength(css)
