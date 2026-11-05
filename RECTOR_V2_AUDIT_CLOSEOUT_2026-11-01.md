@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Code conversion 2026-11-05
+
+Register: **153 accepted / 56 open / 209 total**.
+
+[Code conversion](/architecture/rector-v2/PUBLICATION_REVIEW#code-conversion-2026-11-05) is accepted on `934fd377`: 48 executions / 888 observations, 24 rejected corruptions, seven affected gates and 109 native cases. Literal multiline source and unselected residuals survive; unsupported widget loss rejects atomically.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/code-conversion/README.md). Full readiness remains open.
+
 ## Code paste 2026-11-05
 
 Register: **152 accepted / 57 open / 209 total**.
