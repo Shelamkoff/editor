@@ -442,7 +442,9 @@ test('invalid plugin field focus preserves the current native caret and active b
 for (const fixture of pluginParityFixtures) {
   for (const spec of fixture.fields) {
     test(`${fixture.name} ${spec.key}: native input, local selection, caret and history`, async () => {
-      const editor = pluginEditor(fixture)
+      // Field preservation uses one typing gesture even on a loaded browser host.
+      // Default coalescence deadlines are verified by the dedicated history cases.
+      const editor = pluginEditor(fixture, { historyCoalesceMs: 60_000 })
       const before = editor.save().blocks
       const original = before[0].data
       equal(readPath(original, spec.path), spec.value)
