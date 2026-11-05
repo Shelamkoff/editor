@@ -9,11 +9,11 @@ The current implementation target for `refactor/rector-v2-architecture` is [the 
 3. [Architecture refinement](RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md) for unaffected behavior, then [remediation](RECTOR_V2_REMEDIATION_SPEC.md) where unaffected by refinement.
 4. Historical audits as evidence only. They are not parallel implementation targets, successful acceptance of the current commit, or permission to revive removed APIs.
 
-The [publication review](docs/architecture/rector-v2/PUBLICATION_REVIEW.md) records source identity, actual commands, cleanup scope and proof limits. The [preservation register](docs/architecture/rector-v2/PRESERVATION.md) is an open acceptance inventory, not a certificate that the refactor is finished.
+The [publication review](docs/architecture/rector-v2/PUBLICATION_REVIEW.md) records source identity, actual commands, cleanup scope and proof limits. The [preservation register](docs/architecture/rector-v2/PRESERVATION.md) records 209/209 accepted obligations after the final source-specific review on 2026-11-05. Earlier dated counts retain their historical scope.
 
 ## Readiness
 
-Readiness is per contract and slice. `B-HTML` and `B-STYLE` remain decision gates for their affected changes. `B-PRESENTATION` has the settled field-local recovery contract in specification §16.5; its implementation and dated verification are recorded in the [combined core continuation](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#combined-core-continuation-2026-10-29). Fresh v1/current/candidate differential proof is required for whole-library acceptance. A ready bug-fix slice does not make the whole library accepted.
+The [complete audit acceptance](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#complete-audit-acceptance-2026-11-05) closes C01–C12, R01–R20 and all 209 preservation obligations on immutable runtime `e88992ee` in the supported Chromium environment. B-HTML, B-STYLE and the settled field-local B-PRESENTATION proof are complete. Ten frozen integration gates, all 159 native pages, all 100 maintained differential corpora and the separate architecture-to-target comparison pass within their recorded scopes. Subsequent test/CI/documentation changes preserve the same production bytes. Superior current behavior remains; historical failures and unexecuted engines are not relabeled as passes. This is audit acceptance, not a public release receipt.
 
 Do not add a second document store, history engine, selection store, global authority manager, legacy decoder, compatibility shim, or alternate API merely to make a local repair easier. Large modules are split only at a demonstrated responsibility boundary.
 

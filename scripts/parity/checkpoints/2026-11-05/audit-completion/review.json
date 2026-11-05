@@ -1,0 +1,1100 @@
+{
+  "candidate": "e88992ee55b17e635be38a7ef715c076f6a8ac64",
+  "nativePages": 159,
+  "nativeCases": 6009,
+  "corpusCount": 100,
+  "observations": 132609,
+  "verdicts": 501,
+  "completedBodies": 3648,
+  "moduleRecords": 38248,
+  "historicalComparisonExitOne": [
+    {
+      "file": "async-presets.mjs",
+      "rawHistoricalDifferences": 98
+    },
+    {
+      "file": "alignment.mjs",
+      "rawHistoricalDifferences": 248
+    },
+    {
+      "file": "attaches-names-variants.mjs",
+      "rawHistoricalDifferences": 1546
+    },
+    {
+      "file": "bgcolor-boundary.mjs",
+      "rawHistoricalDifferences": 30
+    },
+    {
+      "file": "basic-mark-tools.mjs",
+      "rawHistoricalDifferences": 1020
+    },
+    {
+      "file": "bgcolor-tools.mjs",
+      "rawHistoricalDifferences": 301
+    },
+    {
+      "file": "code-language-highlighting.mjs",
+      "rawHistoricalDifferences": 64
+    },
+    {
+      "file": "code-controls.mjs",
+      "rawHistoricalDifferences": 54
+    },
+    {
+      "file": "code-source-language.mjs",
+      "rawHistoricalDifferences": 820
+    },
+    {
+      "file": "columns-layout-parity.mjs",
+      "rawHistoricalDifferences": 762
+    },
+    {
+      "file": "continuation-authority.mjs",
+      "rawHistoricalDifferences": 15
+    },
+    {
+      "file": "decode-authority.mjs",
+      "rawHistoricalDifferences": 66
+    },
+    {
+      "file": "delimiter-structure.mjs",
+      "rawHistoricalDifferences": 32
+    },
+    {
+      "file": "disclosure-state.mjs",
+      "rawHistoricalDifferences": 39
+    },
+    {
+      "file": "document-lifecycle.mjs",
+      "rawHistoricalDifferences": 196
+    },
+    {
+      "file": "element-range.mjs",
+      "rawHistoricalDifferences": 156
+    },
+    {
+      "file": "embed-metadata.mjs",
+      "rawHistoricalDifferences": 7
+    },
+    {
+      "file": "embed-preview-timeout.mjs",
+      "rawHistoricalDifferences": 8
+    },
+    {
+      "file": "extension-tasks.mjs",
+      "rawHistoricalDifferences": 58
+    },
+    {
+      "file": "embed-services.mjs",
+      "rawHistoricalDifferences": 97
+    },
+    {
+      "file": "fontsize-boundary.mjs",
+      "rawHistoricalDifferences": 12
+    },
+    {
+      "file": "fontsize-reset-boundary.mjs",
+      "rawHistoricalDifferences": 58
+    },
+    {
+      "file": "gallery-viewer-captions.mjs",
+      "rawHistoricalDifferences": 24
+    },
+    {
+      "file": "fontsize-tools.mjs",
+      "rawHistoricalDifferences": 616
+    },
+    {
+      "file": "i18n-contexts.mjs",
+      "rawHistoricalDifferences": 16
+    },
+    {
+      "file": "i18n-counts.mjs",
+      "rawHistoricalDifferences": 412
+    },
+    {
+      "file": "link-preview-metadata.mjs",
+      "rawHistoricalDifferences": 167
+    },
+    {
+      "file": "link-preview-templates.mjs",
+      "rawHistoricalDifferences": 99
+    },
+    {
+      "file": "link-tool.mjs",
+      "rawHistoricalDifferences": 365
+    },
+    {
+      "file": "link-preview-navigation.mjs",
+      "rawHistoricalDifferences": 60
+    },
+    {
+      "file": "mode-recovery.mjs",
+      "rawHistoricalDifferences": 87
+    },
+    {
+      "file": "optional-inline.mjs",
+      "rawHistoricalDifferences": 45
+    },
+    {
+      "file": "person-modes.mjs",
+      "rawHistoricalDifferences": 6173
+    },
+    {
+      "file": "presentation-authority.mjs",
+      "rawHistoricalDifferences": 57
+    },
+    {
+      "file": "public-destroy.mjs",
+      "rawHistoricalDifferences": 176
+    },
+    {
+      "file": "public-readonly.mjs",
+      "rawHistoricalDifferences": 48
+    },
+    {
+      "file": "public-selection.mjs",
+      "rawHistoricalDifferences": 68
+    },
+    {
+      "file": "public-snapshots.mjs",
+      "rawHistoricalDifferences": 28
+    },
+    {
+      "file": "public-structure.mjs",
+      "rawHistoricalDifferences": 145
+    },
+    {
+      "file": "quote-fields.mjs",
+      "rawHistoricalDifferences": 100
+    },
+    {
+      "file": "raw-srcset.mjs",
+      "rawHistoricalDifferences": 194
+    },
+    {
+      "file": "raw-source-preview.mjs",
+      "rawHistoricalDifferences": 512
+    },
+    {
+      "file": "renderer-lifetimes.mjs",
+      "rawHistoricalDifferences": 130
+    },
+    {
+      "file": "slash-menu.mjs",
+      "rawHistoricalDifferences": 97
+    },
+    {
+      "file": "slash-revocation.mjs",
+      "rawHistoricalDifferences": 66
+    },
+    {
+      "file": "slash-scroll.mjs",
+      "rawHistoricalDifferences": 158
+    },
+    {
+      "file": "script-tools.mjs",
+      "rawHistoricalDifferences": 1804
+    },
+    {
+      "file": "table-keyboard-parity.mjs",
+      "rawHistoricalDifferences": 960
+    },
+    {
+      "file": "table-settings-parity.mjs",
+      "rawHistoricalDifferences": 74
+    },
+    {
+      "file": "task-authority.mjs",
+      "rawHistoricalDifferences": 60
+    },
+    {
+      "file": "text-block-settings.mjs",
+      "rawHistoricalDifferences": 850
+    },
+    {
+      "file": "tool-actions.mjs",
+      "rawHistoricalDifferences": 592
+    },
+    {
+      "file": "warning-fields.mjs",
+      "rawHistoricalDifferences": 103
+    }
+  ],
+  "nativeFollowups": [
+    {
+      "round": "followups",
+      "page": "native-color-lifetime-trusted.html",
+      "code": 0,
+      "passed": true,
+      "passedCases": 7,
+      "durationMs": 25118
+    },
+    {
+      "round": "followups",
+      "page": "native-person-modes.html",
+      "code": 0,
+      "passed": true,
+      "passedCases": 28,
+      "durationMs": 45517
+    },
+    {
+      "round": "followups",
+      "page": "native-plugin-parity.html",
+      "code": 1,
+      "passed": false,
+      "passedCases": null,
+      "durationMs": 145321
+    },
+    {
+      "round": "followups",
+      "page": "native-color-lifetime.html",
+      "code": 0,
+      "passed": true,
+      "passedCases": 6,
+      "durationMs": 27942
+    },
+    {
+      "round": "followups-second",
+      "page": "native-plugin-parity.html",
+      "code": 0,
+      "passed": true,
+      "passedCases": 345,
+      "fixtureCommit": "2e2d61e48aac78ba8805ac2637aede0ec3f83685"
+    }
+  ],
+  "corpusFollowups": [
+    {
+      "file": "link-preview-metadata.mjs",
+      "code": 1,
+      "candidatePass": true,
+      "parseError": null,
+      "timedOut": false,
+      "durationMs": 22418
+    },
+    {
+      "file": "slash-menu.mjs",
+      "code": 1,
+      "candidatePass": true,
+      "parseError": null,
+      "timedOut": false,
+      "durationMs": 52608
+    },
+    {
+      "file": "table-keyboard-parity.mjs",
+      "code": 1,
+      "candidatePass": true,
+      "parseError": null,
+      "timedOut": false,
+      "durationMs": 85557
+    }
+  ],
+  "colorSupplement": {
+    "observations": 518,
+    "verdicts": 0,
+    "completedBodies": 12,
+    "moduleRecords": 389
+  },
+  "corpora": [
+    {
+      "file": "async-presets.mjs",
+      "reportSha256": "597854b2190175c4bb80c79282eabfa9d3e1dd950bd8bf00bd7dd8b050a72378",
+      "observations": 1980,
+      "verdicts": 0,
+      "completedBodies": 262,
+      "moduleRecords": 780
+    },
+    {
+      "file": "attaches-files.mjs",
+      "reportSha256": "7359860b463c04b0377440ac59eee1b340d8a035f03cff33e62c8e8cf80909ef",
+      "observations": 2189,
+      "verdicts": 147,
+      "completedBodies": 0,
+      "moduleRecords": 485
+    },
+    {
+      "file": "alignment.mjs",
+      "reportSha256": "b975c04ca4fa4144ecad8c1d1d85b7ab817915bebc5356a447ba2b51e746cf75",
+      "observations": 2520,
+      "verdicts": 0,
+      "completedBodies": 80,
+      "moduleRecords": 350
+    },
+    {
+      "file": "attaches-names-variants.mjs",
+      "reportSha256": "753fcbe752764b9fb44177fe1ec2a38ec1e9d12a14d4d7e79d017be9d35c3749",
+      "observations": 2967,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 485
+    },
+    {
+      "file": "bgcolor-boundary.mjs",
+      "reportSha256": "293e26fc47dfffcd2df2ef8830fe243d46e31edca04ce099833e3ecc95d2dcc7",
+      "observations": 126,
+      "verdicts": 0,
+      "completedBodies": 6,
+      "moduleRecords": 319
+    },
+    {
+      "file": "bgcolor-realm.mjs",
+      "reportSha256": "4a31249d8c2987fe883dd887746e7c550477c1ac250bc7aa7da72e3a78a09e53",
+      "observations": 334,
+      "verdicts": 0,
+      "completedBodies": 12,
+      "moduleRecords": 110
+    },
+    {
+      "file": "basic-mark-tools.mjs",
+      "reportSha256": "fcd10e631cc9dc3edaa5c15b0675541ae831a59d40b377c25d610beaf2756569",
+      "observations": 4494,
+      "verdicts": 0,
+      "completedBodies": 96,
+      "moduleRecords": 350
+    },
+    {
+      "file": "bgcolor-tools.mjs",
+      "reportSha256": "d7433ab894b350fa3276b8a384740cedb04ea2d554275905397b3318495dceb7",
+      "observations": 3322,
+      "verdicts": 0,
+      "completedBodies": 61,
+      "moduleRecords": 339
+    },
+    {
+      "file": "checklist-merge.mjs",
+      "reportSha256": "7b2da204d563af3d25f364714527a250131220c94dcb0aa3be19866f836b3416",
+      "observations": 576,
+      "verdicts": 0,
+      "completedBodies": 24,
+      "moduleRecords": 407
+    },
+    {
+      "file": "checklist-edit.mjs",
+      "reportSha256": "27544849905bf26f2c74a4bc9bf763e4a4ddb3ea44bd8705af10b03c6c5b66a2",
+      "observations": 1920,
+      "verdicts": 0,
+      "completedBodies": 96,
+      "moduleRecords": 407
+    },
+    {
+      "file": "code-conversion.mjs",
+      "reportSha256": "fad675868c62b26e4f63783e1ead74b870a752f1168a0493b2852a17b42d7b88",
+      "observations": 888,
+      "verdicts": 0,
+      "completedBodies": 48,
+      "moduleRecords": 547
+    },
+    {
+      "file": "code-language-highlighting.mjs",
+      "reportSha256": "84a9e87e5c73b17b6442087301e8b3bf8a7bbf95b4520daa2dd4d950f345e2cc",
+      "observations": 186,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 381
+    },
+    {
+      "file": "code-controls.mjs",
+      "reportSha256": "9eb4cf8b9ae7b841fdb25db35c0195632121dd4c5f3fcef9af691393a2aaca20",
+      "observations": 573,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 633
+    },
+    {
+      "file": "code-source-language.mjs",
+      "reportSha256": "80c7213bed37d6ad6bee6222d10a47064ea2eb99cf08eab18814e1a7709b77b7",
+      "observations": 2062,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 304
+    },
+    {
+      "file": "code-paste.mjs",
+      "reportSha256": "6190c1bcdcc70f29c68d344690ddd3a776dfaa45676968c98dafdd6149648cda",
+      "observations": 1664,
+      "verdicts": 0,
+      "completedBodies": 64,
+      "moduleRecords": 413
+    },
+    {
+      "file": "color-lifetime.mjs",
+      "reportSha256": "a6b6f749e892c018bfd8005f158d207aa52d48b76b2cf38774be0d53b703067d",
+      "observations": 518,
+      "verdicts": 0,
+      "completedBodies": 12,
+      "moduleRecords": 389
+    },
+    {
+      "file": "color-actions.mjs",
+      "reportSha256": "562ae2527d3a48ce6865ad94e050abde1864310f5c35ab28e426cec7362d37bb",
+      "observations": 1142,
+      "verdicts": 0,
+      "completedBodies": 56,
+      "moduleRecords": 389
+    },
+    {
+      "file": "columns-empty-layout.mjs",
+      "reportSha256": "4063eda8d4e09fea86ed8c49d31ee58202ba2367c6576e7e5f5c8d7893476306",
+      "observations": 264,
+      "verdicts": 0,
+      "completedBodies": 16,
+      "moduleRecords": 665
+    },
+    {
+      "file": "color-roundtrip.mjs",
+      "reportSha256": "c59da4ac829424ef9bae054d8fe96dac4f76ed03ce36dc6081a80e6075082dcd",
+      "observations": 784,
+      "verdicts": 0,
+      "completedBodies": 32,
+      "moduleRecords": 417
+    },
+    {
+      "file": "columns-layout-parity.mjs",
+      "reportSha256": "a4e92cda632daa8c8300b6bf3da0848501cf1b8bf64a740af9dc332951134476",
+      "observations": 2880,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 495
+    },
+    {
+      "file": "columns-field-conversion.mjs",
+      "reportSha256": "7f7d03959b93cf06eeb7f1858efcfa72e44e6c4ec709bd94f4c1b598648ab34c",
+      "observations": 624,
+      "verdicts": 0,
+      "completedBodies": 36,
+      "moduleRecords": 417
+    },
+    {
+      "file": "compound-cut-merge.mjs",
+      "reportSha256": "186afec536f26cdb279b26d27867ff41eabe0075e7d18b38befa35015ff1f780",
+      "observations": 288,
+      "verdicts": 0,
+      "completedBodies": 16,
+      "moduleRecords": 441
+    },
+    {
+      "file": "columns-rich-fields.mjs",
+      "reportSha256": "bff392fe7e68c08e53e02d194bb5f68c8bb49da79fc09db94e6c8127b34f5c4a",
+      "observations": 1134,
+      "verdicts": 0,
+      "completedBodies": 54,
+      "moduleRecords": 465
+    },
+    {
+      "file": "compound-residual-cut.mjs",
+      "reportSha256": "3278efa8e482d07de308e1d04628d30a9d35d0e8e3d0e3d8fd3a797c0ccac1d0",
+      "observations": 1680,
+      "verdicts": 0,
+      "completedBodies": 72,
+      "moduleRecords": 429
+    },
+    {
+      "file": "continuation-authority.mjs",
+      "reportSha256": "5f972e529e1fdfdd6d841ba466756278a91923150e0eb6a0b4fe96ec3dc4efcb",
+      "observations": 230,
+      "verdicts": 22,
+      "completedBodies": 0,
+      "moduleRecords": 275
+    },
+    {
+      "file": "decode-authority.mjs",
+      "reportSha256": "b79ae130cd9d93f269476a7de1108f10c55510f27a49bfbf4f231d82c4b8d707",
+      "observations": 215,
+      "verdicts": 24,
+      "completedBodies": 0,
+      "moduleRecords": 458
+    },
+    {
+      "file": "compound-merge.mjs",
+      "reportSha256": "83c5f94dad549046082e9d58e1e38da96b892c48c481678a97312e8ee45adca4",
+      "observations": 2688,
+      "verdicts": 0,
+      "completedBodies": 224,
+      "moduleRecords": 441
+    },
+    {
+      "file": "deferred-projection-loading.mjs",
+      "reportSha256": "23ca1f4355e674e5662f3ae19cbdccb93e245584e17f1e45952fdccc358af797",
+      "observations": 0,
+      "verdicts": 52,
+      "completedBodies": 0,
+      "moduleRecords": 0
+    },
+    {
+      "file": "delimiter-structure.mjs",
+      "reportSha256": "490065d97b14ea71dd5612417eef937b9807152d57c5173074c7e37d745b430a",
+      "observations": 548,
+      "verdicts": 0,
+      "completedBodies": 20,
+      "moduleRecords": 472
+    },
+    {
+      "file": "disclosure-state.mjs",
+      "reportSha256": "70121d563dfc7c8d39126a5e6e21e702d184c6a3b932e2b896fb47406114a493",
+      "observations": 468,
+      "verdicts": 0,
+      "completedBodies": 18,
+      "moduleRecords": 308
+    },
+    {
+      "file": "document-lifecycle.mjs",
+      "reportSha256": "755c75002638c7d9de6dd13086c0fe561ca08524df50be031ae3caeece47df62",
+      "observations": 944,
+      "verdicts": 0,
+      "completedBodies": 34,
+      "moduleRecords": 281
+    },
+    {
+      "file": "element-range.mjs",
+      "reportSha256": "a78a14ed81e6152f59f2210059754fbbe9e15b330ac8c3c576acc8a69cfacc8f",
+      "observations": 324,
+      "verdicts": 0,
+      "completedBodies": 20,
+      "moduleRecords": 321
+    },
+    {
+      "file": "disclosure-fields.mjs",
+      "reportSha256": "5b876a3925d3eab9d25c950dfe69847982734fe92411f93842dbb37dc4797718",
+      "observations": 2236,
+      "verdicts": 0,
+      "completedBodies": 56,
+      "moduleRecords": 466
+    },
+    {
+      "file": "embed-metadata.mjs",
+      "reportSha256": "4eae2b1aa0ff889bbe3ec9740a6a9d76594581b9caab15deb260e22672013444",
+      "observations": 1934,
+      "verdicts": 0,
+      "completedBodies": 84,
+      "moduleRecords": 297
+    },
+    {
+      "file": "embed-preview-timeout.mjs",
+      "reportSha256": "a42673c0145c534fdf406a6e2e97c3f583e00ef3a9dac2aea126ee5d27621d8b",
+      "observations": 25,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 297
+    },
+    {
+      "file": "embed-player-lifetime.mjs",
+      "reportSha256": "79a57642a5d5ae333e63b57bfed16727c296a144b6d4e94d93232e17a9d9352c",
+      "observations": 1380,
+      "verdicts": 0,
+      "completedBodies": 60,
+      "moduleRecords": 297
+    },
+    {
+      "file": "extension-tasks.mjs",
+      "reportSha256": "deec0c63ca318f73578f4422e5f2b04f2bdbd2c01b9512bfb58a78ecf4e02614",
+      "observations": 1116,
+      "verdicts": 0,
+      "completedBodies": 24,
+      "moduleRecords": 275
+    },
+    {
+      "file": "embed-services.mjs",
+      "reportSha256": "72d7ce97f8ad1fbd02cd61d6acafa1d0c661b692b23b021001cc9f7bb8e4003c",
+      "observations": 1184,
+      "verdicts": 0,
+      "completedBodies": 102,
+      "moduleRecords": 470
+    },
+    {
+      "file": "fontsize-boundary.mjs",
+      "reportSha256": "7b7c61a0a5f9537c97d5d3848853306290f624027d156688f52f3f68282c1312",
+      "observations": 126,
+      "verdicts": 0,
+      "completedBodies": 6,
+      "moduleRecords": 319
+    },
+    {
+      "file": "fontsize-reset-boundary.mjs",
+      "reportSha256": "4ff8b0f653ddb14cbac80d1110e0747b9f162423a0868cdc845becd97a855eb4",
+      "observations": 416,
+      "verdicts": 0,
+      "completedBodies": 16,
+      "moduleRecords": 319
+    },
+    {
+      "file": "gallery-viewer-captions.mjs",
+      "reportSha256": "f81509492fc511810d102548370422961de3a88c7ac8efebf359ece5b3d0cfa6",
+      "observations": 26,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 267
+    },
+    {
+      "file": "heading-conversion.mjs",
+      "reportSha256": "1ca031308760609f17e0bb84f819da70f8613f3665d25525b4fc1d5a7bfd89fa",
+      "observations": 1200,
+      "verdicts": 0,
+      "completedBodies": 60,
+      "moduleRecords": 408
+    },
+    {
+      "file": "fontsize-tools.mjs",
+      "reportSha256": "454e0281cb301c2a1254f54b6a44e896fab1afb84ff1e040c42be94c0b7713c3",
+      "observations": 6561,
+      "verdicts": 0,
+      "completedBodies": 117,
+      "moduleRecords": 339
+    },
+    {
+      "file": "heading-paste.mjs",
+      "reportSha256": "c563ee622eb13a457a09d2f6c378ea39947c38c3d0e67f5c461a28f9c4de98c4",
+      "observations": 1800,
+      "verdicts": 0,
+      "completedBodies": 72,
+      "moduleRecords": 408
+    },
+    {
+      "file": "history-gestures.mjs",
+      "reportSha256": "f04fbc710a1368be949962f3be9f691feda931aecbed20b5bb1fc27a29747932",
+      "observations": 796,
+      "verdicts": 0,
+      "completedBodies": 40,
+      "moduleRecords": 380
+    },
+    {
+      "file": "heading-structure.mjs",
+      "reportSha256": "29e0524c8191194d91b5e72331c870abd7b4906e35a66e8799c3836737b06b51",
+      "observations": 1832,
+      "verdicts": 0,
+      "completedBodies": 84,
+      "moduleRecords": 408
+    },
+    {
+      "file": "html-logical-viewport.mjs",
+      "reportSha256": "eda5f5f5e863b0b1ead969d5e0dd8667d7ed4f6c45678a19cb34607233fd2b4a",
+      "observations": 0,
+      "verdicts": 6,
+      "completedBodies": 0,
+      "moduleRecords": 0
+    },
+    {
+      "file": "html-resource-effects.mjs",
+      "reportSha256": "7496fe7e40f1df325988dfc130c9fb85a2fe67697b44081796fad34f3694ef5f",
+      "observations": 0,
+      "verdicts": 24,
+      "completedBodies": 0,
+      "moduleRecords": 0
+    },
+    {
+      "file": "html-responsive-content.mjs",
+      "reportSha256": "a5269dc39997f9d7f3a059d3cae390ab21f36aa0298b8338f6fc8b09e72d9f87",
+      "observations": 20,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 0
+    },
+    {
+      "file": "html-content-navigation.mjs",
+      "reportSha256": "f3d40beea507e0e5da78489d180eaca3b2ddd158b6c05a5c18cc924110e0089f",
+      "observations": 0,
+      "verdicts": 72,
+      "completedBodies": 0,
+      "moduleRecords": 0
+    },
+    {
+      "file": "html-targets.mjs",
+      "reportSha256": "f71f45f89a59117ed7085451fde26e6d38fe1e5835b92b41fae8783be5f21af9",
+      "observations": 0,
+      "verdicts": 12,
+      "completedBodies": 0,
+      "moduleRecords": 452
+    },
+    {
+      "file": "i18n-contexts.mjs",
+      "reportSha256": "841b4cf9e23cec80fb968ae6aca478b6f673f0eb78afdef309ad3ad806d167bb",
+      "observations": 346,
+      "verdicts": 0,
+      "completedBodies": 12,
+      "moduleRecords": 471
+    },
+    {
+      "file": "i18n-counts.mjs",
+      "reportSha256": "2d33d3647598daaefa86d8d3201386052e98c5e007b55e78a00f44e2df5ee222",
+      "observations": 1638,
+      "verdicts": 0,
+      "completedBodies": 178,
+      "moduleRecords": 880
+    },
+    {
+      "file": "ime-lifecycle.mjs",
+      "reportSha256": "c4e19437fd9995d89f6781dd922f69dce011a4db6fa68df887e6edff3e0cdb1f",
+      "observations": 360,
+      "verdicts": 0,
+      "completedBodies": 16,
+      "moduleRecords": 380
+    },
+    {
+      "file": "image-functional.mjs",
+      "reportSha256": "ea6cb7844996d3219de8fcf9d9d149e0d7301d45edbfb2d637e1a1374d48ac63",
+      "observations": 798,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 716
+    },
+    {
+      "file": "inline-output.mjs",
+      "reportSha256": "7a80879a5357ab3df9be735eec4b363ccaf33f979cf1c06b68b4436bb3264550",
+      "observations": 2016,
+      "verdicts": 0,
+      "completedBodies": 48,
+      "moduleRecords": 686
+    },
+    {
+      "file": "link-preview-metadata.mjs",
+      "reportSha256": "d18db77b24ed9d676c603f467e8e1a1ff8b02ca4acea5ebc0b285321788b57a3",
+      "observations": 523,
+      "verdicts": 0,
+      "completedBodies": 22,
+      "moduleRecords": 287
+    },
+    {
+      "file": "link-preview-templates.mjs",
+      "reportSha256": "ad9dec042e94216d2f4a94511a62300e31cf3d3b5eef16954feeaa2962abb027",
+      "observations": 458,
+      "verdicts": 0,
+      "completedBodies": 14,
+      "moduleRecords": 482
+    },
+    {
+      "file": "link-tool.mjs",
+      "reportSha256": "8f18f7ed0d2a7a2f9fd2685091bdcdb7b205cb92a93391b9371d1c59e42bf098",
+      "observations": 8988,
+      "verdicts": 0,
+      "completedBodies": 146,
+      "moduleRecords": 339
+    },
+    {
+      "file": "link-preview-navigation.mjs",
+      "reportSha256": "6fa3f14fe09cd367ee2445ff1d64ba647d3dcd23095c37c36b94ab965a59fa44",
+      "observations": 950,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 468
+    },
+    {
+      "file": "list-conversion.mjs",
+      "reportSha256": "d9a27a5e099b452e6bcb94aa52ee8cf186d28b91fe246790643b7d0f64df4cdc",
+      "observations": 960,
+      "verdicts": 0,
+      "completedBodies": 48,
+      "moduleRecords": 407
+    },
+    {
+      "file": "list-edit.mjs",
+      "reportSha256": "b54647322abcd473fbe9c5a767bcb864fe167f2cab4695db7b21350a9c797650",
+      "observations": 1440,
+      "verdicts": 0,
+      "completedBodies": 72,
+      "moduleRecords": 407
+    },
+    {
+      "file": "mention-lifetime.mjs",
+      "reportSha256": "f9fb3d3431446c3b9eed2589bdcdde24f66fc57d1c06bc9a977374d1ee06c3ab",
+      "observations": 566,
+      "verdicts": 0,
+      "completedBodies": 16,
+      "moduleRecords": 396
+    },
+    {
+      "file": "mention-label.mjs",
+      "reportSha256": "200c6433cf8f76d07677bf31079fb7cc8a01601b068019afd2a120487f516811",
+      "observations": 1200,
+      "verdicts": 0,
+      "completedBodies": 52,
+      "moduleRecords": 396
+    },
+    {
+      "file": "mode-recovery.mjs",
+      "reportSha256": "be6e23c05140bbdb9373775129a73d2b030cd26b0ba24b6dabbfa34190cff73c",
+      "observations": 762,
+      "verdicts": 58,
+      "completedBodies": 0,
+      "moduleRecords": 275
+    },
+    {
+      "file": "mention-query.mjs",
+      "reportSha256": "7f48e112dc7558b3b6f82ffa4f9460c77b59eb9ed7f13ea0ba53457e3d3a9423",
+      "observations": 770,
+      "verdicts": 0,
+      "completedBodies": 30,
+      "moduleRecords": 396
+    },
+    {
+      "file": "optional-inline.mjs",
+      "reportSha256": "b924c44ccdeb9a4c2f9b3450660ef75d5a674078ccabdb1fecc44099a2041e9c",
+      "observations": 339,
+      "verdicts": 30,
+      "completedBodies": 0,
+      "moduleRecords": 275
+    },
+    {
+      "file": "native-typing.mjs",
+      "reportSha256": "49fa5a909c1bf456f6aa2d763c431c7b1a38c1b8e6b9de348bd4a501635d226f",
+      "observations": 812,
+      "verdicts": 0,
+      "completedBodies": 28,
+      "moduleRecords": 380
+    },
+    {
+      "file": "paragraph-structure.mjs",
+      "reportSha256": "00d8b64d5f3c85a756be2d359966d9c14ee9c225a5a1a719df2d7183440f9720",
+      "observations": 424,
+      "verdicts": 0,
+      "completedBodies": 24,
+      "moduleRecords": 389
+    },
+    {
+      "file": "person-modes.mjs",
+      "reportSha256": "d34a1b41bd982174bf7ab9511e98e081054745d808110236793e764f09e0467a",
+      "observations": 5497,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 327
+    },
+    {
+      "file": "poll-author-local.mjs",
+      "reportSha256": "c5c3ee3db9ec1d5be138f9c39fe0936d76a94ddc036412a21018a89638a8e202",
+      "observations": 1038,
+      "verdicts": 0,
+      "completedBodies": 52,
+      "moduleRecords": 409
+    },
+    {
+      "file": "poll-voter-summary.mjs",
+      "reportSha256": "48dee5a8481abbab6e6a415730f52d31d6537f440df440db3d80ef4091161d9a",
+      "observations": 384,
+      "verdicts": 0,
+      "completedBodies": 24,
+      "moduleRecords": 775
+    },
+    {
+      "file": "presentation-authority.mjs",
+      "reportSha256": "848a0ad6e321cf9767437a35a5b23501c7e4bc536879fa0042ecb7e2bb5b4661",
+      "observations": 208,
+      "verdicts": 20,
+      "completedBodies": 0,
+      "moduleRecords": 281
+    },
+    {
+      "file": "public-destroy.mjs",
+      "reportSha256": "fdd057c15be369b228d0690542c0d7fc14e116bc8a05c1b04d0d133ce1a0a223",
+      "observations": 536,
+      "verdicts": 0,
+      "completedBodies": 8,
+      "moduleRecords": 281
+    },
+    {
+      "file": "poll-remote.mjs",
+      "reportSha256": "9ab672ef04e688478b1df09e36287acbff4a7d849a7d87e1d161da0ee26a8aa6",
+      "observations": 1408,
+      "verdicts": 0,
+      "completedBodies": 60,
+      "moduleRecords": 659
+    },
+    {
+      "file": "public-readonly.mjs",
+      "reportSha256": "88b64ce1645172ceef99e63596369a6a9fdea40e8f948f14579af9650723f0ed",
+      "observations": 1152,
+      "verdicts": 0,
+      "completedBodies": 24,
+      "moduleRecords": 308
+    },
+    {
+      "file": "public-events.mjs",
+      "reportSha256": "9db5d5319734482977941fb141ed340d2f1692168da866e5ee07eac548816f8e",
+      "observations": 3172,
+      "verdicts": 0,
+      "completedBodies": 122,
+      "moduleRecords": 275
+    },
+    {
+      "file": "public-selection.mjs",
+      "reportSha256": "12b21ab7e6bfaf5287a614f8db1f50482433d78a5132361c8ef0b894941105ed",
+      "observations": 1142,
+      "verdicts": 0,
+      "completedBodies": 44,
+      "moduleRecords": 275
+    },
+    {
+      "file": "public-snapshots.mjs",
+      "reportSha256": "f11409f60a09ac90df70cbccab66a191c346e8d1d1f9bf9e8106173732b72cf6",
+      "observations": 333,
+      "verdicts": 0,
+      "completedBodies": 26,
+      "moduleRecords": 275
+    },
+    {
+      "file": "public-structure.mjs",
+      "reportSha256": "87078d7b7362c99460a8a5efb060439026dca56117619bf4d98116d745241720",
+      "observations": 1192,
+      "verdicts": 0,
+      "completedBodies": 58,
+      "moduleRecords": 286
+    },
+    {
+      "file": "quote-fields.mjs",
+      "reportSha256": "579927d366a323d84f25625e89dc767bbf5bf53d8270331b5841a7974a448553",
+      "observations": 944,
+      "verdicts": 0,
+      "completedBodies": 32,
+      "moduleRecords": 456
+    },
+    {
+      "file": "raw-srcset.mjs",
+      "reportSha256": "9ba2046d1279190f0f80212a35c1a3c10cc501e5e00c0ffd3e1eb469d6c43506",
+      "observations": 165,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 14
+    },
+    {
+      "file": "raw-source-preview.mjs",
+      "reportSha256": "ad5606dce0b002702a327efe34cc5b0daa8d5836ce176395b6bb7187f84e0c9e",
+      "observations": 1421,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 304
+    },
+    {
+      "file": "renderer-lifetimes.mjs",
+      "reportSha256": "c14c1c1b2b479b0d93c15dd9bb8edc5124c71f8c7ed3062c6fd12700658172a6",
+      "observations": 302,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 322
+    },
+    {
+      "file": "renderer-errors.mjs",
+      "reportSha256": "4ccd3a64434d74d6e839375e4071ca2868f19079fc1e4c426d9c116f84cfa814",
+      "observations": 6918,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 322
+    },
+    {
+      "file": "slash-menu.mjs",
+      "reportSha256": "64108ebac12d7f2558de178d5aa4bd9c931da763eadca75ef4d2947b14d2d595",
+      "observations": 654,
+      "verdicts": 0,
+      "completedBodies": 22,
+      "moduleRecords": 399
+    },
+    {
+      "file": "slash-revocation.mjs",
+      "reportSha256": "374405dedaf049d37dbb72e0cd06521797500d3fc31449d78961b3bc63d1b72b",
+      "observations": 264,
+      "verdicts": 0,
+      "completedBodies": 8,
+      "moduleRecords": 399
+    },
+    {
+      "file": "slash-scroll.mjs",
+      "reportSha256": "c93e2fc95f9e2b7599b830dac0b3d7516e855651501768f191c0e59fb91dbfc2",
+      "observations": 292,
+      "verdicts": 0,
+      "completedBodies": 8,
+      "moduleRecords": 399
+    },
+    {
+      "file": "script-tools.mjs",
+      "reportSha256": "66edee63199c2d706984cba967871eab08b5d91ea88ed33cd0761587e4e893d9",
+      "observations": 6400,
+      "verdicts": 0,
+      "completedBodies": 128,
+      "moduleRecords": 350
+    },
+    {
+      "file": "table-keyboard-parity.mjs",
+      "reportSha256": "c01ede0f220454bd500c24b7f37aff9810041812220b0b25ae5b51d16f1bd2a3",
+      "observations": 3435,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 660
+    },
+    {
+      "file": "table-cells.mjs",
+      "reportSha256": "72e897c595d4925e49449e91cf35270563e1cdb769af689f5d38077ea966fd3e",
+      "observations": 2064,
+      "verdicts": 0,
+      "completedBodies": 16,
+      "moduleRecords": 665
+    },
+    {
+      "file": "table-settings-parity.mjs",
+      "reportSha256": "bcd850034e26c7d503587ad527d936fda5c9d4da3cb1bca7a586593d3b2b6459",
+      "observations": 1346,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 490
+    },
+    {
+      "file": "task-authority.mjs",
+      "reportSha256": "631b6a1638efaa7f734f826bc9477f92df9fec5cb1f7044a746f85f89319e3b1",
+      "observations": 333,
+      "verdicts": 34,
+      "completedBodies": 0,
+      "moduleRecords": 275
+    },
+    {
+      "file": "table-transfer.mjs",
+      "reportSha256": "70c58e1a16a9e99412dd852396af7b94477e900cfc7e2a00722f7dadfac6797e",
+      "observations": 744,
+      "verdicts": 0,
+      "completedBodies": 48,
+      "moduleRecords": 409
+    },
+    {
+      "file": "text-block-settings.mjs",
+      "reportSha256": "bc4cc61f1d19c2e82068506521f038a53f6893e8be427ec7887b509bf89cf8aa",
+      "observations": 2323,
+      "verdicts": 0,
+      "completedBodies": 0,
+      "moduleRecords": 504
+    },
+    {
+      "file": "transaction-atomicity.mjs",
+      "reportSha256": "45efbd7a1db2cc7dabd6f6654f33f5cee890732a9053bdb763f8ef19e9b5df60",
+      "observations": 252,
+      "verdicts": 0,
+      "completedBodies": 20,
+      "moduleRecords": 116
+    },
+    {
+      "file": "warning-conversion.mjs",
+      "reportSha256": "3dca4604c592d80864d8ef89b68de51251b7619908823c2a8e8f4bc544394372",
+      "observations": 416,
+      "verdicts": 0,
+      "completedBodies": 24,
+      "moduleRecords": 407
+    },
+    {
+      "file": "tool-actions.mjs",
+      "reportSha256": "c9a2db4bc6925898ca43f7e5471aa964728507391e8ab99444784062fe7ed8e4",
+      "observations": 2072,
+      "verdicts": 0,
+      "completedBodies": 48,
+      "moduleRecords": 339
+    },
+    {
+      "file": "warning-fields.mjs",
+      "reportSha256": "5b79ab96ed0fa47366b5f262f3f11bf6cd42a4f35a180f64466e21dcec098f51",
+      "observations": 996,
+      "verdicts": 0,
+      "completedBodies": 34,
+      "moduleRecords": 455
+    },
+    {
+      "file": "warning-merge.mjs",
+      "reportSha256": "c8475228bdcebd9af34e24d4693550054219a248c4a016fe330620bc9ef993eb",
+      "observations": 672,
+      "verdicts": 0,
+      "completedBodies": 56,
+      "moduleRecords": 407
+    }
+  ]
+}

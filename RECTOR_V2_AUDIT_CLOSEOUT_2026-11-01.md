@@ -1,4 +1,24 @@
-# Rector v2 audit closeout — active work
+# Rector v2 audit closeout — complete
+
+## Complete acceptance — 2026-11-05
+
+**209/209 accepted; zero open in the supported Chromium scope.** Final runtime
+`e88992ee55b17e635be38a7ef715c076f6a8ac64` passes ten frozen integration gates,
+2247 Node tests, 159 native pages / 6009 cases, all 100 maintained comparative
+corpora, 65 common roundtrips and 65 HTML layer controls. The separate C01–C12 /
+R01–R20 architecture-to-target comparison is complete, including B-HTML,
+B-STYLE, field-local presentation recovery and measured structural/resource
+proof. No material unresolved convergence finding remains.
+
+The [complete audit acceptance](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#complete-audit-acceptance-2026-11-05) retains source/fixture/dependency identities, raw failures,
+53 attributable historical-reference exit-1 processes, complete follow-ups and
+all comparative distributions. Superior current behavior is preserved. Later
+input/CI/documentation commits do not change production bytes. Completed code
+packets and the final acceptance are pushed to `refactor/rector-v2-architecture`.
+This does not claim unexecuted engines or a published package release.
+
+The entries below are historical continuation records with their original
+counts and sources; their former open status is superseded by this acceptance.
 
 ## Detailed media completion — 2026-11-05
 

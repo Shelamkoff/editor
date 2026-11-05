@@ -1,0 +1,33 @@
+{
+  "rejectedCorruptions": 7,
+  "results": [
+    {
+      "corruption": "source",
+      "rejected": true
+    },
+    {
+      "corruption": "sample-count",
+      "rejected": true
+    },
+    {
+      "corruption": "distribution",
+      "rejected": true
+    },
+    {
+      "corruption": "trusted-native-input",
+      "rejected": true
+    },
+    {
+      "corruption": "live-memory-control",
+      "rejected": true
+    },
+    {
+      "corruption": "retained-memory",
+      "rejected": true
+    },
+    {
+      "corruption": "trace-reconstruction",
+      "rejected": true
+    }
+  ]
+}

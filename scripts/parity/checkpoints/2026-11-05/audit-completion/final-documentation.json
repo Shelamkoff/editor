@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-11-05T16:40:25.415696+00:00",
+  "head": "f66a6392893a8bd8b4e0f2efb72fc01245dde197",
+  "commands": [
+    {
+      "command": "npm run test:docs",
+      "exitCode": 0,
+      "log": "final-docs.log.gz"
+    },
+    {
+      "command": "npm run docs:check",
+      "exitCode": 1,
+      "log": "attempts.tar.gz:attempts/final-site-prose-failed.log",
+      "reason": "New Russian technical names required code spans under the existing prose check."
+    },
+    {
+      "command": "npm run docs:check",
+      "exitCode": 0,
+      "log": "final-site.log.gz"
+    }
+  ],
+  "note": "Final working-tree context and exact site input files. Production source remains the clean frozen e88992ee integration. The initial site failure and successful full follow-up retain their own logs; final docs/source/locales validation is rerun after the prose correction.",
+  "finalTrackedPatchSha256": "75d6bdbe623b705f01e93ae79955dbaae392814bcf66edbfc059e9eb87c5842d",
+  "inputFiles": {
+    "docs/architecture/rector-v2/PRESERVATION.md": "3ade89b24398e44cf8a8b67412e316f700c48f54157a3006948dfc54f6a6cade",
+    "docs/architecture/rector-v2/PUBLICATION_REVIEW.md": "586707746468f6f19eddec62c585dec3b3ea9e31f7e8949f5b21a5e8b6e3b0e1",
+    "docs/ru/architecture/rector-v2/PRESERVATION.md": "78cd9ccb0f81b72acfb17bfcb3694f0cf0bfcaa359f44f01d24d5c12a2885ae5",
+    "docs/ru/architecture/rector-v2/PUBLICATION_REVIEW.md": "06660714b4dc16ca51304f85a9968de898b9c7029a16948f680e3cb3dbae1560"
+  }
+}

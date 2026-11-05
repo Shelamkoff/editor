@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "status": "accepted",
+  "runtimeCandidate": "e88992ee55b17e635be38a7ef715c076f6a8ac64",
+  "preservation": {
+    "accepted": 209,
+    "open": 0,
+    "environment": "supported Chromium / Linux"
+  },
+  "contracts": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12"
+  ],
+  "integrationGates": 10,
+  "nodePasses": 2247,
+  "nativePages": 159,
+  "nativeCases": 6009,
+  "differentialCorpora": 100,
+  "observations": 132609,
+  "completedPlannedBodies": 3648,
+  "moduleRecords": 38248,
+  "historicalReferenceExitOne": 53,
+  "commonRoundtripCases": 65,
+  "htmlLayerCases": 65,
+  "completenessCorruptionControls": 12,
+  "structuralCorruptionControls": 7,
+  "fullPresetGzipKiB": 95.9,
+  "fullPresetLimitKiB": 96,
+  "productionAfterCandidate": "unchanged; exact test/CI input identities are in execution.tar.gz:verification-source.json",
+  "files": {
+    "CONVERGENCE.md": {
+      "sha256": "14257f98886b5d17e3d63d189698a337e4bf3ccaa494756af96e9b0fe442b0ed",
+      "bytes": 8559
+    },
+    "README.md": {
+      "sha256": "e875e83f38df4350360f4705abd39e26d8486255441897661b223612202aa39c",
+      "bytes": 10911
+    },
+    "artifact-members.json": {
+      "sha256": "dfe26d854be31f4dc9fbb575e2c13d89bf521f7fbe4a50e79d9ef62db242d77c",
+      "bytes": 96573
+    },
+    "attempts.tar.gz": {
+      "sha256": "2bcfc78e73505e26d4a42a8da3731bb528cffb0f47dd17ab69aa7853b95a22fe",
+      "bytes": 383314
+    },
+    "contracts.json": {
+      "sha256": "1675eb77919937ef14a8f2897cf989f39386911d9aeb50723ed820d5f333697d",
+      "bytes": 6605
+    },
+    "execution.tar.gz": {
+      "sha256": "090734cb60daa35da774d21257b471ec7b5bc49d4508607132669ccb5b444387",
+      "bytes": 12601089
+    },
+    "final-docs.log.gz": {
+      "sha256": "c85a547425104ecf096d91235b912f332fd1b3a94213ade47826b204bc63cee2",
+      "bytes": 451,
+      "decodedSha256": "aa6d6a9b12be12a9b7dc079ce12453f187f3efc155a6508eaf267335b2d5a908"
+    },
+    "final-documentation.json": {
+      "sha256": "13727aa83d5827ceedb2a2a7d626cbd5a82c40c4a63e37c64c90db0a10807823",
+      "bytes": 1478
+    },
+    "final-site.log.gz": {
+      "sha256": "e9c3942e3786f23f8716ed0bfc94a56cd1dd385b12df57deeba1a3d4d0fdd250",
+      "bytes": 1052,
+      "decodedSha256": "894f42c4aa96cf76dadb6f84dd16340ed33efbfb3cb17e624adf0aee6bc39fd7"
+    },
+    "obligations.json": {
+      "sha256": "397463a2cc143f2f7afadb8cbe8d87a38a6954c5d86ae7d61ed8522e94ba3ed0",
+      "bytes": 32703
+    },
+    "restore-reference.py": {
+      "sha256": "6102b63036cb385dbb98bd0f831bc75d97244b669e2fcb0f517a57cf81410c44",
+      "bytes": 1523
+    },
+    "review-controls.json": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "review-controls.py": {
+      "sha256": "9f1c78a81411c7d9d548665d4e329d3c5ac60c3b318266c4dca8da510158e0eb",
+      "bytes": 2148
+    },
+    "review.json": {
+      "sha256": "bd1e5f529e90a0657fc46f921b4d66cd05a0134b02283d335b0d435389402ac9",
+      "bytes": 31148
+    },
+    "review.py": {
+      "sha256": "76cf15897b52a9954710cc57d367d6b12ba31303b26ca14b6114044d686ccc55",
+      "bytes": 17230
+    },
+    "structural-controls.json": {
+      "sha256": "6e85c069b52d50730691f2de5127f879c3643e7c11f271f732ea6f4563d78998",
+      "bytes": 574
+    },
+    "structural-controls.py": {
+      "sha256": "123dfc21729c553d1ec86b4f623e26914c983ea1b8794103931bd8e61ded00c2",
+      "bytes": 1755
+    },
+    "structural-review.json.gz": {
+      "sha256": "9ad123e99495c4bf80a0a705b48d378b0e2057ff43d8d953acf0d62d82bd9c63",
+      "bytes": 6662,
+      "decodedSha256": "de89a7c011e6d91d13a717b450ae2c46f629f725f80ac6e5cca86661a710fe85"
+    },
+    "structural-review.mjs": {
+      "sha256": "225499ba439877d5c8c245b1d85a61781e631361545b8bbf6e7880c33c80b066",
+      "bytes": 9179
+    },
+    "structural.tar.gz": {
+      "sha256": "1bbd4d2a3840a9534bac796ff89fa95ae5141027ef9b3b51f8843a64183a1363",
+      "bytes": 2349441
+    },
+    "verify-artifacts.py": {
+      "sha256": "7d364f6721c39cee63900f245ce78a01f2bd1fd3dc57569ae3838eb3f3b47ee1",
+      "bytes": 1057
+    }
+  }
+}

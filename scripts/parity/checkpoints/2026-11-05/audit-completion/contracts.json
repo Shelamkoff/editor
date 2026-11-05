@@ -1,0 +1,199 @@
+{
+  "runtimeCandidate": "e88992ee55b17e635be38a7ef715c076f6a8ac64",
+  "reviewState": "Architecture-to-target comparison recorded in CONVERGENCE.md; execution identities reviewed separately.",
+  "rows": [
+    {
+      "id": "C01",
+      "independentRequirement": "Focus intent/current ownership, exact live key/caret and newer intent wins",
+      "owners": [
+        "core/InteractionState.js",
+        "core/EditorViewModel.js",
+        "core/SelectionController.js",
+        "core/PublicEditorApi.js"
+      ],
+      "proofFamilies": [
+        "public-selection.mjs",
+        "public-structure.mjs",
+        "native-core-behavior.html",
+        "native-person-modes.html"
+      ]
+    },
+    {
+      "id": "C02",
+      "independentRequirement": "One strict logical range/continuation authority; eligible Text/Element/BR/widget coordinates, no tool-owned selection store",
+      "owners": [
+        "core/LogicalSelection.js",
+        "core/InlineSelectionAuthority.js",
+        "core/SelectionController.js"
+      ],
+      "proofFamilies": [
+        "element-range.mjs",
+        "basic-mark-tools.mjs",
+        "link-tool.mjs",
+        "native-cross-selection.html"
+      ]
+    },
+    {
+      "id": "C03",
+      "independentRequirement": "Panel continuation and separate mount/show leases; own undo and stale/retired UI inert",
+      "owners": [
+        "core/InlineToolbar.js",
+        "inline-tools/scriptTool.js"
+      ],
+      "proofFamilies": [
+        "script-tools.mjs",
+        "native-panel-keyboard.html",
+        "native-interaction-sequences.html"
+      ]
+    },
+    {
+      "id": "C04",
+      "independentRequirement": "Pure current codecs/planners depend on neutral schema/canonical values; no live runtime/history/publication ports",
+      "owners": [
+        "core/DocumentIngestion.js",
+        "core/ClipboardPlans.js",
+        "core/LogicalRangePlans.js",
+        "core/SelectionConversionPlans.js",
+        "shared/documentTypes.d.ts",
+        "scripts/plugin-source-audit.mjs"
+      ],
+      "proofFamilies": [
+        "decode-authority.mjs",
+        "transaction-atomicity.mjs",
+        "documentation contracts",
+        "parser negative fixtures"
+      ]
+    },
+    {
+      "id": "C05",
+      "independentRequirement": "Scriptless owned HTML frames, explicit application styles, page-window viewport units, native navigation/media/download and all-four-surface overlay confinement",
+      "owners": [
+        "shared/embeddedHtml.js",
+        "shared/embeddedHtmlDocument.js",
+        "shared/rebaseContentViewport.js",
+        "plugins/raw/index.js",
+        "plugins/carousel/index.js",
+        "renderer/renderers/raw/index.js",
+        "renderer/renderers/carousel/index.js"
+      ],
+      "proofFamilies": [
+        "html-native-layers.mjs",
+        "html-resource-effects.mjs",
+        "html-logical-viewport.mjs",
+        "html-content-navigation.mjs",
+        "html-targets.mjs",
+        "html-responsive-content.mjs"
+      ]
+    },
+    {
+      "id": "C06",
+      "independentRequirement": "Meaningful accepted class/target/relative-calculated typography retained with safe inline parsing",
+      "owners": [
+        "shared/sanitize/sanitizeHtml.js"
+      ],
+      "proofFamilies": [
+        "inline-output.mjs",
+        "fontsize-tools.mjs",
+        "html-targets.mjs",
+        "native-inline-content-styles.html"
+      ]
+    },
+    {
+      "id": "C07",
+      "independentRequirement": "Runtime admission before capture/producer, exact scope generations, immutable event/public snapshot isolation, tasks/history hints/observer/control recovery independent",
+      "owners": [
+        "core/DocumentRuntime.js",
+        "core/TransactionEngine.js",
+        "core/InstanceScope.js",
+        "core/PublicEditorApi.js"
+      ],
+      "proofFamilies": [
+        "task-authority.mjs",
+        "mode-recovery.mjs",
+        "public-events.mjs",
+        "public-snapshots.mjs",
+        "continuation-authority.mjs",
+        "public-destroy.mjs"
+      ]
+    },
+    {
+      "id": "C08",
+      "independentRequirement": "One current version/spelling; public extension generics and package entries, no old forwarders/migrations",
+      "owners": [
+        "shared/DocumentSchema.js",
+        "plugin-kit/types.d.ts",
+        "core/publicTypes.d.ts",
+        "renderer/types.d.ts",
+        "package.json"
+      ],
+      "proofFamilies": [
+        "async-presets.mjs",
+        "public-extension-contracts.html",
+        "installed tarball consumers",
+        "source/type dependency gates"
+      ]
+    },
+    {
+      "id": "C09",
+      "independentRequirement": "Retained source keyed prepared-field reuse, original JSON validation and independent mutable public snapshots; full structural paths/timing/allocation/heap",
+      "owners": [
+        "core/InlineProjectionRuntime.js",
+        "core/BlockReconciler.js",
+        "core/DocumentRuntime.js"
+      ],
+      "proofFamilies": [
+        "structural-authoring.mjs",
+        "native-core-behavior.html",
+        "public-snapshots.mjs",
+        "heap-gate.mjs"
+      ]
+    },
+    {
+      "id": "C10",
+      "independentRequirement": "Optional serialized UTF-8 history budget; newest whole record retained, exact independent oracle and bounded retained heap",
+      "owners": [
+        "core/HistoryStore.js",
+        "core/TransactionEngine.js"
+      ],
+      "proofFamilies": [
+        "history-gestures.mjs",
+        "core/HistoryStore.bytes.test.js",
+        "core/HistoryStore.model.test.js",
+        "heap-gate.mjs"
+      ]
+    },
+    {
+      "id": "C11",
+      "independentRequirement": "Actual clean source/commands/results, immutable failed evidence kept distinct, installed package/declarations/docs and pinned Git dependency/action provenance",
+      "owners": [
+        "scripts/verification-results.mjs",
+        "scripts/package-consumer-gate.mjs",
+        ".github/workflows/verify.yml"
+      ],
+      "proofFamilies": [
+        "verification manifests",
+        "package",
+        "types",
+        "docs",
+        "site",
+        "bundle"
+      ]
+    },
+    {
+      "id": "C12",
+      "independentRequirement": "Optional hooks preserve model/DOM, explicit remount/retirement and field-local recovery; known decode errors do not become literal success",
+      "owners": [
+        "core/BlockReconciler.js",
+        "core/InlineProjectionRuntime.js",
+        "core/DocumentRuntime.js"
+      ],
+      "proofFamilies": [
+        "optional-inline.mjs",
+        "presentation-authority.mjs",
+        "decode-authority.mjs",
+        "native-optional-inline-update.html",
+        "projection-contracts.html"
+      ]
+    }
+  ]
+}

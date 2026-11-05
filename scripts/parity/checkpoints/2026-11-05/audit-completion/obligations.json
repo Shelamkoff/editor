@@ -1,0 +1,929 @@
+{
+  "runtimeCandidate": "e88992ee55b17e635be38a7ef715c076f6a8ac64",
+  "state": "accepted after complete immutable runtime union, full-scope follow-ups, source/dependency review and architecture-to-target comparison",
+  "rows": [
+    {
+      "id": "BLOCK_PARAGRAPH_TEXT",
+      "nativePages": [
+        "native-typing.html",
+        "native-tools.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "native-typing.mjs",
+        "basic-mark-tools.mjs",
+        "inline-output.mjs",
+        "mention-label.mjs"
+      ],
+      "independentAcceptance": "Both supported widgets and all marks retain text/sidecars and exact directed caret; save/output and separate keyboard replay; no duplicate widgets or action.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-typing.html.log",
+          "completePageCases": 14
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-tools.html.log",
+          "completePageCases": 265
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_PARAGRAPH_ALIGN_CONVERT",
+      "nativePages": [
+        "native-alignment-left.html",
+        "native-alignment-center.html",
+        "native-alignment-right.html",
+        "native-alignment-justify.html",
+        "native-conversion.html",
+        "native-conversion-preservation.html"
+      ],
+      "additionalProof": [
+        "alignment.mjs",
+        "code-conversion.mjs",
+        "paragraph-structure.mjs"
+      ],
+      "independentAcceptance": "Four alignments and actual conversion menu targets retain selected meaning and residuals; selected unsupported widgets reject atomically; no-op adds no action.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-alignment-left.html.log",
+          "completePageCases": 20
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-alignment-center.html.log",
+          "completePageCases": 20
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-alignment-right.html.log",
+          "completePageCases": 20
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-alignment-justify.html.log",
+          "completePageCases": 20
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-conversion.html.log",
+          "completePageCases": 7
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-conversion-preservation.html.log",
+          "completePageCases": 53
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_RAW_NAVIGATION",
+      "nativePages": [
+        "native-html-content.html"
+      ],
+      "additionalProof": [
+        "html-content-navigation.mjs",
+        "html-targets.mjs"
+      ],
+      "independentAcceptance": "Trusted external/fragment/named/download destinations compared with independent native controls, including all four Raw/Carousel surfaces; actual completed downloads.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-content.html.log",
+          "completePageCases": 28
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_RAW_PRESENTATION",
+      "nativePages": [
+        "native-html-content.html",
+        "native-html-boundary-decision.html"
+      ],
+      "additionalProof": [
+        "html-resource-effects.mjs",
+        "html-logical-viewport.mjs",
+        "html-responsive-content.mjs",
+        "html-native-layers.mjs"
+      ],
+      "independentAcceptance": "Actual tall scrolling, responsive themed application contentStyles, native decoded/played media, parent-window units and confined overlays; no clipping or global policy.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-content.html.log",
+          "completePageCases": 28
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-boundary-decision.html.log",
+          "completePageCases": 13
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_GALLERY_SOURCES",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-parity.html",
+        "native-config-snapshot.html"
+      ],
+      "additionalProof": [
+        "media-sources"
+      ],
+      "independentAcceptance": "Fixed ordered local/upload/action batches, failed middle member, original file name/MIME/bytes and read-only cancellation; existing author record retained and one source Undo/Redo; owned readers cleaned.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-config-snapshot.html.log",
+          "completePageCases": 30
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_GALLERY_LAYOUT",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "block-roundtrip.mjs",
+        "gallery-viewer-captions.mjs"
+      ],
+      "independentAcceptance": "All 21 declared layouts have real geometry/order; resize/detach/reinsert/update retains source/caption owners; installed Masonry positive and stale/failed-loading controls release observers/frames.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_GALLERY_APPEARANCE_VIEWER",
+      "nativePages": [
+        "native-gallery-viewer-options.html",
+        "native-gallery-viewer-options-trusted.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "gallery-viewer-captions.mjs"
+      ],
+      "independentAcceptance": "Stored appearance and loop/zoom/navigation/captions/thumbnails/fullscreen/autoplay interval work in ordinary main, foreign and enforcing TT; actual orientation matrices, completed download, pause/loop and disposal.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-gallery-viewer-options.html.log",
+          "completePageCases": 7
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-gallery-viewer-options-trusted.html.log",
+          "completePageCases": 8
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_CAROUSEL_MIXED",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "media-sources",
+        "carousel-controls",
+        "block-roundtrip.mjs"
+      ],
+      "independentAcceptance": "Actual mixed image/video/HTML source batches, file/URL/HTML actions and poster/alt/caption/order; real local WebM bytes/decoding/native playback, not a video attribute-only claim.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_CAROUSEL_STRUCTURE",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-controls.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "block-roundtrip.mjs",
+        "2026-10-30/carousel-source-selection"
+      ],
+      "independentAcceptance": "Active add/remove/reorder and remove-all preserve full neighboring slides and IDs, first-added selection and native replay; stale tasks and newer navigation keep their owner.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-controls.html.log",
+          "completePageCases": 169
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_CAROUSEL_CONTROLS",
+      "nativePages": [
+        "native-plugin-media.html",
+        "native-plugin-controls.html"
+      ],
+      "additionalProof": [
+        "carousel-controls"
+      ],
+      "independentAcceptance": "Loop bounds, navigation, pagination and thumbnails in editor and ordinary output; saved options/data/history unchanged; explicit CSP/foreign static list keeps all readable slides and native media.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-controls.html.log",
+          "completePageCases": 169
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_CAROUSEL_AUTOPLAY",
+      "nativePages": [
+        "native-plugin-media.html"
+      ],
+      "additionalProof": [
+        "carousel-controls",
+        "block-roundtrip.mjs"
+      ],
+      "independentAcceptance": "Configured delay/loop/aspect ratio and actual playback, plus output autoplay/stop/dispose; editor/read-only advances without author history and adopted wrappers receive no ticks.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_CAROUSEL_HTML",
+      "nativePages": [
+        "native-html-content.html",
+        "native-html-boundary-decision.html"
+      ],
+      "additionalProof": [
+        "html-native-layers.mjs",
+        "html-content-navigation.mjs",
+        "html-resource-effects.mjs",
+        "html-logical-viewport.mjs"
+      ],
+      "independentAcceptance": "Both Carousel HTML surfaces retain actual tall linked/downloadable themed content and media in the chosen confined scriptless frame; native equivalent controls and overlay negatives.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-content.html.log",
+          "completePageCases": 28
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-boundary-decision.html.log",
+          "completePageCases": 13
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_CAROUSEL_TASKS",
+      "nativePages": [
+        "native-plugin-parity.html",
+        "native-plugin-media.html",
+        "native-config-snapshot.html"
+      ],
+      "additionalProof": [
+        "media-sources",
+        "block-roundtrip.mjs"
+      ],
+      "independentAcceptance": "Selective source completion after unrelated edits, read-only/replacement/remove/destroy rejection, failed member and projection rollback; completed history replay retains owned video URLs and final destruction releases them.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-config-snapshot.html.log",
+          "completePageCases": 30
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_PERSON_CARDS",
+      "nativePages": [
+        "native-plugin-parity.html",
+        "native-plugin-controls.html",
+        "native-person-modes.html"
+      ],
+      "additionalProof": [
+        "person-modes.mjs",
+        "block-roundtrip.mjs",
+        "2026-10-30/person-cards-native"
+      ],
+      "independentAcceptance": "Three complete profiles and real rich fields: add/edit/active-middle/last removal, tab drag and link actions; full records/sidecars/order/IDs/caret and distinct native Undo/Redo; hidden profiles retained.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-controls.html.log",
+          "completePageCases": 169
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups/native-person-modes.html.log",
+          "completePageCases": 28
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_PERSON_AVATAR",
+      "nativePages": [
+        "native-plugin-controls.html"
+      ],
+      "additionalProof": [
+        "media-sources",
+        "person-avatar-csp.html"
+      ],
+      "independentAcceptance": "Real ordinary cropper Apply/Cancel and upload, native dialog actions; foreign/TT original-file fallback retains name/MIME/exact bytes, no permissive policy; abort/replacement/destroy release old work.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-controls.html.log",
+          "completePageCases": 169
+        }
+      ]
+    },
+    {
+      "id": "BLOCK_PERSON_LINKS",
+      "nativePages": [
+        "native-config-snapshot.html",
+        "native-plugin-parity.html"
+      ],
+      "additionalProof": [
+        "person-modes.mjs",
+        "block-roundtrip.mjs",
+        "person-social-registry.html",
+        "lifecycle.html"
+      ],
+      "independentAcceptance": "Built-in/custom resolver classification and icon after actual URL input, caller snapshots and reentrant retirement; actual safe output links on every card and responsive carousel/disposal; prototype/unsafe URLs rejected.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-config-snapshot.html.log",
+          "completePageCases": 30
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        }
+      ]
+    },
+    {
+      "id": "NATIVE_KEYBOARD",
+      "nativePages": [
+        "native-core-behavior.html",
+        "native-text-input.html",
+        "native-plugin-parity.html",
+        "native-mention-label.html",
+        "native-ime-lifecycle.html"
+      ],
+      "additionalProof": [
+        "native-typing.mjs",
+        "ime-lifecycle.mjs",
+        "mention-label.mjs"
+      ],
+      "independentAcceptance": "Trusted Enter/Backspace/Delete/arrows/shortcuts with capability capture and caret/history; foreign auxiliary/defaultPrevented, composition and retired owners keep native defaults or reject without producer.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-core-behavior.html.log",
+          "completePageCases": 67
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-text-input.html.log",
+          "completePageCases": 52
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "followups-second/native-plugin-parity.html.log",
+          "completePageCases": 345
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-mention-label.html.log",
+          "completePageCases": 26
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-ime-lifecycle.html.log",
+          "completePageCases": 8
+        }
+      ]
+    },
+    {
+      "id": "CLIPBOARD_LOCAL",
+      "nativePages": [
+        "native-clipboard.html",
+        "native-plugin-field-clipboard.html"
+      ],
+      "additionalProof": [
+        "compound-residual-cut.mjs",
+        "code-paste.mjs",
+        "heading-paste.mjs",
+        "mention-label.mjs"
+      ],
+      "independentAcceptance": "Real system MIME copy/cut/paste in both directions with independent literal residual/mark/sidecar expectations; one action and failed/empty private write cannot delete or fall through.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-clipboard.html.log",
+          "completePageCases": 25
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-field-clipboard.html.log",
+          "completePageCases": 68
+        }
+      ]
+    },
+    {
+      "id": "CLIPBOARD_CROSS",
+      "nativePages": [
+        "native-plugin-clipboard.html",
+        "native-interaction-sequences.html"
+      ],
+      "additionalProof": [
+        "compound-residual-cut.mjs",
+        "compound-cut-merge.mjs"
+      ],
+      "independentAcceptance": "Independent editors and compound fields preserve selected meaning/residuals and remap collision-prone identities; retained converted interval transfers without collapsed-caret truncation.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-clipboard.html.log",
+          "completePageCases": 48
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-interaction-sequences.html.log",
+          "completePageCases": 39
+        }
+      ]
+    },
+    {
+      "id": "CLIPBOARD_HTML_ROOTS",
+      "nativePages": [
+        "native-clipboard.html",
+        "native-code-paste.html",
+        "native-heading-paste.html"
+      ],
+      "additionalProof": [
+        "code-paste.mjs",
+        "heading-paste.mjs",
+        "table-transfer.mjs"
+      ],
+      "independentAcceptance": "Actual text-first multi-root HTML replaces selection, table/image-first routing retains preceding author text, atomic result/history; literal code and roots preserve complete source.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-clipboard.html.log",
+          "completePageCases": 25
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-code-paste.html.log",
+          "completePageCases": 32
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-heading-paste.html.log",
+          "completePageCases": 36
+        }
+      ]
+    },
+    {
+      "id": "CLIPBOARD_FILES",
+      "nativePages": [
+        "native-plugin-media.html"
+      ],
+      "additionalProof": [
+        "runtime-contracts.html",
+        "core/ClipboardController.media-resource.test.js"
+      ],
+      "independentAcceptance": "Controlled real browser File/DataTransfer deliveries and asynchronous multi-file/pattern routes; all accepts/validation precede any resolver, deterministic choice/order, revocation denies producer and releases temporary URLs. Controlled delivery is not an OS drag claim.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-media.html.log",
+          "completePageCases": 95
+        }
+      ]
+    },
+    {
+      "id": "CLIPBOARD_WIRE",
+      "nativePages": [
+        "native-clipboard.html",
+        "native-plugin-clipboard.html"
+      ],
+      "additionalProof": [
+        "runtime-contracts.html",
+        "public-extension-contracts.html"
+      ],
+      "independentAcceptance": "Strict current private wire wins before fallible decode; empty/unreadable/malformed/versionless data cancels atomically without fallback, unknown own-key inline payloads remain inert and collision-safe.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-clipboard.html.log",
+          "completePageCases": 25
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-clipboard.html.log",
+          "completePageCases": 48
+        }
+      ]
+    },
+    {
+      "id": "CONVERSION_GROUPING",
+      "nativePages": [
+        "native-conversion-grouping.html",
+        "native-conversion-preservation.html",
+        "native-conversion-continuations.html",
+        "native-interaction-sequences.html"
+      ],
+      "additionalProof": [
+        "columns-field-conversion.mjs",
+        "list-conversion.mjs",
+        "code-conversion.mjs",
+        "table-transfer.mjs"
+      ],
+      "independentAcceptance": "Actual mixed logical selections through both menus, rich residuals and meaningful IDs, one completed semantic action and exact keyboard replay; unsupported targets/selected widgets reject without loss.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-conversion-grouping.html.log",
+          "completePageCases": 88
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-conversion-preservation.html.log",
+          "completePageCases": 53
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-conversion-continuations.html.log",
+          "completePageCases": 65
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-interaction-sequences.html.log",
+          "completePageCases": 39
+        }
+      ]
+    },
+    {
+      "id": "UI_BLOCK_TOOLBAR",
+      "nativePages": [
+        "native-block-menus.html",
+        "native-block-settings.html",
+        "native-plugin-controls.html"
+      ],
+      "additionalProof": [
+        "tool-actions.mjs",
+        "text-block-settings.mjs"
+      ],
+      "independentAcceptance": "Public labels/order/eligibility and actual settings/source/menu commands from opaque action metadata; retired/refreshed callbacks inert and current controls still usable; no ID-name inference.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-block-menus.html.log",
+          "completePageCases": 110
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-block-settings.html.log",
+          "completePageCases": 33
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-controls.html.log",
+          "completePageCases": 169
+        }
+      ]
+    },
+    {
+      "id": "UI_DRAG",
+      "nativePages": [
+        "native-core-behavior.html",
+        "native-block-menus.html",
+        "native-plugin-controls.html"
+      ],
+      "additionalProof": [
+        "core/DragController.test.js"
+      ],
+      "independentAcceptance": "Trusted pointer block/profile/gallery reorder, visible animation/feedback, unchanged node/caret and exact history; keyboard menu moves and cancellation on revision/mode/owner loss; adopted spacer not removed.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-core-behavior.html.log",
+          "completePageCases": 67
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-block-menus.html.log",
+          "completePageCases": 110
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-controls.html.log",
+          "completePageCases": 169
+        }
+      ]
+    },
+    {
+      "id": "UI_NATIVE_SELECTION",
+      "nativePages": [
+        "native-cross-selection.html",
+        "native-element-range.html",
+        "native-plugin-ranges.html",
+        "native-interaction-sequences.html"
+      ],
+      "additionalProof": [
+        "element-range.mjs",
+        "public-selection.mjs"
+      ],
+      "independentAcceptance": "Forward/backward pointer/keyboard Text/Element/nested/BR/widget ranges across two editors and fields, exact logical/highlight owner; auxiliary inputs and newer selection/focus keep control.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-cross-selection.html.log",
+          "completePageCases": 42
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-element-range.html.log",
+          "completePageCases": 20
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-ranges.html.log",
+          "completePageCases": 116
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-interaction-sequences.html.log",
+          "completePageCases": 39
+        }
+      ]
+    },
+    {
+      "id": "EXTENSION_SCHEMA",
+      "nativePages": [
+        "native-instance-methods.html",
+        "native-optional-inline-update.html"
+      ],
+      "additionalProof": [
+        "public-extension-contracts.html",
+        "runtime-contracts.html",
+        "installed-package conformance"
+      ],
+      "independentAcceptance": "Public-only custom block/widget/capability/schema interfaces, hidden fields and optional hooks; synchronous falsy/thenable/getter failure and reentry contained; same contracts in actual independent tarball consumer.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-instance-methods.html.log",
+          "completePageCases": 8
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-optional-inline-update.html.log",
+          "completePageCases": 8
+        }
+      ]
+    },
+    {
+      "id": "EXTENSION_POPUP",
+      "nativePages": [
+        "native-mention-popup.html",
+        "native-mention-lifetime.html"
+      ],
+      "additionalProof": [
+        "public-extension-contracts.html",
+        "core/InlinePopupHost.test.js"
+      ],
+      "independentAcceptance": "Detached per-show popup and creating-owner close capability; reentrant successor and other editor survive old handle/cleanup, adopted connected DOM never stolen and independent releases attempted.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-mention-popup.html.log",
+          "completePageCases": 64
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-mention-lifetime.html.log",
+          "completePageCases": 8
+        }
+      ]
+    },
+    {
+      "id": "EXTENSION_TOOLS",
+      "nativePages": [
+        "native-tools.html"
+      ],
+      "additionalProof": [
+        "public-extension-contracts.html",
+        "installed-package conformance"
+      ],
+      "independentAcceptance": "External opaque tool IDs, declarative labels, mount/show leases and public selection/formatting ports; retirement during capture/mount/unbind/destroy cannot invoke stale producer or suppress independent cleanup.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-tools.html.log",
+          "completePageCases": 265
+        }
+      ]
+    },
+    {
+      "id": "APPEARANCE_STYLES",
+      "nativePages": [
+        "native-plugin-design.html",
+        "native-inline-content-styles.html"
+      ],
+      "additionalProof": [
+        "plugin-style-ownership.html",
+        "inline-output.mjs",
+        "shared/styleRegistry.realm.test.js"
+      ],
+      "independentAcceptance": "All factories injectStyles false/replace/append and reference release, actual visible host CSS/classPrefix/theme, both realms and two editors; owner-scoped styles and supported benign inline contentStyles retained.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-plugin-design.html.log",
+          "completePageCases": 84
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-inline-content-styles.html.log",
+          "completePageCases": 33
+        }
+      ]
+    },
+    {
+      "id": "RESOURCES_REALM",
+      "nativePages": [
+        "native-library-boundaries.html",
+        "native-gallery-viewer-options-trusted.html"
+      ],
+      "additionalProof": [
+        "public-destroy.mjs",
+        "bgcolor-realm.mjs",
+        "media-sources",
+        "trusted-types.htm",
+        "lifecycle.html"
+      ],
+      "independentAcceptance": "Actual foreign owner constructors, shared definition and compatible enforcing TT without default policy; document-owned viewers/cropper/media fallback stay supported; no parent-DOM or ambient resource borrowing.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-library-boundaries.html.log",
+          "completePageCases": 48
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-gallery-viewer-options-trusted.html.log",
+          "completePageCases": 8
+        }
+      ]
+    },
+    {
+      "id": "RESOURCES_FAILURE",
+      "nativePages": [
+        "native-library-boundaries.html",
+        "native-instance-methods.html"
+      ],
+      "additionalProof": [
+        "mode-recovery.mjs",
+        "public-destroy.mjs",
+        "renderer-errors.mjs",
+        "public-extension-contracts.html",
+        "lifecycle.html"
+      ],
+      "independentAcceptance": "Acquisition/cleanup/synchronous/thenable/falsy failures revoke all claims independently; original holder restored/reacquired and current fresh command works, no automatic composition replacement or stale cleanup theft.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-library-boundaries.html.log",
+          "completePageCases": 48
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-instance-methods.html.log",
+          "completePageCases": 8
+        }
+      ]
+    },
+    {
+      "id": "RESOURCES_STEADY",
+      "nativePages": [
+        "native-core-behavior.html"
+      ],
+      "additionalProof": [
+        "heap-gate.mjs",
+        "lifecycle.html",
+        "structural-authoring.mjs"
+      ],
+      "independentAcceptance": "Repeated all-factory mounts/edit/history/renderer resources bounded; measured positive-control-sensitive heap sentinels and history eviction retain zero retired payloads; allocations/heap/traversal distinct.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-core-behavior.html.log",
+          "completePageCases": 67
+        }
+      ]
+    },
+    {
+      "id": "DEFECT_HTML_OVERLAY",
+      "nativePages": [
+        "native-html-content.html",
+        "native-html-boundary-decision.html"
+      ],
+      "additionalProof": [
+        "html-native-layers.mjs",
+        "html-resource-effects.mjs",
+        "html-content-navigation.mjs"
+      ],
+      "independentAcceptance": "65 actual fixed/popover/flow/hover/focus/body layer probes across all four production surfaces and bare native controls; unrelated hit target/host UI cannot be captured while permitted content remains usable.",
+      "verifiedNativeArtifacts": [
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-content.html.log",
+          "completePageCases": 28
+        },
+        {
+          "archive": "execution.tar.gz",
+          "member": "native/native-html-boundary-decision.html.log",
+          "completePageCases": 13
+        }
+      ]
+    }
+  ]
+}
