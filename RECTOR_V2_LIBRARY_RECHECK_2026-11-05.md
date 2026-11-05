@@ -121,3 +121,26 @@ pre-optimization baseline `e99fec9d`, including real snapshot controls. An initi
 invocation against already optimized `8761946d` correctly rejects a claimed
 reduction: every pair has equal counts. That output remains explicit and does
 not establish a product regression or a performance gain.
+
+The full `d8b1c4f2` browser command passes its entire ordinary registry, then
+fails one of sixteen authored-break native bodies: Undo leaves the first space
+as a separate typing group. This fixture requests several remote inputs as one
+group while relying on the default 300 ms coalescing window. It now explicitly
+selects the existing 60-second test grouping configuration, as the maintained
+native plugin fixture already does. Default interval boundaries remain covered
+by the existing controller tests; production grouping is unchanged.
+
+The updated ordinary continuation separately fails the owned editable Carousel
+autoplay body: its fixed 400 ms sample sees slide one. With a repeating 250 ms
+timer that sample does not prove which callback ran. The test now observes the
+real second-slide DOM transition with a bounded failure deadline, and still
+requires the exact caption, media, unchanged canonical data and zero history.
+No timer implementation or product latency contract changes. Both original
+assertion failures remain in their actual failed runs; fresh complete affected
+pages and the remaining full inventories are required for completion.
+Both complete affected pages pass (217 projection cases and sixteen native
+authored-break cases). The physical driver gains an explicit `--intro-only`
+mode to retain every physical typing/toolbox/history assertion and its output
+when all 159 native pages run independently. The normal command still runs
+the same introduction and complete registry. Its separate introduction passes;
+no native case or literal assertion is removed.

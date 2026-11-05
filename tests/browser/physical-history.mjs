@@ -7,6 +7,12 @@ import { fileURLToPath } from 'node:url'
 
 import { editorRoot, vitePath, findChrome } from './environment.mjs'
 const chromePath = findChrome()
+const args = process.argv.slice(2)
+if (args.length > 1 || (args[0] !== undefined && args[0] !== '--intro-only')) {
+  throw new Error('Expected no arguments or --intro-only')
+}
+const introOnly = args[0] === '--intro-only'
+if (introOnly && process.env.EDITOR_NATIVE_PAGE) throw new Error('Choose a native page or --intro-only')
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -487,6 +493,16 @@ try {
   await client.send('Page.navigate', { url: historyUrl })
   const historyMatrix = await waitForHistoryMatrix(client)
 
+  const introduction = {
+    enterScenario: { beforeBold, afterBold, afterUndo, afterRedo, afterRemoveBold, afterUndoRemoval },
+    toolboxScenario: { toolboxBeforeBold, toolboxAfterImmediateUndo, deleteLastImmediateUndo,
+      deleteLastRedo, deleteLastUndoAgain, deleteMiddle, deleteMiddleUndo, inlineAfterDeleteUndo },
+    historyMatrix: JSON.parse(historyMatrix),
+  }
+  // Preserve the complete physical introduction when running the entire native
+  // inventory as independent complete pages. The default command is unchanged.
+  if (introOnly) console.log(JSON.stringify(introduction))
+  else {
   // Real browser insertion must cover beforeinput paths without a keydown.
   // The page builds its logical cross-block range through SelectionController; CDP types into it.
   await client.send('Page.navigate', { url: new URL('/tests/browser/native-text-input.html', pageUrl).href })
@@ -649,18 +665,7 @@ try {
 
   console.log(JSON.stringify({
     nativeFormattingBoundaries,
-    enterScenario: { beforeBold, afterBold, afterUndo, afterRedo, afterRemoveBold, afterUndoRemoval },
-    toolboxScenario: {
-      toolboxBeforeBold,
-      toolboxAfterImmediateUndo,
-      deleteLastImmediateUndo,
-      deleteLastRedo,
-      deleteLastUndoAgain,
-      deleteMiddle,
-      deleteMiddleUndo,
-      inlineAfterDeleteUndo,
-    },
-    historyMatrix: JSON.parse(historyMatrix),
+    ...introduction,
     nativeTextInput,
     nativeAttachesDownloads,
     nativeHtmlContent,
@@ -723,6 +728,7 @@ try {
     nativePluginMedia,
     nativePluginDesign,
   }))
+  }
   }
 } finally {
   client?.close()

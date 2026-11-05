@@ -75,11 +75,15 @@ function encodedText(value) {
 
 async function check(kind, values, modeOverride) {
   const checklist = createChecklistPlugin()
+  // This fixture tests one deliberate typing group. Remote input round trips
+  // may exceed the default 300 ms grouping window under a complete matrix.
+  // Default interval boundaries are covered by NativeInputController tests.
+  const history = { historyCoalesceMs: 60_000 }
   const editor = kind === 'Paragraph'
-    ? make([para('a', initial)], { inlineTools: [], injectStyles: true })
+    ? make([para('a', initial)], { ...history, inlineTools: [], injectStyles: true })
     : make([{ id: 'a', type: checklist.type, dataVersion: checklist.schema.currentVersion,
       data: { items: [{ id: 'first', text: initial, checked: false }] } }],
-      { plugins: [checklist], defaultBlock: checklist.type, inlineTools: [], injectStyles: true })
+      { ...history, plugins: [checklist], defaultBlock: checklist.type, inlineTools: [], injectStyles: true })
   await waitForStyles(document)
   const field = editableField(editor, 'a'), fieldKey = kind === 'Paragraph' ? 'text' : 'item:first'
   if (modeOverride) field.style.whiteSpace = modeOverride

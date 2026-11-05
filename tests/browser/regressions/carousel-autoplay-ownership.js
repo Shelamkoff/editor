@@ -26,12 +26,33 @@ function unchangedDocument(h, before) {
     { transactions: 0, undo: false, redo: false })
 }
 
+function waitForSecondSlide(wrapper) {
+  // Observe the real transition: a fixed wall-clock sample can land after a
+  // second tick and see slide one again, or before a delayed first callback.
+  return new Promise((resolve, reject) => {
+    let timer
+    const finish = error => {
+      observer.disconnect()
+      clearTimeout(timer)
+      if (error) reject(error)
+      else resolve()
+    }
+    const checkSlide = () => {
+      if (wrapper.querySelector('.oe-carousel-block__counter')?.textContent === '2 / 2') finish()
+    }
+    const observer = new MutationObserver(checkSlide)
+    observer.observe(wrapper, { childList: true, characterData: true, subtree: true })
+    timer = setTimeout(() => finish(new Error('The owned Carousel never advanced to its second slide')), 5000)
+    checkSlide()
+  })
+}
+
 for (const readOnly of [false, true]) {
   test(`Carousel autoplay ownership: an owned ${readOnly ? 'read-only' : 'editable'} view advances without an author action`, async () => {
     const h = autoplayFixture(readOnly)
     try {
       const before = h.editor.save().blocks
-      await pause(400)
+      await waitForSecondSlide(h.wrapper)
       equal(h.wrapper.querySelector('.oe-carousel-block__counter').textContent, '2 / 2')
       equal(h.wrapper.querySelector('.oe-carousel-block__caption').innerHTML, '<i>Second caption</i>')
       equal(h.wrapper.querySelector('img').alt, 'Second image')
