@@ -53,6 +53,22 @@ dense-array validation and ignored array metadata are retained. An initial
 sandbox-restricted Node invocation could not run its test worker; the enabled
 run independently records all three actual assertion failures before the fix.
 
+## Confirmed repair: file picker acquisition and retirement
+
+The shared file-input helper checked cancellation only before DOM creation.
+A DOM adapter retiring the view during creation/mounting could still open its
+dialog. A partial append failure escaped cleanup; cancellation during FileList
+capture could still deliver files. Four fault controls fail before repair,
+while normal delivery and foreign-document creation pass.
+
+The helper now captures the original signal, rechecks retirement before and
+after mounting, includes mounting in its cleanup boundary, and releases the
+picker even when file capture throws. Canceled capture cannot invoke onFiles.
+Normal delivery retains the original File objects, once-only dispatch and
+cleanup before the callback. All nineteen focused picker/Image uploader tests
+and both typechecks pass. These are controlled DOM-adapter fault boundaries,
+not a claim of OS file-dialog injection.
+
 ## Verification progress
 
 The initial clean `d7a32b63` checkout passes typecheck, all 2247 Node tests,
@@ -61,7 +77,7 @@ Its complete browser gate was deliberately interrupted after the new defect
 was confirmed, so the original manifest is interrupted rather than accepted.
 The renderer-only `0b03ccf8` continuation likewise retains eight passing gates
 and an interrupted browser gate once the JSON defect is confirmed. The final
-source containing both repairs requires its own complete integration and
+source containing all three repairs requires its own complete integration and
 comparative runs; neither interrupted browser command is a passing full run.
 Fresh output is isolated under ignored `test-results/library-recheck/`; exact
 source/fixture identities, logs, failed attempts and final results will be

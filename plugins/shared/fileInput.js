@@ -19,7 +19,8 @@
  * @returns {void}
  */
 export function triggerFileInput(config) {
-  if (config.signal?.aborted) return
+  const signal = config.signal
+  if (signal?.aborted) return
   const ownerDocument = config.ownerDocument ?? globalThis.document
   if (!ownerDocument?.body) throw new Error('File input requires an owning document with a body')
   const input = ownerDocument.createElement('input')
@@ -31,21 +32,31 @@ export function triggerFileInput(config) {
   const cleanup = () => {
     if (cleaned) return
     cleaned = true
-    config.signal?.removeEventListener('abort', cleanup)
+    signal?.removeEventListener('abort', cleanup)
     input.remove()
   }
-  config.signal?.addEventListener('abort', cleanup, { once: true })
+  signal?.addEventListener('abort', cleanup, { once: true })
   input.addEventListener('change', () => {
     if (cleaned) return
-    const files = [...(input.files || [])]
+    let files = []
+    let canceled = false
     // Retire the picker before invoking application code: callbacks may
     // throw, open another picker or synchronously dispatch another change.
-    cleanup()
-    if (files.length > 0) config.onFiles(files)
+    try {
+      files = [...(input.files || [])]
+      canceled = cleaned || signal?.aborted === true
+    } finally {
+      cleanup()
+    }
+    if (!canceled && !signal?.aborted && files.length > 0) config.onFiles(files)
   })
   input.addEventListener('cancel', cleanup, { once: true })
-  ownerDocument.body.appendChild(input)
   try {
+    // DOM adapters can retire this view during creation or mounting. A
+    // retired picker must neither remain mounted nor open a native dialog.
+    if (cleaned || signal?.aborted) { cleanup(); return }
+    ownerDocument.body.appendChild(input)
+    if (cleaned || signal?.aborted) { cleanup(); return }
     input.click()
   } catch (error) {
     cleanup()
