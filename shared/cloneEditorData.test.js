@@ -69,6 +69,39 @@ test('cloneEditorData snapshots accessor-backed JSON exactly once', () => {
   assert.equal(reads, 1)
 })
 
+test('cloneEditorData observes an array proxy length once', () => {
+  let lengthReads = 0
+  const input = new Proxy(['first', 'second'], { get(target, key, receiver) {
+    if (key === 'length') lengthReads++
+    return Reflect.get(target, key, receiver)
+  } })
+  assert.deepEqual(cloneEditorData(input), ['first', 'second'])
+  assert.equal(lengthReads, 1)
+})
+
+test('cloneEditorData captures array shape before an entry getter grows it', () => {
+  const create = () => {
+    const input = []
+    Object.defineProperty(input, '0', { enumerable: true, configurable: true, get() {
+      input.push('later')
+      return 'first'
+    } })
+    return input
+  }
+  const expected = JSON.parse(JSON.stringify(create()))
+  assert.deepEqual(expected, ['first'])
+  assert.deepEqual(cloneEditorData(create()), expected)
+})
+
+test('cloneEditorData rejects an entry removed while capturing the original array shape', () => {
+  const input = ['first', 'second']
+  Object.defineProperty(input, '0', { enumerable: true, configurable: true, get() {
+    input.length = 1
+    return 'first'
+  } })
+  assert.throws(() => cloneEditorData(input), /array hole/)
+})
+
 test('cloneEditorData drops array metadata that JSON serialization ignores', () => {
   const source = [{ value: 1 }]
   source.extra = { transient: true }

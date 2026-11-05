@@ -85,7 +85,10 @@ export function cloneJsonValue(value, path = '$') {
     try {
       if (Array.isArray(current)) {
         const result = []
-        for (let index = 0; index < current.length; index++) {
+        // Capture the initial shape before an entry getter can grow/shrink it.
+        // Array proxies must not execute their length accessor on every step.
+        const length = current.length
+        for (let index = 0; index < length; index++) {
           if (!Object.hasOwn(current, index)) throw new TypeError(`${currentPath}[${index}] is an array hole`)
           result.push(visit(current[index], `${currentPath}[${index}]`))
         }

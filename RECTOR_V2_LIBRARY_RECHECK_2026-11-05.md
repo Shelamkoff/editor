@@ -36,13 +36,33 @@ used the wrong registration spelling; those two bodies were unexecuted until
 corrected to the real public `registerRenderer` method. No functional oracle
 was relaxed.
 
+## Confirmed repair: one-read array shape capture
+
+`cloneJsonValue` sampled an array's length on every iteration. A supported
+JSON-shaped proxy therefore ran its length accessor repeatedly. An element
+getter that grew the array added data outside the original snapshot; one that
+shrunk it could silently truncate the result instead of rejecting the missing
+entry. Native JSON serialization captures the initial array length.
+
+The existing clone owner now captures length once before reading entries.
+Three regressions fail on the original source and pass after the repair:
+one length read, exact initial shape against a fresh native-JSON control, and
+strict rejection when an originally present entry disappears. All 181 focused
+JSON/realm/equality/store/transaction/history cases pass. Existing proxy support,
+dense-array validation and ignored array metadata are retained. An initial
+sandbox-restricted Node invocation could not run its test worker; the enabled
+run independently records all three actual assertion failures before the fix.
+
 ## Verification progress
 
 The initial clean `d7a32b63` checkout passes typecheck, all 2247 Node tests,
 build, package, public types, docs/source/locales, site/demo and strict bundle.
 Its complete browser gate was deliberately interrupted after the new defect
 was confirmed, so the original manifest is interrupted rather than accepted.
-The repaired source requires its own full integration and comparative runs.
+The renderer-only `0b03ccf8` continuation likewise retains eight passing gates
+and an interrupted browser gate once the JSON defect is confirmed. The final
+source containing both repairs requires its own complete integration and
+comparative runs; neither interrupted browser command is a passing full run.
 Fresh output is isolated under ignored `test-results/library-recheck/`; exact
 source/fixture identities, logs, failed attempts and final results will be
 recorded in the completion section after those commands actually finish.
