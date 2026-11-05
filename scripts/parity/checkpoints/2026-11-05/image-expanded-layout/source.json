@@ -1,0 +1,40 @@
+{
+  "source": "c51905f9fbbce303a6477b13ab5e4cddd9251329",
+  "parent": "5fb26b2b4c8d8aaf398be4ddda31e07a649ea6c0",
+  "files": {
+    "plugins/image/image.css": {
+      "sha256": "5caf8108916996eff9fdfd5efd7be0097aa0e87a691f79212315cb944a2cdaca",
+      "gitBlob": "6ff3274032423830217cca23eb824ea7b2c2dc18"
+    },
+    "tests/browser/image-expanded-layout.js": {
+      "sha256": "277a53b506556a05dfe1d4a96c515126bcf0b57f77b1c87ed984807303e048e3",
+      "gitBlob": "b9d4c084b39441d00003f1d694fa3c8059bb23e9"
+    },
+    "tests/browser/image-expanded-layout.html": {
+      "sha256": "1e9a7ab33166f2a36c8143448bfe411663c49b70bf589f4b6784dd503f157cd8",
+      "gitBlob": "976a7ea710a95b4906c4595cc74229eae14a6ede"
+    },
+    "tests/browser/native-image-expanded-layout.html": {
+      "sha256": "d26fe3714c63e012194ed5995d0bec3e86faf42769057d65408f209a182655f6",
+      "gitBlob": "03ea7c4e2f36e30e297101f36d95ddb6334ba845"
+    },
+    "tests/browser/native-image-expanded-layout-trusted.html": {
+      "sha256": "6a00aedcf055bffd904750b82f792ef1fabbb86312dd75dac37d89e12fdbe4a5",
+      "gitBlob": "897836d95422da1160cd4850c2ce433c149c1ac3"
+    },
+    "tests/browser/run.mjs": {
+      "sha256": "0c00567c0416800d24681ca4cbdcea06922131154770b79c9e091f8094093b29",
+      "gitBlob": "241fd309d3cbe47a7ca954a449dd60085adb70aa"
+    },
+    "tests/browser/physical-history.mjs": {
+      "sha256": "7374ad5f0a7678f3d5772fa3109e3efe14beb6f9d044e5f75ab8c7df8c9b0bd1",
+      "gitBlob": "48d0dd0e2102583b3e1b38e5821b6bcd7b982371"
+    }
+  },
+  "builtImageCssSha256": "021f488855524034661bb6731eb2d32ed4af239381ecccd2c6b7337f385dd60d",
+  "acceptance": {
+    "accepted": 169,
+    "open": 40,
+    "newlyAccepted": []
+  }
+}

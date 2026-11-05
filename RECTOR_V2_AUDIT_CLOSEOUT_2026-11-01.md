@@ -1,5 +1,15 @@
 # Rector v2 audit closeout — active work
 
+## Image expanded layout repair 2026-11-05
+
+Register: **169 accepted / 40 open / 209 total**.
+
+Bounded repair on `c51905f9`: the expanded Image container fills its owner,
+including background padding. Four styled geometry scenarios and nine native
+cases preserve stored dimensions, applicable controls, readonly output and
+exact Undo/Redo. Existing design checks pass 84 cases across all 21 plugins.
+[Scope and evidence](/architecture/rector-v2/PUBLICATION_REVIEW#image-expanded-layout-repair-2026-11-05).
+
 ## Image source replacement repair 2026-11-05
 
 Register: **169 accepted / 40 open / 209 total**.

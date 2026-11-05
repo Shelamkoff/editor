@@ -6,6 +6,35 @@ Current scoped acceptance is **169 / 209 obligations**, with **40 open**; see th
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Image expanded layout repair 2026-11-05
+
+The bounded CSS repair on `c51905f9` gives the expanded Image container the full
+available width, including background padding. Previously its `fit-content`
+width collapsed toward the image's intrinsic size after the width settings were
+temporarily suspended. A one-pixel diagnostic image shrank to one pixel with no
+height override; with a preserved 80px height the parent regression produced
+80px or 112px containers inside 384px or 664px owners. The repaired container
+fills its owner. All authored size values remain available when expanded is off.
+
+Four scenarios combine 320px/600px owners and both background states. They
+require the actual stylesheet, measured geometry, unchanged width/min/max
+values, disabled width controls, editable height, readonly output and exact
+history. All four fail with the immutable parent stylesheet and pass with the
+repair. Trusted pointer toggles and raw keyboard replay pass four native cases,
+plus five under enforcing Trusted Types. The existing native design page passes
+84 cases across all 21 plugins, both themes, two widths and four states. Build,
+existing plugin surfaces, lifecycle resource checks and all thirteen Image
+source cases under Trusted Types also pass on the repaired CSS.
+[Checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/image-expanded-layout/README.md)
+
+The first geometry prototype omitted stylesheet injection and is explicitly
+excluded from production evidence. The maintained regression now checks the
+loaded Image stylesheet before measuring. The earlier 2247 Node tests and
+complete 60-page ordinary browser gate retain their actual `a5bc6567` source;
+they are not relabelled as fresh executions for this CSS change. Complete
+expanded-mode comparative acceptance remains open. The register stays at
+**169/209 accepted, 40 open**.
+
 ## Image source replacement repair 2026-11-05
 
 The bounded repair on `a5bc6567` prevents a delayed Image upload or application
