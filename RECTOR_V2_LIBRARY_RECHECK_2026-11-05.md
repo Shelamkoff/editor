@@ -105,3 +105,19 @@ snapshot as a positive control. The complete updated Node suite passes all
 2257 tests without failures or skips. This test-only follow-up changes no
 production bytes. The original integration remains failed, with its complete
 browser command continuing independently on immutable `d8b1c4f2`.
+
+The same observer inventory also covers the maintained canonical-read and
+structural benchmarks and the browser committed-event regression. Those
+measurement-only paths now observe both historical symbol enumeration and
+current complete key capture where comparing two sources, and require a real
+detached snapshot to register before accepting a measured zero. Control work
+is excluded from the structural timing window and reset before counted work.
+The affected complete ordinary page, native structural-control page and full
+structural benchmark require fresh executions of these updated fixtures.
+The updated runtime-contract page passes, and a preliminary attribution-only
+Paragraph run observes nonzero real JSON work for both immutable sources.
+The canonical-read probe passes all ten command/size pairs against its original
+pre-optimization baseline `e99fec9d`, including real snapshot controls. An initial
+invocation against already optimized `8761946d` correctly rejects a claimed
+reduction: every pair has equal counts. That output remains explicit and does
+not establish a product regression or a performance gain.

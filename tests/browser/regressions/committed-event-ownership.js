@@ -26,20 +26,23 @@ function subject() {
 
 test('committed event fanout does not recapture an already owned structured change', () => {
   const editor = subject()
-  const originalSymbols = Object.getOwnPropertySymbols
+  const originalOwnKeys = Reflect.ownKeys
   const transactions = [], documents = [], visits = []
   let payloadVisits = 0
-  const restore = () => { Object.getOwnPropertySymbols = originalSymbols }
+  const restore = () => { Reflect.ownKeys = originalOwnKeys }
   editor.on('transaction:committed', event => {
     transactions.push(event)
     payloadVisits = 0
     // Observe the JSON boundary between two public notifications. This does
     // not replace a runtime owner or introduce getters into its frozen graph.
-    Object.getOwnPropertySymbols = value => {
+    Reflect.ownKeys = value => {
       if (Array.isArray(Object.getOwnPropertyDescriptor(value, 'rows')?.value)
         && Object.hasOwn(value, 'withHeadings')) payloadVisits++
-      return originalSymbols(value)
+      return originalOwnKeys(value)
     }
+    editor.blocks.get('probe')
+    assert(payloadVisits > 0, 'The traversal observer missed a real detached Table snapshot')
+    payloadVisits = 0
   })
   editor.on('document:changed', event => {
     restore()

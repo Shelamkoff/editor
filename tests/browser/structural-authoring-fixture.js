@@ -65,28 +65,38 @@ const visibleText = html => {
 }
 const fieldText = element => element.textContent.replace(/[\u200b\ufeff]/g, '')
 
-function counters() {
+function counters(observeSnapshot) {
   const values = { jsonRecordVisits: 0, structuredPayloadVisits: 0, childListsRead: 0, nodeClones: 0, elementsCreated: 0 }
-  const symbols = Object.getOwnPropertySymbols
+  const symbols = Object.getOwnPropertySymbols, ownKeys = Reflect.ownKeys
   const children = Object.getOwnPropertyDescriptor(Node.prototype, 'childNodes')
   const cloneNode = Node.prototype.cloneNode, createElement = Document.prototype.createElement
-  Object.getOwnPropertySymbols = value => {
+  const count = value => {
     values.jsonRecordVisits++
     if (['rows', 'images', 'columns'].some(key => Array.isArray(Object.getOwnPropertyDescriptor(value, key)?.value))) values.structuredPayloadVisits++
-    return symbols(value)
   }
+  // The baseline and candidate use different standard key enumeration APIs.
+  Object.getOwnPropertySymbols = value => { count(value); return symbols(value) }
+  Reflect.ownKeys = value => { count(value); return ownKeys(value) }
   Object.defineProperty(Node.prototype, 'childNodes', { ...children, get() {
     values.childListsRead++
     return children.get.call(this)
   } })
   Node.prototype.cloneNode = function (...args) { values.nodeClones++; return Reflect.apply(cloneNode, this, args) }
   Document.prototype.createElement = function (...args) { values.elementsCreated++; return Reflect.apply(createElement, this, args) }
-  return { values, restore() {
+  const observation = { values, restore() {
     Object.getOwnPropertySymbols = symbols
+    Reflect.ownKeys = ownKeys
     Object.defineProperty(Node.prototype, 'childNodes', children)
     Node.prototype.cloneNode = cloneNode
     Document.prototype.createElement = createElement
   } }
+  try {
+    observeSnapshot()
+    check(values.jsonRecordVisits > 0, 'The work observer missed a real detached snapshot')
+    // The positive control precedes the timing window and measured counters.
+    for (const key of Object.keys(values)) values[key] = 0
+    return observation
+  } catch (error) { observation.restore(); throw error }
 }
 
 export async function createStructuralFixture(shape, { prefix = '', native, sensitivity = null } = {}) {
@@ -203,7 +213,7 @@ export async function createStructuralFixture(shape, { prefix = '', native, sens
     let notify, timer
     const notified = new Promise((resolve, reject) => { notify = resolve; if (changes) timer = setTimeout(() => reject(new Error('Missing scheduled onChange')), sensitivity === 'missing-notification' ? 80 : 5000) })
     active = { kind, transactions: 0, documents: 0, notice: null, notify, trusted: false, inputAt: null, inputFinishedAt: null }
-    const state = active, count = instrument ? counters() : null
+    const state = active, count = instrument ? counters(() => editor.blocks.get('probe')) : null
     const label = traceId || `structural-${++serial}`
     state.traceId = label
     if (kind !== 'native') performance.mark(label + ':start')

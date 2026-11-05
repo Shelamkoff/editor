@@ -32,14 +32,17 @@ const variants = await Promise.all([baseline, candidate].map(async (path, index)
 
 function observe(operation) {
   const counts = { jsonRecordVisits: 0, tablePayloadVisits: 0 }
-  const original = Object.getOwnPropertySymbols
-  Object.getOwnPropertySymbols = value => {
+  const symbols = Object.getOwnPropertySymbols, ownKeys = Reflect.ownKeys
+  const count = value => {
     counts.jsonRecordVisits++
     if (Array.isArray(Object.getOwnPropertyDescriptor(value, 'rows')?.value)) counts.tablePayloadVisits++
-    return original(value)
   }
+  // Historical snapshots use symbol enumeration; current snapshots capture
+  // all keys once. Count the real operation used by either immutable source.
+  Object.getOwnPropertySymbols = value => { count(value); return symbols(value) }
+  Reflect.ownKeys = value => { count(value); return ownKeys(value) }
   try { operation(); return counts }
-  finally { Object.getOwnPropertySymbols = original }
+  finally { Object.getOwnPropertySymbols = symbols; Reflect.ownKeys = ownKeys }
 }
 
 function run(variant, size, command) {
@@ -61,6 +64,9 @@ function run(variant, size, command) {
   })
   const api = new variant.EditorBlocksApi({ runtime, view: {} })
   try {
+    const observerControl = observe(() => api.get('probe'))
+    assert(observerControl.jsonRecordVisits > 0 && observerControl.tablePayloadVisits > 0,
+      'The work observer must detect a real detached Table snapshot')
     const before = runtime.save().blocks
     const counts = observe(() => {
       if (command === 'public-change') api.update('probe', () => ({ data: changed }))
@@ -83,7 +89,7 @@ function run(variant, size, command) {
       assert.equal(runtime.redo(), true)
       assert.deepEqual(runtime.save().blocks, after)
     }
-    return { size, fields: size * size, command, ...counts }
+    return { size, fields: size * size, command, observerControl, ...counts }
   } finally { runtime.destroy() }
 }
 
