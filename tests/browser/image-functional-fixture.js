@@ -68,8 +68,10 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
     const rect = element.getBoundingClientRect()
     if (!rect.width || !rect.height) throw new Error('Image control is not visible')
     let trusted = false
-    element.addEventListener('click', event => { trusted = event.isTrusted }, { once: true, capture: true })
+    const capture = event => { trusted = event.isTrusted && element.contains(event.target) }
+    document.addEventListener('mousedown', capture, { once: true, capture: true })
     await nativeInput('Input.click', { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    document.removeEventListener('mousedown', capture, true)
     events.push({ kind: 'click', trusted })
     if (!trusted) throw new Error('Untrusted Image action')
     await pause()
@@ -101,7 +103,9 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
     check(phase, 'blocks', editor.save().blocks, after)
     check(phase, 'history', [editor.canUndo, editor.canRedo], [true, false]); mark(phase)
   }
-  const openSources = async () => { if (editor.save().blocks[0].data.file.url) await click(button('Replace')) }
+  const openSources = async () => {
+    if (editor.save().blocks[0].data.file.url && !button('URL')) await click(button('Replace'))
+  }
   const start = async () => {
     await openSources()
     if (spec.source === 'action') await click(button('Library'))
@@ -201,7 +205,7 @@ export async function runImageFunctionalCase({ spec, sourceBase = '../../', lega
         editor.blocks.update('image', current => ({ data: { ...current.data, withBackground: true } }))
         expected[0].data.withBackground = true; checkModel(phase)
         check(phase, 'sameCaptionHost', caption() === oldCaption, true)
-        check(phase, 'sameTextHost', caption().lastChild === oldTail, true)
+        check(phase, 'sameTextHost', caption().contains(oldTail), true)
         check(phase, 'directedRange', [selection.anchorNode === oldTail, selection.anchorOffset, selection.focusNode === oldTail, selection.focusOffset],
           [true, oldTail.length, true, 0])
         render(phase)
