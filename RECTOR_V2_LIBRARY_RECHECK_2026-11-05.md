@@ -94,3 +94,14 @@ object-key capture follow-up as well as all three repaired boundaries.
 Fresh output is isolated under ignored `test-results/library-recheck/`; exact
 source/fixture identities, logs, failed attempts and final results will be
 recorded in the completion section after those commands actually finish.
+
+The clean `d8b1c4f2` integration records six Node failures: traversal observers
+in the public/runtime snapshot tests still spy on `getOwnPropertySymbols`,
+which the repaired JSON boundary no longer calls. The journal's zero-visit
+observer is stale for the same reason. All three observers now count
+`Reflect.ownKeys`, retaining the original exact traversal and isolation
+assertions; the journal additionally requires detecting a real canonical
+snapshot as a positive control. The complete updated Node suite passes all
+2257 tests without failures or skips. This test-only follow-up changes no
+production bytes. The original integration remains failed, with its complete
+browser command continuing independently on immutable `d8b1c4f2`.

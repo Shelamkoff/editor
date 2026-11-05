@@ -23,20 +23,23 @@ test('private draft journaling does not recapture an already owned immutable rec
   const draft = store.createDraft()
   const canonical = descendants(store.peek('a'))
   descendants(store.peek('b'), canonical)
-  const original = Object.getOwnPropertySymbols
-  let recaptured = 0
+  const original = Reflect.ownKeys
+  let recaptured = 0, journalVisits
   // The strict JSON ownership boundary uses this observable standard operation.
   // Count only the canonical graph already owned by this store, separately
   // from caller validation and detached snapshot creation.
-  Object.getOwnPropertySymbols = value => {
+  Reflect.ownKeys = value => {
     if (canonical.has(value)) recaptured++
     return original(value)
   }
   try {
     draft.update('a', block('a', 'Edited'))
     draft.remove('b')
-  } finally { Object.getOwnPropertySymbols = original }
-  assert.equal(recaptured, 0, 'journaling revalidated/captured its private canonical graph')
+    journalVisits = recaptured
+    store.get('a')
+    assert(recaptured > journalVisits, 'the traversal observer must detect a real canonical snapshot')
+  } finally { Reflect.ownKeys = original }
+  assert.equal(journalVisits, 0, 'journaling revalidated/captured its private canonical graph')
   assert.equal(store.get('a').data.text, 'Alpha')
   assert.deepEqual(draft.changes.map(change => change.kind), ['block.update', 'block.remove'])
 })

@@ -53,10 +53,10 @@ function fixture({ inline = true, projector = undefined } = {}) {
 
 function observePayloadTraversals(t, operation) {
   let traversals = 0
-  const original = Object.getOwnPropertySymbols
+  const original = Reflect.ownKeys
   // Count ordinary payload visits at the strict JSON boundary without adding
   // accessors/proxies to the production-owned graph or replacing its owners.
-  const spy = t.mock.method(Object, 'getOwnPropertySymbols', value => {
+  const spy = t.mock.method(Reflect, 'ownKeys', value => {
     if (Object.hasOwn(value, 'rows') && Object.hasOwn(value, 'label')) traversals++
     return original(value)
   })

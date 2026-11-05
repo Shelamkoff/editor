@@ -1046,10 +1046,10 @@ test('update only captures data crossing producer or schema boundaries and isola
   })
   try {
     const before = runtime.save().blocks, canonical = runtime.peek('entry')
-    const symbols = Object.getOwnPropertySymbols
-    const observation = t.mock.method(Object, 'getOwnPropertySymbols', value => {
+    const ownKeys = Reflect.ownKeys
+    const observation = t.mock.method(Reflect, 'ownKeys', value => {
       if (value === canonical.data) canonicalVisits++
-      return symbols(value)
+      return ownKeys(value)
     })
     active = true
     try {
