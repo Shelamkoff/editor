@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Poll server runtime and renderer 2026-11-05
+
+Register: **167 accepted / 42 open / 209 total**.
+
+[Poll server/runtime and output](/architecture/rector-v2/PUBLICATION_REVIEW#poll-server-runtime-and-renderer-2026-11-05) accepts three rows on `c4107b9e`: 60 executions / 1408 observations, 24 corruptions and 100 native cases. Remote ballots/order/errors/disposal preserve author history; renderer remote/local fallback and cleanup pass. All Poll rows are accepted.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/poll-remote/README.md). Full readiness remains open.
+
 ## Poll voter summary repair 2026-11-05
 
 Register: **164 accepted / 45 open / 209 total**.
