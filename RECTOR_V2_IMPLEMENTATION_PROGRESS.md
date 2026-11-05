@@ -1,5 +1,7 @@
 # Architecture refinement implementation
 
+**Complete fresh library recheck — 2026-11-05:** the three repaired boundaries pass on production `d8b1c4f2`, frozen verification `125b3e22` and the production-equivalent Image fixture follow-up `8c975088`. All 209 existing obligations remain accepted. The source-specific reviewed union includes 2257 Node tests on each of Node 20/22/24, 69 ordinary visits / 65 pages, 159 native pages / 6009 cases, all 100 maintained corpora and full structural/resource proof. Original failures and complete follow-ups remain explicit. [Fresh report](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_LIBRARY_RECHECK_2026-11-05.md).
+
 **Final audit acceptance — 2026-11-05:** 209/209 preservation obligations and C01–C12/R01–R20 are complete on immutable runtime `e88992ee` in the supported Chromium environment. Ten frozen integration gates, all 159 native pages / 6009 cases, all 100 differential corpora and the separate architecture comparison are recorded in the [complete audit acceptance](docs/architecture/rector-v2/PUBLICATION_REVIEW.md#complete-audit-acceptance-2026-11-05). Superior current behavior and original failed attempts remain. The dated entries below retain their historical source and counts.
 
 Authoritative current target: [Contract and Boundary Refactor](./RECTOR_V2_CONTRACT_AND_BOUNDARY_REFACTOR_SPEC.md), with unaffected requirements from the [refinement specification](./RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md).

@@ -1,5 +1,7 @@
 # Rector v2 audit closeout — complete
 
+**Complete fresh library recheck — 2026-11-05:** the three repaired boundaries pass on production `d8b1c4f2`, frozen verification `125b3e22` and the production-equivalent Image fixture follow-up `8c975088`. All 209 existing obligations remain accepted. The source-specific reviewed union includes 2257 Node tests on each of Node 20/22/24, 69 ordinary visits / 65 pages, 159 native pages / 6009 cases, all 100 maintained corpora and full structural/resource proof. Original failures and complete follow-ups remain explicit. [Fresh report](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/RECTOR_V2_LIBRARY_RECHECK_2026-11-05.md).
+
 ## Complete acceptance — 2026-11-05
 
 **209/209 accepted; zero open in the supported Chromium scope.** Final runtime

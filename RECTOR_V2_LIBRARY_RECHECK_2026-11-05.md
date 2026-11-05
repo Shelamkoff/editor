@@ -1,10 +1,14 @@
 # Full library recheck — 2026-11-05
 
-The user requested a fresh complete review after `d7a32b63`, with verified
-repairs pushed as completed packets and superior v2 behavior preserved.
-Historical acceptance is not substituted for fresh execution. The complete
-official browser command, public/package/type/source checks, differential
-corpora and a new source review are planned on the final repaired runtime.
+The fresh complete review after `d7a32b63` is finished. Deferred rich inline
+highlighting, one-read JSON array/object shape capture and file-picker
+retirement are repaired and pushed. Superior v2 behavior is preserved.
+
+Production runtime `d8b1c4f219a8aef4c3f650d25e6e0b404fd3ed0c` is unchanged in
+frozen verification source `125b3e22ffc482cbddf76e746d85e5bc0cb32e17` and the
+test-only Image follow-up `8c97508830a3985b11155bc21fff8b9ccbeb59a3`. All 209
+existing obligations remain accepted in the supported Chromium scope.
+[Read-only review sources and exact evidence scopes](scripts/parity/checkpoints/2026-11-05/library-recheck/README.md).
 
 ## Confirmed repair: deferred rich inline code ownership
 
@@ -76,7 +80,10 @@ cleanup before the callback. All nineteen focused picker/Image uploader tests
 and both typechecks pass. These are controlled DOM-adapter fault boundaries,
 not a claim of OS file-dialog injection.
 
-## Verification progress
+## Retained verification attempts
+
+The completion section below supersedes the pending status in this chronological
+record. Every original failed or interrupted attempt keeps its actual outcome.
 
 The initial clean `d7a32b63` checkout passes typecheck, all 2247 Node tests,
 build, package, public types, docs/source/locales, site/demo and strict bundle.
@@ -156,3 +163,93 @@ URL/data/transaction/history assertions. Other provider-race timing and all
 case/observation inventories remain unchanged. This test-only change requires
 its own complete Image corpus and both complete affected native pages; the
 original failed comparison remains explicit.
+
+## Complete fresh verification
+
+The source inventory covers 377 production JS/TS/CSS files across core, shared,
+plugin-kit, plugins, inline plugins/tools, renderer, preset and locale. Critical
+public snapshot/preparation, transaction/history, selection/clipboard, renderer,
+resource/realm, source-task, packaging and documentation boundaries were reviewed.
+The only production delta after the previous accepted runtime is the four-file
+repair described above. No public API or replacement authority manager is added.
+
+All seventeen integration scopes are fulfilled. The original `run-CCOV0P`
+retains sixteen passing gates and one ordinary inline-output timeout. Its entire
+24-case page and complete unchanged-source `run-jGhWCT` pass; neither source nor
+deadline changes. Node 20.19.0 / 22.23.4 / 24.22.1 each pass all 2257 tests with
+zero failures, skips or todos, and both typecheck projects. Build, 297 generated
+runtime declarations without diagnostics, exact locked package/public consumers,
+source/locales/docs, the 127-page site and strict 95.9/96 KiB fullPreset pass.
+
+The complete ordinary registry passes 69 visits / 65 distinct pages, including
+both new rich-inline lifetime pages. All 159 native pages execute. The original
+Gallery stylesheet/pointer failures remain failed; a complete unchanged-source
+seven-case follow-up passes. The Image fixture follow-up passes all 52 comparison
+executions and both complete native pages, 26 + 27 cases. The reader verifies
+all unchanged case names and literal expectations and the exact two-file test/
+report delta. The final native union is 6009 passing cases. Physical typing,
+toolbox/history and heap/history controls also pass; zero of 23 retired heap
+sentinels remain retained.
+
+All 100 maintained comparison files run without acceptance filters. The reviewed
+union has 132609 current observations, 501 other verdicts, 3648 completed planned
+bodies and 38248 verified module records. Fifty-three raw comparison exit-1
+outcomes are individually attributable to historical differences/unavailability.
+Common roundtrips pass 65 cases / 11446 independent literal observations; all
+65 actual HTML-layer/native controls pass. Existing current-only capabilities
+and repaired historical defects are preserved.
+
+The full structural proof passes 74 controls, 56 timing and 56 trace/allocation
+groups, five warmups / 21 paired samples, all 112 archives and fourteen memory
+observations. The reader reconstructs 336 distributions, verifies 370 Git modules
+and eighteen dependency files, and checks all 1008 retired references per memory
+observation against live controls. All six measured large edit paths reduce DOM
+traversal. Public large-Table and native large-Columns p95 are slower in this
+fresh run; the complete distributions and allocation samples remain available.
+
+| Shape / action | Settled p50, ms | Settled p95, ms | Child lists read |
+| --- | ---: | ---: | ---: |
+| table-large / public | 170.6 → 125.5 | 353.3 → 465.5 | 13634 → 7250 |
+| table-large / native | 185.4 → 182.6 | 773.8 → 356.0 | 22948 → 19764 |
+| gallery-large / public | 33.3 → 33.3 | 49.9 → 49.7 | 1677 → 925 |
+| gallery-large / native | 61.0 → 58.8 | 89.0 → 67.0 | 2884 → 2516 |
+| columns-large / public | 66.9 → 51.2 | 90.8 → 72.0 | 29405 → 22191 |
+| columns-large / native | 76.4 → 71.4 | 97.9 → 109.8 | 56811 → 55011 |
+
+Twelve completeness corruptions and seven structural corruptions are rejected
+after undamaged positive controls. The first completeness control invocation
+selects a one-policy Alignment report and stops before its policy-removal test;
+that failed invocation is retained. The corrected two-policy Columns input
+passes all twelve. All four checks also pass from the exact published checker
+sources in the new checkpoint. This does not turn any original failed process
+into a successful process.
+
+Raw outputs, source guards, commands and hash receipts are retained locally in
+ignored `test-results/library-recheck/sealed/`. The checkpoint commits the
+read-only review sources and reproduction instructions. Earlier dated acceptance
+and exploratory/failed results retain their own source and scope. The supported
+proof environment is Chromium 155.0.8059.79 on Linux with the three Node versions
+above. Final documentation validation and repository delivery are recorded below.
+
+## Final documentation and review-source receipt
+
+Both final documentation commands exit zero on `8c975088` with the new report
+and readiness updates: `npm run test:docs` checks 94 English/Russian README
+documents, 53 examples and 92 package copies; `npm run docs:check` checks all
+127 generated pages, links/assets and the complete bilingual demo controls.
+Their actual commands, timestamps and exit codes are retained in
+`sealed/final-documentation.json`, with both complete logs.
+
+All 377 production source hashes still match the frozen verification tree.
+The exact six published checkpoint files, their prior reviewer dependency,
+all four successful published-reader outputs, the source inventory and final
+documentation records are hashed in the ignored
+`sealed/receipt-published.json`, SHA-256
+`8e304f8ac8ec629e0ab4be6f0030d79add0a52da346da1ea2dd311c74a22e275`.
+The earlier 44-file execution receipt remains separately preserved.
+
+All eight runtime/test repair packets are pushed to
+`refactor/rector-v2-architecture` through `8c975088`. The final documentation
+packet versions this report, the readiness records and the six read-only review
+sources. Generated execution archives stay ignored. The final commit and remote
+identity are recorded locally in `sealed/delivery.json` after repository delivery.
