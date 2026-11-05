@@ -595,6 +595,9 @@ try {
 
   const nativeFormattingBoundaries = {}
   for (const page of [
+    'native-html-boundary-decision.html',
+    'native-link-owned-formatting.html',
+    'native-poll-provider-ownership.html',
     'native-bgcolor-boundary.html', 'native-bgcolor-boundary-trusted.html',
     'native-bgcolor-realm.html', 'native-bgcolor-tools.html', 'native-bgcolor-tools-trusted.html',
     'native-fontsize-boundary.html', 'native-fontsize-boundary-trusted.html',

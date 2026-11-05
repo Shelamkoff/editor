@@ -62,8 +62,9 @@ jobs:
     name: ${{ matrix.gate }}
     runs-on: ubuntu-latest
     # Browser includes ordinary pages, the full native matrix and heap checks.
-    # Leave time for dependency setup and result/artifact finalization as well.
-    timeout-minutes: ${{ matrix.gate == 'browser' && 30 || 20 }}
+    # The complete 159-page native inventory exceeds the former 30-minute
+    # budget; keep setup, ordinary pages, heap and artifact finalization inside it.
+    timeout-minutes: ${{ matrix.gate == 'browser' && 180 || 20 }}
     strategy:
       fail-fast: false
       matrix:
