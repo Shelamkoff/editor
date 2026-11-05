@@ -14,3 +14,8 @@ Five focused regression tests first produce **four failures / one passing contro
 Every historical reference body completes without page/input errors. v1 retains **93 differences**, baseline **14**, immutable parent **10**, and both current policies zero. The first prototype's two old block-menu bodies stopped because its selector expected Paragraph rather than the actual Text label; its exact source/results remain separate from the completed comparison. Missing legacy observers/item identities are explicit.
 
 Full validation: **2,241 Node tests pass / three skipped in 204 files**, all declaration checks, all **55 ordinary browser pages**, **370 native cases**, package/assets, enforced bundle and heap budgets, documentation and site checks. Native inventory is **128 pages**. A separate 24-case native preflight passes on the same candidate. Only Checklist inline merge/export is newly accepted; other open obligations and full readiness remain open.
+
+Initial post-acceptance site validation failed on `ad4212ed` because the Russian report left Trusted Types as unformatted prose. The original manifest/logs remain separate from the corrected checks.
+
+Post-acceptance documentation and site checks pass on `f38dd578`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.

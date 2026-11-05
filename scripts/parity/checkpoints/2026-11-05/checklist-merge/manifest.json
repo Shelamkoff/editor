@@ -712,6 +712,63 @@
       "bytes": 1141,
       "decodedSha256": "63211d2b1fc3fc1fa5b70aa952170b31c97bdb929e2727752276300a63d65a34",
       "decodedBytes": 3692
+    },
+    "post-document-manifest.json.gz": {
+      "sha256": "5d90e3bd8aebcfd2bd25030dc1f635d3ad2127ae6498708c675f9fa5345b2d69",
+      "bytes": 823,
+      "decodedSha256": "0b3780f224d0d19ace207755a47b21f3a48886ec5dbc74f73f90ef4560dcda3b",
+      "decodedBytes": 4621
+    },
+    "post-docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "post-site.log.gz": {
+      "sha256": "8e9d671052c9493662ed62f7e9b648005165828ccfd26701edced6a4b32bf50c",
+      "bytes": 939,
+      "decodedSha256": "ac56ca68870b423a1b7f753b0cfb7fc201cad9abd6849fb364db5f728eb536a4",
+      "decodedBytes": 2247
+    },
+    "executed--post-supervisor.mjs.gz": {
+      "sha256": "cf3c378e41f8124f7246046e2348f73b40a4960267f8f63f294997a9774d4c7a",
+      "bytes": 546,
+      "decodedSha256": "ecd357248dfed7d25a01ef00cae4c82098d10ab1c349c3af7b5c56e9e72bddfb",
+      "decodedBytes": 1074
+    },
+    "initial-post-document-manifest.json.gz": {
+      "sha256": "b112779d0ee05976fbb7cfac0e1881c5c6f2a7a12bff35114b53737d3178eea8",
+      "bytes": 837,
+      "decodedSha256": "1dadd5abffff429769694165b94ded82017553ffff7d5c60f8ad0eb5c469d9b9",
+      "decodedBytes": 4619
+    },
+    "initial-post-docs.log.gz": {
+      "sha256": "9d1ac90084900ff919ad585305f026b29adde7e234675aaf2f6a0ded5dcc95c1",
+      "bytes": 333,
+      "decodedSha256": "baf2c0804645d87c2241f78757b7ba1f43e7f73e2a88146efd724ae7ae05f9aa",
+      "decodedBytes": 741
+    },
+    "initial-post-site.log.gz": {
+      "sha256": "edf43fc5e24dfd2e0e4117887b41a2b401bc9aebbc60e40ba11a8d72b375537d",
+      "bytes": 699,
+      "decodedSha256": "7de905cb4bea926da9a00a89a1711d7e45cbbb39548b3efd2df42506789d2679",
+      "decodedBytes": 1470
     }
-  }
+  },
+  "initialPostDocumentChecks": {
+    "source": "ad4212ed456de9b1d1f55c16bceafd671bbecbe5",
+    "directory": "run-UIvBLe",
+    "outcome": "failed",
+    "passingGates": 1,
+    "failedGate": "site",
+    "reason": "The Russian report used Trusted Types as unformatted prose; the localization checker rejected types. Formatting is corrected in the successful follow-up."
+  },
+  "postDocumentChecks": {
+    "source": "f38dd5789bf00aac2670a75e1a50c1880cb12581",
+    "directory": "run-NKh3sg",
+    "outcome": "passed",
+    "gates": 2
+  },
+  "gitStoredArtifacts": 115
 }
