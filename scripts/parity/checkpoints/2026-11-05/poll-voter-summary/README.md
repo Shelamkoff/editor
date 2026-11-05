@@ -9,3 +9,6 @@ The editor again displays the localized voter-total heading already present in t
 All fifteen planned integration checks are satisfied on the same clean unchanged source: the initial run passes fourteen and fails its last command because the supervisor names an absent npm script. The correct direct asset check passes separately on the identical source. Both original outcomes and commands remain archived; the initial manifest is not relabelled. Build, Node (2241 passing / three skipped), type checks, all **59 ordinary browser pages**, **220 cases on nine native pages**, package, bundle, heap, documentation and site pass. This source is the new full runtime verification basis.
 
 The red and green exploratory attempts retain exact bytes/source/date. The red attempt also contained twelve old-output comparison differences caused by object-key ordering in the probe; these are recorded as a probe error, not a product defect. The green attempt fixes that comparison and verifies the production repair. Poll remote, race and complete renderer acceptance remain open, as does full readiness.
+
+Post-repair documentation and site checks pass on `0b8dcd98`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
