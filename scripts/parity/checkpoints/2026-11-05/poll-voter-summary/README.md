@@ -1,0 +1,11 @@
+# Poll voter summary repair 2026-11-05
+
+Tested source: `a6704f659afe3f0edea24c3b082026d35163db6b`.
+
+The editor again displays the localized voter-total heading already present in the old editor and readonly output. The authoritative total survives a capped list of names; an explicit zero stays zero, and an absent total falls back to the retained list length. Only `plugins/poll/index.js` changes. This is a bounded repair; the register remains **164 accepted / 45 open / 209 total**, with no newly accepted row.
+
+[Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/poll-voter-summary/README.md) on `a6704f65`: **24 current executions / 384 observations**, **775 module identities** and **20 rejected corruptions**. Twelve cases combine editor/readonly output, English/Russian and explicit/absent/zero totals. Literal names, provider arguments, immutable caller/canonical data, untouched history and exact release are checked under both policies. V1 has zero differences; baseline and immutable pre-fix parent each retain twelve missing-title differences. Both current policies pass. This controlled-provider browser proof makes no native-input claim.
+
+All fifteen planned integration checks are satisfied on the same clean unchanged source: the initial run passes fourteen and fails its last command because the supervisor names an absent npm script. The correct direct asset check passes separately on the identical source. Both original outcomes and commands remain archived; the initial manifest is not relabelled. Build, Node (2241 passing / three skipped), type checks, all **59 ordinary browser pages**, **220 cases on nine native pages**, package, bundle, heap, documentation and site pass. This source is the new full runtime verification basis.
+
+The red and green exploratory attempts retain exact bytes/source/date. The red attempt also contained twelve old-output comparison differences caused by object-key ordering in the probe; these are recorded as a probe error, not a product defect. The green attempt fixes that comparison and verifies the production repair. Poll remote, race and complete renderer acceptance remain open, as does full readiness.

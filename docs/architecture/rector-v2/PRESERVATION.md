@@ -1,5 +1,7 @@
 # Functional preservation register
 
+Bounded verification update, 2026-11-05: [Poll voter summary repair](/architecture/rector-v2/PUBLICATION_REVIEW#poll-voter-summary-repair-2026-11-05) passes full integration on `a6704f65`, with the failed supervisor command and successful same-source asset follow-up retained. No new obligation is accepted.
+
 **Current scoped acceptance, 2026-11-05: 164/209 obligations accepted, 45 open.** [Poll authoring/local voting](/architecture/rector-v2/PUBLICATION_REVIEW#poll-authoring-and-local-voting-2026-11-05) accepts two rows on `2b995121`: 52 executions / 1038 observations, 24 corruptions and 83 native-page cases. Stable options/configuration and known ballot math survive native actions and exact replay; an identical ballot adds no action. Remote/race/renderer remain open. Full readiness remains open.
 
 **Preceding scoped acceptance, 2026-11-05: 162/209 obligations accepted, 47 open.** [Mention query/choice](/architecture/rector-v2/PUBLICATION_REVIEW#mention-query-and-choice-2026-11-05) is accepted on `b34b6f0d`: 30 executions / 770 observations, 24 rejected corruptions and 31 cases on native pages. Configured rows/loading/empty/debounce, Unicode/pagination, exact original callback IDs and per-editor raw history pass. All Mention and Color rows are accepted. Full readiness remains open.

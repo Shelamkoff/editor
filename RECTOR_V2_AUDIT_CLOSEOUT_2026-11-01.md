@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Poll voter summary repair 2026-11-05
+
+Register: **164 accepted / 45 open / 209 total**.
+
+[Bounded Poll repair](/architecture/rector-v2/PUBLICATION_REVIEW#poll-voter-summary-repair-2026-11-05) restores localized authoritative voter totals on `a6704f65`. All fifteen checks are satisfied, with the failed absent-script command and successful same-source direct asset follow-up preserved. No new row is accepted.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/poll-voter-summary/README.md). Full readiness remains open.
+
 ## Poll authoring and local voting 2026-11-05
 
 Register: **164 accepted / 45 open / 209 total**.
