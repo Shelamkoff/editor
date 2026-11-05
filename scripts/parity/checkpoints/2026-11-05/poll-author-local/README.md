@@ -12,3 +12,6 @@ Twelve local cases combine single/multiple choice, all three results modes and f
 All 26 reference bodies finish without input/page errors or unavailable bodies. V1 retains **61 differences**, baseline three, and immutable parent/both current policies zero. Missing old transaction observers remain explicit; the final old repeat phase makes no zero-event claim. Three exploratory attempts retain their exact sources/bytes/dates, including initial blank-label expectations, the added unequal sort counts/reset paint checks and the corrected minimum-control expectation. No old behavior is restored.
 
 Native pages pass **83 cases**, including prior Poll field/widget ownership and runtime regressions. Inventory is **142 native / 57 ordinary browser pages**. Documentation and site pass. Exact runtime/package identity and 115 Git-verified artifacts retain all fifteen full gates on `c0054fb8`, with actual source/date. Only authoring and local voting are newly accepted; Poll remote/race/renderer and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `c0683ad1`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
