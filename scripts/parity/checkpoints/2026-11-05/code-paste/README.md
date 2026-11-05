@@ -12,3 +12,6 @@ Structural Code paste preserves selected author text in a populated target and i
 All 32 bodies finish for every reference and both current policies without page/input errors. v1 retains **98 differences**; baseline, immutable parent and current policies retain zero. Missing legacy observers are explicit. Five existing paste unit cases, including language signatures, prose controls and HTML newline/nested-root behavior, are verified by exact passing names in the inherited full Node log; this is not a separate fresh invocation.
 
 Native pages pass **110 cases**; inventory is **122 native pages**. Documentation and site checks pass. Exact runtime/package identity and **122 verified Git artifacts** retain all fifteen full integration gates on `523245ff`, including 2,236 passing Node tests, three skips, all 55 ordinary browser pages, package/assets and bundle/heap budgets, with their actual source/date. Only Code paste is newly accepted; broader Clipboard, Code conversion and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `f225502d`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
