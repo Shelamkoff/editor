@@ -617,6 +617,7 @@ try {
     'native-color-lifetime.html', 'native-color-lifetime-trusted.html',
     'native-color-roundtrip.html', 'native-color-roundtrip-trusted.html',
     'native-mention-lifetime.html', 'native-mention-lifetime-trusted.html',
+    'native-mention-label.html', 'native-mention-label-trusted.html',
     'native-list-edit.html', 'native-list-edit-trusted.html',
     'native-list-conversion.html', 'native-list-conversion-trusted.html',
   ]) nativeFormattingBoundaries[page] = await runNativePage(client, pageUrl, page)
