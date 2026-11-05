@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Poll authoring and local voting 2026-11-05
+
+Register: **164 accepted / 45 open / 209 total**.
+
+[Poll authoring/local voting](/architecture/rector-v2/PUBLICATION_REVIEW#poll-authoring-and-local-voting-2026-11-05) accepts two rows on `2b995121`: 52 executions / 1038 observations, 24 corruptions and 83 native-page cases. Stable options/configuration and known ballot math survive native actions and exact replay; an identical ballot adds no action. Remote/race/renderer remain open.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/poll-author-local/README.md). Full readiness remains open.
+
 ## Mention query and choice 2026-11-05
 
 Register: **162 accepted / 47 open / 209 total**.
