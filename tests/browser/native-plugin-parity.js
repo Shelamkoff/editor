@@ -521,7 +521,8 @@ test('LinkPreview host URL replacement stays a separate Undo step from explicit 
   const afterHost = editor.save().blocks
   const input = focusedField(editor, { key: 'url' }, 'end')
   equal(input.value, hostUrl)
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   equal(pending.length, 1, 'explicit metadata refresh did not start')
   pending[0].resolve({ title: 'Enriched title' })
   await pause(50)
@@ -553,7 +554,8 @@ test('LinkPreview URL and delayed metadata undo as one action when no edit inter
   const before = editor.save().blocks
   const input = focusedField(editor, { key: 'url' }, 'end')
   input.value = 'https://vimeo.com/123456'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   equal(pending.length, 1)
   const afterUrl = editor.save().blocks
   equal(afterUrl[0].data.url, 'https://vimeo.com/123456')
@@ -587,7 +589,8 @@ test('LinkPreview metadata remains an independent Undo action after intervening 
   const before = editor.save().blocks
   const input = focusedField(editor, { key: 'url' }, 'end')
   input.value = 'https://vimeo.com/123456'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   const afterUrl = editor.save().blocks
   equal(pending.length, 1)
 
@@ -672,7 +675,8 @@ test('LinkPreview late metadata respects newer host edits and cancels an obsolet
   })
   const input = focusedField(editor, { key: 'url' }, 'end')
   input.value = 'https://vimeo.com/123456'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   equal(pending.length, 1)
   equal(pending[0].url, 'https://vimeo.com/123456')
   equal(pending[0].signal.aborted, false)
@@ -689,7 +693,8 @@ test('LinkPreview late metadata respects newer host edits and cancels an obsolet
     'metadata response no longer populates an untouched field')
 
   input.value = 'https://example.org/second'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   equal(pending.length, 2)
   equal(pending[1].signal.aborted, false)
 
@@ -718,7 +723,8 @@ test('LinkPreview stale fetch cannot overwrite a host description after ABA chan
   })
   const input = focusedField(editor, { key: 'url' }, 'end')
   input.value = 'https://vimeo.com/123456'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   equal(pending.length, 1)
 
   editor.blocks.update('a', current => ({
@@ -762,7 +768,8 @@ test('LinkPreview restoration does not refetch old metadata but explicit submiss
   const input = wrapper.querySelector('.oe-lp__url-input')
   assert(input, 'restored LinkPreview is not editable')
   input.value = 'https://example.org/new'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.focus()
+  await dispatchKey('Enter', 'Enter', 13)
   equal(requests.length, 2, 'explicit URL submission no longer resolves metadata after Undo')
   equal(requests[1].url, 'https://example.org/new')
 })
@@ -781,10 +788,11 @@ test('LinkPreview initial metadata microtask cannot restart a newer submitted UR
     }),
   })
   // The initial-enrichment microtask has not yet run: submit a new URL in
-  // the same JavaScript task, then allow queued work to execute.
+  // the same JavaScript task, then allow queued work to execute. This explicit
+  // synchronous control is separate from the native Enter cases above.
   const input = blockElement(editor, 'a').querySelector('.oe-lp__url-input')
   input.value = 'https://vimeo.com/123456'
-  input.dispatchEvent(new Event('change', { bubbles: true }))
+  input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }))
   equal(requests.map(request => request.url), ['https://vimeo.com/123456'])
   await pause(60)
   equal(requests.map(request => request.url), ['https://vimeo.com/123456'],
