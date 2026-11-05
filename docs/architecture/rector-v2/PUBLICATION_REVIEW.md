@@ -6,6 +6,35 @@ Current scoped acceptance is **169 / 209 obligations**, with **40 open**; see th
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
 
+## Image source replacement repair 2026-11-05
+
+The bounded repair on `a5bc6567` prevents a delayed Image upload or application
+source from overwriting a subsequently submitted URL. The URL action cancels
+the previous task and retires its loading state before abort callbacks run.
+Entering read-only also retires the loading state immediately, even when the
+provider ignores cancellation and remains pending. Completion of retired work
+cannot clear a newer source's loading state. Delete and disposal use the same
+cleanup without adding author transactions.
+
+All twelve targeted browser scenarios fail before the production repair and
+pass afterward. Both upload and application sources cover empty and populated
+images, late success/failure after URL submission, and a read-only round trip
+followed by a live successor. Existing captions, actual Color sidecars,
+appearance values and caller data survive. Each successful replacement creates
+one action with exact Undo/Redo. Native source controls, URL input and raw
+keyboard history pass twelve cases, plus thirteen with enforcing Trusted Types.
+File delivery is explicitly synthetic; these cases do not claim native OS file
+selection. [Checkpoint](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/image-source-ownership/README.md)
+
+Type checking, all 2247 Node tests, build, documentation contracts and site,
+all 60 distinct ordinary browser pages (64 executions), existing plugin surfaces
+and lifecycle checks pass. The initial dependency/network
+attempts and invalid data-URL prototype remain separate from valid regression
+evidence. The first native attempt selected a hidden Library button; the final
+fixture selects the visible control and retains the exact model/history checks.
+This is a bounded bug repair, with **169/209 obligations accepted and 40 open**.
+Complete Image source acceptance and full readiness remain open.
+
 ## Table native paste and conversion 2026-11-05
 
 `BLOCK_TABLE_PASTE_CONVERT` is accepted on `aa181a13`. The register is **169 of 209 accepted with 40 open**. All fifteen integration checks pass on this clean source. The comparative proof records **48 current executions, 744 observations, 409 module identities and 24 rejected corruptions**. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/table-transfer/README.md)

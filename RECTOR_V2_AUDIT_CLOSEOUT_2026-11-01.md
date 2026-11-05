@@ -1,5 +1,18 @@
 # Rector v2 audit closeout — active work
 
+## Image source replacement repair 2026-11-05
+
+Register: **169 accepted / 40 open / 209 total**.
+
+Bounded repair on `a5bc6567`: an explicit URL aborts the previous Image source;
+read-only immediately retires cancelled loading. Twelve browser cases and
+25 native cases, including enforcing Trusted Types, preserve captions, widgets,
+appearance and exact single-action replay. [Scope and evidence](/architecture/rector-v2/PUBLICATION_REVIEW#image-source-replacement-repair-2026-11-05).
+
+No complete Image source row is newly accepted. Per the user's instruction,
+completed and verified code packets are committed and pushed to the current
+repository branch; a release is not implied.
+
 ## Table native paste and conversion 2026-11-05
 
 Register: **169 accepted / 40 open / 209 total**.

@@ -1,0 +1,45 @@
+{
+  "source": "a5bc656742927f587872412ec569a9d8b33b5dea",
+  "parent": "888619b04cb3f8113be808389229838ccdfc9836",
+  "files": {
+    "plugins/image/index.js": {
+      "sha256": "152da682b0ac8289da709385a051a707b7fc27262a6d94d9cafa77228711e7ff",
+      "gitBlob": "67c723d7ac18fc28880474e1d40d70d0e4f2b6bb"
+    },
+    "tests/browser/image-source-ownership.js": {
+      "sha256": "bc8a85da6926a32e939f6f4146186b1ebf2a3a41c0f41f5c86a15b50d8d8dd66",
+      "gitBlob": "d46e5f751f77b7b403d0548f505c33297b4a42bc"
+    },
+    "tests/browser/image-source-ownership.html": {
+      "sha256": "16b153799e9ea250a53a99b43e016fe0a800e03d6e733007df5d20560b7d129e",
+      "gitBlob": "8ed75b76b9e946c06ec69fd7a7f2d9645aef7981"
+    },
+    "tests/browser/native-image-source-ownership.html": {
+      "sha256": "9fcb6e6a59a8aca3f10e9844a1e72491aab6034dc3e376fd8b8e52481693a6d2",
+      "gitBlob": "7a62eb7f2ee0152e6bdc4c96275a298a6972e21e"
+    },
+    "tests/browser/native-image-source-ownership-trusted.html": {
+      "sha256": "749a5b0e894382b52e4aa94871ebedcf79f939a9dad17c2655403768bd2dfeab",
+      "gitBlob": "ddddae72fe2de80853e47fc37bd186862cdef2e2"
+    },
+    "tests/browser/run.mjs": {
+      "sha256": "2d8529d6a4ecca846bf5ffdedb4624c74b9b3f4a6471ca8c190af4d3bae0048f",
+      "gitBlob": "482c0c442ca7a3cc08e9b7ab76c480ce02d36381"
+    },
+    "tests/browser/physical-history.mjs": {
+      "sha256": "df0efc3c23b5b9a8c28da6968e2a6b5aaeb099d50b0f4e3fdabb9bb1443c66ef",
+      "gitBlob": "b435abf781088b596e0318145b048ac8781f1c56"
+    }
+  },
+  "environment": {
+    "node": "24.22.1",
+    "browser": "Chromium 155.0.8059.79",
+    "platform": "linux x64"
+  },
+  "acceptance": {
+    "accepted": 169,
+    "open": 40,
+    "total": 209,
+    "newlyAccepted": []
+  }
+}
