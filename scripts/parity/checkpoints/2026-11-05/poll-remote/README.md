@@ -14,3 +14,6 @@ The readonly renderer additionally covers first vote and revote without a provid
 All thirty reference bodies finish without page/input errors or unavailable bodies. V1 retains six differences, baseline eight, and immutable parent/both current policies zero. Two exploratory attempts preserve exact sources/bytes/dates. The first incorrectly expected public document replacement to have no history, checked author history before the edit and required completed request signals to abort immediately. The corrected model keeps strict cancellation for pending retired work and exact author actions. No superior current behavior is reverted.
 
 Native pages pass **100 cases**; inventory is **144 native / 59 ordinary pages**. Documentation/site pass. Exact runtime/package identity and **96 Git-verified artifacts** retain all fifteen full checks on `a6704f65`, including the honestly recorded initial absent-script failure and successful same-source asset follow-up. No fresh full-suite run is claimed here. All five Poll rows are now accepted; full readiness remains open.
+
+Post-acceptance documentation and site checks pass on `b0086c9e`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
