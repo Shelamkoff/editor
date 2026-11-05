@@ -10,3 +10,6 @@ Forty-eight native scenarios cover both initial checked states: real checkbox to
 Canonical state, checkbox `aria-pressed`, widget sidecars/counts, neighboring DOM, native caret/direction, caller data and raw Undo/Redo are verified independently. Checkbox toggles commit one plugin update; native typing commits one native-input action; structural gestures retain their declared action. Undo restores the exact original directed range; Redo restores the same created IDs. Every reference body completes without page/input errors; missing old observers/stable item IDs are explicit. Historical failures remain raw differences.
 
 Native pages pass **264 cases**; inventory is **126 native pages**. Existing List editing/conversion and structural regressions run alongside the new pages. Documentation and site checks pass. Exact runtime/package identity and 122 verified Git artifacts retain all fifteen full integration gates on `523245ff` with their actual source/date. Seven existing Checklist tests are verified by passing names in that full Node log, not a fresh invocation. Only Checklist item editing is newly accepted; broader Checklist inline merge/export, Clipboard and full readiness remain open.
+
+Post-acceptance documentation and site checks pass on `086eba41`.
+`artifact-hashes.json` verifies actual Git blobs and decoded compressed artifacts.
