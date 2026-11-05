@@ -2,9 +2,21 @@
 
 This page preserves dated publication records. The [combined core continuation of 2026-10-29](#combined-core-continuation-2026-10-29) supersedes the original open B-PRESENTATION status. Earlier failed or unexecuted gates retain their original source and date; they are not results for the latest implementation.
 
-Current scoped acceptance is **156 / 209 obligations**, with **53 open**; see the [Color insertion and editing 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#color-insertion-and-editing-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
+Current scoped acceptance is **157 / 209 obligations**, with **52 open**; see the [Color popup lifetime 2026-11-05](/architecture/rector-v2/PUBLICATION_REVIEW#color-popup-lifetime-2026-11-05). Earlier scoped acceptance remains in force. The [measured structural proof](#structural-preparation-acceptance-2026-11-02) adds no scenario row. Earlier dated counts below retain their original meaning.
 
 The recovered histories are combined at `2afd45aa`. Each source-specific run below remains evidence for its recorded source; this reconciliation does not claim full acceptance or publication of the combined tree. Follow-up repairs and final integration results are recorded separately.
+
+## Color popup lifetime 2026-11-05
+
+`INLINE_COLOR_LIFETIME` is accepted on `a00e131c`: **157/209 obligations accepted, 52 open**. All **seven affected gates** pass on one clean unchanged source. [Evidence](https://github.com/Shelamkoff/editor/blob/refactor/rector-v2-architecture/scripts/parity/checkpoints/2026-11-05/color-lifetime/README.md): **12 current executions / 518 observations**, **389 module identities**, **24 rejected corruptions**. No production change is needed.
+
+Six cases retire an actual source color popup through block removal, document replacement with/without its widget, a read-only mode cycle, another widget or editor destruction. Current editors share one immutable definition and deliberately reuse identical block/widget IDs in independent documents. Canonical data, exact swatches/labels/ARIA, popup ownership, input callers and action owners are literal expectations.
+
+After retirement, four retained input/change/blur/click events are delivered synthetically to old controls. Each case repeats that delivery while the other editor owns a newly opened actual picker: **96 explicitly synthetic deliveries** across current policies. They cannot change source/successor/foreign data or paint, close the current owner or add a transaction. Real opening, input selection, Apply and keyboard replay use trusted native events. A native change in the other editor still commits one correctly owned action and Undo/Redo remains exact after source retirement, including source destruction.
+
+All six reference bodies finish without page/input errors. v1 retains **52 differences**; baseline, immutable parent and both current policies retain zero. V1 forbids sharing one plugin object between live editors, so separate old objects exercise its real popup lifetime while current editors reuse an immutable definition. That unavailable sharing contract and missing observers are explicit. The initial exploratory process stopped before a report at that old sharing restriction; exact stderr, fixture/runner bytes and the unreached source-completion check remain archived, without inferring a current pass.
+
+Native pages pass **86 cases**, including current Color action and popup regressions; inventory is **132 native pages**. Documentation and site checks pass. Exact runtime/package identity and 115 verified Git artifacts retain all fifteen full integration gates on `c0054fb8`, with actual sources/dates. The existing lifecycle unit test is verified by its passing name in the inherited full Node log. Only Color lifetime is newly accepted; Color roundtrip and full readiness remain open.
 
 ## Color insertion and editing 2026-11-05
 

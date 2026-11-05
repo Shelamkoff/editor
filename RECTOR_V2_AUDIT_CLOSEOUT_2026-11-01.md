@@ -1,5 +1,13 @@
 # Rector v2 audit closeout — active work
 
+## Color popup lifetime 2026-11-05
+
+Register: **157 accepted / 52 open / 209 total**.
+
+[Color popup lifetime](/architecture/rector-v2/PUBLICATION_REVIEW#color-popup-lifetime-2026-11-05) is accepted on `a00e131c`: 12 executions / 518 observations, 24 rejected corruptions, seven affected gates and 86 native cases. Retained old controls cannot affect successors or the other editor; its actual native Apply/history remain live.
+
+[Checkpoint](scripts/parity/checkpoints/2026-11-05/color-lifetime/README.md). Full readiness remains open.
+
 ## Color insertion and editing 2026-11-05
 
 Register: **156 accepted / 53 open / 209 total**.
