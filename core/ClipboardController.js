@@ -14,7 +14,7 @@ import { editingHostForEvent } from '../shared/editableFields.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
 function stripClipboardProjection(root) {
-  for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox')) {
+  for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox,[data-oe-caret-padding]')) {
     element.remove()
   }
   for (const element of [root, ...root.querySelectorAll('*')]) {
@@ -30,6 +30,23 @@ function stripClipboardProjection(root) {
     }
   }
   return root
+}
+
+/** Read explicit author line breaks from a detached clipboard projection.
+ * textContent omits BRs; innerText depends on rendering and cannot be used on
+ * an inert template. Keep the HTML projection intact for the other MIME.
+ * @param {HTMLElement | DocumentFragment} root
+ */
+function clipboardPlainText(root) {
+  // NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, including inert documents
+  // whose defaultView is null and foreign-document clipboard projections.
+  const walker = root.ownerDocument.createTreeWalker(root, 1 | 4)
+  const parts = []
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.nodeType === 3) parts.push(node.nodeValue ?? '')
+    else if (node.nodeName === 'BR') parts.push('\n')
+  }
+  return parts.join('')
 }
 
 /** Read styles from the live presentation: a detached clone cannot resolve
@@ -142,8 +159,7 @@ function clipboardFromRichTextSelection(field, offsets) {
   stripClipboardProjection(container)
   sanitizeSubtree(container)
   const html = container.innerHTML
-  for (const br of container.querySelectorAll('br')) br.replaceWith(ownerDocument.createTextNode('\n'))
-  return { html, text: container.textContent ?? '' }
+  return { html, text: clipboardPlainText(container) }
 }
 
 function clipboardHtmlFromShell(shell, ownerDocument) {
@@ -369,7 +385,7 @@ export class ClipboardController {
           html.push(projection)
           const template = ownerDocument.createElement('template')
           template.innerHTML = /** @type {any} */ (toTrustedHtml(projection, ownerDocument))
-          plain.push(template.content.textContent ?? '')
+          plain.push(clipboardPlainText(template.content))
         }
         const fragment = createClipboardFragment(records.map(record => ({
           kind: 'block',
@@ -399,7 +415,7 @@ export class ClipboardController {
         stripHiddenClipboardWidgets(sourceWidgets,container)
         stripClipboardProjection(container)
         html=container.innerHTML
-        text=container.textContent??''
+        text=clipboardPlainText(container)
       }
       if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
         html,
@@ -461,7 +477,7 @@ export class ClipboardController {
           html.push(projection)
           const template=ownerDocument.createElement('template')
           template.innerHTML=/** @type {any} */(toTrustedHtml(projection,ownerDocument))
-          plain.push(template.content.textContent??'')
+          plain.push(clipboardPlainText(template.content))
         }
         const fragment=createClipboardFragment(records.map(record=>({
           kind:'block',
@@ -504,7 +520,7 @@ export class ClipboardController {
         stripHiddenClipboardWidgets(sourceWidgets,container)
         stripClipboardProjection(container)
         html=container.innerHTML
-        text=container.textContent??''
+        text=clipboardPlainText(container)
       }
       if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
         html,

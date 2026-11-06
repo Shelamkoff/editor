@@ -904,4 +904,55 @@ for (const path of ['whole-block', 'cross-field']) {
   })
 }
 
+for (const path of ['whole-block', 'cross-field']) for (const operation of ['copy', 'cut']) {
+test(`${path} clipboard ${operation} preserves authored line breaks in an external text field`, async () => {
+  const crossField = path === 'cross-field'
+  const editor = make([
+    para('source', `${crossField ? 'XX' : ''}Alpha<br><br>Bravo<br>`),
+    ...(crossField ? [para('end', 'Tail<br>EndYY')] : []),
+    para('outside', 'KEEP'),
+  ])
+  const before = editor.save().blocks
+  if (crossField) {
+    await selectAcross(editor, editableField(editor, 'source'), 2, editableField(editor, 'end'), 8)
+    equal(editor.blocks.selectedIds(), ['source', 'end'])
+  } else {
+    editor.blocks.focus('source', { offset: 0 })
+    editor.blocks.select(['source'])
+    equal(editor.blocks.selectedIds(), ['source'])
+  }
+  const copied = await captureNativeClipboard(editorRoot(editor), operation)
+  assert(copied.prevented, `The editor did not own ${path} ${operation}`)
+  equal(JSON.parse(copied.fragment), { version: CLIPBOARD_FRAGMENT_VERSION, parts: crossField
+    ? [{ kind: 'rich-text', html: 'Alpha<br><br>Bravo<br>' }, { kind: 'rich-text', html: 'Tail<br>End' }]
+    : [{ kind: 'block', block: { type: 'paragraph', dataVersion: 2, data: { text: 'Alpha<br><br>Bravo<br>' } } }],
+  }, 'Standard clipboard cleanup changed the canonical private fragment')
+  if (operation === 'copy') {
+    equal(editor.save().blocks, before, 'Copy changed the canonical document')
+    equal([editor.canUndo, editor.canRedo], [false, false])
+  } else {
+    const after = editor.save().blocks
+    equal(texts(editor), crossField ? ['XXYY', 'KEEP'] : ['KEEP'])
+    editor.undo()
+    equal(editor.save().blocks, before, 'Cut Undo changed the source document')
+    equal(editor.canUndo, false, 'Cut created more than one history entry')
+    editor.redo()
+    equal(editor.save().blocks, after, 'Cut Redo changed the committed result')
+  }
+  const expected = crossField ? 'Alpha\n\nBravo\nTail\nEnd' : 'Alpha\n\nBravo\n'
+  const receiver = document.createElement('textarea')
+  document.body.append(receiver)
+  try {
+    receiver.focus()
+    const pasted = await captureNativeClipboard(receiver, 'paste')
+    assert(!pasted.prevented, 'The independent text field lost native Paste ownership')
+    equal(receiver.value, expected, 'Plain-text Paste lost authored line breaks or included caret padding')
+    equal(copied.text, expected, 'Standard text omitted authored line breaks')
+    const template = document.createElement('template')
+    template.innerHTML = toTrustedHtml(copied.html, document)
+    equal(visibleClipboardText(template.content), expected, 'Standard HTML included projection caret padding')
+  } finally { receiver.remove() }
+})
+}
+
 await run()
