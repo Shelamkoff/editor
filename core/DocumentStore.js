@@ -94,6 +94,8 @@ export class DocumentDraft {
   #version
   #order
   #blocks
+  #initialOrder
+  #initialBlocks
   #changes = []
   #orderShared = false
 
@@ -114,9 +116,11 @@ export class DocumentDraft {
     const next = state ? (borrowing ? source : cloneState(source, { ownRecords: true })) : stateFromDocument(source)
     this.#version = next.version
     this.#order = next.order
-    this.#orderShared = borrowing
+    this.#orderShared = true
     this.#blocks = next.blocks instanceof PersistentBlockMap
       ? next.blocks : PersistentBlockMap.fromEntries(next.blocks)
+    this.#initialOrder = this.#order
+    this.#initialBlocks = this.#blocks
   }
 
   isOwnedBy(owner) {
@@ -134,6 +138,29 @@ export class DocumentDraft {
 
   get changes() {
     return this.#changes.map(change => cloneEditorData(change))
+  }
+
+  /** Whether an authored draft changes the model or replaces its lifetime. */
+  get hasEffect() {
+    if (this.#changes.length === 0) return false
+    if (this.#changes.length === 1) return true
+    // Explicit render/clear must retire the old document lifetime even when
+    // the replacement happens to contain equal JSON.
+    if (this.#changes.some(change => change.kind === 'document.replace')) return true
+    if (this.#order !== this.#initialOrder && (this.#order.length !== this.#initialOrder.length
+      || this.#order.some((id, index) => id !== this.#initialOrder[index]))) return true
+
+    // Immutable base records let compound actions compare only touched IDs.
+    // Do not serialize the whole document for each ordinary edit.
+    const touched = new Set()
+    for (const change of this.#changes) {
+      if (change.kind === 'block.update') touched.add(change.id)
+      else if (change.kind === 'block.insert' || change.kind === 'block.remove') touched.add(change.block.id)
+    }
+    for (const id of touched) {
+      if (!equalJsonValue(this.#initialBlocks.get(id), this.#blocks.get(id))) return true
+    }
+    return false
   }
 
   get(id) {

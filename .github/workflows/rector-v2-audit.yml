@@ -1,0 +1,113 @@
+name: Rector v2 comparative audit
+
+on:
+  push:
+    branches: [fix/rector-v2-audit-2026-11-06]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rector-v2-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GIT_NO_REPLACE_OBJECTS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  corpora:
+    name: All 100 comparative corpora
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - name: Initialize current-run results
+        id: results
+        run: node scripts/verification-results.mjs init source audit-tools install build history browser-runtime preflight corpora
+      - name: Require the exact clean checkout
+        run: node scripts/verification-results.mjs run source -- bash -c 'test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && test -z "$(git status --porcelain)"'
+      - name: Verify audit supervisor controls
+        run: node scripts/verification-results.mjs run audit-tools --require source -- python3 -B -m unittest discover -s scripts/audit -p '*_test.py' -v
+      - name: Install dependencies
+        run: node scripts/verification-results.mjs run install --require audit-tools -- npm ci --ignore-scripts
+      - name: Build package
+        run: node scripts/verification-results.mjs run build --require install -- npm run build
+      - name: Restore exact archived comparison objects
+        run: node scripts/verification-results.mjs run history --require build -- python3 -B scripts/parity/checkpoints/2026-11-05/audit-completion/restore-reference.py
+      - name: Install and record pinned browser runtime
+        run: node scripts/verification-results.mjs run browser-runtime --require history -- node scripts/audit/prepare-browser.mjs
+      - name: Verify complete registry and immutable sources
+        run: |
+          node scripts/verification-results.mjs run preflight --require browser-runtime -- \
+            python3 -B scripts/audit/run-corpora.py \
+            --repo "$GITHUB_WORKSPACE" --out "$EDITOR_RESULTS_DIR/corpora-preflight" \
+            --head "$GITHUB_SHA" --node node --chrome "$EDITOR_CHROME_PATH" \
+            --playwright "$EDITOR_PLAYWRIGHT_PATH" --timeout 1200 --preflight-only
+      - name: Run all 100 corpora without filters or retries
+        run: |
+          node scripts/verification-results.mjs run corpora --require preflight -- \
+            python3 -B scripts/audit/run-corpora.py \
+            --repo "$GITHUB_WORKSPACE" --out "$EDITOR_RESULTS_DIR/corpora" \
+            --head "$GITHUB_SHA" --node node --chrome "$EDITOR_CHROME_PATH" \
+            --playwright "$EDITOR_PLAYWRIGHT_PATH" --timeout 1200
+      - name: Finalize current-run results
+        if: ${{ always() }}
+        run: node scripts/verification-results.mjs finish
+      - name: Upload raw corpus reports and execution evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: comparative-corpora-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.results.outputs.directory }}
+          if-no-files-found: error
+          retention-days: 7
+
+  focused:
+    name: Chromium 151 navigation and clipboard controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - name: Initialize current-run results
+        id: results
+        run: node scripts/verification-results.mjs init source install build browser-runtime focused
+      - name: Require the exact clean checkout
+        run: node scripts/verification-results.mjs run source -- bash -c 'test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && test -z "$(git status --porcelain)"'
+      - name: Install dependencies
+        run: node scripts/verification-results.mjs run install --require source -- npm ci --ignore-scripts
+      - name: Build package
+        run: node scripts/verification-results.mjs run build --require install -- npm run build
+      - name: Install and record pinned browser runtime
+        run: node scripts/verification-results.mjs run browser-runtime --require build -- node scripts/audit/prepare-browser.mjs
+      - name: Run navigation and clipboard controls once
+        run: node scripts/verification-results.mjs run focused --require browser-runtime -- node scripts/audit/focused-browser.mjs
+      - name: Finalize current-run results
+        if: ${{ always() }}
+        run: node scripts/verification-results.mjs finish
+      - name: Upload raw focused reports and execution evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: navigation-clipboard-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.results.outputs.directory }}
+          if-no-files-found: error
+          retention-days: 7

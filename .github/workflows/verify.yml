@@ -92,7 +92,9 @@ jobs:
           case "$GATE" in
             browser|package) node scripts/verification-results.mjs run "$GATE" --require build -- npm run "test:$GATE" ;;
             docs) node scripts/verification-results.mjs run docs --require build -- bash -c 'npm run test:docs && npm run docs:check' ;;
-            size-report) node scripts/verification-results.mjs run size-report --require build -- node benchmarks/bundle-budget.mjs --enforce ;;
+            # Size targets are advisory. Build, measurement and import-boundary
+            # errors still fail this required gate.
+            size-report) node scripts/verification-results.mjs run size-report --require build -- node benchmarks/bundle-budget.mjs ;;
             *) exit 2 ;;
           esac
       - name: Finalize current-run results

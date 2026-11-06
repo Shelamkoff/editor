@@ -201,11 +201,11 @@ export class TransactionEngine {
     }
     this.#current = null
 
-    const changes = draft.changes
-    if (changes.length === 0) {
+    if (!draft.hasEffect) {
       this.#phase = 'idle'
       return result
     }
+    const changes = draft.changes
 
     const ownedChanges = cloneEditorData(changes)
     const replacesDocument = ownedChanges.some(change => change.kind === 'document.replace')

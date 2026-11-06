@@ -8,7 +8,8 @@ import {
 } from './ClipboardFragment.js'
 import { escapeHtml } from '../shared/sanitize/escapeHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
-import { getTextLength } from '../shared/textOffset.js'
+import { sanitizeSubtree } from '../shared/sanitize/walker.js'
+import { findNodeAtOffset, getTextLength } from '../shared/textOffset.js'
 import { editingHostForEvent } from '../shared/editableFields.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
@@ -29,6 +30,60 @@ function stripClipboardProjection(root) {
     }
   }
   return root
+}
+
+/** Standard MIME exports the selected presentation; private MIME retains
+ * canonical placeholders and widget data independently.
+ * @param {HTMLElement} field
+ * @param {{start: number, end: number}} offsets
+ * @returns {{html: string, text: string}}
+ */
+function clipboardFromRichTextSelection(field, offsets) {
+  const ownerDocument = field.ownerDocument
+  const start = findNodeAtOffset(field, offsets.start, 'start')
+  const end = findNodeAtOffset(field, offsets.end, 'end')
+  const range = ownerDocument.createRange()
+  range.setStart(start.node, start.offset)
+  range.setEnd(end.node, end.offset)
+  const container = ownerDocument.createElement('div')
+  let contents = /** @type {Node} */ (range.cloneContents())
+  // cloneContents omits the common ancestor and its parents. Retain their
+  // formatting/link shells when the selection begins inside those wrappers.
+  let ancestor = range.commonAncestorContainer.nodeType === 1
+    ? range.commonAncestorContainer : range.commonAncestorContainer.parentNode
+  while (ancestor && ancestor !== field && field.contains(ancestor)) {
+    const shell = ancestor.cloneNode(false)
+    shell.appendChild(contents)
+    contents = shell
+    ancestor = ancestor.parentNode
+  }
+  container.appendChild(contents)
+
+  // Controls, service DOM and independent editing hosts can lie between
+  // authored endpoints without owning any of their logical text offsets.
+  for (const element of container.querySelectorAll('[hidden],button,input,select,textarea,option,[role="button"],script,style,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox,[data-oe-caret-padding]')) {
+    if (element.hasAttribute('hidden') || !element.hasAttribute('data-inline-plugin')) element.remove()
+  }
+  for (const element of container.querySelectorAll('[contenteditable]')) {
+    if (!element.closest('[data-inline-plugin]')) element.remove()
+  }
+  for (const widget of container.querySelectorAll('[data-inline-plugin]')) {
+    // Use text nodes, never parse widget labels as HTML. Preserve explicit
+    // label line breaks while discarding the live widget's UI and attributes.
+    for (const br of widget.querySelectorAll('br')) br.replaceWith(ownerDocument.createTextNode('\n'))
+    const label = ownerDocument.createDocumentFragment()
+    const lines = (widget.textContent ?? '').replace(/\r\n?/g, '\n').split('\n')
+    lines.forEach((line, index) => {
+      if (index) label.appendChild(ownerDocument.createElement('br'))
+      label.appendChild(ownerDocument.createTextNode(line))
+    })
+    widget.replaceWith(label)
+  }
+  stripClipboardProjection(container)
+  sanitizeSubtree(container)
+  const html = container.innerHTML
+  for (const br of container.querySelectorAll('br')) br.replaceWith(ownerDocument.createTextNode('\n'))
+  return { html, text: container.textContent ?? '' }
 }
 
 function clipboardHtmlFromShell(shell, ownerDocument) {
@@ -297,14 +352,8 @@ export class ClipboardController {
     const fragment=createClipboardFragment(plan.parts.map(part=>part.kind==='block'
       ?{kind:'block',block:transferBlockFromRecord(part.block)}
       :{kind:'rich-text',html:part.html,inline:part.inline}))
-    const first=fragment.parts[0]
-    const html=first?.kind==='rich-text'?first.html:''
-    const template=ownerDocument.createElement('template')
-    template.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
-    if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
-      html,
-      text:template.content.textContent??'',
-    }))return
+    const presentation=clipboardFromRichTextSelection(owner.element,range)
+    if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,presentation))return
     event.preventDefault()
   }
 
@@ -411,14 +460,8 @@ export class ClipboardController {
     const fragment=createClipboardFragment(plan.parts.map(part=>part.kind==='block'
       ?{kind:'block',block:transferBlockFromRecord(part.block)}
       :{kind:'rich-text',html:part.html,inline:part.inline}))
-    const first=fragment.parts[0]
-    const html=first?.kind==='rich-text'?first.html:''
-    const template=ownerDocument.createElement('template')
-    template.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
-    if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
-      html,
-      text:template.content.textContent??'',
-    }))return
+    const presentation=clipboardFromRichTextSelection(owner.element,range)
+    if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,presentation))return
     if(!sameBookmark(plan.bookmark,this.#selection.capture())||!this.#canPresent())return
     const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
     if(!result||!this.#canPresent())return

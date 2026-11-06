@@ -17,7 +17,7 @@ for (const [name, createTool] of [['case transformation', createCaseTransformToo
     const siblings = [field.firstChild, field.lastChild], markup = siblings.map(node => node.outerHTML)
     const range = document.createRange(); range.selectNodeContents(nested)
     const tool = createTool(name)
-    tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+    tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), isValid: () => true, restore: () => true })
     try {
       tool.toggle({ range })
       equal(nested.innerHTML, name === 'case transformation' ? '<b>NESTED</b>' : 'Nested')
@@ -44,7 +44,7 @@ for (const crossBlock of [false, true]) {
       range.setStart(first.firstChild.firstChild, 0)
       range.setEnd(crossBlock ? last.firstChild.firstChild : first.lastChild.firstChild, crossBlock ? 5 : 4)
       const tool = createTool(name)
-      tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+      tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), isValid: () => true, restore: () => true })
       try {
         tool.toggle({ range })
         equal(nested.innerHTML, nestedMarkup, 'The tool edited text or marks owned by a nested editing host')

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { openSourceEditor, preloadSourceEditor } from './sourceEditor.js'
+import { createPluginLayer } from './layer.js'
 
 // A detached owning-document DOM with real AbortSignal listener semantics.
 // Tests exercise the exported editor actions rather than their private cache.
@@ -277,3 +278,95 @@ test('owner abort still removes source surfaces remaining in the original wrappe
   assert.equal(html.parentNode, null)
   assert.deepEqual(h.wrapper.children, [])
 })
+
+for (const kind of ['url', 'html']) {
+  test(`closing ${kind} preserves the cached same-kind successor opened by focus`, async () => {
+    const h = fixture()
+    h.wrapper.closest = selector => selector === '.oe-block' ? h.wrapper : null
+    const previousFocus = new Node(h.document, 'button')
+    previousFocus.getClientRects = () => [{}]
+    h.wrapper.appendChild(previousFocus)
+    let armed = false
+    let successor
+    const submitted = []
+    previousFocus.addEventListener('focus', () => {
+      if (!armed) return
+      armed = false
+      successor = openSourceEditor(h.options(kind, {
+        title: 'Successor', onSubmit: value => submitted.push(value),
+      }))
+    })
+    previousFocus.focus()
+    const old = openSourceEditor(h.options(kind, { title: 'Old editor' }))
+    const surface = h.surface(kind)
+    h.field(kind).focus()
+    armed = true
+    old.close()
+    old.close()
+    await Promise.resolve()
+    assert.ok(successor)
+    assert.equal(h.surface(kind), surface, 'the cached surface should be reused')
+    assert.equal(h.panel(kind).getAttribute('aria-label'), 'Successor')
+    assert.equal(surface.getAttribute('aria-hidden'), 'false')
+    assert.equal(surface.inert, false)
+    assert.equal(h.document.activeElement, h.field(kind))
+    assert.equal(h.wrapper.getAttribute('data-oe-layer-open'), 'true')
+    h.field(kind).value = 'successor value'
+    h.panel(kind).fire('submit')
+    assert.deepEqual(submitted, ['successor value'])
+    assert.equal(surface.getAttribute('aria-hidden'), 'true')
+    assert.equal(h.wrapper.getAttribute('data-oe-layer-open'), null)
+    h.controller.abort()
+  })
+
+  test(`an abort observer opening a ${kind} successor retains the shared layer`, async () => {
+    const h = fixture()
+    h.wrapper.closest = selector => selector === '.oe-block' ? h.wrapper : null
+    const settings = createPluginLayer(h.wrapper, h.controller.signal)
+    settings.open()
+    preloadSourceEditor(h.wrapper, h.controller.signal, [kind])
+    const backdrop = h.surface(kind).children[0]
+    const addListener = backdrop.addEventListener.bind(backdrop)
+    let sessionSignal
+    backdrop.addEventListener = (type, listener, options) => {
+      if (type === 'click') sessionSignal = options.signal
+      addListener(type, listener, options)
+    }
+    const old = openSourceEditor(h.options(kind))
+    let successor
+    sessionSignal.addEventListener('abort', () => {
+      successor = openSourceEditor(h.options(kind, { title: 'Abort successor' }))
+    }, { once: true })
+    old.close()
+    await Promise.resolve()
+    assert.ok(successor)
+    assert.equal(h.panel(kind).getAttribute('aria-label'), 'Abort successor')
+    assert.equal(h.surface(kind).getAttribute('aria-hidden'), 'false')
+    assert.equal(h.surface(kind).inert, false)
+    settings.close()
+    assert.equal(h.wrapper.getAttribute('data-oe-layer-open'), 'true',
+      'old close released the successor layer along with the settings layer')
+    successor.close()
+    assert.equal(h.wrapper.getAttribute('data-oe-layer-open'), null)
+    h.controller.abort()
+  })
+
+  test(`restoring focus cannot submit ${kind} after its owner is revoked`, async () => {
+    const h = fixture()
+    const button = new Node(h.document, 'button')
+    button.getClientRects = () => [{}]
+    h.wrapper.appendChild(button)
+    button.focus()
+    const submitted = []
+    openSourceEditor(h.options(kind, { onSubmit: value => submitted.push(value) }))
+    h.field(kind).focus()
+    button.addEventListener('focus', () => h.controller.abort())
+    h.field(kind).value = 'validated value'
+    const surface = h.surface(kind)
+    h.panel(kind).fire('submit')
+    await Promise.resolve()
+    assert.deepEqual(submitted, [])
+    assert.equal(surface.parentNode, null)
+    assert.equal(surface.getAttribute('aria-hidden'), 'true')
+  })
+}

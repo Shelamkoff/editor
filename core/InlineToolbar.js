@@ -297,6 +297,7 @@ export class InlineToolbar {
       const port = Object.freeze({
         get range() { return scoped.range },
         capture: range => scoped.capture(range),
+        isValid: token => scoped.isValid(token),
         restore: (token, options) => scoped.restore(token, options),
       })
       const mutate = (token, operation) => {

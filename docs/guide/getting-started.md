@@ -72,7 +72,7 @@ const editor = createEditor({
 
 For Vite, Nuxt, or another CSS-aware bundler, set `injectStyles: false` and import the base plus selected plugin CSS subpaths, or the all-in-one `@shelamkoff/rector/styles.css`. The styling guide lists both forms.
 
-`createEditor()` returns an editor handle synchronously. When it returns, `editor.isReady` is `true`; `onReady` is useful when initialization must notify another part of the application.
+`createEditor()` returns an editor handle synchronously with `editor.isReady` initially `false`. In a queued microtask, if the editor is still alive, it becomes `true`, then `editor:ready` is emitted before `onReady` runs. Destroying the editor before that microtask suppresses both notifications; destroying it inside an `editor:ready` listener suppresses the later `onReady` callback.
 
 ## Save content
 

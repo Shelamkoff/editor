@@ -1,5 +1,7 @@
-import { gzipSync } from 'node:zlib'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { measureBundleOutput } from '../scripts/bundle-report.mjs'
 
 const editorRoot = fileURLToPath(new URL('../', import.meta.url))
 
@@ -50,41 +52,7 @@ async function measurePreset(preset, input) {
     },
   })
 
-  const outputs = (Array.isArray(result) ? result : [result]).flatMap(output => output.output)
-  const chunks = new Map(outputs.filter(item => item.type === 'chunk').map(chunk => [chunk.fileName, chunk]))
-  const entry = outputs.find(item => item.type === 'chunk' && item.isEntry)
-  if (!entry) throw new Error(`Vite did not produce an entry for ${preset}`)
-
-  const staticChunks = []
-  const visited = new Set()
-  function collect(fileName) {
-    if (visited.has(fileName)) return
-    visited.add(fileName)
-    const chunk = chunks.get(fileName)
-    if (!chunk) return
-    staticChunks.push(chunk)
-    for (const imported of chunk.imports) collect(imported)
-  }
-  collect(entry.fileName)
-
-  const code = staticChunks.map(chunk => chunk.code).join('\n')
-  const css = outputs
-    .filter(item => item.type === 'asset' && item.fileName.endsWith('.css'))
-    // Asset emission follows parallel transform completion. A stable order is
-    // required before gzip: identical styles must have an identical report.
-    .sort((a, b) => a.fileName < b.fileName ? -1 : a.fileName > b.fileName ? 1 : 0)
-    .map(asset => typeof asset.source === 'string' ? asset.source : Buffer.from(asset.source))
-    .join('\n')
-  const rawBytes = Buffer.byteLength(code) + Buffer.byteLength(css)
-  const gzipBytes = gzipSync(code).byteLength + (css ? gzipSync(css).byteLength : 0)
-
-  return {
-    preset,
-    rawKiB: (rawBytes / KIB).toFixed(1),
-    gzipKiB: (gzipBytes / KIB).toFixed(1),
-    budgetKiB: (budgets[preset] / KIB).toFixed(0),
-    gzipBytes,
-  }
+  return measureBundleOutput(result, { root: editorRoot, preset, referenceBytes: budgets[preset] })
 }
 
 const rows = [
@@ -94,10 +62,30 @@ const rows = [
   await measurePreset('fullPreset', fileURLToPath(new URL('../dist/plugins/index.js', import.meta.url))),
 ]
 
-console.table(rows.map(({ gzipBytes: _gzipBytes, ...row }) => row))
+console.table(rows.map(({ preset, rawBytes, gzipBytes, referenceBytes, deltaBytes, aboveReference }) => ({
+  preset,
+  rawKiB: (rawBytes / KIB).toFixed(1),
+  gzipKiB: (gzipBytes / KIB).toFixed(1),
+  budgetKiB: (referenceBytes / KIB).toFixed(0),
+  rawBytes,
+  gzipBytes,
+  referenceBytes,
+  deltaBytes,
+  aboveReference,
+})))
 
-// CI passes --enforce. Local runs remain useful as reports without changing failure semantics.
+// CI records these reference targets. Explicit local enforcement retains the
+// historical preset policy without making feature removal a release condition.
 const enforce = process.argv.includes('--enforce')
+if (process.env.EDITOR_RESULTS_DIR) {
+  await mkdir(process.env.EDITOR_RESULTS_DIR, { recursive: true })
+  await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'bundle-size.json'), JSON.stringify({
+    schemaVersion: 1,
+    mode: enforce ? 'enforce' : 'report',
+    scope: 'Minified static JavaScript closure plus all emitted CSS; external @shelamkoff packages and lazy JavaScript are excluded.',
+    rows,
+  }, null, 2) + '\n')
+}
 for (const row of rows) {
   const budget = budgets[row.preset]
   if (budget === undefined) throw new Error(`Missing bundle budget for ${row.preset}`)

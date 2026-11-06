@@ -1,7 +1,9 @@
 import './html-root-parity.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
+import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
+import { toTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
 import { createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
-import { restoreSelectionByOffsets } from '../../shared/textOffset.js'
+import { getTextLength, restoreSelectionByOffsets } from '../../shared/textOffset.js'
 import { CLIPBOARD_FRAGMENT_MIME } from '../../core/ClipboardFragment.js'
 import { test, make, para, editableField, editorRoot, select, paste, assert, equal, texts, run } from './regressions/harness.js'
 import { dispatchKey, selectAcross, decodeInline } from './native-input-helpers.js'
@@ -190,6 +192,182 @@ test('editor chrome button keeps native clipboard ownership with selected blocks
     button.remove()
     editor.blocks.clearSelection()
   }
+})
+
+
+const externalClipboardFixtures = [
+  { name: 'line breaks', text: 'Alpha<br>Bravo', expected: 'Alpha\nBravo' },
+  { name: 'terminal authored break without caret padding', text: 'Alpha<br>', expected: 'Alpha\n' },
+  { name: 'consecutive authored breaks', text: 'Alpha<br><br>Bravo', expected: 'Alpha\n\nBravo' },
+  { name: 'mention label', text: 'A{{who}}B', mention: 'Ada', expected: 'A@AdaB' },
+  { name: 'color label', text: 'A{{swatch}}B', color: '#ff0000', expected: 'A#ff0000B' },
+  { name: 'visible RGB color', text: 'A{{swatch}}B', color: '#ff0000', expected: 'Argb(255, 0, 0)B',
+    prepare(field) { field.querySelector('.oe-ip__label').textContent = 'rgb(255, 0, 0)' } },
+  { name: 'escaped visible label', text: 'A{{who}}B', mention: '<b>Ada & Co</b>', expected: 'A@<b>Ada & Co</b>B' },
+  { name: 'authored literal beside a widget', text: '{{literal}} A{{who}}B', mention: 'Ada', expected: '{{literal}} A@AdaB' },
+]
+
+function clipboardEditor(fixture) {
+  const inline = {}
+  if (fixture.mention !== undefined) inline.who = { type: 'mention', dataVersion: 1, data: { id: 'ada', name: fixture.mention } }
+  if (fixture.color !== undefined) inline.swatch = { type: 'color', dataVersion: 1, data: { value: fixture.color } }
+  const editor = make([para('source', fixture.text, { inline })], {
+    inlinePlugins: [createMentionPlugin({ injectStyles: false }), createColorSwatchPlugin()],
+  })
+  const field = editableField(editor, 'source')
+  fixture.prepare?.(field)
+  return { editor, field }
+}
+
+function visibleClipboardText(root) {
+  const clone = root.cloneNode(true)
+  for (const br of clone.querySelectorAll('br')) br.replaceWith(document.createTextNode('\n'))
+  return clone.textContent
+}
+
+function inspectStandardClipboard(html, expected) {
+  const template = document.createElement('template')
+  // Parse the actual output without sanitizing it in the assertion.
+  template.innerHTML = toTrustedHtml(html, document)
+  const root = template.content
+  equal(visibleClipboardText(root), expected, 'Standard HTML changed the selected visible text')
+  assert(!root.querySelector('script,style,template,iframe,object,embed,img,svg,math,form,input,textarea,select,option,button'),
+    'Active markup or an internal control escaped into the standard clipboard')
+  for (const element of root.querySelectorAll('*')) {
+    for (const attribute of element.attributes) {
+      assert(!/^on/i.test(attribute.name), 'An event handler escaped into the standard clipboard')
+      assert(!/^(?:contenteditable|tabindex|role|data-inline-plugin|data-oe-inline-reference)$/i.test(attribute.name),
+        'An internal projection attribute escaped into the standard clipboard')
+    }
+    for (const attribute of ['href', 'src', 'action', 'formaction', 'poster']) {
+      if (!element.hasAttribute(attribute)) continue
+      const url = new URL(element.getAttribute(attribute), location.href)
+      assert(!['javascript:', 'vbscript:', 'data:', 'file:', 'filesystem:'].includes(url.protocol), 'An active URL escaped')
+      assert(!url.username && !url.password, 'A credential URL escaped')
+    }
+  }
+  return root
+}
+
+async function nativeStandardClipboard(editor, field, expected, { operation = 'copy', start = 0, end = getTextLength(field), backwards = false } = {}) {
+  field.focus()
+  restoreSelectionByOffsets(field, start, end)
+  if (backwards) {
+    const selection = window.getSelection()
+    selection.setBaseAndExtent(selection.focusNode, selection.focusOffset, selection.anchorNode, selection.anchorOffset)
+  }
+  let copied = null
+  const capture = event => {
+    copied = { trusted: event.isTrusted, prevented: event.defaultPrevented,
+      text: event.clipboardData.getData('text/plain'), html: event.clipboardData.getData('text/html'),
+      fragment: event.clipboardData.getData(CLIPBOARD_FRAGMENT_MIME) }
+  }
+  const root = editorRoot(editor)
+  root.addEventListener(operation, capture, { once: true })
+  try {
+    await dispatchKey(operation === 'copy' ? 'c' : 'x', operation === 'copy' ? 'KeyC' : 'KeyX', operation === 'copy' ? 67 : 88, 2)
+  } finally { root.removeEventListener(operation, capture) }
+  assert(copied?.trusted && copied.prevented, 'The editor did not own the real native clipboard event')
+  equal(copied.text, expected, 'Standard text/plain changed the selected visible text')
+  assert(copied.html, 'Standard text/html is missing')
+  assert(copied.fragment, 'Private fragment is missing')
+  JSON.parse(copied.fragment)
+  return { ...copied, parsed: inspectStandardClipboard(copied.html, expected) }
+}
+
+for (const operation of ['copy', 'cut']) for (const fixture of externalClipboardFixtures) {
+  test(`external standard clipboard ${operation} preserves ${fixture.name}`, async () => {
+    const { editor, field } = clipboardEditor(fixture)
+    const before = editor.save().blocks
+    await nativeStandardClipboard(editor, field, fixture.expected, { operation })
+    if (operation === 'copy') {
+      equal(editor.save().blocks, before, 'Copy changed the canonical source')
+      equal([editor.canUndo, editor.canRedo], [false, false], 'Copy created history')
+    } else {
+      const after = editor.save().blocks
+      equal(texts(editor), [''], 'Cut did not delete exactly the selected source content')
+      equal([editor.canUndo, editor.canRedo], [true, false])
+      editor.undo()
+      equal(editor.save().blocks, before, 'Cut Undo did not restore the source')
+      equal(editor.canUndo, false, 'Cut was not one history entry')
+      editor.redo()
+      equal(editor.save().blocks, after, 'Cut Redo changed the canonical result')
+    }
+  })
+}
+
+for (const backwards of [false, true]) test(`external standard clipboard preserves marks in a ${backwards ? 'backward' : 'forward'} partial selection`, async () => {
+  const { editor, field } = clipboardEditor({ text: '<b>XXAlpha</b><i>BravoYY</i>' })
+  const before = editor.save().blocks
+  const copied = await nativeStandardClipboard(editor, field, 'AlphaBravo', { start: 2, end: 12, backwards })
+  equal(copied.parsed.querySelector('b,strong')?.textContent, 'Alpha')
+  equal(copied.parsed.querySelector('i,em')?.textContent, 'Bravo')
+  equal(editor.save().blocks, before)
+  equal([editor.canUndo, editor.canRedo], [false, false])
+})
+
+test('external standard clipboard retains enclosing marks and links when pasted into another editing host', async () => {
+  const { editor, field } = clipboardEditor({ text: '<a href="https://example.test/story"><b>XXA</b>{{who}}<i>B<br>TailYY</i></a>', mention: 'Ada' })
+  const before = editor.save().blocks
+  const expected = 'A@AdaB\nTail'
+  const copied = await nativeStandardClipboard(editor, field, expected, { start: 2, end: getTextLength(field) - 2 })
+  const inspectMarks = root => {
+    equal(root.querySelector('a')?.getAttribute('href'), 'https://example.test/story')
+    equal(root.querySelector('b,strong')?.textContent, 'A')
+    equal(root.querySelector('i,em')?.textContent, 'BTail')
+    equal(root.querySelectorAll('br').length, 1)
+  }
+  inspectMarks(copied.parsed)
+  const external = document.createElement('div')
+  external.contentEditable = 'true'
+  external.style.cssText = 'min-height:50px;white-space:pre-wrap'
+  document.body.append(external)
+  try {
+    let received = null
+    external.addEventListener('paste', event => {
+      received = { trusted: event.isTrusted, text: event.clipboardData.getData('text/plain'), html: event.clipboardData.getData('text/html') }
+    }, { once: true })
+    external.focus(); restoreSelectionByOffsets(external, 0, 0)
+    await dispatchKey('v', 'KeyV', 86, 2)
+    assert(received?.trusted, 'Paste into the independent editing host was not native')
+    equal(received.text, expected)
+    inspectStandardClipboard(received.html, expected)
+    equal(visibleClipboardText(external), expected)
+    inspectMarks(external)
+    equal(editor.save().blocks, before)
+    equal([editor.canUndo, editor.canRedo], [false, false])
+  } finally { external.remove() }
+})
+
+test('external standard clipboard excludes controls and nested editing hosts between logical endpoints', async () => {
+  const { editor, field } = clipboardEditor({ text: 'A{{who}}B', mention: 'Ada' })
+  const widget = field.querySelector('[data-inline-plugin]')
+  for (const [tag, attributes] of [['button', {}], ['input', {}], ['textarea', {}], ['select', {}], ['span', { role: 'button' }], ['span', { contenteditable: 'true' }], ['span', { contenteditable: 'false' }], ['span', { hidden: '' }]]) {
+    const control = document.createElement(tag)
+    for (const [key, value] of Object.entries(attributes)) control.setAttribute(key, value)
+    control.textContent = 'DO_NOT_EXPORT'
+    widget.after(control)
+  }
+  const button = document.createElement('button'); button.textContent = 'DO_NOT_EXPORT'; widget.append(button)
+  const before = editor.save().blocks
+  await nativeStandardClipboard(editor, field, 'A@AdaB')
+  equal(editor.save().blocks, before)
+  equal([editor.canUndo, editor.canRedo], [false, false])
+})
+
+for (const kind of ['inert', 'aria-hidden', 'multiline', 'locked-label']) test(`external standard clipboard preserves a visible ${kind} atomic label`, async () => {
+  const { editor, field } = clipboardEditor({ text: 'A{{who}}B', mention: 'Ada' })
+  const widget = field.querySelector('[data-inline-plugin]'), label = document.createElement('span')
+  label.textContent = '@Ada'
+  if (kind === 'inert') label.setAttribute('inert', '')
+  if (kind === 'aria-hidden') label.setAttribute('aria-hidden', 'true')
+  if (kind === 'locked-label') label.contentEditable = 'false'
+  if (kind === 'multiline') label.append(document.createElement('br'), document.createTextNode('Byron'))
+  widget.replaceChildren(label)
+  const before = editor.save().blocks
+  await nativeStandardClipboard(editor, field, kind === 'multiline' ? 'A@Ada\nByronB' : 'A@AdaB')
+  equal(editor.save().blocks, before)
+  equal([editor.canUndo, editor.canRedo], [false, false])
 })
 
 await run()

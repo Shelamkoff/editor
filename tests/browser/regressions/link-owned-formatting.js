@@ -17,7 +17,7 @@ function fixture(html) {
   const range = document.createRange()
   range.selectNodeContents(field)
   const tool = createLinkTool('URL', 'Link')
-  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), isValid: () => true, restore: () => true })
   return { root, field, range, tool, dispose() { tool.bindSelectionPort(null); root.remove() } }
 }
 

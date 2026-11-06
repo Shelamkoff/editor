@@ -25,6 +25,8 @@ export interface InlineSelectionPort {
   readonly range: Range | null
   /** Accepts equivalent logical endpoints only within the same current editor/field occurrences. */
   capture(range?: Range): InlineSelectionBookmark | null
+  /** Checks the captured right without restoring selection or moving focus. */
+  isValid(bookmark: InlineSelectionBookmark): boolean
   /** Rejects retired or foreign rights without moving focus or restoring another occurrence. */
   restore(bookmark: InlineSelectionBookmark, options?: InlineSelectionRestoreOptions): boolean
 }

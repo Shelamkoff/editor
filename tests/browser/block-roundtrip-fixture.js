@@ -486,6 +486,8 @@ export async function runBlockRoundtripCase(specification, { sourceBase, legacy 
     editor = createEditor({ holder, plugins: definitions, defaultBlock: specification.type,
       inlineTools: [], inlinePlugins: [mentionModule.createMentionPlugin({ searchFunction: async () => { providerCalls++; return [] } }), colorModule.createColorSwatchPlugin()],
       injectStyles: true, ...(input ? { data: input } : {}),
+      // The default URL is one typing gesture; dedicated history tests cover the default deadline.
+      ...(!legacy && specification.type === 'linkPreview' && !specification.populated ? { historyCoalesceMs: 60_000 } : {}),
     })
     renderer = new EditorRenderer({ blockTypes: [...new Set(['paragraph', specification.type])], injectStyles: true,
       ...(legacy

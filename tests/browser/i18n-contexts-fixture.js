@@ -1,3 +1,20 @@
+async function awaitEditorResources(){
+ const deadline=performance.now()+8000
+ while(true){
+  const links=[...document.querySelectorAll('link[data-oe-style]')]
+  if(links.length&&links.every(link=>link.sheet&&!link.disabled))break
+  if(performance.now()>=deadline)throw Error('Editor stylesheet readiness timed out')
+  await new Promise(resolve=>requestAnimationFrame(resolve))
+ }
+ let timer
+ try{
+  await Promise.race([document.fonts.ready,new Promise((_,reject)=>{
+   timer=setTimeout(()=>reject(Error('Editor font readiness timed out')),Math.max(0,deadline-performance.now()))
+  })])
+ }finally{clearTimeout(timer)}
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))
+}
+
 export const i18nContextsCases=[{id:'literal-key/public-runtime-contexts'},...['default','en','ru','ru-RU','literal'].map(locale=>({id:'menus/'+locale,locale}))]
 export async function runI18nContextsCase({sourceBase="../../",spec,nativeInput}){
  if(spec.locale)return runMenuCase({sourceBase,spec,nativeInput})
@@ -24,13 +41,13 @@ async function runMenuCase({sourceBase,spec,nativeInput}){
  const copy=v=>JSON.parse(JSON.stringify(v)),pause=(ms=40)=>new Promise(r=>setTimeout(r,ms)),check=(phase,property,actual,expected)=>observations.push({phase,property,actual:copy(actual),expected:copy(expected),status:JSON.stringify(actual)===JSON.stringify(expected)?'PASS':'FAIL'})
  const input={version:'2.0.0',blocks:[{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{swatch}} tail'},inline:{swatch:{type:'color',dataVersion:1,data:{value:'#aBcDef'}}}},{id:'empty',type:'paragraph',dataVersion:2,data:{text:''}}]},original=copy(input)
  let editor,phase='load',error=null
- const click=async(element,role)=>{if(!element)throw Error('Missing locale control '+role);element.scrollIntoView({block:'nearest'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const b=element.getBoundingClientRect();if(!b.width||!b.height)throw Error('Hidden locale control '+role);const x=b.x+b.width/2,y=b.y+b.height/2;pointTrace.push({role,connected:element.isConnected,hit:element.contains(document.elementFromPoint(x,y)),x,y,width:b.width,height:b.height});element.addEventListener('mousedown',e=>nativeEvents.push({role,type:'mousedown',trusted:e.isTrusted}),{once:true});await nativeInput('Input.click',{x,y});await pause()}
+ const click=async(element,role)=>{if(!element)throw Error('Missing locale control '+role);await awaitEditorResources();element.scrollIntoView({block:'nearest'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const b=element.getBoundingClientRect();if(!b.width||!b.height)throw Error('Hidden locale control '+role);const x=b.x+b.width/2,y=b.y+b.height/2,hit=element.contains(document.elementFromPoint(x,y));pointTrace.push({role,connected:element.isConnected,hit,x,y,width:b.width,height:b.height});if(!element.isConnected||!hit)throw Error('Locale control is disconnected or not the native click target: '+role);element.addEventListener('mousedown',e=>nativeEvents.push({role,type:'mousedown',trusted:e.isTrusted}),{once:true});await nativeInput('Input.click',{x,y});await pause()}
  const key=async(key,modifiers=0)=>{const[code,n]=({z:['KeyZ',90],Escape:['Escape',27],ArrowDown:['ArrowDown',40],Enter:['Enter',13]})[key];for(const type of ['rawKeyDown','keyUp'])await nativeInput('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:n,nativeVirtualKeyCode:n,modifiers});await pause()}
  try{
   editor=core.createEditor({holder,locale,injectStyles:true,plugins:[paragraph.createParagraphPlugin(),quote.createQuotePlugin()],inlinePlugins:[color.createColorSwatchPlugin()],data:input,onDiagnostic:d=>diagnostics.push(d)});editor.on('transaction:committed',e=>transactions.push({action:e.action,origin:e.origin,name:e.name}))
   holder.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='z')nativeEvents.push({role:'history',type:'keydown',trusted:e.isTrusted,key:e.key,modifiers:(e.ctrlKey?2:0)|(e.shiftKey?8:0)})})
   const state=()=>editor.save().blocks,flags=()=>[editor.canUndo,editor.canRedo],first=()=>holder.querySelector('[data-block-id="a"] .oe-paragraph'),empty=()=>holder.querySelector('[data-block-id="empty"] .oe-paragraph'),initial=state()
-  await pause(60);check(phase,'addLabel',holder.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)').getAttribute('aria-label'),literal?'toolbar.add':russian?'Добавить блок':'Add block');check(phase,'tuneLabel',holder.querySelector('.oe-toolbar__drag').getAttribute('aria-label'),literal?'toolbar.tune':russian?'Настройки блока':'Block settings');check(phase,'canonical',state(),initial);check(phase,'history',flags(),[false,false]);completedPhases.push(phase)
+  await awaitEditorResources();await pause(60);check(phase,'addLabel',holder.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)').getAttribute('aria-label'),literal?'toolbar.add':russian?'Добавить блок':'Add block');check(phase,'tuneLabel',holder.querySelector('.oe-toolbar__drag').getAttribute('aria-label'),literal?'toolbar.tune':russian?'Настройки блока':'Block settings');check(phase,'canonical',state(),initial);check(phase,'history',flags(),[false,false]);completedPhases.push(phase)
   phase='inline';const f=first();f.focus();getSelection().setBaseAndExtent(f.firstChild,0,f.firstChild,5);document.dispatchEvent(new Event('selectionchange'));await pause(70);check(phase,'typeName',holder.querySelector('.oe-inline-toolbar__type-name').textContent,names[0]);await click(holder.querySelector('.oe-inline-toolbar__type-select'),'type-menu');check(phase,'labels',Array.from(holder.querySelectorAll('.oe-inline-toolbar__type-item-label'),e=>e.textContent),names.slice(0,2));await key('Escape');check(phase,'canonical',state(),initial);check(phase,'history',flags(),[false,false]);completedPhases.push(phase)
   phase='toolbox';await click(first(),'focus-toolbox');await click(holder.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)'),'open-toolbox');check(phase,'labels',Array.from(holder.querySelectorAll('.oe-toolbox__label'),e=>e.textContent),names);check(phase,'canonical',state(),initial);check(phase,'history',flags(),[false,false]);completedPhases.push(phase)
   phase='toolbox-action';await click(holder.querySelector('.oe-toolbox__item[data-plugin-type="quote"]'),'choose-toolbox-quote');const inserted=state(),insertedRecord=inserted.find(b=>!['a','empty'].includes(b.id));check(phase,'insertedType',insertedRecord?.type??null,'quote');check(phase,'insertedData',insertedRecord?.data??null,{text:'',caption:''});check(phase,'others',inserted.filter(b=>['a','empty'].includes(b.id)),initial);check(phase,'history',flags(),[true,false]);completedPhases.push(phase)

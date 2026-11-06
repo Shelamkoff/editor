@@ -38,13 +38,32 @@ External previews, mentions, uploads, polls, and embeds should receive structure
 
 Client MIME types and extensions are hints, not proof. Before upload, enforce application limits for count and size. On the server, validate actual file content, generate safe names, isolate storage, and serve with correct content headers.
 
-Revoke every object URL after the preview is replaced or the block is destroyed.
+Release object URLs created by an extension when their presentation owner is retired. URLs returned by the paste context's `createObjectURL()` belong to core: it releases them on cancellation or failure and retains committed URLs until editor disposal so Undo/Redo can restore the media reference. Do not revoke those committed URLs from a block instance's cleanup.
 
 ## Clipboard
 
-Paste routing first matches declared plugin capabilities and then passes a normalized event to the plugin. A plugin must still sanitize `event.element`, validate `event.file`, and parse `event.data` defensively.
+Paste routing uses a definition's `capabilities.paste.accepts(input)` and `resolve(input, context)`. `PasteInput` contains either `{ kind: 'text', text }` or `{ kind: 'file', file }`. A resolver prepares a `PasteResult` or returns `null`; it does not mutate mounted DOM or commit document data itself. Core admits the prepared result through the clipboard transaction. Pass `context.signal` to cancellable work and check it after asynchronous work completes.
 
-Asynchronous paste work participates in one history transaction through `waitForPaste()`. Rejecting that promise must leave no partially committed document state.
+For example, this resolver accepts a bounded text file and requests insertion as plain text. The `replacement.kind: 'text'` result lets core escape the text for the destination rich-text field.
+
+```js
+/** @type {import('@shelamkoff/rector/types').PasteCapability<{text: string}>} */
+const textFilePaste = {
+  accepts(input) {
+    return input.kind === 'file' && input.file.type === 'text/plain'
+      && input.file.size <= 1024 * 1024
+  },
+  async resolve(input, context) {
+    if (context.signal.aborted || input.kind !== 'file'
+        || input.file.type !== 'text/plain' || input.file.size > 1024 * 1024) return null
+    const text = await input.file.text()
+    if (context.signal.aborted) return null
+    return { kind: 'rich-text', replacement: { kind: 'text', text } }
+  },
+}
+```
+
+Assign this object to the definition's `capabilities.paste`. MIME and size checks are application policy, not proof of file authenticity. `File.text()` itself is not abortable; the second signal check discards a late result. See [Block extensions](/guide/extensions.md) for the complete schema and capability contracts.
 
 ## Extension trust
 
@@ -74,30 +93,71 @@ If composition fails, Rector rolls back resources already acquired. If cleanup i
 
 ## Extension cleanup
 
-A block plugin's `destroy(element)` is called for each owned element. An inline plugin's `destroy()` is called when the editor is destroyed. Inline tool `destroy()` releases tool-wide resources. Temporary control groups may return their own `destroy()` callback.
+A reusable `BlockPluginDefinition.setup(runtimeContext)` creates one editor's `BlockPluginRuntime`. Its `create(initial, context)` creates a separate `BlockInstance` for each mounted occurrence. Mutable DOM, listeners, observers and cleanup belong to that instance; `BlockInstance.destroy()` takes no arguments. Runtime `destroy()` releases editor-wide resources. Inline plugin runtimes and individual widgets likewise have separate cleanup, and inline tool `destroy()` releases the mounted tool's resources.
 
-Track resources explicitly:
+Keep occurrence state in the `create()` closure. This setup factory accepts an application observer that returns its cleanup function and uses the occurrence's lifecycle signal:
 
 ```js
-class LiveBlock {
-  controllers = new WeakMap()
+/**
+ * @param {(element: HTMLElement, signal: AbortSignal) => () => void} watch
+ * @returns {import('@shelamkoff/rector/types').BlockPluginDefinition<{label: string}>['setup']}
+ */
+function createLiveBlockSetup(watch) {
+  return () => ({
+    create(initial, context) {
+      const element = context.ownerDocument.createElement('div')
+      let data = { ...initial }
+      let disposed = false
+      element.textContent = data.label
+      element.setAttribute('aria-readonly', String(context.isReadOnly()))
+      const stop = watch(element, context.signal)
+      const dispose = () => {
+        if (disposed) return
+        disposed = true
+        context.signal.removeEventListener('abort', dispose)
+        stop()
+      }
+      context.signal.addEventListener('abort', dispose, { once: true })
+      if (context.signal.aborted) dispose()
+      return {
+        element,
+        read: () => ({ ...data }),
+        update(next) { data = { ...next }; element.textContent = data.label },
+        setReadOnly(value) { element.setAttribute('aria-readonly', String(value)) },
+        destroy: dispose,
+      }
+    },
+    destroy() {}, // This runtime acquires no editor-wide resources.
+  })
+}
+```
 
-  render(data) {
-    const element = document.createElement('div')
-    const controller = new AbortController()
-    this.controllers.set(element, controller)
-    this.load(data.id, controller.signal)
-    return element
-  }
+Use the returned function as the definition's `setup`. Each occurrence receives its own element, state and idempotent cleanup. A definition may be reused by several editors; a shared "last rendered element" field would mix their owners. An observer that throws while acquiring resources must release its partial acquisition before propagating the error.
 
-  destroy(element) {
-    this.controllers.get(element)?.abort()
-    this.controllers.delete(element)
+## Asynchronous persisted updates
+
+An ordinary lifecycle `signal` is suitable for presentation work. Persisted asynchronous changes require a scoped `DataTask`: obtain it with `context.beginTask()`, pass `task.signal` to the loader and call `task.commit(producer)` against the current data. Replacement, destruction, generation changes or entering read-only mode revoke that task. Returning to editable mode does not revive it. `commit()` returns `false` when it can no longer authorize the update.
+
+```js
+/**
+ * @param {import('@shelamkoff/rector/types').BlockInstanceContext<{label: string, note: string}>} context
+ * @param {(signal: AbortSignal) => Promise<string>} loadLabel
+ * @returns {Promise<boolean>}
+ */
+async function refreshLabel(context, loadLabel) {
+  if (context.signal.aborted || context.isReadOnly()) return false
+  const task = context.beginTask()
+  try {
+    const label = await loadLabel(task.signal)
+    if (task.signal.aborted) return false
+    return task.commit(current => ({ ...current, label }))
+  } finally {
+    task.cancel()
   }
 }
 ```
 
-Use `WeakMap` for per-element state because one plugin instance may render several blocks. Never keep the most recently rendered element in one shared field.
+The producer preserves fields edited while the loader was pending. Always release the task in `finally`, including loader failure; handle a rejected loader at the calling application boundary. Do not write a late result into a retained element or an old data snapshot.
 
 ## Renderer lifecycle
 

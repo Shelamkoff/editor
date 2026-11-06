@@ -110,6 +110,7 @@ test('font size UI uses the mounted toolbar realm for DOM, listeners and animati
       return bookmark
     },
     restore(candidate) { return candidate === bookmark },
+    isValid(candidate) { return candidate === bookmark },
   })
 
   const names = ['document', 'window', 'Node', 'Document', 'HTMLElement', 'requestAnimationFrame', 'cancelAnimationFrame']

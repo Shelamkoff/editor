@@ -25,6 +25,10 @@ export function createSelectionPortBinding() {
     port: {
       get range() { return current?.range ?? null },
       capture(range) { return current?.capture(range) ?? null },
+      isValid(bookmark) {
+        const owner = current
+        return owner?.isValid?.(bookmark) === true && current === owner
+      },
       restore(bookmark, options) { return current?.restore(bookmark, options) === true },
     },
     bind(port) { current = port ?? null },

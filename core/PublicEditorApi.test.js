@@ -33,6 +33,29 @@ function setup() {
   return { runtime, api, handle, controls, view }
 }
 
+test('nested public update restoring the original record preserves Redo and document lifetime', () => {
+  const { runtime, api } = setup()
+  try {
+    api.update('a', () => ({ data: { text: 'Real change' } }))
+    assert.equal(runtime.undo(), true)
+    const revision = runtime.revision
+    const generation = runtime.generation
+    api.update('a', original => {
+      api.update('a', () => ({ data: { text: 'Temporary' } }))
+      return { data: original.data }
+    })
+    assert.equal(runtime.get('a').data.text, 'A')
+    assert.equal(runtime.revision, revision)
+    assert.equal(runtime.generation, generation)
+    assert.equal(runtime.canUndo, false)
+    assert.equal(runtime.canRedo, true)
+    assert.equal(runtime.redo(), true)
+    assert.equal(runtime.get('a').data.text, 'Real change')
+  } finally {
+    runtime.destroy()
+  }
+})
+
 test('public insert captures supported fields once under preparation before dispatch', () => {
   const { runtime, api } = setup()
   let producers = 0

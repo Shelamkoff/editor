@@ -333,9 +333,14 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
       panel.appendChild(applyBtn)
       panel.appendChild(unlinkBtn)
 
-      // Focus input after panel is mounted in the same browsing context.
-      if (ownerWindow?.requestAnimationFrame) ownerWindow.requestAnimationFrame(() => input.focus())
-      else queueMicrotask(() => input.focus())
+      // Deferred work belongs to this panel's live selection authority and DOM.
+      const focusInput = () => {
+        if (!ctx.range || !input.isConnected || input.ownerDocument !== ownerDocument
+            || !panel.contains(input)) return
+        input.focus()
+      }
+      if (ownerWindow?.requestAnimationFrame) ownerWindow.requestAnimationFrame(focusInput)
+      else queueMicrotask(focusInput)
 
       return panel
     },

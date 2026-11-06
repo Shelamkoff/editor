@@ -16,7 +16,7 @@ import { createFontSizeTool } from '../../inline-tools/fontSize.js'
 import { collectTextTargets, toggleTag, removeEmptyInlineTags, normalizeAfterEdit } from '../../inline-tools/utils.js'
 import { findNodeAtOffset, getTextLength, getTextOffset, editableTextWalker, firstTextNode, lastTextNode } from '../../shared/textOffset.js'
 import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
-import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
+import { clickNative, dragAcross, dispatchKey, waitForStyles } from './native-input-helpers.js'
 import './regressions/link-owned-formatting.js'
 import './regressions/tool-host-ownership.js'
 import './regressions/tool-actions.js'
@@ -656,7 +656,7 @@ test('font-size reset ignores styled text owned exclusively by locked controls',
   range.setStart(field.firstChild, 0)
   range.setEnd(field.lastChild, field.lastChild.length)
   const tool = createFontSizeTool('Font size')
-  tool.bindSelectionPort({ get range() { return range }, capture: () => ({}), restore: () => true })
+  tool.bindSelectionPort({ get range() { return range }, isValid: () => true, capture: () => ({}), restore: () => true })
   try {
     const initial = field.innerHTML
     tool.onMount(fixture.querySelector('.oe-inline-tool'), {
@@ -696,6 +696,7 @@ test('font-size reset splits shared styled author text away from protected desce
   const tool = createFontSizeTool('Font size')
   tool.bindSelectionPort({
     get range() { return range },
+    isValid: () => true,
     capture: () => ({
       start: getTextOffset(field, range.startContainer, range.startOffset),
       end: getTextOffset(field, range.endContainer, range.endOffset),
@@ -2603,6 +2604,74 @@ test('an orphan inline sidecar cannot be revived by newly typed literal text', (
     projection.destroy()
     visible.remove()
   }
+})
+
+
+for (const action of ['Enter', 'Apply']) test(`native retained FontSize ${action} cannot command a successor mount of the same tool`, async () => {
+  const tool = createFontSizeTool('Font size'), mounts = [], events = []
+  let port = null
+  const wrapped = { ...tool,
+    bindSelectionPort(next) { port = next; tool.bindSelectionPort(next) },
+    onMount(button, context) {
+      const result = tool.onMount(button, context)
+      const dropdown = button.closest('.oe-inline-toolbar').querySelector('.oe-font-size-dropdown')
+      const input = dropdown.querySelector('input'), apply = dropdown.querySelector('.oe-font-size-apply'), generation = mounts.length
+      for (const [element, type] of [[input, 'keydown'], [apply, 'click']]) element.addEventListener(type, event => {
+        events.push({ generation, type, key: event.key, trusted: event.isTrusted })
+      })
+      mounts.push({ button, dropdown, input, apply })
+      return result
+    },
+  }
+  const predecessor = make([para('a', 'First owner')], { injectStyles: true, inlineTools: [wrapped] })
+  await waitForStyles(document)
+  select(editableField(predecessor, 'a'), 0, 5)
+  document.dispatchEvent(new Event('selectionchange')); await pause(35)
+  await clickNative(editorRoot(predecessor).querySelector('[data-tool="fontSize"]'))
+  equal(document.activeElement, mounts[0].input, 'The predecessor input did not receive focus')
+  predecessor.destroy()
+  const editor = make([para('b', 'Bravo Omega')], { injectStyles: true, inlineTools: [wrapped] })
+  const field = editableField(editor, 'b')
+  await waitForStyles(document)
+  select(field, 0, 5)
+  document.dispatchEvent(new Event('selectionchange')); await pause(35)
+  await clickNative(editorRoot(editor).querySelector('[data-tool="fontSize"]'))
+  equal(mounts.length, 2)
+  const [old, current] = mounts
+  equal(document.activeElement, current.input, 'The successor input did not receive focus')
+  await dispatchKey('a', 'KeyA', 65, 2)
+  await window.__testInput('Input.insertText', { text: '28' })
+  const retained = document.createElement('div')
+  retained.style.cssText = 'display:flex;gap:8px;margin-top:8px'
+  current.dropdown.append(retained); retained.append(old.input, old.apply); old.input.value = '72'
+  const selection = () => {
+    const range = port.range
+    return range ? { text: range.toString(), start: getTextOffset(field, range.startContainer, range.startOffset),
+      end: getTextOffset(field, range.endContainer, range.endOffset) } : null
+  }
+  const before = editor.save().blocks, beforeSelection = selection()
+  equal(beforeSelection, { text: 'Bravo', start: 0, end: 5 })
+  equal(current.input.value, '28'); equal(old.input.value, '72')
+  assert(old.input.isConnected && old.apply.isConnected && current.dropdown.contains(old.input))
+  equal([editor.canUndo, editor.canRedo, tool.isDropdownOpen()], [false, false, true])
+  const invoke = async mount => {
+    if (action === 'Enter') { await clickNative(mount.input); await dispatchKey('Enter', 'Enter', 13) }
+    else await clickNative(mount.apply)
+  }
+  await invoke(old)
+  const received = generation => events.some(event => event.generation === generation && event.trusted
+    && (action === 'Enter' ? event.type === 'keydown' && event.key === 'Enter' : event.type === 'click'))
+  assert(received(0), 'The retained control did not receive its trusted native event')
+  equal(editor.save().blocks, before, 'The retained control mutated the successor document')
+  equal([editor.canUndo, editor.canRedo, tool.isDropdownOpen()], [false, false, true])
+  equal(selection(), beforeSelection, 'The retained control replaced the current selection')
+  await invoke(current)
+  assert(received(1), 'The current control did not receive its trusted native event')
+  const after = editor.save().blocks
+  equal(after[0].data.text, '<span style="font-size: 28px;">Bravo</span> Omega')
+  equal([editor.canUndo, editor.canRedo, tool.isDropdownOpen()], [true, false, false])
+  editor.undo(); equal(editor.save().blocks, before); equal(editor.canUndo, false, 'Current FontSize was not one history entry')
+  editor.redo(); equal(editor.save().blocks, after)
 })
 
 await run()

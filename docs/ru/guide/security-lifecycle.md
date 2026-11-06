@@ -38,13 +38,32 @@ Rector никогда не устанавливает политику по ум
 
 Клиентские MIME и расширение — подсказки, а не доказательство типа. До загрузки ограничивайте количество и размер средствами приложения. На сервере проверяйте фактическое содержимое, создавайте безопасные имена, изолируйте хранилище и отдавайте файлы с правильными заголовками.
 
-Отзывайте каждый объектный URL после замены предварительного просмотра или уничтожения блока.
+Освобождайте объектные URL расширения при завершении жизни принадлежащего ему представления. URL, полученные через `createObjectURL()` контекста вставки, принадлежат ядру: оно освобождает их при отмене или ошибке, а после фиксации сохраняет до уничтожения редактора, чтобы Undo/Redo могли восстановить мультимедиа. Не отзывайте такие зафиксированные URL при очистке отдельного блока.
 
 ## Буфер обмена
 
-Маршрутизация вставки сначала сопоставляет объявленные возможности плагинов, а затем передаёт плагину нормализованное событие. Плагин всё равно обязан очистить `event.element`, проверить `event.file` и осторожно разобрать `event.data`.
+Маршрутизация вставки использует `capabilities.paste.accepts(input)` и `resolve(input, context)` определения плагина. `PasteInput` содержит `{ kind: 'text', text }` либо `{ kind: 'file', file }`. Resolver подготавливает `PasteResult` или возвращает `null`; он самостоятельно не изменяет смонтированный DOM и не фиксирует данные документа. Ядро принимает подготовленный результат через транзакцию вставки. Передавайте `context.signal` отменяемой операции и проверяйте его после завершения асинхронной работы.
 
-Асинхронная вставка участвует в одной транзакции истории через `waitForPaste()`. Отклонение этого промиса не должно оставлять частично зафиксированное состояние документа.
+Например, этот resolver принимает текстовый файл ограниченного размера и запрашивает вставку обычного текста. Результат `replacement.kind: 'text'` позволяет ядру экранировать текст для целевого поля форматированного текста.
+
+```js
+/** @type {import('@shelamkoff/rector/types').PasteCapability<{text: string}>} */
+const textFilePaste = {
+  accepts(input) {
+    return input.kind === 'file' && input.file.type === 'text/plain'
+      && input.file.size <= 1024 * 1024
+  },
+  async resolve(input, context) {
+    if (context.signal.aborted || input.kind !== 'file'
+        || input.file.type !== 'text/plain' || input.file.size > 1024 * 1024) return null
+    const text = await input.file.text()
+    if (context.signal.aborted) return null
+    return { kind: 'rich-text', replacement: { kind: 'text', text } }
+  },
+}
+```
+
+Назначьте этот объект свойству `capabilities.paste` определения плагина. Проверки MIME и размера задают политику приложения, но не подтверждают подлинность файла. Сам `File.text()` не поддерживает отмену; повторная проверка сигнала отбрасывает запоздавший результат. Полные контракты схемы и возможностей приведены в разделе [Блочные расширения](/ru/guide/extensions.md).
 
 ## Доверие к расширениям
 
@@ -74,30 +93,71 @@ try {
 
 ## Освобождение ресурсов расширения
 
-`destroy(element)` блочного плагина вызывается для каждого принадлежащего ему элемента. `destroy()` внутристрочного плагина вызывается при уничтожении редактора. `destroy()` внутристрочного инструмента освобождает общие ресурсы инструмента. Временная группа элементов управления может вернуть собственный `destroy()`.
+Повторно используемый `BlockPluginDefinition.setup(runtimeContext)` создаёт `BlockPluginRuntime` одного редактора. Его `create(initial, context)` создаёт отдельный `BlockInstance` для каждого смонтированного вхождения. Изменяемый DOM, обработчики, наблюдатели и очистка принадлежат этому экземпляру; `BlockInstance.destroy()` вызывается без аргументов. `destroy()` среды исполнения освобождает общие ресурсы редактора. У среды исполнения внутристрочного плагина и отдельных виджетов также раздельная очистка; `destroy()` внутристрочного инструмента освобождает ресурсы его mount.
 
-Учитывайте ресурсы явно:
+Храните состояние вхождения в замыкании `create()`. Эта фабрика принимает наблюдатель приложения, который возвращает функцию очистки и использует сигнал жизненного цикла вхождения:
 
 ```js
-class LiveBlock {
-  controllers = new WeakMap()
+/**
+ * @param {(element: HTMLElement, signal: AbortSignal) => () => void} watch
+ * @returns {import('@shelamkoff/rector/types').BlockPluginDefinition<{label: string}>['setup']}
+ */
+function createLiveBlockSetup(watch) {
+  return () => ({
+    create(initial, context) {
+      const element = context.ownerDocument.createElement('div')
+      let data = { ...initial }
+      let disposed = false
+      element.textContent = data.label
+      element.setAttribute('aria-readonly', String(context.isReadOnly()))
+      const stop = watch(element, context.signal)
+      const dispose = () => {
+        if (disposed) return
+        disposed = true
+        context.signal.removeEventListener('abort', dispose)
+        stop()
+      }
+      context.signal.addEventListener('abort', dispose, { once: true })
+      if (context.signal.aborted) dispose()
+      return {
+        element,
+        read: () => ({ ...data }),
+        update(next) { data = { ...next }; element.textContent = data.label },
+        setReadOnly(value) { element.setAttribute('aria-readonly', String(value)) },
+        destroy: dispose,
+      }
+    },
+    destroy() {}, // This runtime acquires no editor-wide resources.
+  })
+}
+```
 
-  render(data) {
-    const element = document.createElement('div')
-    const controller = new AbortController()
-    this.controllers.set(element, controller)
-    this.load(data.id, controller.signal)
-    return element
-  }
+Используйте возвращённую функцию как `setup` определения. Каждое вхождение получает собственный элемент, состояние и идемпотентную очистку. Определение может использоваться несколькими редакторами; общее поле «последний отображённый элемент» смешало бы их владельцев. Наблюдатель, который выбрасывает ошибку при получении ресурсов, должен освободить уже полученную часть перед передачей ошибки дальше.
 
-  destroy(element) {
-    this.controllers.get(element)?.abort()
-    this.controllers.delete(element)
+## Асинхронное изменение сохраняемых данных
+
+Обычный сигнал жизненного цикла подходит для работы с представлением. Асинхронное изменение сохраняемых данных требует ограниченного областью владельца `DataTask`: получите его через `context.beginTask()`, передайте загрузчику `task.signal` и вызовите `task.commit(producer)` с текущими данными. Замена, уничтожение, смена поколения документа или переход в read-only отзывают задачу. Возврат к редактированию её не восстанавливает. `commit()` возвращает `false`, когда задача больше не имеет права на изменение.
+
+```js
+/**
+ * @param {import('@shelamkoff/rector/types').BlockInstanceContext<{label: string, note: string}>} context
+ * @param {(signal: AbortSignal) => Promise<string>} loadLabel
+ * @returns {Promise<boolean>}
+ */
+async function refreshLabel(context, loadLabel) {
+  if (context.signal.aborted || context.isReadOnly()) return false
+  const task = context.beginTask()
+  try {
+    const label = await loadLabel(task.signal)
+    if (task.signal.aborted) return false
+    return task.commit(current => ({ ...current, label }))
+  } finally {
+    task.cancel()
   }
 }
 ```
 
-Используйте `WeakMap` для состояния отдельного элемента, потому что один экземпляр плагина может отображать несколько блоков. Не храните последний созданный элемент в одном общем поле.
+Функция изменения сохраняет поля, отредактированные за время загрузки. Всегда освобождайте задачу в `finally`, в том числе при ошибке загрузчика; отклонённый промис обрабатывайте в вызывающем коде приложения. Не записывайте запоздавший результат в сохранённый элемент или старый снимок данных.
 
 ## Жизненный цикл рендерера
 

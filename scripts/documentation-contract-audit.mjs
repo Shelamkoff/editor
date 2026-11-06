@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import ts from 'typescript'
+import { checkSecurityLifecycleExamples } from './security-lifecycle-examples.mjs'
 
 const root = process.cwd()
 const errors = []
@@ -129,7 +130,7 @@ for (const interfaceName of ['IEditor', 'EditorBlocksApi']) {
   })
 }
 
-for (const interfaceName of ['InlineTool', 'InlineMutationContext', 'InlineToolActionContext']) {
+for (const interfaceName of ['InlineTool', 'InlineSelectionPort', 'InlineMutationContext', 'InlineToolActionContext']) {
   assertDocumented({
     sourceFile: inlineToolTypes,
     interfaceName,
@@ -188,6 +189,7 @@ const publicGuideDocuments = [
   'docs/guide/extensions.md', 'docs/ru/guide/extensions.md',
   'docs/guide/inline-extensions.md', 'docs/ru/guide/inline-extensions.md',
   'docs/guide/styling.md', 'docs/ru/guide/styling.md',
+  'docs/guide/security-lifecycle.md', 'docs/ru/guide/security-lifecycle.md',
 ]
 for (const [pattern, label] of [
   [/\bBlockPlugin\b/g, 'legacy BlockPlugin contract'],
@@ -197,15 +199,19 @@ for (const [pattern, label] of [
   [/\bgetPluginConfig\b/g, 'legacy plugin configuration method'],
   [/\brootElement\b/g, 'legacy public DOM handle'],
   [/\bgetBlockByIndex\b/g, 'legacy block-view API'],
+  [/\bwaitForPaste\b/g, 'legacy asynchronous paste API'],
   [/new\s+(?:Paragraph|Heading|Quote|List|Image|Gallery|CarouselBlock|Attaches|Poll|Person)\s*\(/g, 'legacy class construction'],
 ]) {
   assertPatternAbsent({ pattern, documents: publicGuideDocuments, label })
 }
+
+const lifecycleExamples = checkSecurityLifecycleExamples(root)
+errors.push(...lifecycleExamples.errors)
 
 if (errors.length) {
   console.error(`Documentation contract audit found ${errors.length} issue(s):`)
   for (const error of errors) console.error(`- ${error}`)
   process.exitCode = 1
 } else {
-  console.log('Documentation contract audit passed')
+  console.log(`Documentation contract audit passed; ${lifecycleExamples.examples.length} security/lifecycle examples type-checked`)
 }

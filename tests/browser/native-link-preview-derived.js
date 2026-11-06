@@ -9,7 +9,8 @@ for (const populated of [false, true]) test(`LinkPreview native URL typing prese
   const initial = populated ? { ...defaults, url: 'https://example.test/story', title: 'Original title',
     description: 'Original description', image: pixel, domain: 'display.example', template: 'horizontal' } : defaults
   const editor = make(populated ? [{ id: 'link', type: 'linkPreview', dataVersion: 1, data: initial }] : [],
-    { plugins: [definition], defaultBlock: 'linkPreview', inlineTools: [], ...(!populated ? { data: undefined } : {}) })
+    // Empty URL typing is one gesture; keep the populated case on the default history deadline.
+    { plugins: [definition], defaultBlock: 'linkPreview', inlineTools: [], ...(!populated ? { data: undefined, historyCoalesceMs: 60_000 } : {}) })
   try {
     const before = editor.save().blocks, id = before[0].id, root = blockElement(editor, id), input = root.querySelector('.oe-lp__url-input')
     const inputs = [], transactions = []

@@ -131,7 +131,7 @@ function createExternalTool(): InlineTool {
     bindSelectionPort(next) { port = next },
     toggle({ range }) {
       const token = port?.capture(range)
-      if (token) port?.restore(token, { endOffsetDelta: 0 })
+      if (token && port?.isValid(token)) port.restore(token, { endOffsetDelta: 0 })
     },
     onMount(_button, mutations) {
       const token = port?.capture()

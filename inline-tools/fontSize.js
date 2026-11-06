@@ -163,6 +163,8 @@ export function createFontSizeTool(label) {
   let isOpen = false
   /** @type {number | null} */
   let focusFrame = null
+  /** @type {(Window & typeof globalThis) | null} */
+  let focusWindow = null
   /** @type {import('./types').InlineMutationContext | null} */
   let mutations = null
 
@@ -172,10 +174,9 @@ export function createFontSizeTool(label) {
   }
 
   function cancelFocusFrame() {
-    if (focusFrame === null) return
-    const view = dropdownEl?.ownerDocument?.defaultView ?? ownerWindow
-    view?.cancelAnimationFrame?.(focusFrame)
+    if (focusFrame !== null) focusWindow?.cancelAnimationFrame?.(focusFrame)
     focusFrame = null
+    focusWindow = null
   }
 
   /** @param {(range:Range)=>void} operation */
@@ -207,20 +208,30 @@ export function createFontSizeTool(label) {
     inputEl.value = String(getCurrentFontSize(range, documentFor(range)))
     cancelFocusFrame()
 
-    const view = inputEl.ownerDocument?.defaultView ?? ownerWindow
-    if (view?.requestAnimationFrame) {
-      focusFrame = view.requestAnimationFrame(() => {
+    const input = inputEl, dropdown = dropdownEl, bookmark = savedBookmark
+    const doc = input.ownerDocument
+    const view = doc.defaultView ?? ownerWindow
+    // Validation can invoke host callbacks; check local ownership afterwards.
+    const ownsInput = () => cbs.isValid(bookmark) && isOpen && savedBookmark === bookmark
+      && inputEl === input && dropdownEl === dropdown && input.isConnected
+      && input.ownerDocument === doc && dropdown.ownerDocument === doc && dropdown.contains(input)
+    /** @type {number | null} */
+    let scheduledFrame = null
+    const focusInput = () => {
+      if (focusFrame === scheduledFrame && focusWindow === view) {
         focusFrame = null
-        if (!isOpen || !inputEl?.isConnected) return
-        inputEl.focus()
-        inputEl.select()
-      })
+        focusWindow = null
+      }
+      if (!ownsInput()) return
+      input.focus()
+      // focus() synchronously runs listeners that may close, remount or revoke.
+      if (ownsInput()) input.select()
+    }
+    if (view?.requestAnimationFrame) {
+      focusWindow = view
+      scheduledFrame = focusFrame = view.requestAnimationFrame(focusInput)
     } else {
-      queueMicrotask(() => {
-        if (!isOpen || !inputEl?.isConnected) return
-        inputEl.focus()
-        inputEl.select()
-      })
+      queueMicrotask(focusInput)
     }
   }
 
@@ -361,16 +372,18 @@ export function createFontSizeTool(label) {
     const doc = toolbarRoot.ownerDocument
     dropdownEl = el('div', 'oe-font-size-dropdown', undefined, doc)
     dropdownEl.style.display = 'none'
+    const dropdown = dropdownEl
+    const isCurrent = () => dropdownEl === dropdown && inputEl === input
 
     dropdownEl.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || !isOpen) return
+      if (!isCurrent() || event.key !== 'Escape' || !isOpen) return
       event.preventDefault()
       event.stopPropagation()
       closeDropdown()
     }, true)
 
     dropdownEl.addEventListener('mousedown', (e) => {
-      if (e.target === inputEl) return
+      if (!isCurrent() || e.target === input) return
       e.preventDefault()
       e.stopPropagation()
     })
@@ -378,6 +391,7 @@ export function createFontSizeTool(label) {
     // Custom input row
     const inputRow = el('div', 'oe-font-size-input-row', undefined, doc)
     inputEl = /** @type {HTMLInputElement} */ (doc.createElement('input'))
+    const input = inputEl
     inputEl.type = 'number'
     inputEl.className = 'oe-font-size-input'
     inputEl.placeholder = 'px'
@@ -385,26 +399,28 @@ export function createFontSizeTool(label) {
     inputEl.min = String(FONT_SIZE_MIN)
     inputEl.max = String(FONT_SIZE_MAX)
     inputEl.addEventListener('keydown', (e) => {
+      if (!isCurrent()) return
       // Stop ALL key events from reaching KeyboardManager (which would
       // interpret Delete/Backspace as block merge, arrows as navigation, etc.)
       e.stopPropagation()
       if (e.key === 'Enter') {
         e.preventDefault()
-        const val = Number(/** @type {HTMLInputElement} */ (inputEl).value)
+        const val = Number(input.value)
         applySize(val)
       }
     })
     // Prevent input/change events from bubbling to wireInputTracking
     // (which would emit editor:changed and trigger undo snapshots).
-    inputEl.addEventListener('input', (e) => e.stopPropagation())
+    inputEl.addEventListener('input', (e) => { if (isCurrent()) e.stopPropagation() })
 
     const applyBtn = el('button', 'oe-font-size-apply', { type: 'button' }, doc)
     applyBtn.setAttribute('aria-label', label)
     setTrustedHtml(applyBtn, ICON_CHECK)
     applyBtn.addEventListener('click', (e) => {
+      if (!isCurrent()) return
       e.preventDefault()
       e.stopPropagation()
-      const val = Number(/** @type {HTMLInputElement} */ (inputEl).value)
+      const val = Number(input.value)
       applySize(val)
     })
 
@@ -412,6 +428,7 @@ export function createFontSizeTool(label) {
     resetBtn.setAttribute('aria-label', `${label}: 16px`)
     setTrustedHtml(resetBtn, createSvgIcon('<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>', 14))
     resetBtn.addEventListener('click', (e) => {
+      if (!isCurrent()) return
       e.preventDefault()
       e.stopPropagation()
       removeSize()
@@ -430,6 +447,7 @@ export function createFontSizeTool(label) {
       const item = el('button', 'oe-font-size-item', { type: 'button', 'data-size': String(size) }, doc)
       item.textContent = size + 'px'
       item.addEventListener('click', (e) => {
+        if (!isCurrent()) return
         e.preventDefault()
         e.stopPropagation()
         applySize(size)
@@ -506,7 +524,11 @@ export function createFontSizeTool(label) {
     destroy() {
       ownerDocument?.removeEventListener('mousedown', onDocMouseDown, true)
       cancelFocusFrame()
+      isOpen = false
       if (dropdownEl) { dropdownEl.remove(); dropdownEl = null }
+      inputEl = null
+      selectBtn = null
+      sizeLabel = null
       savedBookmark = null
       mutations = null
       ownerWindow = null

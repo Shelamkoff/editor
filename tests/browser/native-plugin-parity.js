@@ -46,7 +46,11 @@ test('Poll Enter in the question focuses the first option without changing the d
 })
 
 test('Poll successive native input keeps the caret after the inserted text', async () => {
-  const editor = poll()
+  // Consecutive characters form one typing gesture in this caret-preservation case.
+  const definition = createPollPlugin()
+  const editor = make([{ id: 'a', type: definition.type, dataVersion: definition.schema.currentVersion, data: {
+    ...definition.schema.createDefault(), question: 'Question', options: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }],
+  } }], { plugins: [createParagraphPlugin(), definition], historyCoalesceMs: 60_000 })
   const before = editor.save().blocks
   await clickNative(blockElement(editor, 'a').querySelector('.oe-poll__question'))
   await dispatchKey('End', 'End', 35)
@@ -476,7 +480,9 @@ for (const fixture of pluginParityFixtures) {
 
 test('Person can add a blank link and type its URL without invalid canonical data', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Person')
-  const editor = pluginEditor({ ...fixture, data: { persons: [{ id: 'first', name: 'Alpha', role: '', bio: '', avatar: '', links: [] }] } })
+  // This draft-preservation case specifies one typing gesture on a loaded host.
+  // Dedicated history cases verify the default coalescence deadline.
+  const editor = pluginEditor({ ...fixture, data: { persons: [{ id: 'first', name: 'Alpha', role: '', bio: '', avatar: '', links: [] }] } }, { historyCoalesceMs: 60_000 })
   const before = editor.save().blocks
   await clickNative(blockElement(editor, 'a').querySelector('.oe-person__link-add'))
   const input = blockElement(editor, 'a').querySelector('input[data-link-id]')

@@ -92,6 +92,9 @@ export function openSourceEditor(config) {
     closed = true
     if (activeEditors.get(config.wrapper)?.close === close) activeEditors.delete(config.wrapper)
     controller.abort()
+    // Abort observers can synchronously reopen this same cached surface.
+    // Its layer and visibility then belong to that newer session.
+    if (activeEditors.get(config.wrapper)?.surface === surface) return
     surface.layer.close()
     if (!config.signal.aborted && config.wrapper.isConnected && root.contains(config.wrapper.ownerDocument.activeElement)) {
       const target = returnFocus?.isConnected && config.wrapper.contains(returnFocus)
@@ -100,7 +103,8 @@ export function openSourceEditor(config) {
       if ('focus' in target && typeof target.focus === 'function') target.focus({ preventScroll: true })
       else config.wrapper.focus({ preventScroll: true })
     }
-    setSurfaceVisible(surface, false)
+    // Restoring focus can also reopen the cached surface before close returns.
+    if (activeEditors.get(config.wrapper)?.surface !== surface) setSurfaceVisible(surface, false)
   }
   activeEditors.set(config.wrapper, { close, surface })
 
@@ -134,6 +138,7 @@ export function openSourceEditor(config) {
       return
     }
     close()
+    if (config.signal.aborted) return
     config.onSubmit(value)
   }, { signal: controller.signal })
   field.addEventListener('input', () => {

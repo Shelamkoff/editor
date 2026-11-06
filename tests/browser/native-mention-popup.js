@@ -596,7 +596,8 @@ test('Fresh mention typing and confirmation keep the caret after the trigger and
 })
 
 for (const editing of [false, true]) test('Typing a space at the end of a mention line keeps it outside the pill / editing ' + editing, async () => {
-  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}}' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [{ id: 'ada', name: 'Ada' }] })] })
+  // Space and following text form one gesture; dedicated history tests cover the default deadline.
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}}' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, historyCoalesceMs: 60_000, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [{ id: 'ada', name: 'Ada' }] })] })
   const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
   field.focus(); selection.setBaseAndExtent(span.firstChild, 2, span.firstChild, 2)
   if (editing) { await printable('X'); await pause(80); assert(editorRoot(editor).querySelector('.oe-mention-dropdown'), 'Editing did not open suggestions') }

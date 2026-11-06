@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { mkdir, mkdtemp, readFile, rm, unlink } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -367,14 +367,51 @@ try {
   await client.send('Runtime.enable')
   await client.send('Page.enable')
   await client.send('Emulation.setFocusEmulationEnabled', { enabled: true })
+  // A target can advertise the fixture URL while its current document is still
+  // about:blank. Wait for the committed fixture before querying its permissions.
+  await waitForEditor(client)
+  // Native Copy buttons need sanitized writes after a trusted user gesture.
+  // Configure only this disposable profile's exact fixture origin; do not grant
+  // clipboard reads or unsanitized/gestureless writes to make a test pass.
+  const clipboardPermission = { name: 'clipboard-write', allowWithoutSanitization: false }
+  const clipboardOrigin = new URL(pageUrl).origin
+  const fixtureDocument = await evaluate(client, '({ href: location.href, origin: location.origin, readyState: document.readyState, secureContext: isSecureContext })')
+  assert(fixtureDocument.href === pageUrl && fixtureDocument.origin === clipboardOrigin && fixtureDocument.secureContext,
+    'Clipboard setup requires the committed secure fixture document', fixtureDocument)
+  const { targetInfo } = await browserClient.send('Target.getTargetInfo', { targetId: target.id })
+  const permissionContext = targetInfo.browserContextId ? { browserContextId: targetInfo.browserContextId } : {}
+  const readClipboardPermissions = () => evaluate(client, `Promise.all([
+    ['clipboard-read', { name: 'clipboard-read' }],
+    ['clipboard-write', { name: 'clipboard-write', allowWithoutGesture: false, allowWithoutSanitization: false }],
+    ['clipboard-write-without-gesture', { name: 'clipboard-write', allowWithoutGesture: true, allowWithoutSanitization: false }],
+  ].map(async ([name, descriptor]) =>
+    [name, (await navigator.permissions.query(descriptor)).state]
+  )).then(Object.fromEntries)`)
+  const permissionsBefore = await readClipboardPermissions()
+  await browserClient.send('Browser.setPermission', {
+    permission: clipboardPermission, setting: 'granted', origin: clipboardOrigin, ...permissionContext,
+  })
+  const permissionsAfter = await readClipboardPermissions()
+  const clipboardSetup = { origin: clipboardOrigin, ...permissionContext, permission: clipboardPermission,
+    setting: 'granted', document: fixtureDocument, before: permissionsBefore, after: permissionsAfter }
+  if (process.env.EDITOR_RESULTS_DIR) {
+    await mkdir(process.env.EDITOR_RESULTS_DIR, { recursive: true })
+    await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'physical-browser-environment.json'), JSON.stringify({
+      executable: chromePath, browser: browserVersion.Browser,
+      protocolVersion: browserVersion['Protocol-Version'], disposableProfile: true, clipboardSetup,
+    }, null, 2) + '\n')
+  }
+  assert(permissionsAfter['clipboard-write'] === 'granted', 'Sanitized clipboard write setup failed', clipboardSetup)
+  assert(permissionsAfter['clipboard-read'] === permissionsBefore['clipboard-read'],
+    'Clipboard write setup unexpectedly changed read permission', clipboardSetup)
+  assert(permissionsAfter['clipboard-write-without-gesture'] === permissionsBefore['clipboard-write-without-gesture'],
+    'Clipboard write setup unexpectedly changed gestureless write permission', clipboardSetup)
   await installNativeInput(client)
   const nativePage = process.env.EDITOR_NATIVE_PAGE
   if (nativePage) {
     if (!/^native-[a-z0-9-]+\.html$/.test(nativePage)) throw new Error('Expected a native fixture filename')
     console.log(JSON.stringify({ [nativePage]: await runNativePage(client, pageUrl, nativePage) }))
   } else {
-  await waitForEditor(client)
-
   await click(client, '.oe-block [contenteditable=true]')
   await insertText(client, 'First')
   await key(client, { key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 })

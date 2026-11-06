@@ -71,6 +71,7 @@ test('Script panel never reacquires or restores through a retired mounted select
   h.tool.bindSelectionPort({
     get range() { throw new Error('mounted port cannot own this panel') },
     capture() { throw new Error('mounted capture must not run') },
+    isValid() { throw new Error('mounted validity must not run') },
     restore() { throw new Error('mounted restore must not run') },
   })
   const panel = h.panel()
