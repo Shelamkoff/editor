@@ -739,4 +739,169 @@ for (const path of ['whole-block', 'cross-field']) {
   }
 }
 
+function classVisibleClipboardWidget() {
+  const definition = customCssClipboardWidget('visibility:hidden')
+  return Object.freeze({
+    ...definition,
+    setup(context) {
+      const runtime = definition.setup(context)
+      return {
+        ...runtime,
+        create(id, initial, options) {
+          const instance = runtime.create(id, initial, options)
+          const visible = instance.element.querySelector('.clipboard-visible-child')
+          assert(visible, 'Class visibility widget is missing its visible child')
+          visible.style.removeProperty('visibility')
+          visible.classList.add('clipboard-class-visible-child')
+          return instance
+        },
+      }
+    },
+  })
+}
+
+for (const path of ['whole-block', 'cross-field']) {
+  test(path + ' custom widget clipboard copy preserves a class-visible child in HTML-rich Paste', async () => {
+    const crossField = path === 'cross-field'
+    const segments = ['A#ff0000VISIBLEB', ...(crossField ? ['C'] : [])]
+    const style = document.createElement('style')
+    style.textContent = '.clipboard-class-visible-child { visibility: visible; }'
+    const control = document.createElement('div'), receiver = document.createElement('div')
+    const diagnostics = { path, segments }
+    try {
+      document.head.append(style)
+      const editor = make([
+        para('source', (crossField ? 'XX' : '') + 'A{{badge}}B', { inline: {
+          badge: { type: 'css-clipboard-label', dataVersion: 1, data: { value: '#ff0000' } },
+        } }),
+        ...(crossField ? [para('end', 'CYY')] : []),
+        para('outside', 'KEEP'),
+      ], { inlinePlugins: [classVisibleClipboardWidget()] })
+      const field = editableField(editor, 'source')
+      const end = crossField ? editableField(editor, 'end') : null
+      const before = editor.save().blocks
+      diagnostics.sourceBefore = before
+      for (const host of [control, receiver]) {
+        host.contentEditable = 'true'
+        host.style.cssText = 'display:block;min-height:24px;white-space:pre-wrap'
+        document.body.append(host)
+      }
+      const controlFields = crossField ? [field, end].map(element => {
+        const clone = element.cloneNode(true)
+        clone.removeAttribute('contenteditable')
+        control.append(clone)
+        return clone
+      }) : [control]
+      if (!crossField) control.append(...[...field.childNodes].map(node => node.cloneNode(true)))
+
+      diagnostics.phase = 'independent-class-visibility-control'
+      diagnostics.visibility = [field, controlFields[0]].map(host => ({
+        ...cssClipboardVisibility(host),
+        childInlineVisibility: host.querySelector('.clipboard-visible-child').style.visibility,
+        childHasVisibleClass: host.querySelector('.clipboard-visible-child').classList.contains('clipboard-class-visible-child'),
+      }))
+      for (const observed of diagnostics.visibility) {
+        assert(observed.connected && observed.width > 0, 'Class visibility clipboard fixture is not rendered')
+        equal(observed.visibleText, (crossField ? 'XX' : '') + segments[0])
+        equal(observed.hidden.visibility, 'hidden')
+        equal(observed.visibleChild, { visibility: 'visible', text: 'VISIBLE' })
+        equal(observed.childInlineVisibility, '', 'The visible child must depend on its CSS class')
+        equal(observed.childHasVisibleClass, true)
+        equal(observed.controlDisplay, 'none')
+      }
+      if (crossField) {
+        equal(controlFields[0].firstChild?.nodeType, 3)
+        equal(controlFields[0].firstChild.textContent, 'XXA')
+        equal(controlFields[1].firstChild?.nodeType, 3)
+        equal(controlFields[1].firstChild.textContent, 'CYY')
+        control.focus()
+        const range = document.createRange()
+        range.setStart(controlFields[0].firstChild, 2)
+        range.setEnd(controlFields[1].firstChild, 1)
+        const native = window.getSelection()
+        native.removeAllRanges(); native.addRange(range)
+        assert(document.activeElement === control
+          && native.anchorNode === controlFields[0].firstChild && native.anchorOffset === 2
+          && native.focusNode === controlFields[1].firstChild && native.focusOffset === 1,
+        'Independent class visibility control did not retain its native selection')
+      } else selectNativeHostContents(control)
+      diagnostics.controlCopy = await captureNativeClipboard(control, 'copy')
+      assert(!diagnostics.controlCopy.prevented, 'Independent class visibility Copy was intercepted')
+      selectNativeHostContents(receiver)
+      diagnostics.controlPaste = await captureNativeClipboard(receiver, 'paste')
+      diagnostics.controlPastedHtml = receiver.innerHTML
+      diagnostics.controlPastedVisibleText = receiver.innerText
+      assert(!diagnostics.controlPaste.prevented, 'Independent class visibility Paste was intercepted')
+      equal(diagnostics.controlPaste.fragment, '')
+      diagnostics.controlSeparators = {
+        plain: assertCssClipboardSegments(diagnostics.controlPaste.text, segments, 'Independent class visibility native clipboard'),
+        rendered: assertCssClipboardSegments(receiver.innerText, segments, 'Independent class visibility native HTML-rich Paste'),
+      }
+      equal(editor.save().blocks, before)
+      equal([editor.canUndo, editor.canRedo], [false, false])
+
+      diagnostics.phase = 'public-source-selection'
+      receiver.replaceChildren()
+      if (crossField) {
+        equal(getTextLength(field), 5)
+        equal(getTextLength(end), 3)
+        await selectAcross(editor, field, 2, end, 1)
+        const native = window.getSelection()
+        assert(native.anchorNode === field.firstChild && native.anchorOffset === 2
+          && native.focusNode === end.firstChild && native.focusOffset === 1,
+        'Class visibility cross-field source selection changed its endpoints')
+        equal(editor.blocks.selectedIds(), ['source', 'end'])
+      } else {
+        editor.blocks.focus('source', { offset: 0 })
+        editor.blocks.select(['source'])
+        equal(editor.blocks.selectedIds(), ['source'])
+        const native = window.getSelection()
+        assert(native.rangeCount === 1 && native.isCollapsed && field.contains(native.anchorNode),
+          'Class visibility whole-block selection lost its owned collapsed caret')
+      }
+      assert(document.activeElement === field, 'Class visibility source does not own clipboard focus')
+      diagnostics.selectedIds = editor.blocks.selectedIds()
+      diagnostics.phase = 'native-private-and-source-contract'
+      diagnostics.copied = await captureNativeClipboard(editorRoot(editor), 'copy')
+      assert(diagnostics.copied.prevented, 'Editor did not own class visibility Copy')
+      const { type, dataVersion, data, tunes, inline } = before[0]
+      const parts = crossField
+        ? [{ kind: 'rich-text', html: 'A{{badge}}B', inline }, { kind: 'rich-text', html: 'C' }]
+        : [{ kind: 'block', block: { type, dataVersion, data, inline,
+          ...(tunes === undefined ? {} : { tunes }) } }]
+      equal(JSON.parse(diagnostics.copied.fragment), { version: CLIPBOARD_FRAGMENT_VERSION, parts },
+        'Class visibility Copy changed the exact private fragment')
+      selectNativeHostContents(receiver)
+      diagnostics.pasted = await captureNativeClipboard(receiver, 'paste')
+      diagnostics.pastedHtml = receiver.innerHTML
+      diagnostics.pastedVisibleText = receiver.innerText
+      assert(!diagnostics.pasted.prevented, 'Class visibility external native Paste was intercepted')
+      equal(diagnostics.pasted.fragment, diagnostics.copied.fragment)
+      diagnostics.sourceAfter = editor.save().blocks
+      diagnostics.historyAfter = [editor.canUndo, editor.canRedo]
+      equal(diagnostics.sourceAfter, before, 'Class visibility Copy changed canonical data')
+      equal(diagnostics.historyAfter, [false, false], 'Class visibility Copy changed history')
+
+      diagnostics.phase = 'standard-data-output'
+      diagnostics.sourceSeparators = {
+        plain: assertCssClipboardSegments(diagnostics.copied.text, segments, path + ' class visibility text/plain'),
+        html: assertCssClipboardHtml(diagnostics.copied.html, segments, path + ' class visibility text/html'),
+        pastedPlain: assertCssClipboardSegments(diagnostics.pasted.text, segments, path + ' class visibility pasted text/plain'),
+        pastedHtml: assertCssClipboardHtml(diagnostics.pasted.html, segments, path + ' class visibility pasted text/html'),
+      }
+      // Plain text and raw HTML must already be correct. This assertion checks
+      // whether a class-based visible child survives actual HTML rendering.
+      diagnostics.phase = 'html-visible-output'
+      assert(receiver.innerText.includes(segments[0]),
+        path + ' HTML-rich Paste lost the class-visible widget label')
+      diagnostics.renderedSeparators = assertCssClipboardSegments(receiver.innerText, segments,
+        path + ' class visibility rendered HTML-rich Paste')
+    } catch (error) {
+      diagnostics.failureStack = error?.stack ?? String(error)
+      throw new Error((error?.message ?? String(error)) + '\nClass visibility clipboard diagnostics: '
+        + JSON.stringify(diagnostics), { cause: error })
+    } finally { style.remove(); control.remove(); receiver.remove() }
+  })
+}
+
 await run()

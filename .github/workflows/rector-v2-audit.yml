@@ -2,7 +2,7 @@ name: Rector v2 comparative audit
 
 on:
   push:
-    branches: [fix/rector-v2-audit-2026-11-06]
+    branches: [fix/rector-v2-audit-2026-11-06, audit/clipboard-css-class-red-2026-11-06]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +23,7 @@ env:
 
 jobs:
   corpora:
+    if: ${{ github.ref == 'refs/heads/fix/rector-v2-audit-2026-11-06' }}
     name: All 100 comparative corpora
     runs-on: ubuntu-latest
     timeout-minutes: 240
@@ -76,6 +77,7 @@ jobs:
           retention-days: 7
 
   structural:
+    if: ${{ github.ref == 'refs/heads/fix/rector-v2-audit-2026-11-06' }}
     name: Full structural authoring and memory audit
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -115,6 +117,7 @@ jobs:
           retention-days: 7
 
   native-media:
+    if: ${{ github.ref == 'refs/heads/fix/rector-v2-audit-2026-11-06' }}
     name: Native media original and bounded diagnostic
     runs-on: ubuntu-latest
     timeout-minutes: 30
