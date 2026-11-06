@@ -32,6 +32,23 @@ function mapDenseArray(array, mapper) {
   return result
 }
 
+// A plugin can be created in a different Window/iframe realm. Its native
+// RegExp fails local instanceof, but the intrinsic source getter still verifies
+// the RegExp internal slot (unlike a spoofable Symbol.toStringTag).
+const nativeRegExpSource = Object.getOwnPropertyDescriptor(RegExp.prototype, 'source')?.get
+
+/** @param {unknown} value */
+function isRegExpPattern(value) {
+  if (value instanceof RegExp) return true
+  if (!nativeRegExpSource) return false
+  try {
+    Reflect.apply(nativeRegExpSource, value, [])
+    return true
+  } catch {
+    return false
+  }
+}
+
 function validateType(type, label) {
   if (typeof type !== 'string' || type.length === 0) {
     throw new TypeError(`${label} type must be a non-empty string`)
@@ -323,7 +340,7 @@ function snapshotInlineDefinition(source) {
     const patterns = candidate.paste.patterns
     assertDenseArray(patterns, `Inline definition "${candidate.type}" paste patterns`)
     const ownedPatterns = mapDenseArray(patterns, pattern => {
-      if (!(pattern instanceof RegExp)) throw new TypeError('Inline paste patterns must be RegExp values')
+      if (!isRegExpPattern(pattern)) throw new TypeError('Inline paste patterns must be RegExp values')
       return new RegExp(pattern.source, pattern.flags)
     })
     paste = Object.freeze({
