@@ -98,6 +98,27 @@ export const FULL_CLIPBOARD_CASES = Object.freeze([
   "cross-field clipboard cut preserves authored line breaks in an external text field"
 ])
 
+export const COMMIT_FOCUS_CASES = Object.freeze([
+  "Native Enter split preserves synchronous commit-observer focus on another editor field",
+  "Native Enter split preserves queued commit-observer focus on an external input",
+  "Native Shift+Enter line break preserves synchronous commit-observer focus on another editor field",
+  "Native Shift+Enter line break preserves queued commit-observer focus on an external input",
+  "Native Backspace merge preserves synchronous commit-observer focus on an external input",
+  "Native Backspace merge preserves queued commit-observer focus on another editor field",
+  "Native Delete merge preserves synchronous commit-observer focus on another editor field",
+  "Native Delete merge preserves queued commit-observer focus on an external input",
+  "Native selected-block Backspace preserves synchronous commit-observer focus on another editor field",
+  "Native selected-block Backspace preserves queued commit-observer focus on an external input",
+  "Native whole-block Cut preserves synchronous commit-observer focus on another editor field",
+  "Native whole-block Cut preserves queued commit-observer focus on an external input",
+  "Native local Paste preserves synchronous commit-observer focus on an external input",
+  "Native local Paste preserves queued commit-observer focus on another editor field",
+  "Native multiline Paste preserves synchronous commit-observer focus on another editor field",
+  "Native multiline Paste preserves queued commit-observer focus on an external input",
+  "Native block drag preserves synchronous commit-observer focus on another editor field",
+  "Native block drag preserves queued commit-observer focus on an external input"
+])
+
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([
   "native retained FontSize Enter cannot command a successor mount of the same tool",
   "native retained FontSize Apply cannot command a successor mount of the same tool"

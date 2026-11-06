@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { captureNavigationDependencies, verifyNavigationDependencies } from '../parity/git-navigation-roots.mjs'
 import { git, hashFile, recordCommand, sha256, sourceIdentity, writeJson } from './browser-audit-support.mjs'
-import { FULL_CLIPBOARD_CASES, FONT_SIZE_RETAINED_CASES, STANDARD_CLIPBOARD_CASES,
+import { FULL_CLIPBOARD_CASES, COMMIT_FOCUS_CASES, FONT_SIZE_RETAINED_CASES, STANDARD_CLIPBOARD_CASES,
   verifyClipboardRed, verifyFontSizeRetainedRed, verifyNativeGreen, verifyNavigationGreen } from './focused-browser-results.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -15,12 +15,13 @@ await mkdir(output, { recursive: true })
 const baselineCommit = 'acabb24dc90fb98f2c38c2bc34069b043f4ba4fe'
 const clipboardPath = 'core/ClipboardController.js'
 const fontSizePath = 'inline-tools/fontSize.js'
-const order = ['navigation-151', 'clipboard-red', 'clipboard-green', 'font-size-retained-red', 'font-size-retained-green']
-const report = { kind: 'Maintained native browser verification with isolated F01 and F07 counterfactuals',
+const order = ['commit-focus-ownership', 'navigation-151', 'clipboard-red', 'clipboard-green', 'font-size-retained-red', 'font-size-retained-green']
+const report = { kind: 'Maintained native browser verification with commit focus regressions and isolated F01 and F07 counterfactuals',
   startedAt: new Date().toISOString(), plannedOrder: order, retries: 0, baselineCommit,
   localEnvironmentLimitation: 'Local Chromium151 startup could not create its ProcessSingleton socket; no local browser assertions executed.',
   steps: Object.fromEntries(order.map(name => [name, { outcome: 'NOT_RUN' }])), pass: false }
 await writeJson(join(output, 'plan.json'), { ...report,
+  commitFocus: { page: 'native-core-behavior.html', cases: COMMIT_FOCUS_CASES, filter: 'commit-observer focus' },
   navigation: { comparisons: 72, contexts: 84, internalOutcomeDeadlineMs: 5000, filters: null },
   clipboardRed: { cases: STANDARD_CLIPBOARD_CASES, overlay: clipboardPath, description: 'Current candidate checkout with only the baseline ClipboardController restored' },
   clipboardGreen: { cases: FULL_CLIPBOARD_CASES, filters: null },
@@ -113,6 +114,11 @@ try {
   report.sourceBefore = sourceBefore
   dependencyBefore = await captureNavigationDependencies(root)
   report.dependenciesBefore = dependencyBefore
+
+  await attempt('commit-focus-ownership', root,
+    { EDITOR_NATIVE_PAGE: 'native-core-behavior.html', EDITOR_NATIVE_FILTER: 'commit-observer focus' },
+    [process.execPath, 'tests/browser/physical-history.mjs'],
+    run => verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES), sourceBefore)
 
   await attempt('navigation-151', root, {}, [process.execPath, 'scripts/parity/html-content-navigation.mjs'],
     run => verifyNavigationGreen(run, sourceBefore.head), sourceBefore)

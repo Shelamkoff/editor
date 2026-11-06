@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { STANDARD_CLIPBOARD_CASES, FULL_CLIPBOARD_CASES, FONT_SIZE_RETAINED_CASES,
+import { STANDARD_CLIPBOARD_CASES, FULL_CLIPBOARD_CASES, COMMIT_FOCUS_CASES, FONT_SIZE_RETAINED_CASES,
   verifyClipboardRed, verifyFontSizeRetainedRed, verifyNativeGreen, verifyNavigationGreen } from './focused-browser-results.mjs'
 
 const rows = names => names.map(name => ({ name, status: 'PASS' }))
@@ -24,6 +24,25 @@ test('zero-exit native report cannot pass with no, missing, duplicated or skippe
   for (const records of [[], rows(FULL_CLIPBOARD_CASES).slice(0, 49), rows(FULL_CLIPBOARD_CASES).slice(0, 53), rows(FULL_CLIPBOARD_CASES).slice(0, 61), rows(FULL_CLIPBOARD_CASES).slice(0, 63), rows(FULL_CLIPBOARD_CASES).slice(1), [...rows(FULL_CLIPBOARD_CASES).slice(1), rows(FULL_CLIPBOARD_CASES)[1]],
     rows(FULL_CLIPBOARD_CASES).map((row, index) => index ? row : { ...row, status: 'SKIP' })]) {
     assert.throws(() => verifyNativeGreen(green(records), 'native-clipboard.html', FULL_CLIPBOARD_CASES))
+  }
+})
+
+test('complete native focus GREEN includes all 18 commit-observer cases', () => {
+  const run = completed({ stdout: JSON.stringify({ 'native-core-behavior.html': rows(COMMIT_FOCUS_CASES) }) })
+  assert.equal(verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES).total, 18)
+  assert(COMMIT_FOCUS_CASES.every(name => name.includes('commit-observer focus')),
+    'Focused native filter must select every maintained focus case')
+})
+
+test('native focus GREEN rejects partial, duplicated, renamed, skipped or failed cases', () => {
+  const full = rows(COMMIT_FOCUS_CASES)
+  for (const records of [[], full.slice(0, 16), full.slice(0, 17),
+    [...full.slice(1), full[1]],
+    full.map((row, index) => index ? row : { ...row, name: 'Unexpected focus case' }),
+    full.map((row, index) => index ? row : { ...row, status: 'SKIP' }),
+    full.map((row, index) => index ? row : { ...row, status: 'FAIL' })]) {
+    const run = completed({ stdout: JSON.stringify({ 'native-core-behavior.html': records }) })
+    assert.throws(() => verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES))
   }
 })
 
