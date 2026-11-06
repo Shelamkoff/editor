@@ -1,0 +1,59 @@
+name: Rector v2 historical Chromium153 diagnostic
+
+on:
+  push:
+    branches: [audit/navigation-153-probe-2026-11-06]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rector-navigation153-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GIT_NO_REPLACE_OBJECTS: '1'
+
+jobs:
+  navigation153:
+    if: ${{ github.ref == 'refs/heads/audit/navigation-153-probe-2026-11-06' }}
+    name: Current source on exact historical Chromium153 binary once
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+      - name: Initialize current-run results
+        id: results
+        run: node scripts/verification-results.mjs init source audit-tools install build navigation153
+      - name: Require the exact clean checkout
+        run: node scripts/verification-results.mjs run source -- bash -c 'test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && test -z "$(git status --porcelain)"'
+      - name: Verify diagnostic report and owned-process controls
+        run: node scripts/verification-results.mjs run audit-tools --require source -- node --test scripts/audit/navigation153-results.test.mjs scripts/audit/browser-audit-support.test.mjs
+      - name: Install immutable application dependencies
+        run: node scripts/verification-results.mjs run install --require audit-tools -- npm ci --ignore-scripts
+      - name: Build package
+        run: node scripts/verification-results.mjs run build --require install -- npm run build
+      - name: Recover exact binary and run the full reviewed diagnostic once
+        run: node scripts/verification-results.mjs run navigation153 --require build -- node scripts/audit/navigation153.mjs
+      - name: Finalize current-run results
+        if: ${{ always() }}
+        run: node scripts/verification-results.mjs finish
+      - name: Upload every verdict and native timeline
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: navigation153-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.results.outputs.directory }}
+          if-no-files-found: error
+          retention-days: 7
