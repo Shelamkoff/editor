@@ -37,7 +37,7 @@ Rector owns the contents of the holder for the lifetime of the editor instance. 
 
 ## Create the editor
 
-Register every block type that the document may contain. The default `injectStyles: true` mode loads the editor, plugin, and dependency styles automatically.
+Register the block types you want to edit. The default `injectStyles: true` mode loads the editor, plugin, and dependency styles automatically.
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
@@ -55,11 +55,13 @@ const editor = createEditor({
       {
         id: 'intro',
         type: 'heading',
+        dataVersion: 2,
         data: { text: 'A structured document', level: 2 },
       },
       {
         id: 'body',
         type: 'paragraph',
+        dataVersion: 2,
         data: { text: 'Start editing this text.' },
       },
     ],
@@ -93,12 +95,12 @@ Rector does not send content to a server and does not choose a storage format be
 editor.render({
   version: '2.0.0',
   blocks: [
-    { id: 'loaded', type: 'paragraph', data: { text: 'Loaded content' } },
+    { id: 'loaded', type: 'paragraph', dataVersion: 2, data: { text: 'Loaded content' } },
   ],
 })
 ```
 
-All block `type` values in the input must have a registered plugin. The validation policy determines what happens to invalid block data; see [Configuration](/guide/configuration).
+Every serialized block must include its current `dataVersion`. Invalid known block data and unsupported document or schema versions are rejected before replacing the existing document. Valid records of unregistered types remain inert and can round-trip without executing extension code. See [Document format](/guide/document-format) and [Configuration](/guide/configuration).
 
 ## Clean up
 

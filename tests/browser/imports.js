@@ -106,6 +106,70 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+async function verifyGettingStartedGuide(path) {
+  const response = await fetch(new URL(path, import.meta.url))
+  assert(response.ok, `Getting-started guide is missing: ${path}`)
+  const markdown = await response.text()
+  const examples = [...markdown.matchAll(/```(?:js|javascript)\s*\r?\n([\s\S]*?)```/g)].map(match => match[1])
+  assert(examples.length === 4, `${path}: expected the complete create/save/render/destroy walkthrough`)
+  const entries = new Map([
+    ['@shelamkoff/rector', '../../index.js'],
+    ['@shelamkoff/rector/plugins/paragraph', '../../plugins/paragraph/index.js'],
+    ['@shelamkoff/rector/plugins/heading', '../../plugins/heading/index.js'],
+  ])
+  const imports = []
+  const creation = examples[0].replace(/^import\s+[^\n]+$/gm, statement => {
+    imports.push(statement.replace(/(['"])(@shelamkoff\/rector[^'"]*)\1/, (_match, _quote, specifier) => {
+      assert(entries.has(specifier), `${path}: unexpected public entry ${specifier}`)
+      return JSON.stringify(new URL(entries.get(specifier), import.meta.url).href)
+    }))
+    return ''
+  })
+  const holder = document.createElement('div')
+  holder.id = 'editor'
+  document.body.append(holder)
+  // Execute repository-owned published snippets unchanged except for resolving
+  // their public imports to the same source entries used by this browser gate.
+  const moduleUrl = URL.createObjectURL(new Blob([`
+    ${imports.join('\n')}
+    let guideEditor
+    const observation = {}
+    try {
+      ${creation}
+      guideEditor = editor
+      observation.initial = editor.save()
+      observation.heading = holder.querySelector('h2')?.textContent
+      ${examples[1]}
+      observation.saved = { documentData, json }
+      ${examples[2]}
+      observation.loaded = editor.save()
+      observation.text = holder.querySelector('[contenteditable="true"]')?.textContent
+      ${examples[3]}
+      observation.destroyed = !editor.isReady && !holder.querySelector('.oe-editor')
+    } finally {
+      guideEditor?.destroy()
+    }
+    export default observation
+  `], { type: 'text/javascript' }))
+  try {
+    const { default: result } = await import(/* @vite-ignore */ moduleUrl)
+    assert(result.initial.version === '2.0.0', `${path}: creation did not produce a current document`)
+    assert(JSON.stringify(result.initial.blocks.map(block => block.type)) === '["heading","paragraph"]', `${path}: initial blocks were not created`)
+    assert(result.heading === result.initial.blocks[0].data.text, `${path}: initial Heading was not projected`)
+    assert(JSON.stringify(result.saved.documentData.blocks) === JSON.stringify(result.initial.blocks), `${path}: saving changed the documented content`)
+    assert(JSON.stringify(JSON.parse(result.saved.json)) === JSON.stringify(result.saved.documentData), `${path}: saved JSON does not round-trip`)
+    assert(result.loaded.blocks.length === 1 && result.loaded.blocks[0].id === 'loaded'
+      && result.loaded.blocks[0].type === 'paragraph', `${path}: render did not replace the initial document`)
+    assert(result.text === result.loaded.blocks[0].data.text, `${path}: loaded Paragraph was not projected`)
+    assert(result.destroyed, `${path}: cleanup left a live editor`)
+  } catch (error) {
+    throw new Error(`${path}: published getting-started walkthrough failed: ${error?.message ?? String(error)}`, { cause: error })
+  } finally {
+    URL.revokeObjectURL(moduleUrl)
+    holder.remove()
+  }
+}
+
 async function run() {
   const imported = new Map()
   for (const path of new Set(runtimePaths)) {
@@ -177,12 +241,17 @@ async function run() {
     assert((await response.text()).length > 0, `Stylesheet is empty: ${path}`)
   }
 
+  for (const language of ['', 'ru/']) {
+    await verifyGettingStartedGuide(`../../docs/${language}guide/getting-started.md`)
+  }
+
   return {
     runtimeImportPaths: new Set(runtimePaths).size,
     stylesheetPaths: new Set(stylePaths).size,
     blockFactoryEntries: blockEntries.length,
     removedClassApisChecked: blockEntries.length,
     dualApi: false,
+    gettingStartedGuides: ['en', 'ru'],
   }
 }
 
