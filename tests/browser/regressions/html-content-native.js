@@ -164,7 +164,29 @@ for (const [name, type, editing] of surfaces) test(`${name}: scriptless content 
       video.focus()
       await dispatchKey(' ', 'Space', 32)
       await pause(100)
-      assert(trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')
+      try {
+        assert(trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')
+      } catch (error) {
+        // Observe only after the original verdict, so diagnostics cannot make a
+        // slow or misdirected native activation pass by delaying that verdict.
+        try {
+          error.message += '\nPlayback state after failure: ' + JSON.stringify({
+            trusted, paused: video.paused, played: Array.from({ length: video.played.length }, (_, index) =>
+              [video.played.start(index), video.played.end(index)]),
+            currentTime: video.currentTime, duration: video.duration, readyState: video.readyState,
+            networkState: video.networkState, ended: video.ended, seeking: video.seeking,
+            mediaError: video.error?.code ?? null, videoConnected: video.isConnected,
+            frameConnected: frame.isConnected, sameChildDocument: frame.contentDocument === child,
+            childActive: child.activeElement?.tagName ?? null, parentActive: document.activeElement?.tagName ?? null,
+            childHasFocus: child.hasFocus(), parentHasFocus: document.hasFocus(),
+            childVisibility: child.visibilityState, parentVisibility: document.visibilityState,
+            frameRect: frame.getBoundingClientRect().toJSON(), videoRect: video.getBoundingClientRect().toJSON(),
+          })
+        } catch (diagnosticError) {
+          error.message += '\nPlayback state collection failed: ' + String(diagnosticError)
+        }
+        throw error
+      }
       retire(); await pause(50)
       assert(video.paused, 'Retired child content kept playing its native media')
     })

@@ -48,6 +48,10 @@ function stripHiddenWidgetText(source, clone) {
     clone.remove()
     return
   }
+  // Classes are removed from standard HTML. Keep the computed override so a
+  // visible child of a hidden ancestor stays visible in the exported markup.
+  const cloneStyle = /** @type {HTMLElement} */ (clone).style
+  if (style && cloneStyle) cloneStyle.visibility = style.visibility
   const sourceChildren = [...source.childNodes]
   const cloneChildren = [...clone.childNodes]
   if (sourceChildren.length !== cloneChildren.length) {
