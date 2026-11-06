@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { getEventListeners } from 'node:events'
 import { InlineToolbar } from './InlineToolbar.js'
 
 class FakeNode {
@@ -63,11 +64,10 @@ function fixture() {
       throw new Error('retired formatting toolbar read browser selection')
     },
   }
-  const doc = {
+  const doc = Object.assign(new EventTarget(), {
     defaultView: view,
     createElement(tag) { return new FakeNode(tag, doc) },
-    addEventListener() {}, removeEventListener() {},
-  }
+  })
   const root = doc.createElement('section')
   const runtime = {
     readOnly: false,
@@ -96,7 +96,7 @@ function fixture() {
   const typeButton = panel.children.find(node => node.className === 'oe-inline-toolbar__type-select')
   const typeMenu = element.children.find(node => node.className === 'oe-inline-toolbar__type-dropdown')
   const controlButton = panel.children.find(node => node.className === 'oe-inline-toolbar__level-select')
-  return { root, toolbar, element, typeButton, typeMenu, controlButton,
+  return { root, document: doc, toolbar, element, typeButton, typeMenu, controlButton,
     get selectionReads() { return selectionReads },
     get nativeReads() { return nativeReads } }
 }
@@ -149,4 +149,12 @@ test('retired InlineToolbar cannot present a detached UI on show or read-only tr
   assert.equal(h.nativeReads, 0)
   assert.equal(h.selectionReads, 0)
   h.toolbar.destroy()
+})
+
+test('InlineToolbar releases its document focus acquisition listener on destroy', () => {
+  const h = fixture()
+  assert.equal(getEventListeners(h.document, 'focusin').length, 1)
+  h.toolbar.destroy()
+  assert.equal(getEventListeners(h.document, 'focusin').length, 0,
+    'document retained the destroyed inline toolbar focus listener')
 })

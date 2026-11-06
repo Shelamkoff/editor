@@ -68,6 +68,8 @@ export class InlineToolbar {
   #pendingDragSelection = false
   #documentClick
   #documentFocus
+  #focusVersion = 0
+  #ownedFocus = null
   #selectionVersion = 0
 
   #typeSelect
@@ -350,9 +352,18 @@ export class InlineToolbar {
     }
     document.addEventListener('mousedown', this.#documentClick, true)
     this.#documentFocus = event => {
-      if (!this.#destroyed && !this.#root.contains(event.target)) this.#controlsToken = null
+      if (this.#destroyed) return
+      const owner = this.#ownedFocus
+      // An owned restoration may visit both ends of a retained range. Its
+      // scope expires at the canonical revision change, before commit observers.
+      let owned = false
+      if (owner?.generation === this.#runtime.generation && owner?.revision === this.#runtime.revision) {
+        try { owned = owner.accepts(event.target) } catch {}
+      }
+      if (!owned) this.#focusVersion++
+      if (!this.#root.contains(event.target)) this.#controlsToken = null
     }
-    document.addEventListener('focusin', this.#documentFocus)
+    document.addEventListener('focusin', this.#documentFocus, { capture: true })
     this.#controlsSelection.activate()
     for (const mount of this.#mountStates) {
       mount.active = true
@@ -469,15 +480,20 @@ export class InlineToolbar {
             if (!currentRange) return undefined
             const panelFocus = /** @type {HTMLElement | null} */ (this.#root.ownerDocument.activeElement)
             if (!panelPort.restore(panelToken)) return undefined
+            const focusVersion = this.#focusVersion
             let result
             try {
               result = this.#mutate(currentRange, () => operation(currentRange), tool.type, lease)
             } finally {
               // A synchronous owner-driven range restoration must not let a
               // queued selectionchange retire the panel whose control held focus.
-              if (panelFocus?.isConnected && this.#element.contains(panelFocus) && !this.#destroyed) {
-                panelFocus.focus({ preventScroll: true })
+              if (this.#canPresent(focusVersion) && panelFocus?.isConnected && this.#element.contains(panelFocus)) {
+                this.#withOwnedFocus(target => target === panelFocus, () => panelFocus.focus({ preventScroll: true }))
               }
+            }
+            if (!this.#canPresent(focusVersion)) {
+              if (this.#panelSelection === panelPort) this.#closeActions()
+              return result
             }
             if (lease !== this.#selectionVersion || generation !== this.#runtime.generation
               || !selection.blockIds.every(blockId => this.#runtime.has(blockId))) return result
@@ -491,7 +507,12 @@ export class InlineToolbar {
             : 'mixed',
           setTextAlign: value => {
             if (!isCurrent() || !panelToken || !panelPort.isValid(panelToken)) return false
+            const focusVersion = this.#focusVersion
             const changed = this.#runtime.setTextAlign(selection.blockIds, value)
+            if (!this.#canPresent(focusVersion)) {
+              if (this.#panelSelection === panelPort) this.#closeActions()
+              return changed
+            }
             if (changed && lease === this.#selectionVersion && generation === this.#runtime.generation
               && selection.blockIds.every(blockId => this.#runtime.has(blockId))) {
               owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
@@ -595,7 +616,7 @@ export class InlineToolbar {
     const document = this.#root.ownerDocument
     if (this.#onSelectionChange) release(() => document.removeEventListener('selectionchange', this.#onSelectionChange))
     if (this.#onMouseUp) release(() => document.removeEventListener('mouseup', this.#onMouseUp))
-    if (this.#documentFocus) release(() => document.removeEventListener('focusin', this.#documentFocus))
+    if (this.#documentFocus) release(() => document.removeEventListener('focusin', this.#documentFocus, { capture: true }))
     if (this.#documentClick) release(() => document.removeEventListener('mousedown', this.#documentClick, true))
 
     // All started tool claims and callbacks are retired before cleanup hooks.
@@ -971,22 +992,26 @@ export class InlineToolbar {
   #convertType(bookmark, type) {
     this.#closeTypeDropdown()
     let result
+    let focusVersion
     try {
       if(bookmark.anchor.blockId!==bookmark.focus.blockId)this.#restoreSelection(bookmark)
+      focusVersion = this.#focusVersion
       result = this.#runtime.interact('selection.convert', () => this.#runtime.convertLogicalSelection(bookmark, { type }), current => convertedSelection(current,this.#view))
     } catch {
       return
     }
-    if (!result) return
+    if (!result || !this.#canPresent(focusVersion)) return
     this.#view.reconcileInteraction()
+    if (!this.#canPresent(focusVersion)) return
     this.#view.setCurrent(result.focusId)
+    if (!this.#canPresent(focusVersion)) return
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const focusId=result.focusId
     const mounted=this.#view.element(focusId)
     queueMicrotask(()=>{
-      if(this.#destroyed||this.#readOnly||this.#runtime.readOnly
+      if(!this.#canPresent(focusVersion)
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(focusId)||!mounted||this.#view.element(focusId)!==mounted
         ||this.#view.currentId!==focusId)return
@@ -1102,22 +1127,25 @@ export class InlineToolbar {
           || !this.#controlSelectionBookmark()
         ) return
         if (bookmark.anchor.blockId !== bookmark.focus.blockId || bookmark.anchor.fieldKey !== bookmark.focus.fieldKey) this.#restoreSelection(bookmark)
+        const focusVersion = this.#focusVersion
         this.#runtime.interact('block.inline-control', () => this.#runtime.update(blockId, current => ({
           data: prepared.apply(current.data, action.id, {
             createId: prefix => this.#runtime.createDataId(prefix),
             ownerDocument: this.#root.ownerDocument,
           }),
         })), () => bookmark)
+        if (!this.#canPresent(focusVersion)) return
         const settledRevision = this.#runtime.revision
         this.#view.reconcileInteraction()
+        if (!this.#canPresent(focusVersion)) return
         this.#closeControlDropdown()
         const continuation = this.#controlVersion
         queueMicrotask(() => {
-          if (this.#destroyed || this.#readOnly || generation !== this.#runtime.generation
+          if (!this.#canPresent(focusVersion) || generation !== this.#runtime.generation
             || settledRevision !== this.#runtime.revision || lease !== this.#selectionVersion
             || continuation !== this.#controlVersion || !this.#runtime.has(blockId)) return
           this.#restoreSelection(bookmark)
-          this.show()
+          if (this.#canPresent(focusVersion)) this.show()
         })
       })
       fragment.append(item)
@@ -1150,9 +1178,10 @@ export class InlineToolbar {
     const toolbarOwnsFocus = this.#element.contains(this.#root.ownerDocument.activeElement)
     const bookmark = cloneBookmark(this.#selectionPort?.bookmark
       ?? (toolbarOwnsFocus ? this.#bookmark : null) ?? this.#selection.capture())
+    const focusVersion = this.#focusVersion
     let result
     try {
-      result = this.#runtime.syncBlocksFromProjection(formattingIds, () => {
+      result = this.#withOwnedSelectionFocus(bookmark, () => this.#runtime.syncBlocksFromProjection(formattingIds, () => {
         this.#inFormattingMutation = true
         const previousTool = this.#activeFormattingTool
         this.#activeFormattingTool = type
@@ -1168,12 +1197,16 @@ export class InlineToolbar {
         name: `inline.${type}`,
         selectionBefore: bookmark,
         preserveSourceProjection: formattingIds.length === 1,
-      })
+      }))
     } catch (error) {
-      if (bookmark) this.#restoreSelection(bookmark)
+      if (bookmark && this.#canPresent(focusVersion)) this.#restoreSelection(bookmark)
       throw error
     }
 
+    // Native focus is independent of the retained logical bookmark. A commit
+    // observer can acquire an input while capture() deliberately returns null;
+    // that must not authorize falling back to the pre-command author range.
+    if (!this.#canPresent(focusVersion)) return result
     const nextBookmark = cloneBookmark(
       this.#selectionPort?.bookmark ?? this.#selection.capture() ?? bookmark,
     )
@@ -1182,7 +1215,9 @@ export class InlineToolbar {
       nextBookmark.anchor = nextBookmark.focus
       nextBookmark.focus = anchor
     }
+    if (!this.#canPresent(focusVersion)) return result
     if (nextBookmark) this.#restoreSelection(nextBookmark)
+    if (!this.#canPresent(focusVersion)) return result
     this.show()
     this.#rememberOwnSelection()
     return result
@@ -1190,9 +1225,30 @@ export class InlineToolbar {
 
   #restoreSelection(bookmark) {
     if (!bookmark?.anchor || !bookmark?.focus) return false
-    if (typeof this.#selectionPort?.restore === 'function'
-      && this.#selectionPort.restore(bookmark)) return true
-    return this.#selection.restore(bookmark) === true
+    return this.#withOwnedSelectionFocus(bookmark, () => {
+      if (typeof this.#selectionPort?.restore === 'function'
+        && this.#selectionPort.restore(bookmark)) return true
+      return this.#selection.restore(bookmark) === true
+    })
+  }
+
+  #canPresent(focusVersion) {
+    return !this.#destroyed && !this.#readOnly && !this.#runtime.readOnly
+      && this.#runtime.health !== 'destroyed' && this.#runtime.health !== 'failed'
+      && focusVersion === this.#focusVersion
+  }
+
+  #withOwnedSelectionFocus(bookmark, operation) {
+    const points = [bookmark?.anchor, bookmark?.focus].filter(Boolean)
+    return this.#withOwnedFocus(target => points.some(point =>
+      this.#reconciler.getEditableField(point.blockId, point.fieldKey)?.element === target), operation)
+  }
+
+  #withOwnedFocus(accepts, operation) {
+    const previous = this.#ownedFocus
+    this.#ownedFocus = { generation: this.#runtime.generation, revision: this.#runtime.revision, accepts }
+    try { return operation() }
+    finally { this.#ownedFocus = previous }
   }
 
 
