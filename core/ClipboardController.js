@@ -63,6 +63,25 @@ function stripHiddenWidgetText(source, clone) {
   }
 }
 
+/** Pair exact live/clone nodes before any clipboard cleanup can change order.
+ * @param {Element[]} sourceWidgets
+ * @param {ParentNode} container
+ */
+function stripHiddenClipboardWidgets(sourceWidgets, container) {
+  const clonedWidgets = [...container.querySelectorAll('[data-inline-plugin]')]
+  if (sourceWidgets.length !== clonedWidgets.length || clonedWidgets.some((widget, index) =>
+    widget.getAttribute('data-id') !== sourceWidgets[index].getAttribute('data-id')
+    || widget.getAttribute('data-inline-plugin') !== sourceWidgets[index].getAttribute('data-inline-plugin')
+  )) throw new Error('Clipboard widget presentation changed while cloning')
+  clonedWidgets.forEach((widget, index) => {
+    // An outer widget walk already handles every descendant before removals
+    // can change the correspondence between its source and clone children.
+    if (!widget.parentElement?.closest('[data-inline-plugin]')) {
+      stripHiddenWidgetText(sourceWidgets[index], widget)
+    }
+  })
+}
+
 /** Standard MIME exports the selected presentation; private MIME retains
  * canonical placeholders and widget data independently.
  * @param {HTMLElement} field
@@ -94,18 +113,7 @@ function clipboardFromRichTextSelection(field, offsets) {
     ancestor = ancestor.parentNode
   }
   container.appendChild(contents)
-  const clonedWidgets = [...container.querySelectorAll('[data-inline-plugin]')]
-  if (sourceWidgets.length !== clonedWidgets.length || clonedWidgets.some((widget, index) =>
-    widget.getAttribute('data-id') !== sourceWidgets[index].getAttribute('data-id')
-    || widget.getAttribute('data-inline-plugin') !== sourceWidgets[index].getAttribute('data-inline-plugin')
-  )) throw new Error('Clipboard widget presentation changed while cloning')
-  clonedWidgets.forEach((widget, index) => {
-    // An outer widget walk already handles every descendant before removals
-    // can change the correspondence between its source and clone children.
-    if (!widget.parentElement?.closest('[data-inline-plugin]')) {
-      stripHiddenWidgetText(sourceWidgets[index], widget)
-    }
-  })
+  stripHiddenClipboardWidgets(sourceWidgets, container)
 
   // Controls, service DOM and independent editing hosts can lie between
   // authored endpoints without owning any of their logical text offsets.
@@ -137,7 +145,9 @@ function clipboardFromRichTextSelection(field, offsets) {
 function clipboardHtmlFromShell(shell, ownerDocument) {
   const source = shell?.firstElementChild ?? shell
   if (!source) return ''
+  const sourceWidgets = [...source.querySelectorAll('[data-inline-plugin]')]
   const clone = /** @type {HTMLElement} */ (source.cloneNode(true))
+  stripHiddenClipboardWidgets(sourceWidgets, clone)
   stripClipboardProjection(clone)
   if (
     clone.tagName === 'DIV'
@@ -376,15 +386,20 @@ export class ClipboardController {
         :{kind:'rich-text',html:part.html,inline:part.inline}))
       const range=this.#crossSelection.range
       let html=''
+      let text=''
       if(range){
+        const sourceWidgets=[...this.#root.querySelectorAll('[data-inline-plugin]')]
+          .filter(widget=>range.intersectsNode(widget))
         const container=ownerDocument.createElement('div')
         container.appendChild(range.cloneContents())
+        stripHiddenClipboardWidgets(sourceWidgets,container)
         stripClipboardProjection(container)
         html=container.innerHTML
+        text=container.textContent??''
       }
       if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
         html,
-        text:this.#crossSelection.text(),
+        text,
       }))return
       event.preventDefault()
       return
@@ -476,15 +491,20 @@ export class ClipboardController {
         :{kind:'rich-text',html:part.html,inline:part.inline}))
       const range=this.#crossSelection.range
       let html=''
+      let text=''
       if(range){
+        const sourceWidgets=[...this.#root.querySelectorAll('[data-inline-plugin]')]
+          .filter(widget=>range.intersectsNode(widget))
         const container=ownerDocument.createElement('div')
         container.appendChild(range.cloneContents())
+        stripHiddenClipboardWidgets(sourceWidgets,container)
         stripClipboardProjection(container)
         html=container.innerHTML
+        text=container.textContent??''
       }
       if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
         html,
-        text:this.#crossSelection.text(),
+        text,
       }))return
       if(!sameBookmark(plan.bookmark,this.#crossSelection?.bookmark))return
       if(!this.#canPresent())return

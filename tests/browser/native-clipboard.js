@@ -531,4 +531,212 @@ for (const kind of ['display:none', 'visibility:hidden']) for (const operation o
   })
 }
 
+// The continuation cases exercise two public selection routes independently
+// of the single-field cases above. Clipboard delivery is trusted native input;
+// selectAcross is only the existing deterministic selection arrangement.
+function assertCssClipboardSegments(text, segments, label) {
+  assert(!text.includes('INTERNAL') && !text.includes('CONTROL'), `${label} exposed CSS-hidden text`)
+  if (segments.length === 1) {
+    equal(text, segments[0], `${label} changed the visible selected label`)
+    return { before: '', between: '', after: '' }
+  }
+  // Preserve literal segments exactly. Only paragraph boundaries may contain
+  // CR/LF; record them without imposing a new paragraph-separator contract.
+  const first = text.indexOf(segments[0])
+  assert(first >= 0, `${label} lost the first visible selected segment`)
+  const endFirst = first + segments[0].length
+  const second = text.indexOf(segments[1], endFirst)
+  assert(second >= 0, `${label} lost the last visible selected segment`)
+  const separators = { before: text.slice(0, first), between: text.slice(endFirst, second),
+    after: text.slice(second + segments[1].length) }
+  for (const value of Object.values(separators)) {
+    assert(/^[\r\n]*$/.test(value), `${label} added or changed selected content outside paragraph boundaries`)
+  }
+  return separators
+}
+
+function cssClipboardVisibility(host) {
+  const hidden = host.querySelector('.clipboard-hidden-label')
+  const visible = host.querySelector('.clipboard-visible-child')
+  const control = host.querySelector('button')
+  assert(hidden && control, 'Custom widget visibility fixture is incomplete')
+  return { html: host.innerHTML, visibleText: host.innerText, connected: host.isConnected,
+    width: host.getBoundingClientRect().width,
+    hidden: { display: getComputedStyle(hidden).display, visibility: getComputedStyle(hidden).visibility },
+    visibleChild: visible ? { visibility: getComputedStyle(visible).visibility, text: visible.textContent } : null,
+    controlDisplay: getComputedStyle(control).display }
+}
+
+function assertCssClipboardHtml(html, segments, label) {
+  assert(html, `${label} is missing`)
+  assert(!html.includes('INTERNAL') && !html.includes('CONTROL'), `${label} exposed CSS-hidden text`)
+  const template = document.createElement('template')
+  // Inspect the actual transferred HTML without sanitizing the observation.
+  template.innerHTML = toTrustedHtml(html, document)
+  return assertCssClipboardSegments(visibleClipboardText(template.content), segments, label)
+}
+
+for (const path of ['whole-block', 'cross-field']) {
+  for (const kind of ['display:none', 'visibility:hidden']) for (const operation of ['copy', 'cut']) {
+    const description = kind === 'display:none' ? 'display:none descendants'
+      : 'visibility:hidden text while preserving visible descendants'
+    test(`${path} custom widget clipboard ${operation} excludes ${description}`, async () => {
+      const crossField = path === 'cross-field'
+      const visible = kind === 'display:none' ? '' : 'VISIBLE'
+      const segments = [`A#ff0000${visible}B`, ...(crossField ? ['C'] : [])]
+      const editor = make([
+        para('source', `${crossField ? 'XX' : ''}A{{badge}}B`, { inline: {
+          badge: { type: 'css-clipboard-label', dataVersion: 1, data: { value: '#ff0000' } },
+        } }),
+        ...(crossField ? [para('end', 'CYY')] : []),
+        para('outside', 'KEEP{{outside}}TAIL', { inline: {
+          outside: { type: 'css-clipboard-label', dataVersion: 1, data: { value: '#00ff00' } },
+        } }),
+      ], { inlinePlugins: [customCssClipboardWidget(kind)] })
+      const field = editableField(editor, 'source')
+      const end = crossField ? editableField(editor, 'end') : null
+      const before = editor.save().blocks
+      const control = document.createElement('div'), receiver = document.createElement('div')
+      for (const host of [control, receiver]) {
+        host.contentEditable = 'true'
+        host.style.cssText = 'display:block;min-height:24px;white-space:pre-wrap'
+        document.body.append(host)
+      }
+      const controlFields = crossField ? [field, end].map(element => {
+        const clone = element.cloneNode(true)
+        // One independent native editing host, with the same two paragraph
+        // projections. Widget atomic contenteditable=false remains intact.
+        clone.removeAttribute('contenteditable')
+        control.append(clone)
+        return clone
+      }) : [control]
+      if (!crossField) control.append(...[...field.childNodes].map(node => node.cloneNode(true)))
+      const diagnostics = { path, kind, operation, segments, sourceBefore: before,
+        sourceFields: [field.innerHTML, ...(end ? [end.innerHTML] : [])], controlBefore: control.innerHTML }
+      try {
+        diagnostics.phase = 'independent-visibility-control'
+        diagnostics.sourceVisibility = cssClipboardVisibility(field)
+        diagnostics.controlVisibility = cssClipboardVisibility(controlFields[0])
+        for (const observed of [diagnostics.sourceVisibility, diagnostics.controlVisibility]) {
+          assert(observed.connected && observed.width > 0, 'CSS clipboard presentation is not rendered')
+          equal(observed.visibleText, `${crossField ? 'XX' : ''}${segments[0]}`,
+            'CSS clipboard visible source setup differs from the selected label')
+          equal(observed.controlDisplay, 'none')
+          if (kind === 'display:none') equal(observed.hidden.display, 'none')
+          else {
+            equal(observed.hidden.visibility, 'hidden')
+            equal(observed.visibleChild, { visibility: 'visible', text: 'VISIBLE' })
+          }
+        }
+        if (crossField) {
+          equal(controlFields[0].firstChild?.nodeType, 3)
+          equal(controlFields[0].firstChild.textContent, 'XXA')
+          equal(controlFields[1].firstChild?.nodeType, 3)
+          equal(controlFields[1].firstChild.textContent, 'CYY')
+          control.focus()
+          const range = document.createRange()
+          range.setStart(controlFields[0].firstChild, 2)
+          range.setEnd(controlFields[1].firstChild, 1)
+          const native = window.getSelection()
+          native.removeAllRanges(); native.addRange(range)
+          assert(document.activeElement === control, 'Independent cross-field control did not own focus')
+          assert(native.anchorNode === controlFields[0].firstChild && native.anchorOffset === 2
+            && native.focusNode === controlFields[1].firstChild && native.focusOffset === 1,
+          'Independent native selection did not retain the intended paragraph endpoints')
+        } else selectNativeHostContents(control)
+        diagnostics.controlCopy = await captureNativeClipboard(control, operation)
+        assert(!diagnostics.controlCopy.prevented, 'Independent clipboard control was intercepted')
+        selectNativeHostContents(receiver)
+        diagnostics.controlPaste = await captureNativeClipboard(receiver, 'paste')
+        diagnostics.controlPastedHtml = receiver.innerHTML
+        diagnostics.controlPastedVisibleText = receiver.innerText
+        assert(!diagnostics.controlPaste.prevented, 'Independent native paste was intercepted')
+        equal(diagnostics.controlPaste.fragment, '', 'Independent native control acquired editor private MIME')
+        diagnostics.controlSeparators = {
+          plain: assertCssClipboardSegments(diagnostics.controlPaste.text, segments, 'Independent native clipboard control'),
+          rendered: assertCssClipboardSegments(receiver.innerText, segments, 'Independent native pasted control'),
+        }
+        equal(editor.save().blocks, before, 'Independent native control changed source data')
+        equal([editor.canUndo, editor.canRedo], [false, false])
+
+        diagnostics.phase = 'public-source-selection'
+        receiver.replaceChildren()
+        if (crossField) {
+          equal(getTextLength(field), 5)
+          equal(getTextLength(end), 3)
+          await selectAcross(editor, field, 2, end, 1)
+          const native = window.getSelection()
+          assert(native.anchorNode === field.firstChild && native.anchorOffset === 2
+            && native.focusNode === end.firstChild && native.focusOffset === 1,
+          'Cross-field source selection did not retain the intended logical endpoints')
+          equal(editor.blocks.selectedIds(), ['source', 'end'])
+        } else {
+          editor.blocks.focus('source', { offset: 0 })
+          editor.blocks.select(['source'])
+          equal(editor.blocks.selectedIds(), ['source'])
+          const native = window.getSelection()
+          assert(native.rangeCount === 1 && native.isCollapsed && field.contains(native.anchorNode),
+            'Whole-block clipboard setup lost the independent collapsed source caret')
+        }
+        assert(document.activeElement === field, 'Source field did not own native clipboard focus')
+        diagnostics.selectedIds = editor.blocks.selectedIds()
+        diagnostics.phase = 'source-native-clipboard'
+        diagnostics.copied = await captureNativeClipboard(editorRoot(editor), operation)
+        assert(diagnostics.copied.prevented, 'Editor did not own the native clipboard event')
+        const { type, dataVersion, data, tunes, inline } = before[0]
+        const expectedParts = crossField
+          ? [{ kind: 'rich-text', html: 'A{{badge}}B', inline }, { kind: 'rich-text', html: 'C' }]
+          : [{ kind: 'block', block: { type, dataVersion, data, inline,
+            ...(tunes === undefined ? {} : { tunes }) } }]
+        equal(JSON.parse(diagnostics.copied.fragment), { version: CLIPBOARD_FRAGMENT_VERSION, parts: expectedParts },
+          'CSS clipboard selection changed the exact canonical private fragment')
+        selectNativeHostContents(receiver)
+        diagnostics.pasted = await captureNativeClipboard(receiver, 'paste')
+        diagnostics.pastedHtml = receiver.innerHTML
+        diagnostics.pastedVisibleText = receiver.innerText
+        assert(!diagnostics.pasted.prevented, 'External native paste was intercepted')
+        equal(diagnostics.pasted.fragment, diagnostics.copied.fragment, 'Private MIME changed during native transport')
+
+        diagnostics.phase = 'source-history-contract'
+        const after = editor.save().blocks
+        diagnostics.sourceAfter = after
+        if (operation === 'copy') {
+          equal(after, before, 'CSS clipboard Copy changed source data')
+          equal([editor.canUndo, editor.canRedo], [false, false])
+        } else {
+          if (crossField) {
+            equal(after.length, 2)
+            equal(after[0].id, 'source')
+            equal(after[0].data, { ...before[0].data, text: 'XXYY' })
+            equal(after[0].tunes, before[0].tunes)
+            equal(Object.keys(after[0].inline ?? {}), [], 'Cross-field Cut retained selected inline data')
+            equal(after[1], before.at(-1), 'Cross-field Cut changed the unselected block or widget')
+          } else equal(after, [before[1]], 'Whole-block Cut changed the unselected block or widget')
+          equal([editor.canUndo, editor.canRedo], [true, false])
+          editor.undo()
+          equal(editor.save().blocks, before, 'CSS clipboard Cut Undo changed the original payload')
+          equal([editor.canUndo, editor.canRedo], [false, true], 'CSS clipboard Cut was not one history entry')
+          editor.redo()
+          equal(editor.save().blocks, after, 'CSS clipboard Cut Redo changed its canonical result')
+          equal([editor.canUndo, editor.canRedo], [true, false])
+        }
+        // Validate ownership/private transport/one-step Cut history before the
+        // output regression assertion so a RED cannot hide an arrange failure.
+        diagnostics.phase = 'standard-visible-output'
+        diagnostics.sourceSeparators = {
+          plain: assertCssClipboardSegments(diagnostics.copied.text, segments, `${path} standard text/plain`),
+          html: assertCssClipboardHtml(diagnostics.copied.html, segments, `${path} standard text/html`),
+          pastedPlain: assertCssClipboardSegments(diagnostics.pasted.text, segments, `${path} native pasted text/plain`),
+          pastedHtml: assertCssClipboardHtml(diagnostics.pasted.html, segments, `${path} native pasted text/html`),
+          rendered: assertCssClipboardSegments(receiver.innerText, segments, `${path} external pasted visible text`),
+          renderedHtml: assertCssClipboardHtml(receiver.innerHTML, segments, `${path} external pasted HTML`),
+        }
+      } catch (error) {
+        diagnostics.failureStack = error?.stack ?? String(error)
+        throw new Error(`${error?.message ?? String(error)}\nAdditional clipboard path diagnostics: ${JSON.stringify(diagnostics)}`, { cause: error })
+      } finally { control.remove(); receiver.remove() }
+    })
+  }
+}
+
 await run()

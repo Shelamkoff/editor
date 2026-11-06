@@ -32,6 +32,8 @@ function runner(t) {
 test('all release gates keep their complete command, build prerequisite and required failures', options, t => {
   const run = runner(t)
   assert.doesNotMatch(workflow, /continue-on-error\s*:/)
+  assert.match(workflow, /group: verify-\$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}-\$\{\{ github\.sha \}\}/,
+    'A new source commit must not cancel a full verification already running for another commit')
   assert.match(workflow, /node: \['20\.19\.0', '22', '24', '26'\]/)
   assert.match(workflow, /gate: \[browser, package, docs, size-report\]/)
   for (const [gate, command] of Object.entries(commands)) {

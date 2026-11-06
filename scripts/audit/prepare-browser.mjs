@@ -6,13 +6,16 @@ import { pathToFileURL } from 'node:url'
 import { hashFile, recordCommand, writeJson } from './browser-audit-support.mjs'
 
 const expected = { playwright: '1.62.1', chromium: '151.0.7922.34', revision: '1234' }
+// Hosted dependency downloads have taken over ten minutes; product runs keep
+// their own unchanged deadlines.
+const chromiumInstallTimeoutMs = 15 * 60_000
 assert.equal(process.platform, 'linux', 'This audit setup targets the Linux hosted runner')
 assert(process.env.EDITOR_RESULTS_DIR, 'Set EDITOR_RESULTS_DIR to a fresh audit results directory')
 const output = resolve(process.env.EDITOR_RESULTS_DIR, 'browser-runtime')
 await mkdir(output, { recursive: true })
 const runtime = await mkdtemp(join(process.env.RUNNER_TEMP ?? tmpdir(), 'rector-browser-audit-'))
 const browsers = join(runtime, 'browsers')
-const plan = { expected, runtime, browsers, node: process.version, startedAt: new Date().toISOString(), installsAttempted: 1 }
+const plan = { expected, runtime, browsers, node: process.version, startedAt: new Date().toISOString(), installsAttempted: 1, chromiumInstallTimeoutMs }
 await writeJson(join(output, 'plan.json'), plan)
 const success = run => assert(run.exitCode === 0 && !run.signal && !run.timedOut && !run.spawnError && !run.receivedSignal,
   `${run.name} did not complete successfully; inspect its immutable command receipt and logs`)
@@ -29,7 +32,7 @@ try {
   await writeFile(join(output, 'runtime-package-lock.json'), await readFile(join(runtime, 'package-lock.json')), { flag: 'wx' })
   await writeFile(join(output, 'browsers.json'), await readFile(descriptorPath), { flag: 'wx' })
   process.env.PLAYWRIGHT_BROWSERS_PATH = browsers
-  success(await recordCommand(output, 'install-chromium', [process.execPath, join(runtime, 'node_modules/playwright/cli.js'), 'install', '--with-deps', '--no-shell', 'chromium'], { cwd: runtime }))
+  success(await recordCommand(output, 'install-chromium', [process.execPath, join(runtime, 'node_modules/playwright/cli.js'), 'install', '--with-deps', '--no-shell', 'chromium'], { cwd: runtime, timeoutMs: chromiumInstallTimeoutMs }))
   const modulePath = join(runtime, 'node_modules/playwright/index.mjs')
   const { chromium } = await import(pathToFileURL(modulePath).href)
   const executable = chromium.executablePath()
