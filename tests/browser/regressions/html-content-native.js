@@ -5,6 +5,7 @@ import { EditorRenderer } from '../../../renderer/index.js'
 import { waitForEmbeddedDocument } from '../embedded-html-helpers.js'
 import { clickNative, dispatchKey } from '../native-input-helpers.js'
 import { test, assert, equal, pause, run } from './harness.js'
+import { appendFailureDiagnostic } from './failure-diagnostics.js'
 
 const surfaces = [['Raw editor', 'raw', true], ['Raw renderer', 'raw', false],
   ['Carousel editor', 'carousel', true], ['Carousel renderer', 'carousel', false]]
@@ -170,7 +171,7 @@ for (const [name, type, editing] of surfaces) test(`${name}: scriptless content 
         // Observe only after the original verdict, so diagnostics cannot make a
         // slow or misdirected native activation pass by delaying that verdict.
         try {
-          error.message += '\nPlayback state after failure: ' + JSON.stringify({
+          appendFailureDiagnostic(error, 'Playback state after failure: ' + JSON.stringify({
             trusted, paused: video.paused, played: Array.from({ length: video.played.length }, (_, index) =>
               [video.played.start(index), video.played.end(index)]),
             currentTime: video.currentTime, duration: video.duration, readyState: video.readyState,
@@ -181,9 +182,9 @@ for (const [name, type, editing] of surfaces) test(`${name}: scriptless content 
             childHasFocus: child.hasFocus(), parentHasFocus: document.hasFocus(),
             childVisibility: child.visibilityState, parentVisibility: document.visibilityState,
             frameRect: frame.getBoundingClientRect().toJSON(), videoRect: video.getBoundingClientRect().toJSON(),
-          })
+          }))
         } catch (diagnosticError) {
-          error.message += '\nPlayback state collection failed: ' + String(diagnosticError)
+          appendFailureDiagnostic(error, 'Playback state collection failed: ' + String(diagnosticError))
         }
         throw error
       }
