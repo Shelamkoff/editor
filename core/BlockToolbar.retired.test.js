@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { getEventListeners } from 'node:events'
 import { BlockToolbar } from './BlockToolbar.js'
 
 class FakeElement {
@@ -65,11 +66,10 @@ function fixture() {
     addEventListener() {}, removeEventListener() {},
     setTimeout, clearTimeout, innerWidth: 1200, innerHeight: 800,
   }
-  const document = {
+  const document = Object.assign(new EventTarget(), {
     defaultView: win,
     createElement(tag) { return new FakeElement(tag, document) },
-    addEventListener() {}, removeEventListener() {},
-  }
+  })
   const root = document.createElement('main')
   const block = document.createElement('section')
   root.append(block)
@@ -97,7 +97,7 @@ function fixture() {
   const toolbarNode = root.children.find(node => node.className === 'oe-toolbar')
   const toolbox = root.children.find(node => node.className === 'oe-toolbox')
   const settings = root.children.find(node => node.className === 'oe-settings-menu')
-  return { root, block, toolbar, toolbarNode, toolbox, settings, reads }
+  return { root, document, block, toolbar, toolbarNode, toolbox, settings, reads }
 }
 
 test('BlockToolbar cannot reopen toolbox or settings after destroy', () => {
@@ -140,4 +140,12 @@ test('retained toolbar click and menu key callbacks do not consume new host even
   }))
   assert.equal(stopped, 0, 'retired button claimed event propagation')
   assert.equal(prevented, 0, 'retired menu claimed host keyboard event')
+})
+
+test('BlockToolbar releases its document focus acquisition listener on destroy', () => {
+  const h = fixture()
+  assert.equal(getEventListeners(h.document, 'focusin').length, 1)
+  h.toolbar.destroy()
+  assert.equal(getEventListeners(h.document, 'focusin').length, 0,
+    'document retained the destroyed block toolbar focus listener')
 })

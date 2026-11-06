@@ -51,6 +51,7 @@ export class BlockToolbar {
   #documentMouseUp
   #documentFocusOut
   #documentFocusIn
+  #focusVersion = 0
   #documentSelectionChange
   #viewportChange
   /** @type {number | null} */
@@ -177,7 +178,9 @@ export class BlockToolbar {
       this.#captureMenuSelection(event.target)
     }
     this.#documentFocusIn = event => {
-      if (this.#destroyed || this.#ownsMenuFocus(event.target)) return
+      if (this.#destroyed) return
+      this.#focusVersion++
+      if (this.#ownsMenuFocus(event.target)) return
       this.#bookmarkOwner = null
       this.closeToolbox()
       this.closeSettings()
@@ -187,7 +190,7 @@ export class BlockToolbar {
       this.#captureMenuSelection()
     }
     document.addEventListener('focusout', this.#documentFocusOut)
-    document.addEventListener('focusin', this.#documentFocusIn)
+    document.addEventListener('focusin', this.#documentFocusIn, { capture: true })
     document.addEventListener('selectionchange', this.#documentSelectionChange)
     this.#documentClick = event => {
       if (this.#destroyed) return
@@ -333,7 +336,8 @@ export class BlockToolbar {
     this.#root.ownerDocument.removeEventListener('mousedown', this.#documentMouseDown, true)
     this.#root.ownerDocument.removeEventListener('mouseup', this.#documentMouseUp, true)
     this.#root.ownerDocument.removeEventListener('focusout', this.#documentFocusOut)
-    this.#root.ownerDocument.removeEventListener('focusin', this.#documentFocusIn)
+    try { this.#root.ownerDocument.removeEventListener('focusin', this.#documentFocusIn, { capture: true }) }
+    catch (error) { try { this.#reportError('cleanup.failed', error) } catch {} }
     this.#root.ownerDocument.removeEventListener('selectionchange', this.#documentSelectionChange)
     this.#root.ownerDocument.removeEventListener('click', this.#documentClick, true)
     this.#root.ownerDocument.defaultView?.removeEventListener('resize', this.#viewportChange)
@@ -552,17 +556,18 @@ export class BlockToolbar {
   #insertBlock(type, toolboxItemId) {
     if (this.#runtime.readOnly) return
     const currentId = this.#currentId
-    const id=this.#mutate('toolbox.block',()=>this.#runtime.insertToolboxBlock(currentId,{type,toolboxItemId}),result=>result)
-    if(!id)return
+    const { result: id, focusVersion }=this.#mutate('toolbox.block',()=>this.#runtime.insertToolboxBlock(currentId,{type,toolboxItemId}),result=>result)
+    if(!id || !this.#canPresent(focusVersion))return
     if(this.#runtime.has(id)){
       this.#view.reconcileInteraction()
+      if(!this.#canPresent(focusVersion))return
       this.#view.setCurrent(id)
     }
+    if(!this.#canPresent(focusVersion))return
     this.closeToolbox()
     this.#deferOwned(id,()=>{
-      this.#view.focus(id, { offset: 'start' })
-      this.showFor(id)
-    })
+      if (this.#view.focus(id, { offset: 'start' })) this.showFor(id)
+    },focusVersion)
   }
 
   #insertInline(type) {
@@ -580,22 +585,27 @@ export class BlockToolbar {
     if (currentId && definition?.schema?.mapRichText) {
       this.#view.focus(currentId, { offset: 'end' })
       const selection=this.#selection.capture()
+      const focusVersion=this.#focusVersion
       this.#deferOwned(currentId,()=>{
         if(!sameLogicalSelection(selection,this.#selection.capture()))return
         this.#inlineCommands.insert(type)
-      })
+      },focusVersion)
       return
     }
 
     const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.size
+    const focusVersion=this.#focusVersion
     const id = this.#runtime.insert(this.#registry.defaultBlockType, undefined, index)
+    if(!this.#canPresent(focusVersion))return
     this.#view.reconcileInteraction()
+    if(!this.#canPresent(focusVersion))return
     this.#view.setCurrent(id)
+    if(!this.#canPresent(focusVersion))return
     this.#deferOwned(id,()=>{
-      this.#view.focus(id, { offset: 'start' })
+      if (!this.#view.focus(id, { offset: 'start' })) return
       this.#inlineCommands.insert(type)
       this.showFor(id)
-    })
+    },focusVersion)
   }
 
   #buildSettings(direction = 'none') {
@@ -638,20 +648,24 @@ export class BlockToolbar {
             action.icon ?? '',
             () => {
               if (revision !== this.#runtime.revision || this.#runtime.get(id)?.type !== record.type) return
-              this.#mutate('block.settings', () => this.#runtime.update(id, current => ({
+              const { focusVersion } = this.#mutate('block.settings', () => this.#runtime.update(id, current => ({
                 data: prepared.apply(current.data, action.id, {
                   createId: prefix => this.#runtime.createDataId(prefix),
                   ownerDocument: document,
                 }),
               })), () => id)
+              if (!this.#canPresent(focusVersion)) return
               const generation = this.#runtime.generation
               const settledRevision = this.#runtime.revision
               this.#view.reconcileInteraction()
+              if (!this.#canPresent(focusVersion)) return
               this.#view.setCurrent(id)
+              if (!this.#canPresent(focusVersion)) return
               this.closeSettings()
               const continuation = this.#settingsVersion
               queueMicrotask(() => {
                 if (this.#destroyed || this.#runtime.readOnly || continuation !== this.#settingsVersion
+                  || focusVersion !== this.#focusVersion
                   || generation !== this.#runtime.generation || settledRevision !== this.#runtime.revision
                   || this.#currentId !== id || !this.#runtime.has(id)) return
                 this.#view.focus(id)
@@ -729,16 +743,19 @@ export class BlockToolbar {
     this.#settings.append(
       this.#separator(),
       this.#settingsItem(this.#t('block.delete', 'Delete'), ICON_DELETE, () => {
-        const focusId = this.#mutate('block.remove', () => this.#runtime.remove(id), result => result)
+        const { result: focusId, focusVersion } = this.#mutate('block.remove', () => this.#runtime.remove(id), result => result)
+        if (!this.#canPresent(focusVersion)) return
         this.#view.reconcileInteraction()
+        if (!this.#canPresent(focusVersion)) return
         const nextId=focusId ?? this.#view.currentId
         // The surviving neighbor is the owner of the settled removal focus,
         // not the first-block fallback selected during reconciliation.
         // Claim it synchronously before the revocable deferred focus check.
         if(nextId&&this.#runtime.has(nextId))this.#view.setCurrent(nextId)
+        if (!this.#canPresent(focusVersion)) return
         this.#currentId=nextId
         this.closeSettings()
-        if(nextId)this.#deferOwned(nextId,()=>this.#view.focus(nextId))
+        if(nextId)this.#deferOwned(nextId,()=>this.#view.focus(nextId),focusVersion)
       }, false, true),
     )
   }
@@ -765,7 +782,7 @@ export class BlockToolbar {
       const current = type === record.type
       const item = this.#settingsItem(this.#label('plugin', type, definition.label), definition.icon, () => {
         try {
-          const result = this.#mutate('block.convert', () => {
+          const { result, focusVersion } = this.#mutate('block.convert', () => {
             const bookmark = this.#bookmark
             // Plain-text inputs (Code, Raw, file names, URLs) have logical
             // caret bookmarks but no rich-text slice. Convert their entire
@@ -783,11 +800,13 @@ export class BlockToolbar {
             this.#runtime.convert(id, { type })
             return { focusId: id }
           }, result => result?.focusId, result => convertedSelection(result,this.#view))
-          if (!result) return
+          if (!result || !this.#canPresent(focusVersion)) return
           this.#view.reconcileInteraction()
+          if (!this.#canPresent(focusVersion)) return
           this.#view.setCurrent(result.focusId)
+          if (!this.#canPresent(focusVersion)) return
           this.closeSettings()
-          this.#deferOwned(result.focusId,()=>restoreConvertedSelection(result,this.#view,this.#selectionPort))
+          this.#deferOwned(result.focusId,()=>restoreConvertedSelection(result,this.#view,this.#selectionPort),focusVersion)
         } catch (error) {
           try { this.#reportError('command.failed', error) } catch {}
         }
@@ -860,9 +879,13 @@ export class BlockToolbar {
     if (to < 0 || to >= this.#runtime.size) return
     const bookmark = this.#bookmark ?? this.#selection.capture()
     if (bookmark) this.#selection.restore(bookmark)
+    const focusVersion = this.#focusVersion
     this.#runtime.interact('block.move', () => this.#runtime.move(id, to), () => bookmark)
+    if (!this.#canPresent(focusVersion)) return
     this.#view.reconcileInteraction()
+    if (!this.#canPresent(focusVersion)) return
     this.#view.setCurrent(id)
+    if (!this.#canPresent(focusVersion)) return
     this.showFor(id)
     // Rebuild boundary actions while keeping the menu and author caret usable.
     this.#captureMenuSelection()
@@ -873,18 +896,19 @@ export class BlockToolbar {
     const record = this.#runtime.get(id)
     if (!record) return
     const index = this.#view.indexOf(id)
-    const duplicate = this.#mutate('block.duplicate', () => this.#runtime.insert(record.type, record.data, index + 1, {
+    const { result: duplicate, focusVersion } = this.#mutate('block.duplicate', () => this.#runtime.insert(record.type, record.data, index + 1, {
       tunes: record.tunes,
       inline: record.inline,
     }), result => result)
-    if(!duplicate)return
+    if(!duplicate || !this.#canPresent(focusVersion))return
     this.#view.reconcileInteraction()
+    if (!this.#canPresent(focusVersion)) return
     this.#view.setCurrent(duplicate)
+    if (!this.#canPresent(focusVersion)) return
     this.closeSettings()
     this.#deferOwned(duplicate,()=>{
-      this.#view.focus(duplicate)
-      this.showFor(duplicate)
-    })
+      if (this.#view.focus(duplicate)) this.showFor(duplicate)
+    },focusVersion)
   }
 
   /** A queued toolbar action is owned by exactly one settled block revision
@@ -892,14 +916,15 @@ export class BlockToolbar {
    * replacement, Undo, read-only, destroy or an intervening focus change.
    * @param {string} blockId
    * @param {()=>void} continuation
+   * @param {number} focusVersion native focus acquisition before the command
    */
-  #deferOwned(blockId,continuation){
+  #deferOwned(blockId,continuation,focusVersion){
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element(blockId)
     queueMicrotask(()=>{
-      if(this.#destroyed||this.#runtime.readOnly
+      if(!this.#canPresent(focusVersion)
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)||!mounted
         ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId)return
@@ -912,7 +937,11 @@ export class BlockToolbar {
       if(this.#bookmark.anchor.blockId!==this.#bookmark.focus.blockId)this.#selectionPort?.restore(this.#bookmark)
       else this.#selection.restore(this.#bookmark)
     }
-    return this.#runtime.interact(name, operation, result => {
+    // The menu's own author-range restoration happens before this lease.
+    // A commit observer can acquire native focus without changing currentId;
+    // that newer owner must also retire synchronous and queued presentation.
+    const focusVersion = this.#focusVersion
+    const result = this.#runtime.interact(name, operation, result => {
       if(resolveSelection)return resolveSelection(result)
       const id = focusId(result)
       const field = id ? this.#view.fields(id)[0] : null
@@ -920,6 +949,13 @@ export class BlockToolbar {
       const point = { blockId: id, fieldKey: field?.key ?? '', offset: 0 }
       return { anchor: point, focus: { ...point } }
     })
+    return { result, focusVersion }
+  }
+
+  #canPresent(focusVersion) {
+    return !this.#destroyed && !this.#runtime.readOnly
+      && this.#runtime.health !== 'destroyed' && this.#runtime.health !== 'failed'
+      && focusVersion === this.#focusVersion
   }
 
   #syncBackdrop() {
