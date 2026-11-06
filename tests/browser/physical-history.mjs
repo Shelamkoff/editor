@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { editorRoot, vitePath, findChrome } from './environment.mjs'
+import { selectOwnedDefaultPermissionContext } from './clipboard-permission-context.mjs'
 const chromePath = findChrome()
 const args = process.argv.slice(2)
 if (args.length > 1 || (args[0] !== undefined && args[0] !== '--intro-only')) {
@@ -379,7 +380,15 @@ try {
   assert(fixtureDocument.href === pageUrl && fixtureDocument.origin === clipboardOrigin && fixtureDocument.secureContext,
     'Clipboard setup requires the committed secure fixture document', fixtureDocument)
   const { targetInfo } = await browserClient.send('Target.getTargetInfo', { targetId: target.id })
-  const permissionContext = targetInfo.browserContextId ? { browserContextId: targetInfo.browserContextId } : {}
+  const browserContexts = await browserClient.send('Target.getBrowserContexts')
+  const permissionSelection = selectOwnedDefaultPermissionContext(targetInfo, browserContexts)
+  const permissionContext = permissionSelection.parameters
+  if (process.env.EDITOR_RESULTS_DIR) {
+    await mkdir(process.env.EDITOR_RESULTS_DIR, { recursive: true })
+    await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'physical-browser-context.json'), JSON.stringify({
+      targetId: target.id, ...permissionSelection.evidence, requestedPermissionContext: permissionContext,
+    }, null, 2) + '\n')
+  }
   const readClipboardPermissions = () => evaluate(client, `Promise.all([
     ['clipboard-read', { name: 'clipboard-read' }],
     ['clipboard-write', { name: 'clipboard-write', allowWithoutGesture: false, allowWithoutSanitization: false }],
@@ -393,7 +402,8 @@ try {
   })
   const permissionsAfter = await readClipboardPermissions()
   const clipboardSetup = { origin: clipboardOrigin, ...permissionContext, permission: clipboardPermission,
-    setting: 'granted', document: fixtureDocument, before: permissionsBefore, after: permissionsAfter }
+    setting: 'granted', document: fixtureDocument, contextSelection: permissionSelection.evidence,
+    before: permissionsBefore, after: permissionsAfter }
   if (process.env.EDITOR_RESULTS_DIR) {
     await mkdir(process.env.EDITOR_RESULTS_DIR, { recursive: true })
     await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'physical-browser-environment.json'), JSON.stringify({
