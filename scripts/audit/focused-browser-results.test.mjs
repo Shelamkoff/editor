@@ -27,9 +27,9 @@ test('zero-exit native report cannot pass with no, missing, duplicated or skippe
   }
 })
 
-test('complete browser focus GREEN includes all 49 commit-observer cases', () => {
+test('complete browser focus GREEN includes all 53 commit-observer cases', () => {
   const run = completed({ stdout: JSON.stringify({ 'native-core-behavior.html': rows(COMMIT_FOCUS_CASES) }) })
-  assert.equal(verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES).total, 49)
+  assert.equal(verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES).total, 53)
   assert(COMMIT_FOCUS_CASES.every(name => name.includes('commit-observer focus')),
     'Focused native filter must select every maintained focus case')
 })
@@ -38,10 +38,12 @@ test('browser focus GREEN rejects partial, duplicated, renamed, skipped or faile
   const full = rows(COMMIT_FOCUS_CASES)
   const beforeMentionPositive = full.filter(row =>
     row.name !== 'Native Mention Backspace preserves ordinary caret and query without a commit-observer focus handoff')
+  const beforeNativeImage = full.filter(row => !row.name.startsWith('Native Image Settings '))
   for (const records of [[], full.slice(0, 16), full.slice(0, 17),
     full.slice(0, 22).filter(row => !row.name.startsWith('Native Slash ')),
     full.slice(0, 21), full.slice(0, 22), full.slice(0, 23), full.slice(0, 24), full.slice(0, 41),
     beforeMentionPositive.slice(0, 42), full.slice(0, 47), full.slice(0, 48), beforeMentionPositive,
+    full.slice(0, 49), full.slice(0, 50), full.slice(0, 51), full.slice(0, 52), beforeNativeImage,
     [...full.slice(1), full[1]],
     full.map((row, index) => index ? row : { ...row, name: 'Unexpected focus case' }),
     full.map((row, index) => index ? row : { ...row, status: 'SKIP' }),

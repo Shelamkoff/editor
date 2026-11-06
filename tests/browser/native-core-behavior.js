@@ -13,6 +13,7 @@ import './regressions/mention-focus-ownership.js'
 import './regressions/inline-command-focus.js'
 import './regressions/plugin-control-focus.js'
 import './regressions/image-settings-focus.js'
+import './regressions/image-settings-native-focus.js'
 
 for (const shape of structuralShapes) test(`Structural authoring ${shape.id} preserves complete native/public paths`, async () => {
   const fixture = await createStructuralFixture(shape, { native: async (action, value) => {

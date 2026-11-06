@@ -147,7 +147,11 @@ export const COMMIT_FOCUS_CASES = Object.freeze([
   "Public Poll Add option preserves commit-observer focus: another editor field",
   "Public Image settings preserves commit-observer focus: ordinary completion",
   "Public Image settings preserves commit-observer focus: external input",
-  "Public Image settings preserves commit-observer focus: another editor field"
+  "Public Image settings preserves commit-observer focus: another editor field",
+  "Native Image Settings Tab preserves commit-observer focus: ordinary completion",
+  "Native Image Settings Tab preserves commit-observer focus: external input",
+  "Native Image Settings Tab preserves commit-observer focus: another editor field",
+  "Native Image Settings pointer navigation preserves ordinary external focus without a commit-observer focus handoff"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([
