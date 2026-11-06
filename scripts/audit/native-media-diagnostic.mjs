@@ -18,7 +18,77 @@ const behaviors = [
   'a real trusted download preserves the application Blob and filename',
   'scriptless content retains actual native video playback and retires it',
 ]
-export const MEDIA_CASES = Object.freeze(behaviors.flatMap(behavior => surfaces.map(surface => `${surface}: ${behavior}`)))
+export const POSITIVE_MEDIA_CASES = Object.freeze([
+  'Raw editor: scriptless content retains actual native video playback and retires it',
+  'Raw renderer: scriptless content retains actual native video playback and retires it',
+  'Carousel editor: scriptless content retains actual native video playback and retires it',
+  'Carousel renderer: scriptless content retains actual native video playback and retires it',
+])
+export const NEGATIVE_MEDIA_CASES = Object.freeze([
+  'Native playback control: trusted Space on a different button reaches the playback deadline',
+  'Native playback control: paused native video with played history reaches the playback deadline',
+])
+export const MEDIA_CASES = Object.freeze([
+  ...behaviors.flatMap(behavior => surfaces.map(surface => `${surface}: ${behavior}`)),
+  ...NEGATIVE_MEDIA_CASES,
+])
+const READINESS_CONTRACT = Object.freeze({ schemaVersion: 2, contract: 'native-playback-functional-v2',
+  origin: 'dispatchKey-completion', timeoutMs: 3000, pollMs: 50 })
+const READINESS_PHASES = [
+  ...POSITIVE_MEDIA_CASES.map(name => ({ name, phase: 'positive', expectedOutcome: 'PLAYING' })),
+  { name: NEGATIVE_MEDIA_CASES[0], phase: 'wrong-target', expectedOutcome: 'DEADLINE' },
+  { name: NEGATIVE_MEDIA_CASES[1], phase: 'paused-history-preparation', expectedOutcome: 'PLAYING' },
+  { name: NEGATIVE_MEDIA_CASES[1], phase: 'paused-history-rejection', expectedOutcome: 'DEADLINE' },
+]
+
+function verifyReadiness(telemetry, rows) {
+  assert(telemetry, 'Missing persisted media readiness telemetry')
+  for (const [key, value] of Object.entries(READINESS_CONTRACT)) assert.equal(telemetry[key], value, `Wrong readiness ${key}`)
+  assert.equal(telemetry.initialDelayMs, 100)
+  assert(Array.isArray(telemetry.records), 'Missing readiness records')
+  assert.deepEqual(telemetry.records.map(({ name, phase, expectedOutcome }) => ({ name, phase, expectedOutcome })), READINESS_PHASES,
+    'Expected exactly seven readiness phases for the six media cases')
+  for (const record of telemetry.records) {
+    const value = record.readiness
+    assert(value, 'Missing readiness result')
+    for (const [key, expected] of Object.entries(READINESS_CONTRACT)) assert.equal(value[key], expected, `Wrong result ${key}`)
+    assert(['PLAYING', 'DEADLINE', 'OWNER_LOST', 'MEDIA_ERROR', 'OBSERVATION_ERROR', 'CLOCK_ERROR'].includes(value.outcome), 'Unknown readiness outcome')
+    assert(Array.isArray(value.observations), 'Missing readiness observations')
+    assert.deepEqual(value.initialObservation, value.observations[0] ?? null)
+    assert.deepEqual(value.finalObservation, value.observations.at(-1) ?? null)
+    assert.equal(value.firstObservedPositiveElapsedMs, value.observations.find(item => item.predicate)?.elapsedMs ?? null)
+    let previous = 0
+    for (const observation of value.observations) {
+      const { state, elapsedMs, predicate, withinDeadline } = observation
+      assert(Number.isFinite(elapsedMs) && elapsedMs >= previous, 'Invalid readiness elapsed time')
+      previous = elapsedMs
+      assert.equal(withinDeadline, elapsedMs < READINESS_CONTRACT.timeoutMs, 'Incorrect readiness cutoff')
+      assert(Array.isArray(state?.played), 'Missing played ranges')
+      assert.equal(predicate, state.trusted === true && state.paused === false && state.played.length > 0, 'Readiness predicate disagrees with captured state')
+    }
+    if (value.outcome === 'PLAYING' || value.outcome === 'DEADLINE') {
+      assert(value.observations.length > 0, 'Missing terminal readiness sample')
+      for (const { state } of value.observations) {
+        assert(state.videoConnected === true && state.frameConnected === true && state.sameChildDocument === true && state.sameVideoDocument === true,
+          'Lost media ownership is not playback or an expected deadline')
+        assert.equal(state.mediaError, null, 'Media failure is not playback or an expected deadline')
+      }
+      for (const observation of value.observations.slice(0, -1)) assert(observation.withinDeadline && !observation.predicate, 'Readiness continued past a terminal observation')
+      const final = value.finalObservation
+      if (value.outcome === 'PLAYING') assert(final.predicate && final.withinDeadline, 'Playback was not observed before the strict deadline')
+      else assert(!final.withinDeadline, 'Expected deadline did not reach its cutoff')
+    }
+    if (rows.find(row => row.name === record.name).status === 'PASS') {
+      assert.equal(value.outcome, record.expectedOutcome, 'Passing case has a failed readiness outcome')
+      if (record.phase === 'wrong-target' || record.phase === 'paused-history-rejection') {
+        for (const { state } of value.observations) {
+          assert(state.trusted === true && state.paused === true, 'Negative control lost its trusted, paused precondition')
+          assert.equal(state.played.length > 0, record.phase === 'paused-history-rejection', 'Negative control has the wrong played history')
+        }
+      }
+    }
+  }
+}
 
 function leadingArray(text) {
   assert(text.startsWith('['), 'Native failure lacks its completed case array')
@@ -36,7 +106,7 @@ function leadingArray(text) {
   throw new Error('Truncated native case report')
 }
 
-export function classifyMediaPage(run, instrumented = false) {
+export function classifyMediaPage(run, instrumented = false, telemetry) {
   assert(!run.signal && !run.receivedSignal && !run.timedOut && !run.spawnError, 'Native execution was unavailable or interrupted')
   assert(run.exitCode === 0 || run.exitCode === 1, 'Unexpected native process exit')
   let rows
@@ -51,24 +121,35 @@ export function classifyMediaPage(run, instrumented = false) {
     rows = leadingArray(parts[1])
   }
   assert(Array.isArray(rows))
-  assert.deepEqual(rows.map(row => row.name), MEDIA_CASES, 'Expected all 28 original cases in their original order')
+  assert.deepEqual(rows.map(row => row.name), MEDIA_CASES, 'Expected all 30 cases: the original 28 followed by both native negative controls')
   assert(rows.every(row => row.status === 'PASS' || row.status === 'FAIL'), 'Skipped or unknown native case status')
   const failures = rows.filter(row => row.status === 'FAIL')
   assert.equal(run.exitCode, failures.length ? 1 : 0, 'Native exit disagrees with case assertions')
-  if (instrumented) for (const row of rows.slice(24)) {
-    const evidence = row.mediaDiagnostic
-    assert.equal(typeof evidence?.originalVerdict?.passed, 'boolean', 'Missing original 100ms verdict')
-    assert(evidence.snapshots.some(snapshot => snapshot.phase === 'original-100ms'), 'Missing 100ms observation')
+  verifyReadiness(telemetry, rows)
+  if (instrumented) for (const row of rows) {
+    if (!POSITIVE_MEDIA_CASES.includes(row.name)) {
+      assert(!Object.hasOwn(row, 'mediaDiagnostic'), 'Only the four positive media cases may be instrumented')
+      continue
+    }
+    const evidence = row.mediaDiagnostic, readiness = telemetry.records.find(record => record.name === row.name).readiness
+    assert.equal(evidence?.schemaVersion, 2, 'Missing functional diagnostic version')
+    assert.equal(evidence.contract, READINESS_CONTRACT.contract)
+    assert.equal(evidence.clockOrigin, 'probe-mounted')
+    assert.equal(typeof evidence.functionalVerdict?.passed, 'boolean', 'Missing functional verdict')
+    assert.equal(evidence.functionalVerdict.readinessOutcome, readiness.outcome)
+    assert.deepEqual(evidence.readiness, readiness, 'Diagnostic changed the functional readiness result')
+    assert(evidence.snapshots.some(snapshot => snapshot.phase === 'functional-verdict'), 'Missing functional verdict observation')
     assert(evidence.snapshots.some(snapshot => snapshot.phase === 'post-verdict-300ms'), 'Missing bounded later observation')
-    if (row.status === 'PASS') assert(evidence.originalVerdict.passed, 'Later playback cannot override a failed 100ms verdict')
+    if (row.status === 'PASS') assert(evidence.functionalVerdict.passed, 'Later playback cannot override a failed functional verdict')
   }
-  return { complete: true, passed: failures.length === 0, cases: rows.length, failures: failures.length, rows }
+  return { ...READINESS_CONTRACT, complete: true, passed: failures.length === 0, cases: rows.length,
+    readinessPhases: telemetry.records.length, failures: failures.length, rows }
 }
 
-export function mediaOutcome(original, diagnostic, sameRuntime) {
-  return { pass: sameRuntime && original?.complete === true && diagnostic?.complete === true && original.passed === true && diagnostic.passed === true,
-    collectionComplete: original?.complete === true && diagnostic?.complete === true,
-    originalPassed: original?.passed === true, instrumentedPassed: diagnostic?.passed === true,
+export function mediaOutcome(functional, diagnostic, sameRuntime) {
+  return { pass: sameRuntime && functional?.complete === true && diagnostic?.complete === true && functional.passed === true && diagnostic.passed === true,
+    collectionComplete: functional?.complete === true && diagnostic?.complete === true,
+    functionalPassed: functional?.passed === true, instrumentedPassed: diagnostic?.passed === true,
     sameRuntime, releaseAccepted: false }
 }
 
@@ -86,7 +167,8 @@ export function installPlaybackDiagnostics() {
   })
   return (name, frame, child, video) => {
     const started = performance.now()
-    const record = { name, originalVerdict: null, snapshots: [], events: [], droppedEvents: 0 }
+    const record = { schemaVersion: 2, contract: 'native-playback-functional-v2', clockOrigin: 'probe-mounted',
+      name, functionalVerdict: null, readiness: null, snapshots: [], events: [], droppedEvents: 0 }
     const keys = new Map()
     records.set(name, record)
     const node = value => value ? { tag: value.nodeName, id: value.id ?? null } : null
@@ -97,7 +179,7 @@ export function installPlaybackDiagnostics() {
       error: video.error ? { code: video.error.code, message: String(video.error.message ?? '') } : null,
       currentSrc: video.currentSrc, muted: video.muted, controls: video.controls,
       frameConnected: frame.isConnected, videoConnected: video.isConnected,
-      sameChildDocument: frame.contentDocument === child, frameInert: Boolean(frame.inert),
+      sameChildDocument: frame.contentDocument === child, sameVideoDocument: video.ownerDocument === child, frameInert: Boolean(frame.inert),
       parentActive: node(frame.ownerDocument.activeElement), childActive: node(child.activeElement),
       childHasFocus: child.hasFocus(), documentReadyState: child.readyState, visibility: child.visibilityState,
       keys: Array.from(keys.values(), event => ({ type: event.type, key: event.key, code: event.code,
@@ -130,7 +212,11 @@ export function installPlaybackDiagnostics() {
     sample('mounted')
     return { sample,
       beforeKey: () => sample('before-key', { frameRect: frame.getBoundingClientRect().toJSON(), videoRect: video.getBoundingClientRect().toJSON() }),
-      verdict: (passed, error = null) => { record.originalVerdict = { passed, error }; sample('original-100ms', { passed }) },
+      verdict: (passed, readiness, error = null) => {
+        record.functionalVerdict = { passed, readinessOutcome: readiness.outcome, error }
+        record.readiness = structuredClone(readiness)
+        sample('functional-verdict', { passed })
+      },
       dispose: () => { for (const remove of listeners) remove() },
     }
   }
@@ -142,12 +228,16 @@ export function instrumentMediaFixture(source) {
     source = source.replace(anchor, replacement)
   }
   replace('const surfaces = ', `const __createPlaybackProbe = (${installPlaybackDiagnostics.toString()})();\n\nconst surfaces = `)
-  const start = "      const video = child.querySelector('video'), deadline = performance.now() + 3000"
-  replace(start, start + "\n      const probe = __createPlaybackProbe(`${name}: scriptless content retains actual native video playback and retires it`, frame, child, video)\n      try {")
-  replace("      video.focus()\n      await dispatchKey(' ', 'Space', 32)\n      await pause(100)",
-    "      probe.sample('before-focus')\n      video.focus()\n      probe.beforeKey()\n      await dispatchKey(' ', 'Space', 32)\n      probe.sample('dispatch-return')\n      await pause(100)")
-  const assertion = "      assert(trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')"
-  replace(assertion, "      try {\n" + assertion + "\n        probe.verdict(true)\n      } catch (error) {\n        probe.verdict(false, String(error.stack ?? error))\n        throw error\n      } finally {\n        await pause(300)\n        probe.sample('post-verdict-300ms')\n      }")
+  const decode = "      while (video.readyState < 2) {\n        assert(performance.now() < deadline && !video.error, 'Native video did not decode')"
+  replace(decode, "      const probe = __createPlaybackProbe(`${name}: scriptless content retains actual native video playback and retires it`, frame, child, video)\n      try {\n" + decode)
+  replace("      video.focus()\n      await dispatchKey(' ', 'Space', 32)\n      const playbackStartedAt = performance.now()\n      await pause(100)",
+    "      probe.sample('before-focus')\n      video.focus()\n      probe.beforeKey()\n      await dispatchKey(' ', 'Space', 32)\n      const playbackStartedAt = performance.now()\n      probe.sample('dispatch-return')\n      await pause(100)")
+  const assertion = "        assert(readiness.outcome === 'PLAYING' && trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')"
+  replace(assertion, assertion + "\n        probe.verdict(true, readiness)")
+  replace("      } catch (error) {\n        // Capture extended failure context only after the functional verdict.",
+    "      } catch (error) {\n        probe.verdict(false, readiness, String(error.stack ?? error))\n        // Capture extended failure context only after the functional verdict.")
+  replace("        throw error\n      }\n      retire(); await pause(50)",
+    "        throw error\n      } finally {\n        await pause(300)\n        probe.sample('post-verdict-300ms')\n      }\n      retire(); await pause(50)")
   const retired = "      assert(video.paused, 'Retired child content kept playing its native media')"
   replace(retired, retired + "\n      probe.sample('after-retirement')\n      } finally { probe.dispose() }")
   return source
@@ -158,10 +248,12 @@ async function main() {
   assert(process.env.EDITOR_RESULTS_DIR && process.env.EDITOR_CHROME_PATH, 'Set a fresh EDITOR_RESULTS_DIR and the runner browser path')
   const output = resolve(process.env.EDITOR_RESULTS_DIR, 'native-media')
   await mkdir(output, { recursive: true })
-  const report = { kind: 'Bounded native media diagnostic', startedAt: new Date().toISOString(), retries: 0,
-    plannedOrder: ['original-28', 'instrumented-28'], originalPlaybackPauseMs: 100, postVerdictObservationMs: 300,
-    expectedCases: MEDIA_CASES, observedFailureBrowser: OBSERVED_BROWSER, pass: false, releaseAccepted: false,
-    qualification: 'Standalone full-page attempts do not reproduce the preceding pages of the failed full native run. Instrumentation can perturb timing; later observations never replace the original verdict.' }
+  const report = { kind: 'Native media functional contract and bounded diagnostic', ...READINESS_CONTRACT,
+    startedAt: new Date().toISOString(), retries: 0,
+    plannedOrder: ['functional-30', 'instrumented-30'], initialPlaybackDelayMs: 100, postVerdictObservationMs: 300,
+    expectedCases: MEDIA_CASES, expectedReadinessPhases: READINESS_PHASES,
+    observedFailureBrowser: OBSERVED_BROWSER, pass: false, releaseAccepted: false,
+    qualification: 'Version 2 checks the bounded functional contract, not the historical fixed-100ms verdict. Standalone pages exclude the preceding full-run history. Instrumentation can perturb timing; later observations never replace the functional verdict. No historical playback cause is established.' }
   await writeJson(join(output, 'plan.json'), report)
   let temporary, checkout
   const environment = { ...process.env, EDITOR_NATIVE_PAGE: PAGE }
@@ -186,7 +278,9 @@ async function main() {
         { cwd, env: { ...environment, EDITOR_RESULTS_DIR: directory } })
       let outcome
       try {
-        outcome = classifyMediaPage(run, instrumented)
+        const readinessText = await readFile(join(directory, 'media-readiness.json'), 'utf8')
+        outcome = classifyMediaPage(run, instrumented, JSON.parse(readinessText))
+        outcome.readinessSha256 = sha256(readinessText)
         const browser = JSON.parse(await readFile(join(directory, 'physical-browser-environment.json'), 'utf8'))
         outcome.browser = browser
         assert.equal(browser.executable, process.env.EDITOR_CHROME_PATH)
@@ -196,7 +290,7 @@ async function main() {
       if (run.receivedSignal) throw new Error('Interrupted media diagnostic: ' + run.receivedSignal)
       return outcome
     }
-    report.original = await attempt('original-28', root, false)
+    report.functional = await attempt('functional-30', root, false)
     assert.deepEqual(await sourceIdentity(root), before)
     temporary = await mkdtemp(join(process.env.RUNNER_TEMP ?? tmpdir(), 'rector-media-diagnostic-'))
     checkout = join(temporary, 'checkout')
@@ -211,12 +305,12 @@ async function main() {
     await writeFile(join(output, 'fixture-overlay.diff'), git(checkout, 'diff', '--binary', 'HEAD'), { flag: 'wx' })
     await writeFile(join(output, 'instrumented-fixture.js'), instrumentedFixture, { flag: 'wx' })
     report.overlay = { onlyChangedPath: FIXTURE, originalSha256: sha256(originalFixture), instrumentedSha256: sha256(instrumentedFixture) }
-    report.diagnostic = await attempt('instrumented-28', checkout, true)
+    report.diagnostic = await attempt('instrumented-30', checkout, true)
     assert.deepEqual(await sourceIdentity(checkout), overlay)
     report.sourceAfter = await sourceIdentity(root)
     assert.deepEqual(report.sourceAfter, before)
     report.sourceUnchanged = true
-    Object.assign(report, mediaOutcome(report.original, report.diagnostic, report.runtime.matchesObserved))
+    Object.assign(report, mediaOutcome(report.functional, report.diagnostic, report.runtime.matchesObserved))
     assert.equal(await hashFile(executable), report.runtime.executableSha256)
   } catch (error) { report.pass = false; report.error = String(error.stack ?? error) }
   finally {
@@ -229,7 +323,7 @@ async function main() {
     await writeJson(join(output, 'result.json'), report)
   }
   console.log(JSON.stringify({ pass: report.pass, collectionComplete: report.collectionComplete ?? false,
-    originalPassed: report.original?.passed ?? false, instrumentedPassed: report.diagnostic?.passed ?? false, output }))
+    functionalPassed: report.functional?.passed ?? false, instrumentedPassed: report.diagnostic?.passed ?? false, output }))
   if (!report.pass) process.exitCode = 1
 }
 

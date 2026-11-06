@@ -54,6 +54,6 @@ Module checks use Rollup's rendered module lengths, so eliminated barrel exports
 do not count as retained code. These checks cover the static JavaScript graph;
 lazy imports are listed separately.
 
-The `Verify library` workflow keeps all three Node jobs and all four release
+The `Verify library` workflow keeps all four Node jobs and all four release
 gates. Size reporting does not bypass failure recording or the required build.
 Manual size enforcement is separate from the mandatory CI report.

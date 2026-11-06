@@ -101,17 +101,48 @@ and fixture execute unchanged. Historical controls with fixed commit identities
 remain archived; the new CLI applies the same seven mutations with explicit
 current source identities.
 
-## Bounded native media observations
+## Native media functional contract and bounded observations
 
-The media job runs all 28 native HTML-content cases once unchanged, then once
-with a test-only observation overlay in a temporary worktree. It retains the
-original playback assertion after `pause(100)` and records focus, trusted keys,
-cancellation, media events and a bounded 300ms post-verdict observation. A failed
-original verdict remains a failure even if playback starts later. Both attempts
-retain their complete case reports, source identities and runtime receipts.
-These standalone page attempts exclude earlier pages of the full native run,
-and instrumentation can perturb timing; their reports explicitly withhold
-release acceptance and a causal conclusion about earlier failures.
+The version 2 media job runs all 30 native HTML-content cases once unchanged,
+then once with a test-only observation overlay in a temporary worktree. The
+original 28 case names remain; two native negative controls are appended. The
+four playback cases retain their single trusted Space action, initial
+`pause(100)`, retirement checks and caller-owned resource checks. Playback must
+be observed as trusted input, an unpaused video and a nonempty played range
+before a strict 3,000ms deadline. The clock starts when the native dispatch
+helper returns, before the initial wait. A positive sample at or after the
+deadline fails. This is a functional readiness contract, not a 100ms latency
+guarantee or an explanation of any historical playback failure.
+
+The two controls require a trusted Space on a different button and a genuinely
+paused video that already has played history. Only an actual playback deadline
+is accepted for either control; missing input, changed ownership, media errors
+and failed observations are failures. The paused-history setup first proves
+native playback and then a second trusted Space on the same video. These are
+two test cases with three recorded phases, giving seven readiness records with
+the four positive cases.
+
+The physical runner saves `media-readiness.json` before either terminal verdict.
+It contains actual elapsed samples, the initial observation, first observed
+positive time and terminal state. Sample times do not measure playback onset
+or first-frame latency. The adapter requires the exact 30-case report, seven
+phases, current ownership and strict terminal deadline semantics. Missing or
+malformed evidence cannot pass; raw process logs remain available on failure.
+
+Only the four original positive media cases receive the observation overlay.
+It records focus, trusted keys, cancellation and media events, then adds a
+bounded 300ms observation after the functional verdict. A failed verdict keeps
+the same Error and remains a failure even if playback starts later. The two
+native controls remain uninstrumented. Both attempts retain their case reports,
+source identities, overlay and runtime receipts. Standalone pages exclude
+earlier pages of the full native run, and instrumentation can perturb timing;
+the report withholds release acceptance and a historical causal conclusion.
+
+The previous fixed-100ms adapter and its raw outcomes remain in Git history
+(for example, commit `545c7da3eaed9450de6b68b09462af99ad65a3ee`). Version 2
+results do not reinterpret those failures. A startup between 100ms and the new
+deadline can now pass the functional check, so a separate performance guarantee
+would need its own specified latency contract and measurements.
 
 Each job uses `verification-results.mjs` to bind commands to the current source,
 record prerequisites and close interrupted attempts. Finalization and artifact

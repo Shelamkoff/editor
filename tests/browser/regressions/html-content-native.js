@@ -6,10 +6,19 @@ import { waitForEmbeddedDocument } from '../embedded-html-helpers.js'
 import { clickNative, dispatchKey } from '../native-input-helpers.js'
 import { test, assert, equal, pause, run } from './harness.js'
 import { appendFailureDiagnostic } from './failure-diagnostics.js'
+import { playbackState, waitForNativePlayback } from './media-readiness.js'
 
 const surfaces = [['Raw editor', 'raw', true], ['Raw renderer', 'raw', false],
   ['Carousel editor', 'carousel', true], ['Carousel renderer', 'carousel', false]]
 const contentStyles = ['html,body{margin:0}body{display:flow-root;font:20px sans-serif}']
+
+window.__mediaReadiness = {
+  schemaVersion: 2, contract: 'native-playback-functional-v2', origin: 'dispatchKey-completion',
+  initialDelayMs: 100, timeoutMs: 3000, pollMs: 50, records: [],
+}
+function recordPlaybackReadiness(name, phase, expectedOutcome, readiness) {
+  window.__mediaReadiness.records.push({ name, phase, expectedOutcome, readiness })
+}
 
 async function mounted(type, editing, html, inspect, styles = contentStyles) {
   const holder = document.createElement('section'); document.querySelector('#fixtures').append(holder)
@@ -164,12 +173,18 @@ for (const [name, type, editing] of surfaces) test(`${name}: scriptless content 
       child.defaultView.addEventListener('keydown', event => { trusted ||= event.isTrusted && event.code === 'Space' }, { capture: true })
       video.focus()
       await dispatchKey(' ', 'Space', 32)
+      const playbackStartedAt = performance.now()
       await pause(100)
+      const readiness = await waitForNativePlayback({
+        readState: () => playbackState(frame, child, video, trusted),
+        now: () => performance.now(), wait: pause, startedAt: playbackStartedAt,
+      })
+      recordPlaybackReadiness(`${name}: scriptless content retains actual native video playback and retires it`, 'positive', 'PLAYING', readiness)
       try {
-        assert(trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')
+        assert(readiness.outcome === 'PLAYING' && trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')
       } catch (error) {
-        // Observe only after the original verdict, so diagnostics cannot make a
-        // slow or misdirected native activation pass by delaying that verdict.
+        // Capture extended failure context only after the functional verdict.
+        // Its first sample and deadline remain in the separate readiness record.
         try {
           appendFailureDiagnostic(error, 'Playback state after failure: ' + JSON.stringify({
             trusted, paused: video.paused, played: Array.from({ length: video.played.length }, (_, index) =>
@@ -199,6 +214,87 @@ for (const [name, type, editing] of surfaces) test(`${name}: scriptless content 
         await pause(10)
       }
     } finally { reference.remove() }
+  } finally { URL.revokeObjectURL(url) }
+})
+
+test('Native playback control: trusted Space on a different button reaches the playback deadline', async () => {
+  const response = await fetch('/tests/browser/carousel-roundtrip-16x16.webm')
+  assert(response.ok)
+  const url = URL.createObjectURL(await response.blob())
+  try {
+    await mounted('raw', true, `<video src="${url}" controls muted loop playsinline width="320" height="180"></video><button id="other">Other native target</button>`, async (frame, child) => {
+      const video = child.querySelector('video'), button = child.querySelector('#other'), deadline = performance.now() + 3000
+      while (video.readyState < 2) {
+        assert(performance.now() < deadline && !video.error, 'Negative-control video did not decode')
+        await pause(10)
+      }
+      assert(video.paused && video.played.length === 0, 'Wrong-target control must start with an unplayed video')
+      let trusted = false, targetWasButton = false
+      child.defaultView.addEventListener('keydown', event => {
+        trusted ||= event.isTrusted && event.code === 'Space'
+        targetWasButton ||= event.isTrusted && event.code === 'Space' && event.target === button
+      }, { capture: true })
+      button.focus()
+      assert(child.activeElement === button, 'Wrong-target control did not focus its button')
+      await dispatchKey(' ', 'Space', 32)
+      const playbackStartedAt = performance.now()
+      assert(trusted && targetWasButton, 'Wrong-target control did not receive its trusted Space on the button')
+      await pause(100)
+      const readiness = await waitForNativePlayback({
+        readState: () => playbackState(frame, child, video, trusted),
+        now: () => performance.now(), wait: pause, startedAt: playbackStartedAt,
+      })
+      recordPlaybackReadiness('Native playback control: trusted Space on a different button reaches the playback deadline', 'wrong-target', 'DEADLINE', readiness)
+      assert(readiness.outcome === 'DEADLINE', 'Wrong-target control must reach the playback deadline, not a setup or observation error')
+      assert(video.paused && video.played.length === 0, 'Space on the other button unexpectedly played the video')
+    })
+  } finally { URL.revokeObjectURL(url) }
+})
+
+test('Native playback control: paused native video with played history reaches the playback deadline', async () => {
+  const response = await fetch('/tests/browser/carousel-roundtrip-16x16.webm')
+  assert(response.ok)
+  const url = URL.createObjectURL(await response.blob())
+  try {
+    await mounted('raw', true, `<video src="${url}" controls muted loop playsinline width="320" height="180"></video>`, async (frame, child, retire) => {
+      const video = child.querySelector('video'), deadline = performance.now() + 3000
+      while (video.readyState < 2) {
+        assert(performance.now() < deadline && !video.error, 'Paused-history control video did not decode')
+        await pause(10)
+      }
+      let trusted = false, videoSpaceCount = 0
+      child.defaultView.addEventListener('keydown', event => {
+        trusted ||= event.isTrusted && event.code === 'Space'
+        if (event.isTrusted && event.code === 'Space' && event.target === video) videoSpaceCount++
+      }, { capture: true })
+      video.focus()
+      assert(child.activeElement === video, 'Paused-history control did not focus its video')
+      await dispatchKey(' ', 'Space', 32)
+      const preparationStartedAt = performance.now()
+      assert(videoSpaceCount === 1, 'Paused-history preparation did not receive its one native Space')
+      await pause(100)
+      const preparation = await waitForNativePlayback({
+        readState: () => playbackState(frame, child, video, trusted),
+        now: () => performance.now(), wait: pause, startedAt: preparationStartedAt,
+      })
+      recordPlaybackReadiness('Native playback control: paused native video with played history reaches the playback deadline', 'paused-history-preparation', 'PLAYING', preparation)
+      assert(preparation.outcome === 'PLAYING' && !video.paused && video.played.length > 0, 'Paused-history preparation did not actually play through native controls')
+      assert(child.activeElement === video, 'Paused-history control lost its original video focus')
+      await dispatchKey(' ', 'Space', 32)
+      const playbackStartedAt = performance.now()
+      assert(videoSpaceCount === 2, 'Paused-history control did not receive its native pause Space')
+      assert(video.paused && video.played.length > 0, 'Paused-history control requires an actually paused video with played ranges')
+      await pause(100)
+      const readiness = await waitForNativePlayback({
+        readState: () => playbackState(frame, child, video, trusted),
+        now: () => performance.now(), wait: pause, startedAt: playbackStartedAt,
+      })
+      recordPlaybackReadiness('Native playback control: paused native video with played history reaches the playback deadline', 'paused-history-rejection', 'DEADLINE', readiness)
+      assert(readiness.outcome === 'DEADLINE', 'Paused-history control must reach the playback deadline, not a setup or observation error')
+      assert(video.paused && video.played.length > 0, 'The paused-history observation lost its negative-control state')
+      retire(); await pause(50)
+      assert(video.paused, 'Retired negative-control media resumed playback')
+    })
   } finally { URL.revokeObjectURL(url) }
 })
 

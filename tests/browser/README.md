@@ -30,11 +30,47 @@ For a focused native run, set `EDITOR_NATIVE_PAGE=native-cross-selection.html` (
 
 `native-attaches-downloads.html` adds 13 cases for individual A/B/F/G downloads, both grouped-A links, complete/partial ZIPs, portable and colliding names, and pending stream cancellation. Trusted Chrome clicks perform real downloads into the runner's disposable profile. The driver waits for `Browser.downloadProgress` completion, reads the completed file and returns its bytes to the fixture; it does not intercept generated download anchors or accept an empty placeholder file. ZIP contents and literal bytes are checked using JSZip. Three stream cases use controlled fetch responses with native ReadableStream cancellation, including pending and rejected cleanup. Browser download behavior is configured through CDP, without OS save dialogs.
 
+`native-html-content.html` retains its original 28 Raw/Carousel editor/renderer
+cases and appends two native playback negative controls, for 30 cases. Each of
+the four positive video cases focuses its original video and sends one trusted
+Space. Functional playback requires all three observations: trusted input,
+`paused === false`, and a nonempty `played` range on the same connected video,
+frame and child document. Retirement must still pause that media, author data
+must remain unchanged, and the caller's Blob must remain usable.
+
+The version 2 playback contract records its monotonic origin immediately after
+`dispatchKey` completes; the helper's own input acknowledgement delay is outside
+this measurement. The existing `pause(100)` remains the initial observation.
+If its predicate is false, read-only observations continue at 50ms intervals up
+to a strict 3,000ms deadline. Time is sampled after reading state: a positive
+observation at or after the deadline fails, including delayed first samples.
+There are no repeated inputs, focus repairs, playback calls or media replacements.
+The negative controls require an actual trusted Space on another focused button
+to leave a ready video unplayed, and an actual native play followed by a new
+native pause to reject nonempty historical played ranges. Only an explicit
+deadline outcome satisfies these controls; setup, owner, media and read errors
+remain failures.
+
+When `EDITOR_RESULTS_DIR` is set, `media-readiness.json` is written before the
+native runner returns or throws its completed page result. Its
+`native-playback-functional-v2` records distinguish four positive phases,
+wrong-target rejection, paused-history preparation, and paused-history rejection.
+Each phase retains the actual initial elapsed time and predicate, all subsequent
+observations, first observed positive time, terminal state and outcome. Observation
+times are not frame-onset measurements. Expected negative deadlines are not
+product failures or positive playback timing samples.
+
+This functional contract explicitly accepts a valid playback observation after
+the former one-shot sample but before the deadline. The recorded initial miss
+does not impose a new startup latency guarantee. Historical fixed-sample failures
+remain evidence with an unresolved cause; passing this contract does not prove
+their cause or rule out a startup latency regression below the new deadline.
+
 Tests belonging to the standalone cropper/expose repositories are not part of this checkout. Rector's own lifecycle and plugin integration suites still test its use and cleanup of those installed packages.
 
 ## Bundle size
 
-The CI `size-report` job enforces the Paragraph, default interactive and full preset budgets. The core size is informational by owner decision. Run `node benchmarks/bundle-budget.mjs --enforce` for the same gate locally; without that flag the command only reports measurements.
+The CI `size-report` job requires a complete bundle measurement and validates its static import boundaries; numeric reference excesses are informational. Run `node benchmarks/bundle-budget.mjs --enforce` for optional local enforcement of the Paragraph, default interactive and full preset references. Core remains informational in both modes. The references and measurement method are documented in `benchmarks/README.md`.
 
 
 `native-plugin-parity.html` checks all 21 plugins and 34 authoring fields through native input, directed replacement, caret and Undo/Redo, plus multiline/single-line behavior, Code and Raw view controls, literal Code-to-rich conversion, whole conversions and read-only projection.

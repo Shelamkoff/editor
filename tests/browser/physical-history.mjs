@@ -152,6 +152,7 @@ async function waitForHistoryMatrix(client) {
       summary: document.querySelector('#result')?.textContent ?? '',
       progress: window.__auditProgress ?? null,
       fontSizeRetainedDiagnostics: window.__fontSizeRetainedDiagnostics ?? null,
+      mediaReadiness: window.__mediaReadiness ?? null,
     })`)
     latest = result
     if (Number.isSafeInteger(result.progress?.completed) && result.progress.completed > completed) {
@@ -162,6 +163,11 @@ async function waitForHistoryMatrix(client) {
         && result.fontSizeRetainedDiagnostics?.length && process.env.EDITOR_RESULTS_DIR) {
       await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'font-size-retained-diagnostics.json'),
         JSON.stringify(result.fontSizeRetainedDiagnostics, null, 2) + '\n', { flag: 'wx' })
+    }
+    if ((result.status === 'pass' || result.status === 'fail')
+        && result.mediaReadiness && process.env.EDITOR_RESULTS_DIR) {
+      await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'media-readiness.json'),
+        JSON.stringify(result.mediaReadiness, null, 2) + '\n', { flag: 'wx' })
     }
     if (result.status === 'pass') {
       await waitForNativeInput()
