@@ -3,15 +3,19 @@ import { dispatchKey } from '../native-input-helpers.js'
 import { getTextOffset } from '../../../shared/textOffset.js'
 import { createMentionPlugin } from '../../../inline-plugins/mention/index.js'
 
-for (const timing of ['synchronous', 'queued']) {
+for (const timing of ['synchronous', 'queued', 'ordinary']) {
+  const ordinary = timing === 'ordinary'
   const internal = timing === 'synchronous'
   const destination = internal ? 'another editor field' : 'an external input'
-  test(`Native Mention Backspace preserves ${timing} commit-observer focus on ${destination}`, async () => {
+  const name = ordinary
+    ? 'Native Mention Backspace preserves ordinary caret and query without a commit-observer focus handoff'
+    : `Native Mention Backspace preserves ${timing} commit-observer focus on ${destination}`
+  test(name, async () => {
     const outside = document.createElement('input')
     outside.value = 'External input'
     document.body.append(outside)
     let sourceField, label
-    const beforeInputs = [], inputs = [], diagnostics = []
+    const beforeInputs = [], inputs = [], diagnostics = [], queries = []
     const ownsEvent = event => sourceField && sourceField.contains(event.target)
     const onBeforeInput = event => {
       if (!ownsEvent(event) || event.inputType !== 'deleteContentBackward') return
@@ -37,7 +41,10 @@ for (const timing of ['synchronous', 'queued']) {
       const caller = structuredClone(input)
       const editor = make(input, {
         injectStyles: true, inlineTools: [],
-        inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [] })],
+        inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async query => {
+          queries.push(query)
+          return []
+        } })],
         onDiagnostic: diagnostic => diagnostics.push(diagnostic),
       })
       const before = editor.save().blocks
@@ -69,6 +76,7 @@ for (const timing of ['synchronous', 'queued']) {
       }
       stopObserving = editor.on('transaction:committed', event => {
         commits.push(event.name)
+        if (ordinary) return
         if (internal) handOff()
         else queueMicrotask(handOff)
       })
@@ -83,16 +91,26 @@ for (const timing of ['synchronous', 'queued']) {
       equal(inputs, [{ trusted: true, inputType: 'deleteContentBackward' }],
         'Mention Backspace did not complete through native input')
       equal(commits, ['inline.native-reconcile'], 'Mention Backspace changed the action count or native reconciliation path')
-      equal(handoffs, 1, 'The commit observer did not hand focus off exactly once')
+      equal(handoffs, ordinary ? 0 : 1, 'The commit observer changed its planned handoff count')
       const after = editor.save().blocks
       const expected = structuredClone(before)
       expected[0].inline.m.data.name = 'Aa'
       equal(after, expected, 'The native character deletion changed the canonical Mention incorrectly')
       equal(label.textContent, '@Aa', 'The committed Mention label does not match its canonical payload')
       assert(editableField(editor, 'keep') === untouched, 'Mention editing replaced the untouched destination')
-      equal(editor.blocks.currentId, currentAtHandoff, 'A stale Mention continuation overwrote the observer current block')
+      equal(editor.blocks.currentId, ordinary ? 'a' : currentAtHandoff, 'A stale Mention continuation overwrote the observer current block')
       equal(outside.value, 'External input', 'Mention Backspace leaked into the newly focused control')
-      if (internal) {
+      if (ordinary) {
+        assert(sourceField.contains(document.activeElement), 'Ordinary Mention completion lost its editing host focus')
+        const native = window.getSelection()
+        assert(native.isCollapsed && label.contains(native.anchorNode) && label.contains(native.focusNode),
+          'Ordinary Mention completion lost its label caret')
+        equal([getTextOffset(label, native.anchorNode, native.anchorOffset),
+          getTextOffset(label, native.focusNode, native.focusOffset)], [2, 2],
+          'Ordinary Mention completion restored the wrong native caret')
+        assert(label.classList.contains('oe-ip--mention--editing'), 'Ordinary Mention completion did not retain its edit session')
+        equal(queries, ['Aa'], 'Ordinary Mention completion did not search its committed label exactly once')
+      } else if (internal) {
         assert(document.activeElement === untouched, 'A stale Mention continuation reclaimed native editor focus')
         const native = window.getSelection()
         assert(native.isCollapsed && untouched.contains(native.anchorNode), 'A stale Mention continuation changed the observer caret')

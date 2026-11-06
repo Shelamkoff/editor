@@ -1,9 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { getEventListeners } from 'node:events'
 
 import { InlineWidgetInputController } from './InlineWidgetInputController.js'
 
-function fixture(handle = () => null, { onClaim = null } = {}) {
+function fixture(handle = () => null, { onClaim = null, onNativeSettled = null } = {}) {
   const events = {}
   const writes = []
   const diagnostics = []
@@ -24,10 +25,10 @@ function fixture(handle = () => null, { onClaim = null } = {}) {
   label.parentElement = widget
   const foreign = {closest(selector) {return selector === '[contenteditable="true"]' ? this : null}}
   const root = {
-    ownerDocument: { defaultView: {
+    ownerDocument: Object.assign(new EventTarget(), { defaultView: {
       AbortController,
       getSelection() { return {isCollapsed:true,anchorNode:label,focusNode:label,anchorOffset:3,focusOffset:3} }
-    } },
+    } }),
     addEventListener(type, fn) { events[type] = fn },
     contains(node) { return node === field || field.contains(node) || node === foreign },
   }
@@ -64,6 +65,7 @@ function fixture(handle = () => null, { onClaim = null } = {}) {
   }
   const controller=new InlineWidgetInputController({
     root,runtime,registry,reconciler,projection,selection,
+    onNativeSettled,
     diagnostics:{emit:(code,metadata)=>diagnostics.push([code,metadata]),
       errorName:error=>error?.name||'UnknownError'},
     onOwnedBeforeInput:()=>{
@@ -911,6 +913,143 @@ for(const supersede of ['occurrence','selection','field','mode','revision','dest
     assert.deepEqual(f.h.writes.filter(item=>item[0]==='caret'),[])
   })
 }
+
+function nativeSettlementFocusFixture(transfer = 'none') {
+  const outcome = { name: 'Ada', commits: 0, retirements: 0, freshQueriesRetired: 0,
+    restorations: 0, currentId: 'a', notices: [] }
+  const h = fixture(() => null, { onNativeSettled() { outcome.freshQueriesRetired++ } })
+  const doc = h.root.ownerDocument
+  const body = {}, outside = {}, keep = {}, keepText = { nodeType: 3, textContent: 'Untouched' }
+  doc.activeElement = h.field
+  const label = h.widget.firstChild
+  Object.assign(label, { textContent: '@Aa', data: '@Aa', length: 3 })
+  h.widget.textContent = '@Aa'
+  const native = { anchorNode: label, focusNode: label, anchorOffset: 2, focusOffset: 2,
+    setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset) {
+      outcome.restorations++
+      Object.assign(native, { anchorNode, anchorOffset, focusNode, focusOffset })
+      focus(h.field)
+    } }
+  doc.defaultView.getSelection = () => native
+  doc.createRange = () => {
+    let end = 0
+    return { selectNodeContents() {}, setEnd(_node, offset) { end = offset },
+      toString() { return '@Aa'.slice(0, end) } }
+  }
+  let afterSourceFocus = null
+  function focus(element) {
+    if (doc.activeElement === element) return
+    doc.activeElement = element
+    if (element === h.field) outcome.currentId = 'a'
+    if (element === keep) {
+      outcome.currentId = 'keep'
+      Object.assign(native, { anchorNode: keepText, focusNode: keepText, anchorOffset: 4, focusOffset: 4 })
+    }
+    const event = new Event('focusin')
+    Object.defineProperty(event, 'target', { value: element })
+    doc.dispatchEvent(event)
+    if (element === h.field) afterSourceFocus?.()
+  }
+  const source = { id: 'mention-1', type: 'mention', fieldKey: 'text', element: h.widget,
+    beforeText: '@Ada', data: { id: 'ada', name: 'Ada' }, optedIn: true, instance: {} }
+  h.projection.isCurrentNativeOccurrence = () => true
+  h.projection.retireNativeInlineChanges = () => { outcome.retirements++ }
+  h.projection.notifyNativeInlineEdit = (_blockId, _id, notice) => { outcome.notices.push(notice) }
+  h.registry.getInlineDefinition = () => ({ editing: {
+    reconcileNative: () => ({ kind: 'update', data: { id: 'ada', name: 'Aa' } }),
+  } })
+  h.runtime.observeExtension = operation => operation()
+  h.runtime.reconcileNativeInlineInput = (snapshot, prepare) => {
+    const changes = h.runtime.prepareExtensionValue(prepare)
+    outcome.name = changes[0].action.data.name
+    outcome.commits++
+    if (transfer === 'preparation') {
+      doc.activeElement = body
+      Object.assign(native, { anchorNode: h.field, focusNode: h.field, anchorOffset: 1, focusOffset: 1 })
+      focus(h.field)
+    }
+    h.runtime.revision++
+    if (transfer === 'outside') focus(outside)
+    if (transfer === 'field') focus(keep)
+    if (transfer === 'projection') doc.activeElement = body
+    snapshot.settle(changes, 'committed')
+    return { status: 'committed' }
+  }
+  const captured = { blockId: 'a', fieldKey: 'text', blockType: 'paragraph', fieldElement: h.field,
+    inputType: 'deleteContentBackward',
+    generation: h.runtime.generation, revision: h.runtime.revision, occurrences: [source], selectionBefore: null }
+  return { h, doc, native, outside, keep, keepText, outcome,
+    complete: () => h.controller.completeNativeDeletion(captured, {}),
+    handOffDuringOwnFocus() { afterSourceFocus = () => focus(keep) } }
+}
+
+for (const transfer of ['outside', 'field']) {
+  test(`native settlement preserves the ${transfer} focus acquired by its commit observer`, () => {
+    const f = nativeSettlementFocusFixture(transfer)
+    assert.equal(f.complete().status, 'committed')
+    assert.equal(f.outcome.name, 'Aa')
+    assert.equal(f.outcome.commits, 1)
+    assert.equal(f.outcome.retirements, 1, 'focus handoff skipped committed occurrence cleanup')
+    assert.equal(f.doc.activeElement, transfer === 'outside' ? f.outside : f.keep,
+      'native inline settlement reclaimed the observer focus')
+    assert.equal(f.outcome.currentId, transfer === 'outside' ? 'a' : 'keep')
+    assert.equal(f.outcome.restorations, 0)
+    assert.equal(f.outcome.freshQueriesRetired, 0, 'the old native edit retired a newer interaction query')
+    assert.deepEqual(f.outcome.notices, [{ inputType: 'deleteContentBackward', text: '@Aa', labelChanged: true, caret: null }],
+      'committed notices must survive with exterior caret ownership')
+    if (transfer === 'field') {
+      assert.equal(f.native.anchorNode, f.keepText)
+      assert.equal(f.native.anchorOffset, 4)
+    }
+    assert.equal(getEventListeners(f.doc, 'focusin').length, 0)
+  })
+}
+
+for (const transfer of ['none', 'projection', 'preparation']) {
+  test(`native settlement retains ordinary label caret and query after ${transfer} focus loss`, () => {
+    const f = nativeSettlementFocusFixture(transfer)
+    assert.equal(f.complete().status, 'committed')
+    assert.equal(f.outcome.name, 'Aa')
+    assert.equal(f.outcome.commits, 1)
+    assert.equal(f.outcome.retirements, 1)
+    assert.equal(f.doc.activeElement, f.h.field)
+    assert.equal(f.outcome.currentId, 'a')
+    assert.equal(f.outcome.restorations, 1)
+    assert.equal(f.outcome.freshQueriesRetired, 1)
+    assert.equal(f.native.anchorNode, f.h.widget.firstChild)
+    assert.equal(f.native.anchorOffset, 2)
+    assert.deepEqual(f.outcome.notices, [{ inputType: 'deleteContentBackward', text: '@Aa', labelChanged: true, caret: 2 }])
+    assert.equal(getEventListeners(f.doc, 'focusin').length, 0)
+  })
+}
+
+test('native settlement retains a newer handoff made during its own permitted focus restoration', () => {
+  const f = nativeSettlementFocusFixture('projection')
+  f.handOffDuringOwnFocus()
+  assert.equal(f.complete().status, 'committed')
+  assert.equal(f.outcome.name, 'Aa')
+  assert.equal(f.outcome.commits, 1)
+  assert.equal(f.outcome.retirements, 1)
+  assert.equal(f.outcome.restorations, 1, 'the ordinary restoration did not exercise its focus observer')
+  assert.equal(f.doc.activeElement, f.keep)
+  assert.equal(f.outcome.currentId, 'keep')
+  assert.equal(f.native.anchorNode, f.keepText)
+  assert.equal(f.native.anchorOffset, 4)
+  assert.equal(f.outcome.freshQueriesRetired, 0)
+  assert.deepEqual(f.outcome.notices, [{ inputType: 'deleteContentBackward', text: '@Aa', labelChanged: true, caret: null }])
+  assert.equal(getEventListeners(f.doc, 'focusin').length, 0)
+})
+
+test('native settlement releases its temporary focus observation when reconciliation fails', () => {
+  const f = nativeSettlementFocusFixture()
+  const error = new Error('native reconciliation rejected')
+  f.h.runtime.reconcileNativeInlineInput = () => { throw error }
+  assert.throws(f.complete, actual => actual === error)
+  assert.equal(f.outcome.commits, 0)
+  assert.equal(f.outcome.restorations, 0)
+  assert.deepEqual(f.outcome.notices, [])
+  assert.equal(getEventListeners(f.doc, 'focusin').length, 0)
+})
 
 test('accepted replacement without an inline caret retains exterior logical completion',async()=>{
   const f=recreatedCaretFixture(null)

@@ -201,10 +201,23 @@ export class InlineWidgetInputController {
       ||snapshot.revision!==this.#runtime.revision)return {status:'stale'}
 
     const observed=this.#observedLabelSelection(snapshot)
+    const document=this.#root.ownerDocument
+    const focus={acquired:false,restoreTarget:null}
+    const onFocusIn=event=>{
+      // The transaction restores its source host before publishing. Our one
+      // label-local restoration may focus that host or the retained widget.
+      const projectionFocus=event.target===snapshot.fieldElement
+        &&this.#runtime.revision===snapshot.revision
+      const restorationFocus=focus.restoreTarget
+        &&(event.target===snapshot.fieldElement||event.target===focus.restoreTarget)
+      if(restorationFocus)focus.restoreTarget=null
+      if(!projectionFocus&&!restorationFocus)focus.acquired=true
+    }
     const owned={...snapshot,settle:(changes,status)=>{
       this.#projection.retireNativeInlineChanges(snapshot.blockId,changes)
-      this.#settleNativeNotices(snapshot,changes,status,observed)
+      this.#settleNativeNotices(snapshot,changes,status,observed,focus)
     }}
+    document.addEventListener('focusin',onFocusIn,{capture:true})
     try{
       const result=this.#runtime.reconcileNativeInlineInput(owned,()=>
         this.#prepareNativeChanges(snapshot))
@@ -219,6 +232,8 @@ export class InlineWidgetInputController {
       }
       this.#report(error)
       throw error
+    }finally{
+      document.removeEventListener('focusin',onFocusIn,{capture:true})
     }
   }
 
@@ -324,13 +339,13 @@ export class InlineWidgetInputController {
     }
   }
 
-  #settleNativeNotices(snapshot,changes,status,observed){
+  #settleNativeNotices(snapshot,changes,status,observed,focus){
     const current=()=>!this.#controller.signal.aborted&&!this.#runtime.readOnly
     if(!current())return
     const finalOwner=observed?.focus?.id??observed?.anchor?.id??null
     const targets=new Set(changes.filter(c=>c.action.kind==='update').map(c=>c.id))
     if(finalOwner)targets.add(finalOwner)
-    if(finalOwner){
+    if(finalOwner&&!focus.acquired){
       const matching=snapshot.occurrences.find(source=>source.id===finalOwner)
       if(matching && this.#projection.isCurrentNativeOccurrence(snapshot.blockId,snapshot.fieldKey,matching)){
         const text=matching.element.firstChild
@@ -339,13 +354,14 @@ export class InlineWidgetInputController {
           const f=observed.focus?.id===finalOwner?Math.max(0,Math.min(observed.focus.offset,text.length)):null
           const native=this.#root.ownerDocument.defaultView?.getSelection?.()
           if(!current())return
-          if(a!==null&&f!==null&&native?.setBaseAndExtent){
+          if(!focus.acquired&&a!==null&&f!==null&&native?.setBaseAndExtent){
+            focus.restoreTarget=matching.element
             try { native.setBaseAndExtent(text,a,text,f) }
             catch(error) {
               // Selection restoration is best-effort presentation after the
               // committed canonical result; it cannot revoke its notices.
               try { this.#report(error) } catch {}
-            }
+            }finally{focus.restoreTarget=null}
           }
         }
       }
@@ -355,10 +371,10 @@ export class InlineWidgetInputController {
     // but the old controller no longer owns plugin-facing notifications.
     if(!current())return
     const finalOccurrence=snapshot.occurrences.find(source=>source.id===finalOwner)
-    if(finalOccurrence?.optedIn&&this.#projection.isCurrentNativeOccurrence(
+    if(!focus.acquired&&finalOccurrence?.optedIn&&this.#projection.isCurrentNativeOccurrence(
       snapshot.blockId,snapshot.fieldKey,finalOccurrence)){
       if(!current())return
-      try{this.#onNativeSettled?.()}catch(error){this.#report(error)}
+      if(!focus.acquired)try{this.#onNativeSettled?.()}catch(error){this.#report(error)}
     }
     if(!current())return
     const ordered=[...targets].filter(id=>id!==finalOwner)
@@ -372,7 +388,7 @@ export class InlineWidgetInputController {
       const label=source.element.textContent??''
       const notice={inputType:snapshot.inputType,text:label,
         labelChanged:label!==source.beforeText,
-        caret:observed?.focus?.id===id?observed.focus.offset:null}
+        caret:!focus.acquired&&observed?.focus?.id===id?observed.focus.offset:null}
       try{
         this.#runtime.observeExtension(()=>
           this.#projection.notifyNativeInlineEdit(snapshot.blockId,id,notice))

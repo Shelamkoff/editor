@@ -123,6 +123,7 @@ export const COMMIT_FOCUS_CASES = Object.freeze([
   "Native block drag preserves queued commit-observer focus on an external input",
   "Native Mention Backspace preserves synchronous commit-observer focus on another editor field",
   "Native Mention Backspace preserves queued commit-observer focus on an external input",
+  "Native Mention Backspace preserves ordinary caret and query without a commit-observer focus handoff",
   "commit-observer focus / inline Color public insert / paragraph / ordinary completion",
   "commit-observer focus / inline Color public insert / paragraph / external input",
   "commit-observer focus / inline Color public insert / paragraph / another editor field",
