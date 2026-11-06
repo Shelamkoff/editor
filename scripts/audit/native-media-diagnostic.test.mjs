@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { runInNewContext } from 'node:vm'
-import { appendFailureDiagnostic } from '../../tests/browser/regressions/failure-diagnostics.js'
+import * as failureDiagnostics from '../../tests/browser/regressions/failure-diagnostics.js'
 import { MEDIA_CASES, classifyMediaPage, mediaOutcome, instrumentMediaFixture, installPlaybackDiagnostics } from './native-media-diagnostic.mjs'
 
 const rows = () => MEDIA_CASES.map(name => ({ name, status: 'PASS' }))
@@ -89,7 +89,8 @@ test('read-only probe preserves capture and post-dispatch key cancellation evide
 
 // Exercise the maintained fixture's verdict catch and the maintained harness's
 // serializer. This is a diagnostic transport control, not a browser playback test.
-async function runFailureDiagnosticControl({ passed = false, collectionFails = false } = {}) {
+async function runFailureDiagnosticControl({ passed = false, collectionFails = false, initialPaused = !passed,
+  progressAfterMs = null, waitAdvanceMs = 50, continuationFailsAtMs = null } = {}) {
   const harness = await readFile(new URL('../../tests/browser/regressions/harness.js', import.meta.url), 'utf8')
   const fixture = await readFile(new URL('../../tests/browser/regressions/html-content-native.js', import.meta.url), 'utf8')
   const result = { textContent: '' }, document = { body: { dataset: {} }, querySelector: selector => {
@@ -104,18 +105,27 @@ async function runFailureDiagnosticControl({ passed = false, collectionFails = f
   assert.equal(fixture.split(start).length, 2)
   assert.equal(fixture.split(end).length, 2)
   const verdictCode = fixture.slice(fixture.indexOf(start), fixture.indexOf(end))
-  let originalError, originalStack, diagnosticReads = 0
+  let originalError, originalStack, diagnosticReads = 0, elapsedMs = 0, clockReads = 0
+  const diagnosticWaits = []
   const cause = new Error('retained original cause')
   const rect = { toJSON: () => ({ x: 0, y: 0, width: 320, height: 180 }) }
-  const video = { paused: !passed, played: { length: passed ? 1 : 0, start: () => 0, end: () => 0.12 },
-    get currentTime() { diagnosticReads++; return 0 }, duration: 0.2, readyState: 4,
+  const hasPlayed = () => passed || (progressAfterMs !== null && elapsedMs >= progressAfterMs)
+  const video = { paused: initialPaused,
+    get played() { return { length: hasPlayed() ? 1 : 0, start: () => 0, end: () => elapsedMs / 1000 } },
+    get currentTime() {
+      diagnosticReads++
+      if (continuationFailsAtMs !== null && elapsedMs >= continuationFailsAtMs) throw new Error('progress observation unavailable')
+      return hasPlayed() ? elapsedMs / 1000 : 0
+    }, duration: 0.2, readyState: 4,
     networkState: 1, ended: false, seeking: false, error: null, isConnected: true,
     getBoundingClientRect() { diagnosticReads++; if (collectionFails) throw new Error('geometry observation unavailable'); return rect } }
   const child = { activeElement: { tagName: 'VIDEO' }, hasFocus() { diagnosticReads++; return true }, visibilityState: 'visible' }
   const frame = { contentDocument: child, isConnected: true, getBoundingClientRect: () => rect }
   const parentDocument = { activeElement: { tagName: 'IFRAME' }, hasFocus: () => true, visibilityState: 'visible' }
-  const executeVerdict = runInNewContext('(function() {\n' + verdictCode + '\n})', {
-    trusted: true, video, child, frame, document: parentDocument, appendFailureDiagnostic,
+  const executeVerdict = runInNewContext('(async function() {\n' + verdictCode + '\n})', {
+    trusted: true, video, child, frame, document: parentDocument, ...failureDiagnostics,
+    performance: { now() { clockReads++; return elapsedMs } },
+    async pause(ms) { assert.equal(ms, 50); diagnosticWaits.push(ms); elapsedMs += waitAdvanceMs },
     assert(value, message) {
       try { api.assert(value, message) } catch (error) {
         originalError = error; error.cause = cause
@@ -125,12 +135,12 @@ async function runFailureDiagnosticControl({ passed = false, collectionFails = f
     },
   }, { filename: 'maintained-media-verdict.js' })
   let caught
-  api.test('diagnostic transport control', () => {
-    try { executeVerdict() } catch (error) { caught = error; throw error }
+  api.test('diagnostic transport control', async () => {
+    try { await executeVerdict() } catch (error) { caught = error; throw error }
   })
   await api.run()
   return { rows: JSON.parse(result.textContent), status: document.body.dataset.status,
-    originalError, originalStack, cause, caught, diagnosticReads }
+    originalError, originalStack, cause, caught, diagnosticReads, diagnosticWaits, elapsedMs, clockReads }
 }
 
 test('cached assertion stack delivers post-failure JSON through the actual harness serializer', async () => {
@@ -143,7 +153,7 @@ test('cached assertion stack delivers post-failure JSON through the actual harne
   assert.equal(result.rows[0].error, result.originalError.stack)
   const marker = '\nPlayback state after failure: '
   assert.equal(result.rows[0].error.split(marker).length, 2)
-  const state = JSON.parse(result.rows[0].error.split(marker)[1])
+  const state = JSON.parse(result.rows[0].error.split(marker)[1].split('\n')[0])
   assert.equal(state.trusted, true)
   assert.equal(state.paused, true)
   assert.deepEqual(state.played, [])
@@ -167,4 +177,73 @@ test('successful original media verdict performs no diagnostic state reads', asy
   assert.deepEqual(result.rows, [{ name: 'diagnostic transport control', status: 'PASS' }])
   assert.equal(result.originalError, undefined)
   assert.equal(result.diagnosticReads, 0)
+  assert.deepEqual(result.diagnosticWaits, [])
+  assert.equal(result.clockReads, 0)
+})
+
+function continuedFailure(result) {
+  assert.equal(result.status, 'fail')
+  assert.equal(result.rows[0].status, 'FAIL')
+  assert.equal(result.caught, result.originalError)
+  assert.equal(result.caught.cause, result.cause)
+  assert(result.rows[0].error.startsWith(result.originalStack + '\n'))
+  assert.equal(result.rows[0].error, result.originalError.stack)
+  const marker = '\nPlayback continuation after failure: '
+  assert.equal(result.rows[0].error.split(marker).length, 2, 'Original FAIL must retain its passive continuation evidence')
+  return JSON.parse(result.rows[0].error.split(marker)[1].split('\n')[0])
+}
+
+test('delayed progress after the actual failed verdict remains FAIL with its original snapshot and Error', async () => {
+  const result = await runFailureDiagnosticControl({ initialPaused: false, progressAfterMs: 150 })
+  const observation = continuedFailure(result)
+  const first = JSON.parse(result.rows[0].error.split('\nPlayback state after failure: ')[1].split('\n')[0])
+  assert.deepEqual(first.played, [])
+  assert.equal(first.currentTime, 0)
+  assert.equal(observation.elapsedOrigin, 'continuation-entry-after-initial-snapshot')
+  assert.equal(observation.limitMs, 3000)
+  assert.equal(observation.pollMs, 50)
+  assert.equal(observation.terminalReason, 'progress')
+  assert.equal(observation.elapsedMs, 150)
+  assert.equal(observation.lateReachedOriginalPredicate, true)
+  assert.equal(observation.withinDeadline, true)
+  assert.equal(observation.firstProgressElapsedMs, 150)
+  assert.deepEqual(observation.timeline.map(row => row.elapsedMs), [0, 50, 100, 150])
+  assert.deepEqual(result.diagnosticWaits, [50, 50, 50])
+})
+
+test('a passive continuation with no progress ends at the fixed deadline and preserves the original FAIL', async () => {
+  const result = await runFailureDiagnosticControl({ initialPaused: false })
+  const observation = continuedFailure(result)
+  assert.equal(observation.terminalReason, 'deadline')
+  assert.equal(observation.elapsedMs, 3000)
+  assert.equal(observation.lateReachedOriginalPredicate, false)
+  assert.equal(observation.withinDeadline, false)
+  assert.equal(observation.firstProgressElapsedMs, null)
+  assert.equal(observation.timeline.length, 61)
+  assert.equal(observation.timeline.at(-1).elapsedMs, 3000)
+  assert.equal(result.diagnosticWaits.length, 60)
+})
+
+test('timer overshoot cannot report post-deadline progress as within the observation window', async () => {
+  const result = await runFailureDiagnosticControl({ initialPaused: false, progressAfterMs: 1000, waitAdvanceMs: 3050 })
+  const observation = continuedFailure(result)
+  assert.equal(observation.terminalReason, 'deadline')
+  assert.equal(observation.elapsedMs, 3050)
+  assert.equal(observation.lateReachedOriginalPredicate, true)
+  assert.equal(observation.withinDeadline, false)
+  assert.equal(observation.firstProgressElapsedMs, 3050)
+  assert.deepEqual(observation.timeline.map(row => row.elapsedMs), [0, 3050])
+  assert.deepEqual(result.diagnosticWaits, [50])
+})
+
+test('a later observation error preserves partial evidence and the same original assertion Error', async () => {
+  const result = await runFailureDiagnosticControl({ initialPaused: false, continuationFailsAtMs: 50 })
+  const observation = continuedFailure(result)
+  assert.equal(observation.terminalReason, 'collection-error')
+  assert.equal(observation.elapsedMs, 50)
+  assert.equal(observation.collectionError, 'Error: progress observation unavailable')
+  assert.deepEqual(observation.timeline.map(row => row.elapsedMs), [0])
+  assert.equal(observation.lateReachedOriginalPredicate, false)
+  assert.equal(observation.withinDeadline, false)
+  assert.deepEqual(result.diagnosticWaits, [50])
 })

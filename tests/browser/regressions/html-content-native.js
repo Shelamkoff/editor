@@ -5,7 +5,7 @@ import { EditorRenderer } from '../../../renderer/index.js'
 import { waitForEmbeddedDocument } from '../embedded-html-helpers.js'
 import { clickNative, dispatchKey } from '../native-input-helpers.js'
 import { test, assert, equal, pause, run } from './harness.js'
-import { appendFailureDiagnostic } from './failure-diagnostics.js'
+import { appendFailureDiagnostic, observePlaybackFailure } from './failure-diagnostics.js'
 
 const surfaces = [['Raw editor', 'raw', true], ['Raw renderer', 'raw', false],
   ['Carousel editor', 'carousel', true], ['Carousel renderer', 'carousel', false]]
@@ -183,6 +183,21 @@ for (const [name, type, editing] of surfaces) test(`${name}: scriptless content 
             childVisibility: child.visibilityState, parentVisibility: document.visibilityState,
             frameRect: frame.getBoundingClientRect().toJSON(), videoRect: video.getBoundingClientRect().toJSON(),
           }))
+          const continuation = await observePlaybackFailure({
+            readState: () => ({
+              trusted, paused: video.paused, played: Array.from({ length: video.played.length }, (_, index) =>
+                [video.played.start(index), video.played.end(index)]),
+              currentTime: video.currentTime, duration: video.duration, readyState: video.readyState,
+              networkState: video.networkState, ended: video.ended, seeking: video.seeking,
+              mediaError: video.error?.code ?? null, videoConnected: video.isConnected,
+              frameConnected: frame.isConnected, sameChildDocument: frame.contentDocument === child,
+              childActive: child.activeElement?.tagName ?? null, parentActive: document.activeElement?.tagName ?? null,
+              childHasFocus: child.hasFocus(), parentHasFocus: document.hasFocus(),
+              childVisibility: child.visibilityState, parentVisibility: document.visibilityState,
+            }),
+            wait: pause, now: () => performance.now(),
+          })
+          appendFailureDiagnostic(error, 'Playback continuation after failure: ' + JSON.stringify(continuation))
         } catch (diagnosticError) {
           appendFailureDiagnostic(error, 'Playback state collection failed: ' + String(diagnosticError))
         }

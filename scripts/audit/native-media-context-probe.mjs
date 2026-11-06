@@ -37,10 +37,15 @@ export function mediaContextOutcome(attempts, sameRuntime) {
   const incompleteAttempts = attempts.filter(attempt => attempt.complete !== true).map(attempt => attempt.label)
   const productFailedAttempts = attempts.filter(attempt => attempt.complete === true && attempt.passed !== true).map(attempt => attempt.label)
   const collectionComplete = incompleteAttempts.length === 0
+  const originalMediaFailureCount = attempts.reduce((count, attempt) =>
+    count + (attempt.rows?.slice(24).filter(row => row.status === 'FAIL').length ?? 0), 0)
   return { pass: sameRuntime === true && collectionComplete && productFailedAttempts.length === 0,
     collectionComplete, plannedAttemptCount: MEDIA_CONTEXT_LABELS.length, collectedAttemptCount: attempts.length,
     passedAttemptCount: attempts.filter(attempt => attempt.complete === true && attempt.passed === true).length,
-    productFailedAttempts, incompleteAttempts, sameRuntime, releaseAccepted: false }
+    productFailedAttempts, incompleteAttempts, sameRuntime, originalMediaFailureCount,
+    observationOutcome: !collectionComplete ? 'INCOMPLETE' : originalMediaFailureCount
+      ? 'ORIGINAL_MEDIA_FAILURE_RETAINED' : 'INCONCLUSIVE_NO_ORIGINAL_MEDIA_FAILURE',
+    releaseAccepted: false }
 }
 
 function replaceOnce(source, anchor, replacement) {
@@ -48,14 +53,32 @@ function replaceOnce(source, anchor, replacement) {
   return source.replace(anchor, replacement)
 }
 
-// Permit exactly the reviewed diagnostic delivery correction relative to685.
-// All fixture actions, assertions, state reads and cleanup remain unchanged.
+const FAILURE_CONTINUATION = `          const continuation = await observePlaybackFailure({
+            readState: () => ({
+              trusted, paused: video.paused, played: Array.from({ length: video.played.length }, (_, index) =>
+                [video.played.start(index), video.played.end(index)]),
+              currentTime: video.currentTime, duration: video.duration, readyState: video.readyState,
+              networkState: video.networkState, ended: video.ended, seeking: video.seeking,
+              mediaError: video.error?.code ?? null, videoConnected: video.isConnected,
+              frameConnected: frame.isConnected, sameChildDocument: frame.contentDocument === child,
+              childActive: child.activeElement?.tagName ?? null, parentActive: document.activeElement?.tagName ?? null,
+              childHasFocus: child.hasFocus(), parentHasFocus: document.hasFocus(),
+              childVisibility: child.visibilityState, parentVisibility: document.visibilityState,
+            }),
+            wait: pause, now: () => performance.now(),
+          })
+          appendFailureDiagnostic(error, 'Playback continuation after failure: ' + JSON.stringify(continuation))`
+
+// Permit exactly the reviewed post-failure evidence delta relative to685.
+// Original actions/assertion/first snapshot are unchanged; cleanup follows the
+// passive continuation and the same assertion Error is always rethrown.
 export function persistFailureDiagnostics(original) {
   let source = replaceOnce(original, "import { test, assert, equal, pause, run } from './harness.js'\n",
-    "import { test, assert, equal, pause, run } from './harness.js'\nimport { appendFailureDiagnostic } from './failure-diagnostics.js'\n")
+    "import { test, assert, equal, pause, run } from './harness.js'\nimport { appendFailureDiagnostic, observePlaybackFailure } from './failure-diagnostics.js'\n")
   source = replaceOnce(source, "error.message += '\\nPlayback state after failure: ' + JSON.stringify({",
     "appendFailureDiagnostic(error, 'Playback state after failure: ' + JSON.stringify({")
-  source = replaceOnce(source, '          })\n        } catch (diagnosticError) {', '          }))\n        } catch (diagnosticError) {')
+  source = replaceOnce(source, '          })\n        } catch (diagnosticError) {',
+    '          }))\n' + FAILURE_CONTINUATION + '\n        } catch (diagnosticError) {')
   return replaceOnce(source, "error.message += '\\nPlayback state collection failed: ' + String(diagnosticError)",
     "appendFailureDiagnostic(error, 'Playback state collection failed: ' + String(diagnosticError))")
 }
@@ -170,13 +193,14 @@ async function main() {
   assert(process.env.EDITOR_RESULTS_DIR && process.env.EDITOR_CHROME_PATH, 'Set a fresh EDITOR_RESULTS_DIR and the runner browser path')
   const output = resolve(process.env.EDITOR_RESULTS_DIR, 'native-media-context')
   await mkdir(output, { recursive: true })
-  const report = { kind: 'Fixed four contexts with persistent failure diagnostics', startedAt: new Date().toISOString(), productionBase: BASE,
-    diagnosticVersion: 'preserved-error-stack-v1', previousDiagnosticHead: '7dddbff2ee1e01b48e3a3ab3502f5f6dfe4d468f',
+  const report = { kind: 'Fixed four contexts with passive post-failure observation', startedAt: new Date().toISOString(), productionBase: BASE,
+    diagnosticVersion: 'passive-post-failure-3s-v1', previousDiagnosticHead: '50184cda1b6324c922b20ddd43697f7ccc05633e',
     plannedOrder: MEDIA_CONTEXT_LABELS, plannedAttemptCount: MEDIA_CONTEXT_LABELS.length,
     prefixOrder: ORDER, expectedMediaCases: MEDIA_CASES, attempts: [], perAttemptTimeoutMs: PER_ATTEMPT_TIMEOUT_MS,
-    retries: 0, stopOnGreen: false, originalPlaybackPauseMs: 100, postVerdictObservationMs: 0, observedFailureBrowser: BROWSER,
+    retries: 0, stopOnGreen: false, originalPlaybackPauseMs: 100, postVerdictObservationMs: 3000,
+    observationPollMs: 50, elapsedOrigin: 'continuation-entry-after-initial-snapshot', observedFailureBrowser: BROWSER,
     pass: false, releaseAccepted: false,
-    qualification: 'Exactly four planned ordinary-to-physical pairs execute in fixed order, including after a product failure. Each pair preserves the maintained ordinary shell-success dependency, independent maintained browser profiles, all 69 ordinary visits and all physical pages through HTML28. Only the copied physical runner tail is omitted after HTML. The probe fixture is not byte-identical to685: it imports a pure test helper and uses that helper only after an actual failed assertion, preserving the same Error and original stack while appending evidence to the serialized stack. The existing failure-state reads, native actions, assertion and cleanup are unchanged. No diagnostic listener, extra DOM evaluation, geometry read or wait is added before the original video verdict. A host-only printf completion marker separates the two maintained commands. This is a new finite diagnostic protocol after the observed message/stack transport failure; no failure is replaced by another attempt and diagnostic success cannot establish release acceptance.' }
+    qualification: 'Exactly four planned ordinary-to-physical pairs execute in fixed order, including after a product failure. Each pair preserves the maintained ordinary shell-success dependency, independent maintained browser profiles, all 69 ordinary visits and all physical pages through HTML28. Only the copied physical runner tail is omitted after HTML. The probe fixture is not byte-identical to685 or50184: after the unchanged original assertion fails and its initial snapshot is appended, it passively samples media/focus/lifetime state every50ms for at most a requested3000ms observation window. Elapsed time starts at continuation entry after that initial snapshot; timer overshoot is recorded and progress first observed at or after3000ms is never labelled withinDeadline. There are no added native actions, listeners, focus/play/pause/seek calls, CDP evaluations or pre-verdict waits/reads. The same original Error and stack remain FAIL even if later progress is observed, and existing cleanup follows the observation. Original success adds no diagnostic reads or waits. No original media FAIL makes this causal question inconclusive, without extra attempts. A host-only printf marker separates the maintained commands. No failure is replaced by another attempt and diagnostic success cannot establish release acceptance.' }
   await writeJson(join(output, 'plan.json'), report)
   const environment = { ...process.env }
   for (const key of ['EDITOR_NATIVE_PAGE', 'EDITOR_NATIVE_FILTER', 'EDITOR_BROWSER_PAGE', 'EDITOR_BROWSER_ROOT', 'EDITOR_VITE_PATH', 'EDITOR_CHROME_HEADLESS']) delete environment[key]
@@ -215,7 +239,9 @@ async function main() {
     report.fixtureByteIdenticalToProductionBase = false
     report.fixtureDiagnosticDelta = { baselineSha256: sha256(baselineFixture), probeSha256: sha256(originalFixture),
       helperPath: FAILURE_HELPER, helperSha256: await hashFile(join(root, FAILURE_HELPER)),
-      onlyPureImportAndPostVerdictDeliveryChanged: true }
+      onlyPureImportAndPostVerdictEvidenceChanged: true,
+      originalActionsAndAssertionUnchanged: true, initialFailureSnapshotUnchanged: true,
+      cleanupFollowsObservation: true, maximumRequestedObservationMs: 3000, pollMs: 50 }
     const diagnosticDelta = git(root, 'diff', '--binary', BASE, before.head, '--', FIXTURE, FAILURE_HELPER)
     report.fixtureDiagnosticDelta.diffSha256 = sha256(diagnosticDelta)
     await writeFile(join(output, 'fixture-diagnostic-change.diff'), diagnosticDelta, { flag: 'wx' })
@@ -276,6 +302,8 @@ async function main() {
   console.log(JSON.stringify({ pass: report.pass, collectionComplete: report.collectionComplete ?? false,
     collectedAttempts: report.collectedAttemptCount, passedAttempts: report.passedAttemptCount ?? 0,
     productFailedAttempts: report.productFailedAttempts ?? [], incompleteAttempts: report.incompleteAttempts ?? [],
+    originalMediaFailureCount: report.originalMediaFailureCount ?? 0,
+    observationOutcome: report.observationOutcome ?? 'INCOMPLETE',
     releaseAccepted: false, output }))
   if (!report.pass) process.exitCode = 1
 }

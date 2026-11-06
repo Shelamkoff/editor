@@ -63,6 +63,20 @@ test('all four complete matching-runtime contexts are collected without release 
   assert.equal(mediaContextOutcome(complete(), false).pass, false)
 })
 
+test('four contexts without an original media failure explicitly leave the continuation question inconclusive', () => {
+  const outcome = mediaContextOutcome(complete(), true)
+  assert.equal(outcome.observationOutcome, 'INCONCLUSIVE_NO_ORIGINAL_MEDIA_FAILURE')
+  assert.equal(outcome.originalMediaFailureCount, 0)
+  assert.equal(outcome.releaseAccepted, false)
+  const failed = complete()
+  failed[0].passed = false; failed[0].failures = 1
+  failed[0].rows = MEDIA_CASES.map((name, index) => ({ name, status: index === 24 ? 'FAIL' : 'PASS' }))
+  const retained = mediaContextOutcome(failed, true)
+  assert.equal(retained.observationOutcome, 'ORIGINAL_MEDIA_FAILURE_RETAINED')
+  assert.equal(retained.originalMediaFailureCount, 1)
+  assert.equal(retained.pass, false)
+})
+
 test('incomplete and misordered attempts cannot be accepted', () => {
   const attempts = complete()
   attempts[1] = { label: MEDIA_CONTEXT_LABELS[1], complete: false, passed: false, physicalPrefix: 'NOT_RUN' }
@@ -171,6 +185,9 @@ test('fixture delivery delta preserves all original actions and state reads and 
   for (const line of original.split('\n').filter(line => /video\.focus|trusted,|throw error|retire\(/.test(line))) assert(result.includes(line))
   assert(result.includes("appendFailureDiagnostic(error, 'Playback state after failure: ' + JSON.stringify({"))
   assert(result.includes("appendFailureDiagnostic(error, 'Playback state collection failed: ' + String(diagnosticError))"))
+  assert(result.includes('const continuation = await observePlaybackFailure('), 'Exact post-verdict transform must retain the passive continuation')
+  assert(result.indexOf('const continuation = await observePlaybackFailure(') > result.indexOf("appendFailureDiagnostic(error, 'Playback state after failure: '"))
+  assert(result.indexOf('const continuation = await observePlaybackFailure(') < result.indexOf('throw error'))
   assert.throws(() => persistFailureDiagnostics(result))
   assert.throws(() => persistFailureDiagnostics(original.replace('error.message +=', 'other.message +=')))
 })
