@@ -140,7 +140,13 @@ export const COMMIT_FOCUS_CASES = Object.freeze([
   "commit-observer focus / inline Color DOM Paste / remounting-text / another editor field",
   "commit-observer focus / inline Color DOM typed Space / remounting-text / ordinary completion",
   "commit-observer focus / inline Color DOM typed Space / remounting-text / external input",
-  "commit-observer focus / inline Color DOM typed Space / remounting-text / another editor field"
+  "commit-observer focus / inline Color DOM typed Space / remounting-text / another editor field",
+  "Public Poll Add option preserves commit-observer focus: none",
+  "Public Poll Add option preserves commit-observer focus: external input",
+  "Public Poll Add option preserves commit-observer focus: another editor field",
+  "Public Image settings preserves commit-observer focus: ordinary completion",
+  "Public Image settings preserves commit-observer focus: external input",
+  "Public Image settings preserves commit-observer focus: another editor field"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([

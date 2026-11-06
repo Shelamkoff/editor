@@ -124,7 +124,7 @@ class Node {
   closest() { return null }
 }
 function setup() {
-  const doc = {
+  const doc = Object.assign(new EventTarget(), {
     defaultView: { AbortController, addEventListener() {}, removeEventListener() {} },
     activeElement: null,
     createElement(tag) { return new Node(tag, doc) },
@@ -133,8 +133,7 @@ function setup() {
       node.textContent = value
       return node
     },
-    addEventListener() {},
-  }
+  })
   const definition = createGalleryPlugin({ injectStyles: false })
   let canonical = {
     ...definition.schema.createDefault(),

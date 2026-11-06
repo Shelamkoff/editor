@@ -380,7 +380,7 @@ export function createImagePlugin(config={}){
             if(readOnly||!hasImage){closeSettings();mainView.hidden=false;sourceView.hidden=true}
             panel.replaceChildren(renderImageSettings({ownerDocument:document,getData:()=>data,
               t:label=>runtimeContext.t(label.key,label.fallback),
-              updateData:producer=>{context.updateData(producer);wrapper.focus({preventScroll:true})},
+              updateData:producer=>retainControlFocus(wrapper,()=>context.updateData(producer),{includeFormControls:true}),
             },settingsController.signal))
             if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
             else image.removeAttribute('src')
