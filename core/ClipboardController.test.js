@@ -16,8 +16,16 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
   const owner = accepts
     ? { blockId: 'a', fieldKey: 'text', mode, element: host }
     : null
+  const ownerDocument = Object.assign(new EventTarget(), {
+    defaultView: { AbortController }, activeElement: host,
+  })
+  const focus = element => {
+    if (ownerDocument.activeElement === element) return
+    ownerDocument.activeElement = element
+    ownerDocument.dispatchEvent(new Event('focusin'))
+  }
   const root = {
-    ownerDocument: { defaultView: { AbortController } },
+    ownerDocument,
     contains: () => true,
     addEventListener(type, handler) { handlers.set(type, handler) },
   }
@@ -68,7 +76,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     runtime,
     registry,
     reconciler,
-    selection: { capture: () => bookmark },
+    selection: { capture: () => ownerDocument.activeElement === host ? bookmark : null },
     crossSelection,
     isComposing,
     view,
@@ -91,7 +99,75 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
   const paste = () => handlers.get('paste')(event)
   const cut = () => handlers.get('cut')(event)
   const copy = () => handlers.get('copy')(event)
-  return { controller, runtime, view, reconciler, event, paste, dispatchPaste: next => handlers.get('paste')(next), cut, copy, reads, bookmark }
+  return { controller, runtime, view, reconciler, event, paste, dispatchPaste: next => handlers.get('paste')(next), cut, copy, reads, bookmark, ownerDocument, host, focus }
+}
+
+for (const operation of ['whole-block Cut', 'local Paste', 'multiline Paste']) {
+  for (const handoff of ['synchronous observer', 'queued observer',
+    'synchronous observer in another block', 'queued observer in another block', 'no handoff']) {
+    test(`${operation} preserves the focus owner after ${handoff}`, async () => {
+      let active = true
+      const crossSelection = operation === 'whole-block Cut' ? {
+        get active() { return active },
+        wholeBlockIds: ['a'],
+        bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+          focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+        clear() { active = false },
+      } : null
+      const h = clipboardHarness({
+        crossSelection, accepts: () => false, formats: ['text/plain'],
+        read: type => type === 'text/plain' ? (operation === 'multiline Paste' ? 'Hello\nWorld' : 'Hello') : '',
+      })
+      const outside = {}
+      let committed = 0
+      let focusCalls = 0
+      const complete = () => {
+        committed++
+        return { blockId: 'a', fieldKey: 'text', offset: 5, focus: { fieldKey: 'text', offset: 5 } }
+      }
+      h.runtime.replaceLogicalRange = complete
+      h.runtime.insertClipboardParts = complete
+      h.runtime.applyPreparedClipboardCut = complete
+      h.runtime.prepareLogicalClipboardSlice = () => ({ parts: [{ kind: 'block', block: {
+        id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'A' },
+      } }] })
+      h.reconciler.getElement = () => null
+      h.view.currentId = 'a'
+      h.view.setCurrent = id => { h.view.currentId = id }
+      h.view.focus = () => { focusCalls++; h.focus(h.host) }
+      const clipboard = new Map()
+      if (operation === 'whole-block Cut') {
+        h.event.clipboardData.setData = (type, value) => clipboard.set(type, value)
+        h.event.clipboardData.getData = type => clipboard.get(type) ?? ''
+      }
+      h.runtime.interact = (_name, action, selectionAfter) => {
+        const result = action()
+        selectionAfter?.(result)
+        const handOverFocus = () => {
+          h.focus(outside)
+          if (handoff.endsWith('in another block')) h.view.currentId = 'b'
+        }
+        if (handoff.startsWith('synchronous observer')) handOverFocus()
+        if (handoff.startsWith('queued observer')) queueMicrotask(handOverFocus)
+        // Moving or replacing a field can blur it to the document body
+        // without granting another element ownership of native focus.
+        if (handoff === 'no handoff') h.ownerDocument.activeElement = {}
+        return result
+      }
+      try {
+        if (operation === 'whole-block Cut') h.cut()
+        else h.paste()
+        assert.equal(h.event.defaultPrevented, true)
+        assert.equal(committed, 1, 'focus handoff must not cancel the canonical edit')
+        await Promise.resolve()
+        assert.equal(h.ownerDocument.activeElement, handoff === 'no handoff' ? h.host : outside,
+          'the queued clipboard caret overwrote the newer native focus owner')
+        assert.equal(focusCalls, handoff === 'no handoff' ? 1 : 0)
+        assert.equal(h.view.currentId, handoff.endsWith('in another block') ? 'b' : 'a',
+          'clipboard presentation overwrote the current block of the newer focus owner')
+      } finally { h.controller.destroy() }
+    })
+  }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {

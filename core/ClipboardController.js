@@ -218,6 +218,8 @@ export class ClipboardController {
   #inlineCommands
   #isComposing
   #controller
+  #focusVersion = 0
+  #onFocusIn
   #task = null
   /** @type {{task: AbortController, release: () => void} | null} */
   #pendingTaskCleanup = null
@@ -247,6 +249,10 @@ export class ClipboardController {
     root.addEventListener('paste', event => this.#onPaste(event), {
       capture: true,
       signal: this.#controller.signal,
+    })
+    this.#onFocusIn = () => { this.#focusVersion++ }
+    root.ownerDocument.addEventListener('focusin', this.#onFocusIn, {
+      capture: true, signal: this.#controller.signal,
     })
   }
 
@@ -322,6 +328,8 @@ export class ClipboardController {
     this.#destroyed = true
     const owned = this.#ownedObjectUrls
     this.#ownedObjectUrls = new Map()
+    try { this.#root.ownerDocument.removeEventListener('focusin', this.#onFocusIn, { capture: true }) }
+    catch (error) { this.#reportResourceReleaseError(error) }
     try { this.cancelPendingTask() }
     catch (error) { this.#reportResourceReleaseError(error) }
     try { this.#controller.abort() }
@@ -459,6 +467,7 @@ export class ClipboardController {
     }
     try {
     const ownerDocument=this.#root.ownerDocument
+    const focusVersion=this.#focusVersion
 
     if (this.#crossSelection?.active) {
       // Once core owns a cross-block selection, never delegate a failed Cut
@@ -497,10 +506,10 @@ export class ClipboardController {
         )return
         if(!this.#canPresent())return
         const result=this.#mutateCut(()=>this.#runtime.applyPreparedClipboardCut(plan))
-        if(!result||!this.#canPresent())return
+        if(!result||!this.#canPresent(focusVersion))return
         this.#crossSelection.clear()
-        if(this.#canPresent())this.#view.reconcileInteraction()
-        if(this.#canPresent())this.#view.setCurrent(result.blockId)
+        if(this.#canPresent(focusVersion))this.#view.reconcileInteraction()
+        if(this.#canPresent(focusVersion))this.#view.setCurrent(result.blockId)
         return
       }
 
@@ -529,10 +538,10 @@ export class ClipboardController {
       if(!sameBookmark(plan.bookmark,this.#crossSelection?.bookmark))return
       if(!this.#canPresent())return
       const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
-      if(!result||!this.#canPresent())return
+      if(!result||!this.#canPresent(focusVersion))return
       this.#crossSelection.clear()
-      if(this.#canPresent())this.#view.reconcileInteraction()
-      if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
+      if(this.#canPresent(focusVersion))this.#view.reconcileInteraction()
+      if(result?.blockId&&this.#canPresent(focusVersion))this.#view.setCurrent(result.blockId)
       return
     }
 
@@ -552,9 +561,9 @@ export class ClipboardController {
     if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,presentation))return
     if(!sameBookmark(plan.bookmark,this.#selection.capture())||!this.#canPresent())return
     const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
-    if(!result||!this.#canPresent())return
+    if(!result||!this.#canPresent(focusVersion))return
     this.#view.reconcileInteraction()
-    if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
+    if(result?.blockId&&this.#canPresent(focusVersion))this.#view.setCurrent(result.blockId)
     } catch (error) {
       this.#reportDiagnosticError('cut.failed', 'clipboard.cut', error)
     }
@@ -604,6 +613,7 @@ export class ClipboardController {
 
   #applyPaste(event,modeEpoch,turn) {
     if (!this.#canPaste(modeEpoch,turn,event)) return
+    const focusVersion=this.#focusVersion
     const data = event.clipboardData
     if (!data || !this.#canPaste(modeEpoch,turn,event)) return
 
@@ -629,10 +639,10 @@ export class ClipboardController {
         if(!plan||!this.#canPaste(modeEpoch,turn,event))return
         try {
           const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts))
-          if(result&&this.#canPaste(modeEpoch,turn,event)){
+          if(result&&this.#canPaste(modeEpoch,turn,event,focusVersion)){
             this.#crossSelection.clear()
-            if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
-            if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
+            if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.reconcileInteraction()
+            if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.setCurrent(result.blockId)
           }
         } catch (error) {
           this.#reportDiagnosticError('paste.failed', 'clipboard.private-composite', error)
@@ -652,8 +662,8 @@ export class ClipboardController {
           range,
           fragment.parts,
         ))
-        if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
-        if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
+        if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.reconcileInteraction()
+        if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.setCurrent(result.blockId)
       } catch (error) {
         this.#reportDiagnosticError('paste.failed', 'clipboard.private-fragment', error)
       }
@@ -699,10 +709,10 @@ export class ClipboardController {
       event.preventDefault()
       try{
         const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,parts))
-        if(result&&this.#canPaste(modeEpoch,turn,event)){
+        if(result&&this.#canPaste(modeEpoch,turn,event,focusVersion)){
           this.#crossSelection.clear()
-          if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
-          if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
+          if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.reconcileInteraction()
+          if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.setCurrent(result.blockId)
         }
       }catch(error){
         this.#reportDiagnosticError('paste.failed', 'clipboard.selection-paste', error)
@@ -781,8 +791,8 @@ export class ClipboardController {
           const result=this.#mutatePaste(() => this.#runtime.insertClipboardParts(
             owner.blockId,owner.fieldKey,range,parts,
           ))
-          if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
-          if(result?.blockId&&this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
+          if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.reconcileInteraction()
+          if(result?.blockId&&this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.setCurrent(result.blockId)
           return
         }
         // A structural first root (table, image, etc.) is inserted after
@@ -791,9 +801,9 @@ export class ClipboardController {
         const inserted=this.#mutatePaste(() => this.#runtime.insertLocalBlocks(
           owner.blockId,plan.blocks,{replaceEmpty:range.start===range.end,name:'clipboard.html-import'},
         ))
-        if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
+        if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.reconcileInteraction()
         const last=inserted.at(-1)
-        if(last&&this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(last)
+        if(last&&this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.setCurrent(last)
         return
       }
     }
@@ -816,8 +826,8 @@ export class ClipboardController {
         owner.blockId, owner.fieldKey, range,
         lines.map(line => ({ kind: 'rich-text', html: escapeHtml(line) })),
       ))
-      if(this.#canPaste(modeEpoch,turn,event))this.#view.reconcileInteraction()
-      if(this.#canPaste(modeEpoch,turn,event))this.#view.setCurrent(result.blockId)
+      if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.reconcileInteraction()
+      if(this.#canPaste(modeEpoch,turn,event,focusVersion))this.#view.setCurrent(result.blockId)
       return
     }
     // v1 pastes one meaningful line without leading/trailing empty lines.
@@ -840,6 +850,7 @@ export class ClipboardController {
 
   #mutateCut(operation) {
     try {
+      const focusVersion=this.#focusVersion
       const result=this.#runtime.interact('clipboard.cut', operation, result => {
       if (!result?.blockId) return null
       const fields = this.#reconciler.getEditableFields(result.blockId)
@@ -847,7 +858,7 @@ export class ClipboardController {
       const point = { blockId: result.blockId, fieldKey: field?.key ?? '', offset: result.focus?.offset ?? 0 }
       return { anchor: point, focus: { ...point } }
       })
-      if(result?.blockId)this.#scheduleFocus(result.blockId,result.focus??{offset:'start'})
+      if(result?.blockId)this.#scheduleFocus(result.blockId,result.focus??{offset:'start'},focusVersion)
       return result
     } catch(error) {
       this.#reportDiagnosticError('cut.failed', 'clipboard.cut', error)
@@ -855,17 +866,20 @@ export class ClipboardController {
     }
   }
 
-  /** @param {string} blockId @param {any} focus @param {AbortSignal|null} [taskSignal] */
-  #scheduleFocus(blockId,focus,taskSignal=null) {
-    if(!this.#canPresent()||taskSignal?.aborted)return
+  /** @param {string} blockId @param {any} focus @param {number} focusVersion @param {AbortSignal|null} [taskSignal] */
+  #scheduleFocus(blockId,focus,focusVersion,taskSignal=null) {
+    if(!this.#canPresent()||taskSignal?.aborted||focusVersion!==this.#focusVersion)return
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element?.(blockId)
     // Native focus changes are not author revisions. The logical caret is
     // separately owned by the user and must not be overwritten by a queued
     // clipboard operation after the user moves it within the same field.
+    // The pre-commit focus version also protects host controls when a commit
+    // observer has already moved native focus outside the logical selection.
+    // Projection blur without a new focus owner can still receive the caret.
     // Composite cross-block selections are deactivated after this scheduler
-    // runs; for those, rely on the canonical owner and revision guards.
+    // runs; their focus version and canonical owner remain authoritative.
     const selected=this.#crossSelection?.active ? null : this.#selection.capture()
     queueMicrotask(()=>{
       if(!this.#canPresent()||taskSignal?.aborted
@@ -873,12 +887,14 @@ export class ClipboardController {
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)
         ||(mounted&&this.#view.element?.(blockId)!==mounted)
         ||(this.#view.currentId&&this.#view.currentId!==blockId)
-        ||(selected&&!sameBookmark(selected,this.#selection.capture())))return
+        ||(selected&&!sameBookmark(selected,this.#selection.capture()))
+        ||focusVersion!==this.#focusVersion)return
       this.#view.focus(blockId,focus)
     })
   }
 
   #mutatePaste(operation) {
+    const focusVersion=this.#focusVersion
     const result=this.#runtime.interact('clipboard.paste', operation, result => {
       const blockId = Array.isArray(result) ? result.at(-1) : result?.blockId
       if (!blockId) return null
@@ -890,21 +906,22 @@ export class ClipboardController {
       return { anchor: point, focus: { ...point } }
     })
     const blockId=Array.isArray(result)?result.at(-1):result?.blockId
-    if(blockId&&this.#canPresent())this.#scheduleFocus(blockId,result?.focus??{offset:'end'},this.#task?.signal)
+    if(blockId&&this.#canPresent())this.#scheduleFocus(blockId,result?.focus??{offset:'end'},focusVersion,this.#task?.signal)
     return result
   }
 
   #replaceLocal(owner, range, replacement) {
+    const focusVersion=this.#focusVersion
     const point = offset => ({ blockId: owner.blockId, fieldKey: owner.fieldKey, offset })
     const result = this.#runtime.interact('clipboard.paste', () => this.#runtime.replaceLogicalRange(
       { anchor: point(range.start), focus: point(range.end) }, replacement,
     ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
-    if (!this.#canPresent()) return true
-    this.#scheduleFocus(result.blockId,{fieldKey:result.fieldKey,offset:result.offset})
-    if (!this.#canPresent()) return true
+    if (!this.#canPresent(focusVersion)) return true
+    this.#scheduleFocus(result.blockId,{fieldKey:result.fieldKey,offset:result.offset},focusVersion)
+    if (!this.#canPresent(focusVersion)) return true
     this.#view.reconcileInteraction()
-    if (this.#canPresent()) this.#view.setCurrent(result.blockId)
+    if (this.#canPresent(focusVersion)) this.#view.setCurrent(result.blockId)
     return true
   }
 
@@ -915,18 +932,21 @@ export class ClipboardController {
       && this.#runtime.health !== 'failed'
   }
 
-  #canPresent() {
+  /** @param {number|null} [focusVersion] */
+  #canPresent(focusVersion=null) {
     // A committed Cut/Paste may synchronously notify a host that destroys its
     // editor. Preserve the canonical result while retiring old view, selection
     // and deferred focus work before it can touch detached fields.
     return this.#isAlive() && !this.#runtime.readOnly
+      && (focusVersion===null || focusVersion===this.#focusVersion)
   }
 
-  #canPaste(modeEpoch,turn,event) {
+  /** @param {number|null} [focusVersion] */
+  #canPaste(modeEpoch,turn,event,focusVersion=null) {
     // Read-only round trips revoke old event authority even when the editor
     // is writable again. A later owned Paste also revokes the previous turn:
     // consume that now-stale DOM event without a second canonical mutation.
-    if (!this.#canPresent() || this.#runtime.modeEpoch !== modeEpoch) return false
+    if (!this.#canPresent(focusVersion) || this.#runtime.modeEpoch !== modeEpoch) return false
     if (this.#pasteTurn !== turn) {
       event?.preventDefault()
       return false
@@ -1109,12 +1129,13 @@ export class ClipboardController {
       this.#applyingPasteTask = task
       applying = true
       try{
+        const focusVersion=this.#focusVersion
         const applied=this.#mutatePaste(() => this.#runtime.applyPasteResults(
           owner.blockId,owner.fieldKey,range,resolved,
         ))
         persisted = this.#runtime.revision !== revision
-        if(this.#canPresent())this.#view.reconcileInteraction()
-        if(this.#canPresent())this.#view.setCurrent(applied.blockId)
+        if(this.#canPresent(focusVersion))this.#view.reconcileInteraction()
+        if(this.#canPresent(focusVersion))this.#view.setCurrent(applied.blockId)
       }catch(error){
         // A committed transaction can still encounter a presentation error.
         // If canonical revision advanced, the document already owns the blob.

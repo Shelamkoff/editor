@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { getEventListeners } from 'node:events'
 
 import { ClipboardController } from './ClipboardController.js'
 
@@ -27,7 +28,9 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
     },
   }
   const root = {
-    ownerDocument: { defaultView: { AbortController: AbortControllerCtor, URL: URLCtor } },
+    ownerDocument: Object.assign(new EventTarget(), {
+      defaultView: { AbortController: AbortControllerCtor, URL: URLCtor },
+    }),
     contains: () => true,
     addEventListener(type, callback) { events.set(type, callback) },
   }
@@ -68,6 +71,10 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
       },
     },
   }
+  const view = {
+    currentId: 'a',
+    reconcileInteraction() { reconcile?.() }, setCurrent() {}, focus() {},
+  }
   const controller = new ClipboardController({
     root, runtime, diagnostics,
     registry: { blockTypes: ['video'], getBlockDefinition: () => plugin },
@@ -76,10 +83,7 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
       getEditableFields: () => [{ key: 'text', mode: 'rich-text', element: {} }],
     },
     selection: { capture: () => typeof capture === 'function' ? capture(bookmark) : bookmark },
-    view: {
-      currentId: 'a',
-      reconcileInteraction() { reconcile?.() }, setCurrent() {}, focus() {},
-    },
+    view,
   })
   const paste = () => {
     const event = {
@@ -98,8 +102,44 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
   const settle = async () => {
     for (let index = 0; index < 12; index++) await Promise.resolve()
   }
-  return { controller, runtime, URLCtor, created, revoked, applied, paste, settle }
+  return { controller, runtime, view, URLCtor, created, revoked, applied, paste, settle, ownerDocument: root.ownerDocument }
 }
+
+test('destroy releases the document focus listener even when the owner abort fails', () => {
+  class ThrowingAbortController extends AbortController {
+    abort() { throw new Error('owner AbortController cannot dispatch cancellation') }
+  }
+  const f = fixture({ AbortControllerCtor: ThrowingAbortController })
+  assert.equal(getEventListeners(f.ownerDocument, 'focusin').length, 1)
+  assert.doesNotThrow(() => f.controller.destroy())
+  assert.equal(getEventListeners(f.ownerDocument, 'focusin').length, 0)
+  assert.doesNotThrow(() => f.controller.destroy())
+})
+
+for (const deferred of [false, true]) test(`media Paste preserves focus handed to another block ${deferred ? 'after' : 'during'} commit`, async () => {
+  const f = fixture({ apply: (_args, runtime) => {
+    runtime.revision++
+    const handOverFocus = () => {
+      f.view.currentId = 'b'
+      f.ownerDocument.dispatchEvent(new Event('focusin'))
+    }
+    if (deferred) queueMicrotask(handOverFocus)
+    else handOverFocus()
+    return { blockId: 'a', inserted: ['video-1'] }
+  } })
+  let focusCalls = 0
+  f.view.setCurrent = id => { f.view.currentId = id }
+  f.view.focus = () => { focusCalls++ }
+  try {
+    assert.equal(f.paste().defaultPrevented, true)
+    await f.settle()
+    assert.equal(f.applied.length, 1)
+    assert.equal(f.view.currentId, 'b')
+    assert.equal(focusCalls, 0)
+    assert.deepEqual(f.revoked, [], 'a focus handoff must not discard committed media')
+  } finally { f.controller.destroy() }
+  assert.deepEqual(f.revoked, f.created)
+})
 
 test('a successful blob-backed Paste remains readable across Undo until editor disposal', async () => {
   const f = fixture()
