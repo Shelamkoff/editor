@@ -31,6 +31,8 @@ export class NativeInputController {
   #groupSequence = 0
   #lastGroup = null
   #pendingInput = null
+  #focusVersion = 0
+  #onFocusIn
 
   constructor({ root, runtime, reconciler, crossSelection = null, selection = null, projection = null, inlineWidgetInput = null, onControlledInput = null, coalesceMs = 300 }) {
     if (!root?.addEventListener) throw new TypeError('NativeInputController requires an event root')
@@ -62,6 +64,8 @@ export class NativeInputController {
     root.addEventListener('compositionend', event => this.handleCompositionEnd(event), { signal })
     root.addEventListener('keydown', event => this.handleCompositionKey(event), { signal })
     root.addEventListener('mousedown', () => { this.#preparedComposition = null }, { signal })
+    this.#onFocusIn = () => { this.#focusVersion++ }
+    root.ownerDocument?.addEventListener?.('focusin', this.#onFocusIn, { capture: true, signal })
   }
 
   get isComposing() { return this.#composition !== null }
@@ -170,6 +174,8 @@ export class NativeInputController {
       const bookmark = this.#selection?.capture()
       const local = point => point?.blockId === owner.blockId && point?.fieldKey === owner.fieldKey
       if (bookmark && local(bookmark.anchor) && local(bookmark.focus)) {
+        const focusVersion = this.#focusVersion
+        const generation = this.#runtime.generation, modeEpoch = this.#runtime.modeEpoch
         const result = this.#runtime.interact('input.line-break',
           () => this.#runtime.replaceLogicalRange(bookmark, { kind: 'html', html: '<br>' }),
           point => point ? { anchor: point, focus: { ...point } } : null,
@@ -179,7 +185,11 @@ export class NativeInputController {
           event.stopImmediatePropagation?.()
           this.#lastGroup = null
           this.#endingComposition = null
-          this.#selection.setCaret(result.blockId, { fieldKey: result.fieldKey, offset: result.offset })
+          // The line break is committed before host observers run. A newer
+          // native control or field focus owns presentation after publication.
+          if (this.#canRestoreFocus(focusVersion,generation,modeEpoch)) {
+            this.#selection.setCaret(result.blockId, { fieldKey: result.fieldKey, offset: result.offset })
+          }
           return
         }
       }
@@ -448,6 +458,7 @@ export class NativeInputController {
   }
 
   destroy() {
+    try { this.#root.ownerDocument?.removeEventListener?.('focusin', this.#onFocusIn, { capture: true }) } catch {}
     this.#controller.abort()
     this.#composition = null
     this.#preparedComposition = null
@@ -504,8 +515,17 @@ export class NativeInputController {
     return editingHostForEvent(this.#root, target) === owner.element ? owner : null
   }
 
+  #canRestoreFocus(focusVersion,generation,modeEpoch) {
+    return !this.#controller.signal.aborted && !this.#runtime.readOnly
+      && this.#runtime.health !== 'destroyed' && this.#runtime.health !== 'failed'
+      && this.#runtime.generation === generation && this.#runtime.modeEpoch === modeEpoch
+      && this.#focusVersion === focusVersion
+  }
+
   #commit(owner, { group, preserveSourceProjection, completeNativeNoop = false, selectionBefore = undefined }) {
     if (this.#controller.signal.aborted) return
+    const focusVersion = this.#focusVersion
+    const generation = this.#runtime.generation, modeEpoch = this.#runtime.modeEpoch
     // A trusted completed edit can replace author DOM without changing its
     // canonical value. Retain the existing descriptor across the guarded read.
     const completeField = completeNativeNoop && preserveSourceProjection && owner.mode === 'rich-text'
@@ -533,6 +553,8 @@ export class NativeInputController {
       ...(selectionBefore === undefined ? {} : { selectionBefore }),
       ...(selectionAfter ? { selectionAfter: () => selectionAfter } : {}),
     })
-    if (selectionAfter) this.#selection.restore(selectionAfter)
+    if (selectionAfter && this.#canRestoreFocus(focusVersion,generation,modeEpoch)) {
+      this.#selection.restore(selectionAfter)
+    }
   }
 }

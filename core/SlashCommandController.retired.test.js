@@ -255,7 +255,7 @@ test('Slash input in read-only mode dismisses an already open command menu', () 
     controller.destroy()
   }
 })
-function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
+function activeSlashKeyHarness({ blockItem = false, inlineItem = false, onCommit = null } = {}) {
   const handlers = new Map()
   const actions = []
   const text = { nodeType: 3, data: '/', textContent: '/', length: 1 }
@@ -274,7 +274,8 @@ function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
     remove() { this.removed = true },
     contains() { return false },
   }
-  const ownerDocument = {
+  const ownerDocument = Object.assign(new EventTarget(), {
+    activeElement: field,
     defaultView: {
       AbortController, innerWidth: 1000, innerHeight: 1000,
       getSelection() { return { focusNode: text, focusOffset: 1, rangeCount: 1, isCollapsed: true } },
@@ -296,8 +297,7 @@ function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
         getBoundingClientRect() { return { left: 20, top: 10, bottom: 30 } },
       }
     },
-    addEventListener() {},
-  }
+  })
   field.ownerDocument = ownerDocument
   const root = {
     ownerDocument,
@@ -312,7 +312,9 @@ function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
     applySlashBlockCommand() { actions.push('apply block'); return 'converted' },
     interact(name, operation) {
       actions.push(name)
-      return operation()
+      const result = operation()
+      onCommit?.(name)
+      return result
     },
     replaceRichText() { actions.push('author mutation'); return true },
   }
@@ -359,8 +361,46 @@ function activeSlashKeyHarness({ blockItem = false, inlineItem = false } = {}) {
     })
     return { prevented, stopped }
   }
-  return { controller, runtime, reconciler, selection, root, field, menu,
+  const focus = element => {
+    ownerDocument.activeElement = element
+    ownerDocument.dispatchEvent(new Event('focusin'))
+  }
+  return { controller, runtime, reconciler, selection, root, field, menu, view, focus,
     handlers, actions, input, keydown }
+}
+
+for (const key of ['Enter', 'Escape']) {
+  for (const handoff of ['none', 'sync-outside', 'queued-outside', 'sync-block', 'queued-block']) {
+    test(`Slash ${key} preserves ${handoff} focus after its commit`, async () => {
+      const destination = {}
+      const h = activeSlashKeyHarness({ blockItem: true, onCommit() {
+        const takeFocus = () => {
+          h.focus(destination)
+          if (handoff.endsWith('block')) h.view.currentId = 'other'
+        }
+        if (handoff.startsWith('sync')) takeFocus()
+        if (handoff.startsWith('queued')) queueMicrotask(takeFocus)
+      } })
+      h.view.focus = () => { h.actions.push('focus'); h.focus(h.field) }
+      h.selection.setCaret = () => { h.actions.push('caret'); h.focus(h.field) }
+      try {
+        h.input()
+        assert.equal(h.controller.isOpen, true)
+        assert.equal(h.keydown(key).prevented, true)
+        await Promise.resolve()
+        assert.deepEqual(h.actions.filter(action => action.startsWith('slash.')),
+          [key === 'Enter' ? 'slash.block' : 'slash.cancel'])
+        assert.equal(h.actions.filter(action => action === 'apply block' || action === 'author mutation').length, 1)
+        const expectedCaret = handoff === 'none' || (key === 'Escape' && handoff.startsWith('queued'))
+        assert.deepEqual(h.actions.filter(action => action === 'focus' || action === 'caret'),
+          expectedCaret ? [key === 'Enter' ? 'focus' : 'caret'] : [],
+          'completed Slash command reclaimed the newer focus owner')
+        assert.equal(h.root.ownerDocument.activeElement, handoff === 'none' ? h.field : destination)
+        if (handoff.endsWith('block')) assert.equal(h.view.currentId, 'other')
+        assert.equal(h.controller.isOpen, false)
+      } finally { h.controller.destroy() }
+    })
+  }
 }
 
 test('Slash keydown cannot delete author text after an ownership callback destroys the menu', () => {

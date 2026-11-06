@@ -30,6 +30,8 @@ export class SlashCommandController {
   #activeIndex = 0
   #itemsVersion = 0
   #isComposing
+  #focusVersion = 0
+  #onFocusIn
 
   constructor({ root, runtime, registry, reconciler, selection, view, inlineCommands, translate, t, isComposing = () => false }) {
     this.#root = root
@@ -48,6 +50,7 @@ export class SlashCommandController {
     const AbortControllerCtor = this.#window?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
     const signal = this.#controller.signal
+    this.#onFocusIn = () => { this.#focusVersion++ }
 
     this.#menu = this.#document.createElement('ul')
     this.#menu.className = 'oe-slash-menu'
@@ -70,9 +73,11 @@ export class SlashCommandController {
       this.#document.addEventListener('selectionchange', () => this.#onSelectionChange(), { signal })
       this.#document.addEventListener('scroll', () => this.#position(), { capture: true, passive: true, signal })
       this.#window?.addEventListener?.('resize', () => this.#position(), { signal })
+      this.#document.addEventListener('focusin', this.#onFocusIn, { capture: true, signal })
     } catch (error) {
       // This constructor does not return a destroyable owner on failure.
       // Revoke every partially registered listener and the provisional menu.
+      try { this.#document.removeEventListener?.('focusin', this.#onFocusIn, { capture: true }) } catch {}
       try { this.#controller.abort() } catch {}
       try {
         if (!this.#menu.parentNode || this.#menu.parentNode === root) this.#menu.remove()
@@ -100,6 +105,7 @@ export class SlashCommandController {
 
   destroy() {
     if (this.#controller.signal.aborted) return
+    try { this.#document.removeEventListener?.('focusin', this.#onFocusIn, { capture: true }) } catch {}
     this.#controller.abort()
     this.close()
     this.#menu.remove()
@@ -288,6 +294,7 @@ export class SlashCommandController {
         || this.#runtime.modeEpoch !== modeEpoch
         || this.#session !== null || this.#itemsVersion !== version + 1) return
       const point = { blockId: session.blockId, fieldKey: session.fieldKey, offset: session.start }
+      const focusVersion = this.#focusVersion
       this.#runtime.interact('slash.cancel', () => this.#runtime.replaceRichText(
         session.blockId,
         session.fieldKey,
@@ -295,10 +302,12 @@ export class SlashCommandController {
         { kind: 'text', text: '' },
       ), () => ({ anchor: point, focus: { ...point } }))
       if (this.#controller.signal.aborted || this.#runtime.readOnly
-        || this.#runtime.modeEpoch !== modeEpoch || this.#session !== null) return
+        || this.#runtime.modeEpoch !== modeEpoch || this.#session !== null
+        || this.#focusVersion !== focusVersion) return
       this.#view.reconcileInteraction()
       if (this.#controller.signal.aborted || this.#runtime.readOnly
-        || this.#runtime.modeEpoch !== modeEpoch || this.#session !== null) return
+        || this.#runtime.modeEpoch !== modeEpoch || this.#session !== null
+        || this.#focusVersion !== focusVersion) return
       this.#selection.setCaret(session.blockId, {
         fieldKey: session.fieldKey,
         offset: session.start,
@@ -443,6 +452,8 @@ export class SlashCommandController {
       return
     }
 
+    const focusVersion = this.#focusVersion
+    const ownsPresentation = () => ownsCommand() && this.#focusVersion === focusVersion
     const id = this.#runtime.interact('slash.block', () => this.#runtime.applySlashBlockCommand(
       session.blockId,
       session.fieldKey,
@@ -454,18 +465,19 @@ export class SlashCommandController {
       const point = { blockId, fieldKey: field?.key ?? '', offset: 0 }
       return { anchor: point, focus: { ...point } }
     })
-    if (!id || !ownsCommand()) return
+    if (!id || !ownsPresentation()) return
     this.#view.reconcileInteraction()
-    if (!ownsCommand()) return
+    if (!ownsPresentation()) return
     this.#view.setCurrent(id)
-    if (!ownsCommand() || this.#view.currentId !== id) return
+    if (!ownsPresentation() || this.#view.currentId !== id) return
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const mounted=this.#view.element(id)
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||this.#runtime.readOnly
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(id)
-        ||!mounted||this.#view.element(id)!==mounted||this.#view.currentId!==id)return
+        ||!mounted||this.#view.element(id)!==mounted||this.#view.currentId!==id
+        ||this.#focusVersion!==focusVersion)return
       this.#view.focus(id,{offset:'start'})
     })
   }
