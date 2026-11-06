@@ -34,6 +34,9 @@ class Element {
     this.ownerDocument.activeElement = this
     this.ownerDocument.dispatchEvent(new Event('focusin'))
   }
+  blur() {
+    if (this.ownerDocument.activeElement === this) this.ownerDocument.activeElement = this.ownerDocument.body
+  }
   remove() {
     const owned = this.contains(this.ownerDocument.activeElement)
     this.parentElement = null
@@ -44,6 +47,7 @@ class Element {
 
 function fixture() {
   const document = new EventTarget()
+  document.defaultView = { setTimeout }
   document.body = new Element(document, 'body')
   document.activeElement = document.body
   const wrapper = new Element(document, 'div', document.body)
@@ -184,4 +188,119 @@ test('an operation failure keeps its original error and releases focus observati
   assert.equal(h.document.activeElement, h.document.body)
   assert.deepEqual(h.wrapper.focusCalls, [], 'a rejected update must not add a focus side effect')
   assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+})
+
+const nextTask = () => new Promise(resolve => setTimeout(resolve, 0))
+
+for (const kind of ['input', 'textarea', 'select']) {
+  test(`a blurred source ${kind} restores an orphaned wrapper only after the native focus task`, async () => {
+    const h = fixture()
+    const sourceControl = new Element(h.document, kind, h.wrapper)
+    sourceControl.focus()
+    sourceControl.blur()
+    const result = { accepted: true }
+    assert.equal(retainControlFocus(h.wrapper, () => {
+      sourceControl.remove()
+      return result
+    }, { includeFormControls: true, sourceControl }), result)
+    assert.equal(h.document.activeElement, h.document.body, 'the change handler interrupted native focus navigation')
+    await Promise.resolve()
+    assert.equal(h.document.activeElement, h.document.body, 'a microtask is still inside the native focus transition')
+    await nextTask()
+    assert.equal(h.document.activeElement, h.wrapper, 'the replaced Tab destination left keyboard focus on BODY')
+    assert.deepEqual(h.wrapper.focusCalls, [{ preventScroll: true }])
+    assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+  })
+}
+
+for (const destination of ['outside', 'field']) {
+  test(`a blurred settings change preserves ordinary ${destination} navigation after its handler returns`, async () => {
+    const h = fixture()
+    const sourceControl = new Element(h.document, 'input', h.wrapper)
+    sourceControl.focus()
+    sourceControl.blur()
+    retainControlFocus(h.wrapper, () => { sourceControl.remove() }, { includeFormControls: true, sourceControl })
+    // Native change runs before the browser focuses the intended next target.
+    // This is ordinary navigation, without a transaction observer takeover.
+    h[destination].focus()
+    await nextTask()
+    assert.equal(h.document.activeElement, h[destination])
+    assert.deepEqual(h.wrapper.focusCalls, [])
+    assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+  })
+}
+
+test('a body-gap continuation cannot reclaim focus after a newer owner is acquired and released', async () => {
+  const h = fixture()
+  const sourceControl = new Element(h.document, 'input', h.wrapper)
+  sourceControl.focus()
+  sourceControl.blur()
+  retainControlFocus(h.wrapper, () => { sourceControl.remove() }, { includeFormControls: true, sourceControl })
+  queueMicrotask(() => { h.outside.focus(); h.outside.blur() })
+  await nextTask()
+  assert.equal(h.document.activeElement, h.document.body)
+  assert.deepEqual(h.wrapper.focusCalls, [], 'the old change reclaimed focus after a newer owner released it')
+  assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+})
+
+for (const invalid of ['detached', 'foreign', 'rich-text']) {
+  test(`a ${invalid} change source cannot grant BODY focus ownership`, async () => {
+    const h = fixture()
+    const sourceControl = new Element(h.document, invalid === 'rich-text' ? 'div' : 'input',
+      invalid === 'foreign' ? h.document.body : h.wrapper)
+    if (invalid === 'rich-text') sourceControl.contentEditable = 'true'
+    sourceControl.focus()
+    sourceControl.blur()
+    if (invalid === 'detached') sourceControl.remove()
+    let calls = 0
+    retainControlFocus(h.wrapper, () => { calls++; sourceControl.remove() }, { includeFormControls: true, sourceControl })
+    await nextTask()
+    assert.equal(calls, 1)
+    assert.equal(h.document.activeElement, h.document.body)
+    assert.deepEqual(h.wrapper.focusCalls, [])
+    assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+  })
+}
+
+test('a connected change source cannot borrow an already focused external control', async () => {
+  const h = fixture()
+  const sourceControl = new Element(h.document, 'input', h.wrapper)
+  h.outside.focus()
+  retainControlFocus(h.wrapper, () => {
+    sourceControl.remove()
+    h.outside.blur()
+  }, { includeFormControls: true, sourceControl })
+  await nextTask()
+  assert.equal(h.document.activeElement, h.document.body)
+  assert.deepEqual(h.wrapper.focusCalls, [])
+  assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+})
+
+test('a body-gap continuation releases its listener without focusing a retired wrapper', async () => {
+  const h = fixture()
+  const sourceControl = new Element(h.document, 'input', h.wrapper)
+  sourceControl.focus()
+  sourceControl.blur()
+  retainControlFocus(h.wrapper, () => { sourceControl.remove() }, { includeFormControls: true, sourceControl })
+  h.wrapper.remove()
+  await nextTask()
+  assert.equal(h.document.activeElement, h.document.body)
+  assert.deepEqual(h.wrapper.focusCalls, [])
+  assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+})
+
+test('a failed body-gap operation preserves its error without retaining a focus listener or rescue task', async () => {
+  const h = fixture()
+  const sourceControl = new Element(h.document, 'input', h.wrapper)
+  sourceControl.focus()
+  sourceControl.blur()
+  const error = new Error('settings update failed')
+  assert.throws(() => retainControlFocus(h.wrapper, () => {
+    sourceControl.remove()
+    throw error
+  }, { includeFormControls: true, sourceControl }), actual => actual === error)
+  assert.equal(getEventListeners(h.document, 'focusin').length, 0)
+  await nextTask()
+  assert.equal(h.document.activeElement, h.document.body)
+  assert.deepEqual(h.wrapper.focusCalls, [])
 })

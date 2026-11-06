@@ -46,8 +46,9 @@ function imageLabel(key,fallback){return Object.freeze({key,fallback})}
 
 /** @param {import('../../plugin-kit/types').SettingsPanelContext<any>} context
  * @param {AbortSignal} signal
+ * @param {HTMLElement} focusOwner
  */
-function renderImageSettings(context,signal){
+function renderImageSettings(context,signal,focusOwner){
   const document=context.ownerDocument
   const root=document.createElement('div')
   root.className='oe-image__style-form'
@@ -84,6 +85,11 @@ function renderImageSettings(context,signal){
     }
     return element
   }
+  const listenChange=(element,onChange)=>{
+    element.addEventListener('change',()=>retainControlFocus(focusOwner,onChange,{
+      includeFormControls:true,sourceControl:element,
+    }),{signal:fieldsController.signal})
+  }
   const input=(value,onChange,{type='text',placeholder='',disabled=false}={})=>{
     const element=document.createElement('input')
     element.type=type
@@ -91,7 +97,7 @@ function renderImageSettings(context,signal){
     element.className=type==='color'?'oe-image__style-color':'oe-image__style-input'
     element.value=value??''
     if(placeholder)element.placeholder=placeholder
-    element.addEventListener('change',()=>onChange(element.value,element),{signal:fieldsController.signal})
+    listenChange(element,()=>onChange(element.value,element))
     return element
   }
   const select=(value,values,onChange)=>{
@@ -104,7 +110,7 @@ function renderImageSettings(context,signal){
       option.selected=item===value
       element.appendChild(option)
     }
-    element.addEventListener('change',()=>onChange(element.value),{signal:fieldsController.signal})
+    listenChange(element,()=>onChange(element.value))
     return element
   }
   const checkbox=(checked,onChange)=>{
@@ -112,7 +118,7 @@ function renderImageSettings(context,signal){
     element.type='checkbox'
     element.checked=checked
     element.className='oe-image__switch'+(checked?' oe-image__switch--active':'')
-    element.addEventListener('change',()=>onChange(element.checked),{signal:fieldsController.signal})
+    listenChange(element,()=>onChange(element.checked))
     return element
   }
   const updateStyle=(key,value)=>commit(current=>{
@@ -380,8 +386,8 @@ export function createImagePlugin(config={}){
             if(readOnly||!hasImage){closeSettings();mainView.hidden=false;sourceView.hidden=true}
             panel.replaceChildren(renderImageSettings({ownerDocument:document,getData:()=>data,
               t:label=>runtimeContext.t(label.key,label.fallback),
-              updateData:producer=>retainControlFocus(wrapper,()=>context.updateData(producer),{includeFormControls:true}),
-            },settingsController.signal))
+              updateData:producer=>context.updateData(producer),
+            },settingsController.signal,wrapper))
             if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
             else image.removeAttribute('src')
             if(previousCanonical?.caption!==data.caption&&caption.innerHTML!==data.caption){
