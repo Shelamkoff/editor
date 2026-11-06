@@ -81,7 +81,15 @@ export const FULL_CLIPBOARD_CASES = Object.freeze([
   "custom widget clipboard copy excludes display:none descendants",
   "custom widget clipboard cut excludes display:none descendants",
   "custom widget clipboard copy excludes visibility:hidden text while preserving visible descendants",
-  "custom widget clipboard cut excludes visibility:hidden text while preserving visible descendants"
+  "custom widget clipboard cut excludes visibility:hidden text while preserving visible descendants",
+  "whole-block custom widget clipboard copy excludes display:none descendants",
+  "whole-block custom widget clipboard cut excludes display:none descendants",
+  "whole-block custom widget clipboard copy excludes visibility:hidden text while preserving visible descendants",
+  "whole-block custom widget clipboard cut excludes visibility:hidden text while preserving visible descendants",
+  "cross-field custom widget clipboard copy excludes display:none descendants",
+  "cross-field custom widget clipboard cut excludes display:none descendants",
+  "cross-field custom widget clipboard copy excludes visibility:hidden text while preserving visible descendants",
+  "cross-field custom widget clipboard cut excludes visibility:hidden text while preserving visible descendants"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([

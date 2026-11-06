@@ -17,11 +17,11 @@ function red() {
 }
 
 test('complete native clipboard GREEN includes all maintained cases', () => {
-  assert.equal(verifyNativeGreen(green(), 'native-clipboard.html', FULL_CLIPBOARD_CASES).total, 53)
+  assert.equal(verifyNativeGreen(green(), 'native-clipboard.html', FULL_CLIPBOARD_CASES).total, 61)
 })
 
 test('zero-exit native report cannot pass with no, missing, duplicated or skipped cases', () => {
-  for (const records of [[], rows(FULL_CLIPBOARD_CASES).slice(0, 49), rows(FULL_CLIPBOARD_CASES).slice(1), [...rows(FULL_CLIPBOARD_CASES).slice(1), rows(FULL_CLIPBOARD_CASES)[1]],
+  for (const records of [[], rows(FULL_CLIPBOARD_CASES).slice(0, 49), rows(FULL_CLIPBOARD_CASES).slice(0, 53), rows(FULL_CLIPBOARD_CASES).slice(1), [...rows(FULL_CLIPBOARD_CASES).slice(1), rows(FULL_CLIPBOARD_CASES)[1]],
     rows(FULL_CLIPBOARD_CASES).map((row, index) => index ? row : { ...row, status: 'SKIP' })]) {
     assert.throws(() => verifyNativeGreen(green(records), 'native-clipboard.html', FULL_CLIPBOARD_CASES))
   }
