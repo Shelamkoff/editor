@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { MEDIA_CASES } from './native-media-diagnostic.mjs'
-import { CONTEXT_COMMAND, MEDIA_CONTEXT_LABELS, ORDINARY_COMPLETE, buildPrefixRunner, classifyMediaContext, classifyOrdinaryOutput, loadPrefixCases, mediaContextOutcome, ordinaryCaseInventory } from './native-media-context-probe.mjs'
+import { CONTEXT_COMMAND, MEDIA_CONTEXT_LABELS, ORDINARY_COMPLETE, buildPrefixRunner, classifyMediaContext, classifyOrdinaryOutput, loadPrefixCases, mediaContextOutcome, ordinaryCaseInventory, persistFailureDiagnostics } from './native-media-context-probe.mjs'
 
 const root = new URL('../../', import.meta.url)
 const ordinarySource = await readFile(new URL('tests/browser/run.mjs', root), 'utf8')
@@ -156,4 +156,21 @@ test('the shell retains ordinary success as a prerequisite without running physi
     assert.equal(passed.status, 0)
     assert.equal(passed.stdout, 'ORDINARY_PASSED\n' + ORDINARY_COMPLETE + '\nPHYSICAL_EXECUTED\n')
   } finally { await rm(directory, { recursive: true, force: true }) }
+})
+
+test('fixture delivery delta preserves all original actions and state reads and rejects ambiguous anchors', () => {
+  const original = "import { test, assert, equal, pause, run } from './harness.js'\n"
+    + "video.focus(); await dispatchKey(' ', 'Space', 32); await pause(100)\n"
+    + "try { assert(originalCondition, originalMessage) } catch (error) {\n"
+    + "          error.message += '\\nPlayback state after failure: ' + JSON.stringify({\n"
+    + '            trusted, paused: video.paused, frameRect: frame.getBoundingClientRect().toJSON(),\n'
+    + '          })\n        } catch (diagnosticError) {\n'
+    + "          error.message += '\\nPlayback state collection failed: ' + String(diagnosticError)\n"
+    + 'throw error }\nretire(); await pause(50)\n'
+  const result = persistFailureDiagnostics(original)
+  for (const line of original.split('\n').filter(line => /video\.focus|trusted,|throw error|retire\(/.test(line))) assert(result.includes(line))
+  assert(result.includes("appendFailureDiagnostic(error, 'Playback state after failure: ' + JSON.stringify({"))
+  assert(result.includes("appendFailureDiagnostic(error, 'Playback state collection failed: ' + String(diagnosticError))"))
+  assert.throws(() => persistFailureDiagnostics(result))
+  assert.throws(() => persistFailureDiagnostics(original.replace('error.message +=', 'other.message +=')))
 })

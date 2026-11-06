@@ -11,6 +11,7 @@ const BASE = '68575c89a8c9dadf5a651840e8a7695d5917c591'
 const BROWSER = '156.0.8078.79'
 const RUNNER = 'tests/browser/physical-history.mjs'
 const FIXTURE = 'tests/browser/regressions/html-content-native.js'
+const FAILURE_HELPER = 'tests/browser/regressions/failure-diagnostics.js'
 const PAGE = 'native-html-content.html'
 const ORDER = ['introduction', 'native-text-input.html', 'native-attaches-downloads.html', PAGE]
 const HISTORY = ['native typing', 'structural Enter split', 'insert', 'move', 'convert', 'remove', 'clear', 'render', 'toolbar insert', 'keyboard undo/redo', 'read-only transition', 'pointer drag session', 'read-only host authority', 'direct/inverse transaction events']
@@ -45,6 +46,18 @@ export function mediaContextOutcome(attempts, sameRuntime) {
 function replaceOnce(source, anchor, replacement) {
   assert.equal(source.split(anchor).length, 2, 'Media prefix overlay anchor changed or is ambiguous')
   return source.replace(anchor, replacement)
+}
+
+// Permit exactly the reviewed diagnostic delivery correction relative to685.
+// All fixture actions, assertions, state reads and cleanup remain unchanged.
+export function persistFailureDiagnostics(original) {
+  let source = replaceOnce(original, "import { test, assert, equal, pause, run } from './harness.js'\n",
+    "import { test, assert, equal, pause, run } from './harness.js'\nimport { appendFailureDiagnostic } from './failure-diagnostics.js'\n")
+  source = replaceOnce(source, "error.message += '\\nPlayback state after failure: ' + JSON.stringify({",
+    "appendFailureDiagnostic(error, 'Playback state after failure: ' + JSON.stringify({")
+  source = replaceOnce(source, '          })\n        } catch (diagnosticError) {', '          }))\n        } catch (diagnosticError) {')
+  return replaceOnce(source, "error.message += '\\nPlayback state collection failed: ' + String(diagnosticError)",
+    "appendFailureDiagnostic(error, 'Playback state collection failed: ' + String(diagnosticError))")
 }
 
 // Registration only: callbacks are never invoked, imports are not executed, and
@@ -157,12 +170,13 @@ async function main() {
   assert(process.env.EDITOR_RESULTS_DIR && process.env.EDITOR_CHROME_PATH, 'Set a fresh EDITOR_RESULTS_DIR and the runner browser path')
   const output = resolve(process.env.EDITOR_RESULTS_DIR, 'native-media-context')
   await mkdir(output, { recursive: true })
-  const report = { kind: 'Fixed four ordinary-to-physical-prefix media contexts', startedAt: new Date().toISOString(), productionBase: BASE,
+  const report = { kind: 'Fixed four contexts with persistent failure diagnostics', startedAt: new Date().toISOString(), productionBase: BASE,
+    diagnosticVersion: 'preserved-error-stack-v1', previousDiagnosticHead: '7dddbff2ee1e01b48e3a3ab3502f5f6dfe4d468f',
     plannedOrder: MEDIA_CONTEXT_LABELS, plannedAttemptCount: MEDIA_CONTEXT_LABELS.length,
     prefixOrder: ORDER, expectedMediaCases: MEDIA_CASES, attempts: [], perAttemptTimeoutMs: PER_ATTEMPT_TIMEOUT_MS,
     retries: 0, stopOnGreen: false, originalPlaybackPauseMs: 100, postVerdictObservationMs: 0, observedFailureBrowser: BROWSER,
     pass: false, releaseAccepted: false,
-    qualification: 'Exactly four planned ordinary-to-physical pairs execute in fixed order, including after a product failure. Each pair preserves the maintained ordinary shell-success dependency, independent maintained browser profiles, all 69 ordinary visits and all physical pages through HTML28. Only the copied physical runner tail is omitted after HTML. The original fixture and its failure-only observer remain unchanged: no diagnostic listener, extra DOM evaluation, geometry read or wait is added before the original video verdict. A host-only printf completion marker separates the two maintained commands. This finite context diagnostic cannot establish release acceptance; no failure is replaced by another attempt.' }
+    qualification: 'Exactly four planned ordinary-to-physical pairs execute in fixed order, including after a product failure. Each pair preserves the maintained ordinary shell-success dependency, independent maintained browser profiles, all 69 ordinary visits and all physical pages through HTML28. Only the copied physical runner tail is omitted after HTML. The probe fixture is not byte-identical to685: it imports a pure test helper and uses that helper only after an actual failed assertion, preserving the same Error and original stack while appending evidence to the serialized stack. The existing failure-state reads, native actions, assertion and cleanup are unchanged. No diagnostic listener, extra DOM evaluation, geometry read or wait is added before the original video verdict. A host-only printf completion marker separates the two maintained commands. This is a new finite diagnostic protocol after the observed message/stack transport failure; no failure is replaced by another attempt and diagnostic success cannot establish release acceptance.' }
   await writeJson(join(output, 'plan.json'), report)
   const environment = { ...process.env }
   for (const key of ['EDITOR_NATIVE_PAGE', 'EDITOR_NATIVE_FILTER', 'EDITOR_BROWSER_PAGE', 'EDITOR_BROWSER_ROOT', 'EDITOR_VITE_PATH', 'EDITOR_CHROME_HEADLESS']) delete environment[key]
@@ -175,9 +189,10 @@ async function main() {
     assert.equal(before.head, process.env.GITHUB_SHA)
     assert.equal(before.diffSha256, sha256(''), 'Require a committed candidate')
     assert.equal(git(root, 'ls-files', '--others', '--exclude-standard').toString().trim(), '')
-    const allowed = ['.github/workflows/rector-v2-audit.yml', 'scripts/audit/native-media-context-probe.mjs', 'scripts/audit/native-media-context-probe.test.mjs']
+    const allowed = ['.github/workflows/rector-v2-audit.yml', 'scripts/audit/native-media-context-probe.mjs',
+      'scripts/audit/native-media-context-probe.test.mjs', 'scripts/audit/native-media-diagnostic.test.mjs', FIXTURE, FAILURE_HELPER]
     const changed = git(root, 'diff', '--name-only', BASE, before.head).toString().trim().split('\n')
-    assert.deepEqual(changed.sort(), allowed.sort(), 'Probe branch must change only its three automation files')
+    assert.deepEqual(changed.sort(), allowed.sort(), 'Probe branch must change only its six reviewed test/automation paths')
     report.sourceBefore = before
     report.expectedPrefixCases = await loadPrefixCases(root)
     report.expectedPrefixCases.ordinary = ordinaryCaseInventory(await readFile(join(root, 'tests/browser/run.mjs'), 'utf8'))
@@ -193,8 +208,17 @@ async function main() {
     const originalRunner = await readFile(join(root, RUNNER), 'utf8')
     const runner = buildPrefixRunner(originalRunner)
     const originalFixture = await readFile(join(root, FIXTURE), 'utf8')
+    const baselineFixture = git(root, 'show', BASE + ':' + FIXTURE).toString()
+    assert.equal(originalFixture, persistFailureDiagnostics(baselineFixture), 'Unreviewed fixture actions or assertion changes')
     report.fixtureSha256 = sha256(originalFixture)
-    report.fixtureUnchanged = true
+    report.fixtureUnchangedFromProbeHead = true
+    report.fixtureByteIdenticalToProductionBase = false
+    report.fixtureDiagnosticDelta = { baselineSha256: sha256(baselineFixture), probeSha256: sha256(originalFixture),
+      helperPath: FAILURE_HELPER, helperSha256: await hashFile(join(root, FAILURE_HELPER)),
+      onlyPureImportAndPostVerdictDeliveryChanged: true }
+    const diagnosticDelta = git(root, 'diff', '--binary', BASE, before.head, '--', FIXTURE, FAILURE_HELPER)
+    report.fixtureDiagnosticDelta.diffSha256 = sha256(diagnosticDelta)
+    await writeFile(join(output, 'fixture-diagnostic-change.diff'), diagnosticDelta, { flag: 'wx' })
     const attempt = async label => {
       const directory = join(output, label), checkout = join(temporary, label)
       await mkdir(directory)

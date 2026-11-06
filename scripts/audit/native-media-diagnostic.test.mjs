@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { runInNewContext } from 'node:vm'
+import { appendFailureDiagnostic } from '../../tests/browser/regressions/failure-diagnostics.js'
 import { MEDIA_CASES, classifyMediaPage, mediaOutcome, instrumentMediaFixture, installPlaybackDiagnostics } from './native-media-diagnostic.mjs'
 
 const rows = () => MEDIA_CASES.map(name => ({ name, status: 'PASS' }))
@@ -84,4 +85,86 @@ test('read-only probe preserves capture and post-dispatch key cancellation evide
   assert.equal(final.childActive.tag, 'VIDEO')
   assert.equal(final.visibility, 'visible')
   probe.dispose()
+})
+
+// Exercise the maintained fixture's verdict catch and the maintained harness's
+// serializer. This is a diagnostic transport control, not a browser playback test.
+async function runFailureDiagnosticControl({ passed = false, collectionFails = false } = {}) {
+  const harness = await readFile(new URL('../../tests/browser/regressions/harness.js', import.meta.url), 'utf8')
+  const fixture = await readFile(new URL('../../tests/browser/regressions/html-content-native.js', import.meta.url), 'utf8')
+  const result = { textContent: '' }, document = { body: { dataset: {} }, querySelector: selector => {
+    assert.equal(selector, '#result'); return result
+  } }
+  const window = new EventTarget()
+  const api = runInNewContext(harness.replace(/^import .*$/gm, '').replace(/^export /gm, '') + '\n;({test, assert, run})', {
+    window, document, URL, location: { href: 'http://localhost/diagnostic-transport' }, setTimeout, clearTimeout,
+  }, { filename: 'maintained-harness.js' })
+  const start = "      try {\n        assert(trusted && !video.paused && video.played.length > 0, 'Native controls did not start actual playback')"
+  const end = '      retire(); await pause(50)'
+  assert.equal(fixture.split(start).length, 2)
+  assert.equal(fixture.split(end).length, 2)
+  const verdictCode = fixture.slice(fixture.indexOf(start), fixture.indexOf(end))
+  let originalError, originalStack, diagnosticReads = 0
+  const cause = new Error('retained original cause')
+  const rect = { toJSON: () => ({ x: 0, y: 0, width: 320, height: 180 }) }
+  const video = { paused: !passed, played: { length: passed ? 1 : 0, start: () => 0, end: () => 0.12 },
+    get currentTime() { diagnosticReads++; return 0 }, duration: 0.2, readyState: 4,
+    networkState: 1, ended: false, seeking: false, error: null, isConnected: true,
+    getBoundingClientRect() { diagnosticReads++; if (collectionFails) throw new Error('geometry observation unavailable'); return rect } }
+  const child = { activeElement: { tagName: 'VIDEO' }, hasFocus() { diagnosticReads++; return true }, visibilityState: 'visible' }
+  const frame = { contentDocument: child, isConnected: true, getBoundingClientRect: () => rect }
+  const parentDocument = { activeElement: { tagName: 'IFRAME' }, hasFocus: () => true, visibilityState: 'visible' }
+  const executeVerdict = runInNewContext('(function() {\n' + verdictCode + '\n})', {
+    trusted: true, video, child, frame, document: parentDocument, appendFailureDiagnostic,
+    assert(value, message) {
+      try { api.assert(value, message) } catch (error) {
+        originalError = error; error.cause = cause
+        originalStack = error.stack // Deliberately materialize the original stack before the fixture catches it.
+        throw error
+      }
+    },
+  }, { filename: 'maintained-media-verdict.js' })
+  let caught
+  api.test('diagnostic transport control', () => {
+    try { executeVerdict() } catch (error) { caught = error; throw error }
+  })
+  await api.run()
+  return { rows: JSON.parse(result.textContent), status: document.body.dataset.status,
+    originalError, originalStack, cause, caught, diagnosticReads }
+}
+
+test('cached assertion stack delivers post-failure JSON through the actual harness serializer', async () => {
+  const result = await runFailureDiagnosticControl()
+  assert.equal(result.status, 'fail')
+  assert.equal(result.rows[0].status, 'FAIL')
+  assert.equal(result.caught, result.originalError)
+  assert.equal(result.caught.cause, result.cause)
+  assert(result.rows[0].error.startsWith(result.originalStack + '\n'))
+  assert.equal(result.rows[0].error, result.originalError.stack)
+  const marker = '\nPlayback state after failure: '
+  assert.equal(result.rows[0].error.split(marker).length, 2)
+  const state = JSON.parse(result.rows[0].error.split(marker)[1])
+  assert.equal(state.trusted, true)
+  assert.equal(state.paused, true)
+  assert.deepEqual(state.played, [])
+  assert(result.diagnosticReads > 0)
+})
+
+test('failure-state collection errors preserve the original Error and survive the same serializer', async () => {
+  const result = await runFailureDiagnosticControl({ collectionFails: true })
+  assert.equal(result.rows[0].status, 'FAIL')
+  assert.equal(result.caught, result.originalError)
+  assert.equal(result.caught.cause, result.cause)
+  assert(result.rows[0].error.startsWith(result.originalStack + '\n'))
+  assert.equal(result.rows[0].error, result.originalError.stack)
+  assert.match(result.rows[0].error, /Playback state collection failed: Error: geometry observation unavailable/)
+  assert.doesNotMatch(result.rows[0].error, /Playback state after failure:/)
+})
+
+test('successful original media verdict performs no diagnostic state reads', async () => {
+  const result = await runFailureDiagnosticControl({ passed: true, collectionFails: true })
+  assert.equal(result.status, 'pass')
+  assert.deepEqual(result.rows, [{ name: 'diagnostic transport control', status: 'PASS' }])
+  assert.equal(result.originalError, undefined)
+  assert.equal(result.diagnosticReads, 0)
 })
