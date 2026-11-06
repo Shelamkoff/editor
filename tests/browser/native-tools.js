@@ -2609,6 +2609,8 @@ test('an orphan inline sidecar cannot be revived by newly typed literal text', (
 
 for (const action of ['Enter', 'Apply']) test(`native retained FontSize ${action} cannot command a successor mount of the same tool`, async () => {
   const tool = createFontSizeTool('Font size'), mounts = [], events = []
+  const diagnostics = { action, events, invocations: [] }
+  ;(window.__fontSizeRetainedDiagnostics ??= []).push(diagnostics)
   let port = null
   const wrapped = { ...tool,
     bindSelectionPort(next) { port = next; tool.bindSelectionPort(next) },
@@ -2617,7 +2619,11 @@ for (const action of ['Enter', 'Apply']) test(`native retained FontSize ${action
       const dropdown = button.closest('.oe-inline-toolbar').querySelector('.oe-font-size-dropdown')
       const input = dropdown.querySelector('input'), apply = dropdown.querySelector('.oe-font-size-apply'), generation = mounts.length
       for (const [element, type] of [[input, 'keydown'], [apply, 'click']]) element.addEventListener(type, event => {
-        events.push({ generation, type, key: event.key, trusted: event.isTrusted })
+        events.push({ generation, type, key: event.key, trusted: event.isTrusted,
+          targetIsExpectedControl: event.target === element, defaultPrevented: event.defaultPrevented,
+          activeIsOldInput: document.activeElement === mounts[0]?.input,
+          activeIsCurrentInput: document.activeElement === mounts[1]?.input,
+          oldValue: mounts[0]?.input.value, currentValue: mounts[1]?.input.value })
       })
       mounts.push({ button, dropdown, input, apply })
       return result
@@ -2654,20 +2660,52 @@ for (const action of ['Enter', 'Apply']) test(`native retained FontSize ${action
   equal(current.input.value, '28'); equal(old.input.value, '72')
   assert(old.input.isConnected && old.apply.isConnected && current.dropdown.contains(old.input))
   equal([editor.canUndo, editor.canRedo, tool.isDropdownOpen()], [false, false, true])
+  diagnostics.before = { blocks: before, selection: beforeSelection, canUndo: editor.canUndo,
+    canRedo: editor.canRedo, open: tool.isDropdownOpen() }
+  const focusState = () => ({ activeIsOldInput: document.activeElement === old.input,
+    activeIsCurrentInput: document.activeElement === current.input,
+    activeElement: document.activeElement?.tagName ?? null,
+    oldValue: old.input.value, currentValue: current.input.value })
   const invoke = async mount => {
-    if (action === 'Enter') { await clickNative(mount.input); await dispatchKey('Enter', 'Enter', 13) }
+    if (action === 'Enter') {
+      const invocation = { generation: mounts.indexOf(mount), beforeClick: focusState() }
+      diagnostics.invocations.push(invocation)
+      let mouseDown = null
+      const capture = event => { mouseDown = event }
+      document.addEventListener('mousedown', capture, { capture: true, once: true })
+      try { await clickNative(mount.input) }
+      finally {
+        document.removeEventListener('mousedown', capture, true)
+        invocation.afterClick = { ...focusState(), mouseDown: mouseDown ? {
+          trusted: mouseDown.isTrusted, targetIsExpectedInput: mouseDown.target === mount.input,
+          targetIsOldInput: mouseDown.target === old.input, targetIsCurrentInput: mouseDown.target === current.input,
+          defaultPrevented: mouseDown.defaultPrevented,
+        } : null }
+      }
+      // The current dropdown cancels pointer focus for adopted predecessor inputs.
+      // Arrange the intended keyboard target; the command remains trusted native Enter.
+      mount.input.focus()
+      invocation.afterFocus = focusState()
+      equal(document.activeElement, mount.input, 'The intended FontSize input did not receive focus before native Enter')
+      await dispatchKey('Enter', 'Enter', 13)
+      invocation.afterEnter = focusState()
+    }
     else await clickNative(mount.apply)
   }
   await invoke(old)
   const received = generation => events.some(event => event.generation === generation && event.trusted
     && (action === 'Enter' ? event.type === 'keydown' && event.key === 'Enter' : event.type === 'click'))
   assert(received(0), 'The retained control did not receive its trusted native event')
-  equal(editor.save().blocks, before, 'The retained control mutated the successor document')
+  const retainedBlocks = editor.save().blocks
+  diagnostics.afterRetained = { blocks: retainedBlocks, selection: selection(), canUndo: editor.canUndo,
+    canRedo: editor.canRedo, open: tool.isDropdownOpen() }
+  equal(retainedBlocks, before, 'The retained control mutated the successor document')
   equal([editor.canUndo, editor.canRedo, tool.isDropdownOpen()], [false, false, true])
   equal(selection(), beforeSelection, 'The retained control replaced the current selection')
   await invoke(current)
   assert(received(1), 'The current control did not receive its trusted native event')
   const after = editor.save().blocks
+  diagnostics.afterCurrent = { blocks: after, canUndo: editor.canUndo, canRedo: editor.canRedo, open: tool.isDropdownOpen() }
   equal(after[0].data.text, '<span style="font-size: 28px;">Bravo</span> Omega')
   equal([editor.canUndo, editor.canRedo, tool.isDropdownOpen()], [true, false, false])
   editor.undo(); equal(editor.save().blocks, before); equal(editor.canUndo, false, 'Current FontSize was not one history entry')

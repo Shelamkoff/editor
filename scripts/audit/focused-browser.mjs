@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { captureNavigationDependencies, verifyNavigationDependencies } from '../parity/git-navigation-roots.mjs'
 import { git, hashFile, recordCommand, sha256, sourceIdentity, writeJson } from './browser-audit-support.mjs'
 import { FULL_CLIPBOARD_CASES, FONT_SIZE_RETAINED_CASES, STANDARD_CLIPBOARD_CASES,
-  verifyClipboardRed, verifyNativeGreen, verifyNavigationGreen } from './focused-browser-results.mjs'
+  verifyClipboardRed, verifyFontSizeRetainedRed, verifyNativeGreen, verifyNavigationGreen } from './focused-browser-results.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 assert(process.env.EDITOR_RESULTS_DIR, 'Set EDITOR_RESULTS_DIR to a fresh results directory')
@@ -14,8 +14,9 @@ const output = resolve(process.env.EDITOR_RESULTS_DIR, 'focused-browser')
 await mkdir(output, { recursive: true })
 const baselineCommit = 'acabb24dc90fb98f2c38c2bc34069b043f4ba4fe'
 const clipboardPath = 'core/ClipboardController.js'
-const order = ['navigation-151', 'clipboard-red', 'clipboard-green', 'font-size-retained-green']
-const report = { kind: 'Maintained native browser verification with one controlled F01 counterfactual',
+const fontSizePath = 'inline-tools/fontSize.js'
+const order = ['navigation-151', 'clipboard-red', 'clipboard-green', 'font-size-retained-red', 'font-size-retained-green']
+const report = { kind: 'Maintained native browser verification with isolated F01 and F07 counterfactuals',
   startedAt: new Date().toISOString(), plannedOrder: order, retries: 0, baselineCommit,
   localEnvironmentLimitation: 'Local Chromium151 startup could not create its ProcessSingleton socket; no local browser assertions executed.',
   steps: Object.fromEntries(order.map(name => [name, { outcome: 'NOT_RUN' }])), pass: false }
@@ -23,9 +24,11 @@ await writeJson(join(output, 'plan.json'), { ...report,
   navigation: { comparisons: 72, contexts: 84, internalOutcomeDeadlineMs: 5000, filters: null },
   clipboardRed: { cases: STANDARD_CLIPBOARD_CASES, overlay: clipboardPath, description: 'Current candidate checkout with only the baseline ClipboardController restored' },
   clipboardGreen: { cases: FULL_CLIPBOARD_CASES, filters: null },
+  fontSizeRed: { cases: FONT_SIZE_RETAINED_CASES, overlay: fontSizePath, description: 'Current candidate checkout with only the baseline FontSize restored' },
   fontSizeGreen: { cases: FONT_SIZE_RETAINED_CASES },
 })
-let sourceBefore, dependencyBefore, runtime, baseline, baselineParent
+let sourceBefore, dependencyBefore, runtime
+const counterfactuals = []
 const baseEnvironment = { ...process.env }
 for (const name of ['EDITOR_NATIVE_FILTER', 'EDITOR_NATIVE_PAGE', 'EDITOR_BROWSER_PAGE', 'EDITOR_BROWSER_ROOT']) delete baseEnvironment[name]
 
@@ -63,6 +66,39 @@ async function attempt(name, cwd, env, command, classify, expectedSource) {
   }
 }
 
+async function counterfactual(name, productPath, artifactName, reportKey, env, classify) {
+  try {
+    const parent = await mkdtemp(join(process.env.RUNNER_TEMP ?? tmpdir(), `rector-${name}-`))
+    const owned = { parent, checkout: null }
+    counterfactuals.push(owned)
+    const checkout = join(parent, 'checkout')
+    git(root, 'worktree', 'add', '--detach', checkout, sourceBefore.head)
+    owned.checkout = checkout
+    const oldProduct = git(root, 'show', `${baselineCommit}:${productPath}`)
+    assert.notEqual(sha256(oldProduct), sourceBefore.files[productPath], 'Counterfactual has no product delta')
+    await writeFile(join(checkout, productPath), oldProduct)
+    await writeFile(join(output, `baseline-${productPath.split('/').at(-1)}`), oldProduct, { flag: 'wx' })
+    await symlink(join(root, 'node_modules'), join(checkout, 'node_modules'), 'dir')
+    const baselineSource = await sourceIdentity(checkout)
+    assert.deepEqual(Object.keys(baselineSource.files), Object.keys(sourceBefore.files))
+    for (const [path, hash] of Object.entries(sourceBefore.files)) {
+      assert.equal(baselineSource.files[path], path === productPath ? sha256(oldProduct) : hash,
+        `Unexpected counterfactual difference: ${path}`)
+    }
+    const metadata = { baselineCommit, candidateHead: sourceBefore.head, onlyChangedPath: productPath,
+      baselineBlob: git(root, 'rev-parse', `${baselineCommit}:${productPath}`).toString().trim(),
+      baselineSha256: sha256(oldProduct), candidateSha256: sourceBefore.files[productPath],
+      dependencies: 'The same installed node_modules tree is shared by both worktrees', source: baselineSource }
+    report[reportKey] = metadata
+    await writeJson(join(output, `${artifactName}.json`), metadata)
+    await attempt(name, checkout, env, [process.execPath, 'tests/browser/physical-history.mjs'], classify, baselineSource)
+  } catch (error) {
+    if (error.interrupted) throw error
+    report.steps[name] = { outcome: 'FAIL', error: String(error.stack ?? error), classification: 'COUNTERFACTUAL_SETUP_FAILED' }
+    await writeJson(join(output, `${artifactName}-failure.json`), report.steps[name])
+  }
+}
+
 try {
   runtime = JSON.parse(await readFile(process.env.EDITOR_AUDIT_RUNTIME_RECEIPT, 'utf8'))
   assert.equal(runtime.pass, true)
@@ -81,37 +117,14 @@ try {
   await attempt('navigation-151', root, {}, [process.execPath, 'scripts/parity/html-content-navigation.mjs'],
     run => verifyNavigationGreen(run, sourceBefore.head), sourceBefore)
 
-  try {
-    baselineParent = await mkdtemp(join(process.env.RUNNER_TEMP ?? tmpdir(), 'rector-f01-counterfactual-'))
-    baseline = join(baselineParent, 'checkout')
-    git(root, 'worktree', 'add', '--detach', baseline, sourceBefore.head)
-    const oldController = git(root, 'show', `${baselineCommit}:${clipboardPath}`)
-    assert.notEqual(sha256(oldController), sourceBefore.files[clipboardPath], 'Counterfactual has no product delta')
-    await writeFile(join(baseline, clipboardPath), oldController)
-    await writeFile(join(output, 'baseline-ClipboardController.js'), oldController, { flag: 'wx' })
-    await symlink(join(root, 'node_modules'), join(baseline, 'node_modules'), 'dir')
-    const baselineSource = await sourceIdentity(baseline)
-    assert.deepEqual(Object.keys(baselineSource.files), Object.keys(sourceBefore.files))
-    for (const [path, hash] of Object.entries(sourceBefore.files)) {
-      assert.equal(baselineSource.files[path], path === clipboardPath ? sha256(oldController) : hash,
-        `Unexpected counterfactual difference: ${path}`)
-    }
-    report.counterfactual = { baselineCommit, candidateHead: sourceBefore.head, onlyChangedPath: clipboardPath,
-      baselineBlob: git(root, 'rev-parse', `${baselineCommit}:${clipboardPath}`).toString().trim(),
-      baselineSha256: sha256(oldController), candidateSha256: sourceBefore.files[clipboardPath],
-      dependencies: 'The same installed node_modules tree is shared by both worktrees', source: baselineSource }
-    await writeJson(join(output, 'counterfactual.json'), report.counterfactual)
-    await attempt('clipboard-red', baseline, { EDITOR_NATIVE_PAGE: 'native-clipboard.html', EDITOR_NATIVE_FILTER: 'external standard clipboard' },
-      [process.execPath, 'tests/browser/physical-history.mjs'], verifyClipboardRed, baselineSource)
-  } catch (error) {
-    if (error.interrupted) throw error
-    report.steps['clipboard-red'] = { outcome: 'FAIL', error: String(error.stack ?? error), classification: 'COUNTERFACTUAL_SETUP_FAILED' }
-    await writeJson(join(output, 'counterfactual-failure.json'), report.steps['clipboard-red'])
-  }
+  await counterfactual('clipboard-red', clipboardPath, 'counterfactual', 'counterfactual',
+    { EDITOR_NATIVE_PAGE: 'native-clipboard.html', EDITOR_NATIVE_FILTER: 'external standard clipboard' }, verifyClipboardRed)
 
   await attempt('clipboard-green', root, { EDITOR_NATIVE_PAGE: 'native-clipboard.html' },
     [process.execPath, 'tests/browser/physical-history.mjs'],
     run => verifyNativeGreen(run, 'native-clipboard.html', FULL_CLIPBOARD_CASES), sourceBefore)
+  await counterfactual('font-size-retained-red', fontSizePath, 'font-size-counterfactual', 'fontSizeCounterfactual',
+    { EDITOR_NATIVE_PAGE: 'native-tools.html', EDITOR_NATIVE_FILTER: 'native retained FontSize ' }, verifyFontSizeRetainedRed)
   await attempt('font-size-retained-green', root, { EDITOR_NATIVE_PAGE: 'native-tools.html', EDITOR_NATIVE_FILTER: 'native retained FontSize ' },
     [process.execPath, 'tests/browser/physical-history.mjs'],
     run => verifyNativeGreen(run, 'native-tools.html', FONT_SIZE_RETAINED_CASES), sourceBefore)
@@ -127,11 +140,15 @@ try {
 } catch (error) {
   report.error = String(error.stack ?? error)
 } finally {
-  if (baseline) {
-    try { git(root, 'worktree', 'remove', '--force', baseline) }
-    catch (error) { report.pass = false; report.cleanupError = String(error.stack ?? error) }
+  for (const owned of counterfactuals) {
+    try {
+      if (owned.checkout) git(root, 'worktree', 'remove', '--force', owned.checkout)
+      await rm(owned.parent, { recursive: true, force: true })
+    } catch (error) {
+      report.pass = false
+      ;(report.cleanupErrors ??= []).push(String(error.stack ?? error))
+    }
   }
-  if (baselineParent && !report.cleanupError) await rm(baselineParent, { recursive: true, force: true })
   report.finishedAt = new Date().toISOString()
   await writeJson(join(output, 'result.json'), report)
 }

@@ -77,7 +77,11 @@ export const FULL_CLIPBOARD_CASES = Object.freeze([
   "external standard clipboard preserves a visible inert atomic label",
   "external standard clipboard preserves a visible aria-hidden atomic label",
   "external standard clipboard preserves a visible multiline atomic label",
-  "external standard clipboard preserves a visible locked-label atomic label"
+  "external standard clipboard preserves a visible locked-label atomic label",
+  "custom widget clipboard copy excludes display:none descendants",
+  "custom widget clipboard cut excludes display:none descendants",
+  "custom widget clipboard copy excludes visibility:hidden text while preserving visible descendants",
+  "custom widget clipboard cut excludes visibility:hidden text while preserving visible descendants"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([
@@ -121,6 +125,8 @@ export function verifyClipboardRed(run) {
   const marker = 'Error: History matrix failed: '
   const position = run.stderr.indexOf(marker)
   assert(position >= 0, 'Expected RED did not produce completed native assertion results')
+  assert.equal(run.stderr.indexOf(marker, position + marker.length), -1,
+    'Expected RED must contain exactly one completed native assertion report')
   const rows = leadingJsonArray(run.stderr.slice(position + marker.length))
   completeCases(rows, STANDARD_CLIPBOARD_CASES)
   const failed = rows.filter(row => row.status === 'FAIL')
@@ -132,6 +138,21 @@ export function verifyClipboardRed(run) {
       `The baseline did not reproduce the known ${name} defect`)
   }
   return { outcome: 'EXPECTED_PRODUCT_FAILURE', total: rows.length, failed: failed.length, rows }
+}
+
+export function verifyFontSizeRetainedRed(run) {
+  completed(run, 1)
+  const marker = 'Error: History matrix failed: '
+  const position = run.stderr.indexOf(marker)
+  assert(position >= 0, 'Expected RED did not produce completed native assertion results')
+  assert.equal(run.stderr.indexOf(marker, position + marker.length), -1,
+    'Expected RED must contain exactly one completed native assertion report')
+  const rows = leadingJsonArray(run.stderr.slice(position + marker.length))
+  completeCases(rows, FONT_SIZE_RETAINED_CASES)
+  assert(rows.every(row => row.status === 'FAIL'
+    && /^Error: The retained control mutated the successor document(?:\n|$)/.test(row.error)),
+  'Both baseline actions must reproduce F07 successor mutation, not fixture/engine/environment failures')
+  return { outcome: 'EXPECTED_PRODUCT_FAILURE', total: rows.length, failed: rows.length, rows }
 }
 
 export function verifyNativeGreen(run, page, expectedNames) {

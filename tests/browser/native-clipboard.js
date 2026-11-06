@@ -4,7 +4,7 @@ import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { toTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
 import { createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
 import { getTextLength, restoreSelectionByOffsets } from '../../shared/textOffset.js'
-import { CLIPBOARD_FRAGMENT_MIME } from '../../core/ClipboardFragment.js'
+import { CLIPBOARD_FRAGMENT_MIME, CLIPBOARD_FRAGMENT_VERSION } from '../../core/ClipboardFragment.js'
 import { test, make, para, editableField, editorRoot, select, paste, assert, equal, texts, run } from './regressions/harness.js'
 import { dispatchKey, selectAcross, decodeInline } from './native-input-helpers.js'
 
@@ -369,5 +369,166 @@ for (const kind of ['inert', 'aria-hidden', 'multiline', 'locked-label']) test(`
   equal(editor.save().blocks, before)
   equal([editor.canUndo, editor.canRedo], [false, false])
 })
+
+function customCssClipboardWidget(kind) {
+  const color = createColorSwatchPlugin()
+  return Object.freeze({
+    ...color,
+    type: 'css-clipboard-label',
+    setup(runtimeContext) {
+      const runtime = color.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(id, initial, context) {
+          const instance = runtime.create(id, initial, context)
+          const doc = runtimeContext.ownerDocument
+          const hidden = doc.createElement('span')
+          hidden.className = 'clipboard-hidden-label'
+          hidden.textContent = 'INTERNAL'
+          if (kind === 'display:none') hidden.style.display = 'none'
+          else {
+            hidden.style.visibility = 'hidden'
+            // Visibility can be restored by a descendant; dropping the whole
+            // hidden ancestor would incorrectly discard this visible text.
+            const visible = doc.createElement('span')
+            visible.className = 'clipboard-visible-child'
+            visible.style.visibility = 'visible'
+            visible.textContent = 'VISIBLE'
+            hidden.append(visible)
+          }
+          const control = doc.createElement('button')
+          control.type = 'button'
+          control.textContent = 'CONTROL'
+          control.style.display = 'none'
+          instance.element.append(hidden, control)
+          return instance
+        },
+      }
+    },
+  })
+}
+
+async function captureNativeClipboard(element, operation) {
+  let observed = null
+  const capture = event => {
+    observed = { trusted: event.isTrusted, prevented: event.defaultPrevented,
+      text: event.clipboardData.getData('text/plain'), html: event.clipboardData.getData('text/html'),
+      fragment: event.clipboardData.getData(CLIPBOARD_FRAGMENT_MIME) }
+  }
+  const [key, code, keyCode] = operation === 'copy' ? ['c', 'KeyC', 67]
+    : operation === 'cut' ? ['x', 'KeyX', 88] : ['v', 'KeyV', 86]
+  element.addEventListener(operation, capture, { once: true })
+  try { await dispatchKey(key, code, keyCode, 2) }
+  finally { element.removeEventListener(operation, capture) }
+  assert(observed?.trusted, `The ${operation} control did not receive a trusted native clipboard event`)
+  return observed
+}
+
+function selectNativeHostContents(element) {
+  element.focus()
+  const range = element.ownerDocument.createRange()
+  range.selectNodeContents(element)
+  const selection = element.ownerDocument.defaultView.getSelection()
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+for (const kind of ['display:none', 'visibility:hidden']) for (const operation of ['copy', 'cut']) {
+  const description = kind === 'display:none' ? 'display:none descendants'
+    : 'visibility:hidden text while preserving visible descendants'
+  test(`custom widget clipboard ${operation} excludes ${description}`, async () => {
+    const expected = kind === 'display:none' ? 'A#ff0000B' : 'A#ff0000VISIBLEB'
+    const editor = make([para('source', 'A{{badge}}B', { inline: {
+      badge: { type: 'css-clipboard-label', dataVersion: 1, data: { value: '#ff0000' } },
+    } })], { inlinePlugins: [customCssClipboardWidget(kind)] })
+    const field = editableField(editor, 'source')
+    const before = editor.save().blocks
+    const control = document.createElement('div'), receiver = document.createElement('div')
+    for (const host of [control, receiver]) {
+      host.contentEditable = 'true'
+      host.style.cssText = 'display:block;min-height:24px;white-space:pre-wrap'
+      document.body.append(host)
+    }
+    control.append(...[...field.childNodes].map(node => node.cloneNode(true)))
+    const diagnostics = { kind, operation, expected }
+    try {
+      const state = host => {
+        const hidden = host.querySelector('.clipboard-hidden-label')
+        const visible = host.querySelector('.clipboard-visible-child')
+        return { visibleText: host.innerText, html: host.innerHTML,
+          connected: host.isConnected, width: host.getBoundingClientRect().width,
+          hidden: { display: getComputedStyle(hidden).display, visibility: getComputedStyle(hidden).visibility },
+          visibleChild: visible ? { visibility: getComputedStyle(visible).visibility, text: visible.textContent } : null,
+          controlDisplay: getComputedStyle(host.querySelector('button')).display }
+      }
+      diagnostics.source = state(field)
+      diagnostics.controlBefore = state(control)
+      for (const observed of [diagnostics.source, diagnostics.controlBefore]) {
+        assert(observed.connected && observed.width > 0, 'CSS clipboard visibility control is not rendered')
+        equal(observed.visibleText, expected, 'CSS clipboard source visibility setup differs from the intended label')
+        equal(observed.controlDisplay, 'none')
+        if (kind === 'display:none') equal(observed.hidden.display, 'none')
+        else {
+          equal(observed.hidden.visibility, 'hidden')
+          equal(observed.visibleChild, { visibility: 'visible', text: 'VISIBLE' })
+        }
+      }
+      selectNativeHostContents(control)
+      diagnostics.controlCopy = await captureNativeClipboard(control, operation)
+      assert(!diagnostics.controlCopy.prevented, 'The independent clipboard control was intercepted')
+      selectNativeHostContents(receiver)
+      diagnostics.controlPaste = await captureNativeClipboard(receiver, 'paste')
+      diagnostics.controlPastedHtml = receiver.innerHTML
+      diagnostics.controlPastedVisibleText = receiver.innerText
+      assert(!diagnostics.controlPaste.prevented, 'The independent native paste was intercepted')
+      equal(diagnostics.controlPaste.text, expected, 'Native browser clipboard control did not preserve the visible label')
+      equal(diagnostics.controlPastedVisibleText, expected, 'Native browser paste control changed visible text')
+      equal(diagnostics.controlPaste.fragment, '', 'The independent control acquired editor private MIME')
+      equal(editor.save().blocks, before, 'Independent clipboard control changed the source editor')
+      equal([editor.canUndo, editor.canRedo], [false, false])
+
+      receiver.replaceChildren()
+      field.focus()
+      equal(getTextLength(field), 3, 'The custom widget is not one atomic parent-field unit')
+      restoreSelectionByOffsets(field, 0, getTextLength(field))
+      diagnostics.copied = await captureNativeClipboard(editorRoot(editor), operation)
+      assert(diagnostics.copied.prevented, 'The editor did not own the native clipboard event')
+      equal(JSON.parse(diagnostics.copied.fragment), { version: CLIPBOARD_FRAGMENT_VERSION,
+        parts: [{ kind: 'rich-text', html: before[0].data.text, inline: before[0].inline }] },
+      'Custom widget clipboard changed the canonical private fragment')
+      selectNativeHostContents(receiver)
+      diagnostics.pasted = await captureNativeClipboard(receiver, 'paste')
+      diagnostics.pastedHtml = receiver.innerHTML
+      diagnostics.pastedVisibleText = receiver.innerText
+      assert(!diagnostics.pasted.prevented, 'The external native paste was intercepted')
+      equal(diagnostics.pasted.fragment, diagnostics.copied.fragment, 'Private MIME changed during native clipboard transport')
+      const after = editor.save().blocks
+      diagnostics.after = { blocks: after, canUndo: editor.canUndo, canRedo: editor.canRedo }
+      if (operation === 'copy') {
+        equal(after, before, 'Custom widget Copy changed canonical source data')
+        equal([editor.canUndo, editor.canRedo], [false, false])
+      } else {
+        equal(after.length, 1)
+        equal(after[0].data.text, '', 'Custom widget Cut left selected author text')
+        equal(Object.keys(after[0].inline ?? {}), [], 'Custom widget Cut retained selected inline data')
+        equal([editor.canUndo, editor.canRedo], [true, false])
+        editor.undo()
+        equal(editor.save().blocks, before, 'Custom widget Cut Undo changed the original payload')
+        equal(editor.canUndo, false, 'Custom widget Cut was not one history entry')
+        editor.redo()
+        equal(editor.save().blocks, after, 'Custom widget Cut Redo changed its canonical result')
+      }
+      // Inspect both the captured export and the real browser transport only
+      // after recording controls and validating the unchanged private contract.
+      equal(diagnostics.copied.text, expected, 'Custom widget standard text/plain exposed CSS-hidden text')
+      inspectStandardClipboard(diagnostics.copied.html, expected)
+      equal(diagnostics.pasted.text, expected, 'Custom widget native clipboard transport exposed CSS-hidden text')
+      equal(diagnostics.pastedVisibleText, expected, 'Custom widget external paste exposed CSS-hidden text')
+    } catch (error) {
+      diagnostics.failureStack = error?.stack ?? String(error)
+      throw new Error(`${error?.message ?? String(error)}\nCustom widget clipboard diagnostics: ${JSON.stringify(diagnostics)}`, { cause: error })
+    } finally { control.remove(); receiver.remove() }
+  })
+}
 
 await run()

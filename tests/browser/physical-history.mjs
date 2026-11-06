@@ -151,11 +151,17 @@ async function waitForHistoryMatrix(client) {
       status: document.body?.dataset.status ?? 'loading',
       summary: document.querySelector('#result')?.textContent ?? '',
       progress: window.__auditProgress ?? null,
+      fontSizeRetainedDiagnostics: window.__fontSizeRetainedDiagnostics ?? null,
     })`)
     latest = result
     if (Number.isSafeInteger(result.progress?.completed) && result.progress.completed > completed) {
       completed = result.progress.completed
       deadline = Date.now() + 120_000
+    }
+    if ((result.status === 'pass' || result.status === 'fail')
+        && result.fontSizeRetainedDiagnostics?.length && process.env.EDITOR_RESULTS_DIR) {
+      await writeFile(join(process.env.EDITOR_RESULTS_DIR, 'font-size-retained-diagnostics.json'),
+        JSON.stringify(result.fontSizeRetainedDiagnostics, null, 2) + '\n', { flag: 'wx' })
     }
     if (result.status === 'pass') {
       await waitForNativeInput()
