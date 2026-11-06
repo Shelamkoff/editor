@@ -91,7 +91,11 @@ export const FULL_CLIPBOARD_CASES = Object.freeze([
   "cross-field custom widget clipboard copy excludes visibility:hidden text while preserving visible descendants",
   "cross-field custom widget clipboard cut excludes visibility:hidden text while preserving visible descendants",
   "whole-block custom widget clipboard copy preserves a class-visible child in HTML-rich Paste",
-  "cross-field custom widget clipboard copy preserves a class-visible child in HTML-rich Paste"
+  "cross-field custom widget clipboard copy preserves a class-visible child in HTML-rich Paste",
+  "whole-block clipboard copy preserves authored line breaks in an external text field",
+  "whole-block clipboard cut preserves authored line breaks in an external text field",
+  "cross-field clipboard copy preserves authored line breaks in an external text field",
+  "cross-field clipboard cut preserves authored line breaks in an external text field"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([
