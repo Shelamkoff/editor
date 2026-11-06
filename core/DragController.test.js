@@ -93,9 +93,15 @@ class FakeEventTarget {
   }
 }
 
-function dragHarness(){
+function dragHarness({onMove=()=>{}}={}){
   const document=new FakeEventTarget()
   document.body=new FakeEventTarget()
+  document.activeElement=document.body
+  const focus=element=>{
+    if(document.activeElement===element)return
+    document.activeElement=element
+    document.dispatch('focusin',{target:element})
+  }
   document.defaultView={
     AbortController,
     setTimeout(){ return 1 },
@@ -156,6 +162,7 @@ function dragHarness(){
       ids.splice(from,1)
       ids.splice(to,0,id)
       revision++
+      onMove()
     },
   }
   const focusCalls=[]
@@ -164,10 +171,10 @@ function dragHarness(){
     element:id=>elements.get(id)??null,
     reconcileInteraction(){},
     setCurrent(id){this.currentId=id},
-    focus(id){focusCalls.push(id);return true},
+    focus(id){focusCalls.push(id);focus(elements.get(id));return true},
   }
   return {
-    document,handle,runtime,view,moves,
+    document,handle,runtime,view,moves,focus,
     ids:()=>[...ids],
     setRevision:value=>{revision=value},
     setGeneration:value=>{generation=value},
@@ -272,6 +279,63 @@ test('completed drag restores focus only while its own committed result remains 
     await Promise.resolve()
     assert.deepEqual(h.focusCalls(), change === 'none' ? ['A'] : [],
       change + ': a retired drag focus continuation took focus')
+    controller.destroy()
+  }
+})
+
+test('a completed drag preserves native focus acquired by its synchronous move observer', async () => {
+  const { DragController } = await import('./DragController.js')
+  const outside=new FakeEventTarget()
+  const h=dragHarness({onMove:()=>h.focus(outside)})
+  const controller=new DragController({runtime:h.runtime,view:h.view,handle:h.handle,threshold:2})
+  h.focus(h.handle)
+  h.handle.dispatch('pointerdown',pointerEvent(7,5))
+  h.document.dispatch('pointermove',pointerEvent(7,55,{x:10}))
+  h.document.dispatch('pointerup',pointerEvent(7,55,{x:10}))
+  assert.deepEqual(h.ids(),['B','C','A','D'],'focus takeover must not revoke the completed move')
+  assert.equal(h.document.activeElement,outside)
+  assert.equal(h.view.currentId,'A','native control focus does not need to change the current block')
+  await Promise.resolve()
+  assert.deepEqual(h.focusCalls(),[],'old drag continuation reclaimed external control focus')
+  assert.equal(h.document.activeElement,outside)
+  controller.destroy()
+})
+
+test('a completed drag preserves native focus acquired before its queued caret restoration', async () => {
+  const { DragController } = await import('./DragController.js')
+  const outside=new FakeEventTarget()
+  const h=dragHarness({onMove:()=>queueMicrotask(()=>h.focus(outside))})
+  const controller=new DragController({runtime:h.runtime,view:h.view,handle:h.handle,threshold:2})
+  h.focus(h.handle)
+  h.handle.dispatch('pointerdown',pointerEvent(7,5))
+  h.document.dispatch('pointermove',pointerEvent(7,55,{x:10}))
+  h.document.dispatch('pointerup',pointerEvent(7,55,{x:10}))
+  assert.deepEqual(h.ids(),['B','C','A','D'])
+  assert.equal(h.document.activeElement,h.handle,'observer handoff should still be queued')
+  await Promise.resolve()
+  assert.deepEqual(h.focusCalls(),[],'old drag continuation reclaimed a newer microtask focus owner')
+  assert.equal(h.document.activeElement,outside)
+  controller.destroy()
+})
+
+test('a completed drag restores its caret when projection loses focus without a new owner', async () => {
+  const { DragController } = await import('./DragController.js')
+  for(const projectionBlur of [false,true]){
+    const h=dragHarness({onMove:()=>{
+      // Moving a focused DOM subtree can reset activeElement to body without
+      // firing focusin. This is projection loss, not a new native focus owner.
+      if(projectionBlur)h.document.activeElement=h.document.body
+    }})
+    const controller=new DragController({runtime:h.runtime,view:h.view,handle:h.handle,threshold:2})
+    h.focus(projectionBlur?h.view.element('A'):h.handle)
+    h.handle.dispatch('pointerdown',pointerEvent(7,5))
+    h.document.dispatch('pointermove',pointerEvent(7,55,{x:10}))
+    h.document.dispatch('pointerup',pointerEvent(7,55,{x:10}))
+    assert.deepEqual(h.ids(),['B','C','A','D'])
+    assert.deepEqual(h.focusCalls(),[],'drag completion must defer its caret')
+    await Promise.resolve()
+    assert.deepEqual(h.focusCalls(),['A'],'an uninterrupted drag lost its caret restoration')
+    assert.equal(h.document.activeElement,h.view.element('A'))
     controller.destroy()
   }
 })

@@ -49,6 +49,8 @@ export class DragController {
   #destroyed=false
   #threshold
   #onPointerDown
+  #onFocusIn
+  #focusVersion=0
   #clickCleanup=null
 
   constructor({ runtime, view, handle, threshold = 5 }) {
@@ -145,6 +147,8 @@ export class DragController {
     }
 
     handle.addEventListener('pointerdown',this.#onPointerDown)
+    this.#onFocusIn=()=>{this.#focusVersion++}
+    this.#document.addEventListener('focusin',this.#onFocusIn,true)
   }
 
   setReadOnly(value){
@@ -155,6 +159,7 @@ export class DragController {
     if(this.#destroyed)return
     this.#destroyed=true
     this.#handle.removeEventListener('pointerdown',this.#onPointerDown)
+    this.#document.removeEventListener('focusin',this.#onFocusIn,true)
     this.#cancelSession()
     this.#clearClickSuppression()
   }
@@ -314,6 +319,10 @@ export class DragController {
     }
 
     if(currentIndex<0||targetIndex===currentIndex)return
+    // DOM reordering may blur a moved field without a new focus owner. Track
+    // actual focus acquisition so that loss can still receive the drag caret,
+    // while a commit observer's native control focus supersedes this gesture.
+    const focusVersion=this.#focusVersion
     this.#runtime.move(state.sourceId,targetIndex)
     // Publishing the completed move can synchronously invoke host callbacks
     // that destroy the editor or focus another block. Canonical commit stays
@@ -323,6 +332,7 @@ export class DragController {
       ||this.#runtime.modeEpoch!==state.modeEpoch
       ||!this.#runtime.has(state.sourceId)
       ||this.#view.element(state.sourceId)!==state.element
+      ||this.#focusVersion!==focusVersion
       ||this.#view.currentId!==state.sourceId)return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(state.sourceId)
@@ -338,6 +348,7 @@ export class DragController {
       if(this.#destroyed||this.#runtime.readOnly
         ||this.#runtime.generation!==generation||this.#runtime.revision!==revision
         ||this.#runtime.modeEpoch!==modeEpoch||!this.#runtime.has(sourceId)||mounted!==state.element
+        ||this.#focusVersion!==focusVersion
         ||this.#view.element(sourceId)!==mounted||this.#view.currentId!==sourceId)return
       this.#view.focus(sourceId)
     })
