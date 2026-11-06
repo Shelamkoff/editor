@@ -440,19 +440,19 @@
     "finishedAt": "2026-11-06T19:57:28.408Z"
   },
   "localVerification": {
-    "source": "aa13769d8092575910d5dcade1e71d8f7f49874b",
-    "tree": "d6db0d06e4114e52caad860a3d555fb585ab6c7c",
+    "source": "1218f66a7a826748aefbd06e615cca80e757606c",
+    "tree": "b1335b998bf044dc93f11789e6642f8769955672",
     "node": "v24.22.1",
-    "recordedAt": "2026-11-06T20:18:18.100586+00:00",
+    "recordedAt": "2026-11-06T20:49:43.506825+00:00",
     "unit": {
       "command": "npm test",
       "exitCode": 0,
-      "tests": 2557,
-      "passed": 2557,
+      "tests": 2564,
+      "passed": 2564,
       "failed": 0,
       "skipped": 0,
       "cancelled": 0,
-      "logSha256": "e1fbb585a20fc4ed525763e4d6ce90fa5a6ef58e88e73d30a23a55054f47f6a6",
+      "logSha256": "e0629f8c88f1141e7b4ae4d852af1a0f1d4529f73c2ed372472179f6def6c2db",
       "files": 218
     },
     "typecheck": {
@@ -476,66 +476,149 @@
         "readmes": 94,
         "examples": 53,
         "json": 44,
-        "links": 62
+        "links": 62,
+        "packageReadmeCopiesChecked": 92
       },
-      "logSha256": "35db255de31d2054fe0a97f58239d04d58cf14ec57f921b5d3f3ef258d6154e9"
+      "logSha256": "99627887bc7e4fa5b76afc7257e510737baebf48981bca23028f628609ed5c7b"
     },
     "documentationSite": {
-      "buildCommand": "npm run docs:build",
-      "smokeCommand": "node scripts/vitepress-docs-smoke.mjs",
-      "exitCodes": [
-        0,
-        0
+      "sourceCodeCommit": "1218f66a7a826748aefbd06e615cca80e757606c",
+      "recordedAt": "2026-11-06T20:57:46.788011+00:00",
+      "workingTreeScope": "Only the two audit Markdown files and audit evidence JSON differ from sourceCodeCommit; production code and tests match it.",
+      "commands": [
+        {
+          "command": "npm run docs:build",
+          "exitCode": 0,
+          "logSha256": "a202cd336c3ee804e8ccdb67d1d103072db2134677d14cc6c68d0b15b9ddc5f6"
+        },
+        {
+          "command": "node scripts/vitepress-docs-smoke.mjs",
+          "exitCode": 0,
+          "logSha256": "de14af9a1a2c9aa75066f601eb0c6e8355f91cafbe61b7f225754f0b132c80eb"
+        }
       ],
+      "readmes": 47,
       "htmlPages": 129,
       "brokenLinks": 0,
       "npmSiteLeak": false,
-      "buildLogSha256": "e8c731eb49adb77b09da9785961533c2d13eafac74507fb2c048f744c49063c3",
-      "smokeLogSha256": "de14af9a1a2c9aa75066f601eb0c6e8355f91cafbe61b7f225754f0b132c80eb"
+      "auditMarkdownSha256": {
+        "docs/architecture/rector-v2/AUDIT_2026-11-06.md": "45e4febebb6389d4b4f7b5712da46d89afe96038b36d128496939f8a62aff469",
+        "docs/ru/architecture/rector-v2/AUDIT_2026-11-06.md": "6ec99a612c1c0a949fcabd88fb57379720c4dc514a7ba0076ea666366080bf51"
+      },
+      "scope": "Built and prerendered documentation plus static site/link/package-boundary checks; not a local native-browser execution."
     }
   },
   "ciSnapshot": {
-    "current_time": "2026-11-06 20:21:05 UTC",
+    "current_time": "2026-11-06 20:56:01 UTC",
     "runs": [
       {
-        "id": 42285850097,
+        "id": 42290906651,
         "name": "Rector v2 comparative audit",
-        "head": "a9acbbcd19ad8967858af1b3ec0b29ae569726a3",
-        "status": "queued",
+        "head": "1218f66a7a826748aefbd06e615cca80e757606c",
+        "status": "in_progress",
         "conclusion": null,
-        "url": "https://github.com/Shelamkoff/editor/actions/runs/42285850097",
-        "updatedAt": "2026-11-06T20:09:01Z"
+        "url": "https://github.com/Shelamkoff/editor/actions/runs/42290906651",
+        "updatedAt": "2026-11-06T20:51:24Z"
       },
       {
-        "id": 42286005586,
-        "name": "Rector v2 comparative audit",
-        "head": "4173da862ce81b80dcce275dd34c1d4cea4f6915",
-        "status": "queued",
-        "conclusion": null,
-        "url": "https://github.com/Shelamkoff/editor/actions/runs/42286005586",
-        "updatedAt": "2026-11-06T20:10:05Z"
-      },
-      {
-        "id": 42286899181,
+        "id": 42290906616,
         "name": "Verify library",
-        "head": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+        "head": "1218f66a7a826748aefbd06e615cca80e757606c",
         "status": "queued",
         "conclusion": null,
-        "url": "https://github.com/Shelamkoff/editor/actions/runs/42286899181",
-        "updatedAt": "2026-11-06T20:16:12Z"
+        "url": "https://github.com/Shelamkoff/editor/actions/runs/42290906616",
+        "updatedAt": "2026-11-06T20:44:35Z"
+      }
+    ],
+    "jobsObservedNoLaterThan": "2026-11-06T20:55:07Z",
+    "jobs": [
+      {
+        "id": 128143764748,
+        "name": "node (20.19.0)",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
       },
       {
-        "id": 42286899179,
-        "name": "Rector v2 comparative audit",
-        "head": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+        "id": 128143764959,
+        "name": "size-report",
+        "runId": 42290906616,
         "status": "queued",
-        "conclusion": null,
-        "url": "https://github.com/Shelamkoff/editor/actions/runs/42286899179",
-        "updatedAt": "2026-11-06T20:16:12Z"
+        "conclusion": null
+      },
+      {
+        "id": 128143764973,
+        "name": "node (26)",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
+      },
+      {
+        "id": 128143765047,
+        "name": "docs",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
+      },
+      {
+        "id": 128143765115,
+        "name": "node (22)",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
+      },
+      {
+        "id": 128143765148,
+        "name": "browser",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
+      },
+      {
+        "id": 128143765184,
+        "name": "package",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
+      },
+      {
+        "id": 128143765247,
+        "name": "node (24)",
+        "runId": 42290906616,
+        "status": "queued",
+        "conclusion": null
+      },
+      {
+        "id": 128143764728,
+        "name": "Native media original and bounded diagnostic",
+        "runId": 42290906651,
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 128143765052,
+        "name": "Full structural authoring and memory audit",
+        "runId": 42290906651,
+        "status": "in_progress",
+        "conclusion": null
+      },
+      {
+        "id": 128143765169,
+        "name": "All 100 comparative corpora",
+        "runId": 42290906651,
+        "status": "in_progress",
+        "conclusion": null
+      },
+      {
+        "id": 128143765233,
+        "name": "Chromium 151 navigation and clipboard controls",
+        "runId": 42290906651,
+        "status": "completed",
+        "conclusion": "success"
       }
     ]
   },
-  "releaseStatus": "pending-exact-sha-ci",
+  "releaseStatus": "focused-native-green-full-exact-sha-ci-pending",
   "urlPolicyProbe": {
     "source": "dd5ac98dda3c6a0dbf423c0cc984228118218d7f",
     "node": "v24.22.1",
@@ -612,13 +695,1199 @@
     ]
   },
   "focusInventoryRegistration": {
-    "source": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+    "source": "1218f66a7a826748aefbd06e615cca80e757606c",
     "scope": "actual full-page registration only; native case bodies not executed",
-    "fullPageCases": 115,
-    "selected": 48,
+    "fullPageCases": 116,
+    "selected": 49,
     "inventoryExact": true,
-    "declaredNativeInputCases": 24,
+    "declaredNativeInputCases": 25,
     "publicApiDomEventCases": 24,
     "caseBodiesExecutedByThisCheck": false
+  },
+  "dependencyAdvisoryReview": {
+    "checkedAt": "2026-11-06",
+    "lockSource": "1f0b07b72feb62b48e7e40018e6b815d5668b32b",
+    "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+    "scope": "Bounded review of primary published advisories for three runtime dependencies; not a complete npm audit or a full transitive dependency database review.",
+    "entries": [
+      {
+        "package": "dompurify",
+        "installed": "3.4.17",
+        "advisory": "GHSA-c6gr-qvv4-5v3f",
+        "affected": [
+          "<= 3.4.16"
+        ],
+        "patched": [
+          "3.4.17"
+        ],
+        "url": "https://github.com/cure53/DOMPurify/security/advisories/GHSA-c6gr-qvv4-5v3f",
+        "installedMatchesAffectedRange": false
+      },
+      {
+        "package": "dompurify",
+        "installed": "3.4.17",
+        "advisory": "GHSA-mrv2-3pqr-j5jr",
+        "affected": [
+          "<= 3.4.16"
+        ],
+        "patched": [
+          "3.4.17"
+        ],
+        "url": "https://github.com/cure53/DOMPurify/security/advisories/GHSA-mrv2-3pqr-j5jr",
+        "installedMatchesAffectedRange": false
+      },
+      {
+        "package": "dompurify",
+        "installed": "3.4.17",
+        "advisory": "GHSA-cg2g-xh64-v4q7",
+        "affected": [
+          ">= 3.4.4, <= 3.4.16"
+        ],
+        "patched": [
+          "3.4.17"
+        ],
+        "url": "https://github.com/cure53/DOMPurify/security/advisories/GHSA-cg2g-xh64-v4q7",
+        "installedMatchesAffectedRange": false
+      },
+      {
+        "package": "highlight.js",
+        "installed": "11.11.1",
+        "advisory": "GHSA-vfrc-7r7c-w9mx",
+        "affected": [
+          "< 9.18.2",
+          ">= 10.0.0, < 10.1.2"
+        ],
+        "patched": [
+          "9.18.2",
+          "10.1.2"
+        ],
+        "url": "https://github.com/advisories/GHSA-vfrc-7r7c-w9mx",
+        "installedMatchesAffectedRange": false
+      },
+      {
+        "package": "highlight.js",
+        "installed": "11.11.1",
+        "advisory": "GHSA-7wwv-vh3v-89cq",
+        "affected": [
+          ">= 9.0.0, < 10.4.1"
+        ],
+        "patched": [
+          "10.4.1"
+        ],
+        "url": "https://github.com/advisories/GHSA-7wwv-vh3v-89cq",
+        "installedMatchesAffectedRange": false
+      },
+      {
+        "package": "jszip",
+        "installed": "3.10.1",
+        "advisory": "GHSA-jg8v-48h5-wgxg",
+        "affected": [
+          ">= 3.0.0, < 3.7.0",
+          "< 2.7.0"
+        ],
+        "patched": [
+          "3.7.0",
+          "2.7.0"
+        ],
+        "url": "https://github.com/advisories/GHSA-jg8v-48h5-wgxg",
+        "installedMatchesAffectedRange": false
+      },
+      {
+        "package": "jszip",
+        "installed": "3.10.1",
+        "advisory": "GHSA-36fh-84j7-cv5h",
+        "affected": [
+          "< 3.8.0"
+        ],
+        "patched": [
+          "3.8.0"
+        ],
+        "url": "https://github.com/advisories/GHSA-36fh-84j7-cv5h",
+        "installedMatchesAffectedRange": false
+      }
+    ],
+    "crossChecks": [
+      {
+        "url": "https://github.com/cure53/DOMPurify/releases/tag/3.4.17",
+        "note": "Release confirms all three October 2026 fixes despite stale narrative text in one advisory."
+      },
+      {
+        "url": "https://github.com/Stuk/jszip/blob/main/CHANGES.md",
+        "note": "JSZip dist bundle fix landed in 3.7.1; installed 3.10.1 is later. Existence of 3.10.2 is not itself a security finding."
+      }
+    ],
+    "ciInstallAudit": {
+      "source": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+      "runId": 42272664127,
+      "jobId": 128080953494,
+      "url": "https://github.com/Shelamkoff/editor/actions/runs/42272664127/job/128080953494",
+      "command": "npm ci --ignore-scripts",
+      "timestamp": "2026-11-06T18:40:52.5855423Z",
+      "auditedPackages": 132,
+      "reportedVulnerabilities": 0,
+      "packageFilesUnchangedThrough": "1f0b07b72feb62b48e7e40018e6b815d5668b32b",
+      "limitations": "Installation summary only; no separate npm audit --json response was collected. This is an advisory-registry snapshot, not proof of absence of all vulnerabilities."
+    }
+  },
+  "historicalLocalVerification": [
+    {
+      "source": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+      "tree": "d6db0d06e4114e52caad860a3d555fb585ab6c7c",
+      "node": "v24.22.1",
+      "recordedAt": "2026-11-06T20:18:18.100586+00:00",
+      "unit": {
+        "command": "npm test",
+        "exitCode": 0,
+        "tests": 2557,
+        "passed": 2557,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "logSha256": "e1fbb585a20fc4ed525763e4d6ce90fa5a6ef58e88e73d30a23a55054f47f6a6",
+        "files": 218
+      },
+      "typecheck": {
+        "command": "npm run typecheck",
+        "exitCode": 0,
+        "logSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+      },
+      "build": {
+        "command": "npm run build",
+        "exitCode": 0,
+        "runtimeDeclarations": 297,
+        "sourceDiagnostics": 0,
+        "logSha256": "6efb498cd33e2f8d5c3e0ddbc71e9bd0f87d51748f780bf56d5e52ded6970c80"
+      },
+      "docs": {
+        "command": "npm run test:docs",
+        "exitCode": 0,
+        "localizedReadmePairs": 47,
+        "securityLifecycleExamples": 6,
+        "readmeSmoke": {
+          "readmes": 94,
+          "examples": 53,
+          "json": 44,
+          "links": 62
+        },
+        "logSha256": "35db255de31d2054fe0a97f58239d04d58cf14ec57f921b5d3f3ef258d6154e9"
+      },
+      "documentationSite": {
+        "buildCommand": "npm run docs:build",
+        "smokeCommand": "node scripts/vitepress-docs-smoke.mjs",
+        "exitCodes": [
+          0,
+          0
+        ],
+        "htmlPages": 129,
+        "brokenLinks": 0,
+        "npmSiteLeak": false,
+        "buildLogSha256": "e8c731eb49adb77b09da9785961533c2d13eafac74507fb2c048f744c49063c3",
+        "smokeLogSha256": "de14af9a1a2c9aa75066f601eb0c6e8355f91cafbe61b7f225754f0b132c80eb"
+      }
+    }
+  ],
+  "nativeInlineRedProof": {
+    "artifact": "https://github.com/Shelamkoff/editor/actions/runs/42285850097/artifacts/13539341114",
+    "artifactSha256": "867489e6bd037119de55e6f2dc30308387b69d2c474deba73184e85050fc2baf",
+    "job": "https://github.com/Shelamkoff/editor/actions/runs/42285850097/job/128126335730",
+    "head": "a9acbbcd19ad8967858af1b3ec0b29ae569726a3",
+    "tree": "16c92027555db58a0f885f9f0abe3de3a8e9d165",
+    "clean": true,
+    "sourceUnchanged": true,
+    "dependenciesUnchanged": true,
+    "retries": 0,
+    "browser": "Google Chrome for Testing 151.0.7922.34",
+    "runtime": {
+      "playwright": "1.62.1",
+      "chromium": "151.0.7922.34",
+      "revision": "1234"
+    },
+    "process": {
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "receivedSignal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "6fe1262c4fbd47a4af74c96ceb3e8722dd8ebf138c1c44338ec58a04a709be72"
+    },
+    "focus": {
+      "outcome": "FAIL",
+      "total": 24,
+      "passed": 23,
+      "failed": 1,
+      "rows": [
+        {
+          "name": "Native Enter split preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Enter split preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Mention Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "FAIL",
+          "error": "Error: A stale Mention continuation overwrote the observer current block\nexpected \"keep\", got \"a\"\n    at equal (http://127.0.0.1:36949/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:36949/tests/browser/regressions/mention-focus-ownership.js:93:7\n    at async run (http://127.0.0.1:36949/tests/browser/regressions/harness.js:114:7)\n    at async http://127.0.0.1:36949/tests/browser/native-core-behavior.js:1030:1"
+        },
+        {
+          "name": "Native Mention Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        }
+      ]
+    },
+    "stepOutcomes": {
+      "commit-focus-ownership": "FAIL",
+      "navigation-151": "PASS",
+      "clipboard-red": "PASS",
+      "clipboard-green": "PASS",
+      "font-size-retained-red": "PASS",
+      "font-size-retained-green": "PASS"
+    },
+    "finishedAt": "2026-11-06T20:37:02.046Z",
+    "interpretation": {
+      "confirmed": "Synchronous native Mention Backspace overwrote the commit observer current block: expected keep, got a.",
+      "priorAssertionsPassed": [
+        "trusted unprevented beforeinput",
+        "owned target range 2..3",
+        "trusted deleteContentBackward input",
+        "exactly one inline.native-reconcile commit",
+        "exactly one observer handoff",
+        "canonical name Aa and DOM label @Aa",
+        "unchanged destination element identity"
+      ],
+      "notReachedInFailingCase": [
+        "native activeElement assertion",
+        "native caret position assertion",
+        "Undo/Redo assertions"
+      ],
+      "queuedExternalCase": "PASS including native focus/selection and one-step Undo/Redo",
+      "original22Cases": "all PASS"
+    }
+  },
+  "publicFocusHistoricalProof": {
+    "artifact": "https://github.com/Shelamkoff/editor/actions/runs/42286899179/artifacts/13539102018",
+    "artifactSha256": "68899d333b3d52471f2025e8c7a96b68076d1b5b5cc01d9bc08a7bca335ebef0",
+    "job": "https://github.com/Shelamkoff/editor/actions/runs/42286899179/job/128129936381",
+    "head": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+    "tree": "d6db0d06e4114e52caad860a3d555fb585ab6c7c",
+    "clean": true,
+    "sourceUnchanged": true,
+    "dependenciesUnchanged": true,
+    "retries": 0,
+    "browser": "Google Chrome for Testing 151.0.7922.34",
+    "runtime": {
+      "playwright": "1.62.1",
+      "chromium": "151.0.7922.34",
+      "revision": "1234"
+    },
+    "process": {
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "receivedSignal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "36f0bd7fecad8b52a7b854df005319d7804c3e8d3e7277c7aebcf9d3bee2548c"
+    },
+    "focus": {
+      "outcome": "FAIL",
+      "total": 48,
+      "passed": 47,
+      "failed": 1,
+      "rows": [
+        {
+          "name": "Native Enter split preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Enter split preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Mention Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "FAIL",
+          "error": "Error: A stale Mention continuation overwrote the observer current block\nexpected \"keep\", got \"a\"\n    at equal (http://127.0.0.1:41885/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:41885/tests/browser/regressions/mention-focus-ownership.js:93:7\n    at async run (http://127.0.0.1:41885/tests/browser/regressions/harness.js:114:7)\n    at async http://127.0.0.1:41885/tests/browser/native-core-behavior.js:1033:1"
+        },
+        {
+          "name": "Native Mention Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / paragraph / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / paragraph / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / paragraph / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / paragraph / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / paragraph / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / paragraph / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / paragraph / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / paragraph / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / paragraph / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / remounting-text / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / remounting-text / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / remounting-text / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / remounting-text / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / remounting-text / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / remounting-text / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / remounting-text / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / remounting-text / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / remounting-text / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Poll Add option preserves commit-observer focus: none",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Poll Add option preserves commit-observer focus: external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Poll Add option preserves commit-observer focus: another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Image settings preserves commit-observer focus: ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Image settings preserves commit-observer focus: external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Image settings preserves commit-observer focus: another editor field",
+          "status": "PASS"
+        }
+      ],
+      "exactInventory": true
+    },
+    "stepOutcomes": {
+      "commit-focus-ownership": "FAIL",
+      "navigation-151": "PASS",
+      "clipboard-red": "PASS",
+      "clipboard-green": "PASS",
+      "font-size-retained-red": "PASS",
+      "font-size-retained-green": "PASS"
+    },
+    "finishedAt": "2026-11-06T20:42:31.095Z",
+    "interpretation": {
+      "knownFailure": "Only synchronous native Mention currentId handoff fails; the failing case stops before its later focus/caret and Undo/Redo assertions.",
+      "publicContractsPassed": 24
+    }
+  },
+  "currentBundleMeasurement": {
+    "source": "1218f66a7a826748aefbd06e615cca80e757606c",
+    "tree": "b1335b998bf044dc93f11789e6642f8769955672",
+    "node": "v24.22.1",
+    "command": "node benchmarks/bundle-budget.mjs",
+    "mode": "report",
+    "exitCode": 0,
+    "scope": "Minified static JavaScript closure plus all emitted CSS; external @shelamkoff packages and lazy JavaScript are excluded.",
+    "recordedAt": "2026-11-06T20:55:47.604851+00:00",
+    "resultSha256": "7d10c928026e2c2f06b50a505b1a93073bbdffca3d5e97908c8f1c69c750d9da",
+    "logSha256": "1dba4463e5ac1d3aab51c399dacba9bdb11d1e10cda2306ab307d781499f84e7",
+    "rows": [
+      {
+        "preset": "core",
+        "rawBytes": 491973,
+        "gzipBytes": 135199,
+        "referenceBytes": 52224,
+        "deltaBytes": 82975,
+        "aboveReference": true,
+        "staticChunks": [
+          "index.js"
+        ],
+        "staticModules": [
+          "dist/core/BlockReconciler.js",
+          "dist/core/BlockToolbar.js",
+          "dist/core/CanonicalTransforms.js",
+          "dist/core/ChangeNotifier.js",
+          "dist/core/ClipboardController.js",
+          "dist/core/ClipboardFragment.js",
+          "dist/core/ClipboardPlans.js",
+          "dist/core/Diagnostics.js",
+          "dist/core/DocumentIngestion.js",
+          "dist/core/DocumentRuntime.js",
+          "dist/core/DocumentStore.js",
+          "dist/core/DragController.js",
+          "dist/core/EditorHolderOwnership.js",
+          "dist/core/EditorViewModel.js",
+          "dist/core/ExtensionRegistry.js",
+          "dist/core/HistoryStore.js",
+          "dist/core/HtmlImportRouter.js",
+          "dist/core/I18n.js",
+          "dist/core/InlineCommandController.js",
+          "dist/core/InlinePopupHost.js",
+          "dist/core/InlineProjectionRuntime.js",
+          "dist/core/InlineSelectionAuthority.js",
+          "dist/core/InlineToolMounts.js",
+          "dist/core/InlineToolbar.js",
+          "dist/core/InlineTriggerController.js",
+          "dist/core/InlineWidgetInputController.js",
+          "dist/core/InstanceScope.js",
+          "dist/core/InteractionState.js",
+          "dist/core/KeyboardRouter.js",
+          "dist/core/LifecycleScope.js",
+          "dist/core/LogicalRangePlans.js",
+          "dist/core/LogicalSelection.js",
+          "dist/core/NativeInputController.js",
+          "dist/core/PersistentBlockMap.js",
+          "dist/core/ProjectionAnimator.js",
+          "dist/core/PublicEditorApi.js",
+          "dist/core/ReadOnlyRecoveryError.js",
+          "dist/core/SelectionController.js",
+          "dist/core/SelectionConversionPlans.js",
+          "dist/core/SettingsActions.js",
+          "dist/core/SlashCommandController.js",
+          "dist/core/Tooltip.js",
+          "dist/core/TransactionEngine.js",
+          "dist/core/conversionSelection.js",
+          "dist/core/createEditorRuntime.js",
+          "dist/core/instanceMethods.js",
+          "dist/core/locale/en.js",
+          "dist/core/projectionFields.js",
+          "dist/shared/DocumentSchema.js",
+          "dist/shared/cloneEditorData.js",
+          "dist/shared/containedTextRange.js",
+          "dist/shared/contentClassSelectors.js",
+          "dist/shared/contentClassStyles.js",
+          "dist/shared/contentStyles.js",
+          "dist/shared/documentFormat.js",
+          "dist/shared/documentValidationIssue.js",
+          "dist/shared/editableFields.js",
+          "dist/shared/editorDom.js",
+          "dist/shared/editorIcons.js",
+          "dist/shared/invokeObserver.js",
+          "dist/shared/jsonData.js",
+          "dist/shared/menuKeyboardNav.js",
+          "dist/shared/richTextCaretPadding.js",
+          "dist/shared/richTextCodec.js",
+          "dist/shared/richTextOperations.js",
+          "dist/shared/sanitize/allowlist.js",
+          "dist/shared/sanitize/contentClasses.js",
+          "dist/shared/sanitize/escapeHtml.js",
+          "dist/shared/sanitize/sanitizeHtml.js",
+          "dist/shared/sanitize/sanitizeRawHtml.js",
+          "dist/shared/sanitize/sanitizeStyle.js",
+          "dist/shared/sanitize/sanitizeUrl.js",
+          "dist/shared/sanitize/trustedHtml.js",
+          "dist/shared/sanitize/walker.js",
+          "dist/shared/shortcutKey.js",
+          "dist/shared/snapshotDataSchema.js",
+          "dist/shared/styleRegistry.js",
+          "dist/shared/synchronousResult.js",
+          "dist/shared/textOffset.js",
+          "dist/shared/uid.js",
+          "node_modules/dompurify/dist/purify.es.mjs"
+        ],
+        "externalImports": [
+          "@shelamkoff/event-bus"
+        ],
+        "dynamicImports": [],
+        "cssAssets": [
+          "assets/dark-9Dkg36VF.css",
+          "assets/light-CjBZebli.css",
+          "assets/variables-B-ZeZLvW.css"
+        ]
+      },
+      {
+        "preset": "paragraph",
+        "rawBytes": 12604,
+        "gzipBytes": 4817,
+        "referenceBytes": 40960,
+        "deltaBytes": -36143,
+        "aboveReference": false,
+        "staticChunks": [
+          "index.js"
+        ],
+        "staticModules": [
+          "dist/plugins/paragraph/index.js",
+          "dist/plugins/shared/textConversion.js",
+          "dist/shared/blockSchemas/paragraph.js",
+          "dist/shared/cloneEditorData.js",
+          "dist/shared/jsonData.js",
+          "dist/shared/richTextEmpty.js",
+          "dist/shared/sanitize/allowlist.js",
+          "dist/shared/sanitize/contentClasses.js",
+          "dist/shared/sanitize/escapeHtml.js",
+          "dist/shared/sanitize/sanitizeHtml.js",
+          "dist/shared/sanitize/sanitizeStyle.js",
+          "dist/shared/sanitize/sanitizeUrl.js",
+          "dist/shared/sanitize/trustedHtml.js",
+          "dist/shared/sanitize/walker.js",
+          "dist/shared/synchronousResult.js",
+          "dist/shared/versionedDataSchema.js"
+        ],
+        "externalImports": [],
+        "dynamicImports": [],
+        "cssAssets": [
+          "assets/paragraph-DJdaIKlr.css"
+        ]
+      },
+      {
+        "preset": "defaultInteractive",
+        "rawBytes": 41093,
+        "gzipBytes": 12892,
+        "referenceBytes": 65536,
+        "deltaBytes": -52644,
+        "aboveReference": false,
+        "staticChunks": [
+          "index.js"
+        ],
+        "staticModules": [
+          "dist/inline-tools/align.js",
+          "dist/inline-tools/bold.js",
+          "dist/inline-tools/caseTransform.js",
+          "dist/inline-tools/clearFormatting.js",
+          "dist/inline-tools/code.js",
+          "dist/inline-tools/colorPicker.js",
+          "dist/inline-tools/defaults.js",
+          "dist/inline-tools/fontSize.js",
+          "dist/inline-tools/inlineContent.js",
+          "dist/inline-tools/italic.js",
+          "dist/inline-tools/link.js",
+          "dist/inline-tools/marker.js",
+          "dist/inline-tools/scriptTool.js",
+          "dist/inline-tools/selectedAncestors.js",
+          "dist/inline-tools/strikethrough.js",
+          "dist/inline-tools/utils.js",
+          "dist/shared/colorPickerRealm.js",
+          "dist/shared/editableFields.js",
+          "dist/shared/editorDom.js",
+          "dist/shared/editorIcons.js",
+          "dist/shared/richTextCaretPadding.js",
+          "dist/shared/sanitize/allowlist.js",
+          "dist/shared/sanitize/sanitizeHtml.js",
+          "dist/shared/sanitize/sanitizeUrl.js",
+          "dist/shared/sanitize/trustedHtml.js",
+          "dist/shared/textOffset.js"
+        ],
+        "externalImports": [
+          "@shelamkoff/color-picker"
+        ],
+        "dynamicImports": [],
+        "cssAssets": []
+      },
+      {
+        "preset": "fullPreset",
+        "rawBytes": 389054,
+        "gzipBytes": 98375,
+        "referenceBytes": 98304,
+        "deltaBytes": 71,
+        "aboveReference": true,
+        "staticChunks": [
+          "index.js",
+          "chunks/index-lDJYl8HG.js"
+        ],
+        "staticModules": [
+          "\u0000vite/preload-helper.js",
+          "dist/plugins/attaches/index.js",
+          "dist/plugins/carousel/icons.js",
+          "dist/plugins/carousel/index.js",
+          "dist/plugins/checklist/index.js",
+          "dist/plugins/code/index.js",
+          "dist/plugins/code/languageMenu.js",
+          "dist/plugins/columns/index.js",
+          "dist/plugins/columns/metadata.js",
+          "dist/plugins/delimiter/index.js",
+          "dist/plugins/embed/index.js",
+          "dist/plugins/embed/url.js",
+          "dist/plugins/gallery/css.js",
+          "dist/plugins/gallery/icons.js",
+          "dist/plugins/gallery/index.js",
+          "dist/plugins/gallery/remoteUpload.js",
+          "dist/plugins/heading/index.js",
+          "dist/plugins/heading/metadata.js",
+          "dist/plugins/image/css.js",
+          "dist/plugins/image/icons.js",
+          "dist/plugins/image/index.js",
+          "dist/plugins/image/remoteUpload.js",
+          "dist/plugins/link-preview/index.js",
+          "dist/plugins/link-preview/templateIcons.js",
+          "dist/plugins/list/index.js",
+          "dist/plugins/paragraph/index.js",
+          "dist/plugins/person/index.js",
+          "dist/plugins/person/socialResolver.js",
+          "dist/plugins/poll/index.js",
+          "dist/plugins/quote/index.js",
+          "dist/plugins/raw/index.js",
+          "dist/plugins/shared/configRecords.js",
+          "dist/plugins/shared/dedentTextarea.js",
+          "dist/plugins/shared/definitionStyles.js",
+          "dist/plugins/shared/fileInput.js",
+          "dist/plugins/shared/indentTextarea.js",
+          "dist/plugins/shared/itemSelectionSlice.js",
+          "dist/plugins/shared/layer.js",
+          "dist/plugins/shared/mediaActionIcons.js",
+          "dist/plugins/shared/mediaDropzone.js",
+          "dist/plugins/shared/mergeRichText.js",
+          "dist/plugins/shared/positionPluginPanel.js",
+          "dist/plugins/shared/retainControlFocus.js",
+          "dist/plugins/shared/sourceEditor.js",
+          "dist/plugins/shared/textClipboardSlice.js",
+          "dist/plugins/shared/textConversion.js",
+          "dist/plugins/shared/textSelectionSlice.js",
+          "dist/plugins/spoiler/index.js",
+          "dist/plugins/table/index.js",
+          "dist/plugins/toggle/index.js",
+          "dist/plugins/warning/index.js",
+          "dist/shared/blockOptions.js",
+          "dist/shared/blockSchemas/attaches.js",
+          "dist/shared/blockSchemas/carousel.js",
+          "dist/shared/blockSchemas/checklist.js",
+          "dist/shared/blockSchemas/code.js",
+          "dist/shared/blockSchemas/columns.js",
+          "dist/shared/blockSchemas/delimiter.js",
+          "dist/shared/blockSchemas/embed.js",
+          "dist/shared/blockSchemas/gallery.js",
+          "dist/shared/blockSchemas/heading.js",
+          "dist/shared/blockSchemas/helpers.js",
+          "dist/shared/blockSchemas/image.js",
+          "dist/shared/blockSchemas/linkPreview.js",
+          "dist/shared/blockSchemas/list.js",
+          "dist/shared/blockSchemas/paragraph.js",
+          "dist/shared/blockSchemas/person.js",
+          "dist/shared/blockSchemas/poll.js",
+          "dist/shared/blockSchemas/quote.js",
+          "dist/shared/blockSchemas/raw.js",
+          "dist/shared/blockSchemas/spoiler.js",
+          "dist/shared/blockSchemas/table.js",
+          "dist/shared/blockSchemas/toggle.js",
+          "dist/shared/blockSchemas/warning.js",
+          "dist/shared/carouselData.js",
+          "dist/shared/cloneEditorData.js",
+          "dist/shared/columnLayouts.js",
+          "dist/shared/embedPlayer.js",
+          "dist/shared/embeddedHtml.js",
+          "dist/shared/extensionConstants.js",
+          "dist/shared/fileUtils.js",
+          "dist/shared/galleryLayout.js",
+          "dist/shared/highlightRuntime.js",
+          "dist/shared/jsonData.js",
+          "dist/shared/pollData.js",
+          "dist/shared/richTextEmpty.js",
+          "dist/shared/sanitize/allowlist.js",
+          "dist/shared/sanitize/contentClasses.js",
+          "dist/shared/sanitize/escapeHtml.js",
+          "dist/shared/sanitize/sanitizeHtml.js",
+          "dist/shared/sanitize/sanitizeRawHtml.js",
+          "dist/shared/sanitize/sanitizeStyle.js",
+          "dist/shared/sanitize/sanitizeUrl.js",
+          "dist/shared/sanitize/trustedHtml.js",
+          "dist/shared/sanitize/walker.js",
+          "dist/shared/synchronousResult.js",
+          "dist/shared/tableFieldKey.js",
+          "dist/shared/versionedDataSchema.js",
+          "node_modules/dompurify/dist/purify.es.mjs"
+        ],
+        "externalImports": [
+          "@shelamkoff/cropper"
+        ],
+        "dynamicImports": [
+          "chunks/embeddedHtmlDocument-0JWcdldy.js",
+          "chunks/galleryMasonry-DvUP_clT.js",
+          "chunks/index-BbWMC1dd.js",
+          "chunks/readImageDataUrl-CkC3eQqq.js",
+          "chunks/uploader-B2NIJdrY.js",
+          "chunks/uploader-CgICcb6K.js"
+        ],
+        "cssAssets": [
+          "assets/attaches-BCMGWn65.css",
+          "assets/carousel-XmxaLHY_.css",
+          "assets/checklist-BCWalgup.css",
+          "assets/code-D_jiKf1r.css",
+          "assets/columns-BhpIEVI4.css",
+          "assets/delimiter-CoQludbN.css",
+          "assets/embed-DIPmC8k_.css",
+          "assets/gallery-C6yk__pf.css",
+          "assets/heading-DhBl4uDR.css",
+          "assets/image-Df0iRolT.css",
+          "assets/link-preview-B5vk9Jvo.css",
+          "assets/list-OMUT8GOB.css",
+          "assets/paragraph-DJdaIKlr.css",
+          "assets/person-BKuwWCx9.css",
+          "assets/poll-DebVvaOZ.css",
+          "assets/quote-D2d1lirO.css",
+          "assets/raw-v0TlyFw1.css",
+          "assets/sourceEditor-B3lN0CfU.css",
+          "assets/spoiler-CExA417B.css",
+          "assets/table-C-5jQnE6.css",
+          "assets/toggle-BYSn2RN8.css",
+          "assets/warning-DtuLEcMV.css"
+        ]
+      }
+    ],
+    "baselineRecordedGzipBytes": {
+      "source": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+      "core": 133817,
+      "fullPreset": 98306
+    },
+    "limitations": [
+      "Current measurements are local; baseline values were recorded in CI.",
+      "The deltas compare recorded results, not a controlled causal attribution of individual fixes.",
+      "External @shelamkoff packages and lazy JavaScript are excluded; this is not total consumer application size or input latency.",
+      "Reference targets are informational in the maintained CI report mode."
+    ]
+  },
+  "nativeFocusCurrentProof": {
+    "artifact": "https://github.com/Shelamkoff/editor/actions/runs/42290906651/artifacts/13540755886",
+    "artifactSha256": "d771b67b623dae88750ca94a191822d7d90a4939298d710210026b1165311e61",
+    "job": "https://github.com/Shelamkoff/editor/actions/runs/42290906651/job/128143765233",
+    "head": "1218f66a7a826748aefbd06e615cca80e757606c",
+    "tree": "b1335b998bf044dc93f11789e6642f8769955672",
+    "clean": true,
+    "sourceUnchanged": true,
+    "dependenciesUnchanged": true,
+    "retries": 0,
+    "browser": "Google Chrome for Testing 151.0.7922.34",
+    "runtime": {
+      "playwright": "1.62.1",
+      "chromium": "151.0.7922.34",
+      "revision": "1234"
+    },
+    "process": {
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "receivedSignal": null,
+      "stdoutSha256": "7640be095008e897ddb43600a0ce550f1a8ca6b17cf7d5cafa361ee43e28513b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "focus": {
+      "outcome": "PASS",
+      "total": 49,
+      "passed": 49,
+      "failed": 0,
+      "rows": [
+        {
+          "name": "Native Enter split preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Enter split preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Mention Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Mention Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Mention Backspace preserves ordinary caret and query without a commit-observer focus handoff",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / paragraph / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / paragraph / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / paragraph / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / paragraph / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / paragraph / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / paragraph / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / paragraph / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / paragraph / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / paragraph / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / remounting-text / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / remounting-text / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color public insert / remounting-text / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / remounting-text / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / remounting-text / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM Paste / remounting-text / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / remounting-text / ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / remounting-text / external input",
+          "status": "PASS"
+        },
+        {
+          "name": "commit-observer focus / inline Color DOM typed Space / remounting-text / another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Poll Add option preserves commit-observer focus: none",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Poll Add option preserves commit-observer focus: external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Poll Add option preserves commit-observer focus: another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Image settings preserves commit-observer focus: ordinary completion",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Image settings preserves commit-observer focus: external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Public Image settings preserves commit-observer focus: another editor field",
+          "status": "PASS"
+        }
+      ],
+      "exactInventory": true,
+      "nativeCases": 25,
+      "publicApiDomCases": 24
+    },
+    "stepOutcomes": {
+      "commit-focus-ownership": "PASS",
+      "navigation-151": "PASS",
+      "clipboard-red": "PASS",
+      "clipboard-green": "PASS",
+      "font-size-retained-red": "PASS",
+      "font-size-retained-green": "PASS"
+    },
+    "finishedAt": "2026-11-06T20:54:08.953Z",
+    "interpretation": {
+      "mention": [
+        "synchronous sibling handoff PASS, including currentId/native focus/caret and one-step Undo/Redo",
+        "queued external handoff PASS, including native focus/selection and one-step Undo/Redo",
+        "ordinary no-handoff PASS, including label caret2, editing session, exact query Aa and one-step Undo/Redo"
+      ],
+      "scope": "25 trusted native scenarios plus 24 public API/DOM-event contracts executed in Chromium; this focused job is not the full Verify or comparative workflow verdict."
+    }
   }
 }
