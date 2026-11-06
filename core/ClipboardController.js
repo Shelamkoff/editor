@@ -32,6 +32,37 @@ function stripClipboardProjection(root) {
   return root
 }
 
+/** Read styles from the live presentation: a detached clone cannot resolve
+ * class rules or inherited visibility. Only the clipboard clone is changed.
+ * @param {Element} source
+ * @param {Element} clone
+ */
+function stripHiddenWidgetText(source, clone) {
+  const style = source.ownerDocument.defaultView?.getComputedStyle(source)
+  if (style?.display === 'none') {
+    clone.remove()
+    return
+  }
+  const visible = style?.visibility !== 'hidden' && style?.visibility !== 'collapse'
+  if (!visible && source.tagName === 'BR') {
+    clone.remove()
+    return
+  }
+  const sourceChildren = [...source.childNodes]
+  const cloneChildren = [...clone.childNodes]
+  if (sourceChildren.length !== cloneChildren.length) {
+    throw new Error('Clipboard widget presentation changed while cloning')
+  }
+  for (const [index, child] of cloneChildren.entries()) {
+    if (child.nodeType === 3) {
+      if (!visible) child.remove()
+    } else if (child.nodeType === 1 && sourceChildren[index].nodeType === 1) {
+      // Visibility is inherited, but a descendant can explicitly restore it.
+      stripHiddenWidgetText(/** @type {Element} */ (sourceChildren[index]), /** @type {Element} */ (child))
+    }
+  }
+}
+
 /** Standard MIME exports the selected presentation; private MIME retains
  * canonical placeholders and widget data independently.
  * @param {HTMLElement} field
@@ -45,6 +76,11 @@ function clipboardFromRichTextSelection(field, offsets) {
   const range = ownerDocument.createRange()
   range.setStart(start.node, start.offset)
   range.setEnd(end.node, end.offset)
+  // Logical offsets never enter atomic widgets. All intersecting widget roots
+  // are cloned whole and in document order, including those later discarded as
+  // service DOM. Pair before pruning; duplicate IDs cannot redirect the lookup.
+  const sourceWidgets = [...field.querySelectorAll('[data-inline-plugin]')]
+    .filter(widget => range.intersectsNode(widget))
   const container = ownerDocument.createElement('div')
   let contents = /** @type {Node} */ (range.cloneContents())
   // cloneContents omits the common ancestor and its parents. Retain their
@@ -58,6 +94,18 @@ function clipboardFromRichTextSelection(field, offsets) {
     ancestor = ancestor.parentNode
   }
   container.appendChild(contents)
+  const clonedWidgets = [...container.querySelectorAll('[data-inline-plugin]')]
+  if (sourceWidgets.length !== clonedWidgets.length || clonedWidgets.some((widget, index) =>
+    widget.getAttribute('data-id') !== sourceWidgets[index].getAttribute('data-id')
+    || widget.getAttribute('data-inline-plugin') !== sourceWidgets[index].getAttribute('data-inline-plugin')
+  )) throw new Error('Clipboard widget presentation changed while cloning')
+  clonedWidgets.forEach((widget, index) => {
+    // An outer widget walk already handles every descendant before removals
+    // can change the correspondence between its source and clone children.
+    if (!widget.parentElement?.closest('[data-inline-plugin]')) {
+      stripHiddenWidgetText(sourceWidgets[index], widget)
+    }
+  })
 
   // Controls, service DOM and independent editing hosts can lie between
   // authored endpoints without owning any of their logical text offsets.
