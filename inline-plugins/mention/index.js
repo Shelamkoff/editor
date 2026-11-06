@@ -128,6 +128,8 @@ export function createMentionPlugin(options={}){
       let loadingMore=false
       let compositionSession=null
       let rowController=null
+      let focusVersion=0
+      const onFocusIn=()=>{focusVersion++}
       const widgetEntries=new Map()
       const listboxId='oe-mention-'+uid()
 
@@ -393,8 +395,10 @@ export function createMentionPlugin(options={}){
         }
       }
 
-      const startEditSession=(entry,nextText,nextOffset)=>{
-        if(entry.dead||entry.readOnly||!entry.span.isConnected)return
+      const startEditSession=(entry,nextText,nextOffset,version=focusVersion)=>{
+        const current=()=>!destroyed&&!runtimeContext.signal.aborted
+          &&focusVersion===version&&!entry.dead&&!entry.readOnly&&entry.span.isConnected
+        if(!current())return
         const field=fieldForSpan(entry.span)
         if(!field)return
         const query=nextText.startsWith(trigger)?nextText.slice(trigger.length):nextText
@@ -415,6 +419,7 @@ export function createMentionPlugin(options={}){
           cancel(){close(session)},
         }
         schedule(session)
+        if(!current())return
         entry.span.classList.add('oe-ip--mention--editing')
         const text=entry.span.firstChild
         if(text?.nodeType===3)setCaret(text,Math.min(nextOffset,text.data.length))
@@ -466,8 +471,11 @@ export function createMentionPlugin(options={}){
         if(decision.kind==='remove')removeMention(entry)
         else if(decision.kind==='replace-text')unwrapMention(entry,decision.text,decision.caret)
         else{
+          // Publication can hand native focus to another field or control.
+          // Preserve that owner while retaining this accepted label update.
+          const version=focusVersion
           entry.context.updateData(()=>decision.data)
-          startEditSession(entry,trigger+decision.data.name,decision.caret)
+          startEditSession(entry,trigger+decision.data.name,decision.caret,version)
         }
       }
       const replaceLabelRange=(entry,text,start,end,value)=>{
@@ -782,17 +790,21 @@ export function createMentionPlugin(options={}){
         return 'pass'
       }
 
+      runtimeContext.ownerDocument.addEventListener('focusin',onFocusIn,{
+        capture:true,signal:runtimeContext.signal,
+      })
       runtimeContext.ownerDocument.addEventListener('compositionstart',event=>{
         const entry=ownedAtCaret()
         if(!entry||entry.dead||entry.readOnly||!ownsEvent(entry,event))return
         const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
         const anchor=caretOffsetInSpan(entry),focus=selection?offsetInSpan(entry,selection.focusNode,selection.focusOffset):null
         if(anchor===null||focus===null)return
+        const version=focusVersion
         close()
-        compositionSession={entry,task:entry.context.beginTask(),anchor,focus}
+        compositionSession={entry,task:entry.context.beginTask(),anchor,focus,focusVersion:version}
       },{capture:true,signal:runtimeContext.signal})
       const finishComposition=(session,confirmed)=>{
-        const {entry,task,anchor,focus}=session
+        const {entry,task,anchor,focus,focusVersion:version}=session
         if(entry.dead||entry.readOnly||!entry.span.isConnected||task.signal.aborted){
           task.cancel()
           return
@@ -801,12 +813,12 @@ export function createMentionPlugin(options={}){
           task.cancel()
           entry.project(entry.context.getData())
           const node=entry.span.firstChild,selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
-          if(node?.nodeType===3)selection?.setBaseAndExtent(node,Math.min(anchor,node.data.length),node,Math.min(focus,node.data.length))
+          if(focusVersion===version&&node?.nodeType===3)selection?.setBaseAndExtent(node,Math.min(anchor,node.data.length),node,Math.min(focus,node.data.length))
           return
         }
         const text=entry.span.textContent??'',offset=caretOffsetInSpan(entry)??text.length
         if(text.startsWith(trigger)){
-          if(task.commit(current=>({...current,name:text.slice(trigger.length)})))startEditSession(entry,text,offset)
+          if(task.commit(current=>({...current,name:text.slice(trigger.length)})))startEditSession(entry,text,offset,version)
         }else{
           task.cancel()
           if(text)unwrapMention(entry,text,offset)
@@ -905,6 +917,7 @@ export function createMentionPlugin(options={}){
         },
         destroy(){
           destroyed=true
+          try{runtimeContext.ownerDocument.removeEventListener('focusin',onFocusIn,{capture:true})}catch{}
           compositionSession?.task.cancel()
           compositionSession=null
           close()
