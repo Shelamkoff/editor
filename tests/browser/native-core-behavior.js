@@ -9,6 +9,7 @@ import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { createStructuralFixture, structuralShapes } from './structural-authoring-fixture.js'
 import './regressions/inline-style-native-history.js'
 import './regressions/commit-focus-ownership.js'
+import './regressions/mention-focus-ownership.js'
 
 for (const shape of structuralShapes) test(`Structural authoring ${shape.id} preserves complete native/public paths`, async () => {
   const fixture = await createStructuralFixture(shape, { native: async (action, value) => {

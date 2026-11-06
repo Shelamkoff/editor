@@ -120,7 +120,9 @@ export const COMMIT_FOCUS_CASES = Object.freeze([
   "Native multiline Paste preserves synchronous commit-observer focus on another editor field",
   "Native multiline Paste preserves queued commit-observer focus on an external input",
   "Native block drag preserves synchronous commit-observer focus on another editor field",
-  "Native block drag preserves queued commit-observer focus on an external input"
+  "Native block drag preserves queued commit-observer focus on an external input",
+  "Native Mention Backspace preserves synchronous commit-observer focus on another editor field",
+  "Native Mention Backspace preserves queued commit-observer focus on an external input"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([
