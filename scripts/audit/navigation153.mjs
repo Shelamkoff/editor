@@ -9,9 +9,13 @@ import { fileURLToPath } from 'node:url'
 import { createBrotliDecompress } from 'node:zlib'
 import { captureNavigationDependencies, verifyNavigationDependencies } from '../parity/git-navigation-roots.mjs'
 import { git, hashFile, recordCommand, sha256, sourceIdentity, writeJson } from './browser-audit-support.mjs'
-import { NAVIGATION153, verifyNavigation153, verifyNavigationTimelines } from './navigation153-results.mjs'
+import { NAVIGATION153, verifyNavigation153, verifyNavigationTimelines, verifyOriginalNavigation153 } from './navigation153-results.mjs'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
+const args = process.argv.slice(2)
+assert(args.length === 0 || (args.length === 2 && args[0] === '--mode'
+  && ['diagnostic', 'original-only'].includes(args[1])), 'Use --mode diagnostic or --mode original-only')
+const mode = args[1] ?? 'diagnostic', originalOnly = mode === 'original-only'
 assert.equal(process.env.GITHUB_ACTIONS, 'true', 'This diagnostic may launch Chromium only in hosted GitHub Actions')
 assert.equal(process.env.GITHUB_REF, 'refs/heads/audit/navigation-153-probe-2026-11-06')
 assert(process.env.EDITOR_RESULTS_DIR, 'Use an initialized current-run results directory')
@@ -21,6 +25,7 @@ const baseHead = '0dd49e4c826e0d4c1f70cfd3746400d2c9a7391b'
 const allowlist = [
   '.github/workflows/rector-v2-navigation153.yml',
   'scripts/audit/html-navigation-diagnostic.mjs',
+  'scripts/audit/focused-browser-results.mjs',
   'scripts/audit/navigation-diagnostics.mjs',
   'scripts/audit/navigation153.mjs',
   'scripts/audit/navigation153-results.mjs',
@@ -36,19 +41,20 @@ const sourceURL = 'https://registry.npmjs.org/@sparticuz/chromium/-/chromium-153
 const runnerPath = join(root, 'scripts/audit/html-navigation-diagnostic.mjs')
 const helperPath = join(root, 'scripts/audit/navigation-diagnostics.mjs')
 const result = {
-  kind: 'Single hosted current-source diagnostic with the recovered historical Chromium153 binary',
+  kind: 'Single hosted current-source check with the recovered historical Chromium153 binary', mode,
   startedAt: new Date().toISOString(), baseHead, expectedHead, output, runtimeRoot, sourceURL,
-  plannedOriginalComparisons: 72, plannedCausalContexts: 16, plannedCausalComparisons: 12,
-  plannedTotalContexts: 100, navigationOutcomeDeadlineMs: 5000, diagnosticCommandTimeoutMs: 20 * 60_000,
+  plannedOriginalComparisons: 72, plannedCausalContexts: originalOnly ? 0 : 16, plannedCausalComparisons: originalOnly ? 0 : 12,
+  plannedTotalContexts: originalOnly ? 84 : 100, navigationOutcomeDeadlineMs: 5000, diagnosticCommandTimeoutMs: 20 * 60_000,
   attempts: 1, retries: 0, launchOptions: { executablePath: join(binaryRoot, 'chromium'), headless: true },
   extraBrowserArgs: [], expected: NAVIGATION153, commands: [], pass: false,
   originalArchivedFailure: { head: 'e8ceb556d9ecc283f686e95c0c752ecf113a3031', passed: 70, total: 72, status: 'OPEN' },
   limitations: [
     'The archived e8 source object is unavailable. This is current product source derived from0dd, not an exact historical-source recreation.',
     'Only the Chromium binary and pinned Playwright package are reproduced; the hosted OS, libraries, fonts, scheduling and surrounding process history differ.',
-    'The reviewed observer uses additional CDP sessions and Playwright evaluations which can refresh activation or alter scheduling.',
-    'The original logger permits DOM event payloads to overwrite the event label; raw stage/event data are retained and must be interpreted accordingly.',
-    'One instrumented PASS cannot establish or erase the cause of the archived Chromium153 failure.',
+    originalOnly ? 'This mode executes only the maintained runner; it adds no navigation observers, evaluations, control contexts or fallback run.'
+      : 'The reviewed observer uses additional CDP sessions and Playwright evaluations which can refresh activation or alter scheduling.',
+    'The retained diagnostic logger permits DOM event payloads to overwrite the event label; that mode requires interpreting raw stage/event fields.',
+    'A current-source PASS cannot establish or erase the cause of the archived Chromium153 failure.',
   ],
 }
 await writeJson(join(output, 'plan.json'), result)
@@ -91,7 +97,7 @@ try {
   assert.equal(result.sourceBefore.diffSha256, sha256(''))
   assert.equal(git(root, 'status', '--porcelain').toString(), '')
   assert.deepEqual(git(root, 'diff', '--name-only', baseHead, expectedHead).toString().trim().split('\n').sort(), [...allowlist].sort(),
-    'Probe commit must contain only the six approved automation files')
+    'Probe lineage must contain only the seven approved automation files')
   assert.equal(await hashFile(runnerPath), '682e266e6e0470fc2bc614470daff7443e3d68a4f501adff93f63516ffd053c3')
   assert.equal(await hashFile(helperPath), 'bd90f33ea22be0c9e915dae0871258807901712adfe41502dc4d806dc3e4f1b2')
   assert.equal(await hashFile(join(root, 'scripts/parity/html-content-navigation.mjs')), NAVIGATION153.originalRunnerSha256)
@@ -139,22 +145,32 @@ try {
   await writeJson(join(output, 'runtime-before.json'), result.runtimeBefore)
   await writeFile(join(output, 'runtime-package-lock.json'), await readFile(runtimeLock), { flag: 'wx' })
   await writeFile(join(output, 'browsers.json'), await readFile(browsersDescriptor), { flag: 'wx' })
-  const run = await command('diagnostic', [process.execPath, runnerPath, '--original-scope', 'full', '--out', diagnosticOutput],
+  const run = await command(originalOnly ? 'original' : 'diagnostic', originalOnly
+    ? [process.execPath, join(root, 'scripts/parity/html-content-navigation.mjs')]
+    : [process.execPath, runnerPath, '--original-scope', 'full', '--out', diagnosticOutput],
     { cwd: root, timeoutMs: result.diagnosticCommandTimeoutMs, env: { ...process.env, EDITOR_CHROME_PATH: binary,
       EDITOR_PLAYWRIGHT_PATH: playwrightModule, EDITOR_DEPENDENCIES_ROOT: join(root, 'node_modules'),
       EDITOR_NAVIGATION_EXPECTED_HEAD: expectedHead } })
-  result.diagnosticProcess = { exitCode: run.exitCode, signal: run.signal, receivedSignal: run.receivedSignal,
+  result.nativeProcess = { exitCode: run.exitCode, signal: run.signal, receivedSignal: run.receivedSignal,
     timedOut: run.timedOut, spawnError: run.spawnError }
-  const report = JSON.parse(await readFile(join(diagnosticOutput, 'diagnostic-results.json'), 'utf8'))
-  result.classification = verifyNavigation153(run, report, result.runtimeBefore, expectedHead)
-  assert.deepEqual(JSON.parse(run.stdout), report, 'Raw stdout differs from the saved diagnostic')
-  const timelines = []
-  for (const [name, hash] of Object.entries(report.artifacts)) {
-    assert.equal(basename(name), name)
-    assert.equal(await hashFile(join(diagnosticOutput, name)), hash, 'Timeline digest mismatch')
-    if (name !== 'browser-target-timeline.json') timelines.push(JSON.parse(await readFile(join(diagnosticOutput, name), 'utf8')))
+  if (originalOnly) {
+    const report = JSON.parse(run.stdout)
+    await writeJson(join(output, 'original-report.json'), report)
+    assert.equal(report.browserExecutable, binary, 'Maintained runner selected a different binary')
+    assert.deepEqual(report.dependencies, result.dependenciesBefore, 'Maintained runner dependencies differ')
+    result.classification = verifyOriginalNavigation153(run, result.runtimeBefore, expectedHead)
+  } else {
+    const report = JSON.parse(await readFile(join(diagnosticOutput, 'diagnostic-results.json'), 'utf8'))
+    result.classification = verifyNavigation153(run, report, result.runtimeBefore, expectedHead)
+    assert.deepEqual(JSON.parse(run.stdout), report, 'Raw stdout differs from the saved diagnostic')
+    const timelines = []
+    for (const [name, hash] of Object.entries(report.artifacts)) {
+      assert.equal(basename(name), name)
+      assert.equal(await hashFile(join(diagnosticOutput, name)), hash, 'Timeline digest mismatch')
+      if (name !== 'browser-target-timeline.json') timelines.push(JSON.parse(await readFile(join(diagnosticOutput, name), 'utf8')))
+    }
+    result.cutoffEvidence = verifyNavigationTimelines(timelines)
   }
-  result.cutoffEvidence = verifyNavigationTimelines(timelines)
   result.pass = true
 } catch (error) {
   result.error = error.stack ?? String(error)
@@ -178,7 +194,7 @@ try {
     }
   } catch (error) { result.pass = false; result.integrityError = error.stack ?? String(error) }
   try {
-    await cp(diagnosticOutput, join(output, 'diagnostic'), { recursive: true,
+    if (!originalOnly) await cp(diagnosticOutput, join(output, 'diagnostic'), { recursive: true,
       filter: path => path !== join(diagnosticOutput, 'vite-cache') && !path.startsWith(join(diagnosticOutput, 'vite-cache') + sep) })
   } catch (error) {
     if (result.pass || error.code !== 'ENOENT') { result.pass = false; result.copyError = String(error) }

@@ -180,11 +180,11 @@ export function verifyNativeGreen(run, page, expectedNames) {
   return { outcome: 'PASS', total: rows.length, rows }
 }
 
-export function verifyNavigationGreen(run, head) {
+export function verifyNavigationGreen(run, head, expectedBrowser = '151.0.7922.34') {
   completed(run, 0)
   const report = JSON.parse(run.stdout)
   assert.equal(report.head, head, 'Navigation report belongs to a different commit')
-  assert.equal(report.browser, '151.0.7922.34', 'Navigation browser differs from the paired runtime')
+  assert.equal(report.browser, expectedBrowser, 'Navigation browser differs from the required runtime')
   assert.equal(report.sourceUnchanged, true)
   assert.equal(report.candidatePass, true)
   assert.equal(report.results?.length, 72, 'Navigation did not complete all comparisons')

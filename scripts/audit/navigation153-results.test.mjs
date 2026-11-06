@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { NAVIGATION153, verifyNavigation153, verifyNavigationTimelines } from './navigation153-results.mjs'
+import { NAVIGATION153, verifyNavigation153, verifyNavigationTimelines, verifyOriginalNavigation153 } from './navigation153-results.mjs'
+import { verifyNavigationGreen } from './focused-browser-results.mjs'
 
 const head = '0dd49e4c826e0d4c1f70cfd3746400d2c9a7391b'
 const names = ['_self', '_blank', '_parent', '_top', 'articlePreview', 'existing-named',
@@ -128,4 +129,42 @@ test('requires all100 independent outcome-cutoff observations without late promo
     const rows = fresh(); mutate(rows)
     assert.throws(() => verifyNavigationTimelines(rows))
   }
+})
+
+function originalFixture() {
+  const value = fixture()
+  value.report.candidatePass = true
+  value.run.stdout = JSON.stringify(value.report)
+  return value
+}
+test('original-only153 reuses all72 maintained comparisons without rewriting raw browser data', () => {
+  const value = originalFixture(), before = structuredClone(value)
+  const result = verifyOriginalNavigation153(value.run, value.runtime, value.head)
+  assert.equal(result.outcome, 'CURRENT_SOURCE_UNINSTRUMENTED_PASS')
+  assert.equal(result.total, 72); assert.equal(result.browser, '153.0.8010.0')
+  assert.deepEqual(value, before)
+})
+test('the default151 gate rejects153 and an explicit153 gate rejects151', () => {
+  const value = originalFixture()
+  assert.throws(() => verifyNavigationGreen(value.run, value.head))
+  value.report.browser = '151.0.7922.34'
+  value.run.stdout = JSON.stringify(value.report)
+  assert.equal(verifyNavigationGreen(value.run, value.head).total, 72)
+  assert.throws(() => verifyNavigationGreen(value.run, value.head, NAVIGATION153.browser))
+})
+test('original-only153 rejects incomplete, duplicate, failed and unequal comparisons', () => {
+  for (const mutate of [r => r.results.pop(), r => { r.results[71] = structuredClone(r.results[70]) },
+    r => { r.results[71].status = 'FAIL' }, r => { r.results[71].candidate.actual.pages.pop() },
+    r => { r.candidatePass = false }, r => { r.head = 'f'.repeat(40) }, r => { r.sourceUnchanged = false }]) {
+    const value = originalFixture(); mutate(value.report); value.run.stdout = JSON.stringify(value.report)
+    assert.throws(() => verifyOriginalNavigation153(value.run, value.runtime, value.head))
+  }
+})
+test('original-only153 rejects interrupted execution and unverified binary provenance', () => {
+  for (const change of [{ exitCode: 1 }, { timedOut: true }, { receivedSignal: 'SIGTERM' }]) {
+    const value = originalFixture(); Object.assign(value.run, change)
+    assert.throws(() => verifyOriginalNavigation153(value.run, value.runtime, value.head))
+  }
+  const value = originalFixture(); value.runtime.binarySha256 = 'f'.repeat(64)
+  assert.throws(() => verifyOriginalNavigation153(value.run, value.runtime, value.head))
 })

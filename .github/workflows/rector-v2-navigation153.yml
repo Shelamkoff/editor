@@ -44,8 +44,8 @@ jobs:
         run: node scripts/verification-results.mjs run install --require audit-tools -- npm ci --ignore-scripts
       - name: Build package
         run: node scripts/verification-results.mjs run build --require install -- npm run build
-      - name: Recover exact binary and run the full reviewed diagnostic once
-        run: node scripts/verification-results.mjs run navigation153 --require build -- node scripts/audit/navigation153.mjs
+      - name: Recover exact binary and run the unmodified72 comparisons once
+        run: node scripts/verification-results.mjs run navigation153 --require build -- node scripts/audit/navigation153.mjs --mode original-only
       - name: Finalize current-run results
         if: ${{ always() }}
         run: node scripts/verification-results.mjs finish

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { verifyNavigationGreen } from './focused-browser-results.mjs'
 
 export const NAVIGATION153 = Object.freeze({
   browser: '153.0.8010.0', playwright: '1.62.1',
@@ -83,12 +84,7 @@ export function verifyNavigation153(run, report, runtime, head) {
   assert.equal(report.retries, 0)
   assert.equal(report.playwrightRuntime?.version, NAVIGATION153.playwright)
   assert.equal(report.playwrightRuntime?.moduleSha256, NAVIGATION153.playwrightModuleSha256)
-  assert.equal(runtime.archiveSha256, NAVIGATION153.archiveSha256)
-  assert.equal(runtime.integrity, NAVIGATION153.integrity)
-  assert.equal(runtime.binarySha256, NAVIGATION153.binarySha256)
-  assert.equal(runtime.browserVersion, 'Chromium ' + NAVIGATION153.browser)
-  assert.equal(runtime.playwrightVersion, NAVIGATION153.playwright)
-  assert.equal(runtime.playwrightModuleSha256, NAVIGATION153.playwrightModuleSha256)
+  verifyRuntime153(runtime)
 
   const artifacts = Object.entries(report.artifacts ?? {})
   assert.equal(artifacts.length, 101, 'Diagnostic must retain100 case timelines and browser target timeline')
@@ -117,4 +113,20 @@ export function verifyNavigationTimelines(timelines) {
     assert(Number.isSafeInteger(cutoff[0].deadline) && cutoff[0].deadline > 0, 'Missing outcome deadline')
   }
   return { total: 100, settledAtOriginalCutoff: 100 }
+}
+
+function verifyRuntime153(runtime) {
+  assert.equal(runtime.archiveSha256, NAVIGATION153.archiveSha256)
+  assert.equal(runtime.integrity, NAVIGATION153.integrity)
+  assert.equal(runtime.binarySha256, NAVIGATION153.binarySha256)
+  assert.equal(runtime.browserVersion, 'Chromium ' + NAVIGATION153.browser)
+  assert.equal(runtime.playwrightVersion, NAVIGATION153.playwright)
+  assert.equal(runtime.playwrightModuleSha256, NAVIGATION153.playwrightModuleSha256)
+}
+
+export function verifyOriginalNavigation153(run, runtime, head) {
+  verifyRuntime153(runtime)
+  const verified = verifyNavigationGreen(run, head, NAVIGATION153.browser)
+  return { ...verified, outcome: 'CURRENT_SOURCE_UNINSTRUMENTED_PASS',
+    limitation: 'A current-source uninstrumented PASS does not establish the cause of the archived e8/Chromium153 failure.' }
 }
