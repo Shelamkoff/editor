@@ -27,9 +27,9 @@ test('zero-exit native report cannot pass with no, missing, duplicated or skippe
   }
 })
 
-test('complete native focus GREEN includes all 18 commit-observer cases', () => {
+test('complete native focus GREEN includes all 22 commit-observer cases', () => {
   const run = completed({ stdout: JSON.stringify({ 'native-core-behavior.html': rows(COMMIT_FOCUS_CASES) }) })
-  assert.equal(verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES).total, 18)
+  assert.equal(verifyNativeGreen(run, 'native-core-behavior.html', COMMIT_FOCUS_CASES).total, 22)
   assert(COMMIT_FOCUS_CASES.every(name => name.includes('commit-observer focus')),
     'Focused native filter must select every maintained focus case')
 })
@@ -37,6 +37,7 @@ test('complete native focus GREEN includes all 18 commit-observer cases', () => 
 test('native focus GREEN rejects partial, duplicated, renamed, skipped or failed cases', () => {
   const full = rows(COMMIT_FOCUS_CASES)
   for (const records of [[], full.slice(0, 16), full.slice(0, 17),
+    full.filter(row => !row.name.startsWith('Native Slash ')), full.slice(0, 21),
     [...full.slice(1), full[1]],
     full.map((row, index) => index ? row : { ...row, name: 'Unexpected focus case' }),
     full.map((row, index) => index ? row : { ...row, status: 'SKIP' }),

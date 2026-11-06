@@ -2,6 +2,7 @@ import { test, make, para, editableField, blockElement, editorRoot, select, paus
 import { clickNative, dispatchKey } from '../native-input-helpers.js'
 import { getTextOffset } from '../../../shared/textOffset.js'
 import { CLIPBOARD_FRAGMENT_MIME } from '../../../core/ClipboardFragment.js'
+import { createHeadingPlugin, createParagraphPlugin } from '../../../plugins/index.js'
 
 // Each operation covers both observer timings and both destinations. Alternate
 // the pairing to exercise native controls and same-editor caret ownership
@@ -11,6 +12,10 @@ const operations = [
     texts: ['Al', 'pha', 'Bravo', 'Charlie', 'Untouched'], ids: ['a', 'b', 'c', 'keep'], syncTarget: 'another editor field' },
   { name: 'Shift+Enter line break', key: ['Enter', 'Enter', 13, 8], transaction: 'input.line-break', inputType: 'insertLineBreak', source: 'a', offset: 2,
     texts: ['Al<br>pha', 'Bravo', 'Charlie', 'Untouched'], ids: ['a', 'b', 'c', 'keep'], syncTarget: 'another editor field' },
+  { name: 'Slash Enter', key: ['Enter', 'Enter', 13], transaction: 'slash.block', source: 'a', offset: 'end', slash: true,
+    texts: ['', 'Bravo', 'Charlie', 'Untouched'], firstType: 'heading', ids: ['a', 'b', 'c', 'keep'], syncTarget: 'another editor field' },
+  { name: 'Slash Escape', key: ['Escape', 'Escape', 27], transaction: 'slash.cancel', source: 'a', offset: 'end', slash: true,
+    texts: ['', 'Bravo', 'Charlie', 'Untouched'], firstType: 'paragraph', ids: ['a', 'b', 'c', 'keep'], syncTarget: 'another editor field' },
   { name: 'Backspace merge', key: ['Backspace', 'Backspace', 8], transaction: 'block.merge', source: 'b', offset: 0,
     texts: ['AlphaBravo', 'Charlie', 'Untouched'], ids: ['a', 'c', 'keep'], syncTarget: 'an external input' },
   { name: 'Delete merge', key: ['Delete', 'Delete', 46], transaction: 'block.merge', source: 'a', offset: 'end',
@@ -50,9 +55,11 @@ for (const operation of operations) for (const timing of ['synchronous', 'queued
         assert(trustedCopy, 'External clipboard source did not receive a trusted Copy')
       }
 
-      const input = [para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie'), para('keep', 'Untouched')]
+      const input = [para('a', operation.slash ? '/hea' : 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie'), para('keep', 'Untouched')]
       const caller = structuredClone(input)
-      const editor = make(input, { injectStyles: true, inlineTools: [] })
+      const editor = make(input, { injectStyles: true, inlineTools: [],
+        ...(operation.slash ? { plugins: [createParagraphPlugin(), createHeadingPlugin()] } : {}),
+      })
       const before = editor.save().blocks
       const originalIds = new Set(before.map(block => block.id))
       const untouched = editableField(editor, 'keep')
@@ -61,6 +68,17 @@ for (const operation of operations) for (const timing of ['synchronous', 'queued
       editor.blocks.focus(operation.source, { offset: operation.offset })
       if (operation.clipboard) select(editableField(editor, operation.source), 2, 4)
       if (operation.whole) editor.blocks.select(['a'])
+      if (operation.slash) {
+        // The persisted query supplies menu state without a preceding history
+        // action. The command below still arrives as a real native key event.
+        editableField(editor, 'a').dispatchEvent(new InputEvent('input', {
+          bubbles: true, inputType: 'insertText', data: 'a',
+        }))
+        const menu = editorRoot(editor).querySelector('.oe-slash-menu')
+        assert(menu && menu.style.display !== 'none' && menu.textContent.includes('Heading'),
+          'The initial Slash query did not expose its command')
+        assert(!editor.canUndo, 'Opening a menu for existing text created an authoring action')
+      }
 
       let gesture = null
       let clipboardText = null
@@ -115,6 +133,7 @@ for (const operation of operations) for (const timing of ['synchronous', 'queued
       equal(handoffs, 1, 'The commit observer did not hand focus off exactly once')
       const after = editor.save().blocks
       equal(after.map(block => block.data.text), operation.texts, 'Focus handoff changed the authored result')
+      if (operation.firstType) equal(after[0].type, operation.firstType, 'Slash selected the wrong block type')
       equal(after.filter(block => originalIds.has(block.id)).map(block => block.id), operation.ids,
         'Focus handoff changed surviving block identities or order')
       equal(after.find(block => block.id === 'keep'), before.at(-1), 'Focus handoff changed the untouched destination')
