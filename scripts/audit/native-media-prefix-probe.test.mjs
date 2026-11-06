@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url'
 import { runInNewContext } from 'node:vm'
 import test from 'node:test'
 import { MEDIA_CASES, mediaOutcome } from './native-media-diagnostic.mjs'
-import { classifyMediaPrefix, buildPrefixRunner, instrumentPrefixMediaFixture, prefixPlaybackDiagnosticSource, loadPrefixCases } from './native-media-prefix-probe.mjs'
+import { classifyMediaPrefix, buildPrefixRunner, instrumentPrefixMediaFixture, prefixPlaybackDiagnosticSource, loadPrefixCases,
+  MEDIA_PREFIX_BATCH_LABELS, mediaPrefixBatchOutcome } from './native-media-prefix-probe.mjs'
 
 const inventory = {
   nativeTextInput: Array.from({ length: 52 }, (_, i) => `input-${i}`),
@@ -144,4 +145,26 @@ test('prefix observations capture parent focus and final native key cancellation
   assert.equal(final.frameConnected, true)
   assert.equal(final.sameChildDocument, true)
   probe.dispose()
+})
+
+const batch = () => MEDIA_PREFIX_BATCH_LABELS.map(label => ({ label, complete: true, passed: true, cases: 28, failures: 0 }))
+
+test('the fixed eight-prefix batch accepts eight complete passes only on the observed runtime', () => {
+  assert.equal(MEDIA_PREFIX_BATCH_LABELS.length, 8)
+  assert.equal(mediaPrefixBatchOutcome(batch(), true).pass, true)
+  assert.equal(mediaPrefixBatchOutcome(batch(), false).pass, false)
+})
+
+test('a later passing prefix never replaces an earlier product failure or incomplete attempt', () => {
+  for (const replacement of [{ complete: true, passed: false, failures: 1 }, { complete: false, passed: false }]) {
+    const attempts = batch()
+    Object.assign(attempts[2], replacement)
+    assert.equal(mediaPrefixBatchOutcome(attempts, true).pass, false)
+  }
+})
+
+test('missing, duplicated or reordered attempts cannot satisfy the fixed planned batch', () => {
+  for (const attempts of [batch().slice(1), [...batch().slice(0, 7), batch()[6]], [...batch()].reverse()]) {
+    assert.throws(() => mediaPrefixBatchOutcome(attempts, true))
+  }
 })

@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { runInNewContext } from 'node:vm'
 import { git, hashFile, recordCommand, sha256, sourceIdentity, writeJson } from './browser-audit-support.mjs'
-import { MEDIA_CASES, classifyMediaPage, mediaOutcome, instrumentMediaFixture, installPlaybackDiagnostics } from './native-media-diagnostic.mjs'
+import { MEDIA_CASES, classifyMediaPage, instrumentMediaFixture, installPlaybackDiagnostics } from './native-media-diagnostic.mjs'
 
 const BASE = '3ff2774bf5fca67178fea733836b965f1d4ca188'
 const BROWSER = '156.0.8078.79'
@@ -17,6 +17,24 @@ const HISTORY = ['native typing', 'structural Enter split', 'insert', 'move', 'c
 const SCENARIOS = {
   enterScenario: ['beforeBold', 'afterBold', 'afterUndo', 'afterRedo', 'afterRemoveBold', 'afterUndoRemoval'],
   toolboxScenario: ['toolboxBeforeBold', 'toolboxAfterImmediateUndo', 'deleteLastImmediateUndo', 'deleteLastRedo', 'deleteLastUndoAgain', 'deleteMiddle', 'deleteMiddleUndo', 'inlineAfterDeleteUndo'],
+}
+export const MEDIA_PREFIX_BATCH_LABELS = Object.freeze(Array.from({ length: 8 }, (_, index) => `instrumented-prefix-${String(index + 1).padStart(2, '0')}`))
+const PER_ATTEMPT_TIMEOUT_MS = 10 * 60_000
+
+export function mediaPrefixBatchOutcome(attempts, sameRuntime) {
+  assert.deepEqual(attempts.map(attempt => attempt.label), MEDIA_PREFIX_BATCH_LABELS, 'Expected all eight planned prefixes exactly once in order')
+  for (const attempt of attempts) if (attempt.complete === true) {
+    assert.equal(attempt.cases, 28)
+    assert(Number.isSafeInteger(attempt.failures) && attempt.failures >= 0 && attempt.failures <= 28)
+    assert.equal(attempt.passed, attempt.failures === 0, 'Prefix verdict disagrees with its original case assertions')
+  }
+  const incompleteAttempts = attempts.filter(attempt => attempt.complete !== true).map(attempt => attempt.label)
+  const productFailedAttempts = attempts.filter(attempt => attempt.complete === true && attempt.passed !== true).map(attempt => attempt.label)
+  const collectionComplete = incompleteAttempts.length === 0
+  return { pass: sameRuntime === true && collectionComplete && productFailedAttempts.length === 0,
+    collectionComplete, plannedAttemptCount: MEDIA_PREFIX_BATCH_LABELS.length, collectedAttemptCount: attempts.length,
+    passedAttemptCount: attempts.filter(attempt => attempt.complete === true && attempt.passed === true).length,
+    productFailedAttempts, incompleteAttempts, sameRuntime, releaseAccepted: false }
 }
 
 function replaceOnce(source, anchor, replacement) {
@@ -113,11 +131,12 @@ async function main() {
   assert(process.env.EDITOR_RESULTS_DIR && process.env.EDITOR_CHROME_PATH, 'Set a fresh EDITOR_RESULTS_DIR and the runner browser path')
   const output = resolve(process.env.EDITOR_RESULTS_DIR, 'native-media-prefix')
   await mkdir(output, { recursive: true })
-  const report = { kind: 'Bounded physical-prefix native media probe', startedAt: new Date().toISOString(), productionBase: BASE,
-    plannedOrder: ['original-prefix', 'instrumented-prefix'], prefixOrder: ORDER, expectedMediaCases: MEDIA_CASES,
-    retries: 0, originalPlaybackPauseMs: 100, postVerdictObservationMs: 300, observedFailureBrowser: BROWSER,
+  const report = { kind: 'Fixed eight-attempt physical-prefix media diagnostic', startedAt: new Date().toISOString(), productionBase: BASE,
+    plannedOrder: MEDIA_PREFIX_BATCH_LABELS, plannedAttemptCount: MEDIA_PREFIX_BATCH_LABELS.length,
+    prefixOrder: ORDER, expectedMediaCases: MEDIA_CASES, attempts: [], perAttemptTimeoutMs: PER_ATTEMPT_TIMEOUT_MS,
+    retries: 0, stopOnGreen: false, originalPlaybackPauseMs: 100, postVerdictObservationMs: 300, observedFailureBrowser: BROWSER,
     pass: false, releaseAccepted: false,
-    qualification: 'These two independent browser profiles reproduce the maintained physical prefix through HTML. Ordinary run.mjs pages use a different browser process. Instrumentation can perturb timing; diagnostic geometry reads occur only after the original 100ms verdict and at +300ms, never before Space. Successful diagnostic collection does not establish release readiness, and later playback never replaces the original 100ms verdict.' }
+    qualification: 'All eight instrumented complete physical prefixes use independent browser profiles and are collected in fixed order, even after a product failure. This finite diagnostic batch records every verdict. No additional uninstrumented attempt is planned: the earlier original-prefix control belongs to commit 63583f497493c7a8a8934ce158a3d10b49fbf96d. Instrumentation can perturb timing; geometry reads occur only after the original 100ms verdict and at +300ms, never before Space. Successful collection does not establish release readiness, and later playback never replaces the original verdict.' }
   await writeJson(join(output, 'plan.json'), report)
   const environment = { ...process.env }
   for (const key of ['EDITOR_NATIVE_PAGE', 'EDITOR_NATIVE_FILTER', 'EDITOR_BROWSER_PAGE', 'EDITOR_BROWSER_ROOT', 'EDITOR_VITE_PATH', 'EDITOR_CHROME_HEADLESS']) delete environment[key]
@@ -145,27 +164,27 @@ async function main() {
     const runner = buildPrefixRunner(originalRunner)
     const originalFixture = await readFile(join(root, FIXTURE), 'utf8')
     const fixture = instrumentPrefixMediaFixture(originalFixture)
-    const attempt = async (label, instrumented) => {
+    const attempt = async label => {
       const directory = join(output, label), checkout = join(temporary, label)
       await mkdir(directory)
       git(root, 'worktree', 'add', '--detach', checkout, before.head)
       checkouts.push(checkout)
       await symlink(join(root, 'node_modules'), join(checkout, 'node_modules'), 'dir')
       await writeFile(join(checkout, RUNNER), runner)
-      if (instrumented) await writeFile(join(checkout, FIXTURE), fixture)
-      const expected = { [RUNNER]: sha256(runner), ...(instrumented ? { [FIXTURE]: sha256(fixture) } : {}) }
+      await writeFile(join(checkout, FIXTURE), fixture)
+      const expected = { [RUNNER]: sha256(runner), [FIXTURE]: sha256(fixture) }
       assert.deepEqual(git(checkout, 'diff', '--name-only', 'HEAD').toString().trim().split('\n').sort(), Object.keys(expected).sort())
       const overlay = await sourceIdentity(checkout)
       for (const [path, hash] of Object.entries(before.files)) assert.equal(overlay.files[path], expected[path] ?? hash)
       await writeFile(join(directory, 'overlay.diff'), git(checkout, 'diff', '--binary', 'HEAD'), { flag: 'wx' })
       await writeFile(join(directory, 'physical-history.mjs'), runner, { flag: 'wx' })
-      if (instrumented) await writeFile(join(directory, 'html-content-native.js'), fixture, { flag: 'wx' })
+      await writeFile(join(directory, 'html-content-native.js'), fixture, { flag: 'wx' })
       await writeJson(join(directory, 'overlay.json'), { source: overlay, onlyChangedPaths: Object.keys(expected), hashes: expected })
       const run = await recordCommand(directory, 'run', [process.execPath, RUNNER],
-        { cwd: checkout, env: { ...environment, EDITOR_RESULTS_DIR: directory } })
+        { cwd: checkout, env: { ...environment, EDITOR_RESULTS_DIR: directory }, timeoutMs: PER_ATTEMPT_TIMEOUT_MS })
       let outcome
       try {
-        outcome = classifyMediaPrefix(run, report.expectedPrefixCases, instrumented)
+        outcome = classifyMediaPrefix(run, report.expectedPrefixCases, true)
         outcome.browser = JSON.parse(await readFile(join(directory, 'physical-browser-environment.json'), 'utf8'))
         assert.equal(outcome.browser.executable, process.env.EDITOR_CHROME_PATH)
         assert.equal(outcome.browser.browser, `Chrome/${BROWSER}`, 'Different browser environment from the observed failure')
@@ -176,12 +195,15 @@ async function main() {
       if (run.receivedSignal) throw new Error('Interrupted media prefix diagnostic: ' + run.receivedSignal)
       return outcome
     }
-    report.original = await attempt('original-prefix', false)
-    report.diagnostic = await attempt('instrumented-prefix', true)
+    for (const label of MEDIA_PREFIX_BATCH_LABELS) {
+      report.activeAttempt = label
+      report.attempts.push({ label, ...await attempt(label) })
+      delete report.activeAttempt
+    }
     report.sourceAfter = await sourceIdentity(root)
     assert.deepEqual(report.sourceAfter, before)
     report.sourceUnchanged = true
-    Object.assign(report, mediaOutcome(report.original, report.diagnostic, report.runtime.matchesObserved))
+    Object.assign(report, mediaPrefixBatchOutcome(report.attempts, report.runtime.matchesObserved))
     assert.equal(await hashFile(executable), report.runtime.executableSha256)
     if (report.runtime.installedChromeBinarySha256) assert.equal(await hashFile(join(dirname(executable), 'chrome')), report.runtime.installedChromeBinarySha256)
   } catch (error) { report.pass = false; report.error = String(error.stack ?? error) }
@@ -191,11 +213,15 @@ async function main() {
       catch (error) { report.pass = false; (report.cleanupErrors ??= []).push(String(error.stack ?? error)) }
     }
     if (temporary && !report.cleanupErrors) await rm(temporary, { recursive: true, force: true })
+    report.collectedAttemptCount = report.attempts.length
+    report.uncollectedAttempts = MEDIA_PREFIX_BATCH_LABELS.filter(label => !report.attempts.some(attempt => attempt.label === label))
     report.finishedAt = new Date().toISOString()
     await writeJson(join(output, 'result.json'), report)
   }
   console.log(JSON.stringify({ pass: report.pass, collectionComplete: report.collectionComplete ?? false,
-    originalPassed: report.original?.passed ?? false, instrumentedPassed: report.diagnostic?.passed ?? false, releaseAccepted: false, output }))
+    collectedAttempts: report.collectedAttemptCount, passedAttempts: report.passedAttemptCount ?? 0,
+    productFailedAttempts: report.productFailedAttempts ?? [], incompleteAttempts: report.incompleteAttempts ?? [],
+    releaseAccepted: false, output }))
   if (!report.pass) process.exitCode = 1
 }
 
