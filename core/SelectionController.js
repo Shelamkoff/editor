@@ -25,6 +25,8 @@ export class SelectionController {
   #generation = 0
   #navigationX = null
   #highlight = null
+  #focusVersion = 0
+  #onFocusIn
 
   constructor({ root, runtime, reconciler, view }) {
     if (!root?.ownerDocument) throw new TypeError('SelectionController requires an editor root')
@@ -37,6 +39,7 @@ export class SelectionController {
     const AbortControllerCtor = this.#window?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
     const signal = this.#controller.signal
+    this.#onFocusIn = () => { this.#focusVersion++ }
 
     try {
       root.addEventListener('mousedown', event => this.#onMouseDown(event), { signal })
@@ -55,10 +58,12 @@ export class SelectionController {
           if (native?.anchorNode && root.contains(native.anchorNode)) native.removeAllRanges()
         }
       }, { capture: true, signal })
+      this.#document.addEventListener('focusin', this.#onFocusIn, { capture: true, signal })
     } catch (error) {
       // A native event host can fail after installing one of the callbacks.
       // Constructor failure leaves no public controller for destroy(), so
       // revoke the entire provisional listener scope before propagating it.
+      try { this.#document.removeEventListener?.('focusin', this.#onFocusIn, { capture: true }) } catch {}
       try { this.#controller.abort() } catch {}
       throw error
     }
@@ -338,12 +343,14 @@ export class SelectionController {
    * a read-only change, or the user's move to another block.
    * @param {string} blockId
    * @param {any} target
+   * @param {number} focusVersion
    */
-  #queueOwnedFocus(blockId,target) {
+  #queueOwnedFocus(blockId,target,focusVersion) {
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const ownsFocus=()=>!this.#controller.signal.aborted&&!this.#runtime.readOnly
+      &&this.#focusVersion===focusVersion
       &&this.#runtime.health!=='destroyed'
       &&this.#runtime.health!=='failed'
       &&generation===this.#runtime.generation
@@ -390,6 +397,7 @@ export class SelectionController {
     if (this.#controller.signal.aborted) return false
     const ids = this.wholeBlockIds
     if (!ids.length) return false
+    const focusVersion = this.#focusVersion
     const currentId = this.#runtime.interact('selection.remove', () => this.#runtime.removeBlocks(ids), blockId => {
       if (!blockId) return null
       const field = this.#reconciler.getEditableFields(blockId)[0]
@@ -397,12 +405,14 @@ export class SelectionController {
       return { anchor: point, focus: { ...point } }
     })
     if (!currentId) return false
-    if (!this.#canPresentCommitted()) return true
+    if (!this.#canPresentCommitted(focusVersion)) return true
     this.#deactivate()
+    if (!this.#canPresentCommitted(focusVersion)) return true
     this.#view.reconcileInteraction()
+    if (!this.#canPresentCommitted(focusVersion)) return true
     if(currentId){
       this.#view.setCurrent(currentId)
-      this.#queueOwnedFocus(currentId,{offset:'start'})
+      this.#queueOwnedFocus(currentId,{offset:'start'},focusVersion)
     }
     return true
   }
@@ -412,6 +422,7 @@ export class SelectionController {
     const bookmark = this.bookmark
     const whole = this.wholeBlockIds
     if (!bookmark && !whole.length) return false
+    const focusVersion = this.#focusVersion
     const result = this.#runtime.interact('selection.replace', () => whole.length
       ? this.#runtime.replaceWholeDocument(replacement, whole)
       : this.#runtime.replaceLogicalRange(bookmark, replacement), point => {
@@ -420,14 +431,16 @@ export class SelectionController {
         return { anchor: caret, focus: { ...caret } }
       })
     if (!result) return false
-    if (!this.#canPresentCommitted()) return true
+    if (!this.#canPresentCommitted(focusVersion)) return true
     this.#deactivate()
+    if (!this.#canPresentCommitted(focusVersion)) return true
     this.#view.reconcileInteraction()
+    if (!this.#canPresentCommitted(focusVersion)) return true
     this.#view.setCurrent(result.blockId)
     this.#queueOwnedFocus(result.blockId,{
       fieldKey: result.fieldKey,
       offset: result.offset,
-    })
+    },focusVersion)
     return true
   }
 
@@ -531,6 +544,7 @@ export class SelectionController {
     if (this.#controller.signal.aborted) return false
     const bookmark=this.bookmark
     if(!bookmark||this.#wholeBlocks||this.#runtime.readOnly)return false
+    const focusVersion=this.#focusVersion
     const target=this.#runtime.interact('selection.split',()=>{
       const structured=this.#runtime.splitStructuredSelection(bookmark)
       if(structured)return structured
@@ -546,11 +560,13 @@ export class SelectionController {
       return {anchor:caret,focus:{...caret}}
     })
     if(!target)return false
-    if(!this.#canPresentCommitted())return true
+    if(!this.#canPresentCommitted(focusVersion))return true
     this.#deactivate()
+    if(!this.#canPresentCommitted(focusVersion))return true
     this.#view.reconcileInteraction()
+    if(!this.#canPresentCommitted(focusVersion))return true
     this.#view.setCurrent(target.blockId)
-    this.#queueOwnedFocus(target.blockId,{...(target.fieldKey?{fieldKey:target.fieldKey}:{}),offset:target.offset})
+    this.#queueOwnedFocus(target.blockId,{...(target.fieldKey?{fieldKey:target.fieldKey}:{}),offset:target.offset},focusVersion)
     return true
   }
 
@@ -677,6 +693,7 @@ export class SelectionController {
     // Revoke native listeners before entering DOM/view cleanup callbacks.
     // Clearing selected blocks can synchronously call destroy() again, and
     // errors in one observer must not prevent independent resource release.
+    try { this.#document.removeEventListener?.('focusin', this.#onFocusIn, { capture: true }) } catch {}
     this.#controller.abort()
     this.#navigationX = null
     this.#dragStart = null
@@ -689,11 +706,12 @@ export class SelectionController {
     try { this.#hideHighlight() } catch {}
   }
 
-  #canPresentCommitted() {
+  #canPresentCommitted(focusVersion) {
     // A successful model transaction may synchronously publish to a host
     // callback that destroys this selection owner. Its canonical result
     // remains committed, but the old selection cannot touch detached DOM.
     return !this.#controller.signal.aborted
+      && this.#focusVersion === focusVersion
       && !this.#runtime.readOnly
       && this.#runtime.health !== 'destroyed'
       && this.#runtime.health !== 'failed'

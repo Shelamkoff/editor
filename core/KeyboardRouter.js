@@ -46,6 +46,8 @@ export class KeyboardRouter {
   #inlineCommands
   #isComposing
   #reportError
+  #focusVersion = 0
+  #onFocusIn
 
   constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, inlineCommands = null, crossSelection = null, isComposing = () => false,
     reportError = error => console.error('Keyboard shortcut failed', error) }) {
@@ -71,6 +73,10 @@ export class KeyboardRouter {
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
     root.addEventListener('keydown', event => this.handleKeydown(event), { signal: this.#controller.signal })
+    this.#onFocusIn = () => { this.#focusVersion++ }
+    root.ownerDocument.addEventListener('focusin', this.#onFocusIn, {
+      capture: true, signal: this.#controller.signal,
+    })
   }
 
   handleKeydown(event) {
@@ -391,27 +397,32 @@ export class KeyboardRouter {
             : {},
         )
     if (!bookmark || typeof fieldKey !== 'string' || !fieldKey) return false
+    const focusVersion = this.#focusVersion
     const nextId = this.#mutate('block.split', () => this.#runtime.splitBlock(blockId, fieldKey, bookmark), id => ({ blockId: id, offset: 'start' }))
     if (!nextId) return false
-    if (!this.#canPresent()) return true
+    if (!this.#canPresent(focusVersion)) return true
     this.#view.reconcileInteraction()
+    if (!this.#canPresent(focusVersion)) return true
     this.#view.setCurrent(nextId)
-    this.#restoreShortcutFocus({blockId:nextId,offset:'start'})
+    this.#restoreShortcutFocus({blockId:nextId,offset:'start'},focusVersion)
     return true
   }
 
   exit(blockId, data = undefined) {
     if (this.#controller.signal.aborted || this.#runtime.readOnly) return false
+    const focusVersion=this.#focusVersion
     const nextId=this.#mutate('block.exit',()=>this.#runtime.exitBlock(blockId,data),id=>id?({blockId:id,offset:'start'}):null)
     if(!nextId)return false
-    if(!this.#canPresent())return true
+    if(!this.#canPresent(focusVersion))return true
     this.#view.reconcileInteraction()
+    if(!this.#canPresent(focusVersion))return true
     if(this.#runtime.has(nextId))this.#view.setCurrent(nextId)
-    this.#restoreShortcutFocus({blockId:nextId,offset:'start'})
+    this.#restoreShortcutFocus({blockId:nextId,offset:'start'},focusVersion)
     return true
   }
 
   destroy() {
+    try { this.#root.ownerDocument.removeEventListener?.('focusin', this.#onFocusIn, { capture: true }) } catch {}
     this.#controller.abort()
   }
 
@@ -433,11 +444,12 @@ export class KeyboardRouter {
     }
     // Give an initially unfocused editor a valid history restore point.
     if (!this.#selection.capture() && lastId) this.#view.focus(lastId, { offset: 'end' })
+    const focusVersion = this.#focusVersion
     const id = this.#mutate('block.append', () => this.#runtime.insert(this.#registry.defaultBlockType), result => ({ blockId: result, offset: 'start' }))
     if (!id) return false
-    if (!this.#canPresent()) return true
+    if (!this.#canPresent(focusVersion)) return true
     this.#view.reconcileInteraction()
-    this.#view.focus(id, { offset: 'start' })
+    if (this.#canPresent(focusVersion)) this.#view.focus(id, { offset: 'start' })
     return true
   }
 
@@ -454,6 +466,7 @@ export class KeyboardRouter {
   }
 
   #handleShortcut(owner,event,range,keys){
+    const focusVersion=this.#focusVersion
     let result
     try{
       result=this.#mutate('block.shortcut',tx=>{
@@ -483,12 +496,13 @@ export class KeyboardRouter {
       try{this.#reportError(error)}catch{}
       return true
     }
-    if(!this.#canPresent())return result?.handled===true
+    if(!this.#canPresent(focusVersion))return result?.handled===true
     if(result.reconcile){
       this.#view.reconcileInteraction()
+      if(!this.#canPresent(focusVersion))return result.handled
       if(result.historyTarget&&this.#runtime.has(result.historyTarget.blockId))this.#view.setCurrent(result.historyTarget.blockId)
     }
-    if(result.focus)this.#restoreShortcutFocus(result.focus)
+    if(result.focus)this.#restoreShortcutFocus(result.focus,focusVersion)
     return result.handled
   }
 
@@ -522,23 +536,28 @@ export class KeyboardRouter {
       && ownsFields() && ownsState()
   }
 
-  #canPresent() {
+  #canPresent(focusVersion = this.#focusVersion) {
     // A canonical transaction can publish to a host observer that destroys
     // the editor synchronously. Keep that commit, but never reconcile or
     // focus the detached DOM owned by the retired keyboard router.
     return !this.#controller.signal.aborted
+      && this.#focusVersion === focusVersion
       && this.#runtime.health !== 'destroyed'
       && this.#runtime.health !== 'failed'
       && !this.#runtime.readOnly
   }
 
-  #restoreShortcutFocus(target){
+  #restoreShortcutFocus(target,focusVersion){
+    if(!this.#canPresent(focusVersion))return
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element?.(target.blockId)
     const authorSelection=this.#selection.capture()
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||this.#runtime.readOnly
+        // A null logical range can mean that projection retired its field or
+        // that a native control acquired focus. Only the former may restore.
+        ||this.#focusVersion!==focusVersion
         ||this.#runtime.generation!==generation||this.#runtime.revision!==revision
         ||this.#runtime.modeEpoch!==modeEpoch||!this.#runtime.has(target.blockId)
         ||(mounted&&this.#view.element?.(target.blockId)!==mounted)
@@ -557,19 +576,22 @@ export class KeyboardRouter {
 
     const previousField = this.#reconciler.getEditableFields(previousId).at(-1)
     const target = { ...(previousField ? { fieldKey: previousField.key } : {}), offset: previousField ? fieldLength(previousField) : 0 }
+    const focusVersion=this.#focusVersion
     if (this.#runtime.isEmpty(blockId)) {
       this.#mutate('block.remove', () => this.#runtime.remove(blockId), () => ({ blockId: previousId, ...target }))
-      if (!this.#canPresent()) return true
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.reconcileInteraction()
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.setCurrent(previousId)
-      this.#restoreShortcutFocus({blockId:previousId,...target})
+      this.#restoreShortcutFocus({blockId:previousId,...target},focusVersion)
       return true
     }
     if(this.#mutate('block.merge', () => this.#runtime.mergeAdjacent(previousId,blockId), () => ({ blockId: previousId, ...target }))){
-      if (!this.#canPresent()) return true
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.reconcileInteraction()
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.setCurrent(previousId)
-      this.#restoreShortcutFocus({blockId:previousId,...target})
+      this.#restoreShortcutFocus({blockId:previousId,...target},focusVersion)
       return true
     }
     return false
@@ -579,20 +601,23 @@ export class KeyboardRouter {
     const index=this.#runtime.indexOf(blockId)
     const nextId=this.#runtime.idAt(index+1)
     if(index<0||!nextId)return false
+    const focusVersion=this.#focusVersion
 
     if(this.#runtime.isEmpty(nextId)){
       this.#mutate('block.remove', () => this.#runtime.remove(nextId), () => ({ blockId, offset: caretOffset }))
-      if (!this.#canPresent()) return true
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.reconcileInteraction()
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.setCurrent(blockId)
-      this.#restoreShortcutFocus({blockId,fieldKey,offset:caretOffset})
+      this.#restoreShortcutFocus({blockId,fieldKey,offset:caretOffset},focusVersion)
       return true
     }
     if(this.#mutate('block.merge', () => this.#runtime.mergeAdjacent(blockId,nextId), () => ({ blockId, offset: caretOffset }))){
-      if (!this.#canPresent()) return true
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.reconcileInteraction()
+      if (!this.#canPresent(focusVersion)) return true
       this.#view.setCurrent(blockId)
-      this.#restoreShortcutFocus({blockId,fieldKey,offset:caretOffset})
+      this.#restoreShortcutFocus({blockId,fieldKey,offset:caretOffset},focusVersion)
       return true
     }
     return false

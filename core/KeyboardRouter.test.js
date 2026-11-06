@@ -5,11 +5,11 @@ import { KeyboardRouter } from './KeyboardRouter.js'
 
 class FakeRoot {
   listeners = new Map()
-  ownerDocument = { defaultView: { AbortController } }
+  ownerDocument = Object.assign(new EventTarget(), { defaultView: { AbortController } })
   addEventListener(type, handler) { this.listeners.set(type, handler) }
 }
 
-function harness({ reportError, inlineCommands = null, crossSelection = null, inlineToolbar = null } = {}) {
+function harness({ reportError, inlineCommands = null, crossSelection = null, inlineToolbar = null, onCommit = null } = {}) {
   const root = new FakeRoot()
   const field = { value: '', parentNode: null }
   const owner = { blockId: 'b', fieldKey: 'text', element: field, mode: 'plain-text' }
@@ -25,7 +25,12 @@ function harness({ reportError, inlineCommands = null, crossSelection = null, in
     has: id => records.some(record => record.id === id),
     prepareExtensionValue: operation => operation(),
     prepareShortcutAction: () => null,
-    interact(_name, operation) { return operation() },
+    interact(name, operation) {
+      const before=calls.length
+      const result=operation()
+      if(calls.length!==before)onCommit?.(name)
+      return result
+    },
     indexOf: id => records.findIndex(record => record.id === id),
     idAt: index => records[index]?.id,
     ids: () => records.map(record => record.id),
@@ -87,7 +92,11 @@ function harness({ reportError, inlineCommands = null, crossSelection = null, in
       ...extra,
     }
   }
-  return { router, runtime, calls, view, viewCalls, event, selection, reconciler, setBookmark: value => { bookmark = value }, field, owner, root, records }
+  const focus=element=>{
+    root.ownerDocument.activeElement=element
+    root.ownerDocument.dispatchEvent(new Event('focusin'))
+  }
+  return { router, runtime, calls, view, viewCalls, event, selection, reconciler, setBookmark: value => { bookmark = value }, field, owner, root, records, focus }
 }
 
 test('Enter delegates an editable split to one runtime transaction', () => {
@@ -172,7 +181,7 @@ test('already handled plugin keydown events never execute generic structural log
 test('auxiliary controls keep native history ownership; editor chrome owns document history', () => {
   const calls=[]
   const root={
-    ownerDocument:{defaultView:{AbortController}},
+    ownerDocument:{defaultView:{AbortController},addEventListener(){}},
     addEventListener(){},
     contains(target){return target?.inside===true},
   }
@@ -308,6 +317,49 @@ test('queued keyboard split never overwrites a later user caret inside the new b
 })
 
 for(const key of ['Enter','Backspace','Delete']){
+  for(const transfer of ['none','sync','microtask','sync-block','microtask-block']){
+    test(`${key} completion respects ${transfer} native focus ownership`,async()=>{
+      const outside={}
+      const h=harness({onCommit:()=>{
+        // Projection may retire the source field, leaving no logical range.
+        h.setBookmark(null)
+        const handoff=()=>{
+          h.focus(outside)
+          if(transfer.endsWith('block'))h.view.setCurrent('c')
+        }
+        if(transfer.startsWith('sync'))handoff()
+        if(transfer.startsWith('microtask'))queueMicrotask(handoff)
+      }})
+      h.focus(h.field)
+      h.field.value='B'
+      const offset=key==='Backspace'?0:1
+      h.setBookmark({
+        anchor:{blockId:'b',fieldKey:'text',offset},
+        focus:{blockId:'b',fieldKey:'text',offset},
+      })
+      const event=h.event(key)
+      h.router.handleKeydown(event)
+      if(key==='Enter')h.records.push({id:'new',type:'paragraph',data:{text:''}})
+      assert.equal(event.prevented,true,'the committed structural key must remain owned')
+      assert.deepEqual(h.calls,key==='Enter'
+        ?[['split','b','text',{start:1,end:1}]]
+        :key==='Backspace'?[['merge','a','b']]:[['merge','b','c']])
+      await Promise.resolve()
+      const focusCalls=h.viewCalls.filter(call=>call[0]==='focus')
+      if(transfer==='none'){
+        assert.equal(focusCalls.length,1,'an uninterrupted command lost its planned caret')
+        assert.equal(focusCalls[0][1],key==='Enter'?'new':key==='Backspace'?'a':'b')
+      }else{
+        assert.deepEqual(focusCalls,[],'the completed key reclaimed a newer native focus owner')
+        assert.equal(h.root.ownerDocument.activeElement,outside)
+        if(transfer.endsWith('block'))assert.equal(h.view.currentId,'c','old key replaced the newer current block')
+      }
+      h.router.destroy()
+    })
+  }
+}
+
+for(const key of ['Enter','Backspace','Delete']){
   test('failed empty-block eligibility consumes '+key+' without native or history fallback',()=>{
     const reported=[]
     const h=harness({reportError:error=>reported.push(error.message)})
@@ -345,6 +397,21 @@ test('retired KeyboardRouter ignores captured editor shortcuts and does not inte
   assert.equal(history.prevented, false)
   assert.equal(split.prevented, false)
   assert.deepEqual(calls, [], 'destroyed key listener mutated or replayed canonical history')
+})
+
+test('failed document focus-listener cleanup cannot retain keyboard command authority', () => {
+  const h=harness()
+  const remove=h.root.ownerDocument.removeEventListener.bind(h.root.ownerDocument)
+  let first=true
+  h.root.ownerDocument.removeEventListener=(...args)=>{
+    if(first){first=false;throw new Error('host focus cleanup failed')}
+    remove(...args)
+  }
+  assert.doesNotThrow(()=>h.router.destroy())
+  const key=h.event('Enter')
+  h.router.handleKeydown(key)
+  assert.equal(key.prevented,false)
+  assert.deepEqual(h.calls,[],'failed focus cleanup left structural keyboard commands active')
 })
 
 test('retired KeyboardRouter public structural entry points cannot modify document', () => {

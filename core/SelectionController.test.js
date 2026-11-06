@@ -32,7 +32,7 @@ function harness() {
   }
   const controller=new SelectionController({root,runtime,reconciler,view})
   return {
-    runtime,view,controller,reconciler,selections,
+    runtime,view,controller,reconciler,selections,doc,
     mutations:()=>mutations,
     begin(){
       controller.selectBlocks(['a'])
@@ -126,6 +126,69 @@ test('queued cross-block focus never overwrites a later caret inside the same re
   }
 })
 
+for(const operation of ['remove','replace']){
+  for(const transfer of ['none','sync-outside','microtask-outside','sync-block','microtask-block']){
+    test(`selection ${operation} preserves ${transfer} focus and selection ownership`,async()=>{
+      const node={nodeType:3},native={anchorNode:node,focusNode:node,anchorOffset:1,focusOffset:1}
+      const fields={a:{},b:{},c:{}},outside={}
+      const doc=Object.assign(new EventTarget(),{
+        activeElement:fields.a,defaultView:{AbortController,getSelection:()=>native},
+      })
+      const root={ownerDocument:doc,addEventListener(){},contains(){return true},
+        classList:{add(){},remove(){}}}
+      const focusCalls=[]
+      const view={
+        currentId:'a',selectedIds:[],element:id=>fields[id],
+        select(ids){this.selectedIds=[...ids]},clearSelection(){this.selectedIds=[]},
+        reconcileInteraction(){},setCurrent(id){this.currentId=id},
+        focus(id,target){doc.activeElement=fields[id];focusCalls.push({id,target});return true},
+      }
+      const handoff=()=>{
+        doc.activeElement=transfer.endsWith('block')?fields.c:outside
+        doc.dispatchEvent(new Event('focusin'))
+        if(transfer.endsWith('block')){
+          view.setCurrent('c')
+          view.select(['c'])
+        }
+      }
+      const commits=[]
+      const runtime={
+        readOnly:false,health:'ready',generation:1,revision:1,modeEpoch:0,
+        has:id=>Object.hasOwn(fields,id),ids:()=>Object.keys(fields),
+        removeBlocks:()=> 'b',replaceWholeDocument:()=>({blockId:'a',fieldKey:'text',offset:3}),
+        interact(name,action){
+          const result=action()
+          this.revision++
+          commits.push(name)
+          if(transfer.startsWith('sync'))handoff()
+          if(transfer.startsWith('microtask'))queueMicrotask(handoff)
+          return result
+        },
+      }
+      const controller=new SelectionController({root,runtime,view,
+        reconciler:{resolveEditableTarget:()=>null,getEditableFields:id=>[{key:'text',mode:'rich-text',element:fields[id]}]},
+      })
+      controller.selectBlocks(['a'])
+      assert.equal(operation==='remove'?controller.removeWholeBlocks():controller.replace({kind:'text',text:'XYZ'}),true)
+      assert.deepEqual(commits,[`selection.${operation}`],'focus takeover must not revoke or repeat the accepted edit')
+      await Promise.resolve()
+      if(transfer==='none'){
+        assert.equal(focusCalls.length,1,'uninterrupted selection edit lost its caret')
+        assert.equal(focusCalls[0].id,operation==='remove'?'b':'a')
+        assert.deepEqual(view.selectedIds,[])
+      }else{
+        assert.deepEqual(focusCalls,[],'old selection edit reclaimed a newer native focus owner')
+        assert.equal(doc.activeElement,transfer.endsWith('block')?fields.c:outside)
+        if(transfer.endsWith('block')){
+          assert.equal(view.currentId,'c','old edit replaced the newer current block')
+          assert.deepEqual(view.selectedIds,['c'],'old edit cleared the newer block selection')
+        }
+      }
+      controller.destroy()
+    })
+  }
+}
+
 test('destroyed SelectionController cannot reselect blocks through retained public authority', () => {
   const h = harness()
   h.controller.destroy()
@@ -133,6 +196,16 @@ test('destroyed SelectionController cannot reselect blocks through retained publ
   assert.equal(h.controller.selectBlocks(['a']), false)
   assert.deepEqual(h.view.selectedIds, [],
     'retired selection controller republished selected block IDs')
+})
+
+test('failed document focus-listener cleanup cannot retain selection command authority', () => {
+  const h=harness()
+  h.controller.selectBlocks(['a'])
+  h.doc.removeEventListener=()=>{throw new Error('host focus cleanup failed')}
+  assert.doesNotThrow(()=>h.controller.destroy())
+  assert.equal(h.controller.removeWholeBlocks(),false)
+  assert.equal(h.mutations(),0,'failed focus cleanup left whole-block removal active')
+  assert.deepEqual(h.view.selectedIds,[])
 })
 
 test('destroyed SelectionController rejects stale range restoration before probing DOM ownership', () => {
