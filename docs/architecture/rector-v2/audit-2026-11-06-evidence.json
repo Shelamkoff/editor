@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-11-06",
+  "repository": "Shelamkoff/editor",
+  "branch": "fix/rector-v2-audit-2026-11-06",
+  "baseline": {
+    "commit": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+    "tree": "a1a69a846edda9b77fb78ca66350062949934671",
+    "sourceDependencyArtifactSha256": "3669f389502ed45ccc2d9ba11e3d5cc3fbe7543cf08e457ebe01c3056b86ae5c",
+    "sourceArtifactId": 13531920487,
+    "verifyRunId": 42272664130,
+    "comparativeRunId": 42272664127,
+    "verifyOutcome": "PASS",
+    "comparativeOutcome": "PASS",
+    "all100": {
+      "jobId": 128080953494,
+      "completedAt": "2026-11-06T19:55:07Z",
+      "corpora": 100,
+      "reviewPassed": 100,
+      "historicalExitOne": 53,
+      "artifactId": 13536262444,
+      "artifactSha256": "86d754503071c6eab62c3aea5f7ad170fe5dbe5c8e2a281f6d43c2a402c61411",
+      "interpretation": "53 comparative corpus runners exited one with historical/reference differences while candidatePass and reviewPass were both true; these are not current candidate failures."
+    }
+  },
+  "importGraph": {
+    "source": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+    "method": "TypeScript AST runtime .js static relative import/export graph. Excludes tests, type declarations, dynamic import and callback call graphs.",
+    "modules": 295,
+    "edges": 729,
+    "cycles": [],
+    "boundaryEdgesToReview": [],
+    "dynamicImports": [
+      {
+        "file": "shared/embeddedHtml.js",
+        "specifier": "'./embeddedHtmlDocument.js'"
+      },
+      {
+        "file": "shared/highlightRuntime.js",
+        "specifier": "'highlight.js'"
+      },
+      {
+        "file": "shared/zipRuntime.js",
+        "specifier": "'jszip'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./paragraph/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./heading/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./list/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./quote/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./code/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./image/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./delimiter/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./table/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./checklist/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./warning/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./embed/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./raw/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./gallery/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./carousel/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./attaches/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./link-preview/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./toggle/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./columns/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./spoiler/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./poll/index.js'"
+      },
+      {
+        "file": "plugins/async.js",
+        "specifier": "'./person/index.js'"
+      },
+      {
+        "file": "plugins/gallery/index.js",
+        "specifier": "'./uploader.js'"
+      },
+      {
+        "file": "plugins/gallery/index.js",
+        "specifier": "'../../shared/galleryMasonry.js'"
+      },
+      {
+        "file": "plugins/image/index.js",
+        "specifier": "'./uploader.js'"
+      },
+      {
+        "file": "plugins/person/index.js",
+        "specifier": "'../shared/readImageDataUrl.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./paragraph/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./heading/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./list/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./quote/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./code/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./image/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./delimiter/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./table/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./checklist/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./warning/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./embed/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./raw/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./gallery/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./carousel/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./attaches/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./link-preview/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./toggle/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./columns/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./spoiler/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./poll/index.js'"
+      },
+      {
+        "file": "renderer/renderers/async.js",
+        "specifier": "'./person/index.js'"
+      }
+    ]
+  },
+  "transactionModel": {
+    "source": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+    "seed": "0x7023c4a1",
+    "rounds": 20,
+    "transactions": 6000,
+    "commits": 5293,
+    "rollbacks": 525,
+    "undos": 5293,
+    "redos": 5293,
+    "status": "PASS",
+    "netNoopTransactions": 182
+  },
+  "projectionIndexDiagnostic": {
+    "node": "v24.22.1",
+    "source": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+    "scope": "Canonical TransactionEngine + real BlockReconciler using existing FakeElement test fixture. No browser, style, layout, schema normalization, event observers or interaction controllers. Timing is diagnostic only.",
+    "warmup": 30,
+    "samples": 101,
+    "results": [
+      {
+        "blocks": 100,
+        "p50Ms": 0.0943719999999928,
+        "p95Ms": 0.3212430000000097,
+        "minMs": 0.04905300000001489,
+        "maxMs": 1.5495029999999872,
+        "fullMapCopies": 2,
+        "fullMapEntries": 200,
+        "updatedInstances": 1
+      },
+      {
+        "blocks": 1000,
+        "p50Ms": 0.14987600000000612,
+        "p95Ms": 0.38174500000002354,
+        "minMs": 0.11976000000004206,
+        "maxMs": 0.5649109999999951,
+        "fullMapCopies": 2,
+        "fullMapEntries": 2000,
+        "updatedInstances": 1
+      },
+      {
+        "blocks": 10000,
+        "p50Ms": 2.682544000000007,
+        "p95Ms": 7.19218699999999,
+        "minMs": 2.0956109999999626,
+        "maxMs": 10.531970000000001,
+        "fullMapCopies": 2,
+        "fullMapEntries": 20000,
+        "updatedInstances": 1
+      }
+    ]
+  },
+  "structuralArtifactReceipt": {
+    "workflowRunId": 42272664127,
+    "source": {
+      "head": "64c06f66cb280b7bc04064931fa5629a92b3fa68",
+      "tree": "a1a69a846edda9b77fb78ca66350062949934671",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lockSha256": "91874afdcfbe533e607429bdaa3e0a4cbf9d671410831dbeb1d62d4d5d266382",
+      "untracked": [],
+      "dirty": false,
+      "identity": "81678fc6ffb3fe562d118b01ce43b807d8d02e51028000884e4dc6440bc446a4"
+    },
+    "outcome": "passed",
+    "sourceUnchanged": true,
+    "startedAt": "2026-11-06T18:39:32.439Z",
+    "finishedAt": "2026-11-06T18:44:41.442Z",
+    "gates": {
+      "source": "passed",
+      "install": "passed",
+      "audit-tools": "passed",
+      "build": "passed",
+      "browser-runtime": "passed",
+      "structural": "passed"
+    }
+  },
+  "limitations": [
+    "These baseline measurements are evidence for their stated immutable source, not a final-head CI verdict.",
+    "Static graph omits dynamic imports and callback call graphs.",
+    "Projection diagnostic uses FakeElement: no real browser layout, paint, input timing, schema normalization or consumer event observers.",
+    "DOM-emulator reproductions are separate from native Chromium execution."
+  ],
+  "nativeFocusHistoricalProof": {
+    "artifact": "https://github.com/Shelamkoff/editor/actions/runs/42282997692/artifacts/13536672307",
+    "artifactSha256": "d5caf6c4f58b8cd9446fde50617b32d8c8d6c7e4da92a8775df1219eceeab51b",
+    "job": "https://github.com/Shelamkoff/editor/actions/runs/42282997692/job/128116532856",
+    "head": "6facf308caeb5ab7487103215d00d43ad3475842",
+    "tree": "f98cca3c4124360a7e774d231fa862495719ec08",
+    "clean": true,
+    "sourceUnchanged": true,
+    "dependenciesUnchanged": true,
+    "retries": 0,
+    "browser": "Google Chrome for Testing 151.0.7922.34",
+    "runtime": {
+      "playwright": "1.62.1",
+      "chromium": "151.0.7922.34",
+      "revision": "1234"
+    },
+    "process": {
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "spawnError": null,
+      "receivedSignal": null,
+      "stdoutSha256": "4001a63dbdffb444d76149ad985a5becee011d8300ae6ac9791a613cdb2cc6b0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "focus": {
+      "outcome": "PASS",
+      "total": 22,
+      "rows": [
+        {
+          "name": "Native Enter split preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Enter split preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Shift+Enter line break preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Enter preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Slash Escape preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Backspace merge preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native Delete merge preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native selected-block Backspace preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native whole-block Cut preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves synchronous commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native local Paste preserves queued commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native multiline Paste preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves synchronous commit-observer focus on another editor field",
+          "status": "PASS"
+        },
+        {
+          "name": "Native block drag preserves queued commit-observer focus on an external input",
+          "status": "PASS"
+        }
+      ]
+    },
+    "stepOutcomes": {
+      "commit-focus-ownership": "PASS",
+      "navigation-151": "PASS",
+      "clipboard-red": "PASS",
+      "clipboard-green": "PASS",
+      "font-size-retained-red": "PASS",
+      "font-size-retained-green": "PASS"
+    },
+    "finishedAt": "2026-11-06T19:57:28.408Z"
+  },
+  "localVerification": {
+    "source": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+    "tree": "d6db0d06e4114e52caad860a3d555fb585ab6c7c",
+    "node": "v24.22.1",
+    "recordedAt": "2026-11-06T20:18:18.100586+00:00",
+    "unit": {
+      "command": "npm test",
+      "exitCode": 0,
+      "tests": 2557,
+      "passed": 2557,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "logSha256": "e1fbb585a20fc4ed525763e4d6ce90fa5a6ef58e88e73d30a23a55054f47f6a6",
+      "files": 218
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "logSha256": "8924d5274ea4636acf2642e3fd0e2086276e7bfdb814a4db285cf3f419410e5b"
+    },
+    "build": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "runtimeDeclarations": 297,
+      "sourceDiagnostics": 0,
+      "logSha256": "6efb498cd33e2f8d5c3e0ddbc71e9bd0f87d51748f780bf56d5e52ded6970c80"
+    },
+    "docs": {
+      "command": "npm run test:docs",
+      "exitCode": 0,
+      "localizedReadmePairs": 47,
+      "securityLifecycleExamples": 6,
+      "readmeSmoke": {
+        "readmes": 94,
+        "examples": 53,
+        "json": 44,
+        "links": 62
+      },
+      "logSha256": "35db255de31d2054fe0a97f58239d04d58cf14ec57f921b5d3f3ef258d6154e9"
+    },
+    "documentationSite": {
+      "buildCommand": "npm run docs:build",
+      "smokeCommand": "node scripts/vitepress-docs-smoke.mjs",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "htmlPages": 129,
+      "brokenLinks": 0,
+      "npmSiteLeak": false,
+      "buildLogSha256": "e8c731eb49adb77b09da9785961533c2d13eafac74507fb2c048f744c49063c3",
+      "smokeLogSha256": "de14af9a1a2c9aa75066f601eb0c6e8355f91cafbe61b7f225754f0b132c80eb"
+    }
+  },
+  "ciSnapshot": {
+    "current_time": "2026-11-06 20:21:05 UTC",
+    "runs": [
+      {
+        "id": 42285850097,
+        "name": "Rector v2 comparative audit",
+        "head": "a9acbbcd19ad8967858af1b3ec0b29ae569726a3",
+        "status": "queued",
+        "conclusion": null,
+        "url": "https://github.com/Shelamkoff/editor/actions/runs/42285850097",
+        "updatedAt": "2026-11-06T20:09:01Z"
+      },
+      {
+        "id": 42286005586,
+        "name": "Rector v2 comparative audit",
+        "head": "4173da862ce81b80dcce275dd34c1d4cea4f6915",
+        "status": "queued",
+        "conclusion": null,
+        "url": "https://github.com/Shelamkoff/editor/actions/runs/42286005586",
+        "updatedAt": "2026-11-06T20:10:05Z"
+      },
+      {
+        "id": 42286899181,
+        "name": "Verify library",
+        "head": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+        "status": "queued",
+        "conclusion": null,
+        "url": "https://github.com/Shelamkoff/editor/actions/runs/42286899181",
+        "updatedAt": "2026-11-06T20:16:12Z"
+      },
+      {
+        "id": 42286899179,
+        "name": "Rector v2 comparative audit",
+        "head": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+        "status": "queued",
+        "conclusion": null,
+        "url": "https://github.com/Shelamkoff/editor/actions/runs/42286899179",
+        "updatedAt": "2026-11-06T20:16:12Z"
+      }
+    ]
+  },
+  "releaseStatus": "pending-exact-sha-ci",
+  "urlPolicyProbe": {
+    "source": "dd5ac98dda3c6a0dbf423c0cc984228118218d7f",
+    "node": "v24.22.1",
+    "exitCode": 0,
+    "inputs": 14519,
+    "policyChecks": 58076,
+    "unsafeAccepted": 0,
+    "examples": [],
+    "method": "Deterministic, no random seed. Each of 45 separators inserted at every position of each of 13 initial URL strings; Set removes duplicates. Four sanitizeUrl policies; nonempty parseable outputs compared with WHATWG URL protocols and HTTP(S) credentials.",
+    "seedInputs": [
+      "javascript:alert(1)",
+      "vbscript:msgbox(1)",
+      "data:text/html,<script>1</script>",
+      "data:image/svg+xml,<svg/>",
+      "file:///etc/passwd",
+      "filesystem:https://example.test/temporary/x",
+      "https://u:p@example.test/x",
+      "//u:p@example.test/x",
+      "\\\\u:p@example.test/x",
+      "https://example.test/x",
+      "/relative/path",
+      "mailto:name@example.test",
+      "blob:https://example.test/id"
+    ],
+    "separators": {
+      "characterCodeRange": [
+        0,
+        32
+      ],
+      "additional": [
+        "",
+        "",
+        " ",
+        " ",
+        " ",
+        "﻿",
+        "/",
+        "\\",
+        "%00",
+        "%09",
+        "&#10;",
+        "&Tab;"
+      ]
+    },
+    "policies": {
+      "link": [
+        "http:",
+        "https:",
+        "mailto:",
+        "tel:"
+      ],
+      "external": [
+        "http:",
+        "https:"
+      ],
+      "media": [
+        "http:",
+        "https:",
+        "blob:",
+        "data:"
+      ],
+      "download": [
+        "http:",
+        "https:",
+        "blob:",
+        "data:"
+      ]
+    },
+    "baseUrl": "https://base.example.test/path/",
+    "limitations": [
+      "Empty sanitizer results and URL parse failures were skipped, without separate counters.",
+      "This is not an HTML parser or HTML entity decoding test.",
+      "The protocol-level oracle does not separately validate data/blob payload contents."
+    ]
+  },
+  "focusInventoryRegistration": {
+    "source": "aa13769d8092575910d5dcade1e71d8f7f49874b",
+    "scope": "actual full-page registration only; native case bodies not executed",
+    "fullPageCases": 115,
+    "selected": 48,
+    "inventoryExact": true,
+    "declaredNativeInputCases": 24,
+    "publicApiDomEventCases": 24,
+    "caseBodiesExecutedByThisCheck": false
+  }
+}
