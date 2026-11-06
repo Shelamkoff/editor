@@ -412,6 +412,7 @@ export function createEditorRuntime(input){
     runtime,
     registry,
     selection:logicalSelection,
+    ownerDocument:document,
     onFreshText:queueTriggerRefresh,
   })
   const triggers=lifecycle.register(new InlineTriggerController({

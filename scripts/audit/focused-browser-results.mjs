@@ -122,7 +122,25 @@ export const COMMIT_FOCUS_CASES = Object.freeze([
   "Native block drag preserves synchronous commit-observer focus on another editor field",
   "Native block drag preserves queued commit-observer focus on an external input",
   "Native Mention Backspace preserves synchronous commit-observer focus on another editor field",
-  "Native Mention Backspace preserves queued commit-observer focus on an external input"
+  "Native Mention Backspace preserves queued commit-observer focus on an external input",
+  "commit-observer focus / inline Color public insert / paragraph / ordinary completion",
+  "commit-observer focus / inline Color public insert / paragraph / external input",
+  "commit-observer focus / inline Color public insert / paragraph / another editor field",
+  "commit-observer focus / inline Color DOM Paste / paragraph / ordinary completion",
+  "commit-observer focus / inline Color DOM Paste / paragraph / external input",
+  "commit-observer focus / inline Color DOM Paste / paragraph / another editor field",
+  "commit-observer focus / inline Color DOM typed Space / paragraph / ordinary completion",
+  "commit-observer focus / inline Color DOM typed Space / paragraph / external input",
+  "commit-observer focus / inline Color DOM typed Space / paragraph / another editor field",
+  "commit-observer focus / inline Color public insert / remounting-text / ordinary completion",
+  "commit-observer focus / inline Color public insert / remounting-text / external input",
+  "commit-observer focus / inline Color public insert / remounting-text / another editor field",
+  "commit-observer focus / inline Color DOM Paste / remounting-text / ordinary completion",
+  "commit-observer focus / inline Color DOM Paste / remounting-text / external input",
+  "commit-observer focus / inline Color DOM Paste / remounting-text / another editor field",
+  "commit-observer focus / inline Color DOM typed Space / remounting-text / ordinary completion",
+  "commit-observer focus / inline Color DOM typed Space / remounting-text / external input",
+  "commit-observer focus / inline Color DOM typed Space / remounting-text / another editor field"
 ])
 
 export const FONT_SIZE_RETAINED_CASES = Object.freeze([

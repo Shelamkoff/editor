@@ -7,15 +7,17 @@ export class InlineCommandController {
   #runtime
   #registry
   #selection
+  #ownerDocument
   #onFreshText
 
-  constructor({ runtime, registry, selection, onFreshText = null }) {
+  constructor({ runtime, registry, selection, ownerDocument = null, onFreshText = null }) {
     if (!runtime?.insertInlineWidget) throw new TypeError('InlineCommandController requires a DocumentRuntime')
     if (!registry?.getInlineDefinition) throw new TypeError('InlineCommandController requires an ExtensionRegistry')
     if (!selection?.capture) throw new TypeError('InlineCommandController requires LogicalSelection')
     this.#runtime = runtime
     this.#registry = registry
     this.#selection = selection
+    this.#ownerDocument = ownerDocument
     this.#onFreshText = typeof onFreshText === 'function' ? onFreshText : null
   }
 
@@ -261,9 +263,13 @@ export class InlineCommandController {
     // DOM movement from a newer observer decision. In particular a multiline
     // Paste may target a newly created field while native selection is still
     // in the source. A different field alone cannot classify that as reentry.
-    const capture = () => cloneEditorData(this.#selection.capture() ?? null)
+    const capture = () => {
+      const focus = this.#ownerDocument?.activeElement ?? null
+      const bookmark = cloneEditorData(this.#selection.capture() ?? null)
+      return { bookmark, focus, stableFocus: focus === (this.#ownerDocument?.activeElement ?? null) }
+    }
     let expected = capture()
-    if (!this.#canRestoreCaret(lease)) return false
+    if (!expected.stableFocus || !this.#canRestoreCaret(lease)) return false
     const result = this.#runtime.interact(name, operation, value => {
       expected = capture()
       const point = resultPoint(value)
@@ -274,7 +280,10 @@ export class InlineCommandController {
     let current
     try { current = capture() } catch { return result }
     if (!this.#canRestoreCaret(lease) || revision !== this.#runtime.revision
-      || !equalJsonValue(current, expected)) return result
+      // A remounted field may leave no logical bookmark. An external native
+      // input also captures as null, but owns a different focus continuation.
+      || !expected.stableFocus || !current.stableFocus || current.focus !== expected.focus
+      || !equalJsonValue(current.bookmark, expected.bookmark)) return result
     const point = resultPoint(result)
     if (point) this.#selection.setCaret(point.blockId, { fieldKey: point.fieldKey, offset: point.offset })
     return result
