@@ -64,9 +64,15 @@ export function sanitizeArchiveFilename(value, index = 0) {
   return name || fallback
 }
 
+/** @param {string} name */
+function archiveFilenameKey(name) {
+  // Filesystems such as APFS treat canonically equivalent names as one path.
+  return name.normalize('NFC').toLocaleLowerCase('en-US')
+}
+
 /** @param {string} name @param {Set<string>} used */
 function uniqueArchiveFilename(name, used) {
-  const key = name.toLocaleLowerCase('en-US')
+  const key = archiveFilenameKey(name)
   if (!used.has(key)) {
     used.add(key)
     return name
@@ -86,7 +92,7 @@ function uniqueArchiveFilename(name, used) {
       stem, availableLength - safeExtension.length, availableBytes - extensionBytes,
     ) || '_'
     const candidate = `${safeStem}${marker}${safeExtension}`
-    const candidateKey = candidate.toLocaleLowerCase('en-US')
+    const candidateKey = archiveFilenameKey(candidate)
     if (!used.has(candidateKey)) {
       used.add(candidateKey)
       return candidate

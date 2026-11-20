@@ -704,6 +704,33 @@ test('ZIP duplicate filenames with long stems or extensions fit both name limits
   }
 })
 
+test('ZIP gives distinct portable names to canonically equivalent filenames', async () => {
+  const names = ['café.txt', 'cafe\u0301 (2).txt', 'cafe\u0301.txt', 'CAFÉ.txt']
+  const expected = ['café.txt', 'cafe\u0301 (2).txt', 'cafe\u0301 (3).txt', 'CAFÉ (4).txt']
+  const files = names.map((name, index) => ({ url: `/zip-unicode-${index}`, name }))
+  let archive
+  const ownerDocument = {
+    defaultView: {
+      fetch: async url => new Response(url),
+      URL: {
+        createObjectURL(blob) { archive = blob; return 'blob:owner/unicode' },
+        revokeObjectURL() {},
+      },
+      setTimeout(release) { release() },
+    },
+    createElement() { return { setAttribute() {}, click() {}, download: '' } },
+  }
+
+  await downloadArchive(files, { signal: new AbortController().signal, ownerDocument })
+  assert.ok(archive)
+  const { default: JSZip } = await import('jszip')
+  const zip = await JSZip.loadAsync(await archive.arrayBuffer())
+  assert.deepEqual(Object.keys(zip.files).sort(), expected.slice().sort())
+  for (const [index, name] of expected.entries()) {
+    assert.equal(await zip.file(name).async('string'), files[index].url)
+  }
+})
+
 test('ZIP entry names fit the UTF-8 filename limit without splitting a code point', () => {
   const name = sanitizeArchiveFilename('文'.repeat(84) + '😀.txt')
   assert.equal(name, '文'.repeat(84))
