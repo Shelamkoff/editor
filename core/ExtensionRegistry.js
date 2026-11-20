@@ -7,26 +7,25 @@ import { synchronousResult } from '../shared/synchronousResult.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { EMPTY_CONTENT_STYLES } from '../shared/contentStyles.js'
 
-function assertDenseArray(value, label, { allowEmpty = true } = {}) {
-  if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
-    throw new TypeError(`${label} must be a dense ${allowEmpty ? '' : 'non-empty '}array`)
-  }
-  for (let index = 0; index < value.length; index++) {
-    if (!Object.hasOwn(value, index)) {
-      throw new TypeError(`${label} must be a dense ${allowEmpty ? '' : 'non-empty '}array`)
-    }
-  }
-}
-
-/** Read validated dense arrays by index; never invoke an extension's map or iterator.
+/** Snapshot by index without invoking an extension's map or iterator.
  * @template T,U
  * @param {readonly T[]} array
+ * @param {string} label
  * @param {(item:T,index:number)=>U} mapper
+ * @param {boolean} [allowEmpty]
  * @returns {U[]}
  */
-function mapDenseArray(array, mapper) {
+function mapDenseArray(array, label, mapper, allowEmpty = true) {
+  const error = `${label} must be a dense ${allowEmpty ? '' : 'non-empty '}array`
+  if (!Array.isArray(array)) throw new TypeError(error)
+  const length = array.length
+  if (!allowEmpty && length === 0) throw new TypeError(error)
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(array, index)) throw new TypeError(error)
+  }
   const result = []
-  for (let index = 0; index < array.length; index++) {
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(array, index)) throw new TypeError(error)
     result.push(mapper(array[index], index))
   }
   return result
@@ -74,8 +73,7 @@ function snapshotFormatting(source, label) {
     throw new TypeError(`${label} formatting capability must be an object`)
   }
   const inlineTools = source.inlineTools
-  if (inlineTools !== true) assertDenseArray(inlineTools, `${label} formatting inlineTools`)
-  const ownedTools = inlineTools === true ? true : Object.freeze(mapDenseArray(inlineTools, tool => {
+  const ownedTools = inlineTools === true ? true : Object.freeze(mapDenseArray(inlineTools, `${label} formatting inlineTools`, tool => {
     if (typeof tool !== 'string' || !tool) {
       throw new TypeError(`${label} formatting inlineTools must contain non-empty strings`)
     }
@@ -210,9 +208,8 @@ function snapshotCapabilities(source, label) {
 
 function snapshotToolbox(source, label) {
   if (source === undefined) return undefined
-  assertDenseArray(source, `${label} toolbox`)
   const ids = new Set()
-  return Object.freeze(mapDenseArray(source, (item, index) => {
+  return Object.freeze(mapDenseArray(source, `${label} toolbox`, (item, index) => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
       throw new TypeError(`${label} toolbox[${index}] must be an object`)
     }
@@ -257,8 +254,7 @@ function snapshotBlockDefinition(source) {
   validateType(candidate.type, 'Block definition')
   if (typeof candidate.icon !== 'string') throw new TypeError(`Block definition "${candidate.type}" icon must be a string`)
   const styles = candidate.styles ?? []
-  assertDenseArray(styles, `Block definition "${candidate.type}" styles`)
-  const ownedStyles = mapDenseArray(styles, url => {
+  const ownedStyles = mapDenseArray(styles, `Block definition "${candidate.type}" styles`, url => {
     if (typeof url !== 'string') throw new TypeError(`Block definition "${candidate.type}" styles must be strings`)
     return url
   })
@@ -294,8 +290,7 @@ function snapshotInlineDefinition(source) {
   validateType(candidate.type, 'Inline definition')
   if (typeof candidate.icon !== 'string') throw new TypeError(`Inline definition "${candidate.type}" icon must be a string`)
   const styles = candidate.styles ?? []
-  assertDenseArray(styles, `Inline definition "${candidate.type}" styles`)
-  const ownedStyles = mapDenseArray(styles, url => {
+  const ownedStyles = mapDenseArray(styles, `Inline definition "${candidate.type}" styles`, url => {
     if (typeof url !== 'string') throw new TypeError(`Inline definition "${candidate.type}" styles must be strings`)
     return url
   })
@@ -321,8 +316,7 @@ function snapshotInlineDefinition(source) {
       throw new TypeError(`Inline definition "${candidate.type}" paste must be an object`)
     }
     const patterns = candidate.paste.patterns
-    assertDenseArray(patterns, `Inline definition "${candidate.type}" paste patterns`)
-    const ownedPatterns = mapDenseArray(patterns, pattern => {
+    const ownedPatterns = mapDenseArray(patterns, `Inline definition "${candidate.type}" paste patterns`, pattern => {
       if (!(pattern instanceof RegExp)) throw new TypeError('Inline paste patterns must be RegExp values')
       return new RegExp(pattern.source, pattern.flags)
     })
@@ -437,9 +431,8 @@ export class ExtensionRegistry {
     if (!options || typeof options !== 'object') throw new TypeError('ExtensionRegistry options must be an object')
     const ownerDocument = options.ownerDocument
     if (!ownerDocument?.createElement) throw new TypeError('ExtensionRegistry requires an ownerDocument')
-    assertDenseArray(options.blocks, 'blocks', { allowEmpty: false })
-    const inline = options.inline ?? []
-    assertDenseArray(inline, 'inline')
+    const blocks = mapDenseArray(options.blocks, 'blocks', snapshotBlockDefinition, false)
+    const inlines = mapDenseArray(options.inline ?? [], 'inline', snapshotInlineDefinition)
 
     this.#ownerDocument = ownerDocument
     const acquireStyles = options.acquireStyles !== false
@@ -449,11 +442,8 @@ export class ExtensionRegistry {
       : (_key, fallback = '') => fallback
     // Inline plugins retain their setup context. Snapshot the host callback
     // rather than consulting mutable editor options on every future popup.
-    const suppliedShowPopup = inline.length ? options.showPopup : undefined
+    const suppliedShowPopup = inlines.length ? options.showPopup : undefined
     const showPopupHost = typeof suppliedShowPopup === 'function' ? suppliedShowPopup : undefined
-
-    const blocks = mapDenseArray(options.blocks, snapshotBlockDefinition)
-    const inlines = mapDenseArray(inline, snapshotInlineDefinition)
 
     for (const definition of blocks) {
       if (this.#blockDefinitions.has(definition.type)) {

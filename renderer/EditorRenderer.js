@@ -17,6 +17,22 @@ const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 const liveRenderedElements = new WeakMap()
 
+/**
+ * @typedef {{
+ *   element: HTMLElement,
+ *   type: string,
+ *   renderer?: import('./types').BlockRendererDefinition,
+ *   styleOwnerDocument?: Document,
+ *   releaseInline?: () => void,
+ * }} RenderedBlock
+ * @typedef {RenderedBlock & { signature: string }} MountedBlock
+ */
+
+/** @param {unknown} revision */
+function hasProducerRevision(revision) {
+  return typeof revision === 'string' || typeof revision === 'number'
+}
+
 /** Error reporting is a best-effort side effect, never a replacement for
  * validation, output ownership or the remaining independent cleanup steps.
  * @param {string} message
@@ -112,7 +128,7 @@ export class EditorRenderer {
   #renderers
   /** @type {Map<string, import('./types').InlineWidgetRenderer>} */
   #inlineRenderers
-  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRendererDefinition, releaseInline?:()=>void }> }>} */
+  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, MountedBlock> }>} */
   #mountedContainers = new Map()
   /** Containers currently inside renderTo(); protects staged ownership from same-container reentry. */
   /** @type {WeakSet<HTMLElement>} */
@@ -123,11 +139,11 @@ export class EditorRenderer {
   #destroyingTargets = new WeakSet()
 
   /** Results returned by render(); keyed by their document wrapper. */
-  /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, releaseInline?:()=>void }>>} */
+  /** @type {Map<HTMLElement, RenderedBlock[]>} */
   #detachedDocuments = new Map()
 
   /** Results returned directly by renderBlock(). */
-  /** @type {Map<HTMLElement, { element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, releaseInline?:()=>void }>} */
+  /** @type {Map<HTMLElement, RenderedBlock>} */
   #detachedBlocks = new Map()
 
   /** @type {Map<string, number>} */
@@ -311,7 +327,7 @@ export class EditorRenderer {
       this.#assertBlockVersion(block, /** @type {any} */ (block)[validationSourceKey] ?? block)
     }
     return blocks.map(block => {
-      if (typeof block.revision === 'string' || typeof block.revision === 'number') return block
+      if (hasProducerRevision(block.revision)) return block
       const snapshot = cloneEditorData(block)
       Object.defineProperty(snapshot, validationSourceKey, {
         value: /** @type {any} */ (block)[validationSourceKey] ?? block,
@@ -329,7 +345,7 @@ export class EditorRenderer {
    * @param {Document} ownerDocument
    * @param {object} [validationSource] Original identity, not a signature clone.
    * @param {boolean} [alreadyOwned] Whether JSON was already cloned by this owner.
-   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document, releaseInline?:()=>void }}
+   * @returns {RenderedBlock}
    */
   #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block, alreadyOwned = false) {
     // Reject a registered version mismatch before traversing opaque data.
@@ -459,7 +475,7 @@ export class EditorRenderer {
     // between API validation and this render's owning snapshot.
     const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
     const ownerDocument = globalThis.document
-    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
+    /** @type {RenderedBlock[]} */
     const created = []
     /** @type {HTMLElement | null} */
     let wrapper = null
@@ -474,7 +490,7 @@ export class EditorRenderer {
       wrapper.className = this.#contentClassName(theme)
       if (blocks.length) {
         for (const block of blocks) {
-          const entry = this.#createRenderedBlock(block, ownerDocument)
+          const entry = this.#createRenderedBlock(block, ownerDocument, undefined, !hasProducerRevision(block.revision))
           created.push(entry)
           assertDetachedWrapper(wrapper, ownerDocument)
           wrapper.appendChild(entry.element)
@@ -494,7 +510,7 @@ export class EditorRenderer {
 
   /**
    * Release resources owned by one rendered block.
-   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition, styleOwnerDocument?:Document, releaseInline?:()=>void }} entry
+   * @param {RenderedBlock} entry
    */
   #disposeRenderedElement(entry) {
     entry.releaseInline?.()
@@ -528,7 +544,7 @@ export class EditorRenderer {
    * @param {number} rendererRevision
    */
   #blockSignature(block, rendererRevision) {
-    if (typeof block.revision === 'string' || typeof block.revision === 'number') {
+    if (hasProducerRevision(block.revision)) {
       return JSON.stringify([rendererRevision, block.type, block.dataVersion, block.revision])
     }
     return stableJsonSignature([
@@ -571,11 +587,11 @@ export class EditorRenderer {
       }
 
       const previous = mounted?.blocks ?? new Map()
-      /** @type {Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRendererDefinition }>} */
+      /** @type {Map<string, MountedBlock>} */
       const next = new Map()
       /** @type {HTMLElement[]} */
       const ordered = []
-      /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
+      /** @type {RenderedBlock[]} */
       const created = []
       /** @type {Map<string, number>} */
       const occurrences = new Map()
@@ -585,32 +601,21 @@ export class EditorRenderer {
           const block = blocks[index]
           // All unrevisioned blocks were captured before any renderer callback.
           // Producer revisions still avoid deep reads when unchanged.
-          const signatureBlock = block
-          const baseKey = signatureBlock.id ? 'id:' + signatureBlock.id : 'index:' + index
+          const baseKey = block.id ? 'id:' + block.id : 'index:' + index
           const occurrence = occurrences.get(baseKey) ?? 0
           occurrences.set(baseKey, occurrence + 1)
           const key = baseKey + '#' + occurrence
-          const revision = this.#rendererRevisions.get(signatureBlock.type) ?? 0
-          const signature = this.#blockSignature(signatureBlock, revision)
-          const existing = previous.get(key)
-
-          let element
-          let owner
-          if (existing && existing.type === signatureBlock.type && existing.signature === signature) {
-            element = existing.element
-            owner = existing.renderer
-          } else {
-            const entry = this.#createRenderedBlock(
-              signatureBlock, ownerDocument,
-              /** @type {any} */ (block)[validationSourceKey] ?? block,
-            )
-            owner = entry.renderer
-            element = entry.element
+          const revision = this.#rendererRevisions.get(block.type) ?? 0
+          const signature = this.#blockSignature(block, revision)
+          let entry = previous.get(key)
+          if (!entry || entry.type !== block.type || entry.signature !== signature) {
+            const rendered = this.#createRenderedBlock(block, ownerDocument, undefined, !hasProducerRevision(block.revision))
+            entry = { ...rendered, signature }
             created.push(entry)
           }
 
-          next.set(key, { element, type: signatureBlock.type, signature, renderer: owner })
-          ordered.push(element)
+          next.set(key, entry)
+          ordered.push(entry.element)
         }
       } catch (error) {
         for (const entry of created) this.#disposeRenderedElement(entry)

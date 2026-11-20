@@ -47,3 +47,27 @@ test('synchronous renderer type lists ignore inherited sparse entries', () => {
   assert.equal(defaults.size, 0)
   assert.equal(reads, 0)
 })
+
+test('synchronous renderer factories capture the requested type list length once', () => {
+  const source = ['paragraph']
+  let lengthReads = 0
+  const types = new Proxy(source, {
+    get(target, key, receiver) {
+      if (key === 'length') lengthReads++
+      if (key === '0') target.push('delimiter')
+      return Reflect.get(target, key, receiver)
+    },
+  })
+
+  assert.deepEqual([...createDefaultRenderers('test', {}, types).keys()], ['paragraph'])
+  assert.equal(lengthReads, 1)
+})
+
+test('synchronous renderer factories ignore nonstring keys without coercion', () => {
+  let reads = 0
+  const type = { toString() { reads++; return 'paragraph' } }
+
+  assert.equal(createRenderer(type, 'test'), null)
+  assert.deepEqual([...createDefaultRenderers('test', {}, [type, 'paragraph']).keys()], ['paragraph'])
+  assert.equal(reads, 0)
+})

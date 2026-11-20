@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { DocumentRuntime } from './DocumentRuntime.js'
-import { EditorBlocksApi } from './PublicEditorApi.js'
+import { EditorBlocksApi, EditorHandle } from './PublicEditorApi.js'
 import { EditorViewModel } from './EditorViewModel.js'
 import { createVersionedDataSchema } from '../shared/versionedDataSchema.js'
 
@@ -65,6 +65,27 @@ function observePayloadTraversals(t, operation) {
     return { result, traversals }
   } finally { spy.mock.restore() }
 }
+
+test('public save copies each payload once and returns a fresh editable document', t => {
+  const { runtime } = fixture()
+  const editor = new EditorHandle({ runtime })
+  try {
+    const { result: saved, traversals } = observePayloadTraversals(t, () => editor.save())
+    const { blocks: expected, version } = runtime.save()
+    assert.equal(saved.version, version)
+    assert.equal(typeof saved.time, 'number')
+    assert.deepEqual(saved.blocks, expected)
+    assert.equal(traversals, expected.length, 'the detached document was copied again by the public handle')
+
+    saved.blocks[0].data.rows[0].cells[0].metadata.alignment = 'right'
+    saved.blocks[0].tunes.textAlign = 'center'
+    saved.blocks[0].inline.opaque.data.nested.value = 99
+    saved.blocks.pop()
+    assert.deepEqual(editor.save().blocks, expected)
+    assert.equal(runtime.revision, 0)
+    assert.equal(runtime.canUndo, false)
+  } finally { runtime.destroy() }
+})
 
 for (const [name, read, expected] of [
   ['get', api => [api.get('a')], 1],

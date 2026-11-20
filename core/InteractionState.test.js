@@ -34,6 +34,21 @@ function fixture({ onChange, onError, focus } = {}) {
   return { interaction, runtime, calls }
 }
 
+test('moving current focus skips the document order scan for an empty selection', t => {
+  const events = []
+  const { interaction, runtime } = fixture({ onChange: event => events.push(event) })
+  const ids = t.mock.method(runtime, 'ids')
+
+  interaction.setCurrent('b')
+  assert.equal(interaction.focus('a'), true)
+  assert.deepEqual(interaction.selectedIds, [])
+  assert.deepEqual(events.map(({ currentId, selectedIds }) => [currentId, selectedIds]), [['b', []], ['a', []]])
+  assert.equal(ids.mock.callCount(), 0, 'empty selections do not need to scan document order')
+
+  interaction.select(['b', 'a'])
+  assert.deepEqual(interaction.selectedIds, ['a', 'b'])
+})
+
 test('a newer reentrant focus of another block keeps current-block ownership', () => {
   const events = []
   const { interaction, calls } = fixture({

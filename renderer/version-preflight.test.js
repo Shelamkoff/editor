@@ -189,6 +189,31 @@ test('unchanged producer revision still skips deep data inspection after version
   } finally { renderer.destroy() }
 })
 
+for (const operation of ['render', 'renderTo']) {
+  test(`${operation} clones unrevisioned block metadata once`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const { renderer, projected } = fixture(EditorRenderer)
+    const input = { version: '2.0.0', blocks: [
+      { id: 'owned', type: 'strict-version', dataVersion: 1, data: {}, tunes: { captureProbe: true } },
+    ] }
+    let visits = 0
+    const ownKeys = Reflect.ownKeys
+    try {
+      Reflect.ownKeys = value => {
+        if (Object.hasOwn(value, 'captureProbe')) visits++
+        return ownKeys(value)
+      }
+      if (operation === 'render') renderer.render(input)
+      else renderer.renderTo(input, ownerDocument.createElement('main'))
+      assert.equal(projected(), 1)
+      assert.equal(visits, 1)
+    } finally {
+      Reflect.ownKeys = ownKeys
+      renderer.destroy()
+    }
+  })
+}
+
 for (const operation of ['renderBlock', 'render', 'renderTo']) {
   test(operation + ': style acquisition cannot mutate unrevisioned renderer inputs', async () => {
     const { EditorRenderer } = await import('./index.js')

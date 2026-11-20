@@ -12,6 +12,14 @@ test('ZIP entry names cannot escape the archive root or use reserved names', () 
   assert.ok(sanitizeArchiveFilename('x'.repeat(200)).length <= 128)
 })
 
+test('ZIP entry names reject Windows device aliases before an extension', () => {
+  for (const name of ['COM¹.txt', 'lpt².report', 'LPT³.tar.gz', 'COM1 .txt', 'CONIN$.log', 'conout$.log']) {
+    assert.equal(sanitizeArchiveFilename(name, 2), 'file-3', name)
+  }
+  assert.equal(sanitizeArchiveFilename('COM0.txt'), 'COM0.txt')
+  assert.equal(sanitizeArchiveFilename('COM¹-notes.txt'), 'COM¹-notes.txt')
+})
+
 test('ZIP limits and cancellation fail before loading or fetching attachments', async () => {
   const controller = new AbortController()
   controller.abort()
@@ -646,7 +654,7 @@ test('failed streaming attachment releases its provisional bytes so valid files 
 })
 
 
-test('ZIP duplicate filenames with very long extensions stay portable and within the name limit', async () => {
+test('ZIP duplicate filenames with long stems or extensions fit both name limits', async () => {
   const previousRuntime = getZipRuntime()
   const recorded = []
   class FakeZip {
@@ -669,7 +677,13 @@ test('ZIP duplicate filenames with very long extensions stay portable and within
   }
   try {
     // The second extension exposes a space at the collision truncation edge.
-    for (const name of ['a.' + 'x'.repeat(126), 'a.' + 'x'.repeat(121) + ' qqqq']) {
+    const encoder = new TextEncoder()
+    for (const name of [
+      'a.' + 'x'.repeat(126),
+      'a.' + 'x'.repeat(121) + ' qqqq',
+      '文'.repeat(100) + '.txt',
+      'ab.' + '文'.repeat(100),
+    ]) {
       recorded.length = 0
       await downloadArchive([
         { url: 'https://example.test/one', name },
@@ -679,6 +693,8 @@ test('ZIP duplicate filenames with very long extensions stay portable and within
       assert.equal(recorded.length, 3)
       assert.ok(recorded.every(value => value.length <= 128),
         'collision suffix produced an overlong ZIP entry name')
+      assert.ok(recorded.every(value => encoder.encode(value).byteLength <= 255),
+        'collision suffix exceeded the filesystem filename byte limit')
       assert.ok(recorded.every(value => !/[.\s]$/u.test(value)),
         'collision suffix exposed an unsafe trailing character')
       assert.equal(new Set(recorded.map(value => value.toLowerCase())).size, 3)
@@ -686,6 +702,18 @@ test('ZIP duplicate filenames with very long extensions stay portable and within
   } finally {
     setZipRuntime(previousRuntime)
   }
+})
+
+test('ZIP entry names fit the UTF-8 filename limit without splitting a code point', () => {
+  const name = sanitizeArchiveFilename('文'.repeat(84) + '😀.txt')
+  assert.equal(name, '文'.repeat(84))
+  assert.equal(sanitizeArchiveFilename('文'.repeat(85)), '文'.repeat(85))
+})
+
+test('ZIP entry names replace unpaired UTF-16 surrogates and preserve valid pairs', () => {
+  assert.equal(sanitizeArchiveFilename('report\uD800.txt'), 'report\uFFFD.txt')
+  assert.equal(sanitizeArchiveFilename('report\uDFFF.txt'), 'report\uFFFD.txt')
+  assert.equal(sanitizeArchiveFilename('report😀.txt'), 'report😀.txt')
 })
 
 test('archive filename truncation does not leave half of a Unicode surrogate pair', () => {

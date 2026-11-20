@@ -45,9 +45,12 @@ function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
   if (Array.isArray(source)) {
     const types = []
-    for (let index = 0; index < source.length; index++) {
+    const length = source.length
+    for (let index = 0; index < length; index++) {
       if (!Object.hasOwn(source, index)) throw new RangeError('Unknown editor block plugin type: undefined')
-      types.push(source[index])
+      const type = source[index]
+      if (typeof type !== 'string') throw new TypeError('Editor block plugin type must be a string')
+      types.push(type)
     }
     return [...new Set(types)]
   }
@@ -79,6 +82,7 @@ export function getAsyncBlockPluginTypes() {
  * @returns {Promise<import('../plugin-kit/types').BlockPluginDefinition>}
  */
 export async function loadBlockPluginDefinition(type, config = {}) {
+  if (typeof type !== 'string') throw new TypeError('Editor block plugin type must be a string')
   if (!Object.hasOwn(pluginLoaders, type)) throw new RangeError(`Unknown editor block plugin type: ${type}`)
   const snapshot = snapshotBlockPluginConfig(requireRecord(config, `config for ${type}`))
   const factory = await pluginLoaders[/** @type {import('../shared/blockDataTypes.js').BlockType} */ (type)]()

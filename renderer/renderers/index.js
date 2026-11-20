@@ -73,12 +73,13 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
   const renderers = new Map()
 
   const requestedTypes = []
-  for (let index = 0; index < types.length; index++) {
+  const length = types.length
+  for (let index = 0; index < length; index++) {
     if (Object.hasOwn(types, index)) requestedTypes.push(types[index])
   }
 
   for (const type of new Set(requestedTypes)) {
-    if (!Object.hasOwn(rendererFactories, type)) continue
+    if (typeof type !== 'string' || !Object.hasOwn(rendererFactories, type)) continue
     const factory = rendererFactories[type]
     if (!factory) continue
     renderers.set(type, factory(classPrefix, locale, Object.hasOwn(configs, type) ? configs[type] : undefined))
@@ -97,7 +98,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
  * @returns {import('../types').BlockRendererDefinition<T> | null}
  */
 export function createRenderer(type, classPrefix, locale, config) {
-  if (!Object.hasOwn(rendererFactories, type)) return null
+  if (typeof type !== 'string' || !Object.hasOwn(rendererFactories, type)) return null
   const factory = rendererFactories[/** @type {import('../../shared/blockDataTypes.js').BlockType} */ (type)]
 
   if (!factory) {

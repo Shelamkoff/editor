@@ -75,6 +75,11 @@ test('renderer config rejects sparse public arrays without reading inherited ent
     values.length = 1
     assert.throws(() => new EditorRenderer({ blockTypes: [], [field]: values }), /dense array/i, field)
     assert.equal(reads, 0, field)
+
+    const lateHole = new Array(2)
+    Object.defineProperty(lateHole, '0', { get() { reads++; return null } })
+    assert.throws(() => new EditorRenderer({ blockTypes: [], [field]: lateHole }), /dense array/i, field)
+    assert.equal(reads, 0, field)
   }
 })
 
@@ -129,6 +134,29 @@ test('renderer config observes blockTypes and inlineRenderers entries once', () 
   assert.equal(blockEntryReads, 1)
   assert.equal(pluginEntryReads, 1)
   assert.equal(pluginTypeReads, 1)
+})
+
+test('renderer config keeps the initial block-type array length', () => {
+  const blockTypes = ['paragraph']
+  Object.defineProperty(blockTypes, '0', {
+    get() { blockTypes.push('missing'); return 'paragraph' },
+  })
+
+  const renderer = new EditorRenderer({ blockTypes })
+  assert.deepEqual(renderer.getRegisteredTypes(), ['paragraph'])
+})
+
+test('renderer registration rejects a stylesheet removed during capture', () => {
+  const styles = ['/first.css', '/removed.css']
+  Object.defineProperty(styles, '0', {
+    get() { styles.length = 1; return '/first.css' },
+  })
+  const renderer = new EditorRenderer({ blockTypes: [] })
+
+  assert.throws(() => renderer.registerRenderer({
+    type: 'custom', schema: passthroughSchema, render() {}, styles,
+  }), /styles must be a dense array/)
+  assert.equal(renderer.hasRenderer('custom'), false)
 })
 
 

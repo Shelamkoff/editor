@@ -10,8 +10,7 @@ function freezeJson(value) {
   return Object.freeze(value)
 }
 
-function ownBlock(input) {
-  const block = cloneEditorData(input)
+function validateOwnedBlock(block) {
   if (!block || typeof block !== 'object' || Array.isArray(block)) {
     throw new TypeError('Block record must be a JSON object')
   }
@@ -25,6 +24,10 @@ function ownBlock(input) {
     throw new TypeError(`Block "${block.id}" must contain data`)
   }
   return freezeJson(block)
+}
+
+function ownBlock(input) {
+  return validateOwnedBlock(cloneEditorData(input))
 }
 
 function ownDocument(input) {
@@ -45,7 +48,7 @@ function ownDocument(input) {
     if (!Object.hasOwn(document.blocks, index)) {
       throw new TypeError('Document blocks must be a dense array')
     }
-    const block = ownBlock(document.blocks[index])
+    const block = validateOwnedBlock(document.blocks[index])
     if (ids.has(block.id)) throw new Error(`Duplicate block id: ${block.id}`)
     ids.add(block.id)
     blocks.push(block)

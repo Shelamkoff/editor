@@ -1,6 +1,7 @@
 import { EditorRenderer } from '../../renderer/index.js'
 import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
 import { setHighlightRuntime } from '../../shared/highlightRuntime.js'
+import { CONTENT_STYLE_OWNER } from '../../shared/contentClassStyles.js'
 import { test, equal, assert, pause, run } from './regressions/harness.js'
 
 if (document.querySelector('meta[http-equiv="Content-Security-Policy"]')) test('Inline code highlighting retains enforcing Trusted Types', () => {
@@ -10,7 +11,7 @@ if (document.querySelector('meta[http-equiv="Content-Security-Policy"]')) test('
   equal(trustedTypes.defaultPolicy, null)
 })
 
-for (const action of ['target', 'all', 'document', 'block', 'replace', 'extract', 'failed-block', 'discard']) {
+for (const action of ['target', 'all', 'document', 'block', 'replace', 'extract', 'failed-block', 'discard', 'target-root', 'all-root', 'replace-root']) {
   test(`Rich inline code deferred ownership: ${action}`, async () => {
     const source = 'const retired = 1;\nlet value = 2;'
     const liveSource = 'const live = 3;\nlet value = 4;'
@@ -23,9 +24,12 @@ for (const action of ['target', 'all', 'document', 'block', 'replace', 'extract'
     const target = document.createElement('section'), liveTarget = document.createElement('section')
     const successor = document.createElement('section')
     document.body.append(target, liveTarget, successor)
-    const renderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: false })
+    const adoptRoot = action.endsWith('-root')
+    const retirement = adoptRoot ? action.slice(0, -5) : action
+    const renderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: false,
+      ...(adoptRoot ? { contentStyles: ['code { color: red }'] } : {}) })
     const liveRenderer = new EditorRenderer({ blockTypes: ['paragraph'], injectStyles: false })
-    let retiredCode, retiredMarkup, output, retired = false, calls = 0
+    let retiredCode, retiredRoot, retiredMarkup, output, retired = false, calls = 0
     const failure = new Error('Controlled block presentation failure')
     const failed = action === 'failed-block' || action === 'discard'
     if (failed) renderer.registerRenderer({ type: 'paragraph', schema: paragraphDataSchema, render(block, parseInline, context) {
@@ -50,11 +54,11 @@ for (const action of ['target', 'all', 'document', 'block', 'replace', 'extract'
       retiredCode = output.querySelector('code') ?? (output.matches('code') ? output : null)
       assert(retiredCode, 'The highlighter must observe a published inline code field')
       retired = true
-      if (action === 'target') renderer.destroy(target)
-      else if (action === 'all') renderer.destroy()
+      if (retirement === 'target') renderer.destroy(target)
+      else if (retirement === 'all') renderer.destroy()
       else if (action === 'document' || action === 'block') renderer.destroy(output)
-      else if (action === 'replace') renderer.renderTo(data(replacementSource), target)
-      successor.append(retiredCode)
+      else if (retirement === 'replace') renderer.renderTo(data(replacementSource), target)
+      successor.append(adoptRoot ? retiredRoot : retiredCode)
       retiredMarkup = retiredCode.innerHTML
     } }
     runtime.addPlugin(hook)
@@ -71,6 +75,12 @@ for (const action of ['target', 'all', 'document', 'block', 'replace', 'extract'
       else if (action === 'block') output = renderer.renderBlock(input.blocks[0])
       else { renderer.renderTo(input, target); output = target }
       if (!failed) equal(output.querySelector('code').textContent, source)
+      if (adoptRoot) {
+        retiredRoot = target.querySelector('[data-block-id="text"]')
+        assert(retiredRoot?.hasAttribute(CONTENT_STYLE_OWNER), 'Mounted block must have a content style owner')
+        renderer.renderTo(input, target)
+        equal(target.querySelector('[data-block-id="text"]'), retiredRoot, 'Unchanged output must be reused')
+      }
       liveRenderer.renderTo(data(liveSource), liveTarget)
       const deadline = Date.now() + 5000
       while ((!retired || !liveTarget.querySelector('code .hljs-keyword')) && Date.now() < deadline) await pause(10)
@@ -79,9 +89,13 @@ for (const action of ['target', 'all', 'document', 'block', 'replace', 'extract'
       equal(liveTarget.querySelector('code').textContent, liveSource)
       equal(calls, failed ? 0 : 1, 'Retired staged work must not invoke its old provider')
       equal(retiredCode.innerHTML, retiredMarkup, 'A retired inline highlighter rewrote its successor host')
-      equal(retiredCode.parentNode, successor)
+      if (adoptRoot) {
+        equal(retiredRoot.parentNode, successor)
+        equal(retiredRoot.querySelector('code'), retiredCode)
+        assert(!retiredRoot.hasAttribute(CONTENT_STYLE_OWNER), 'A retired block kept its previous content style owner')
+      } else equal(retiredCode.parentNode, successor)
       equal(retiredCode.textContent, source)
-      if (action === 'replace') {
+      if (retirement === 'replace') {
         equal(target.querySelector('code').textContent, replacementSource)
         assert(target.querySelector('code .hljs-keyword'))
       } else if (action !== 'extract') equal(target.childNodes.length, 0)

@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url'
 import { generateDeclarations } from './generate-declarations.mjs'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const distRoot = join(editorRoot, 'dist')
 const sourceRoots = ['core', 'inline-plugins', 'inline-tools', 'locale', 'plugin-kit', 'plugins', 'preset', 'renderer', 'shared']
 const blockTypes = [
   'paragraph', 'heading', 'list', 'quote', 'code', 'image', 'delimiter', 'table',
@@ -40,7 +39,7 @@ function isPublishableSource(path) {
     && ['.js', '.css', '.md'].includes(extname(path))
 }
 
-async function copyRuntime() {
+async function copyRuntime(distRoot) {
   for (const root of sourceRoots) {
     const sourceRoot = join(editorRoot, root)
     for (const source of await walk(sourceRoot)) {
@@ -66,7 +65,7 @@ async function copyRuntime() {
   await cp(join(editorRoot, 'index.js'), join(distRoot, 'index.js'))
 }
 
-async function writeStyleEntrypoints() {
+async function writeStyleEntrypoints(distRoot) {
   const stylesRoot = join(distRoot, 'styles')
   await mkdir(stylesRoot, { recursive: true })
   await writeFile(join(stylesRoot, 'editor.css'), [
@@ -132,13 +131,19 @@ async function writeStyleEntrypoints() {
   )
 }
 
-await rm(distRoot, { recursive: true, force: true })
-await mkdir(distRoot, { recursive: true })
-const declarations = await generateDeclarations(distRoot)
-if (declarations.sourceDiagnostics > 0) {
-  throw new Error(`Declaration generation reported ${declarations.sourceDiagnostics} source diagnostics:\n${declarations.sourceDiagnosticDetails.join('\n')}`)
-}
-await copyRuntime()
-await writeStyleEntrypoints()
+export async function buildPackage(distRoot = join(editorRoot, 'dist')) {
+  await rm(distRoot, { recursive: true, force: true })
+  await mkdir(distRoot, { recursive: true })
+  const declarations = await generateDeclarations(distRoot)
+  if (declarations.sourceDiagnostics > 0) {
+    throw new Error(`Declaration generation reported ${declarations.sourceDiagnostics} source diagnostics:\n${declarations.sourceDiagnosticDetails.join('\n')}`)
+  }
+  await copyRuntime(distRoot)
+  await writeStyleEntrypoints(distRoot)
 
-console.log(JSON.stringify({ ...declarations, dist: relative(editorRoot, distRoot) }))
+  console.log(JSON.stringify({ ...declarations, dist: relative(editorRoot, distRoot) }))
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await buildPackage()
+}

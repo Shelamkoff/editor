@@ -208,6 +208,51 @@ test('document boundary observes top-level and block accessors once', () => {
   assert.deepEqual(reads, { version: 1, blocks: 1, data: 1 })
 })
 
+test('document snapshot keeps the block count captured before reading entries', () => {
+  const first = { id: 'first', type: 'custom', dataVersion: 1, data: {} }
+  const added = { ...first, id: 'added' }
+  const source = [first]
+  let lengthReads = 0
+  const blocks = new Proxy(source, {
+    get(target, key, receiver) {
+      if (key === 'length') lengthReads++
+      if (key === '0') target.push(added)
+      return Reflect.get(target, key, receiver)
+    },
+  })
+
+  const snapshot = snapshotCurrentDocumentEnvelope({ version: '2.0.0', blocks })
+  assert.deepEqual(snapshot.blocks, [first])
+  assert.equal(lengthReads, 1)
+})
+
+test('document snapshot rejects a block that disappears during capture', () => {
+  const first = { id: 'first', type: 'custom', dataVersion: 1, data: {} }
+  const blocks = [first, { ...first, id: 'removed' }]
+  Object.defineProperty(blocks, '0', {
+    get() { blocks.length = 1; return first },
+  })
+
+  assert.throws(() => snapshotCurrentDocumentEnvelope({ version: '2.0.0', blocks }), /dense array/)
+})
+
+test('document, block and inline envelopes each enumerate their keys once', () => {
+  const keyReads = []
+  function observeKeys(label, source) {
+    return new Proxy(source, {
+      ownKeys(target) { keyReads.push(label); return Reflect.ownKeys(target) },
+    })
+  }
+  const widget = observeKeys('widget', { type: 'mention', dataVersion: 1, data: { value: 'A' } })
+  const inline = observeKeys('inline map', { mention: widget })
+  const block = observeKeys('block', { id: 'a', type: 'custom', dataVersion: 1, data: {}, inline })
+  const document = observeKeys('document', { version: '2.0.0', blocks: [block] })
+
+  const snapshot = decodeCurrentDocument(document)
+  assert.equal(snapshot.blocks[0].inline.mention.data.value, 'A')
+  assert.deepEqual(keyReads, ['document', 'block', 'inline map', 'widget'])
+})
+
 test('unsupported document field getter is never executed before rejection', () => {
   let reads = 0
   const input = {

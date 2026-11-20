@@ -171,6 +171,16 @@ async function waitForHydratedDemo(client) {
   throw new Error('Timed out waiting for the VitePress demo to hydrate')
 }
 
+async function waitForDemoValue(client, expression, description) {
+  const deadline = Date.now() + 3_000
+  while (Date.now() < deadline) {
+    const value = await evaluate(client, expression)
+    if (value) return value
+    await delay(50)
+  }
+  throw new Error(`Timed out waiting for ${description}`)
+}
+
 async function verifyHeadingLevelMenu(client, language, theme) {
   await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__level-select').focus()")
   const key = { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 }
@@ -484,7 +494,7 @@ async function verifyDemoTooltips(client, language) {
     await evaluate(client, `(() => {
       if (document.documentElement.classList.contains('dark') !== ${theme === 'dark'}) document.querySelector('.VPSwitchAppearance').click()
       const field = document.querySelector('.live-demo [contenteditable="true"]')
-      field.scrollIntoView({ block: 'center' })
+      field.scrollIntoView({ block: 'center', behavior: 'instant' })
       field.focus({ preventScroll: true })
       const range = document.createRange()
       range.selectNodeContents(field)
@@ -492,18 +502,23 @@ async function verifyDemoTooltips(client, language) {
       selection.removeAllRanges()
       selection.addRange(range)
       document.dispatchEvent(new Event('selectionchange'))
+      return new Promise(resolve => requestAnimationFrame(resolve))
     })()`)
-    await delay(150)
     for (const [type, shortcut] of [['strikethrough', 'Ctrl+Shift+S'], ['link', 'Ctrl+K']]) {
-      const target = await evaluate(client, `(() => {
-        const rect = document.querySelector('.live-demo .oe-inline-tool[data-tool="${type}"]').getBoundingClientRect()
-        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-      })()`)
-      await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...target })
-      await delay(600)
-      const tooltip = await evaluate(client, `(() => {
+      const description = `${language}/${theme} ${type}`
+      const target = await waitForDemoValue(client, `(() => {
         const button = document.querySelector('.live-demo .oe-inline-tool[data-tool="${type}"]')
-        const tooltip = document.getElementById(button.getAttribute('aria-describedby'))
+        const rect = button?.getBoundingClientRect()
+        if (!rect?.width || !rect.height) return null
+        const x = rect.left + rect.width / 2
+        const y = rect.top + rect.height / 2
+        return button.contains(document.elementFromPoint(x, y)) ? { x, y } : null
+      })()`, `${description} hover target`)
+      await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...target })
+      const tooltip = await waitForDemoValue(client, `(() => {
+        const button = document.querySelector('.live-demo .oe-inline-tool[data-tool="${type}"]')
+        const tooltipId = button?.getAttribute('aria-describedby')
+        const tooltip = tooltipId && document.getElementById(tooltipId)
         if (!tooltip) return null
         const rect = tooltip.getBoundingClientRect()
         const style = getComputedStyle(tooltip)
@@ -514,7 +529,7 @@ async function verifyDemoTooltips(client, language) {
           withinViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
           selected: !window.getSelection().isCollapsed,
         }
-      })()`)
+      })()`, `${description} tooltip`)
       assert(tooltip?.label === expected[type] && tooltip?.shortcut === shortcut && tooltip?.display !== 'none', `${language}/${theme} styled tooltip: ${JSON.stringify(tooltip)}`)
       assert(tooltip.withinViewport && tooltip.selected && tooltip.borderRadius === '6px', 'Tooltip layout or selection regressed')
       if (qaRoot && type === 'strikethrough') {

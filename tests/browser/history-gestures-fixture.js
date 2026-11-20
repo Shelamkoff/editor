@@ -8,7 +8,13 @@ export async function runHistoryGestureCase({ sourceBase = '../../', legacy = fa
   const data = { version: legacy ? '1.0.5' : '2.0.0', blocks: [record('seed', 'Alpha'), ...(boundary ? [record('tail', 'Beta')] : [])] }, original = copy(data)
   const holder = document.createElement('section'); holder.style.cssText = 'width:850px;margin:150px auto'; document.body.append(holder)
   const byteLimit = tiny ? 1 : spec.budget === 'wide' ? 1048576 : undefined
-  const options = legacy ? { tuning: { undo: { maxStack: 2 } } } : { historyMaxStack: 2, ...(spec.budget === 'count' ? {} : { historyMaxBytes: byteLimit }) }
+  // The driver may pause between the two native inputs under parallel load.
+  // These cases exercise grouping by gesture and field, independent of CDP timing.
+  const options = legacy ? { tuning: { undo: { maxStack: 2 } } } : {
+    historyMaxStack: 2,
+    historyCoalesceMs: 60_000,
+    ...(spec.budget === 'count' ? {} : { historyMaxBytes: byteLimit }),
+  }
   const observations = [], nativeEvents = [], transactions = [], diagnostics = [], identities = new Map([['seed', 'seed'], ...(boundary ? [['tail', 'tail']] : [])])
   const unsupported = legacy ? [{ property: 'currentObservers', reason: 'Legacy transaction diagnostics are absent; empty arrays are not measured zero events.' }, ...(['tiny', 'wide'].includes(spec.budget) ? [{ property: 'historyMaxBytes', reason: 'The immutable legacy UndoManager tuning exposes maxStack/debounceMs and no byte-budget option.' }] : [])] : []
   const planned = ['load', 'author', 'undo', 'redo', 'dispose'], completedPhases = []

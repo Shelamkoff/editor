@@ -175,5 +175,51 @@ export function runRendererPublicationOwnership({ EditorRenderer }) {
     }
     results.push(entry)
   }
+  const entry = { id: 'publication-ownership/renderTo/connected-reorder', observations: [], errors: [], complete: false }
+  const check = (property, actual, expected) => entry.observations.push({ property, actual, expected,
+    status: Object.is(actual, expected) ? 'PASS' : 'FAIL' })
+  const container = document.body.appendChild(document.createElement('section'))
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  let rendered = 0, disposed = 0
+  renderer.registerRenderer({
+    type: 'connected-reorder', schema,
+    render() {
+      rendered++
+      const input = document.createElement('input')
+      input.value = 'editable input'
+      return input
+    },
+    destroy() { disposed++ },
+  })
+  const data = ids => ({ version: '2.0.0', blocks: ids.map(id =>
+    ({ id, type: 'connected-reorder', dataVersion: 1, revision: 1, data: {} })) })
+  try {
+    renderer.renderTo(data(['first', 'second']), container)
+    const wrapper = container.firstElementChild
+    const [first, second] = wrapper.children
+    check('hasStatePreservingMove', typeof wrapper.moveBefore, 'function')
+    second.focus()
+    second.value = 'retained input'
+    second.setSelectionRange(2, 5)
+    check('inputInitiallyFocused', document.activeElement === second, true)
+
+    renderer.renderTo(data(['second', 'first']), container)
+    check('sameConnectedNodesInNewOrder', wrapper.firstElementChild === second && wrapper.lastElementChild === first, true)
+    check('retainedFocus', document.activeElement === second, true)
+    check('retainedValue', second.value, 'retained input')
+    check('retainedSelectionStart', second.selectionStart, 2)
+    check('retainedSelectionEnd', second.selectionEnd, 5)
+    check('renderCalls', rendered, 2)
+    check('disposalsWhileMounted', disposed, 0)
+    renderer.destroy(container)
+    check('disposalsAfterDestroy', disposed, 2)
+    entry.complete = true
+  } catch (error) {
+    entry.errors.push(error.stack ?? String(error))
+  } finally {
+    renderer.destroy()
+    container.remove()
+  }
+  results.push(entry)
   return results
 }

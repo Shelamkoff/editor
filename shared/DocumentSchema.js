@@ -16,20 +16,25 @@ function assertPlainJsonObject(value, label) {
 }
 
 /** @param {Record<string, unknown>} value @param {Set<string>} allowed @param {string} label */
-function assertKnownKeys(value, allowed, label) {
-  for (const key of Object.keys(value)) {
-    if (!allowed.has(key)) throw new TypeError(`${label} contains unsupported field "${key}"`)
+function assertEnvelopeKeys(value, allowed, label) {
+  const keys = Reflect.ownKeys(value)
+  for (const key of keys) {
+    if (typeof key === 'string' && !allowed.has(key) && Object.prototype.propertyIsEnumerable.call(value, key)) {
+      throw new TypeError(`${label} contains unsupported field "${key}"`)
+    }
   }
+  assertNoEnumerableSymbols(value, keys, label)
 }
 
 /** Envelope members may not have enumerable symbol keys. Check descriptors
  * without invoking their getters before reading any author-owned payload.
  * @param {object} value
+ * @param {(string | symbol)[]} keys
  * @param {string} label
  */
-function assertNoEnumerableSymbols(value, label) {
-  for (const symbol of Object.getOwnPropertySymbols(value)) {
-    if (Object.prototype.propertyIsEnumerable.call(value, symbol)) {
+function assertNoEnumerableSymbols(value, keys, label) {
+  for (const key of keys) {
+    if (typeof key === 'symbol' && Object.prototype.propertyIsEnumerable.call(value, key)) {
       throw new TypeError(`${label} contains an enumerable symbol key`)
     }
   }
@@ -69,8 +74,7 @@ export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
     assertPlainJsonObject(input, label)
     // Reject undeclared keys by name first. Spreading the entire input would
     // execute their getters before the unsupported-field error is reported.
-    assertKnownKeys(input, BLOCK_KEYS, label)
-    assertNoEnumerableSymbols(input, label)
+    assertEnvelopeKeys(input, BLOCK_KEYS, label)
 
     const id = Object.hasOwn(input, 'id') ? input.id : undefined
     if (typeof id !== 'string' || !id) {
@@ -132,8 +136,7 @@ export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
 export function snapshotCurrentDocumentEnvelope(input, options = {}) {
   return validationBoundary({ reason: 'invalid-input' }, () => {
     assertPlainJsonObject(input, 'Editor document')
-    assertKnownKeys(input, DOCUMENT_KEYS, 'Editor document')
-    assertNoEnumerableSymbols(input, 'Editor document')
+    assertEnvelopeKeys(input, DOCUMENT_KEYS, 'Editor document')
 
     if (!Object.hasOwn(input, 'version')) {
       throw new TypeError('Editor document version is required')
@@ -166,7 +169,8 @@ export function snapshotCurrentDocumentEnvelope(input, options = {}) {
     const snapshotBlock = options.snapshotBlock ?? snapshotCurrentBlockEnvelope
     const ids = new Set()
     const blocks = []
-    for (let index = 0; index < sourceBlocks.length; index++) {
+    const blockCount = sourceBlocks.length
+    for (let index = 0; index < blockCount; index++) {
       if (!Object.hasOwn(sourceBlocks, index)) {
         throw new TypeError('Editor document blocks must be a dense array')
       }
@@ -199,8 +203,12 @@ export function decodeCurrentInlineMap(input, resolvers = {}) {
     // would execute unrelated getters (even from later occurrences) before a
     // known inline schema can reject an unsupported dataVersion.
     const source = /** @type {Record<string, unknown>} */ (input)
-    assertNoEnumerableSymbols(source, 'Inline map')
-    const ids = Object.keys(source)
+    const keys = Reflect.ownKeys(source)
+    assertNoEnumerableSymbols(source, keys, 'Inline map')
+    const ids = []
+    for (const key of keys) {
+      if (typeof key === 'string' && Object.prototype.propertyIsEnumerable.call(source, key)) ids.push(key)
+    }
     /** @type {Record<string, import('./documentTypes').EditorInlineWidget>} */
     const result = {}
 
@@ -208,8 +216,7 @@ export function decodeCurrentInlineMap(input, resolvers = {}) {
       if (!id) throw new TypeError('Inline widget id must be a non-empty string')
       const value = source[id]
       assertPlainJsonObject(value, `Inline widget "${id}"`)
-      assertKnownKeys(value, INLINE_KEYS, `Inline widget "${id}"`)
-      assertNoEnumerableSymbols(value, `Inline widget "${id}"`)
+      assertEnvelopeKeys(value, INLINE_KEYS, `Inline widget "${id}"`)
       const type = Object.hasOwn(value, 'type') ? value.type : undefined
       if (typeof type !== 'string' || !type) {
         throw new TypeError(`Inline widget "${id}" type must be a non-empty string`)

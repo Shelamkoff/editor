@@ -2,7 +2,7 @@ import { getTextOffset } from '../../shared/textOffset.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { createColumnsPlugin } from '../../plugins/columns/index.js'
 import { test, make, blockElement, editorRoot, assert, equal, pause, run } from './regressions/harness.js'
-import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+import { clickNative, dispatchKey, printable, waitForStyles } from './native-input-helpers.js'
 
 for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','e\u0301\u0308','🇷🇺','👨‍👩‍👧‍👦','👍🏽'])test('Mention '+key+' matches native text deletion for '+name,async()=>{
   const editor=make([
@@ -211,6 +211,8 @@ for(const key of ['Backspace','Delete'])test('Mention boundary '+key+' preserves
   const text=key==='Backspace'?'Prefix <b>👨‍👩‍👧‍👦</b>{{person}} tail':'Prefix {{person}}<i>👍🏽</i> tail'
   const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text},inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}}],{injectStyles:true,inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})]})
   const before=editor.save().blocks,field=blockElement(editor,'a').querySelector('.oe-paragraph'),span=field.querySelector('[data-inline-plugin="mention"]'),at=key==='Backspace'?0:4
+  await waitForStyles(document)
+  equal(getComputedStyle(field).whiteSpace,'pre-wrap','Native deletion started before the authoring stylesheet loaded')
   field.focus();window.getSelection().setBaseAndExtent(span.firstChild,at,span.firstChild,at)
   await dispatchKey(key,key,key==='Backspace'?8:46)
   const after=editor.save().blocks
@@ -220,6 +222,38 @@ for(const key of ['Backspace','Delete'])test('Mention boundary '+key+' preserves
   equal(after[0].inline,before[0].inline,'Adjacent deletion changed the mention data')
   await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,before)
   await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,after)
+})
+
+test('Typing after a Mention line break searches only an authored trigger', async () => {
+  const queries = []
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2,
+    data: { text: 'Prefix {{person}}<br> tail' },
+    inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada' } } },
+  }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async query => {
+    queries.push(query)
+    return [{ id: 'bob', name: 'Bob' }]
+  } })] })
+  await waitForStyles(document)
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph')
+  field.focus()
+  getSelection().setBaseAndExtent(field.lastChild, 0, field.lastChild, 0)
+  await printable('Y')
+  equal(queries, [], 'Typing after a line break queried the preceding Mention label')
+  equal(editor.save().blocks[0].data.text, 'Prefix {{person}}<br>Y tail')
+  getSelection().setBaseAndExtent(field.lastChild, 0, field.lastChild, 0)
+  await printable('@')
+  await printable('B')
+  equal(queries.at(-1), 'B', 'Authored trigger after a line break did not start a fresh query')
+  const beforeChoice = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks[0]
+  equal(after.inline.person.data, { id: 'ada', name: 'Ada' })
+  const inserted = Object.keys(after.inline).filter(id => id !== 'person')
+  equal(inserted.length, 1, 'Choosing a result must create a new Mention after the line break')
+  equal(after.inline[inserted[0]].data, { id: 'bob', name: 'Bob' })
+  assert(after.data.text.startsWith(`Prefix {{person}}<br>{{${inserted[0]}}}`), 'Choice replaced the wrong authored range')
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, beforeChoice)
 })
 
 async function suggestions() {

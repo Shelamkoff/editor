@@ -39,7 +39,7 @@ const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="1
  * @returns {import('../../types').BlockRendererDefinition<import('../../../shared/blockDataTypes.js').CodeBlock>}
  */
 export function createCodeRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
-    /** @type {WeakMap<HTMLElement, number>} */
+    /** @type {WeakMap<HTMLElement, { id: number, host: Window | typeof globalThis }>} */
     const resetTimers = new WeakMap()
     /** @type {WeakSet<HTMLElement>} */
     const liveElements = new WeakSet()
@@ -59,6 +59,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
             const { code, language } = block.data
             const ownerDocument = context.ownerDocument
             const view = ownerDocument.defaultView
+            const timerHost = view ?? globalThis
 
             const wrapper = ownerDocument.createElement('div')
             wrapper.className = `${classPrefix}-code`
@@ -90,14 +91,15 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
                     copyBtn.classList.add(`${classPrefix}-code__copy--success`)
 
                     const previousTimer = resetTimers.get(wrapper)
-                    if (previousTimer !== undefined) (view?.clearTimeout ?? clearTimeout)(previousTimer)
-                    const timer = (view?.setTimeout ?? setTimeout)(() => {
+                    if (previousTimer) previousTimer.host.clearTimeout(previousTimer.id)
+                    const id = timerHost.setTimeout(() => {
                         resetTimers.delete(wrapper)
                         if (!liveElements.has(wrapper)) return
                         setTrustedHtml(copyBtn, ICON_CLIPBOARD)
                         copyBtn.classList.remove(`${classPrefix}-code__copy--success`)
                     }, 2000)
-                    resetTimers.set(wrapper, timer)
+                    // The DOM may move to another document before this timer is cleared.
+                    resetTimers.set(wrapper, { id, host: timerHost })
                 } catch {
                     // Clipboard API unavailable (HTTP without localhost)
                 }
@@ -136,8 +138,8 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
         destroy(element) {
             liveElements.delete(element)
             const timer = resetTimers.get(element)
-            if (timer !== undefined) (element.ownerDocument.defaultView?.clearTimeout ?? clearTimeout)(timer)
             resetTimers.delete(element)
+            if (timer) timer.host.clearTimeout(timer.id)
         },
     }
 }

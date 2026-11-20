@@ -76,8 +76,9 @@ function snapshotDenseArray(value,label,{required=false}={}){
     return undefined
   }
   if(!Array.isArray(value))throw new TypeError(`createEditor() ${label} must be an array`)
+  const length=value.length
   const snapshot=[]
-  for(let index=0;index<value.length;index++){
+  for(let index=0;index<length;index++){
     if(!Object.hasOwn(value,index))throw new TypeError(`createEditor() ${label} must be a dense array`)
     snapshot.push(value[index])
   }

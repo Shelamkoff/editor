@@ -227,11 +227,14 @@ test('ExtensionRegistry creates editor-scoped runtimes and releases styles exact
 test('ExtensionRegistry rejects sparse definitions and invalid inline triggers', () => {
   const doc = documentStub()
   const blocks = [blockDefinition('paragraph')]
+  let reads = 0
+  Object.defineProperty(blocks, '0', { get() { reads++; return blockDefinition('paragraph') } })
   blocks.length = 2
   assert.throws(
     () => new ExtensionRegistry({ ownerDocument: doc, blocks }),
     /blocks must be a dense non-empty array/,
   )
+  assert.equal(reads, 0)
   assert.throws(
     () => new ExtensionRegistry({
       ownerDocument: doc,
@@ -780,6 +783,16 @@ test('ExtensionRegistry snapshots registration arrays without caller map or iter
     assert.deepEqual(registry.blockTypes, ['paragraph', 'quote'])
     assert.deepEqual(registry.inlineTypes, ['mention'])
   } finally { registry.destroy() }
+})
+
+test('ExtensionRegistry rejects a definition removed by an earlier definition getter', () => {
+  const first = blockDefinition('paragraph')
+  const blocks = [first, blockDefinition('removed')]
+  Object.defineProperty(blocks, '0', {
+    get() { blocks.length = 1; return first },
+  })
+
+  assert.throws(() => new ExtensionRegistry({ blocks, ownerDocument: documentStub() }), /blocks must be a dense non-empty array/)
 })
 
 test('ExtensionRegistry snapshots toolbox arrays without executing overridden map', () => {

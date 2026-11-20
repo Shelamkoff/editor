@@ -476,7 +476,7 @@ for (const fixture of pluginParityFixtures) {
 
 test('Person can add a blank link and type its URL without invalid canonical data', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Person')
-  const editor = pluginEditor({ ...fixture, data: { persons: [{ id: 'first', name: 'Alpha', role: '', bio: '', avatar: '', links: [] }] } })
+  const editor = pluginEditor({ ...fixture, data: { persons: [{ id: 'first', name: 'Alpha', role: '', bio: '', avatar: '', links: [] }] } }, { historyCoalesceMs: 60_000 })
   const before = editor.save().blocks
   await clickNative(blockElement(editor, 'a').querySelector('.oe-person__link-add'))
   const input = blockElement(editor, 'a').querySelector('input[data-link-id]')

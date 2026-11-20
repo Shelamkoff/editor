@@ -25,16 +25,21 @@ export const ARCHIVE_LIMITS = Object.freeze({
   concurrency: 4,
 })
 
-const WINDOWS_RESERVED_NAME_RE = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i
+const WINDOWS_RESERVED_NAME_RE = /^(?:con|prn|aux|nul|conin\$|conout\$|(?:com|lpt)[1-9¹²³]) *(?:\.|$)/i
+const ARCHIVE_FILENAME_MAX_LENGTH = 128
+const ARCHIVE_FILENAME_MAX_BYTES = 255
+const archiveFilenameEncoder = new TextEncoder()
 
-/** Limit UTF-16 name length without splitting a non-BMP Unicode character.
+/** Fit both the UTF-16 and UTF-8 limits without splitting a Unicode code point.
  * @param {string} value
  * @param {number} maxLength
+ * @param {number} maxBytes
  * @returns {string}
  */
-function truncateArchiveFilename(value, maxLength) {
-  const clipped = value.slice(0, maxLength)
-  return /[\uD800-\uDBFF]$/.test(clipped) ? clipped.slice(0, -1) : clipped
+function truncateArchiveFilename(value, maxLength, maxBytes) {
+  const clipped = value.slice(0, maxLength).replace(/[\uD800-\uDBFF]$/, '')
+  const { read } = archiveFilenameEncoder.encodeInto(clipped, new Uint8Array(maxBytes))
+  return clipped.slice(0, read)
 }
 
 /**
@@ -47,11 +52,14 @@ export function sanitizeArchiveFilename(value, index = 0) {
   const fallback = `file-${index + 1}`
   if (typeof value !== 'string') return fallback
   let name = value
+    // In Unicode mode, this range matches only unpaired surrogates.
+    .replace(/[\uD800-\uDFFF]/gu, '\uFFFD')
     .replace(/[<>:"/\\|?*\x00-\x1f\x7f]/g, '_')
     .replace(/[. ]+$/g, '')
     .trim()
   // Truncation/trim can expose a new unsafe suffix or a reserved basename.
-  name = truncateArchiveFilename(name, 128).replace(/[.\s]+$/u, '')
+  name = truncateArchiveFilename(name, ARCHIVE_FILENAME_MAX_LENGTH, ARCHIVE_FILENAME_MAX_BYTES)
+    .replace(/[.\s]+$/u, '')
   if (!name || name === '.' || name === '..' || WINDOWS_RESERVED_NAME_RE.test(name)) name = fallback
   return name || fallback
 }
@@ -68,13 +76,14 @@ function uniqueArchiveFilename(name, used) {
   const extension = dot > 0 ? name.slice(dot) : ''
   for (let suffix = 2; ; suffix += 1) {
     const marker = ` (${suffix})`
-    // An unusually long extension must leave room for the suffix and at
-    // least one stem code unit; suffixing must never increase the ZIP limit.
-    const safeExtension = truncateArchiveFilename(
-      extension, Math.max(0, 128 - marker.length - 1),
-    ).replace(/[.\s]+$/u, '')
+    const availableLength = ARCHIVE_FILENAME_MAX_LENGTH - marker.length
+    const availableBytes = ARCHIVE_FILENAME_MAX_BYTES - marker.length // The marker is ASCII.
+    // Leave room for the collision suffix and at least an ASCII fallback stem.
+    const safeExtension = truncateArchiveFilename(extension, availableLength - 1, availableBytes - 1)
+      .replace(/[.\s]+$/u, '')
+    const extensionBytes = archiveFilenameEncoder.encode(safeExtension).byteLength
     const safeStem = truncateArchiveFilename(
-      stem, 128 - marker.length - safeExtension.length,
+      stem, availableLength - safeExtension.length, availableBytes - extensionBytes,
     ) || '_'
     const candidate = `${safeStem}${marker}${safeExtension}`
     const candidateKey = candidate.toLocaleLowerCase('en-US')

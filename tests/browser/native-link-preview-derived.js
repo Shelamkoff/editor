@@ -8,8 +8,11 @@ for (const populated of [false, true]) test(`LinkPreview native URL typing prese
   const definition = createLinkPreviewPlugin(), defaults = { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' }
   const initial = populated ? { ...defaults, url: 'https://example.test/story', title: 'Original title',
     description: 'Original description', image: pixel, domain: 'display.example', template: 'horizontal' } : defaults
+  // CDP delivers the URL one key at a time. Keep the test's intended single
+  // Undo group even when the driver pauses between keys under parallel load.
   const editor = make(populated ? [{ id: 'link', type: 'linkPreview', dataVersion: 1, data: initial }] : [],
-    { plugins: [definition], defaultBlock: 'linkPreview', inlineTools: [], ...(!populated ? { data: undefined } : {}) })
+    { plugins: [definition], defaultBlock: 'linkPreview', inlineTools: [], historyCoalesceMs: 60_000,
+      ...(!populated ? { data: undefined } : {}) })
   try {
     const before = editor.save().blocks, id = before[0].id, root = blockElement(editor, id), input = root.querySelector('.oe-lp__url-input')
     const inputs = [], transactions = []

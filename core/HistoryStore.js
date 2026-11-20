@@ -124,6 +124,8 @@ export class HistoryStore {
     const previous = previousEntry?.record
     const continued = this.#coalesceAllowed && this.#redo.length === 0
       && compatibleContinuation(previous, next, continuation)
+    // Both endpoints are owned records. ownRecord captures the merged payload
+    // and bookmarks together, so the values can be passed to that clone directly.
     if (continued) {
       const prior = previous.changes[0]
       const fresh = next.changes[0]
@@ -133,11 +135,11 @@ export class HistoryStore {
         changes: [{
           kind: 'block.update',
           id: prior.id,
-          before: cloneEditorData(prior.before),
-          after: cloneEditorData(fresh.after),
+          before: prior.before,
+          after: fresh.after,
         }],
         selectionAfter: Object.hasOwn(next, 'selectionAfter')
-          ? cloneEditorData(next.selectionAfter)
+          ? next.selectionAfter
           : null,
       })
       candidate = merged
@@ -150,14 +152,14 @@ export class HistoryStore {
         changes: [{
           kind: 'block.update',
           id: previousChange.id,
-          before: cloneEditorData(previousChange.before),
-          after: cloneEditorData(nextChange.after),
+          before: previousChange.before,
+          after: nextChange.after,
         }],
         selectionBefore: Object.hasOwn(previous, 'selectionBefore')
-          ? cloneEditorData(previous.selectionBefore)
+          ? previous.selectionBefore
           : null,
         selectionAfter: Object.hasOwn(next, 'selectionAfter')
-          ? cloneEditorData(next.selectionAfter)
+          ? next.selectionAfter
           : null,
       })
       candidate = merged

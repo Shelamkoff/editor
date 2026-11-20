@@ -187,7 +187,7 @@ export class EditorHandle {
 
   save() {
     this.#assertLive()
-    return cloneEditorData(this.#runtime.save())
+    return this.#runtime.save()
   }
   render(document) {
     this.#assertLive()

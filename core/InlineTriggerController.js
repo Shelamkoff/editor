@@ -1,6 +1,7 @@
 // @ts-check
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
+import { getLogicalTextPrefix, getTextOffset } from '../shared/textOffset.js'
 
 export class InlineTriggerController {
   #root
@@ -165,9 +166,10 @@ export class InlineTriggerController {
   }
 
   #refreshOwner(owner,bookmark){
+    if(!this.#triggers.length)return
     const modeEpoch=this.#modeEpoch
     const activeBefore=this.#active, sessionBefore=activeBefore?.session??null
-    const text=this.#textBeforeCaret(owner.element)
+    const text=this.#textBeforeCaret(owner.element,bookmark.focus.offset)
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
     if(this.#queryReplaced(activeBefore,sessionBefore))return
     if(text===null){
@@ -219,7 +221,7 @@ export class InlineTriggerController {
 
   #publish(active,query,focusOffset){
     const modeEpoch=this.#modeEpoch, sessionBefore=active.session
-    const textPrefix=this.#textBeforeCaret(active.anchor)
+    const textPrefix=this.#textBeforeCaret(active.anchor,focusOffset)
     if(this.#controller.signal.aborted||this.#isReadOnly()
       ||modeEpoch!==this.#modeEpoch||this.#active!==active
       ||active.session!==sessionBefore)return
@@ -347,12 +349,12 @@ export class InlineTriggerController {
     const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
     if(this.#controller.signal.aborted||this.#isReadOnly())return null
     if(field?.element!==active.anchor||!active.anchor.isConnected||!this.#root.contains(active.anchor)
-      ||active.textPrefix===null||!(active.anchor.textContent??'').startsWith(active.textPrefix))return null
+      ||active.textPrefix===null||getLogicalTextPrefix(active.anchor,active.textPrefix.length)!==active.textPrefix)return null
     const bookmark=this.#selection.capture()
     if(this.#controller.signal.aborted||this.#isReadOnly())return null
     const owner={blockId:active.blockId,fieldKey:active.fieldKey}
     if(!bookmark?.anchor||!bookmark?.focus||!this.#collapsedIn(bookmark,owner))return null
-    const text=this.#textBeforeCaret(active.anchor)
+    const text=this.#textBeforeCaret(active.anchor,bookmark.focus.offset)
     if(this.#controller.signal.aborted||this.#isReadOnly())return null
     if(text===null)return null
     const index=text.lastIndexOf(active.trigger)
@@ -383,16 +385,14 @@ export class InlineTriggerController {
       &&bookmark.anchor.offset===bookmark.focus.offset
   }
 
-  #textBeforeCaret(field){
+  #textBeforeCaret(field,offset){
     const document=this.#root.ownerDocument
     const selection=document.defaultView?.getSelection()??null
-    if(!selection?.focusNode||!field.contains(selection.focusNode)
-      ||this.#projection?.resolveWidgetElement(selection.focusNode))return null
+    const node=selection?.focusNode,nativeOffset=selection?.focusOffset
+    if(!node||!field.contains(node)||this.#projection?.resolveWidgetElement(node))return null
     try{
-      const range=document.createRange()
-      range.selectNodeContents(field)
-      range.setEnd(selection.focusNode,selection.focusOffset)
-      return range.toString()
+      if(getTextOffset(field,node,nativeOffset)!==offset)return null
+      return getLogicalTextPrefix(field,offset)
     }catch{
       return null
     }

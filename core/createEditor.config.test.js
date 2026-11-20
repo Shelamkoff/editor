@@ -107,6 +107,15 @@ test('createEditor rejects sparse v2 extension arrays without reading inherited 
   }
 })
 
+test('createEditor does not silently drop an extension removed during configuration capture', () => {
+  const plugins = [{}, {}]
+  Object.defineProperty(plugins, '0', {
+    get() { plugins.length = 1; return {} },
+  })
+
+  assert.throws(() => createEditor({ plugins }), /plugins must be a dense array/)
+})
+
 test('createEditor accepts a holder from its owning browsing realm', () => {
   class AmbientElement {}
   class ForeignElement {

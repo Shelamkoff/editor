@@ -19,6 +19,17 @@ function run(executable, args, cwd, options = {}) {
     windowsHide: true, env: options.env ?? process.env })
 }
 
+function runWithGitArchiveModes(args, cwd, options) {
+  // npm packs the modes from its Git checkout during pack and install. Match
+  // the locked artifact's mask only for children using private temp storage.
+  const previousMask = process.umask(0o022)
+  try {
+    return run(node, [npmCli, ...args], cwd, options)
+  } finally {
+    process.umask(previousMask)
+  }
+}
+
 async function writeJson(path, value) {
   await mkdir(dirname(path), { recursive: true })
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
@@ -113,8 +124,8 @@ try {
     // published pin into this disposable cache before the offline install.
     // Both the CLI flag and inherited npm config disable lifecycle scripts,
     // including any child npm process used while preparing a Git package.
-    const packed = JSON.parse(run(node, [
-      npmCli, 'pack', dependency.spec, '--ignore-scripts', '--json',
+    const packed = JSON.parse(runWithGitArchiveModes([
+      'pack', dependency.spec, '--ignore-scripts', '--json',
       '--pack-destination', gitPackRoot, '--cache', npmCache,
     ], editorRoot, { capture: true, env: dependencyInstallEnv }))
     if (packed.length !== 1 || packed[0].name !== dependency.name || packed[0].version !== dependency.version) {
@@ -208,8 +219,7 @@ try {
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })
   await writeJson(join(consumerRoot, 'package.json'), { private: true, type: 'module' })
-  run(node, [
-    npmCli,
+  runWithGitArchiveModes([
     'install',
     '--offline',
     '--ignore-scripts',

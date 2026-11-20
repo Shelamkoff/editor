@@ -35,6 +35,7 @@ export class InteractionState {
 
   get selectedIds() {
     const selected = this.#selected
+    if (selected.size === 0) return []
     return this.#runtime.ids().filter(id => selected.has(id))
   }
 

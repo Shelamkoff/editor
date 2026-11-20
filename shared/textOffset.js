@@ -74,6 +74,21 @@ export function getTextLength(root) {
   return textLengthWithin(root, root)
 }
 
+/** Read authored text up to a logical UTF-16 offset. Atomic leaves occupy
+ * one unit and separate text runs regardless of their projected labels.
+ * @param {Node} root
+ * @param {number} offset
+ * @returns {string}
+ */
+export function getLogicalTextPrefix(root, offset) {
+  let text = ''
+  for (const node of positionNodes(root)) {
+    if (text.length >= offset) break
+    text += isAtomic(node) ? '\n' : (node.textContent ?? '').slice(0, offset - text.length)
+  }
+  return text
+}
+
 /** Determine whether a logical UTF-16 offset divides a surrogate pair.
  * Adjacent authored Text leaves share one logical string even when formatting
  * wrappers split their DOM representation. BRs and inline widgets are atomic

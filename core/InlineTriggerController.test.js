@@ -75,16 +75,14 @@ function triggerScenario(query,keydown,commitTrigger=()=>false,hooks={}) {
   let readOnly=false
   const label={nodeType:3,textContent:'@'}
   const field={
-    isConnected:true,textContent:'@',
-    contains(node){return node===label},
+    nodeType:1,tagName:'P',isConnected:true,textContent:'@',childNodes:[label],
+    hasAttribute(){return false},
+    contains(node){return node===this||node===label},
   }
+  label.parentNode=field
   const document={
     defaultView:{AbortController,getSelection(){return hooks.getSelection
       ? hooks.getSelection(label) : {focusNode:label,focusOffset:1}}},
-    createRange(){return {
-      selectNodeContents(){},setEnd(){},
-      toString(){return hooks.textBeforeCaret?.() ?? '@'},
-    }},
     addEventListener(type, callback){documentEvents.set(type, callback)},
   }
   const root={
@@ -553,17 +551,13 @@ test('failed inline trigger listener registration aborts every partially install
 })
 test('inline query preflight must not publish a stale trigger when the caret moves during range capture', () => {
   for (const variant of ['selection-lost', 'prefix-changed']) {
-    let nativeReads = 0, prefixReads = 0
+    let nativeReads = 0
     const h = triggerScenario(null, () => 'pass', () => false, {
       getSelection(label) {
         nativeReads++
         if (variant === 'selection-lost' && nativeReads === 2) return null
+        if (variant === 'prefix-changed' && nativeReads === 2) label.textContent = 'A'
         return { focusNode: label, focusOffset: 1 }
-      },
-      textBeforeCaret() {
-        prefixReads++
-        if (variant === 'prefix-changed' && prefixReads === 2) return '@another'
-        return '@'
       },
     })
     assert.equal(h.controller.refresh(), false,

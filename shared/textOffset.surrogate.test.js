@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { getTextLength, getTextOffset, findNodeAtOffset, splitsSurrogateAtOffset, editableTextWalker, firstTextNode, lastTextNode } from './textOffset.js'
+import { getLogicalTextPrefix, getTextLength, getTextOffset, findNodeAtOffset, splitsSurrogateAtOffset, editableTextWalker, firstTextNode, lastTextNode } from './textOffset.js'
 
 const text = value => ({ nodeType: 3, textContent: value, childNodes: [] })
 function element(tag, children, attrs = {}) {
@@ -107,6 +107,13 @@ test('inline widgets remain atomic while nested independent editing hosts do not
   const next = findNodeAtOffset(root, 2, 'start')
   assert.equal(next.node, tail)
   assert.equal(next.offset, 0)
+})
+
+test('logical text prefixes preserve authored run boundaries and ignore projected labels', () => {
+  const root = wire(element('div', [text('A'), element('span', [text('@Ada')], { 'data-inline-plugin': '' }),
+    element('br', []), element('button', [text('@Action')]), element('b', [text('@Bo')])], { contenteditable: 'true' }))
+  assert.equal(getLogicalTextPrefix(root, 5), 'A\n\n@B')
+  assert.equal(getLogicalTextPrefix(root, getTextLength(root)), 'A\n\n@Bo')
 })
 
 

@@ -1,12 +1,10 @@
+import { mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { buildPackage } from '../scripts/build-package.mjs'
 
 const editorRoot = fileURLToPath(new URL('../', import.meta.url))
-
-// Measure the package boundary consumers receive, not workspace-relative
-// sibling sources. The package build also rewrites sibling libraries to their
-// published @shelamkoff/* specifiers before Rollup evaluates the entry graph.
-await import('../scripts/build-package.mjs')
 
 const viteSpecifier = process.env.EDITOR_VITE_MODULE_PATH
   ? pathToFileURL(process.env.EDITOR_VITE_MODULE_PATH).href
@@ -87,12 +85,23 @@ async function measurePreset(preset, input) {
   }
 }
 
-const rows = [
-  await measurePreset('core', fileURLToPath(new URL('../dist/core/index.js', import.meta.url))),
-  await measurePreset('paragraph', fileURLToPath(new URL('../dist/plugins/paragraph/index.js', import.meta.url))),
-  await measurePreset('defaultInteractive', fileURLToPath(new URL('../dist/preset/index.js', import.meta.url))),
-  await measurePreset('fullPreset', fileURLToPath(new URL('../dist/plugins/index.js', import.meta.url))),
-]
+// Build the published package layout in a private directory inside the
+// workspace so Rollup can resolve its dependencies without touching dist/.
+const resultsRoot = join(editorRoot, 'test-results')
+await mkdir(resultsRoot, { recursive: true })
+const buildRoot = await mkdtemp(join(resultsRoot, 'bundle-budget-'))
+let rows
+try {
+  await buildPackage(buildRoot)
+  rows = [
+    await measurePreset('core', join(buildRoot, 'core/index.js')),
+    await measurePreset('paragraph', join(buildRoot, 'plugins/paragraph/index.js')),
+    await measurePreset('defaultInteractive', join(buildRoot, 'preset/index.js')),
+    await measurePreset('fullPreset', join(buildRoot, 'plugins/index.js')),
+  ]
+} finally {
+  await rm(buildRoot, { recursive: true, force: true })
+}
 
 console.table(rows.map(({ gzipBytes: _gzipBytes, ...row }) => row))
 

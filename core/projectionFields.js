@@ -29,7 +29,8 @@ export function captureEditableFields(source) {
   const keys = new Set()
   const elements = new Set()
   const fields = []
-  for (let index = 0; index < source.length; index++) {
+  const length = source.length
+  for (let index = 0; index < length; index++) {
     if (!Object.hasOwn(source, index)) throw new TypeError('Editable fields must be a dense array')
     const field = source[index]
     const key = field?.key

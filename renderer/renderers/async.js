@@ -67,9 +67,12 @@ function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
   if (Array.isArray(source)) {
     const types = []
-    for (let index = 0; index < source.length; index++) {
+    const length = source.length
+    for (let index = 0; index < length; index++) {
       if (!Object.hasOwn(source, index)) throw new RangeError('Unknown editor block renderer type: undefined')
-      types.push(source[index])
+      const type = source[index]
+      if (typeof type !== 'string') throw new TypeError('Editor renderer type must be a string')
+      types.push(type)
     }
     return [...new Set(types)]
   }
@@ -102,6 +105,7 @@ export function getAsyncRendererTypes() {
  * @throws {RangeError} when `type` is not a built-in renderer type
  */
 export async function loadRendererFactory(type) {
+  if (typeof type !== 'string') throw new TypeError('Editor renderer type must be a string')
   if (!Object.hasOwn(rendererLoaders, type)) throw new RangeError(`Unknown editor renderer type: ${type}`)
   const loader = rendererLoaders[/** @type {import('../../shared/blockDataTypes.js').BlockType} */ (type)]
   return loader()

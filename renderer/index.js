@@ -14,13 +14,30 @@ function assertOptionalRecord(value, label) {
   }
 }
 
-/** @param {unknown[]} value @param {string} label */
-function assertDenseArray(value, label) {
-  for (let index = 0; index < value.length; index++) {
-    if (!Object.hasOwn(value, index)) {
-      throw new TypeError(`EditorRenderer ${label} must be a dense array`)
-    }
+/** @template T @template U
+ * @param {readonly T[]} value @param {string} label @param {(entry: T) => U} read
+ * @returns {U[]} */
+function snapshotDenseArray(value, label, read) {
+  const length = value.length
+  const error = `EditorRenderer ${label} must be a dense array`
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(value, index)) throw new TypeError(error)
   }
+  const entries = []
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(value, index)) throw new TypeError(error)
+    entries.push(read(value[index]))
+  }
+  return entries
+}
+
+/** @param {unknown} input @param {string} label */
+function snapshotStyles(input, label) {
+  if (!Array.isArray(input)) throw new TypeError(`EditorRenderer ${label} must be an array of strings`)
+  return snapshotDenseArray(input, label, url => {
+    if (typeof url !== 'string') throw new TypeError(`EditorRenderer ${label} must be an array of strings`)
+    return url
+  })
 }
 
 /** @param {import('./types').RendererConfig} config @returns {void} */
@@ -49,29 +66,21 @@ function validateRendererConfig(config) {
     if (!Array.isArray(config.blockTypes)) {
       throw new TypeError('EditorRenderer blockTypes must be an array')
     }
-    assertDenseArray(config.blockTypes, 'blockTypes')
     const supported = new Set(getSupportedBlockTypes())
-    /** @type {import('../shared/blockDataTypes.js').BlockType[]} */
-    const snapshot = []
-    for (let index = 0; index < config.blockTypes.length; index++) {
-      const type = config.blockTypes[index]
+    config.blockTypes = snapshotDenseArray(config.blockTypes, 'blockTypes', type => {
       if (typeof type !== 'string' || !supported.has(type)) {
         throw new TypeError(`EditorRenderer unknown block type: ${String(type)}`)
       }
-      snapshot.push(type)
-    }
-    config.blockTypes = snapshot
+      return type
+    })
   }
   config.blockConfigs = snapshotBlockConfigs(config.blockConfigs, config.blockTypes)
   if (config.inlineRenderers !== undefined) {
     if (!Array.isArray(config.inlineRenderers)) {
       throw new TypeError('EditorRenderer inlineRenderers must be an array')
     }
-    assertDenseArray(config.inlineRenderers, 'inlineRenderers')
     const types = new Set()
-    const renderers = []
-    for (let index = 0; index < config.inlineRenderers.length; index++) {
-      const source = config.inlineRenderers[index]
+    config.inlineRenderers = snapshotDenseArray(config.inlineRenderers, 'inlineRenderers', source => {
       if (!source || typeof source !== 'object' || Array.isArray(source)) {
         throw new TypeError('EditorRenderer inline renderer must have a non-empty string type')
       }
@@ -93,25 +102,17 @@ function validateRendererConfig(config) {
       let styles
       const inputStyles = source.styles
       if (inputStyles !== undefined) {
-        if (!Array.isArray(inputStyles)) throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
-        assertDenseArray(inputStyles, `inline renderer "${type}" styles`)
-        styles = []
-        for (let index = 0; index < inputStyles.length; index++) {
-          const url = inputStyles[index]
-          if (typeof url !== 'string') throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
-          styles.push(url)
-        }
+        styles = snapshotStyles(inputStyles, `inline renderer "${type}" styles`)
       }
       if (types.has(type)) throw new Error(`Duplicate renderer inline renderer type: "${type}"`)
       types.add(type)
-      renderers.push(Object.freeze({
+      return Object.freeze({
         type,
         schema,
         render: Reflect.apply(Function.prototype.bind, render, [source]),
         ...(styles ? { styles: Object.freeze(styles) } : {}),
-      }))
-    }
-    config.inlineRenderers = renderers
+      })
+    })
   }
 
 }
@@ -197,22 +198,8 @@ function snapshotCustomRenderer(renderer) {
     throw new TypeError(`EditorRenderer custom renderer "${type}" must implement render()`)
   }
 
-  let styles
   const inputStyles = candidate.styles
-  if (inputStyles !== undefined) {
-    if (!Array.isArray(inputStyles)) {
-      throw new TypeError(`EditorRenderer custom renderer "${type}" styles must be an array of strings`)
-    }
-    assertDenseArray(inputStyles, `custom renderer "${type}" styles`)
-    styles = []
-    for (let index = 0; index < inputStyles.length; index++) {
-      const url = inputStyles[index]
-      if (typeof url !== 'string') {
-        throw new TypeError(`EditorRenderer custom renderer "${type}" styles must be an array of strings`)
-      }
-      styles.push(url)
-    }
-  }
+  const styles = inputStyles === undefined ? undefined : snapshotStyles(inputStyles, `custom renderer "${type}" styles`)
 
   const destroy = candidate.destroy
   if (destroy !== undefined && typeof destroy !== 'function') {
