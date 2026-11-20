@@ -145,3 +145,14 @@ test('diagnostics do not invoke metadata getters supplied by extensions', async 
   assert.equal(received[0].operation, 'clipboard.paste')
   assert.equal('pluginType' in received[0], false)
 })
+
+test('diagnostics capture the error name only once', () => {
+  const error = new Error('operation failed')
+  let reads = 0
+  Object.defineProperty(error, 'name', {
+    get() { return ++reads === 1 ? 'OperationError' : 'StaleError' },
+  })
+
+  assert.equal(new Diagnostics(() => {}).errorName(error), 'OperationError')
+  assert.equal(reads, 1)
+})

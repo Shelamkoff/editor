@@ -812,7 +812,7 @@ export class ClipboardController {
       const original = input.kind === 'file'
         ? { kind: 'file', file: input.file }
         : { kind: 'text', text: input.text }
-      const current = this.#runtime.get(blockId)
+      const current = this.#runtime.peek(blockId)
       if (!this.#canPaste(modeEpoch, turn, event)) return null
       const ordered = current
         ? [current.type, ...this.#registry.blockTypes.filter(type => type !== current.type)]
@@ -913,7 +913,7 @@ export class ClipboardController {
     void (async () => {
       const resolved=[]
       for (const { input, route } of items) {
-        if (!stillOwned() || !this.#runtime.get(owner.blockId) || !stillOwned()) return
+        if (!stillOwned() || !this.#runtime.has(owner.blockId) || !stillOwned()) return
         let result
         try {
           result = await route.resolve({
@@ -970,7 +970,7 @@ export class ClipboardController {
         ||this.#runtime.revision!==revision
         ||JSON.stringify(this.#selection.capture())!==selectionKey
         ||!stillOwned()
-        ||!this.#runtime.get(owner.blockId)
+        ||!this.#runtime.has(owner.blockId)
         ||!stillOwned()
       )return
 

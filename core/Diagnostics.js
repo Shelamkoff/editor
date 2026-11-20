@@ -82,6 +82,11 @@ export class Diagnostics {
 
   /** @param {unknown} error */
   errorName(error) {
-    return error instanceof Error && error.name ? error.name : 'UnknownError'
+    try {
+      const name = error instanceof Error ? error.name : undefined
+      return typeof name === 'string' && name ? name : 'UnknownError'
+    } catch {
+      return 'UnknownError'
+    }
   }
 }

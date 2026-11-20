@@ -31,7 +31,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     generation: 1,
     revision: 0,
     has: id => id === 'a',
-    get: () => ({ id: 'a', type: 'paragraph' }),
+    peek: id => id === 'a' ? { id, type: 'paragraph' } : null,
     interact(_name, operation, selectionAfter) {
       const result = operation()
       selectionAfter?.(result)
@@ -1273,6 +1273,7 @@ test('multiple valid files still publish one ordered Paste transaction', async (
   const matched = []
   const resolved = []
   const transactions = []
+  let fullReads = 0
   const fixture = clipboardHarness({
     formats: ['Files'],
     files: [{ name: 'first.txt' }, { name: 'second.txt' }],
@@ -1285,6 +1286,10 @@ test('multiple valid files still publish one ordered Paste transaction', async (
       return { kind: 'rich-text', replacement: { kind: 'text', text: input.file.name } }
     },
   })
+  fixture.runtime.get = id => {
+    fullReads++
+    return { id, type: 'paragraph' }
+  }
   fixture.runtime.applyPasteResults = (_blockId, _fieldKey, _range, items) => {
     transactions.push(items)
     fixture.runtime.revision++
@@ -1299,5 +1304,6 @@ test('multiple valid files still publish one ordered Paste transaction', async (
     assert.equal(transactions.length, 1)
     assert.deepEqual(transactions[0].map(item => item.result.replacement.text),
       ['first.txt', 'second.txt'])
+    assert.equal(fullReads, 0)
   } finally { fixture.controller.destroy() }
 })

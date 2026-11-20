@@ -198,3 +198,28 @@ test('createEditor reports early failure through its shared diagnostics boundary
     'early creation diagnostics must contain only their declared metadata',
   )
 })
+
+test('diagnostics preserve the original creation error when its name getter throws', async () => {
+  const creationError = new Error('DOM creation failed')
+  const nameError = new Error('error name is unavailable')
+  Object.defineProperty(creationError, 'name', { get() { throw nameError } })
+  const originalChild = {}
+  const holder = new FakeHolder()
+  holder.childNodes = [originalChild]
+  holder.ownerDocument = {
+    defaultView: { HTMLElement: FakeHolder },
+    createElement() { throw creationError },
+  }
+  holder.replaceChildren = (...children) => { holder.childNodes = children }
+  const events = []
+
+  assert.throws(
+    () => createEditor({ holder, plugins: [{}], onDiagnostic: event => events.push(event) }),
+    error => error === creationError,
+  )
+  assert.deepEqual(holder.childNodes, [originalChild])
+  await Promise.resolve()
+  assert.equal(events.length, 1)
+  assert.equal(events[0].code, 'editor.create.failed')
+  assert.equal(events[0].errorName, 'UnknownError')
+})

@@ -90,6 +90,19 @@ test('runtime voter limit is a non-negative integer with a stable fallback', () 
   assert.equal(normalizePollResults(input, [], Number.NaN).voters.length, 3)
 })
 
+test('runtime voter normalization stops once it has retained the configured number of unique voters', () => {
+  const voters = [null, { id: 'first' }, { id: 'first' }, { id: 'second', optionIds: ['b', 'a'] }]
+  let tailReads = 0
+  Object.defineProperty(voters, voters.length, {
+    get() { tailReads++; return { id: 'third' } },
+  })
+
+  const result = normalizePollResults({ voters, votersTotal: 100 }, ['a', 'b'], 2, 'single')
+  assert.deepEqual(result.voters, [{ id: 'first' }, { id: 'second', optionIds: ['b'] }])
+  assert.equal(result.votersTotal, 100)
+  assert.equal(tailReads, 0)
+})
+
 test('local voting replaces the previous user vote without double-counting', () => {
   const first = applyLocalPollVote(undefined, [], ['a'], ['a', 'b'])
   assert.deepEqual(first.options, [{ id: 'a', votes: 1 }, { id: 'b', votes: 0 }])

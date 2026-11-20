@@ -169,13 +169,16 @@ for (const lifetime of ['live', 'mode-retired', 'destroyed']) {
     let caught
     try { task.commit(() => { throw fault }) } catch (error) { caught = error }
     assert(caught === fault)
-    equal([metadata, nested, delivered, later], [2, 0, 0, 0])
+    const metadataReads = metadata
+    assert(metadataReads > 0, 'The diagnostic read the error name')
+    equal([nested, delivered, later, blocked], [0, 0, 0, metadataReads])
     equal(events, [])
     equal(task.signal.aborted, true)
     if (lifetime === 'mode-retired') { h.editor.setReadOnly(true); h.editor.setReadOnly(false) }
     else if (lifetime === 'destroyed') h.editor.destroy()
     await pause(0)
-    equal([metadata, nested, delivered, later, blocked], [2, 0, 1, lifetime === 'destroyed' ? 0 : 1, lifetime === 'destroyed' ? 3 : 2])
+    const destroyed = lifetime === 'destroyed'
+    equal([metadata, nested, delivered, later, blocked], [metadataReads, 0, 1, destroyed ? 0 : 1, metadataReads + Number(destroyed)])
     equal(task.commit(() => { oldProducers++; return {} }, { get mergeWithPreviousField() { oldOptions++; return 'url' } }), false)
     equal([oldOptions, oldProducers], [0, 0])
     equal(diagnostics, [{ code: 'command.failed', operation: 'block.update', errorName: 'DeferredProbeError',

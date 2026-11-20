@@ -42,7 +42,7 @@ function fixture({ resolve, apply, createObjectURL, reconcile, revokeFailure = n
     revision: 0,
     modeEpoch: 0,
     has: id => id === 'a',
-    get: id => id === 'a' ? { id: 'a', type: 'video' } : null,
+    peek: id => id === 'a' ? { id, type: 'video' } : null,
     createDataId: prefix => prefix + '-1',
     prepareExtensionValue: action => action(),
     interact(_name, action, selectionAfter) {

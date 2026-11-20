@@ -51,6 +51,11 @@ function retainedVoterLimit(input) {
 export function normalizePollResults(input, optionIds, maxVoters = 50, selectionType = 'multiple') {
   const source = isRecord(input) ? /** @type {Record<string, unknown>} */ (input) : {}
   const allowed = new Set(optionIds)
+  /** @param {string[]} ids */
+  const retainSelection = ids => {
+    const selected = [...new Set(ids.filter(id => typeof id === 'string' && allowed.has(id)))]
+    return selectionType === 'single' ? selected.slice(0, 1) : selected
+  }
   const voterLimit = Number.isFinite(maxVoters)
     ? Math.max(0, Math.floor(maxVoters))
     : 50
@@ -73,31 +78,33 @@ export function normalizePollResults(input, optionIds, maxVoters = 50, selection
   const result = { total, options }
   if (typeof source.revision === 'string' && source.revision) result.revision = source.revision
   if (Array.isArray(source.currentUserVote)) {
-    const selected = [...new Set(source.currentUserVote.filter(id => typeof id === 'string' && allowed.has(id)))]
-    result.currentUserVote = selectionType === 'single' ? selected.slice(0, 1) : selected
+    result.currentUserVote = retainSelection(source.currentUserVote)
   }
   if (typeof source.votersTotal === 'number'
     && Number.isFinite(source.votersTotal)
     && source.votersTotal >= 0) {
     result.votersTotal = Math.floor(source.votersTotal)
   }
-  if (Array.isArray(source.voters)) {
+  const voters = source.voters
+  if (Array.isArray(voters)) {
     const voterIds = new Set()
-    result.voters = source.voters.flatMap(voter => {
-      if (!isRecord(voter) || typeof voter.id !== 'string' || !voter.id) return []
-      if (voterIds.has(voter.id) || voterIds.size >= voterLimit) return []
-      voterIds.add(voter.id)
+    result.voters = []
+    for (let index = 0, length = voters.length; index < length && voterIds.size < voterLimit; index++) {
+      const voter = voters[index]
+      if (!isRecord(voter)) continue
+      const id = voter.id
+      if (typeof id !== 'string' || !id || voterIds.has(id)) continue
+      voterIds.add(id)
       /** @type {PollVoter} */
-      const safe = { id: voter.id }
+      const safe = { id }
       if (typeof voter.name === 'string') safe.name = voter.name
       const avatar = sanitizeUrl(typeof voter.avatar === 'string' ? voter.avatar : '', { policy: 'media', fallback: '' })
       if (avatar) safe.avatar = avatar
       if (Array.isArray(voter.optionIds)) {
-        const selected = [...new Set(voter.optionIds.filter(id => typeof id === 'string' && allowed.has(id)))]
-        safe.optionIds = selectionType === 'single' ? selected.slice(0, 1) : selected
+        safe.optionIds = retainSelection(voter.optionIds)
       }
-      return [safe]
-    })
+      result.voters.push(safe)
+    }
   }
   return result
 }
